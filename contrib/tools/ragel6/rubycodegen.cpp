@@ -58,6 +58,7 @@ using std::endl;
 extern CodeStyle codeStyle;
 
 extern int numSplitPartitions;
+extern bool noLineDirectives;
 
 /*
  * Callbacks invoked by the XML data parser.
@@ -66,6 +67,9 @@ extern int numSplitPartitions;
 
 void rubyLineDirective( ostream &out, const char *fileName, int line )
 {
+	if ( noLineDirectives )
+		return;
+
 	/* Write a comment containing line info. */
 	out << "# line " << line  << " \"";
 	for ( const char *pc = fileName; *pc != 0; pc++ ) {
@@ -307,8 +311,9 @@ string RubyCodeGen::GET_KEY()
 		ret << ")";
 	}
 	else {
-		/* Expression for retrieving the key, use simple dereference. */
-		ret << DATA() << "[" << P() << "]";
+		/* Expression for retrieving the key, use dereference and read ordinal,
+		 * for compatibility with Ruby 1.9. */
+		ret << DATA() << "[" << P() << "].ord";
 	}
 	return ret.str();
 }
@@ -425,7 +430,7 @@ void RubyCodeGen::STATE_IDS()
 
 	out << "\n";
 
-	if ( entryPointNames.length() > 0 ) {
+	if ( !noEntry && entryPointNames.length() > 0 ) {
 		for ( EntryNameVect::Iter en = entryPointNames; en.lte(); en++ ) {
 			STATIC_VAR( "int", DATA_PREFIX() + "en_" + *en ) << 
 					" = " << entryPointIds[en.pos()] << ";\n";

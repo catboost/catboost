@@ -340,8 +340,10 @@ string CSharpFsmCodeGen::ALPHA_KEY( Key key )
 	if (key.getVal() > 0xFFFF) {
 		ret << key.getVal();
 	} else {
-		ret << "'\\u" << std::hex << std::setw(4) << std::setfill('0') << 
-			key.getVal() << "'";
+		if ( keyOps->alphType->isChar )
+			ret << "'\\u" << std::hex << std::setw(4) << std::setfill('0') << key.getVal() << "'";
+		else
+			ret << key.getVal();
 	}
 	//ret << "(char) " << key.getVal();
 	return ret.str();
@@ -633,7 +635,7 @@ void CSharpFsmCodeGen::STATE_IDS()
 
 	out << "\n";
 
-	if ( entryPointNames.length() > 0 ) {
+	if ( !noEntry && entryPointNames.length() > 0 ) {
 		for ( EntryNameVect::Iter en = entryPointNames; en.lte(); en++ ) {
 			STATIC_VAR( "int", DATA_PREFIX() + "en_" + *en ) << 
 					" = " << entryPointIds[en.pos()] << ";\n";
@@ -672,7 +674,12 @@ string CSharpCodeGen::GET_KEY()
 	}
 	else {
 		/* Expression for retrieving the key, use simple dereference. */
-		ret << "data[" << P() << "]";
+		if ( dataExpr == 0 )
+			ret << "data";
+		else
+			INLINE_LIST( ret, dataExpr, 0, false );
+
+		ret << "[" << P() << "]";
 	}
 	return ret.str();
 }

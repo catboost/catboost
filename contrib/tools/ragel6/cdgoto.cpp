@@ -118,7 +118,7 @@ void GotoCodeGen::emitSingleSwitch( RedStateAp *state )
 	if ( numSingles == 1 ) {
 		/* If there is a single single key then write it out as an if. */
 		out << "\tif ( " << GET_WIDE_KEY(state) << " == " << 
-				KEY(data[0].lowKey) << " )\n\t\t"; 
+				WIDE_KEY(state, data[0].lowKey) << " )\n\t\t"; 
 
 		/* Virtual function for writing the target of the transition. */
 		TRANS_GOTO(data[0].value, 0) << "\n";
@@ -129,7 +129,7 @@ void GotoCodeGen::emitSingleSwitch( RedStateAp *state )
 
 		/* Write out the single indicies. */
 		for ( int j = 0; j < numSingles; j++ ) {
-			out << "\t\tcase " << KEY(data[j].lowKey) << ": ";
+			out << "\t\tcase " << WIDE_KEY(state, data[j].lowKey) << ": ";
 			TRANS_GOTO(data[j].value, 0) << "\n";
 		}
 		
@@ -158,10 +158,10 @@ void GotoCodeGen::emitRangeBSearch( RedStateAp *state, int level, int low, int h
 	if ( anyLower && anyHigher ) {
 		/* Can go lower and higher than mid. */
 		out << TABS(level) << "if ( " << GET_WIDE_KEY(state) << " < " << 
-				KEY(data[mid].lowKey) << " ) {\n";
+				WIDE_KEY(state, data[mid].lowKey) << " ) {\n";
 		emitRangeBSearch( state, level+1, low, mid-1 );
 		out << TABS(level) << "} else if ( " << GET_WIDE_KEY(state) << " > " << 
-				KEY(data[mid].highKey) << " ) {\n";
+				WIDE_KEY(state, data[mid].highKey) << " ) {\n";
 		emitRangeBSearch( state, level+1, mid+1, high );
 		out << TABS(level) << "} else\n";
 		TRANS_GOTO(data[mid].value, level+1) << "\n";
@@ -169,7 +169,7 @@ void GotoCodeGen::emitRangeBSearch( RedStateAp *state, int level, int low, int h
 	else if ( anyLower && !anyHigher ) {
 		/* Can go lower than mid but not higher. */
 		out << TABS(level) << "if ( " << GET_WIDE_KEY(state) << " < " << 
-				KEY(data[mid].lowKey) << " ) {\n";
+				WIDE_KEY(state, data[mid].lowKey) << " ) {\n";
 		emitRangeBSearch( state, level+1, low, mid-1 );
 
 		/* if the higher is the highest in the alphabet then there is no
@@ -180,14 +180,14 @@ void GotoCodeGen::emitRangeBSearch( RedStateAp *state, int level, int low, int h
 		}
 		else {
 			out << TABS(level) << "} else if ( " << GET_WIDE_KEY(state) << " <= " << 
-					KEY(data[mid].highKey) << " )\n";
+					WIDE_KEY(state, data[mid].highKey) << " )\n";
 			TRANS_GOTO(data[mid].value, level+1) << "\n";
 		}
 	}
 	else if ( !anyLower && anyHigher ) {
 		/* Can go higher than mid but not lower. */
 		out << TABS(level) << "if ( " << GET_WIDE_KEY(state) << " > " << 
-				KEY(data[mid].highKey) << " ) {\n";
+				WIDE_KEY(state, data[mid].highKey) << " ) {\n";
 		emitRangeBSearch( state, level+1, mid+1, high );
 
 		/* If the lower end is the lowest in the alphabet then there is no
@@ -198,7 +198,7 @@ void GotoCodeGen::emitRangeBSearch( RedStateAp *state, int level, int low, int h
 		}
 		else {
 			out << TABS(level) << "} else if ( " << GET_WIDE_KEY(state) << " >= " << 
-					KEY(data[mid].lowKey) << " )\n";
+					WIDE_KEY(state, data[mid].lowKey) << " )\n";
 			TRANS_GOTO(data[mid].value, level+1) << "\n";
 		}
 	}
@@ -206,18 +206,18 @@ void GotoCodeGen::emitRangeBSearch( RedStateAp *state, int level, int low, int h
 		/* Cannot go higher or lower than mid. It's mid or bust. What
 		 * tests to do depends on limits of alphabet. */
 		if ( !limitLow && !limitHigh ) {
-			out << TABS(level) << "if ( " << KEY(data[mid].lowKey) << " <= " << 
+			out << TABS(level) << "if ( " << WIDE_KEY(state, data[mid].lowKey) << " <= " << 
 					GET_WIDE_KEY(state) << " && " << GET_WIDE_KEY(state) << " <= " << 
-					KEY(data[mid].highKey) << " )\n";
+					WIDE_KEY(state, data[mid].highKey) << " )\n";
 			TRANS_GOTO(data[mid].value, level+1) << "\n";
 		}
 		else if ( limitLow && !limitHigh ) {
 			out << TABS(level) << "if ( " << GET_WIDE_KEY(state) << " <= " << 
-					KEY(data[mid].highKey) << " )\n";
+					WIDE_KEY(state, data[mid].highKey) << " )\n";
 			TRANS_GOTO(data[mid].value, level+1) << "\n";
 		}
 		else if ( !limitLow && limitHigh ) {
-			out << TABS(level) << "if ( " << KEY(data[mid].lowKey) << " <= " << 
+			out << TABS(level) << "if ( " << WIDE_KEY(state, data[mid].lowKey) << " <= " << 
 					GET_WIDE_KEY(state) << " )\n";
 			TRANS_GOTO(data[mid].value, level+1) << "\n";
 		}
@@ -543,15 +543,32 @@ std::ostream &GotoCodeGen::FINISH_CASES()
 
 void GotoCodeGen::GOTO( ostream &ret, int gotoDest, bool inFinish )
 {
-	ret << "{" << vCS() << " = " << gotoDest << "; " << 
-			CTRL_FLOW() << "goto _again;}";
+	ret << "{";
+
+	ret << vCS() << " = " << gotoDest << ";";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 }
 
 void GotoCodeGen::GOTO_EXPR( ostream &ret, GenInlineItem *ilItem, bool inFinish )
 {
-	ret << "{" << vCS() << " = (";
+	ret << "{";
+
+	ret << vCS() << " = (";
 	INLINE_LIST( ret, ilItem->children, 0, inFinish, false );
-	ret << "); " << CTRL_FLOW() << "goto _again;}";
+	ret << ");";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 }
 
 void GotoCodeGen::CURS( ostream &ret, bool inFinish )
@@ -583,8 +600,16 @@ void GotoCodeGen::CALL( ostream &ret, int callDest, int targState, bool inFinish
 		INLINE_LIST( ret, prePushExpr, 0, false, false );
 	}
 
-	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = " << 
-			callDest << "; " << CTRL_FLOW() << "goto _again;}";
+	ret << "{";
+
+	ret << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = " << callDest << ";";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 
 	if ( prePushExpr != 0 )
 		ret << "}";
@@ -597,9 +622,18 @@ void GotoCodeGen::CALL_EXPR( ostream &ret, GenInlineItem *ilItem, int targState,
 		INLINE_LIST( ret, prePushExpr, 0, false, false );
 	}
 
-	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = (";
+	ret << "{";
+
+	ret << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = (";
 	INLINE_LIST( ret, ilItem->children, targState, inFinish, false );
-	ret << "); " << CTRL_FLOW() << "goto _again;}";
+	ret << ");";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 
 	if ( prePushExpr != 0 )
 		ret << "}";
@@ -615,7 +649,11 @@ void GotoCodeGen::RET( ostream &ret, bool inFinish )
 		ret << "}";
 	}
 
-	ret << CTRL_FLOW() << "goto _again;}";
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+	ret << "}";
 }
 
 void GotoCodeGen::BREAK( ostream &ret, int targState, bool csForced )
@@ -671,7 +709,7 @@ void GotoCodeGen::writeExec()
 			|| redFsm->anyFromStateActions() )
 	{
 		out << 
-			"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << POINTER() << "_acts;\n"
+			"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << PTR_CONST_END() << POINTER() << "_acts;\n"
 			"	" << UINT() << " _nacts;\n";
 	}
 
@@ -777,7 +815,7 @@ void GotoCodeGen::writeExec()
 
 		if ( redFsm->anyEofActions() ) {
 			out <<
-				"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << 
+				"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << PTR_CONST_END() << 
 						POINTER() << "__acts = " << 
 						ARR_OFF( A(), EA() + "[" + vCS() + "]" ) << ";\n"
 				"	" << UINT() << " __nacts = " << CAST(UINT()) << " *__acts++;\n"

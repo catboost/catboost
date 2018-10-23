@@ -385,11 +385,11 @@ struct Expression
 	/* Construct with an expression on the left and a term on the right. */
 	Expression( Expression *expression, Term *term, Type type ) : 
 		expression(expression), term(term), 
-		builtin(builtin), type(type), prev(this), next(this) { }
+		type(type), prev(this), next(this) { }
 
 	/* Construct with only a term. */
 	Expression( Term *term ) : 
-		expression(0), term(term), builtin(builtin), 
+		expression(0), term(term),
 		type(TermType) , prev(this), next(this) { }
 	
 	/* Construct with a builtin type. */

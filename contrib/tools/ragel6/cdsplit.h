@@ -67,4 +67,14 @@ struct DSplitCodeGen
 		FsmCodeGen(out), SplitCodeGen(out), DCodeGen(out) {}
 };
 
+/*
+ * class D2SplitCodeGen
+ */
+struct D2SplitCodeGen
+	: public SplitCodeGen, public D2CodeGen
+{
+	D2SplitCodeGen( ostream &out ) : 
+		FsmCodeGen(out), SplitCodeGen(out), D2CodeGen(out) {}
+};
+
 #endif

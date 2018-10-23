@@ -72,4 +72,14 @@ struct DFGotoCodeGen
 		FsmCodeGen(out), FGotoCodeGen(out), DCodeGen(out) {}
 };
 
+/*
+ * class DFGotoCodeGen
+ */
+struct D2FGotoCodeGen
+	: public FGotoCodeGen, public D2CodeGen
+{
+	D2FGotoCodeGen( ostream &out ) : 
+		FsmCodeGen(out), FGotoCodeGen(out), D2CodeGen(out) {}
+};
+
 #endif

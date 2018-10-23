@@ -56,6 +56,7 @@ RedFsmAp::RedFsmAp()
 	bAnyActionGotos(false),
 	bAnyActionCalls(false),
 	bAnyActionRets(false),
+	bAnyActionByValControl(false),
 	bAnyRegActionRets(false),
 	bAnyRegActionByValControl(false),
 	bAnyRegNextStmt(false),

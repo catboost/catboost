@@ -27,14 +27,14 @@
 
 HostType hostTypesC[] =
 {
-	{ "char",     0,       "char",    true,   CHAR_MIN,  CHAR_MAX,   sizeof(char) },
-	{ "unsigned", "char",  "uchar",   false,  0,         UCHAR_MAX,  sizeof(unsigned char) },
-	{ "short",    0,       "short",   true,   SHRT_MIN,  SHRT_MAX,   sizeof(short) },
-	{ "unsigned", "short", "ushort",  false,  0,         USHRT_MAX,  sizeof(unsigned short) },
-	{ "int",      0,       "int",     true,   INT_MIN,   INT_MAX,    sizeof(int) },
-	{ "unsigned", "int",   "uint",    false,  0,         UINT_MAX,   sizeof(unsigned int) },
-	{ "long",     0,       "long",    true,   LONG_MIN,  LONG_MAX,   sizeof(long) },
-	{ "unsigned", "long",  "ulong",   false,  0,         (long long)ULONG_MAX,  sizeof(unsigned long) }
+	{ "char",     0,       "char",    true,   true,  false,  CHAR_MIN,  CHAR_MAX,   0, 0,              sizeof(char) },
+	{ "unsigned", "char",  "uchar",   false,  true,  false,  0, 0,                  0,     UCHAR_MAX,  sizeof(unsigned char) },
+	{ "short",    0,       "short",   true,   true,  false,  SHRT_MIN,  SHRT_MAX,   0, 0,              sizeof(short) },
+	{ "unsigned", "short", "ushort",  false,  true,  false,  0, 0,                  0,     USHRT_MAX,  sizeof(unsigned short) },
+	{ "int",      0,       "int",     true,   true,  false,  INT_MIN,   INT_MAX,    0, 0,              sizeof(int) },
+	{ "unsigned", "int",   "uint",    false,  true,  false,  0, 0,                  0,     UINT_MAX,   sizeof(unsigned int) },
+	{ "long",     0,       "long",    true,   true,  false,  LONG_MIN,  LONG_MAX,   0, 0,              sizeof(long) },
+	{ "unsigned", "long",  "ulong",   false,  true,  false,  0, 0,                  0,     ULONG_MAX,  sizeof(unsigned long) }
 };
 
 #define S8BIT_MIN  -128
@@ -49,64 +49,89 @@ HostType hostTypesC[] =
 #define U16BIT_MIN 0
 #define U16BIT_MAX 65535
 
-#define S32BIT_MIN –2147483648l
-#define S32BIT_MAX 2147483647l
+#define S31BIT_MIN -1073741824L
+#define S31BIT_MAX 1073741823L
+
+#define S32BIT_MIN -2147483648L
+#define S32BIT_MAX 2147483647L
 
 #define U32BIT_MIN 0
-#define U32BIT_MAX 4294967295l
+#define U32BIT_MAX 4294967295UL
 
-#define S64BIT_MIN –9223372036854775808ll
-#define S64BIT_MAX 9223372036854775807ll
+#define S64BIT_MIN -9223372036854775807LL
+#define S64BIT_MAX 9223372036854775807LL
 
 #define U64BIT_MIN 0
-#define U64BIT_MAX 18446744073709551615ll
+#define U64BIT_MAX 18446744073709551615ULL
 
 HostType hostTypesD[] =
 {
-	{ "byte",    0,  "byte",    true,   CHAR_MIN,  CHAR_MAX,    1 },
-	{ "ubyte",   0,  "ubyte",   false,  0,         UCHAR_MAX,   1 },
-	{ "char",    0,  "char",    false,  0,         UCHAR_MAX,   1 },
-	{ "short",   0,  "short",   true,   SHRT_MIN,  SHRT_MAX,    2 },
-	{ "ushort",  0,  "ushort",  false,  0,         USHRT_MAX,   2 },
-	{ "wchar",   0,  "wchar",   false,  0,         USHRT_MAX,   2 },
-	{ "int",     0,  "int",     true,   INT_MIN,   INT_MAX,     4 },
-	{ "uint",    0,  "uint",    false,  0,         UINT_MAX,    4 },
-	{ "dchar",   0,  "dchar",   false,  0,         UINT_MAX,    4 }
+	{ "byte",    0,  "byte",    true,   true,  false,  CHAR_MIN,  CHAR_MAX,    0, 0,                   1 },
+	{ "ubyte",   0,  "ubyte",   false,  true,  false,  0, 0,                   0,         UCHAR_MAX,   1 },
+	{ "char",    0,  "char",    false,  true,  false,  0, 0,                   0,         UCHAR_MAX,   1 },
+	{ "short",   0,  "short",   true,   true,  false,  SHRT_MIN,  SHRT_MAX,    0, 0,                   2 },
+	{ "ushort",  0,  "ushort",  false,  true,  false,  0, 0,                   0,         USHRT_MAX,   2 },
+	{ "wchar",   0,  "wchar",   false,  true,  false,  0, 0,                   0,         USHRT_MAX,   2 },
+	{ "int",     0,  "int",     true,   true,  false,  INT_MIN,   INT_MAX,     0, 0,                   4 },
+	{ "uint",    0,  "uint",    false,  true,  false,  0, 0,                   0,         UINT_MAX,    4 },
+	{ "dchar",   0,  "dchar",   false,  true,  false,  0, 0,                   0,         UINT_MAX,    4 }
+};
+
+HostType hostTypesGo[] = 
+{
+	{ "byte",    0,  "uint8",   false,  true,  false,  0, 0,                    U8BIT_MIN,  U8BIT_MAX,   1 },
+	{ "int8",    0,  "int8",    true,   true,  false,  S8BIT_MIN,  S8BIT_MAX,   0, 0,                    1 },
+	{ "uint8",   0,  "uint8",   false,  true,  false,  0, 0,                    U8BIT_MIN,  U8BIT_MAX,   1 },
+	{ "int16",   0,  "int16",   true,   true,  false,  S16BIT_MIN, S16BIT_MAX,  0, 0,                    2 },
+	{ "uint16",  0,  "uint16",  false,  true,  false,  0, 0,                    U16BIT_MIN, U16BIT_MAX,  2 },
+	{ "int32",   0,  "int32",   true,   true,  false,  S32BIT_MIN, S32BIT_MAX,  0, 0,                    4 },
+	{ "uint32",  0,  "uint32",  false,  true,  false,  0, 0,                    U32BIT_MIN, U32BIT_MAX,  4 },
+	{ "int64",   0,  "int64",   true,   true,  false,  S64BIT_MIN, S64BIT_MAX,  0, 0,                    8 },
+	{ "uint64",  0,  "uint64",  false,  true,  false,  0, 0,                    U64BIT_MIN, U64BIT_MAX,  8 },
+	{ "rune",    0,  "int32",   true,   true,  true,   S32BIT_MIN, S32BIT_MAX,  0, 0,                    4 }
 };
 
 HostType hostTypesJava[] = 
 {
-	{ "byte",    0,  "byte",   true,   CHAR_MIN,  CHAR_MAX,    1 },
-	{ "short",   0,  "short",  true,   SHRT_MIN,  SHRT_MAX,    2 },
-	{ "char",    0,  "char",   false,  0,         USHRT_MAX,   2 },
-	{ "int",     0,  "int",    true,   INT_MIN,   INT_MAX,     4 },
+	{ "byte",    0,  "byte",   true,   true,  false,  CHAR_MIN,  CHAR_MAX,    0, 0,                   1 },
+	{ "short",   0,  "short",  true,   true,  false,  SHRT_MIN,  SHRT_MAX,    0, 0,                   2 },
+	{ "char",    0,  "char",   false,  true,  false,  0, 0,                   0,         USHRT_MAX,   2 },
+	{ "int",     0,  "int",    true,   true,  false,  INT_MIN,   INT_MAX,     0, 0,                   4 },
 };
 
 /* What are the appropriate types for ruby? */
 HostType hostTypesRuby[] = 
 {
-	{ "char",    0,  "char",   true,   CHAR_MIN,  CHAR_MAX,    1 },
-	{ "int",     0,  "int",    true,   INT_MIN,   INT_MAX,     4 },
+	{ "char",    0,  "char",   true,   true,  false,  CHAR_MIN,  CHAR_MAX,    0, 0, 1 },
+	{ "int",     0,  "int",    true,   true,  false,  INT_MIN,   INT_MAX,     0, 0, 4 },
 };
 
 HostType hostTypesCSharp[] =
 {
-	{ "sbyte",    0, "sbyte",   true,   CHAR_MIN,  CHAR_MAX,    1 },
-	{ "byte",   0,   "byte",    false,  0,         UCHAR_MAX,   1 },
-	{ "short",   0,  "short",   true,   SHRT_MIN,  SHRT_MAX,    2 },
-	{ "ushort",  0,  "ushort",  false,  0,         USHRT_MAX,   2 },
-	{ "char",    0,  "char",    false,  0,         USHRT_MAX,   2 },
-	{ "int",     0,  "int",     true,   INT_MIN,   INT_MAX,     4 },
-	{ "uint",    0,  "uint",    false,  0,         UINT_MAX,    4 },
-	{ "long",    0,  "long",    true,   LONG_MIN,  LONG_MAX,    8 },
-	{ "ulong",   0,  "ulong",   false,  0,         (long long)ULONG_MAX,   8 }
+	{ "sbyte",   0,  "sbyte",   true,   true,  false,  CHAR_MIN,  CHAR_MAX,    0, 0,                   1 },
+	{ "byte",    0,  "byte",    false,  true,  false,  0, 0,                   0,         UCHAR_MAX,   1 },
+	{ "short",   0,  "short",   true,   true,  false,  SHRT_MIN,  SHRT_MAX,    0, 0,                   2 },
+	{ "ushort",  0,  "ushort",  false,  true,  false,  0, 0,                   0,         USHRT_MAX,   2 },
+	{ "char",    0,  "char",    false,  true,  true,   0, 0,                   0,         USHRT_MAX,   2 },
+	{ "int",     0,  "int",     true,   true,  false,  INT_MIN,   INT_MAX,     0, 0,                   4 },
+	{ "uint",    0,  "uint",    false,  true,  false,  0, 0,                   0,         UINT_MAX,    4 },
+	{ "long",    0,  "long",    true,   true,  false,  LONG_MIN,  LONG_MAX,    0, 0,                   8 },
+	{ "ulong",   0,  "ulong",   false,  true,  false,  0, 0,                   0,         ULONG_MAX,   8 }
 };
 
-HostLang hostLangC =    { HostLang::C,    hostTypesC,    8, hostTypesC+0,    true };
-HostLang hostLangD =    { HostLang::D,    hostTypesD,    9, hostTypesD+2,    true };
-HostLang hostLangJava = { HostLang::Java, hostTypesJava, 4, hostTypesJava+2, false };
-HostLang hostLangRuby = { HostLang::Ruby, hostTypesRuby, 2, hostTypesRuby+0, false };
-HostLang hostLangCSharp = { HostLang::CSharp, hostTypesCSharp, 9, hostTypesCSharp+4, true };
+HostType hostTypesOCaml[] =
+{
+	{ "int",    0,  "int",      true,   true,  false, S31BIT_MIN, S31BIT_MAX, 0, 0,                   4 },
+};
+
+HostLang hostLangC =      { HostLang::C,      hostTypesC,      8,  hostTypesC+0,       true };
+HostLang hostLangD =      { HostLang::D,      hostTypesD,      9,  hostTypesD+2,       true };
+HostLang hostLangD2 =     { HostLang::D2,     hostTypesD,      9,  hostTypesD+2,       true };
+HostLang hostLangGo =     { HostLang::Go,     hostTypesGo,    10,  hostTypesGo+0,      false };
+HostLang hostLangJava =   { HostLang::Java,   hostTypesJava,   4,  hostTypesJava+2,    false };
+HostLang hostLangRuby =   { HostLang::Ruby,   hostTypesRuby,   2,  hostTypesRuby+0,    false };
+HostLang hostLangCSharp = { HostLang::CSharp, hostTypesCSharp, 9,  hostTypesCSharp+4,  true };
+HostLang hostLangOCaml =  { HostLang::OCaml,  hostTypesOCaml,  1,  hostTypesOCaml+0,   false };
 
 HostLang *hostLang = &hostLangC;
 

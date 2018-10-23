@@ -126,29 +126,50 @@ Key makeFsmKeyHex( char *str, const InputLoc &loc, ParseData *pd )
 
 Key makeFsmKeyDec( char *str, const InputLoc &loc, ParseData *pd )
 {
-	/* Convert the number to a decimal. First reset errno so we can check
-	 * for overflow or underflow. */
-	errno = 0;
-	long long minVal = keyOps->alphType->minVal;
-	long long maxVal = keyOps->alphType->maxVal;
-
-	long long ll = strtoll( str, 0, 10 );
-
-	/* Check for underflow. */
-	if ( ( errno == ERANGE && ll < 0 ) || ll < minVal) {
-		error(loc) << "literal " << str << " underflows the alphabet type" << endl;
-		ll = minVal;
-	}
-	/* Check for overflow. */
-	else if ( ( errno == ERANGE && ll > 0 ) || ll > maxVal ) {
-		error(loc) << "literal " << str << " overflows the alphabet type" << endl;
-		ll = maxVal;
-	}
-
-	if ( keyOps->alphType->isSigned )
+	if ( keyOps->alphType->isSigned ) {
+		/* Convert the number to a decimal. First reset errno so we can check
+		 * for overflow or underflow. */
+		errno = 0;
+		long long minVal = keyOps->alphType->sMinVal;
+		long long maxVal = keyOps->alphType->sMaxVal;
+	
+		long long ll = strtoll( str, 0, 10 );
+	
+		/* Check for underflow. */
+		if ( ( errno == ERANGE && ll < 0 ) || ll < minVal) {
+			error(loc) << "literal " << str << " underflows the alphabet type" << endl;
+			ll = minVal;
+		}
+		/* Check for overflow. */
+		else if ( ( errno == ERANGE && ll > 0 ) || ll > maxVal ) {
+			error(loc) << "literal " << str << " overflows the alphabet type" << endl;
+			ll = maxVal;
+		}
+	
 		return Key( (long)ll );
-	else
-		return Key( (unsigned long)ll );
+	}
+	else {
+		/* Convert the number to a decimal. First reset errno so we can check
+		 * for overflow or underflow. */
+		errno = 0;
+		unsigned long long minVal = keyOps->alphType->uMinVal;
+		unsigned long long maxVal = keyOps->alphType->uMaxVal;
+	
+		unsigned long long ull = strtoull( str, 0, 10 );
+	
+		/* Check for underflow. */
+		if ( ( errno == ERANGE && ull < 0 ) || ull < minVal) {
+			error(loc) << "literal " << str << " underflows the alphabet type" << endl;
+			ull = minVal;
+		}
+		/* Check for overflow. */
+		else if ( ( errno == ERANGE && ull > 0 ) || ull > maxVal ) {
+			error(loc) << "literal " << str << " overflows the alphabet type" << endl;
+			ull = maxVal;
+		}
+	
+		return Key( (unsigned long)ull );
+	}
 }
 
 /* Make an fsm key in int format (what the fsm graph uses) from an alphabet

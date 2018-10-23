@@ -41,7 +41,6 @@
 #define _out       5
 
 using std::setw;
-using std::setiosflags;
 using std::ios;
 using std::ostringstream;
 using std::string;
@@ -55,6 +54,7 @@ using std::cin;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::setiosflags;
 
 void javaLineDirective( ostream &out, const char *fileName, int line )
 {
@@ -984,7 +984,7 @@ void JavaTabCodeGen::writeData()
 	
 	out << "\n";
 
-	if ( entryPointNames.length() > 0 ) {
+	if ( !noEntry && entryPointNames.length() > 0 ) {
 		for ( EntryNameVect::Iter en = entryPointNames; en.lte(); en++ ) {
 			STATIC_VAR( "int", DATA_PREFIX() + "en_" + *en ) << 
 					" = " << entryPointIds[en.pos()] << ";\n";
