@@ -226,7 +226,7 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
     if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
         CATBOOST_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
         const float GB = (ui64)1024 * 1024 * 1024;
-        CATBOOST_DEBUG_LOG << "current rss " << currentMemoryUsage / GB << fullNeededMemoryForCtrs / GB << Endl;
+        CATBOOST_DEBUG_LOG << "current rss: " << currentMemoryUsage / GB << " full needed memory: " << fullNeededMemoryForCtrs / GB << Endl;
         size_t currentNonDroppableMemory = currentMemoryUsage;
         size_t maxMemForOtherThreadsApprox = (ui64)(threadCount - 1) * maxMemoryForOneCtr;
         for (auto& candSubList : *candList) {
@@ -446,8 +446,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             MapSetIndices(*bestSplitCandidate, ctx);
         }
         currentSplitTree.AddSplit(bestSplit);
-        CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, bestSplit);
-        CATBOOST_INFO_LOG << " score " << bestScore << "\n";
+        CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, bestSplit) << " score " << bestScore << "\n";
 
 
         profile.AddOperation(TStringBuilder() << "Select best split " << curDepth);
