@@ -28,9 +28,8 @@ void MapSetApproxesSimple(const TSplitTree& splitTree, TLearnContext* ctx);
 template <typename TError>
 void MapSetApproxesMulti(const TSplitTree& splitTree, TLearnContext* ctx);
 
-namespace {
 template <typename TMapper>
-static TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvironment> environment, const typename TMapper::TInput& value = typename TMapper::TInput()) {
+TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvironment> environment, const typename TMapper::TInput& value = typename TMapper::TInput()) {
     NPar::TJobDescription job;
     TVector<typename TMapper::TInput> mapperInput(1);
     mapperInput[0] = value;
@@ -171,8 +170,6 @@ struct TSetApproxesMultiDefs {
         return leafValues;
     }
 };
-
-} // anonymous namespace
 
 template <typename TError>
 void MapSetApproxesSimple(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtrs, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {

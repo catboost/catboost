@@ -83,8 +83,6 @@ struct TSumMulti {
     SAVELOAD(SumDerHistory, SumDer2History, SumWeights);
 };
 
-namespace {
-
 inline double CalcAverage(double sumDelta,
                           double count,
                           float l2Regularizer,
@@ -141,7 +139,6 @@ inline double CalcModelNewton(const TSum& ss,
                                l2Regularizer,
                                sumAllWeights,
                                allDocCount);
-}
 }
 
 void CalcModelNewtonMulti(const TSumMulti& ss,

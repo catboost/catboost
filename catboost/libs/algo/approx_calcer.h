@@ -78,7 +78,6 @@ inline void UpdateApproxDeltas(
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-namespace {
 static constexpr int APPROX_BLOCK_SIZE = 500;
 
 template <typename TError>
@@ -109,7 +108,6 @@ void CalcShiftedApproxDers(
         );
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
-} // anonymous namespace
 
 template <typename TError>
 void CalcApproxDersRange(
