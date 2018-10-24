@@ -17,6 +17,11 @@ DEPENDS(
 SIZE(MEDIUM)
 REQUIREMENTS(network:full)
 
+IF(AUTOCHECK)
+    FORK_SUBTESTS()
+    SPLIT_FACTOR(20)
+ENDIF()
+
 PEERDIR(
     catboost/pytest/lib
     catboost/python-package/lib
