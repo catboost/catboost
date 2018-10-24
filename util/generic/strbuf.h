@@ -404,19 +404,6 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    inline TdSelf& operator+=(size_t shift) noexcept {
-        return Skip(shift);
-    }
-
-    inline TdSelf& operator++() noexcept {
-        return Skip(1);
-    }
-
-    Y_PURE_FUNCTION
-    inline TdSelf operator+(size_t shift) const noexcept {
-        return SubStr(shift);
-    }
-
     // defined in a parent, but repeat for overload above
     Y_PURE_FUNCTION
     inline size_t operator+() const noexcept {

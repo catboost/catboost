@@ -128,9 +128,8 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(str.Empty());
 
         str = qw;
-        UNIT_ASSERT_EQUAL(str.SubStr(1), str + 1);
-        UNIT_ASSERT_EQUAL(str + 2, AsStringBuf("erty"));
-        UNIT_ASSERT_EQUAL(str += 3, qw.SubStr(3));
+        UNIT_ASSERT_EQUAL(str.SubStr(2), AsStringBuf("erty"));
+        UNIT_ASSERT_EQUAL(str.Skip(3), qw.SubStr(3));
         str.Chop(1);
         UNIT_ASSERT_EQUAL(str, AsStringBuf("rt"));
     }
