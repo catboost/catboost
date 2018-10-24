@@ -187,7 +187,7 @@ class _Execution(object):
         yatest_logger.debug("Command (pid %s) rc: %s", self._process.pid, self.exit_code)
         yatest_logger.debug("Command (pid %s) elapsed time (sec): %s", self._process.pid, self.elapsed)
         if self._metrics:
-            for key, value in self._metrics.iteritems():
+            for key, value in self._metrics.items():
                 yatest_logger.debug("Command (pid %s) %s: %s", self._process.pid, key, value)
         yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(self._std_out, MAX_OUT_LEN))
         yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
@@ -234,7 +234,11 @@ class _Execution(object):
             try:
                 if hasattr(os, "wait4"):
                     try:
-                        pid, sts, rusage = subprocess._eintr_retry_call(os.wait4, self._process.pid, 0)
+                        if hasattr(subprocess, "_eintr_retry_call"):
+                            pid, sts, rusage = subprocess._eintr_retry_call(os.wait4, self._process.pid, 0)
+                        else:
+                            # PEP 475
+                            pid, sts, rusage = os.wait4(self._process.pid, 0)
                         finished = time.time()
                         self._process._handle_exitstatus(sts)
                         for field in [
