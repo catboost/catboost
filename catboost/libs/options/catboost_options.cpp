@@ -1,9 +1,26 @@
 #include "catboost_options.h"
 #include "restrictions.h"
 
-using namespace NCatboostOptions;
+#include <library/json/json_reader.h>
 
-void TCatboostOptions::SetLeavesEstimationDefault() {
+#include <util/string/cast.h>
+#include <util/system/compiler.h>
+
+template <>
+void Out<NCatboostOptions::TCatBoostOptions>(IOutputStream& out, const NCatboostOptions::TCatBoostOptions& options) {
+    NJson::TJsonValue json;
+    options.Save(&json);
+    out << ToString(json);
+}
+
+template <>
+inline TCatboostOptions FromString<NCatboostOptions::TCatBoostOptions>(const TString& str) {
+    NJson::TJsonValue json;
+    NJson::ReadJsonTree(str, &json, true);
+    return NCatboostOptions::LoadOptions(json);
+}
+
+void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     const auto& lossFunctionConfig = LossFunctionDescription.Get();
 
     auto& treeConfig = ObliviousTreeOptions.Get();
@@ -173,10 +190,9 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::QueryCrossEntropy) {
         CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Gradient, "Gradient leaf estimation is not supported for QueryCrossEntropy");
     }
-
 }
 
-void TCatboostOptions::Load(const NJson::TJsonValue& options) {
+void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) {
     ETaskType currentTaskType = TaskType;
     CheckedLoad(options,
                 &TaskType,
@@ -191,13 +207,14 @@ void TCatboostOptions::Load(const NJson::TJsonValue& options) {
     Validate();
 }
 
-void TCatboostOptions::Save(NJson::TJsonValue* options) const {
+void NCatboostOptions::TCatBoostOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(options, TaskType, SystemOptions, BoostingOptions, ObliviousTreeOptions,
                DataProcessingOptions, LossFunctionDescription,
                RandomSeed, CatFeatureParams, FlatParams, Metadata, LoggingLevel, IsProfile, MetricOptions);
 }
 
-TCtrDescription TCatboostOptions::CreateDefaultCounter(EProjectionType projectionType) const {
+NCatboostOptions::TCtrDescription
+NCatboostOptions::TCatBoostOptions::CreateDefaultCounter(EProjectionType projectionType) const {
     if (GetTaskType() == ETaskType::CPU) {
         return TCtrDescription(ECtrType::Counter, GetDefaultPriors(ECtrType::Counter));
     } else {
@@ -222,15 +239,18 @@ TCtrDescription TCatboostOptions::CreateDefaultCounter(EProjectionType projectio
     }
 }
 
-static inline void SetDefaultBinarizationsIfNeeded(EProjectionType projectionType, TVector<TCtrDescription>* descriptions) {
+static Y_NO_INLINE void SetDefaultBinarizationsIfNeeded(
+    EProjectionType projectionType,
+    TVector<NCatboostOptions::TCtrDescription>* descriptions)
+{
     for (auto& description : (*descriptions)) {
         if (description.CtrBinarization.NotSet() && description.Type.Get() == ECtrType::FeatureFreq) {
-            description.CtrBinarization->BorderSelectionType =  projectionType == EProjectionType::SimpleCtr ? EBorderSelectionType::MinEntropy : EBorderSelectionType::Median;
+            description.CtrBinarization->BorderSelectionType = projectionType == EProjectionType::SimpleCtr ? EBorderSelectionType::MinEntropy : EBorderSelectionType::Median;
         }
     }
 }
 
-void TCatboostOptions::SetCtrDefaults() {
+void NCatboostOptions::TCatBoostOptions::SetCtrDefaults() {
     TCatFeatureParams& catFeatureParams = CatFeatureParams.Get();
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
 
@@ -274,7 +294,7 @@ void TCatboostOptions::SetCtrDefaults() {
     }
 }
 
-void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const {
+void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const {
     if (ctr.TargetBinarization->BorderCount > 1) {
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
@@ -326,7 +346,7 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
     }
 }
 
-void TCatboostOptions::Validate() const {
+void NCatboostOptions::TCatBoostOptions::Validate() const {
     SystemOptions.Get().Validate();
     BoostingOptions.Get().Validate();
     ObliviousTreeOptions.Get().Validate();
@@ -390,7 +410,7 @@ void TCatboostOptions::Validate() const {
     CB_ENSURE(!Metadata.Get().Has("params"), "\"params\" key in metadata prohibited");
 }
 
-void TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
+void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     if (IsPlainOnlyModeLoss(LossFunctionDescription->GetLossFunction())) {
         BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
         CB_ENSURE(BoostingOptions->BoostingType.IsDefault(), "Boosting type should be plain for " << LossFunctionDescription->GetLossFunction());
@@ -442,3 +462,110 @@ void TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     }
 }
 
+TVector<int> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions) {
+    TVector<int> result;
+    auto& dataProcessingOptions = catBoostJsonOptions["data_processing_options"];
+    if (dataProcessingOptions.IsMap()) {
+        auto& ignoredFeatures = dataProcessingOptions["ignored_features"];
+        if (ignoredFeatures.IsArray()) {
+            NCatboostOptions::TJsonFieldHelper<TVector<int>>::Read(ignoredFeatures, &result);
+        }
+    }
+    return result;
+}
+
+ETaskType NCatboostOptions::GetTaskType(const NJson::TJsonValue& source) {
+    TOption<ETaskType> taskType("task_type", ETaskType::CPU);
+    TJsonFieldHelper<decltype(taskType)>::Read(source, &taskType);
+    return taskType.Get();
+}
+
+NCatboostOptions::TCatBoostOptions NCatboostOptions::LoadOptions(const NJson::TJsonValue& source) {
+    //little hack. JSON parsing needs to known device_type
+    TOption<ETaskType> taskType("task_type", ETaskType::CPU);
+    TJsonFieldHelper<decltype(taskType)>::Read(source, &taskType);
+    TCatBoostOptions options(taskType.Get());
+    options.Load(source);
+    return options;
+}
+
+bool NCatboostOptions::IsParamsCompatible(
+    const TStringBuf firstSerializedParams,
+    const TStringBuf secondSerializedParams)
+{
+    //TODO:(noxoomo, nikitxskv): i don't think this way of checking compatible is good. We should parse params and comprare fields that are essential, not all
+    const TStringBuf paramsToIgnore[] = {
+        "system_options",
+        "flat_params",
+        "metadata"
+    };
+    const TStringBuf boostingParamsToIgnore[] = {
+        "iterations",
+        "learning_rate",
+    };
+    NJson::TJsonValue firstParams, secondParams;
+    ReadJsonTree(firstSerializedParams, &firstParams);
+    ReadJsonTree(secondSerializedParams, &secondParams);
+
+    for (const auto& paramName : paramsToIgnore) {
+        firstParams.EraseValue(paramName);
+        secondParams.EraseValue(paramName);
+    }
+    for (const auto& paramName : boostingParamsToIgnore) {
+        firstParams["boosting_options"].EraseValue(paramName);
+        secondParams["boosting_options"].EraseValue(paramName);
+    }
+    return firstParams == secondParams;
+}
+
+NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
+    : SystemOptions("system_options", TSystemOptions(taskType))
+    , BoostingOptions("boosting_options", TBoostingOptions(taskType))
+    , ObliviousTreeOptions("tree_learner_options", TObliviousTreeLearnerOptions(taskType))
+    , DataProcessingOptions("data_processing_options", TDataProcessingOptions(taskType))
+    , LossFunctionDescription("loss_function", TLossDescription())
+    , CatFeatureParams("cat_feature_params", TCatFeatureParams(taskType))
+    , FlatParams("flat_params", NJson::TJsonValue(NJson::JSON_MAP))
+    , Metadata("metadata", NJson::TJsonValue(NJson::JSON_MAP))
+    , RandomSeed("random_seed", GetCycleCount())
+    , LoggingLevel("logging_level", ELoggingLevel::Verbose)
+    , IsProfile("detailed_profile", false)
+    , MetricOptions("metrics", TMetricOptions())
+    , TaskType("task_type", taskType) {
+}
+
+bool NCatboostOptions::TCatBoostOptions::operator==(const TCatBoostOptions& rhs) const {
+    return std::tie(SystemOptions, BoostingOptions, ObliviousTreeOptions,  DataProcessingOptions,
+            LossFunctionDescription, CatFeatureParams, RandomSeed, LoggingLevel,
+            IsProfile, MetricOptions, FlatParams, Metadata) ==
+        std::tie(rhs.SystemOptions, rhs.BoostingOptions, rhs.ObliviousTreeOptions,
+                rhs.DataProcessingOptions, rhs.LossFunctionDescription, rhs.CatFeatureParams,
+                rhs.RandomSeed, rhs.LoggingLevel,
+                rhs.IsProfile, rhs.MetricOptions, rhs.FlatParams, rhs.Metadata);
+}
+
+bool NCatboostOptions::TCatBoostOptions::operator!=(const TCatBoostOptions& rhs) const {
+    return !(rhs == *this);
+}
+
+ETaskType NCatboostOptions::TCatBoostOptions::GetTaskType() const {
+    return TaskType.Get();
+}
+
+void NCatboostOptions::TCatBoostOptions::SetDefaultPriorsIfNeeded(TVector<TCtrDescription>& ctrs) const {
+    for (auto& ctr : ctrs) {
+        if (!ctr.ArePriorsSet()) {
+            ctr.SetPriors(GetDefaultPriors(ctr.Type));
+        }
+    }
+}
+
+void NCatboostOptions::TCatBoostOptions::ValidateCtrs(
+    const TVector<TCtrDescription>& ctrDescription,
+    ELossFunction lossFunction,
+    bool isTreeCtrs) const
+{
+    for (const auto& ctr : ctrDescription) {
+        ValidateCtr(ctr, lossFunction, isTreeCtrs);
+    }
+}

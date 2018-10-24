@@ -596,7 +596,7 @@ namespace {
             NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
                 (ui32)GetThreadCount(ctx.Params),
                 ctx.OutputOptions.GetFinalCtrComputationMode(),
-                ParseMemorySizeDescription(ctx.Params.SystemOptions->CpuUsedRamLimit),
+                ParseMemorySizeDescription(ctx.Params.SystemOptions->CpuUsedRamLimit.Get()),
                 ctx.Params.CatFeatureParams->CtrLeafCountLimit,
                 ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
                 catFeatureParams

@@ -5,7 +5,7 @@
 #include <catboost/libs/model/model_export/export_helpers.h>
 
 #include <util/generic/set.h>
-
+#include <util/string/cast.h>
 
 
 NJson::TJsonValue TStaticCtrProvider::ConvertCtrsToJson(const TVector<TModelCtr>& neededCtrs) const {
@@ -32,7 +32,7 @@ NJson::TJsonValue TStaticCtrProvider::ConvertCtrsToJson(const TVector<TModelCtr>
                 } else {
                     hashIndexes.insert(bucket.Hash);
                 }
-                hashValue.AppendValue(ToString<ui64>(bucket.Hash));
+                hashValue.AppendValue(ToString(bucket.Hash));
                 if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
                     if (value != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();

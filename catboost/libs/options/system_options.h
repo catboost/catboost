@@ -1,9 +1,12 @@
 #pragma once
 
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/option.h>
-#include <catboost/libs/options/unimplemented_aware_option.h>
-#include <library/json/json_value.h>
+#include "enums.h"
+#include "option.h"
+#include "unimplemented_aware_option.h"
+
+namespace NJson {
+    class TJsonValue;
+}
 
 namespace NCatboostOptions {
     struct TSystemOptions {
@@ -33,4 +36,4 @@ namespace NCatboostOptions {
     };
 }
 
-ui64 ParseMemorySizeDescription(const TString& memSizeDescription);
+ui64 ParseMemorySizeDescription(TStringBuf memSizeDescription);

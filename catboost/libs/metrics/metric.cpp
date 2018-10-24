@@ -11,13 +11,15 @@
 #include "precision_recall_at_k.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 
-#include <util/generic/ymath.h>
-#include <util/generic/string.h>
 #include <util/generic/maybe.h>
-#include <util/string/iterator.h>
+#include <util/generic/string.h>
+#include <util/generic/ymath.h>
+#include <util/string/builder.h>
 #include <util/string/cast.h>
+#include <util/string/iterator.h>
 #include <util/string/printf.h>
 #include <util/system/yassert.h>
 

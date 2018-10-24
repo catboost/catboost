@@ -8,6 +8,7 @@
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/metric_options.h>
 
@@ -15,6 +16,7 @@
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash.h>
+#include <util/string/cast.h>
 
 #include <cmath>
 

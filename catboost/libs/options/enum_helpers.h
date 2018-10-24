@@ -2,8 +2,7 @@
 
 #include "enums.h"
 
-#include <util/generic/array_ref.h>
-#include <util/generic/string.h>
+#include <util/generic/fwd.h>
 
 
 TConstArrayRef<ELossFunction> GetAllObjectives();
@@ -24,11 +23,11 @@ bool IsBinaryClassMetric(ELossFunction lossFunction);
 
 bool IsClassificationObjective(ELossFunction lossFunction);
 
-bool IsClassificationObjective(const TString& lossDescription);
+bool IsClassificationObjective(TStringBuf lossDescription);
 
 bool IsRegressionObjective(ELossFunction lossFunction);
 
-bool IsRegressionObjective(const TString& lossDescription);
+bool IsRegressionObjective(TStringBuf lossDescription);
 
 bool IsMultiClassMetric(ELossFunction lossFunction);
 

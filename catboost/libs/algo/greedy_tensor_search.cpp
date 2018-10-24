@@ -344,7 +344,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         AddTreeCtrs(learnData, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
 
         auto IsInCache = [&fold](const TProjection& proj) -> bool {return fold->GetCtrRef(proj).Feature.empty();};
-        auto cpuUsedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit);
+        auto cpuUsedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit.Get());
         SelectCtrsToDropAfterCalc(cpuUsedRamLimit, learnSampleCount + testSampleCount, ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
 
         CheckInterrupted(); // check after long-lasting operation

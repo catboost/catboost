@@ -48,7 +48,7 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, samplesToBuildBorders, borderType);
     const size_t bytesGenerateBorders = sizeof(float) * samplesToBuildBorders;
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
-    const size_t usedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit);
+    const size_t usedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit.Get());
     const i64 availableMemory = (i64)usedRamLimit - bytesUsed;
     const size_t threadCount = availableMemory > 0 ? Min(reasonCount, (ui64)availableMemory / bytesRequiredPerThread) : 1;
     if (!(usedRamLimit >= bytesUsed)) {

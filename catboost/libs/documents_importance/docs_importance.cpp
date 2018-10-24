@@ -2,6 +2,7 @@
 #include "enums.h"
 
 #include <util/generic/ymath.h>
+#include <util/string/iterator.h>
 
 static TUpdateMethod ParseUpdateMethod(const TString& updateMethod) {
     TString errorMessage = "Incorrect update-method param value. Should be one of: SinglePoint, \

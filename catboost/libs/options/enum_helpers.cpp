@@ -1,11 +1,11 @@
 #include "enum_helpers.h"
 #include "loss_description.h"
 
+#include <util/generic/array_ref.h>
 #include <util/generic/is_in.h>
+#include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/string/cast.h>
-
-
 
 TConstArrayRef<ELossFunction> GetAllObjectives() {
     static TVector<ELossFunction> allObjectives = {
@@ -136,7 +136,7 @@ bool IsClassificationObjective(ELossFunction lossFunction) {
     return IsClassificationMetric(lossFunction) && IsIn(GetAllObjectives(), lossFunction);
 }
 
-bool IsClassificationObjective(const TString& lossDescription) {
+bool IsClassificationObjective(const TStringBuf lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
     return IsClassificationObjective(lossType);
 }
@@ -151,7 +151,7 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::SMAPE);
 }
 
-bool IsRegressionObjective(const TString& lossDescription) {
+bool IsRegressionObjective(const TStringBuf lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
     return IsRegressionObjective(lossType);
 }

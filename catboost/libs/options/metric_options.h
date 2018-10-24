@@ -2,43 +2,28 @@
 
 #include "enums.h"
 #include "option.h"
-#include "json_helper.h"
 #include "loss_description.h"
+
+#include <util/generic/vector.h>
+
+namespace NJson {
+    class TJsonValue;
+}
 
 namespace NCatboostOptions {
     struct TMetricOptions {
     public:
-        explicit TMetricOptions()
-            : EvalMetric("eval_metric", TLossDescription())
-            , CustomMetrics("custom_metrics", TVector<TLossDescription>()) {
-        }
+        explicit TMetricOptions();
 
-        void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options, &EvalMetric, &CustomMetrics);
-            CB_ENSURE(EvalMetric.Get().GetLossFunction() != ELossFunction::CtrFactor, ToString(ELossFunction::CtrFactor) << " cannot be used for overfitting detection or selecting best iteration on validation");
-        }
+        void Save(NJson::TJsonValue* options) const;
+        void Load(const NJson::TJsonValue& options);
 
-        void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, EvalMetric, CustomMetrics);
-        }
-
-        bool operator==(const TMetricOptions& rhs) const {
-            return std::tie(EvalMetric, CustomMetrics) == std::tie(rhs.EvalMetric, rhs.CustomMetrics);
-        }
-
-        bool operator!=(const TMetricOptions& rhs) const {
-            return !(rhs == *this);
-        }
+        bool operator==(const TMetricOptions& rhs) const;
+        bool operator!=(const TMetricOptions& rhs) const;
 
         TOption<TLossDescription> EvalMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
     };
 }
 
-inline bool IsMultiClass(const ELossFunction lossFunction,
-                         const NCatboostOptions::TMetricOptions& metricOptions) {
-    return IsMultiClassMetric(lossFunction) ||
-        (lossFunction == ELossFunction::Custom &&
-            metricOptions.EvalMetric.IsSet() &&
-            IsMultiClassMetric(metricOptions.EvalMetric->GetLossFunction()));
-}
+bool IsMultiClass(ELossFunction lossFunction, const NCatboostOptions::TMetricOptions& metricOptions);
