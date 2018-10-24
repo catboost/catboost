@@ -411,6 +411,10 @@ def onpy3_srcs(unit, *args):
         elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
             pass
         # Sources.
+        elif arg == '__main__.py' or arg.endswith('/__main__.py'):
+            unit.onfix_python_main([arg, '__real_main__.py'])
+            unit.onpy3_srcs(['TOP_LEVEL', '__real_main__.py'])
+            unit.onpy3_main(['__real_main__:real_main_func'])
         else:
             main_mod = arg == 'MAIN'
             if main_mod:
