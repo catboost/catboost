@@ -67,29 +67,21 @@ Create a dataset from the given file, matrix or data.frame.
 \examples{
 # From file
 pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
-test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
 cd_path <- system.file("extdata", "adult.cd", package = "catboost")
 pool <- catboost.load_pool(pool_path, column_description = cd_path)
-test_pool <- catboost.load_pool(test_pool_path, column_description = cd_path)
+head(pool)
 
 # From matrix
-pool_path <- 'train_full3'
-data <- read.table(pool_path, head = F, sep = "\\t", colClasses = rep('numeric', 10))
-target <- c(1)
-cat_features <- seq(1,8)
-data_matrix <- as.matrix(data)
-pool <- catboost.load_pool(as.matrix(data[,-target]), label = as.matrix(data[,target]), cat_features = cat_features)
+target <- 1
+data_matrix <-matrix(runif(18), 6, 3)
+pool <- catboost.load_pool(data_matrix[, -target], label = data_matrix[, target])
+head(pool)
 
 # From data.frame
-pool_path <- 'train_full3'
-cd_vector <- c('numeric',  rep('numeric',2), rep('factor',7))
-data <- read.table(pool_path, head = F, sep = "\\t", colClasses = cd_vector)
-target <- c(1)
-learn_size <- floor(0.8 * nrow(data))
-learn_ind <- sample(nrow(data), learn_size)
-learn <- data[learn_ind,]
-test <- data[-learn_ind,]
-learn_pool <- catboost.load_pool(learn[,-target], label = learn[,target])
-test_pool <- catboost.load_pool(test[,-target], label = test[,target])
+nonsense <- c('A', 'B', 'C')
+data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) \%\% 3 + 1])
+label = (1:10) \%\% 2
+pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
+head(pool)
 
 }

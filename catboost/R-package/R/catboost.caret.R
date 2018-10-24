@@ -126,7 +126,7 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
         prediction <- as.data.frame(prediction)
     }
     param <- catboost.get_model_params(modelFit)
-    if (param$loss_function == "Logloss") {
+    if (param$loss_function$type == "Logloss") {
         prediction <- cbind(1 - prediction, prediction)
         colnames(prediction) <- modelFit$lev
     }
@@ -141,7 +141,7 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
                 tmp_pred <- as.data.frame(tmp_pred)
             }
             param <- catboost.get_model_params(modelFit)
-            if (param$loss_function == "Logloss") {
+            if (param$loss_function$type == "Logloss") {
                 tmp_pred <- cbind(1 - tmp_pred, tmp_pred)
                 colnames(tmp_pred) <- modelFit$lev
             }
