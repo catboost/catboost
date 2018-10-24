@@ -11,7 +11,7 @@ contrib_go_src_prefix = 'contrib/go/src/'
 
 def get_import_path(module_path):
     assert len(module_path) > 0
-    import_path = module_path
+    import_path = module_path.replace('\\', '/')
     is_std_module = import_path.startswith(contrib_go_src_prefix)
     if is_std_module:
         import_path = import_path[len(contrib_go_src_prefix):]
@@ -98,7 +98,10 @@ def do_link_exe(arg):
     import_config_name = create_import_config(compile_args.peers, False)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
-    cmd += ['-buildmode=exe', '-extld=' + args.cc, '-linkmode=external', '-extldflags=-lpthread', compile_args.output]
+    cmd.append('-buildmode=exe')
+    if args.host_os != 'windows':
+        cmd += ['-extld=' + args.cc, '-linkmode=external', '-extldflags=-lpthread']
+    cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
 

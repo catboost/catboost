@@ -2,9 +2,11 @@ import os
 from _common import rootrel_arc_src
 
 
-go_root = 'contrib/go/src/'
-runtime_cgo_path = 'contrib/go/src/runtime/cgo'
-cxxsupp_path = 'contrib/libs/cxxsupp'
+go_root = os.path.join('contrib', 'go', 'src') + os.path.sep
+runtime_cgo_path = os.path.join('runtime', 'cgo')
+runtime_msan_path = os.path.join('runtime', 'msan')
+runtime_race_path = os.path.join('runtime', 'race')
+cxxsupp_path = os.path.join('contrib', 'libs', 'cxxsupp')
 
 
 def get_appended_values(unit, key):
@@ -35,12 +37,12 @@ def on_go_process_srcs(unit):
     cgo_files = get_appended_values(unit, 'CGO_FILES_VALUE')
     if len(cgo_files) > 0:
         unit.onpeerdir(cxxsupp_path)
-        module_path = rootrel_arc_src(unit.path(), unit)
-        if module_path != runtime_cgo_path:
-            unit.onpeerdir(runtime_cgo_path)
-        if module_path.startswith(go_root):
-            import_path = module_path[len(go_root):]
-        import_runtime_cgo = 'false' if import_path in ['runtime/race', 'runtime/msan', 'runtime/cgo'] else 'true'
-        import_syscall = 'false' if import_path == 'runtime/cgo' else 'true'
+        import_path = rootrel_arc_src(unit.path(), unit)
+        if import_path.startswith(go_root):
+            import_path = import_path[len(go_root):]
+        if import_path != runtime_cgo_path:
+            unit.onpeerdir(os.path.join(go_root, runtime_cgo_path))
+        import_runtime_cgo = 'false' if import_path in [runtime_cgo_path, runtime_msan_path, runtime_race_path] else 'true'
+        import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
         unit.ongo_compile_cgo1([import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall])
         unit.ongo_compile_cgo2([os.path.basename(import_path)] + cgo_files)
