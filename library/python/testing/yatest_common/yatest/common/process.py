@@ -45,7 +45,7 @@ def get_command_name(command):
 class ExecutionError(Exception):
 
     def __init__(self, execution_result):
-        if not isinstance(execution_result.command, basestring):
+        if not isinstance(execution_result.command, six.string_types):
             command = " ".join(str(arg) for arg in execution_result.command)
         else:
             command = execution_result.command
@@ -187,7 +187,7 @@ class _Execution(object):
         yatest_logger.debug("Command (pid %s) rc: %s", self._process.pid, self.exit_code)
         yatest_logger.debug("Command (pid %s) elapsed time (sec): %s", self._process.pid, self.elapsed)
         if self._metrics:
-            for key, value in self._metrics.items():
+            for key, value in six.iteritems(self._metrics):
                 yatest_logger.debug("Command (pid %s) %s: %s", self._process.pid, key, value)
         yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(self._std_out, MAX_OUT_LEN))
         yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
@@ -228,7 +228,6 @@ class _Execution(object):
                 runtime._register_core(os.path.basename(self.command[0]), None, None, bt_filename, pbt_filename)
 
     def wait(self, check_exit_code=True, timeout=None, on_timeout=None):
-
         def _wait():
             finished = None
             try:
@@ -393,7 +392,7 @@ def execute(
             # No stream is supplied: open new temp file
             return _get_command_output_file(command, default_name), False
 
-        if isinstance(stream, basestring):
+        if isinstance(stream, six.string_types):
             # User filename is supplied: open file for writing
             return open(stream, 'w+'), False
 
