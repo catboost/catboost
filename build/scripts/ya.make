@@ -7,6 +7,7 @@ TEST_SRCS(
     build_info_gen.py
     build_java_codenav_index.py
     build_java_with_error_prone.py
+    build_java_with_error_prone2.py
     build_mn.py
     build_pln_header.py
     cat.py
