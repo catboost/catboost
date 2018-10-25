@@ -598,6 +598,9 @@ struct TFullModel {
      */
     TFullModel CopyTreeRange(size_t begin, size_t end) const {
         TFullModel result = *this;
+        if (CtrProvider) {
+            result.CtrProvider = CtrProvider->Clone();
+        }
         result.Truncate(begin, end);
         return result;
     }
@@ -663,3 +666,9 @@ TFullModel DeserializeModel(const TString& serializedModel);
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
 
 TVector<TString> GetModelClassNames(const TFullModel& model);
+
+TFullModel SumModels(
+    const TVector<const TFullModel*> modelVector,
+    const TVector<double>& weights,
+    ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage
+);

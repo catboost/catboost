@@ -8,6 +8,7 @@
 #include <library/json/json_value.h>
 
 #include <util/generic/array_ref.h>
+#include <util/system/yassert.h>
 
 
 class ICtrProvider : public TThrRefBase {
@@ -39,15 +40,19 @@ public:
     virtual void DropUnusedTables(TConstArrayRef<TModelCtrBase> usedModelCtrBase) = 0;
 
     virtual void Save(IOutputStream* ) const {
-        throw yexception() << "Serialization not allowed";
+        Y_FAIL("Serialization not allowed");
     };
 
     virtual void Load(IInputStream* ) {
-        throw yexception() << "Deserialization not allowed";
+        Y_FAIL("Deserialization not allowed");
     };
 
     // can use this later for complex model deserialization logic
     virtual TString ModelPartIdentifier() const = 0;
+
+    virtual TIntrusivePtr<ICtrProvider> Clone() const {
+        Y_FAIL("Cloning not supported");
+    }
 };
 
 // slow reference realization
@@ -137,3 +142,11 @@ inline void CalcHashes(
         }
     }
 };
+
+enum class ECtrTableMergePolicy {
+    FailIfCtrsIntersects,
+    LeaveMostDiversifiedTable,
+    IntersectingCountersAverage
+};
+
+TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(const TVector<TIntrusivePtr<ICtrProvider>>& providers, ECtrTableMergePolicy mergePolicy);

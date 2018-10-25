@@ -3186,3 +3186,21 @@ def test_best_iteration(task_type):
             assert str(model.best_iteration_) == best_iteration_from_log
     finally:
         sys.stdout = normal_stdout
+
+
+def test_model_merging():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    ITER_STEP = 5
+    MODEL_COUNT = 8
+    model = CatBoostClassifier(iterations=ITER_STEP * MODEL_COUNT, random_seed=0)
+    model.fit(train_pool)
+    truncated_copies = [model.copy() for _ in range(MODEL_COUNT)]
+    for i, model_to_shrink in enumerate(truncated_copies):
+        model_to_shrink.shrink(ntree_start=i * ITER_STEP, ntree_end=(i + 1) * ITER_STEP)
+    merged_model = CatBoost()
+    weights = [1.0] * MODEL_COUNT
+    merged_model.sum_models(truncated_copies, weights)
+    pred = model.predict(test_pool, prediction_type='RawFormulaVal')
+    merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
+    assert np.all(pred == merged_pred)

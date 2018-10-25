@@ -25,10 +25,11 @@ public:
     TObliviousTrees Build();
 private:
     int ApproxDimension = 1;
-
     TVector<TVector<TModelSplit>> Trees;
     TVector<double> LeafValues;
     TVector<TVector<double>> LeafWeights;
     TVector<TFloatFeature> FloatFeatures;
+    TVector<size_t> FloatFeaturesInternalIndexesMap;
     TVector<TCatFeature> CatFeatures;
+    TVector<size_t> CatFeaturesInternalIndexesMap;
 };

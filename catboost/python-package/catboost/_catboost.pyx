@@ -168,6 +168,12 @@ cdef extern from "catboost/libs/algo/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
 
+
+cdef extern from "catboost/libs/model/ctr_provider.h":
+    cdef cppclass ECtrTableMergePolicy:
+        pass
+
+
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TCatFeature:
         int FeatureIndex
@@ -214,6 +220,11 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+
+ctypedef const TFullModel* TFullModel_const_ptr
+
+cdef extern from "catboost/libs/model/model.h":
+    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], TVector[double], ECtrTableMergePolicy) nogil except +ProcessException
 
 cdef extern from "catboost/libs/data/pool.h":
     cdef cppclass TDocumentStorage:
@@ -1730,6 +1741,19 @@ cdef class _CatBoost:
     def _get_feature_names(self):
         return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
 
+    cpdef _sum_models(self, models, weights, ctr_merge_policy):
+        cdef TVector[TFullModel_const_ptr] models_vector
+        cdef TVector[double] weights_vector
+        cdef ECtrTableMergePolicy merge_policy
+        if not TryFromString[ECtrTableMergePolicy](to_binary_str(ctr_merge_policy), merge_policy):
+            raise CatboostError("Unknown ctr table merge policy {}".format(ctr_merge_policy))
+        assert(len(models) == len(weights))
+        for model_id in range(len(models)):
+            models_vector.push_back((<_CatBoost>models[model_id]).__model)
+            weights_vector.push_back(weights[model_id])
+        cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, merge_policy)
+        self.__model.Swap(tmp_model)
+
 
 cdef class _MetadataHashProxy:
     cdef _CatBoost _catboost
@@ -1938,6 +1962,7 @@ def _metric_description_or_str_to_str(metric_description):
         key = metric_description
     return key
 
+
 class EvalMetricsResult:
 
     def __init__(self, plots, metrics_description):
@@ -2011,6 +2036,7 @@ cdef class _MetricCalcerBase:
     def __deepcopy__(self):
         raise CatboostError('Can\'t deepcopy _MetricCalcerBase object')
 
+
 cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, thread_count):
     if (len(label_param) != len(approx_param[0])):
         raise CatboostError('Label and approx should have same sizes.')
@@ -2054,6 +2080,7 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     return EvalMetricsForUtils(label, approx, TString(<const char*> metric), weight, group_id, thread_count)
 
+
 cpdef _get_roc_curve(model, pools_list, thread_count):
     thread_count = UpdateThreadCount(thread_count)
     cdef TVector[TPool] pools
@@ -2066,6 +2093,7 @@ cpdef _get_roc_curve(model, pools_list, thread_count):
     fpr = np.array([point.FalsePositiveRate for point in curve])
     thresholds = np.array([point.Boundary for point in curve])
     return fpr, tpr, thresholds
+
 
 cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     if FPR is not None and FNR is not None:
@@ -2093,16 +2121,20 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
         return rocCurve.SelectDecisionBoundaryByFalseNegativeRate(FNR)
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
+
 log_cout = None
 log_cerr = None
+
 
 cdef void _CoutLogPrinter(const char* str, size_t len) except * with gil:
     cdef bytes bytes_str = str[:len]
     log_cout.write(to_native_str(bytes_str))
 
+
 cdef void _CerrLogPrinter(const char* str, size_t len) except * with gil:
     cdef bytes bytes_str = str[:len]
     log_cerr.write(to_native_str(bytes_str))
+
 
 cpdef _set_logger(cout, cerr):
     global log_cout
@@ -2111,14 +2143,18 @@ cpdef _set_logger(cout, cerr):
     log_cerr = cerr
     SetCustomLoggingFunction(&_CoutLogPrinter, &_CerrLogPrinter)
 
+
 cpdef _reset_logger():
     RestoreOriginalLogger()
+
 
 cpdef _configure_malloc():
     ConfigureMalloc()
 
+
 cpdef _library_init():
     LibraryInit()
+
 
 cpdef compute_wx_test(baseline, test):
     cdef TVector[double] baselineVec
@@ -2130,13 +2166,16 @@ cpdef compute_wx_test(baseline, test):
     result=WxTest(baselineVec, testVec)
     return {"pvalue" : result.PValue, "wplus":result.WPlus, "wminus":result.WMinus}
 
+
 cpdef is_classification_objective(loss_name):
     loss_name = to_binary_str(loss_name)
     return IsClassificationObjective(TString(<const char*> loss_name))
 
+
 cpdef is_regression_objective(loss_name):
     loss_name = to_binary_str(loss_name)
     return IsRegressionObjective(TString(<const char*> loss_name))
+
 
 cpdef _check_train_params(dict params):
     params_to_check = params.copy()
@@ -2149,8 +2188,10 @@ cpdef _check_train_params(dict params):
         prep_params.customObjectiveDescriptor.Get(),
         prep_params.customMetricDescriptor.Get())
 
+
 cpdef _get_gpu_device_count():
     return GetGpuDeviceCount()
+
 
 cpdef _reset_trace_backend(file):
     filename_binary_str = to_binary_str(file)

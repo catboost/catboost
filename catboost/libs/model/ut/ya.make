@@ -7,6 +7,7 @@ SRCS(
     leaf_weights_ut.cpp
     model_metadata_ut.cpp
     model_serialization_ut.cpp
+    model_summ_ut.cpp
     model_test_helpers.cpp
     shrink_model_ut.cpp
 )

@@ -926,6 +926,15 @@ class _CatBoostBase(object):
     def _deserialize_model(self, dump_model_str):
         self._object._deserialize_model(dump_model_str)
 
+    def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
+        if weights is None:
+            weights = [1.0 for _ in models_base]
+        models_inner = [model._object for model in models_base]
+        self._object._sum_models(models_inner, weights, ctr_merge_policy)
+        setattr(self, '_random_seed', 0)
+        setattr(self, '_learning_rate', 0)
+        setattr(self, '_tree_count', self._object._get_tree_count())
+
     def _get_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
@@ -1709,6 +1718,9 @@ class CatBoost(_CatBoostBase):
         for key, value in iteritems(params):
             self._init_params[key] = value
         return self
+
+    def sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
+        self._sum_models(models_base, weights, ctr_merge_policy)
 
 
 class CatBoostClassifier(CatBoost):

@@ -19,6 +19,7 @@
 
 #include <library/json/json_reader.h>
 
+#include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/stream/buffer.h>
 #include <util/stream/file.h>
@@ -179,32 +180,16 @@ TFullModel DeserializeModel(const TString& serializedModel) {
 void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
-    TVector<TFloatFeature> floatFeatures(GetNumFloatFeatures());
-    for (int idx = 0; idx < floatFeatures.ysize(); ++idx) {
-        floatFeatures[idx].FeatureIndex = idx;
-        floatFeatures[idx].FlatFeatureIndex = -2;
-    }
-    for (const auto& feature: FloatFeatures) {
-        floatFeatures[feature.FeatureIndex] = feature;
-    }
-    TVector<TCatFeature> catFeatures(GetNumCatFeatures());
-    for (int idx = 0; idx < catFeatures.ysize(); ++idx) {
-        catFeatures[idx].FeatureIndex = idx;
-        catFeatures[idx].FlatFeatureIndex = -2;
-    }
-    for (const auto& feature: CatFeatures) {
-        catFeatures[feature.FeatureIndex] = feature;
-    }
-    TObliviousTreeBuilder builder(floatFeatures, catFeatures, ApproxDimension);
-    auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
-    leafOffsets.push_back(LeafValues.ysize());
-    TreeStartOffsets.push_back(TreeSplits.ysize());
+    TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, ApproxDimension);
+    const auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
         TVector<TModelSplit> modelSplits;
-        for (int splitIdx = TreeStartOffsets[treeIdx]; splitIdx < TreeStartOffsets[treeIdx + 1]; ++splitIdx) {
+        for (int splitIdx = TreeStartOffsets[treeIdx]; splitIdx < TreeStartOffsets[treeIdx] + TreeSizes[treeIdx]; ++splitIdx) {
             modelSplits.push_back(MetaData->BinFeatures[TreeSplits[splitIdx]]);
         }
-        TArrayRef<double> leafValuesRef(LeafValues.begin() + leafOffsets[treeIdx], LeafValues.begin() + leafOffsets[treeIdx + 1]);
+        TArrayRef<double> leafValuesRef(
+            LeafValues.begin() + leafOffsets[treeIdx],
+            LeafValues.begin() + leafOffsets[treeIdx] + ApproxDimension * (1u << TreeSizes[treeIdx]));
         builder.AddTree(modelSplits, leafValuesRef, LeafWeights[treeIdx]);
     }
     *this = builder.Build();
@@ -653,3 +638,132 @@ TVector<TString> GetModelClassNames(const TFullModel& model) {
     return classNames;
 }
 
+namespace {
+    struct TUnknownFeature {};
+
+    struct TFlatFeature {
+
+        TVariant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
+
+        TFlatFeature() = default;
+
+        void CheckedSet(const TFloatFeature& other) {
+            if (HoldsAlternative<TUnknownFeature>(FeatureVariant)) {
+                FeatureVariant = other;
+            }
+            TFloatFeature& floatFeature = Get<TFloatFeature>(FeatureVariant);
+            CB_ENSURE(floatFeature.FlatFeatureIndex == other.FlatFeatureIndex);
+            CB_ENSURE(HoldsAlternative<TFloatFeature>(FeatureVariant),
+                "Feature type mismatch: Categorical != Float for flat feature index: " << other.FlatFeatureIndex);
+            CB_ENSURE(floatFeature.FeatureIndex == other.FeatureIndex,
+                "Internal feature index mismatch: " << floatFeature.FeatureIndex << " != " << other.FeatureIndex << " flat feature index: " << floatFeature.FlatFeatureIndex);
+            CB_ENSURE(floatFeature.FeatureId.empty() || floatFeature.FeatureId == other.FeatureId,
+                "Feature name mismatch: " << floatFeature.FeatureId << " != " << other.FeatureId << " flat feature index: " << floatFeature.FlatFeatureIndex);
+            floatFeature.FeatureId = other.FeatureId;
+            if (floatFeature.NanValueTreatment != NCatBoostFbs::ENanValueTreatment_AsIs && other.NanValueTreatment != NCatBoostFbs::ENanValueTreatment_AsIs) {
+                CB_ENSURE(floatFeature.NanValueTreatment == other.NanValueTreatment,
+                    "Nan value treatment differs: " << (int)floatFeature.NanValueTreatment << " != " << (int)other.NanValueTreatment);
+            }
+            floatFeature.HasNans |= other.HasNans;
+        }
+        void CheckedSet(const TCatFeature& other) {
+            if (HoldsAlternative<TUnknownFeature>(FeatureVariant)) {
+                FeatureVariant = other;
+            }
+            TCatFeature& catFeature = Get<TCatFeature>(FeatureVariant);
+            CB_ENSURE(catFeature.FlatFeatureIndex == other.FlatFeatureIndex);
+            CB_ENSURE(HoldsAlternative<TCatFeature>(FeatureVariant),
+                      "Feature type mismatch: Float != Categorical for flat feature index: " << other.FlatFeatureIndex);
+            CB_ENSURE(catFeature.FeatureIndex == other.FeatureIndex,
+                      "Internal feature index mismatch: " << catFeature.FeatureIndex << " != " << other.FeatureIndex << " flat feature index: " << catFeature.FlatFeatureIndex);
+            CB_ENSURE(catFeature.FeatureId.empty() || catFeature.FeatureId == other.FeatureId,
+                      "Feature name mismatch: " << catFeature.FeatureId << " != " << other.FeatureId << " flat feature index: " << catFeature.FlatFeatureIndex);
+            catFeature.FeatureId = other.FeatureId;
+        }
+    };
+    struct TFlatFeatureMergerVisitor {
+        void operator()(TUnknownFeature&) {
+        }
+        void operator()(TFloatFeature& s) {
+            MergedFloatFeatures.push_back(s);
+        }
+        void operator()(TCatFeature& x) {
+            MergedCatFeatures.push_back(x);
+        }
+        TVector<TFloatFeature> MergedFloatFeatures;
+        TVector<TCatFeature> MergedCatFeatures;
+    };
+}
+
+static void StreamModelTreesToBuilder(const TObliviousTrees& trees, double leafMultiplier, TObliviousTreeBuilder* builder) {
+    const auto& binFeatures = trees.GetBinFeatures();
+    const auto& leafOffsets = trees.GetFirstLeafOffsets();
+    for (size_t treeIdx = 0; treeIdx < trees.TreeSizes.size(); ++treeIdx) {
+        TVector<TModelSplit> modelSplits;
+        for (int splitIdx = trees.TreeStartOffsets[treeIdx]; splitIdx < trees.TreeStartOffsets[treeIdx] + trees.TreeSizes[treeIdx]; ++splitIdx) {
+            modelSplits.push_back(binFeatures[trees.TreeSplits[splitIdx]]);
+        }
+        if (leafMultiplier == 1.0) {
+            TConstArrayRef<double> leafValuesRef(
+                    trees.LeafValues.begin() + leafOffsets[treeIdx],
+                    trees.LeafValues.begin() + leafOffsets[treeIdx] + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx]));
+            builder->AddTree(modelSplits, leafValuesRef, trees.LeafWeights[treeIdx]);
+        } else {
+            TVector<double> leafValues(
+                    trees.LeafValues.begin() + leafOffsets[treeIdx],
+                    trees.LeafValues.begin() + leafOffsets[treeIdx] + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx]));
+            for (auto& leafValue: leafValues) {
+                leafValue *= leafMultiplier;
+            }
+            builder->AddTree(modelSplits, leafValues, trees.LeafWeights[treeIdx]);
+        }
+    }
+}
+
+TFullModel SumModels(
+    const TVector<const TFullModel*> modelVector,
+    const TVector<double>& weights,
+    ECtrTableMergePolicy ctrMergePolicy
+) {
+    CB_ENSURE(!modelVector.empty(), "empty model vector unexpected");
+    CB_ENSURE(modelVector.size() == weights.size());
+    const auto approxDimension = modelVector.back()->ObliviousTrees.ApproxDimension;
+    size_t maxFlatFeatureVectorSize = 0;
+    TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
+    for (const auto& model : modelVector) {
+        Y_ASSERT(model != nullptr);
+        CB_ENSURE(model->ObliviousTrees.ApproxDimension == approxDimension,
+                  "Approx dimensions don't match: " << model->ObliviousTrees.ApproxDimension << " != " << approxDimension);
+        maxFlatFeatureVectorSize = Max(maxFlatFeatureVectorSize, model->ObliviousTrees.GetFlatFeatureVectorExpectedSize());
+        ctrProviders.push_back(model->CtrProvider);
+    }
+    TVector<TFlatFeature> flatFeatureInfoVector(maxFlatFeatureVectorSize);
+    for (const auto& model : modelVector) {
+        for (const auto& floatFeature : model->ObliviousTrees.FloatFeatures) {
+            flatFeatureInfoVector[floatFeature.FlatFeatureIndex].CheckedSet(floatFeature);
+        }
+        for (const auto& catFeature : model->ObliviousTrees.CatFeatures) {
+            flatFeatureInfoVector[catFeature.FlatFeatureIndex].CheckedSet(catFeature);
+        }
+    }
+    TFlatFeatureMergerVisitor merger;
+    for (auto& flatFeature: flatFeatureInfoVector) {
+        Visit(merger, flatFeature.FeatureVariant);
+    }
+    TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, approxDimension);
+    for (const auto modelId : xrange(modelVector.size())) {
+        StreamModelTreesToBuilder(modelVector[modelId]->ObliviousTrees, weights[modelId], &builder);
+    }
+    TFullModel result;
+    result.ObliviousTrees = builder.Build();
+    for (const auto modelIdx : xrange(modelVector.size())) {
+        TStringBuilder keyPrefix;
+        keyPrefix << "model" << modelIdx << ":";
+        for (const auto& [key, value]: modelVector[modelIdx]->ModelInfo) {
+            result.ModelInfo[keyPrefix + key] = value;
+        }
+    }
+    result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
+    result.UpdateDynamicData();
+    return result;
+}

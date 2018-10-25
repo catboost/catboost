@@ -70,6 +70,8 @@ public:
         return OneHotFeatureIndexes;
     }
 
+    virtual TIntrusivePtr<ICtrProvider> Clone() const override;
+
     ~TStaticCtrProvider() override {}
     TCtrData CtrData;
 private:
@@ -144,3 +146,4 @@ private:
     TCtrParallelGenerator CtrParallelGenerator;
 };
 
+TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<const TStaticCtrProvider*>& providers, ECtrTableMergePolicy mergePolicy);

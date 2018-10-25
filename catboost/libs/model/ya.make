@@ -36,6 +36,7 @@ PEERDIR(
     library/threading/local_executor
 )
 
+GENERATE_ENUM_SERIALIZATION(ctr_provider.h)
 GENERATE_ENUM_SERIALIZATION(split.h)
 
 END()

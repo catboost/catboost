@@ -51,7 +51,7 @@ void TCtrValueTable::LoadSolid(void* buf, size_t length) {
     Y_UNUSED(length); // TODO(kirillovs): add length validation
     using namespace flatbuffers;
     Impl = TSolidTable();
-    auto& solid = Impl.As<TSolidTable>();
+    auto& solid = Get<TSolidTable>(Impl);
     auto ctrValueTable = flatbuffers::GetRoot<NCatBoostFbs::TCtrValueTable>(buf);
     ModelCtrBase.FBDeserialize(ctrValueTable->ModelCtrBase());
     CounterDenominator = ctrValueTable->CounterDenominator();
