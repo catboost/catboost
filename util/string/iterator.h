@@ -12,7 +12,7 @@
 // Provides convenient way to split strings.
 // Check iterator_ut.cpp to get examples of usage.
 
-namespace NStringSplitterContainerConsumer {
+namespace NPrivate {
     template <class Container>
     struct TContainerConsumer {
         using value_type = typename Container::value_type;
@@ -22,20 +22,20 @@ namespace NStringSplitterContainerConsumer {
         {
         }
 
-        template<class Element>
-        void operator()(Element&& e) const {
-            this->operator()(C_, std::forward<Element>(e));
+        template<class Char>
+        void operator()(TGenericStringBuf<Char> e) const {
+            this->operator()(C_, e);
         }
 
     private:
-        template<class OtherContainer, class Element>
-        auto operator()(OtherContainer* c, Element&& e) const -> decltype(c->push_back(value_type(std::forward<Element>(e)))) {
-            return c->push_back(value_type(std::forward<Element>(e)));
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->push_back(value_type(e))) {
+            return c->push_back(value_type(e));
         }
 
-        template<class OtherContainer, class Element>
-        auto operator()(OtherContainer* c, Element&& e) const -> decltype(c->insert(value_type(std::forward<Element>(e)))) {
-            return c->insert(value_type(std::forward<Element>(e)));
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(value_type(e))) {
+            return c->insert(value_type(e));
         }
 
         Container* C_;
@@ -79,7 +79,7 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     template <class Container>
     inline void Collect(Container* c) {
         Y_ASSERT(c);
-        NStringSplitterContainerConsumer::TContainerConsumer<Container> consumer(c);
+        ::NPrivate::TContainerConsumer<Container> consumer(c);
         this->Consume(consumer);
     }
 
