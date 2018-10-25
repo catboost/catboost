@@ -1237,6 +1237,10 @@ _PyObject_Alloc(int use_calloc, void *ctx, size_t nelem, size_t elsize)
         goto redirect;
 #endif
 
+#ifdef address_sanitizer_enabled
+    goto redirect;
+#endif
+
     if (nelem == 0 || elsize == 0)
         goto redirect;
 
@@ -1463,6 +1467,10 @@ _PyObject_Free(void *ctx, void *p)
         goto redirect;
 #endif
 
+#ifdef address_sanitizer_enabled
+    goto redirect;
+#endif
+
     pool = POOL_ADDR(p);
     if (address_in_range(p, pool)) {
         /* We allocated this address. */
@@ -1658,7 +1666,7 @@ _PyObject_Free(void *ctx, void *p)
         return;
     }
 
-#ifdef WITH_VALGRIND
+#if defined(WITH_VALGRIND) || defined(address_sanitizer_enabled)
 redirect:
 #endif
     /* We didn't allocate this address. */
@@ -1684,6 +1692,10 @@ _PyObject_Realloc(void *ctx, void *p, size_t nbytes)
     /* Treat running_on_valgrind == -1 the same as 0 */
     if (UNLIKELY(running_on_valgrind > 0))
         goto redirect;
+#endif
+
+#ifdef address_sanitizer_enabled
+    goto redirect;
 #endif
 
     pool = POOL_ADDR(p);
@@ -1713,7 +1725,7 @@ _PyObject_Realloc(void *ctx, void *p, size_t nbytes)
         }
         return bp;
     }
-#ifdef WITH_VALGRIND
+#if defined(WITH_VALGRIND) || defined(address_sanitizer_enabled)
  redirect:
 #endif
     /* We're not managing this block.  If nbytes <=
