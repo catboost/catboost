@@ -80,6 +80,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\coreml_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ctr_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\ctr_provider.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\ctr_value_table.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\features.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\formula_evaluator.cpp"/>
@@ -90,6 +91,33 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\split.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\static_ctr_provider.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/model/ctr_provider.h" "--include-path" "catboost/libs/model/ctr_provider.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/model/ctr_provider.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/model/ctr_provider.h" "--include-path" "catboost/libs/model/ctr_provider.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/model/ctr_provider.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/model/ctr_provider.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\ctr_provider.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\ctr_provider.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\split.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model
@@ -119,7 +147,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\coreml_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_data.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\ctr_value_table.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\features.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\flatbuffers_serializer_helper.h"/>
