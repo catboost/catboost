@@ -24,6 +24,8 @@ double DotProduct(const double* lhs, const double* rhs, ui32 length) noexcept;
 Y_PURE_FUNCTION
 float L2NormSquared(const float* v, ui32 length) noexcept;
 
+// TODO(yazevnul): make `L2NormSquared` for double, this should be faster than `DotProduct`
+// where `lhs == rhs` because it will save N load instructions.
 
 template <typename T>
 struct TTriWayDotProduct {
