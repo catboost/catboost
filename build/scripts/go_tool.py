@@ -90,7 +90,6 @@ def do_link_lib(args):
 
 
 def do_link_exe(arg):
-    assert args.cc
     compile_args = copy.deepcopy(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
     do_link_lib(compile_args)
@@ -99,25 +98,28 @@ def do_link_exe(arg):
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     cmd.append('-buildmode=exe')
-    if args.host_os != 'windows':
-        cmd += ['-extld=' + args.cc, '-linkmode=external', '-extldflags=-lpthread']
+    if args.ld is not None:
+        cmd += ['-extld=' + args.ld, '-linkmode=external']
+        if args.ld_flags is not None and len(args.ld_flags) > 0:
+            cmd.append('-extldflags=' + ' '.join(args.ld_flags))
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--mode', choices=['lib', 'exe'], required=True)
-    parser.add_argument('--srcs', nargs='+', required=True)
-    parser.add_argument('--output', nargs='?', default=None)
-    parser.add_argument('--build-root', required=True)
-    parser.add_argument('--output-root', required=True)
-    parser.add_argument('--tools-root', required=True)
-    parser.add_argument('--host-os', choices=['linux', 'darwin', 'windows'], required=True)
-    parser.add_argument('--host-arch', choices=['amd64'], required=True)
-    parser.add_argument('--peers', nargs='*')
-    parser.add_argument('--asmhdr', nargs='?', default=None)
-    parser.add_argument('--cc', nargs='?', default=None)
+    parser = argparse.ArgumentParser(prefix_chars='+')
+    parser.add_argument('++mode', choices=['lib', 'exe'], required=True)
+    parser.add_argument('++srcs', nargs='+', required=True)
+    parser.add_argument('++output', nargs='?', default=None)
+    parser.add_argument('++build-root', required=True)
+    parser.add_argument('++output-root', required=True)
+    parser.add_argument('++tools-root', required=True)
+    parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
+    parser.add_argument('++host-arch', choices=['amd64'], required=True)
+    parser.add_argument('++peers', nargs='*')
+    parser.add_argument('++asmhdr', nargs='?', default=None)
+    parser.add_argument('++ld', nargs='?', default=None)
+    parser.add_argument('++ld-flags', nargs='*', default=None)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
