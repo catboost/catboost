@@ -14,12 +14,11 @@ namespace {
             (void)AtFork;
 
 #if defined(_unix_)
-            Y_ENSURE(pthread_atfork(0, 0, AtFork) == 0, "it happens");
+            Y_ENSURE(pthread_atfork(AtFork, AtFork, nullptr) == 0, "it happens");
 #endif
         }
 
         static void AtFork() noexcept {
-            ResetEntropyPool();
             ResetRandomState();
         }
     };
