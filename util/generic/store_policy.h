@@ -14,16 +14,20 @@ struct TWithRefCount: public TBase, public TRefCounted<TWithRefCount<TBase, TCou
 
 template <class T>
 struct TPtrPolicy {
-    inline TPtrPolicy(const T* t)
+    inline TPtrPolicy(T* t)
         : T_(t)
     {
+    }
+
+    inline T* Ptr() noexcept {
+        return T_;
     }
 
     inline const T* Ptr() const noexcept {
         return T_;
     }
 
-    const T* T_;
+    T* T_;
 };
 
 template <class T>

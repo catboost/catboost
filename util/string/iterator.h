@@ -376,7 +376,7 @@ public:
 
     //does not own TDelim
     template <class TDelim>
-    inline TIt<TPtrPolicy<TDelim>> Split(const TDelim& d) const noexcept {
+    inline TIt<TPtrPolicy<const TDelim>> Split(const TDelim& d) const noexcept {
         return {this, &d};
     }
 
