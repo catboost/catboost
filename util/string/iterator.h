@@ -80,7 +80,14 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     inline void Collect(Container* c) {
         Y_ASSERT(c);
         ::NPrivate::TContainerConsumer<Container> consumer(c);
-        this->Consume(consumer);
+        Consume(consumer);
+    }
+
+    template <class Container>
+    inline void AddTo(Container* c) {
+        Y_ASSERT(c);
+        ::NPrivate::TContainerConsumer<Container> consumer(c);
+        Consume(consumer);
     }
 
     template <typename... TArgs>
