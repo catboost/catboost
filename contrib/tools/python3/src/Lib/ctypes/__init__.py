@@ -10,6 +10,7 @@ from _ctypes import CFuncPtr as _CFuncPtr
 from _ctypes import __version__ as _ctypes_version
 from _ctypes import RTLD_LOCAL, RTLD_GLOBAL
 from _ctypes import ArgumentError
+from .util import find_library
 
 from struct import calcsize as _calcsize
 
@@ -345,7 +346,12 @@ class CDLL(object):
         self._FuncPtr = _FuncPtr
 
         if handle is None:
-            self._handle = _dlopen(self._name, mode)
+            if isinstance(self._name, dict):
+                self._builtin = self._name['symbols']
+                self._name = self._name['name']
+                self._handle = 0
+            else:
+                self._handle = _dlopen(self._name, mode)
         else:
             self._handle = handle
 
@@ -363,7 +369,11 @@ class CDLL(object):
         return func
 
     def __getitem__(self, name_or_ordinal):
-        func = self._FuncPtr((name_or_ordinal, self))
+        if self._builtin:
+            func = self._FuncPtr(self._builtin[name_or_ordinal])
+        else:
+            func = self._FuncPtr((name_or_ordinal, self))
+
         if not isinstance(name_or_ordinal, int):
             func.__name__ = name_or_ordinal
         return func
@@ -433,7 +443,10 @@ if _os.name == "nt":
 elif _sys.platform == "cygwin":
     pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
 else:
-    pythonapi = PyDLL(None)
+    try:
+        pythonapi = PyDLL(None)
+    except OSError:
+        pythonapi = PyDLL(find_library('python'))
 
 
 if _os.name == "nt":

@@ -10,6 +10,7 @@ from _ctypes import CFuncPtr as _CFuncPtr
 from _ctypes import __version__ as _ctypes_version
 from _ctypes import RTLD_LOCAL, RTLD_GLOBAL
 from _ctypes import ArgumentError
+from .util import find_library
 
 from struct import calcsize as _calcsize
 
@@ -467,8 +468,7 @@ else:
     try:
         pythonapi = PyDLL(None)
     except OSError:
-        from library.python.pythonapi import PythonAPI
-        pythonapi = PythonAPI()
+        pythonapi = PyDLL(find_library('python'))
 
 
 if _os.name in ("nt", "ce"):

@@ -38,9 +38,9 @@ static void DictSetStringPtr(PyObject* dict, const char* name, void* value) {
     extern void SYM_NAME(); \
     SYM(SYM_NAME)
 
-#define END_SYMS()                             \
-    if (!PyObject_SetAttrString(m, "syms", d)) \
-        m = NULL;                              \
-    Py_DECREF(d);                              \
-    return m;                                  \
+#define END_SYMS()                            \
+    if (PyObject_SetAttrString(m, "syms", d)) \
+        m = NULL;                             \
+    Py_DECREF(d);                             \
+    return m;                                 \
     }

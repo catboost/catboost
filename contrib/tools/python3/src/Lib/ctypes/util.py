@@ -302,6 +302,16 @@ elif os.name == "posix":
             return _findSoname_ldconfig(name) or \
                    _get_soname(_findLib_gcc(name) or _findLib_ld(name))
 
+try:
+    from library.python.symbols.module import find_library as _find_library
+except ImportError:
+    pass
+else:
+    _next_find_library = find_library
+
+    def find_library(name):
+        return _find_library(name, _next_find_library)
+
 ################################################################
 # test code
 

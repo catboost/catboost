@@ -1,4 +1,4 @@
-PY_LIBRARY()
+PY23_LIBRARY()
 
 
 

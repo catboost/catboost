@@ -275,13 +275,13 @@ elif os.name == "posix":
 
 try:
     from library.python.symbols.module import find_library as _find_library
-
+except ImportError:
+    pass
+else:
     _next_find_library = find_library
 
     def find_library(name):
         return _find_library(name, _next_find_library)
-except ImportError:
-    pass
 
 ################################################################
 # test code

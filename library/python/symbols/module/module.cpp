@@ -24,9 +24,9 @@ using namespace NPrivate;
 #undef SYM
 #undef ESYM
 
-#include <util/generic/string.h>
-
 #include "Python.h"
+
+#include <util/generic/string.h>
 
 extern "C" {
 #include <library/python/ctypes/syms.h>
