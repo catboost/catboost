@@ -81,7 +81,7 @@ namespace NStatistics {
         ValueType ySize = static_cast<ValueType>(std::distance(yBegin, yEnd));
 
         if (xSize < MINIMUM_NUMBER_ELEMENTS_NORMAL_APPROXIMATION || ySize < MINIMUM_NUMBER_ELEMENTS_NORMAL_APPROXIMATION) {
-            return TStatTestResult(static_cast<ValueType>(0.5), 0);
+            return TStatTestResult(static_cast<ValueType>(1), 0);
         }
 
         TMWVector xy;
@@ -101,7 +101,7 @@ namespace NStatistics {
         statistics.modifier = sqrt(1 - statistics.modifier);
 
         if (statistics.modifier < std::numeric_limits<double>::epsilon()) {
-            return TStatTestResult(static_cast<ValueType>(0.5), 0);
+            return TStatTestResult(static_cast<ValueType>(1.), 0);
         }
 
         const ValueType mean = xSize * ySize / 2.0;

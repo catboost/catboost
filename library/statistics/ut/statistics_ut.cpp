@@ -188,8 +188,17 @@ Y_UNIT_TEST_SUITE(TStatisticsTest) {
     }
 
     Y_UNIT_TEST(MannWhitneyTest) {
-        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_0_1), 0.5, 0.01);
-        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_1_5), 0.5, 0.01);
+        TVector<double> a(100, 0);
+        TVector<double> b(100, 0);
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MannWhitneyWithSign(a.begin(), a.end(), b.begin(), b.end()).PValue, 1., 0.01);
+        a[0] = 3;
+        b[0] = 2;
+        UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MannWhitneyWithSign(a.begin(), a.end(), b.begin(), b.end()).PValue, 1., 0.01);
+
+        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(1, normal_0_1), 1., 0.01);
+
+        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_0_1), 1., 0.01);
+        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_1_5), 1., 0.01);
 
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(30, normal_0_1), 0, 0.07);
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(30, normal_1_5), 1, 0.95);
@@ -227,8 +236,8 @@ Y_UNIT_TEST_SUITE(TStatisticsTest) {
     }
 
     Y_UNIT_TEST(MannWhitneyWithSignTest) {
-        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_0_1), 0.5, 0.01);
-        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_1_5), 0.5, 0.01);
+        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_0_1), 1, 0.01);
+        UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_1_5), 1, 0.01);
 
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(30, normal_0_1), 0, 0.07);
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(30, normal_1_5), 1, 0.95);
