@@ -114,6 +114,19 @@ namespace NCharTraitsImpl {
             return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar16)) == 0);
         }
     };
+
+    // OS accelerated specialization for wchar32
+    using TCmpWchar32 = TCompareBase<wchar32, TSingleCharBase<wchar32>>;
+
+    template <>
+    struct TEqualBase<wchar32, TCmpWchar32> {
+        static bool Equal(const wchar32* s1, const wchar32* s2) {
+            return TCmpWchar32::Compare(s1, s2) == 0;
+        }
+        static bool Equal(const wchar32* s1, const wchar32* s2, size_t n) {
+            return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar32)) == 0);
+        }
+    };
 }
 
 template <typename TCharType,
