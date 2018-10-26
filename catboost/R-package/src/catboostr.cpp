@@ -263,13 +263,18 @@ SEXP CatBoostPoolNumCol_R(SEXP poolParam) {
     return result;
 }
 
-SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+SEXP CatBoostGetNumTrees_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = ScalarInteger(static_cast<int>(model->ObliviousTrees.GetTreeCount()));
     R_API_END();
     return result;
+}
+
+// TODO(dbakshee): remove this backward compatibility gag in v0.11
+SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+    return CatBoostGetNumTrees_R(modelParam);
 }
 
 SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {

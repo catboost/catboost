@@ -1631,7 +1631,7 @@ catboost.ntrees <- function(model) {
         stop("Expected catboost.Model, got: ", class(model))
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    num_trees <- .Call("CatBoostPoolNumTrees_R", model$handle)
+    num_trees <- .Call("CatBoostGetNumTrees_R", model$handle)
     return(num_trees)
 }
 
