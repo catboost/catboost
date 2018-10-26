@@ -38,9 +38,10 @@ Y_UNIT_TEST_SUITE(IteratorRange) {
     }
 
     Y_UNIT_TEST(WorksSentinel) {
-        struct TEnumerator {
-            struct TSentinel {};
+        struct TRangeSentinel {
+        };
 
+        struct TEnumerator {
             ui32 operator*() const {
                 return Cur;
             }
@@ -49,7 +50,7 @@ Y_UNIT_TEST_SUITE(IteratorRange) {
                 ++Cur;
             }
 
-            bool operator!=(const TSentinel&) const {
+            bool operator!=(const TRangeSentinel&) const {
                 return Cur < End;
             }
 
@@ -57,7 +58,7 @@ Y_UNIT_TEST_SUITE(IteratorRange) {
             ui32 End;
         };
 
-        auto range = MakeIteratorRange(TEnumerator{0, 10});
+        auto range = MakeIteratorRange(TEnumerator{0, 10}, TRangeSentinel{});
         UNIT_ASSERT(!range.empty());
 
         ui32 i = 0;

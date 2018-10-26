@@ -15,11 +15,6 @@ struct TIteratorRange {
     {
     }
 
-    TIteratorRange(TBegin begin)
-        : TIteratorRange(begin, TEnd{})
-    {
-    }
-
     TIteratorRange()
         : TIteratorRange(TBegin{}, TEnd{})
     {
@@ -104,7 +99,7 @@ TIteratorRange<TIterator> MakeIteratorRange(const std::pair<TIterator, TIterator
     return TIteratorRange<TIterator>(range.first, range.second);
 }
 
-template <class TIterator>
-TIteratorRange<TIterator, typename TIterator::TSentinel> MakeIteratorRange(TIterator begin) {
-    return TIteratorRange<TIterator, typename TIterator::TSentinel>(begin, {});
+template <class TBegin, class TEnd>
+TIteratorRange<TBegin, TEnd> MakeIteratorRange(TBegin begin, TEnd end) {
+    return {begin, end};
 }
