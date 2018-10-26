@@ -60,6 +60,11 @@ def get_cuda_setup_error():
     return None
 
 
+def run_nvidia_smi():
+    import subprocess
+    subprocess.call(['/usr/bin/nvidia-smi'])
+
+
 def execute(*args, **kwargs):
     input_data = kwargs.pop('input_data', None)
     output_data = kwargs.pop('output_data', None)
@@ -79,6 +84,8 @@ def execute(*args, **kwargs):
             output_data=output_data,
             # required for quantized-marked input filenames
             data_mine_strategy=yatest.yt.process.replace_mine_strategy,
+            # required for debug purposes
+            init_func=run_nvidia_smi,
             **kwargs
         )
     return yatest.common.execute(*args, **kwargs)
