@@ -759,9 +759,9 @@ cdef class PyPredictionType:
         else:
             self.predictionType = EPredictionType_RawFormulaVal
 
-cdef EModelType string_to_model_type(model_type_str):
+cdef EModelType string_to_model_type(model_type_str) except *:
     cdef EModelType model_type
-    if not TryFromString[EModelType](model_type_str, model_type):
+    if not TryFromString[EModelType](to_binary_str(model_type_str), model_type):
         raise CatboostError("Unknown model type {}.".format(model_type_str))
     return model_type
 
