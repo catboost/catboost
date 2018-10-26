@@ -1,6 +1,6 @@
 
 
-LIBRARY()
+PY_LIBRARY()
 
 LICENSE(
     BSD3
