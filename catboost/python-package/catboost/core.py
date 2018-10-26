@@ -2920,3 +2920,4 @@ class BatchMetricCalcer(_MetricCalcerBase):
 def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
     result = CatBoost()
     result._sum_models(models, weights, ctr_merge_policy)
+    return result
