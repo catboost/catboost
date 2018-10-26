@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{942BA312-AE11-50F0-703D-28FD53715B90}</ProjectGUID>
+    <ProjectGUID>{E0D4C48E-C9C1-1D99-C6E8-014B36784DF1}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>contrib-python-MarkupSafe</ProjectName>
+    <ProjectName>pycatboost-pytest-lib</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>contrib-python-MarkupSafe</TargetName>
+    <TargetName>pycatboost-pytest-lib</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\942BA312-AE11-50F0-703D-28FD53715B90\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\pytest\lib\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E0D4C48E-C9C1-1D99-C6E8-014B36784DF1\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -62,7 +62,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/python/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -77,12 +77,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\84b86292b63ffa7f42a4f79c68.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\3aa8f1bd97b01082413168bee0.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\_3aa8f1bd97b01082413168bee0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.obj" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +91,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.obj" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.obj;</Outputs>
+      <Message>$B/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\_3aa8f1bd97b01082413168bee0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\_3aa8f1bd97b01082413168bee0.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/84b86292b63ffa7f42a4f79c68.cpp" "_4ec1fa06da302f49a701819547=/py_modules/markupsafe._compat" "_b0a3e66b8e9cd52247de5dc39e=resfs/src//py_modules/markupsafe._compat" "_5dac0daf9cb35cc6009f1b2672=/py_code/markupsafe._compat" "_b21ed89e0ebbb288553ff45705=/py_modules/markupsafe._constants" "_6a8e2f228f91ecc14da63df7b6=resfs/src//py_modules/markupsafe._constants" "_3b997eb9744e9c16842b62b247=/py_code/markupsafe._constants" "_a51e33c70c5581472de0a66e4d=/py_modules/markupsafe.__init__" "_9d6eb7c7bb84712c62345b278f=resfs/src//py_modules/markupsafe.__init__" "_174fc692d09ab15890553fb594=/py_code/markupsafe.__init__" "_46a0f74bf9f551e880ba4434b1=/py_modules/markupsafe._native" "_609a47e296a01d472c756764a3=resfs/src//py_modules/markupsafe._native" "_70042d0e191b4e2e7c0ca09136=/py_code/markupsafe._native"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/3aa8f1bd97b01082413168bee0.cpp" "_02e167b912d052b083289d79b1=/py_modules/catboost_pytest_lib.__init__" "_27133fdd5b0c61856f67bd553c=resfs/src//py_modules/catboost_pytest_lib.__init__" "_36ce2fda58574a31c4f3f0125f=/py_code/catboost_pytest_lib.__init__" "_1d5abdd6e7c81861cb55c0f313=/py_modules/catboost_pytest_lib.common_helpers" "_cc09c13a8bdccf4fe0aee8460c=resfs/src//py_modules/catboost_pytest_lib.common_helpers" "_336137847aff76f05307ae6b5e=/py_code/catboost_pytest_lib.common_helpers"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,9 +118,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/84b86292b63ffa7f42a4f79c68.cpp" "_4ec1fa06da302f49a701819547=/py_modules/markupsafe._compat" "_b0a3e66b8e9cd52247de5dc39e=resfs/src//py_modules/markupsafe._compat" "_5dac0daf9cb35cc6009f1b2672=/py_code/markupsafe._compat" "_b21ed89e0ebbb288553ff45705=/py_modules/markupsafe._constants" "_6a8e2f228f91ecc14da63df7b6=resfs/src//py_modules/markupsafe._constants" "_3b997eb9744e9c16842b62b247=/py_code/markupsafe._constants" "_a51e33c70c5581472de0a66e4d=/py_modules/markupsafe.__init__" "_9d6eb7c7bb84712c62345b278f=resfs/src//py_modules/markupsafe.__init__" "_174fc692d09ab15890553fb594=/py_code/markupsafe.__init__" "_46a0f74bf9f551e880ba4434b1=/py_modules/markupsafe._native" "_609a47e296a01d472c756764a3=resfs/src//py_modules/markupsafe._native" "_70042d0e191b4e2e7c0ca09136=/py_code/markupsafe._native"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/3aa8f1bd97b01082413168bee0.cpp" "_02e167b912d052b083289d79b1=/py_modules/catboost_pytest_lib.__init__" "_27133fdd5b0c61856f67bd553c=resfs/src//py_modules/catboost_pytest_lib.__init__" "_36ce2fda58574a31c4f3f0125f=/py_code/catboost_pytest_lib.__init__" "_1d5abdd6e7c81861cb55c0f313=/py_modules/catboost_pytest_lib.common_helpers" "_cc09c13a8bdccf4fe0aee8460c=resfs/src//py_modules/catboost_pytest_lib.common_helpers" "_336137847aff76f05307ae6b5e=/py_code/catboost_pytest_lib.common_helpers"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,27 +128,19 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/MarkupSafe/84b86292b63ffa7f42a4f79c68.cpp	</Message>
+      <Message>$B/catboost/pytest/lib/3aa8f1bd97b01082413168bee0.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\84b86292b63ffa7f42a4f79c68.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\3aa8f1bd97b01082413168bee0.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/__init__.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/lib/__init__.py-" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_compat.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_constants.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_native.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/lib/common_helpers.py-" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -157,21 +149,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/__init__.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/lib/__init__.py-" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_compat.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_constants.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_native.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/lib/common_helpers.py-" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -179,15 +163,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc	$B/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc	$B/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc	$B/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\__init__.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_compat.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_constants.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_native.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_constants.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_native.py.yapyc;</Outputs>
+      <Message>$B/catboost/pytest/lib/__init__.py.yapyc	$B/catboost/pytest/lib/common_helpers.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\catboost\pytest\lib\__init__.py;$(SolutionDir)..\catboost\pytest\lib\common_helpers.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\__init__.py.yapyc;$(SolutionDir)$(Configuration)\catboost\pytest\lib\common_helpers.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_compat.py">
+    <CustomBuild Include="$(SolutionDir)..\catboost\pytest\lib\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.yasm" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_4ec1fa06da302f49a701819547.rodata" "-" "contrib/python/MarkupSafe/markupsafe/_compat.py" "_b0a3e66b8e9cd52247de5dc39e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_5dac0daf9cb35cc6009f1b2672.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_b21ed89e0ebbb288553ff45705.rodata" "-" "contrib/python/MarkupSafe/markupsafe/_constants.py" "_6a8e2f228f91ecc14da63df7b6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_3b997eb9744e9c16842b62b247.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_a51e33c70c5581472de0a66e4d.rodata" "-" "contrib/python/MarkupSafe/markupsafe/__init__.py" "_9d6eb7c7bb84712c62345b278f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_174fc692d09ab15890553fb594.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_46a0f74bf9f551e880ba4434b1.rodata" "-" "contrib/python/MarkupSafe/markupsafe/_native.py" "_609a47e296a01d472c756764a3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_70042d0e191b4e2e7c0ca09136.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.yasm" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_02e167b912d052b083289d79b1.rodata" "-" "catboost/pytest/lib/__init__.py" "_27133fdd5b0c61856f67bd553c.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_36ce2fda58574a31c4f3f0125f.rodata" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_1d5abdd6e7c81861cb55c0f313.rodata" "-" "catboost/pytest/lib/common_helpers.py" "_cc09c13a8bdccf4fe0aee8460c.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_336137847aff76f05307ae6b5e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -196,9 +180,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.yasm" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_4ec1fa06da302f49a701819547.rodata" "-" "contrib/python/MarkupSafe/markupsafe/_compat.py" "_b0a3e66b8e9cd52247de5dc39e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_5dac0daf9cb35cc6009f1b2672.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_b21ed89e0ebbb288553ff45705.rodata" "-" "contrib/python/MarkupSafe/markupsafe/_constants.py" "_6a8e2f228f91ecc14da63df7b6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_3b997eb9744e9c16842b62b247.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_a51e33c70c5581472de0a66e4d.rodata" "-" "contrib/python/MarkupSafe/markupsafe/__init__.py" "_9d6eb7c7bb84712c62345b278f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_174fc692d09ab15890553fb594.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_46a0f74bf9f551e880ba4434b1.rodata" "-" "contrib/python/MarkupSafe/markupsafe/_native.py" "_609a47e296a01d472c756764a3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_70042d0e191b4e2e7c0ca09136.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.yasm" "$(SolutionDir)../catboost/pytest/lib/__init__.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_02e167b912d052b083289d79b1.rodata" "-" "catboost/pytest/lib/__init__.py" "_27133fdd5b0c61856f67bd553c.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_36ce2fda58574a31c4f3f0125f.rodata" "$(SolutionDir)../catboost/pytest/lib/common_helpers.py" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_1d5abdd6e7c81861cb55c0f313.rodata" "-" "catboost/pytest/lib/common_helpers.py" "_cc09c13a8bdccf4fe0aee8460c.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/common_helpers.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/lib/_336137847aff76f05307ae6b5e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -206,9 +190,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/MarkupSafe/_84b86292b63ffa7f42a4f79c68.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_compat.py;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_compat.py.yapyc;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_constants.py;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_constants.py.yapyc;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\__init__.py.yapyc;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_native.py;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_native.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.yasm;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_4ec1fa06da302f49a701819547.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_5dac0daf9cb35cc6009f1b2672.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_b21ed89e0ebbb288553ff45705.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_3b997eb9744e9c16842b62b247.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_a51e33c70c5581472de0a66e4d.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_174fc692d09ab15890553fb594.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_46a0f74bf9f551e880ba4434b1.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_70042d0e191b4e2e7c0ca09136.rodata;</Outputs>
+      <Message>$B/catboost/pytest/lib/_3aa8f1bd97b01082413168bee0.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\lib\__init__.py;$(SolutionDir)$(Configuration)\catboost\pytest\lib\__init__.py.yapyc;$(SolutionDir)..\catboost\pytest\lib\common_helpers.py;$(SolutionDir)$(Configuration)\catboost\pytest\lib\common_helpers.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\_3aa8f1bd97b01082413168bee0.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_02e167b912d052b083289d79b1.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_36ce2fda58574a31c4f3f0125f.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_1d5abdd6e7c81861cb55c0f313.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\lib\_336137847aff76f05307ae6b5e.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

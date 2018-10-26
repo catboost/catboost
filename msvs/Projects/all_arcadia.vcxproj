@@ -287,8 +287,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\catboost-pytest-cuda_tests.vcxproj">
       <Project>73A61063-9CBB-C06C-3D0B-330986BF4A3E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\catboost-pytest-lib.vcxproj">
-      <Project>E2FFE900-CF99-EFC4-DD33-8403D5195C9F</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\pycatboost-pytest-lib.vcxproj">
+      <Project>E0D4C48E-C9C1-1D99-C6E8-014B36784DF1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\catboost\_catboost.pyd.vcxproj">
       <Project>35A1E8E1-5A55-A227-1CE0-986A245482DA</Project>
@@ -446,8 +446,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\Jinja2.vcxproj">
       <Project>F89E8ECF-D5BD-F9FB-6743-C6553FB5B153</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\contrib-python-MarkupSafe.vcxproj">
-      <Project>942BA312-AE11-50F0-703D-28FD53715B90</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\pycontrib-python-MarkupSafe.vcxproj">
+      <Project>FC1C3945-FBD5-32DC-1DC6-99EC399ECD60</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
       <Project>32EDAE47-C9E0-5490-205B-6A1DB239D8BA</Project>
