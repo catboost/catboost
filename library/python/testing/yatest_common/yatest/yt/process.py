@@ -2,6 +2,8 @@ import os
 import re
 import json
 import shlex
+import base64
+import marshal
 import logging
 import tempfile
 import subprocess
@@ -30,6 +32,7 @@ def execute(
     data_mine_strategy=None,
     operation_spec=None, task_spec=None,
     yt_proxy=None, output_result_path=None,
+    init_func=None, fini_func=None,
 ):
     """
     Executes a command on the YT. Listed below are options whose behavior is different from yatest.common.execute
@@ -50,6 +53,8 @@ def execute(
     :param operation_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
+    :param init_func: Function which will be executed before target program. Use only for debug purposes
+    :param fini_func: Function which will be executed after target program. Use only for debug purposes
     :return: Execution object
     """
     test_tool_bin = _get_test_tool_bin()
@@ -110,6 +115,10 @@ def execute(
         user=task_spec,
         mandatory={'job_count': 1},
     )
+    if init_func:
+        exec_spec['init_func'] = _dump_func(init_func)
+    if fini_func:
+        exec_spec['fini_func'] = _dump_func(fini_func)
 
     exec_spec_path = _dump_spec(exec_spec)
 
@@ -315,3 +324,7 @@ def _dump_spec(data):
     with open(filename.name, 'w') as afile:
         json.dump(data, afile, indent=4, sort_keys=True)
     return filename.name
+
+
+def _dump_func(func):
+    return base64.b64encode(marshal.dumps(func.func_code))
