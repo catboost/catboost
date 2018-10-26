@@ -12,7 +12,7 @@ import numpy as np
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from six import PY3
-from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
+from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train, sum_models
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 
@@ -3198,9 +3198,8 @@ def test_model_merging():
     truncated_copies = [model.copy() for _ in range(MODEL_COUNT)]
     for i, model_to_shrink in enumerate(truncated_copies):
         model_to_shrink.shrink(ntree_start=i * ITER_STEP, ntree_end=(i + 1) * ITER_STEP)
-    merged_model = CatBoost()
     weights = [1.0] * MODEL_COUNT
-    merged_model.sum_models(truncated_copies, weights)
+    merged_model = sum_models(truncated_copies, weights)
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
     merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
     assert np.all(pred == merged_pred)

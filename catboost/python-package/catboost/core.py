@@ -1719,9 +1719,6 @@ class CatBoost(_CatBoostBase):
             self._init_params[key] = value
         return self
 
-    def sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
-        self._sum_models(models_base, weights, ctr_merge_policy)
-
 
 class CatBoostClassifier(CatBoost):
     """
@@ -2918,3 +2915,8 @@ class BatchMetricCalcer(_MetricCalcerBase):
         if isinstance(metrics, str):
             metrics = [metrics]
         self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)
+
+
+def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
+    result = CatBoost()
+    result._sum_models(models, weights, ctr_merge_policy)
