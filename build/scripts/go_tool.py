@@ -97,12 +97,7 @@ def do_link_exe(arg):
     import_config_name = create_import_config(compile_args.peers, False)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
-    cmd.append('-buildmode=exe')
-    if args.ld is not None:
-        cmd += ['-extld=' + args.ld, '-linkmode=external']
-        if args.ld_flags is not None and len(args.ld_flags) > 0:
-            cmd.append('-extldflags=' + ' '.join(args.ld_flags))
-    cmd.append(compile_args.output)
+    cmd += ['-buildmode=exe', '-extld=gcc', compile_args.output]
     call(cmd, args.build_root)
 
 
@@ -118,8 +113,6 @@ if __name__ == '__main__':
     parser.add_argument('++host-arch', choices=['amd64'], required=True)
     parser.add_argument('++peers', nargs='*')
     parser.add_argument('++asmhdr', nargs='?', default=None)
-    parser.add_argument('++ld', nargs='?', default=None)
-    parser.add_argument('++ld-flags', nargs='*', default=None)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')

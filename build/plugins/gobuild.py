@@ -26,13 +26,12 @@ def on_go_process_srcs(unit):
     """
 
     go_files = get_appended_values(unit, 'GO_FILES_VALUE')
-    if len(go_files) > 0:
-        files = filter(lambda x: x.endswith('.c') or x.endswith('.S'), go_files)
-        if len(files) > 0:
-            cgo_flags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
-            for f in files:
-                flags = cgo_flags if f.endswith('c') else []
-                unit.onsrc([f] + flags)
+    s_files = filter(lambda x: x.endswith('.S'), go_files)
+    c_files = filter(lambda x: x.endswith('.c'), go_files)
+    if len(c_files) + len(s_files) > 0:
+        cgo_flags = get_appended_values(unit, 'CGO_CFLAGS_VALUE')
+        for f in c_files + s_files:
+            unit.onsrc([f] + cgo_flags)
 
     cgo_files = get_appended_values(unit, 'CGO_FILES_VALUE')
     if len(cgo_files) > 0:
@@ -44,5 +43,11 @@ def on_go_process_srcs(unit):
             unit.onpeerdir(os.path.join(go_root, runtime_cgo_path))
         import_runtime_cgo = 'false' if import_path in [runtime_cgo_path, runtime_msan_path, runtime_race_path] else 'true'
         import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
-        unit.ongo_compile_cgo1([import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall])
-        unit.ongo_compile_cgo2([os.path.basename(import_path)] + cgo_files)
+        args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
+        unit.ongo_compile_cgo1(args)
+        args = [os.path.basename(import_path)] + cgo_files
+        if len(c_files) > 0:
+            args += ['C_FILES'] + c_files
+        if len(s_files) > 0:
+            args += ['S_FILES'] + s_files
+        unit.ongo_compile_cgo2(args)
