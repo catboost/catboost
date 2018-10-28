@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ref_or_object_holder.h"
+#include "store_policy.h"
 #include "typetraits.h"
 
 namespace NPrivate {
@@ -8,19 +8,19 @@ namespace NPrivate {
     template <typename TDerived, bool HasReverseIterators = true>
     struct TForwardFromBackwardIteratorsHelper {
         auto begin() const {
-            return static_cast<const TDerived*>(this)->Container->rbegin();
+            return static_cast<const TDerived*>(this)->Container.Ptr()->rbegin();
         }
 
         auto end() const {
-            return static_cast<const TDerived*>(this)->Container->rend();
+            return static_cast<const TDerived*>(this)->Container.Ptr()->rend();
         }
 
         auto begin() {
-            return static_cast<TDerived*>(this)->Container->rbegin();
+            return static_cast<TDerived*>(this)->Container.Ptr()->rbegin();
         }
 
         auto end() {
-            return static_cast<TDerived*>(this)->Container->rend();
+            return static_cast<TDerived*>(this)->Container.Ptr()->rend();
         }
     };
 
@@ -28,22 +28,22 @@ namespace NPrivate {
     struct TForwardFromBackwardIteratorsHelper<TDerived, false> {
         auto begin() const {
             using std::end;
-            return std::make_reverse_iterator(end(*static_cast<const TDerived*>(this)->Container));
+            return std::make_reverse_iterator(end(*static_cast<const TDerived*>(this)->Container.Ptr()));
         }
 
         auto end() const {
             using std::begin;
-            return std::make_reverse_iterator(begin(*static_cast<const TDerived*>(this)->Container));
+            return std::make_reverse_iterator(begin(*static_cast<const TDerived*>(this)->Container.Ptr()));
         }
 
         auto begin() {
             using std::end;
-            return std::make_reverse_iterator(end(*static_cast<TDerived*>(this)->Container));
+            return std::make_reverse_iterator(end(*static_cast<TDerived*>(this)->Container.Ptr()));
         }
 
         auto end() {
             using std::begin;
-            return std::make_reverse_iterator(begin(*static_cast<TDerived*>(this)->Container));
+            return std::make_reverse_iterator(begin(*static_cast<TDerived*>(this)->Container.Ptr()));
         }
     };
 
@@ -64,7 +64,7 @@ namespace NPrivate {
     template <typename TContainerRefOrObject>
     struct TReverseImpl : TForwardFromBackwardIteratorsHelper<TReverseImpl<TContainerRefOrObject>,
                                                               HasReverseIterators<TContainerRefOrObject>((i32)0, nullptr)> {
-        using TContainerHolder = TRefOrObjectHolder<TContainerRefOrObject>;
+        using TContainerHolder = TAutoEmbedOrPtrPolicy<TContainerRefOrObject>;
         TContainerHolder Container;
 
         TReverseImpl(TReverseImpl&&) = default;
@@ -77,22 +77,22 @@ namespace NPrivate {
 
         auto rbegin() const {
             using std::begin;
-            return begin(*Container);
+            return begin(*Container.Ptr());
         }
 
         auto rend() const {
             using std::end;
-            return end(*Container);
+            return end(*Container.Ptr());
         }
 
         auto rbegin() {
             using std::begin;
-            return begin(*Container);
+            return begin(*Container.Ptr());
         }
 
         auto rend() {
             using std::end;
-            return end(*Container);
+            return end(*Container.Ptr());
         }
     };
 }

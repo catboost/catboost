@@ -70,6 +70,37 @@ struct TRefPolicy {
     TIntrusivePtr<THelper> T_;
 };
 
+
+template <class TRefOrObject, bool IsReference = std::is_reference<TRefOrObject>::value>
+struct TAutoEmbedOrPtrPolicy;
+
+template <class TReference>
+struct TAutoEmbedOrPtrPolicy<TReference, true> : TPtrPolicy<typename std::remove_reference<TReference>::type> {
+    using TObject = typename std::remove_reference<TReference>::type;
+    using TObjectStorage = TObject*;
+
+    TAutoEmbedOrPtrPolicy(TReference& reference)
+        : TPtrPolicy<TObject>(&reference)
+    {
+    }
+};
+
+template <class TObject_>
+struct TAutoEmbedOrPtrPolicy<TObject_, false> : TEmbedPolicy<TObject_> {
+    using TObject = TObject_;
+    using TObjectStorage = TObject;
+
+    TAutoEmbedOrPtrPolicy(TObject& object)
+        : TEmbedPolicy<TObject>(std::move(object))
+    {
+    }
+
+    TAutoEmbedOrPtrPolicy(TObject&& object)
+        : TEmbedPolicy<TObject>(std::move(object))
+    {
+    }
+};
+
 template <class T>
 using TAtomicRefPolicy = TRefPolicy<T, TAtomicCounter>;
 

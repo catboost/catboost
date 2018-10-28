@@ -111,7 +111,6 @@ JOIN_SRCS(
     generic/object_counter.cpp
     generic/ptr.cpp
     generic/queue.cpp
-    generic/ref_or_object_holder.cpp
     generic/refcount.cpp
     generic/region.cpp
     generic/reinterpretcast.cpp
