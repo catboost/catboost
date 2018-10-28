@@ -71,6 +71,29 @@ struct TRefPolicy {
 };
 
 
+/**
+ * Storage class that can be handy for implementing proxies / adaptors
+ * that can accept both lvalues and rvalues.
+ * In the latter case it's often required to extend the lifetime
+ * of the passed rvalue, and the only option is to store it in your proxy / adaptor.
+ *
+ * Example usage:
+ * \code
+ * template<class T>
+ * struct TProxy {
+ *    TAutoEmbedOrPtrPolicy<T> Value_;
+ *    // Your proxy code...
+ * };
+ *
+ * template<class T>
+ * TProxy<T> MakeProxy(T&& value) {
+ *     // Rvalues are automagically moved-from, and stored inside the proxy.
+ *     return {value};
+ * }
+ * \endcode
+ *
+ * Look at `Reversed` in `adaptor.h` for real example.
+ */
 template <class TRefOrObject, bool IsReference = std::is_reference<TRefOrObject>::value>
 struct TAutoEmbedOrPtrPolicy;
 
