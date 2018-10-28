@@ -2,6 +2,7 @@
 
 #include "split.h"
 
+#include <util/generic/algorithm.h>
 #include <util/generic/iterator.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/store_policy.h>
@@ -90,19 +91,19 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
         Consume(consumer);
     }
 
-    template <typename... TArgs>
-    inline void CollectInto(TArgs*... args) {
+    template <typename... Args>
+    inline void CollectInto(Args*... args) {
         size_t filled = 0;
         auto it = this->begin();
-        auto dummy = {
-            (
-                it != this->end() ? (
-                                        ++filled,
-                                        *args = ::FromString<TArgs>(it->Token()),
-                                        ++it,
-                                        0)
-                                  : 0)...};
-        Y_UNUSED(dummy);
+
+        ApplyToMany([&](auto&& arg) {
+            if (it != this->end()) {
+                ++filled;
+                *arg = ::FromString<std::remove_reference_t<decltype(*arg)>>(it->Token());
+                ++it;
+            }
+        }, args...);
+
         Y_ENSURE(filled == sizeof...(args) && it == this->end());
     }
 
