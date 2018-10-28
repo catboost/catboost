@@ -728,6 +728,7 @@ include DateTimeParserCommon;
 
 multiplier
     = '' #   >{ MultiplierPower =  6; } # work around Ragel bugs
+    | 'w'  @{ MultiplierPower =  6; Multiplier = 604800; }
     | 'd'  @{ MultiplierPower =  6; Multiplier = 86400; }
     | 'h'  @{ MultiplierPower =  6; Multiplier = 3600; }
     | 'm'  @{ MultiplierPower =  6; Multiplier = 60; }
