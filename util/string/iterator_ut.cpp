@@ -182,12 +182,12 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    Y_UNIT_TEST(TestStringSplitterCollectDoesntClear) {
+    Y_UNIT_TEST(TestStringSplitterCollectClears) {
         TVector<TString> v;
         StringSplitter("1 2 3").Split(' ').Collect(&v);
         UNIT_ASSERT_VALUES_EQUAL(v.size(), 3);
         StringSplitter("4 5").Split(' ').Collect(&v);
-        UNIT_ASSERT_VALUES_EQUAL(v.size(), 5);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 2);
     }
 
     Y_UNIT_TEST(TestStringSplitterAddToDoesntClear) {
