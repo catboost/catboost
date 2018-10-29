@@ -1,3 +1,15 @@
+# Release 0.10.4.1
+## Changes:
+- Bugfix for #518
+
+# Release 0.10.4
+## Breaking changes:
+In python 3 some functions returned dictionaries with keys of type `bytes` - particularly eval_metrics and get_best_score. These are fixed to have keys of type `str`.
+## Changes:
+- New metric NumErrors:greater_than=value
+- New metric and objective L_q:q=value
+- model.score(X, y) - can now work with Pool and labels from Pool
+
 # Release 0.10.3
 ## Changes:
 * Added EvalResult output after GPU catboost training
