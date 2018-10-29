@@ -77,11 +77,7 @@ void MapSetApproxes(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtr
             TApproxDefs::AddPairwiseBuckets(bucketsFromAllWorkers[workerIdx].Data.second, &pairwiseBuckets);
         }
         const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, it, *ctx);
-        for (int dimensionIdx : xrange(approxDimension)) {
-            for (int leafIdx : xrange(leafCount)) {
-                (*averageLeafValues)[dimensionIdx][leafIdx] += leafValues[dimensionIdx][leafIdx];
-            }
-        }
+        AddElementwise(leafValues, averageLeafValues);
         // calc model and update approx deltas on workers
         ApplyMapper<TDeltaUpdater>(workerCount, ctx->SharedTrainData, leafValues);
     }
@@ -89,9 +85,7 @@ void MapSetApproxes(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtr
     const auto leafWeightsFromAllWorkers = ApplyMapper<TLeafWeightsGetter>(workerCount, ctx->SharedTrainData); // [workerIdx][dimIdx][leafIdx]
     sumLeafWeights->resize(leafCount);
     for (const auto& workerLeafWeights : leafWeightsFromAllWorkers) {
-        for (size_t leafIdx : xrange(leafCount)) {
-            (*sumLeafWeights)[leafIdx] += workerLeafWeights[leafIdx];
-        }
+        AddElementwise(workerLeafWeights, sumLeafWeights);
     }
 
     NormalizeLeafValues(

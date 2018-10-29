@@ -391,57 +391,46 @@ void CalcTailModelSimple(
 template <typename TError>
 void CalcApproxDeltaSimple(
     const TFold& ff,
+    const TFold::TBodyTail& bt,
     int leafCount,
     const TError& error,
     const TVector<TIndexType>& indices,
     ui64 randomSeed,
     TLearnContext* ctx,
-    TVector<TVector<TVector<double>>>* approxesDelta
+    TVector<TVector<double>>* approxDelta,
+    TVector<TVector<double>>* sumLeafValues
 ) {
+    const int scratchSize = Max(
+        !ctx->Params.BoostingOptions->ApproxOnFullHistory ? 0 : bt.TailFinish - bt.BodyFinish,
+        error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT : bt.BodyFinish
+    );
+    TVector<TDers> weightedDers;
+    weightedDers.yresize(scratchSize); // iteration scratch space
+
     const auto treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = static_cast<int>(treeLearnerOptions.LeavesEstimationIterations);
     const auto estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     const float l2Regularizer = treeLearnerOptions.L2Reg;
-    const TVector<ui64> randomSeeds = GenRandUI64Vector(ff.BodyTailArr.ysize(), randomSeed);
-    auto& localExecutor = ctx->LocalExecutor;
-    approxesDelta->resize(ff.BodyTailArr.ysize());
 
-    localExecutor.ExecRange([&](int bodyTailId) {
-        const TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
-        const int bodyQueryFinish = bt.BodyQueryFinish;
-
-        TVector<TVector<double>>& resArr = (*approxesDelta)[bodyTailId];
-        if (resArr.empty()) {
-            resArr.resize(1);
-            resArr[0].yresize(bt.TailFinish);
+    TVector<TSum> buckets(leafCount, TSum(gradientIterations)); // iteration scratch space
+    TArray2D<double> pairwiseBuckets; // iteration scratch space
+    TVector<double> curLeafValues; // iteration scratch space
+    TVector<double>& resArr = (*approxDelta)[0];
+    for (int it = 0; it < gradientIterations; ++it) {
+        UpdateBucketsSimple(indices, ff, bt, bt.Approx[0], resArr, error, bt.BodyFinish, bt.BodyQueryFinish, it, estimationMethod, ctx->Params, randomSeed, &ctx->LocalExecutor, &buckets, &pairwiseBuckets, &weightedDers);
+        CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
+        if (sumLeafValues != nullptr) {
+            AddElementwise(curLeafValues, &(*sumLeafValues)[0]);
         }
-        const double initValue = GetNeutralApprox<TError::StoreExpApprox>();
-        Fill(resArr[0].begin(), resArr[0].end(), initValue);
 
-        const int scratchSize = Max(
-            !ctx->Params.BoostingOptions->ApproxOnFullHistory ? 0 : bt.TailFinish - bt.BodyFinish,
-            error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT : bt.BodyFinish
-        );
-
-        TVector<TDers> weightedDers;
-        weightedDers.yresize(scratchSize); // iteration scratch space
-        TVector<TSum> buckets(leafCount, TSum(gradientIterations)); // iteration scratch space
-        TArray2D<double> pairwiseBuckets; // iteration scratch space
-        TVector<double> curLeafValues; // iteration scratch space
-
-        for (int it = 0; it < gradientIterations; ++it) {
-            UpdateBucketsSimple(indices, ff, bt, bt.Approx[0], resArr[0], error, bt.BodyFinish, bodyQueryFinish, it, estimationMethod, ctx->Params, randomSeeds[bodyTailId], &localExecutor, &buckets, &pairwiseBuckets, &weightedDers);
-            CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
-
-            if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
-                UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.TailFinish, &localExecutor, &curLeafValues, &resArr[0]);
-            } else {
-                Y_ASSERT(!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction()));
-                UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.BodyFinish, &localExecutor, &curLeafValues, &resArr[0]);
-                CalcTailModelSimple(indices, ff, bt, error, it, l2Regularizer, ctx->Params, randomSeeds[bodyTailId], &localExecutor, ctx, &buckets, &resArr[0], &weightedDers);
-            }
+        if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
+            UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.TailFinish, &ctx->LocalExecutor, &curLeafValues, &resArr);
+        } else {
+            Y_ASSERT(!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction()));
+            UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.BodyFinish, &ctx->LocalExecutor, &curLeafValues, &resArr);
+            CalcTailModelSimple(indices, ff, bt, error, it, l2Regularizer, ctx->Params, randomSeed, &ctx->LocalExecutor, ctx, &buckets, &resArr, &weightedDers);
         }
-    }, 0, ff.BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }
 }
 
 template <typename TError>
@@ -477,7 +466,7 @@ void CalcLeafValuesSimple(
         for (int leaf = 0; leaf < leafCount; ++leaf) {
             (*leafValues)[0][leaf] += curLeafValues[leaf];
         }
-        UpdateApproxDeltas<TError::StoreExpApprox>(indices, ff.GetLearnSampleCount(), &ctx->LocalExecutor, &curLeafValues, &approxes);
+        UpdateApproxDeltas<TError::StoreExpApprox>(indices, ff.GetLearnSampleCount(), &localExecutor, &curLeafValues, &approxes);
     }
 }
 
@@ -516,11 +505,28 @@ void CalcApproxForLeafStruct(
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
     const TVector<TIndexType> indices = BuildIndices(fold, tree, learnData, testDataPtrs, &ctx->LocalExecutor);
-    const int approxDimension = fold.GetApproxDimension();
+    const int approxDimension = ctx->LearnProgress.ApproxDimension;
     const int leafCount = tree.GetLeafCount();
+    TVector<ui64> randomSeeds;
     if (approxDimension == 1) {
-        CalcApproxDeltaSimple(fold, leafCount, error, indices, randomSeed, ctx, approxesDelta);
-    } else {
-        CalcApproxDeltaMulti(fold, leafCount, error, indices, ctx, approxesDelta);
+        randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     }
+    approxesDelta->resize(fold.BodyTailArr.ysize());
+    ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
+        const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
+        TVector<TVector<double>>& approxDelta = (*approxesDelta)[bodyTailId];
+        const double initValue = GetNeutralApprox<TError::StoreExpApprox>();
+        if (approxDelta.empty()) {
+            approxDelta.assign(approxDimension, TVector<double>(bt.TailFinish, initValue));
+        } else {
+            for (auto& deltaDimension : approxDelta) {
+                Fill(deltaDimension.begin(), deltaDimension.end(), initValue);
+            }
+        }
+        if (approxDimension == 1) {
+            CalcApproxDeltaSimple(fold, bt, leafCount, error, indices, randomSeeds[bodyTailId], ctx, &approxDelta, /*sumLeafValues*/ nullptr);
+        } else {
+            CalcApproxDeltaMulti(fold, bt, leafCount, error, indices, ctx, &approxDelta, /*sumLeafValues*/ nullptr);
+        }
+    }, 0, fold.BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }

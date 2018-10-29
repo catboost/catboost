@@ -111,7 +111,8 @@ void CalcApproxDeltaIterationMulti(
     int iteration,
     float l2Regularizer,
     TVector<TSumMulti>* buckets,
-    TVector<TVector<double>>* resArr
+    TVector<TVector<double>>* resArr,
+    TVector<TVector<double>>* sumLeafValues
 ) {
     UpdateBucketsMulti(AddSampleToBucket, indices, target, weight, bt.Approx, *resArr, error, bt.BodyFinish, iteration, buckets);
 
@@ -120,6 +121,9 @@ void CalcApproxDeltaIterationMulti(
     const int leafCount = buckets->ysize();
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
     CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
+    if (sumLeafValues != nullptr) {
+        AddElementwise(curLeafValues, sumLeafValues);
+    }
     UpdateApproxDeltasMulti<TError::StoreExpApprox>(indices, bt.BodyFinish, &curLeafValues, resArr);
 
     // compute tail
@@ -148,45 +152,33 @@ void CalcApproxDeltaIterationMulti(
 template <typename TError>
 void CalcApproxDeltaMulti(
     const TFold& ff,
+    const TFold::TBodyTail& bt,
     int leafCount,
     const TError& error,
     const TVector<TIndexType>& indices,
     TLearnContext* ctx,
-    TVector<TVector<TVector<double>>>* approxDelta
+    TVector<TVector<double>>* approxDelta,
+    TVector<TVector<double>>* sumLeafValues
 ) {
-    approxDelta->resize(ff.BodyTailArr.ysize());
-    const int approxDimension = ff.GetApproxDimension();
     const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     const float l2Regularizer = treeLearnerOptions.L2Reg;
-    ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
-        const TFold::TBodyTail& bt = ff.BodyTailArr[bodyTailId];
 
-        TVector<TVector<double>>& resArr = (*approxDelta)[bodyTailId];
-        const double initValue = GetNeutralApprox<TError::StoreExpApprox>();
-        if (resArr.empty()) {
-            resArr.assign(approxDimension, TVector<double>(bt.TailFinish, initValue));
+    const int approxDimension = approxDelta->ysize();
+    TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension, TError::GetHessianType()));
+    for (int it = 0; it < gradientIterations; ++it) {
+        if (estimationMethod == ELeavesEstimation::Newton) {
+            CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
+                                          indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
+                                          &buckets, approxDelta, sumLeafValues);
         } else {
-            for (auto& arr : resArr) {
-                Fill(arr.begin(), arr.end(), initValue);
-            }
+            Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+            CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
+                                          indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
+                                          &buckets, approxDelta, sumLeafValues);
         }
-
-        TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension, TError::GetHessianType()));
-        for (int it = 0; it < gradientIterations; ++it) {
-            if (estimationMethod == ELeavesEstimation::Newton) {
-                CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
-                                              indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
-                                              &buckets, &resArr);
-            } else {
-                Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-                CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
-                                              indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
-                                              &buckets, &resArr);
-            }
-        }
-    }, 0, ff.BodyTailArr.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }
 }
 
 template <typename TCalcModel, typename TAddSampleToBucket, typename TError>
