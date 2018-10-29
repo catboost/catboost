@@ -23,10 +23,6 @@ void MapCalcErrors(TLearnContext* ctx);
 
 template <typename TError>
 void MapSetDerivatives(TLearnContext* ctx);
-template <typename TError>
-void MapSetApproxesSimple(const TSplitTree& splitTree, TLearnContext* ctx);
-template <typename TError>
-void MapSetApproxesMulti(const TSplitTree& splitTree, TLearnContext* ctx);
 
 template <typename TMapper>
 TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvironment> environment, const typename TMapper::TInput& value = typename TMapper::TInput()) {
