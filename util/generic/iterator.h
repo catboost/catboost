@@ -40,15 +40,11 @@ public:
     public:
         static constexpr bool IsNoexceptNext = noexcept(std::declval<TSlave>().Next());
 
-        using TRetVal = typename TSlave::TRetVal;
-        using TValueTraits = NStlIterator::TTraits<TRetVal>;
-        using TPtr = typename TValueTraits::TPtr;
-        using TRef = typename TValueTraits::TRef;
-
         using difference_type = std::ptrdiff_t;
-        using value_type = TRetVal;
-        using pointer = TPtr;
-        using reference = TRef;
+        using value_type = typename TSlave::TRetVal;
+        using TValueTraits = NStlIterator::TTraits<value_type>; // TODO: DROP!
+        using pointer = typename TValueTraits::TPtr;
+        using reference = typename TValueTraits::TRef;
         using iterator_category = std::forward_iterator_tag;
 
         inline TIterator() noexcept
@@ -63,7 +59,7 @@ public:
         {
         }
 
-        const TRetVal& Value() const noexcept {
+        const value_type& Value() const noexcept {
             return Cur_;
         }
 
@@ -75,11 +71,11 @@ public:
             return !(*this == it);
         }
 
-        inline TPtr operator->() const noexcept {
+        inline pointer operator->() const noexcept {
             return TValueTraits::Ptr(Cur_);
         }
 
-        inline TRef operator*() const noexcept {
+        inline reference operator*() const noexcept {
             return *TValueTraits::Ptr(Cur_);
         }
 
@@ -91,7 +87,7 @@ public:
 
     private:
         TSlave* Slave_;
-        TRetVal Cur_;
+        value_type Cur_;
     };
 
 public:
