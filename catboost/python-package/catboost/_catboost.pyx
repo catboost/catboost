@@ -1501,29 +1501,18 @@ cdef class _CatBoost:
 
     cpdef _get_metrics_evals(self):
         metrics_evals = defaultdict(functools.partial(defaultdict, list))
-        num_iterations = self.__metrics_history.LearnMetricsHistory.size()
-        for iter in range(num_iterations):
-            for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
-                metrics_evals["learn"][to_native_str(metric)].append(value)
-            if not self.__metrics_history.TestMetricsHistory.empty():
-                num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
-                for test in range(num_tests):
-                    for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
-                        metrics_evals["validation_" + str(test)][to_native_str(metric)].append(value)
+        for metrics_per_iteration in self.__metrics_history.TestMetricsHistory:
+            for test_id, metric_per_iteration in enumerate(metrics_per_iteration):
+                for metric, value in metric_per_iteration.iteritems():
+                    metrics_evals["validation_" + str(test_id)][to_native_str(metric)].append(value)
         return {k: dict(v) for k, v in iteritems(metrics_evals)}
 
     cpdef _get_best_score(self):
-        if self.__metrics_history.LearnBestError.empty():
-            return {}
-        best_scores = {}
-        best_scores["learn"] = {}
-        for metric, best_error in self.__metrics_history.LearnBestError:
-            best_scores["learn"][to_native_str(metric)] = best_error
-        for testIdx in range(self.__metrics_history.TestBestError.size()):
-            best_scores["validation_" + str(testIdx)] = {}
-            for metric, best_error in self.__metrics_history.TestBestError[testIdx]:
-                best_scores["validation_" + str(testIdx)][to_native_str(metric)] = best_error
-        return best_scores
+        best_scores = defaultdict(dict)
+        for test_id, best_values_per_iteration in enumerate(self.__metrics_history.TestBestError):
+            for metric, best_error in best_values_per_iteration.iteritems():
+                best_scores["validation_" + str(test_id)][to_native_str(metric)] = best_error
+        return dict(best_scores)
 
     cpdef _get_best_iteration(self):
         if self.__metrics_history.BestIteration.Defined():
