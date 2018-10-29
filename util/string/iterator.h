@@ -14,6 +14,10 @@
 // Check iterator_ut.cpp to get examples of usage.
 
 namespace NPrivate {
+
+    Y_HAS_MEMBER(push_back, PushBack);
+    Y_HAS_MEMBER(insert, Insert);
+
     template <class Container>
     struct TContainerConsumer {
         using value_type = typename Container::value_type;
@@ -61,10 +65,10 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
         }
     }
 
-    template<class Container, class = typename Container::iterator /* Very simple SFINAE check here. */>
+    template<class Container, class = std::enable_if_t<::NPrivate::THasInsert<Container>::value || ::NPrivate::THasPushBack<Container>::value>>
     operator Container() {
         Container result;
-        Collect(&result);
+        AddTo(&result);
         return result;
     }
 

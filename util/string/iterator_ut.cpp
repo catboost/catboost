@@ -250,5 +250,13 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TSet<TString> expected1 = { "11", "22", "33", "44" };
         TSet<TString> actual1 = StringSplitter("11 22 33 44").Split(' ');
         UNIT_ASSERT_VALUES_EQUAL(expected1, actual1);
+
+        TSet<TString> expected2 = { "11", "aa" };
+        auto actual2 = static_cast<TSet<TString>>(StringSplitter("11 aa 11 11 aa").Split(' '));
+        UNIT_ASSERT_VALUES_EQUAL(expected2, actual2);
+
+        TVector<TString> expected3 = { "dd", "bb" };
+        auto actual3 = TVector<TString>(StringSplitter("dd\tbb").Split('\t'));
+        UNIT_ASSERT_VALUES_EQUAL(expected3, actual3);
     }
 }
