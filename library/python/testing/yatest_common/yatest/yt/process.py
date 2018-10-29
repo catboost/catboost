@@ -261,8 +261,13 @@ def _get_fixed_env(env, strategy):
         'USER',
         'YT_TOKEN',
     ]:
-        if env_var in env:
+        if env_var in env.keys():
             del env[env_var]
+
+    for prefix in ['YA_']:
+        for env_var in env.keys():
+            if env_var.startswith(prefix):
+                del env[env_var]
 
     def fix_path(p):
         res = strategy(p)
