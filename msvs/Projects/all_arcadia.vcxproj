@@ -293,6 +293,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\catboost\_catboost.pyd.vcxproj">
       <Project>35A1E8E1-5A55-A227-1CE0-986A245482DA</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\catboost\no_cuda\_catboost.pyd.vcxproj">
+      <Project>25ACB71B-785A-C900-EBE2-8F22B1E314F3</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.vcxproj">
       <Project>A1EEDDE4-9AC5-CB02-DE9E-BADAB13F81A3</Project>
     </ProjectReference>
