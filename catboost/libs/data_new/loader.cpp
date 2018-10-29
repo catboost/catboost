@@ -47,7 +47,7 @@ namespace NCB {
         TVector<TPair> pairs;
         TString line;
         for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
-            TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
+            TVector<TString> tokens = StringSplitter(line).Split('\t');
             if (tokens.empty()) {
                 continue;
             }
@@ -80,7 +80,7 @@ namespace NCB {
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
         TString line;
         for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
-            TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
+            TVector<TString> tokens = StringSplitter(line).Split('\t');
             CB_ENSURE(tokens.ysize() == 2,
                 "Each line in group weights file should have two columns. " <<
                 "Invalid line number #" << lineNumber << ": " << line);

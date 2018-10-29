@@ -40,7 +40,7 @@ namespace NCB {
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
         if (header) {
-            headerColumns = StringSplitter(*header).Split(FieldDelimiter).ToList<TString>();
+            headerColumns = TVector<TString>(StringSplitter(*header).Split(FieldDelimiter));
         }
 
         TString firstLine;
@@ -95,7 +95,7 @@ namespace NCB {
             catFeatures.yresize(featuresLayout.GetCatFeatureCount());
 
             size_t tokenCount = 0;
-            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter).ToList<TStringBuf>();
+            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
             for (const auto& token : tokens) {
                 switch (columnsDescription[tokenCount].Type) {
                     case EColumn::Categ: {

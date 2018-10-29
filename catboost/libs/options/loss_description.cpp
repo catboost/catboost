@@ -137,10 +137,10 @@ inline NCatboostOptions::TLossDescription FromString<NCatboostOptions::TLossDesc
 }
 
 ELossFunction ParseLossType(const TStringBuf lossDescription) {
-    const auto tokens = StringSplitter(lossDescription).SplitLimited(':', 2).ToList<TString>();
+    const TVector<TStringBuf> tokens = StringSplitter(lossDescription).SplitLimited(':', 2);
     CB_ENSURE(!tokens.empty(), "custom loss is missing in description: " << lossDescription);
     ELossFunction customLoss;
-    CB_ENSURE(TryFromString<ELossFunction>(tokens[0], customLoss), tokens[0] + " loss is not supported");
+    CB_ENSURE(TryFromString<ELossFunction>(tokens[0], customLoss), tokens[0] << " loss is not supported");
     return customLoss;
 }
 
@@ -148,14 +148,14 @@ TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {
     const char* errorMessage = "Invalid metric description, it should be in the form "
                                "\"metric_name:param1=value1;...;paramN=valueN\"";
 
-    const auto tokens = StringSplitter(lossDescription).SplitLimited(':', 2).ToList<TString>();
+    const TVector<TStringBuf> tokens = StringSplitter(lossDescription).SplitLimited(':', 2);
     CB_ENSURE(!tokens.empty(), "Metric description should not be empty");
     CB_ENSURE(tokens.size() <= 2, errorMessage);
 
     TMap<TString, TString> params;
     if (tokens.size() == 2) {
         for (const auto& token : StringSplitter(tokens[1]).Split(';')) {
-            const auto keyValue = StringSplitter(token.Token()).SplitLimited('=', 2).ToList<TString>();
+            const TVector<TString> keyValue = StringSplitter(token.Token()).SplitLimited('=', 2);
             CB_ENSURE(keyValue.size() == 2, errorMessage);
             params[keyValue[0]] = keyValue[1];
         }
@@ -182,12 +182,12 @@ TMap<TString, TString> ParseHintsDescription(const TStringBuf hintsDescription) 
     const char* errorMessage = "Invalid hints description, it should be in the form "
                                "\"hints=key1~value1|...|keyN~valueN\"";
 
-    const auto tokens = StringSplitter(hintsDescription).Split('|').ToList<TString>();
+    const TVector<TStringBuf> tokens = StringSplitter(hintsDescription).Split('|');
     CB_ENSURE(!tokens.empty(), "Hint description should not be empty");
 
     TMap<TString, TString> hints;
     for (const auto& token : tokens) {
-        const auto keyValue = StringSplitter(token).SplitLimited('~', 2).ToList<TString>();
+        const TVector<TString> keyValue = StringSplitter(token).SplitLimited('~', 2);
         CB_ENSURE(keyValue.size() == 2, errorMessage);
         CB_ENSURE(!hints.has(keyValue[0]), "Two similar keys in hints description are not allowed");
         hints[keyValue[0]] = keyValue[1];

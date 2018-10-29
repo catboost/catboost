@@ -50,7 +50,7 @@ static void ParseEvalResult(const TString& evalResultPath, TVector<double>* appr
 
     TString header;
     reader->ReadLine(&header);
-    TVector<TString> headerTokens = StringSplitter(header).Split('\t').ToList<TString>();
+    TVector<TString> headerTokens = StringSplitter(header).Split('\t');
     THashMap<TString, ui32> columnHeaders;
     for (ui32 i = 0; i < headerTokens.size(); ++i) {
         columnHeaders[headerTokens[i]] = i;
@@ -61,7 +61,7 @@ static void ParseEvalResult(const TString& evalResultPath, TVector<double>* appr
 
     TString line;
     while (reader->ReadLine(&line)) {
-        TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
+        TVector<TString> tokens = StringSplitter(line).Split('\t');
         if (tokens.empty()) {
             continue;
         }
