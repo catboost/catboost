@@ -33,6 +33,7 @@ namespace NStlIterator {
     };
 }
 
+// TODO: rename TInputRangeAdaptor<Derived>
 template <class TSlave>
 class TStlIterator {
 public:
@@ -45,7 +46,7 @@ public:
         using TValueTraits = NStlIterator::TTraits<value_type>; // TODO: DROP!
         using pointer = typename TValueTraits::TPtr;
         using reference = typename TValueTraits::TRef;
-        using iterator_category = std::forward_iterator_tag;
+        using iterator_category = std::input_iterator_tag;
 
         inline TIterator() noexcept
             : Slave_(nullptr)
