@@ -15,7 +15,7 @@ python ya make -r -DOS_SDK=local $CUDA_ARG -o . catboost/app
 strip catboost/app/catboost
 
 echo "Starting R package build"
-cd R-package
+cd catboost/R-package
 mkdir -pv catboost
 
 cp DESCRIPTION catboost
