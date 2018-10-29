@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     async_row_processor.cpp
+    borders_io.cpp
     cat_feature_perfect_hash.cpp
     cat_feature_perfect_hash_helper.cpp
     GLOBAL cb_dsv_loader.cpp

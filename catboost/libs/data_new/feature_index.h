@@ -3,6 +3,7 @@
 #include <catboost/libs/options/enums.h>
 
 #include <util/system/types.h>
+#include <util/str_stl.h>
 
 
 namespace NCB {
@@ -20,10 +21,22 @@ namespace NCB {
         ui32 operator*() const {
             return Idx;
         }
+
+        bool operator==(TFeatureIdx rhs) const {
+            return Idx == rhs.Idx;
+        }
     };
 
     using TFloatFeatureIdx = TFeatureIdx<EFeatureType::Float>;
     using TCatFeatureIdx = TFeatureIdx<EFeatureType::Categorical>;
 
 }
+
+
+template <EFeatureType FeatureType>
+struct THash<NCB::TFeatureIdx<FeatureType>> {
+    inline size_t operator()(NCB::TFeatureIdx<FeatureType> featureIdx) const {
+        return THash<ui32>()(featureIdx.Idx);
+    }
+};
 
