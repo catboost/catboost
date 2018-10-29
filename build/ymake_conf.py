@@ -1675,6 +1675,9 @@ class LD(Linker):
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
             self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')
 
+        if self.type in (Linker.LLD, Linker.GOLD):
+            self.ld_flags.append('-Wl,--gdb-index')
+
     def print_linker(self):
         super(LD, self).print_linker()
 
