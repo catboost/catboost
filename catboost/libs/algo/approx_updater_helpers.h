@@ -10,8 +10,12 @@
 #include <library/fast_log/fast_log.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/yassert.h>
+
 
 template <bool StoreExpApprox>
 static inline double UpdateApprox(double approx, double approxDelta) {
