@@ -2,6 +2,7 @@
 
 #include <catboost/libs/algo/calc_score_cache.h>
 #include <catboost/libs/algo/fold.h>
+#include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/online_predictor.h>
 #include <catboost/libs/algo/pairwise_scoring.h>
 #include <catboost/libs/algo/score_bin.h>
