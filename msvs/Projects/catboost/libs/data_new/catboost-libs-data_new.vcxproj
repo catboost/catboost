@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\async_row_processor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cb_dsv_loader.cpp"/>
@@ -184,6 +185,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\visitor.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\async_row_processor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\borders_io.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cb_dsv_loader.h"/>
