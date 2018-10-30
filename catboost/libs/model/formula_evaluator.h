@@ -14,7 +14,6 @@
 #endif
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
-constexpr ui32 MAX_VALUES_PER_BIN = 254;
 
 inline void OneHotBinsFromTransposedCatFeatures(
     const TVector<TOneHotFeature>& OneHotFeatures,
@@ -26,10 +25,8 @@ inline void OneHotBinsFromTransposedCatFeatures(
         const auto catIdx = catFeaturePackedIndex.at(oheFeature.CatFeatureIndex);
         for (size_t docId = 0; docId < docCount; ++docId) {
             const auto val = transposedHash[catIdx * docCount + docId];
-            for (size_t shift = 0; shift < oheFeature.Values.size(); shift += MAX_VALUES_PER_BIN) {
-                for (size_t borderIdx = 0; borderIdx < oheFeature.Values.size(); ++borderIdx) {
-                    result[docId] |= (ui8)(val == oheFeature.Values[borderIdx]) * (borderIdx + 1);
-                }
+            for (size_t borderIdx = 0; borderIdx < oheFeature.Values.size(); ++borderIdx) {
+                result[docId] |= (ui8)(val == oheFeature.Values[borderIdx]) * (borderIdx + 1);
             }
         }
         result += docCount;

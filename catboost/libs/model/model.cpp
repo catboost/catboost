@@ -270,10 +270,10 @@ void TObliviousTrees::UpdateMetadata() const {
             TFloatSplit fs{feature.FeatureIndex, feature.Borders[borderId]};
             ref.BinFeatures.emplace_back(fs);
             auto& bf = splitIds.emplace_back();
-            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
-            bf.SplitIdx = (borderId + 1) % MAX_VALUES_PER_BIN;
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
+            bf.SplitIdx = borderId + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+        ++ref.EffectiveBinFeaturesBucketCount;
     }
     for (const auto& feature : CatFeatures) {
         if (!feature.UsedInModel) {
@@ -288,10 +288,10 @@ void TObliviousTrees::UpdateMetadata() const {
             TOneHotSplit oh{feature.CatFeatureIndex, feature.Values[valueId]};
             ref.BinFeatures.emplace_back(oh);
             auto& bf = splitIds.emplace_back();
-            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + valueId / MAX_VALUES_PER_BIN;
-            bf.SplitIdx = (valueId + 1) % MAX_VALUES_PER_BIN;
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
+            bf.SplitIdx = valueId + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount += (feature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+        ++ref.EffectiveBinFeaturesBucketCount;
     }
     for (size_t i = 0; i < CtrFeatures.size(); ++i) {
         const auto& feature = CtrFeatures[i];
@@ -301,16 +301,16 @@ void TObliviousTrees::UpdateMetadata() const {
             ctrSplit.Border = feature.Borders[borderId];
             ref.BinFeatures.emplace_back(std::move(ctrSplit));
             auto& bf = splitIds.emplace_back();
-            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
-            bf.SplitIdx = (borderId + 1) % MAX_VALUES_PER_BIN;
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
+            bf.SplitIdx = borderId + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+        ++ref.EffectiveBinFeaturesBucketCount;
     }
     for (const auto& binSplit : TreeSplits) {
         const auto& feature = ref.BinFeatures[binSplit];
         const auto& featureIndex = splitIds[binSplit];
         Y_ENSURE(featureIndex.FeatureIdx <= 0xffff, "To many features in model, ask catboost team for support");
-        Y_ASSERT(featureIndex.SplitIdx <= 254, "To many splits in feature, ask catboost team for support");
+        Y_ENSURE(featureIndex.SplitIdx <= 254, "To many splits in feature, ask catboost team for support");
         TRepackedBin rb;
         rb.FeatureIndex = featureIndex.FeatureIdx;
         if (feature.Type != ESplitType::OneHotFeature) {
