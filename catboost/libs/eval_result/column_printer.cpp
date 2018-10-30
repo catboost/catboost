@@ -15,7 +15,7 @@ namespace NCB {
         int begin = 0;
         for (const auto& raws : rawValues) {
             CB_ENSURE(VisibleLabelsHelper.IsInitialized() == IsMulticlass(raws),
-                      "Inappropriated usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
+                      "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
             const auto& approx = VisibleLabelsHelper.IsInitialized() ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
             Approxes.push_back(PrepareEval(predictionType, approx, executor));
             const auto& headers = CreatePredictionTypeHeader(approx.size(), predictionType, VisibleLabelsHelper, begin, evalParameters.Get());

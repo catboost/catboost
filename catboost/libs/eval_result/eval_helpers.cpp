@@ -147,7 +147,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
 ) {
     const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
     CB_ENSURE(externalLabelsHelper.IsInitialized() == IsMulticlass(approx),
-              "Inappropriated usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
+              "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
     const auto& externalApprox = externalLabelsHelper.IsInitialized() ?
                                  MakeExternalApprox(approx, externalLabelsHelper) : approx;
     return PrepareEval(predictionType, externalApprox, localExecutor);
