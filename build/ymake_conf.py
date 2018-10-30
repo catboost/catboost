@@ -1328,6 +1328,10 @@ class GnuCompiler(Compiler):
             else:
                 self.c_defines.append('-no-sse')
 
+        self.debug_info_flags = ['-g']
+        if self.target.is_linux:
+            self.debug_info_flags.append('-ggnu-pubnames')
+
         self.cross_suffix = '' if is_positive('FORCE_NO_PIC') else '.pic'
 
         self.optimize = None
@@ -1417,7 +1421,7 @@ class GnuCompiler(Compiler):
         emit('WERROR_FLAG', '-Werror', '-Wno-error=deprecated-declarations')
         # TODO(somov): Убрать чтение настройки из os.environ
         emit('USE_ARC_PROFILE', 'yes' if preset('USE_ARC_PROFILE') or os.environ.get('USE_ARC_PROFILE') else 'no')
-        emit('DEBUG_INFO_FLAGS', '-g')
+        emit('DEBUG_INFO_FLAGS', self.debug_info_flags)
 
         emit_big('''
             when ($NO_COMPILER_WARNINGS == "yes") {
