@@ -14,7 +14,6 @@
 // Check iterator_ut.cpp to get examples of usage.
 
 namespace NPrivate {
-
     Y_HAS_MEMBER(push_back, PushBack);
     Y_HAS_MEMBER(insert, Insert);
 
@@ -48,7 +47,7 @@ namespace NPrivate {
 }
 
 template <class It>
-struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
+struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<It>> {
     using TRetVal = decltype(std::declval<It>().Next());
     using TStrBuf = decltype(std::declval<It>().Next()->Token());
 

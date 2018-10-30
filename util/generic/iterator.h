@@ -33,9 +33,8 @@ namespace NStlIterator {
     };
 }
 
-// TODO: rename TInputRangeAdaptor<Derived>
 template <class TSlave>
-class TStlIterator {
+class TInputRangeAdaptor {
 public:
     class TIterator {
     public:
