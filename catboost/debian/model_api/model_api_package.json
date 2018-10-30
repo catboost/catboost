@@ -1,0 +1,49 @@
+{
+    "meta": {
+        "name": "catboost-model-lib",
+        "maintainer": "Stanislav Kirillov <kirillovs@yandex-team.ru>",
+        "description": "Catboost model package",
+        "version": "{changelog_version}",
+        "homepage": "https://catboost.ai"
+    },
+    "build": {
+         "libcatboostmodel": {
+            "targets": [
+                "catboost/libs/model_interface"
+            ]
+        }
+    },
+    "data": [
+        {
+            "source": {
+                "type": "BUILD_OUTPUT",
+                "build_key": "libcatboostmodel",
+                "path": "catboost/libs/model_interface/libcatboostmodel.so.1"
+            },
+            "destination": {
+                "path": "/usr/lib/"
+            }
+        },
+        {
+            "source": {
+                "type": "SYMLINK"
+            },
+            "destination": {
+                "path": "/usr/lib/libcatboostmodel.so",
+                "target": "/usr/lib/libcatboostmodel.so.1"
+            }
+        },
+        {
+            "source": {
+                "type": "ARCADIA",
+                "path": "catboost/libs/model_interface",
+                "files": [
+                    "*.h"
+                ]
+            },
+            "destination": {
+                "path": "/usr/include/catboost_model/"
+            }
+        }
+    ]
+}
