@@ -111,8 +111,6 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
     Y_UNIT_TEST(TrainWithDifferentRandomStrength) {
         // In general models trained with different random strength (--random-strength) should be
         // different.
-        //
-        // issue: MLTOOLS-2464
 
         const ui64 seed = 20181029;
         const size_t objectCount = 100;
@@ -132,7 +130,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
             TEvalResult evalResult;
             NJson::TJsonValue params;
-            params.InsertValue("iterations", 20);
+            params.InsertValue("iterations", 5);
             params.InsertValue("random_seed", 1);
             params.InsertValue("train_dir", trainDir.Name());
             params.InsertValue("random_strength", randomStrength[i]);

@@ -9,7 +9,6 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/helpers/interrupt.h>
 
-#include <library/dot_product/dot_product.h>
 #include <library/fast_log/fast_log.h>
 
 #include <util/string/builder.h>
@@ -21,57 +20,6 @@ void TrimOnlineCTRcache(const TVector<TFold*>& folds) {
     for (auto& fold : folds) {
         fold->TrimOnlineCTR(MAX_ONLINE_CTR_FEATURES);
     }
-}
-
-static double CalcDerivativesStDevFromZeroOrderedBoosting(const TFold& fold) {
-    double sum2 = 0;
-    size_t count = 0;
-    for (const auto& bt : fold.BodyTailArr) {
-        for (const auto& perDimensionWeightedDerivatives : bt.WeightedDerivatives) {
-            // TODO(yazevnul): replace with `L2NormSquared` when it's implemented
-            sum2 += DotProduct(
-                perDimensionWeightedDerivatives.data() + bt.BodyFinish,
-                perDimensionWeightedDerivatives.data() + bt.BodyFinish,
-                bt.TailFinish - bt.BodyFinish);
-        }
-
-        count += bt.TailFinish - bt.BodyFinish;
-    }
-
-    Y_ASSERT(count > 0);
-    return sqrt(sum2 / count);
-}
-
-static double CalcDerivativesStDevFromZeroPlainBoosting(const TFold& fold) {
-    Y_ASSERT(fold.BodyTailArr.size() == 1);
-    Y_ASSERT(fold.BodyTailArr.front().WeightedDerivatives.size() > 0);
-
-    const auto& weightedDerivatives = fold.BodyTailArr.front().WeightedDerivatives;
-
-    double sum2 = 0;
-    for (const auto& perDimensionWeightedDerivatives : weightedDerivatives) {
-        sum2 += DotProduct(
-            perDimensionWeightedDerivatives.data(),
-            perDimensionWeightedDerivatives.data(),
-            perDimensionWeightedDerivatives.size());
-    }
-
-    return sqrt(sum2 / weightedDerivatives.front().size());
-}
-
-static double CalcDerivativesStDevFromZero(const TFold& fold, const EBoostingType boosting) {
-    switch (boosting) {
-        case EBoostingType::Ordered:
-            return CalcDerivativesStDevFromZeroOrderedBoosting(fold);
-        case EBoostingType::Plain:
-            return CalcDerivativesStDevFromZeroPlainBoosting(fold);
-    }
-}
-
-static double CalcDerivativesStDevFromZeroMultiplier(int learnSampleCount, double modelLength) {
-    double modelExpLength = log(static_cast<double>(learnSampleCount));
-    double modelLeft = exp(modelExpLength - modelLength);
-    return modelLeft / (1.0 + modelLeft);
 }
 
 static void AddFloatFeatures(const TDataset& learnData,
@@ -409,10 +357,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
 
-        const auto scoreStDev =
-            ctx->Params.ObliviousTreeOptions->RandomStrength
-            * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType)
-            * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
+        const double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(learnSampleCount, modelLength);
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
             if (isPairwiseScoring) {
                 MapRemotePairwiseCalcScore(scoreStDev, &candList, ctx);
