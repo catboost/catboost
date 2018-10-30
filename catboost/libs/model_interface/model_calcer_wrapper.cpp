@@ -154,4 +154,28 @@ EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetNumCatFeatures();
 }
 
+EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
+    return FULL_MODEL_PTR(modelHandle)->GetTreeCount();
+}
+
+EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
+    return FULL_MODEL_PTR(modelHandle)->ModelInfo.has(TStringBuf(keyPtr, keySize));
+}
+
+EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
+    TStringBuf key(keyPtr, keySize);
+    if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.has(key)) {
+        return 0;
+    }
+    return FULL_MODEL_PTR(modelHandle)->ModelInfo.at(key).size();
+}
+
+EXPORT const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
+    TStringBuf key(keyPtr, keySize);
+    if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.has(key)) {
+        return nullptr;
+    }
+    return FULL_MODEL_PTR(modelHandle)->ModelInfo.at(key).c_str();
+}
+
 }

@@ -28,7 +28,7 @@ EXPORT ModelCalcerHandle* ModelCalcerCreate();
  * Delete model handle
  * @param calcer
  */
-EXPORT void ModelCalcerDelete(ModelCalcerHandle* calcer);
+EXPORT void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
 
 /**
  * If error occured will return stored exception message.
@@ -44,7 +44,7 @@ EXPORT const char* GetErrorString();
  * @return false if error occured
  */
 EXPORT bool LoadFullModelFromFile(
-    ModelCalcerHandle* calcer,
+    ModelCalcerHandle* modelHandle,
     const char* filename);
 
 /**
@@ -55,7 +55,7 @@ EXPORT bool LoadFullModelFromFile(
  * @return false if error occured
  */
 EXPORT bool LoadFullModelFromBuffer(
-    ModelCalcerHandle* calcer,
+    ModelCalcerHandle* modelHandle,
     const void* binaryBuffer,
     size_t binaryBufferSize);
 
@@ -73,7 +73,7 @@ EXPORT bool LoadFullModelFromBuffer(
  * @return false if error occured
  */
 EXPORT bool CalcModelPredictionFlat(
-    ModelCalcerHandle* calcer,
+    ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
     double* result, size_t resultSize);
@@ -93,7 +93,7 @@ EXPORT bool CalcModelPredictionFlat(
  * @return false if error occured
  */
 EXPORT bool CalcModelPrediction(
-    ModelCalcerHandle* calcer,
+    ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
     const char*** catFeatures, size_t catFeaturesSize,
@@ -113,7 +113,7 @@ EXPORT bool CalcModelPrediction(
  * @return false if error occured
  */
 EXPORT bool CalcModelPredictionSingle(
-        ModelCalcerHandle* calcer,
+        ModelCalcerHandle* modelHandle,
         const float* floatFeatures, size_t floatFeaturesSize,
         const char** catFeatures, size_t catFeaturesSize,
         double* result, size_t resultSize);
@@ -133,7 +133,7 @@ EXPORT bool CalcModelPredictionSingle(
  * @return
  */
 EXPORT bool CalcModelPredictionWithHashedCatFeatures(
-    ModelCalcerHandle* calcer,
+    ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
     const int** catFeatures, size_t catFeaturesSize,
@@ -160,13 +160,37 @@ EXPORT int GetIntegerCatFeatureHash(long long val);
  * Get expected float feature count for model
  * @param calcer model handle
  */
-EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* calcer);
+EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get expected categorical feature count for model
  * @param calcer model handle
  */
-EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* calcer);
+EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
+
+/**
+ * Get number of trees in model
+ * @param calcer model handle
+ */
+EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle);
+
+/**
+ * Check if model metadata holds some value for provided key
+ * @param calcer model handle
+ */
+EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
+
+/**
+ * Get model metainfo value size for some key. Returns 0 both if key is missing in model metadata and if it is really missing
+ * @param calcer model handle
+ */
+EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
+
+/**
+ * Get model metainfo for some key. Returns const char* pointer to inner string. If key is missing in model metainfo storage this method will return nullptr
+ * @param calcer model handle
+ */
+EXPORT const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
 #if defined(__cplusplus)
 }
