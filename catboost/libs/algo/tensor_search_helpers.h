@@ -11,28 +11,10 @@
 #include <catboost/libs/options/enums.h>
 
 #include <library/binsaver/bin_saver.h>
-#include <library/dot_product/dot_product.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 
-
-inline double CalcScoreStDev(const TFold& ff) {
-    double sum2 = 0, totalSum2Count = 0;
-    for (const TFold::TBodyTail& bt : ff.BodyTailArr) {
-        for (int dim = 0; dim < bt.WeightedDerivatives.ysize(); ++dim) {
-            sum2 += DotProduct(bt.WeightedDerivatives[dim].data() + bt.BodyFinish, bt.WeightedDerivatives[dim].data() + bt.BodyFinish, bt.TailFinish - bt.BodyFinish);
-        }
-        totalSum2Count += bt.TailFinish - bt.BodyFinish;
-    }
-    return sqrt(sum2 / Max(totalSum2Count, DBL_EPSILON));
-}
-
-inline double CalcScoreStDevMult(int learnSampleCount, double modelLength) {
-    double modelExpLength = log(learnSampleCount * 1.0);
-    double modelLeft = exp(modelExpLength - modelLength);
-    return modelLeft / (1 + modelLeft);
-}
 
 struct TCandidateInfo {
     TSplitCandidate SplitCandidate;
