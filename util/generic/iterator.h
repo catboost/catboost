@@ -126,11 +126,14 @@ public:
     };
 
 public:
-    inline TIterator begin() const noexcept(TIterator::IsNoexceptNext) {
+    using const_iterator = TIterator;
+    using iterator = const_iterator;
+
+    inline iterator begin() const noexcept(TIterator::IsNoexceptNext) {
         return TIterator(const_cast<TSlave*>(static_cast<const TSlave*>(this)));
     }
 
-    inline TIterator end() const noexcept {
+    inline iterator end() const noexcept {
         return TIterator();
     }
 };
