@@ -33,6 +33,41 @@ namespace NStlIterator {
     };
 }
 
+/**
+ * Range adaptor that turns a derived class with a Java-style iteration
+ * interface into an STL range.
+ *
+ * Derived class is expected to define:
+ * \code
+ * using TRetVal = <pointer>;
+ * TRetVal Next();
+ * \endcode
+ *
+ * `TRetVal` is expected to be a pointer-like type. `Next()` returning nullptr
+ * signals end of range.
+ *
+ * Since iteration state is stored inside the derived class, the resulting range
+ * is an input range (works for single pass algorithms only). Technically speaking,
+ * if `TRetVal` is a non-const pointer, it can also work as an output range.
+ *
+ * Example usage:
+ * \code
+ * class TSquaresGenerator: public TInputRangeAdaptor<TSquaresGenerator> {
+ * public:
+ *     using TRetVal = const double*;
+ *     TRetVal Next() {
+ *         Current_ = State_ * State_;
+ *         State_ += 1.0;
+ *         // Never return nullptr => we have infinite range!
+ *         return &Current_;
+ *     }
+ *
+ * private:
+ *     double State_ = 0.0;
+ *     double Current_ = 0.0;
+ * }
+ * \endcode
+ */
 template <class TSlave>
 class TInputRangeAdaptor {
 public:
