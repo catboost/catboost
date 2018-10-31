@@ -216,7 +216,7 @@ class _Execution(object):
             if os.path.exists(runtime.gdb_path()):
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
                 bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid))
-                with open(bt_filename, "w") as afile:
+                with open(bt_filename, "wb") as afile:
                     afile.write(self._backtrace)
                 # generate pretty html version of backtrace aka Tri Korochki
                 pbt_filename = bt_filename + ".html"
@@ -394,7 +394,7 @@ def execute(
 
         if isinstance(stream, six.string_types):
             # User filename is supplied: open file for writing
-            return open(stream, 'w+'), False
+            return open(stream, 'wb+'), False
 
         # Open file or PIPE sentinel is supplied
         is_pipe = stream == subprocess.PIPE
@@ -448,7 +448,7 @@ def _get_command_output_file(cmd, ext):
             raise ImportError("not in test")
         file_name = path.get_unique_file_path(yatest.common.output_path(), file_name)
         yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(file_name))
-        return open(file_name, "w+")
+        return open(file_name, "wb+")
     except ImportError:
         return tempfile.NamedTemporaryFile(delete=False, suffix=file_name)
 
@@ -612,9 +612,9 @@ def check_glibc_version(binary_path):
 
 
 def backtrace_to_html(bt_filename, output):
-    with open(output, "w") as afile:
+    with open(output, "wb") as afile:
         res = execute([runtime.python_path(), runtime.source_path("devtools/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
     if res.exit_code != 0:
-        with open(output, "a") as afile:
+        with open(output, "ab") as afile:
             afile.write("\n")
             afile.write(res.std_err)

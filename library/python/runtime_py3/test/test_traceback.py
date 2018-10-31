@@ -11,8 +11,8 @@ import yatest.common as yc
 
 
 def clean_traceback(traceback):
-    traceback = re.sub(r'\033\[(\d|;)+?m', '', traceback)  # strip ANSI codes
-    traceback = re.sub(r' at 0x[0-9a-fA-F]+', '', traceback)  # remove object ids
+    traceback = re.sub(br'\033\[(\d|;)+?m', b'', traceback)  # strip ANSI codes
+    traceback = re.sub(br' at 0x[0-9a-fA-F]+', b'', traceback)  # remove object ids
     return traceback
 
 
@@ -44,10 +44,10 @@ def test_traceback(mode, entry_point):
         check_exit_code=False,
     )
 
-    with open(filtered_stdout_path, 'w') as f:
+    with open(filtered_stdout_path, 'wb') as f:
         f.write(clean_traceback(proc.std_out))
 
-    with open(filtered_stderr_path, 'w') as f:
+    with open(filtered_stderr_path, 'wb') as f:
         f.write(clean_traceback(proc.std_err))
 
     return {

@@ -15,7 +15,7 @@ yatest_logger = logging.getLogger("ya.test")
 def _copy(src, dst, universal_lines=False):
     if universal_lines:
         with open(dst, "wb") as f:
-            for line in open(src, "rU"):
+            for line in open(src, "rbU"):
                 f.write(line)
         return
     shutil.copy(src, dst)
@@ -158,12 +158,12 @@ def _canonical_execute(excutor, kwargs, file_name, save_locally, diff_tool, diff
     except OSError:
         pass
 
-    with open(out_file_path, "w") as out_file:
+    with open(out_file_path, "wb") as out_file:
         yatest_logger.debug("Will store file in %s", out_file_path)
         out_file.write(res.std_out)
 
     if res.std_err:
-        with open(err_file_path, "w") as err_file:
+        with open(err_file_path, "wb") as err_file:
             err_file.write(res.std_err)
 
     return canonical_file(out_file_path, local=save_locally, diff_tool=diff_tool, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
