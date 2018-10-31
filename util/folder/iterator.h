@@ -62,8 +62,6 @@ public:
         }
     };
 
-    using TRetVal = FTSENT*;
-
     inline TDirIterator(const TString& path, const TOptions& options = TOptions())
         : Options_(options)
         , Path_(path)
