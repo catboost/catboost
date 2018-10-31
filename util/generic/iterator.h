@@ -76,7 +76,7 @@ public:
         static constexpr bool IsNoexceptNext = noexcept(std::declval<TSlave>().Next());
 
         using difference_type = std::ptrdiff_t;
-        using value_type = typename TSlave::TRetVal;
+        using value_type = decltype(std::declval<TSlave>().Next());
         using TValueTraits = NStlIterator::TTraits<value_type>; // TODO: DROP!
         using pointer = typename TValueTraits::TPtr;
         using reference = typename TValueTraits::TRef;

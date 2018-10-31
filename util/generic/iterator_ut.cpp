@@ -13,8 +13,7 @@ Y_UNIT_TEST_SUITE(TIterator) {
 Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
     class TSquaresGenerator : public TInputRangeAdaptor<TSquaresGenerator> {
     public:
-        using TRetVal = const i64*;
-        TRetVal Next() {
+        const i64* Next() {
             Current_ = State_ * State_;
             ++State_;
             // Never return nullptr => we have infinite range!
