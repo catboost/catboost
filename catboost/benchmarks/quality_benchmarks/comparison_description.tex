@@ -53,7 +53,7 @@ We compare CatBoost against popular gradient boosting libraries: LightGBM, XGBoo
 {\bfseries Default}. Each of the algorithms has its own specific set of parameters, for which the default values are proposed by their authors. We use these values and tune only number of trees.
 
 \item
-{\bfseries Tuned}. We perform grid search for all the key parameters of an algorithm to fit the model.
+{\bfseries Tuned}. We tune all the key parameters of an algorithm using hyperopt library in the mode algo=tpe.suggest (i.e., by the sequential Tree Parzen Estimator algorithm).
 \end{itemize}
 
 We use 5-fold cross-validation to tune all the parameters, including number of trees. We fit the model, which performs best on validation, and apply this tuned model to test set.
@@ -149,7 +149,7 @@ To estimate quality we use LogLoss.
 % $R^2$ on regression tasks
 % \end{itemize}
 
-In the process of grid search, we perform exhaustive search for number of trees, having fixed all other parameters.
+In the process of parameter tuning, we perform exhaustive search for number of trees, having fixed all other parameters.
 
 % For classification task the maximum number of trees for XGBoost, LightGBM and H2OGradientBoosting is 5000 and for CatBoost is 1500. For regression task the maximum number of trees for XGBoost, LightGBM, H2OGradientBoosting and CatBoost is 5000.
 The maximum number of trees for all algorithms is 5000.
@@ -221,7 +221,7 @@ A list of default parameters for each algorithm:
 \end{itemize}
 
 
-\section{Parameter Grids}
+\section{Parameter Tuning}
 Parameters for XGBoost, LightGBM and CatBoost were tuned using python hyperopt library. Parameters for H2OGradientBoosting were tuned using h2o.grid (randomized grid search) in R interface. Below is a list of tuned parameters and the distributions they were selected from for each algorithm:
 
 \medskip
@@ -252,7 +252,7 @@ Parameters for XGBoost, LightGBM and CatBoost were tuned using python hyperopt l
 \end{itemize}
 
 \medskip
-\noindent Grid of parameters for H2OGradientBoosting.
+\noindent H2OGradientBoosting.
 \medskip 
 \begin{itemize}
   \item 'learn\_rate': Log-uniform distribution $[e^{-7}, 1]$
