@@ -106,7 +106,8 @@ public:
         , Files(outputOptions, fileNamesPrefix)
         , RootEnvironment(nullptr)
         , SharedTrainData(nullptr)
-        , Profile((int)Params.BoostingOptions->IterationCount) {
+        , Profile((int)Params.BoostingOptions->IterationCount)
+        , UseTreeLevelCachingFlag(false) {
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);
