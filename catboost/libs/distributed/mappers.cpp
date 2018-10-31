@@ -58,7 +58,7 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
 
 void TApproxReconstructor::DoMap(NPar::IUserContext* ctx, int hostId, TInput* valuedForest, TOutput* /*unused*/) const {
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-    Y_ASSERT(IsCategoricalFeaturesEmpty(trainData->TrainData.AllFeatures));
+    Y_ASSERT(AllOf(trainData->TrainData.AllFeatures.CatFeaturesRemapped, [](const auto& catFeature) { return catFeature.empty(); }));
 
     auto& localData = TLocalTensorSearchData::GetRef();
     Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
