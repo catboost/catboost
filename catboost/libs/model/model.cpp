@@ -179,7 +179,7 @@ TFullModel DeserializeModel(const TString& serializedModel) {
 
 void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
-    CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
+    CB_ENSURE(end <= TreeStartOffsets.size(), "end tree index should be not greater than tree count.");
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, ApproxDimension);
     const auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
