@@ -31,6 +31,7 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
         NJson::TJsonValue params;
         params.InsertValue("learning_rate", 0.01);
         params.InsertValue("iterations", 100);
+        params.InsertValue("random_seed", 1);
         TFullModel bigModel;
         TEvalResult evalResult;
 
