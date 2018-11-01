@@ -249,7 +249,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
         tmpPool = ProcessBoundaryGroups(rawPool);
     }
     const TPool& pool = isProcessBoundaryGroups ? tmpPool : rawPool;
-    TModelCalcerOnPool modelCalcerOnPool(Model, pool, Executor);
+    TModelCalcerOnPool modelCalcerOnPool(Model, pool, &Executor);
     TVector<TQueryInfo> queriesInfo;
     const TVector<float>& groupWeight = pool.MetaInfo.HasGroupWeight ? pool.Docs.Weight : TVector<float>();
     UpdateQueriesInfo(pool.Docs.QueryId, groupWeight, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
@@ -345,7 +345,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& dataset
     int begin = 0;
     TVector<TModelCalcerOnPool> modelCalcers;
     for (const auto& pool : datasetParts) {
-        modelCalcers.emplace_back(Model, pool, Executor);
+        modelCalcers.emplace_back(Model, pool, &Executor);
     }
 
     auto startDocIdx = GetStartDocIdx(datasetParts);

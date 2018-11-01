@@ -92,7 +92,7 @@ static NCB::TEvalResult Apply(
     } else {
         rawValues[0].resize(model.ObliviousTrees.ApproxDimension, TVector<double>(pool.Docs.GetDocCount(), 0.0));
     }
-    TModelCalcerOnPool modelCalcerOnPool(model, pool, *executor);
+    TModelCalcerOnPool modelCalcerOnPool(model, pool, executor);
     TVector<double> flatApprox;
     TVector<TVector<double>> approx;
     for (; begin < end; begin += evalPeriod) {
