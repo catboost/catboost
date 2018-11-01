@@ -77,12 +77,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\ctypes\a4a24602f1cdd3772dd91042ea.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\ctypes\_a4a24602f1cdd3772dd91042ea.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\ctypes\874c8d4cee4651949f798a5c68.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\ctypes\_874c8d4cee4651949f798a5c68.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\ctypes
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.py2.obj" "$(SolutionDir)$(Configuration)/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/ctypes/_874c8d4cee4651949f798a5c68.py2.obj" "$(SolutionDir)$(Configuration)/library/python/ctypes/_874c8d4cee4651949f798a5c68.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\ctypes
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.py2.obj" "$(SolutionDir)$(Configuration)/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/ctypes/_874c8d4cee4651949f798a5c68.py2.obj" "$(SolutionDir)$(Configuration)/library/python/ctypes/_874c8d4cee4651949f798a5c68.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\ctypes\_a4a24602f1cdd3772dd91042ea.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\ctypes\_a4a24602f1cdd3772dd91042ea.py2.obj;</Outputs>
+      <Message>$B/library/python/ctypes/_874c8d4cee4651949f798a5c68.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\ctypes\_874c8d4cee4651949f798a5c68.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\ctypes\_874c8d4cee4651949f798a5c68.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\ctypes
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/a4a24602f1cdd3772dd91042ea.cpp" "_3916de7f6a3a1f4b7a9799752e=/py_modules/library.python.ctypes.__init__" "_1391135da29fb18aa6989b9dee=resfs/src//py_modules/library.python.ctypes.__init__" "_1738350bae1fc7b26c3d78894c=/py_code/library.python.ctypes.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/874c8d4cee4651949f798a5c68.cpp" "_3916de7f6a3a1f4b7a9799752e=/py_modules/library.python.ctypes.__init__" "_1391135da29fb18aa6989b9dee=resfs/src//py_modules/library.python.ctypes.__init__" "_f2de8df99224042a7c9323138d=/py_code/library.python.ctypes.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\ctypes
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/a4a24602f1cdd3772dd91042ea.cpp" "_3916de7f6a3a1f4b7a9799752e=/py_modules/library.python.ctypes.__init__" "_1391135da29fb18aa6989b9dee=resfs/src//py_modules/library.python.ctypes.__init__" "_1738350bae1fc7b26c3d78894c=/py_code/library.python.ctypes.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/874c8d4cee4651949f798a5c68.cpp" "_3916de7f6a3a1f4b7a9799752e=/py_modules/library.python.ctypes.__init__" "_1391135da29fb18aa6989b9dee=resfs/src//py_modules/library.python.ctypes.__init__" "_f2de8df99224042a7c9323138d=/py_code/library.python.ctypes.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/ctypes/a4a24602f1cdd3772dd91042ea.cpp	</Message>
+      <Message>$B/library/python/ctypes/874c8d4cee4651949f798a5c68.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\ctypes\a4a24602f1cdd3772dd91042ea.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\ctypes\874c8d4cee4651949f798a5c68.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -163,7 +163,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\ctypes
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.yasm" "$(SolutionDir)../library/python/ctypes/__init__.py" "$(SolutionDir)$(Configuration)/library/python/ctypes/_3916de7f6a3a1f4b7a9799752e.rodata" "-" "library/python/ctypes/__init__.py" "_1391135da29fb18aa6989b9dee.rodata" "$(SolutionDir)$(Configuration)/library/python/ctypes/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/ctypes/_1738350bae1fc7b26c3d78894c.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/_874c8d4cee4651949f798a5c68.yasm" "$(SolutionDir)../library/python/ctypes/__init__.py" "$(SolutionDir)$(Configuration)/library/python/ctypes/_3916de7f6a3a1f4b7a9799752e.rodata" "-" "library/python/ctypes/__init__.py" "_1391135da29fb18aa6989b9dee.rodata" "$(SolutionDir)$(Configuration)/library/python/ctypes/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/ctypes/_f2de8df99224042a7c9323138d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\ctypes
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.yasm" "$(SolutionDir)../library/python/ctypes/__init__.py" "$(SolutionDir)$(Configuration)/library/python/ctypes/_3916de7f6a3a1f4b7a9799752e.rodata" "-" "library/python/ctypes/__init__.py" "_1391135da29fb18aa6989b9dee.rodata" "$(SolutionDir)$(Configuration)/library/python/ctypes/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/ctypes/_1738350bae1fc7b26c3d78894c.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/ctypes/_874c8d4cee4651949f798a5c68.yasm" "$(SolutionDir)../library/python/ctypes/__init__.py" "$(SolutionDir)$(Configuration)/library/python/ctypes/_3916de7f6a3a1f4b7a9799752e.rodata" "-" "library/python/ctypes/__init__.py" "_1391135da29fb18aa6989b9dee.rodata" "$(SolutionDir)$(Configuration)/library/python/ctypes/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/ctypes/_f2de8df99224042a7c9323138d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,9 +182,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/ctypes/_a4a24602f1cdd3772dd91042ea.yasm	</Message>
+      <Message>$B/library/python/ctypes/_874c8d4cee4651949f798a5c68.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\ctypes\__init__.py;$(SolutionDir)$(Configuration)\library\python\ctypes\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\ctypes\_a4a24602f1cdd3772dd91042ea.yasm;$(SolutionDir)$(Configuration)\library\python\ctypes\_3916de7f6a3a1f4b7a9799752e.rodata;$(SolutionDir)$(Configuration)\library\python\ctypes\_1738350bae1fc7b26c3d78894c.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\ctypes\_874c8d4cee4651949f798a5c68.yasm;$(SolutionDir)$(Configuration)\library\python\ctypes\_3916de7f6a3a1f4b7a9799752e.rodata;$(SolutionDir)$(Configuration)\library\python\ctypes\_f2de8df99224042a7c9323138d.rodata;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\python\ctypes\syms.h"/>
   </ItemGroup>

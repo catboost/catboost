@@ -77,12 +77,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\1ed09e6ce9de2f4fec6558a899.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\_1ed09e6ce9de2f4fec6558a899.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\0b1c21c0e2feb4dba6d98decda.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\_0b1c21c0e2feb4dba6d98decda.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\_1ed09e6ce9de2f4fec6558a899.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\_1ed09e6ce9de2f4fec6558a899.py2.obj;</Outputs>
+      <Message>$B/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\_0b1c21c0e2feb4dba6d98decda.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\_0b1c21c0e2feb4dba6d98decda.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/1ed09e6ce9de2f4fec6558a899.cpp" "_5092705ef6a78921d4bd043e0e=/py_modules/appdirs" "_175892b63a42a2a842bab639d4=resfs/src//py_modules/appdirs" "_8abc77aca25d79c1f064721db4=/py_code/appdirs"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/0b1c21c0e2feb4dba6d98decda.cpp" "_5092705ef6a78921d4bd043e0e=/py_modules/appdirs" "_175892b63a42a2a842bab639d4=resfs/src//py_modules/appdirs" "_6570f65ae4f3f369ad33970020=/py_code/appdirs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/1ed09e6ce9de2f4fec6558a899.cpp" "_5092705ef6a78921d4bd043e0e=/py_modules/appdirs" "_175892b63a42a2a842bab639d4=resfs/src//py_modules/appdirs" "_8abc77aca25d79c1f064721db4=/py_code/appdirs"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/0b1c21c0e2feb4dba6d98decda.cpp" "_5092705ef6a78921d4bd043e0e=/py_modules/appdirs" "_175892b63a42a2a842bab639d4=resfs/src//py_modules/appdirs" "_6570f65ae4f3f369ad33970020=/py_code/appdirs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/appdirs/1ed09e6ce9de2f4fec6558a899.cpp	</Message>
+      <Message>$B/contrib/python/appdirs/0b1c21c0e2feb4dba6d98decda.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\1ed09e6ce9de2f4fec6558a899.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\0b1c21c0e2feb4dba6d98decda.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -163,7 +163,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.yasm" "$(SolutionDir)../contrib/python/appdirs/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_5092705ef6a78921d4bd043e0e.rodata" "-" "contrib/python/appdirs/appdirs.py" "_175892b63a42a2a842bab639d4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/appdirs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_8abc77aca25d79c1f064721db4.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.yasm" "$(SolutionDir)../contrib/python/appdirs/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_5092705ef6a78921d4bd043e0e.rodata" "-" "contrib/python/appdirs/appdirs.py" "_175892b63a42a2a842bab639d4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/appdirs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_6570f65ae4f3f369ad33970020.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.yasm" "$(SolutionDir)../contrib/python/appdirs/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_5092705ef6a78921d4bd043e0e.rodata" "-" "contrib/python/appdirs/appdirs.py" "_175892b63a42a2a842bab639d4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/appdirs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_8abc77aca25d79c1f064721db4.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.yasm" "$(SolutionDir)../contrib/python/appdirs/appdirs.py" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_5092705ef6a78921d4bd043e0e.rodata" "-" "contrib/python/appdirs/appdirs.py" "_175892b63a42a2a842bab639d4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/appdirs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/appdirs/_6570f65ae4f3f369ad33970020.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,9 +182,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/appdirs/_1ed09e6ce9de2f4fec6558a899.yasm	</Message>
+      <Message>$B/contrib/python/appdirs/_0b1c21c0e2feb4dba6d98decda.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\appdirs\appdirs.py;$(SolutionDir)$(Configuration)\contrib\python\appdirs\appdirs.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\_1ed09e6ce9de2f4fec6558a899.yasm;$(SolutionDir)$(Configuration)\contrib\python\appdirs\_5092705ef6a78921d4bd043e0e.rodata;$(SolutionDir)$(Configuration)\contrib\python\appdirs\_8abc77aca25d79c1f064721db4.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\appdirs\_0b1c21c0e2feb4dba6d98decda.yasm;$(SolutionDir)$(Configuration)\contrib\python\appdirs\_5092705ef6a78921d4bd043e0e.rodata;$(SolutionDir)$(Configuration)\contrib\python\appdirs\_6570f65ae4f3f369ad33970020.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
