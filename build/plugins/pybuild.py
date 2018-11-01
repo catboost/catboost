@@ -1,6 +1,6 @@
 import os
 import ymake
-from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks
+from _common import stripext, rootrel_arc_src, listid, resolve_to_ymake_path, generate_chunks
 from pyx import PyxParser
 
 
@@ -294,14 +294,12 @@ def onpy_srcs(unit, *args):
 
         for path, mod in pys:
             root_rel_path = rootrel_arc_src(path, unit)
-            src = unit.resolve_arc_path(path) or path
-            dst = tobuilddir(src) + '.yapyc'
-            unit.onpy_compile_bytecode([root_rel_path + '-', src])
+            unit.onpy_compile_bytecode([root_rel_path + '-', path])
             key = '/py_modules/' + mod
             res += [
                 path, key,
                 '-', 'resfs/src/{}={}'.format(key, root_rel_path),
-                dst, '/py_code/' + mod,
+                path + '.yapyc', '/py_code/' + mod,
             ]
 
         unit.onresource(res)
