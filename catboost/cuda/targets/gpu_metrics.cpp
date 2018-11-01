@@ -473,48 +473,48 @@ namespace NCatboostCuda {
                 break;
             }
             case ELossFunction::TotalF1: {
-                result.emplace_back(new TGpuPointwiseMetric(new TTotalF1Metric(numClasses), 0, numClasses, isMulticlass, metricDescription));
+                result.emplace_back(new TGpuPointwiseMetric(MakeTotalF1Metric(numClasses), 0, numClasses, isMulticlass, metricDescription));
                 break;
             }
             case ELossFunction::MCC: {
-                result.emplace_back(new TGpuPointwiseMetric(new TMCCMetric(numClasses), 0, numClasses, isMulticlass, metricDescription));
+                result.emplace_back(new TGpuPointwiseMetric(MakeMCCMetric(numClasses), 0, numClasses, isMulticlass, metricDescription));
                 break;
             }
             case ELossFunction::F1: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1BinClass(), 1, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassF1Metric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1Multiclass(i), i, approxDim, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassF1Metric(i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(),  1, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(),  1, 2, isMulticlass, metricDescription));
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TCpuFallbackMetric(TAUCMetric::CreateMultiClassMetric(i), metricDescription));
+                        result.emplace_back(new TCpuFallbackMetric(MakeMultiClassAucMetric(i), metricDescription));
                     }
                 }
                 break;
             }
             case ELossFunction::Kappa: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TCpuFallbackMetric(TKappaMetric::CreateBinClassMetric(), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(MakeBinClassKappaMetric(), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(TKappaMetric::CreateMultiClassMetric(numClasses), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(MakeMultiClassKappaMetric(numClasses), metricDescription));
                 }
                 break;
             }
 
             case ELossFunction::WKappa: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TCpuFallbackMetric(TWKappaMatric::CreateBinClassMetric(), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(MakeBinClassWKappaMetric(), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(TWKappaMatric::CreateMultiClassMetric(numClasses), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(MakeMultiClassWKappaMetric(numClasses), metricDescription));
                 }
                 break;
             }
@@ -527,34 +527,34 @@ namespace NCatboostCuda {
                 }
 
                 if (approxDim == 1) {
-                    result.emplace_back(new TCpuFallbackMetric(new THammingLossMetric(border), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(MakeHammingLossMetric(border), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(new THammingLossMetric(border, true), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(MakeHammingLossMetric(border, true), metricDescription));
                 }
                 break;
             }
 
             case ELossFunction::HingeLoss: {
-                result.emplace_back(new TCpuFallbackMetric(new THingeLossMetric(), metricDescription));
+                result.emplace_back(new TCpuFallbackMetric(MakeHingeLossMetric(), metricDescription));
                 break;
             }
 
             case ELossFunction::Precision: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassPrecisionMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateMultiClassMetric(i), i, approxDim, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassPrecisionMetric(i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
             }
             case ELossFunction::Recall: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassRecallMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateMultiClassMetric(i), i, approxDim, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(MakeMultiClassRecallMetric(i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;

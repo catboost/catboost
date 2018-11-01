@@ -14,30 +14,33 @@ Y_UNIT_TEST(BrierScoreTest) {
         TVector<float> target{0, 1, 1, 0};
         TVector<float> weight{1, 1, 1, 1};
 
-        TBrierScoreMetric metric;
-        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, {}, 0, target.size());
+        NPar::TLocalExecutor executor;
+        const auto metric = MakeBrierScoreMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.03749999999999999, 1e-5);
+        UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.03749999999999999, 1e-5);
     }
     {
         TVector<TVector<double>> approx{{100, 100, 100, 100}};
         TVector<float> target{1, 1, 1, 1};
         TVector<float> weight{1, 1, 1, 1};
 
-        TBrierScoreMetric metric;
-        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, {}, 0, target.size());
+        NPar::TLocalExecutor executor;
+        const auto metric = MakeBrierScoreMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0, 1e-5);
+        UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-5);
     }
     {
         TVector<TVector<double>> approx{{-100, -100, -100, -100}};
         TVector<float> target{1, 1, 1, 1};
         TVector<float> weight{1, 1, 1, 1};
 
-        TBrierScoreMetric metric;
-        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, {}, 0, target.size());
+        NPar::TLocalExecutor executor;
+        const auto metric = MakeBrierScoreMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 1, 1e-5);
+        UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-5);
     }
 }
 }
