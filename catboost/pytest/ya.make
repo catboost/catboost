@@ -33,7 +33,8 @@ DATA(
 
 END()
 
-RECURSE(
-    lib
+IF(HAVE_CUDA)
+    RECURSE(
     cuda_tests
 )
+ENDIF()
