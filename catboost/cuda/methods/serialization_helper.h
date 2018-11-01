@@ -201,7 +201,8 @@ namespace NCatboostCuda {
         }
         TVector<T> cpuData;
         ::Load(in, cpuData);
-        CB_ENSURE(cpuData.size() == size, "Inconsistent data: expected " << size * data->GetColumnCount() << ", got " << cpuData.size());
+        const auto expectedBufferSize = size * data->GetColumnCount();
+        CB_ENSURE(cpuData.size() == expectedBufferSize, "Inconsistent data: expected " << expectedBufferSize << ", got " << cpuData.size());
         data->Write(cpuData);
     }
 
