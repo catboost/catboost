@@ -121,17 +121,20 @@ class TIoSystemError: public TSystemError, public TIoException {
 class TFileError: public TIoSystemError {
 };
 
-// TBadArgumentException should be thrown when an argument supplied to some function (or constructor)
-// is invalid or incorrect.
-//
-// NOTE: a special case when such argument is given to a function which performs type casting
-// (e.g. integer from string) is covered by the TBadCastException class which is derived from
-// TBadArgumentException.
+/* TBadArgumentException should be thrown when an argument supplied to some function (or constructor)
+ * is invalid or incorrect.
+ *
+ * \note
+ * A special case when such argument is given to a function which performs type casting
+ * (e.g. integer from string) is covered by the TBadCastException class which is derived from
+ * TBadArgumentException.
+ */
 struct TBadArgumentException: public virtual yexception {
 };
 
-// TBadCastException should be thrown to indicate the failure of some type casting procedure
-// (e.g. reading an integer parameter from string).
+/* TBadCastException should be thrown to indicate the failure of some type casting procedure
+ * (e.g. reading an integer parameter from string).
+ */
 struct TBadCastException: public virtual TBadArgumentException {
 };
 
