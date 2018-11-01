@@ -77,16 +77,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\879596b2b9478f69f921680bdf.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\16bfc61bbaf4fa6f63b1ca42d5.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\__res.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\__res.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\sitecustomize.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\sitecustomize.reg.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\runtime\_879596b2b9478f69f921680bdf.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\runtime\_16bfc61bbaf4fa6f63b1ca42d5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/_879596b2b9478f69f921680bdf.obj" "$(SolutionDir)$(Configuration)/library/python/runtime/_879596b2b9478f69f921680bdf.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.obj" "$(SolutionDir)$(Configuration)/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,7 +97,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/_879596b2b9478f69f921680bdf.obj" "$(SolutionDir)$(Configuration)/library/python/runtime/_879596b2b9478f69f921680bdf.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.obj" "$(SolutionDir)$(Configuration)/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -105,15 +105,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime/_879596b2b9478f69f921680bdf.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\runtime\_879596b2b9478f69f921680bdf.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\_879596b2b9478f69f921680bdf.obj;</Outputs>
+      <Message>$B/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\runtime\_16bfc61bbaf4fa6f63b1ca42d5.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\_16bfc61bbaf4fa6f63b1ca42d5.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/879596b2b9478f69f921680bdf.cpp" "_31e84497db52dc15513e0b8b45=/py_modules/library.python.runtime.entry_points" "_509a739e05ecb2fbc490a3ba0a=resfs/src//py_modules/library.python.runtime.entry_points" "_c14ecccb07d7bd081030af3e4f=/py_code/library.python.runtime.entry_points" "_e2e375597d6958d4287b6ad865=/py_modules/library.python.runtime.import_test" "_3d0222d010bd41e3f2b449a973=resfs/src//py_modules/library.python.runtime.import_test" "_ed406d6863fc16f13718a7ba01=/py_code/library.python.runtime.import_test"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/16bfc61bbaf4fa6f63b1ca42d5.cpp" "_31e84497db52dc15513e0b8b45=/py_modules/library.python.runtime.entry_points" "_509a739e05ecb2fbc490a3ba0a=resfs/src//py_modules/library.python.runtime.entry_points" "_f82235d0c9aeb95d0c339d3d7e=/py_code/library.python.runtime.entry_points" "_e2e375597d6958d4287b6ad865=/py_modules/library.python.runtime.import_test" "_3d0222d010bd41e3f2b449a973=resfs/src//py_modules/library.python.runtime.import_test" "_c95f73c4165e9d076dde830143=/py_code/library.python.runtime.import_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -124,7 +124,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/879596b2b9478f69f921680bdf.cpp" "_31e84497db52dc15513e0b8b45=/py_modules/library.python.runtime.entry_points" "_509a739e05ecb2fbc490a3ba0a=resfs/src//py_modules/library.python.runtime.entry_points" "_c14ecccb07d7bd081030af3e4f=/py_code/library.python.runtime.entry_points" "_e2e375597d6958d4287b6ad865=/py_modules/library.python.runtime.import_test" "_3d0222d010bd41e3f2b449a973=resfs/src//py_modules/library.python.runtime.import_test" "_ed406d6863fc16f13718a7ba01=/py_code/library.python.runtime.import_test"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/16bfc61bbaf4fa6f63b1ca42d5.cpp" "_31e84497db52dc15513e0b8b45=/py_modules/library.python.runtime.entry_points" "_509a739e05ecb2fbc490a3ba0a=resfs/src//py_modules/library.python.runtime.entry_points" "_f82235d0c9aeb95d0c339d3d7e=/py_code/library.python.runtime.entry_points" "_e2e375597d6958d4287b6ad865=/py_modules/library.python.runtime.import_test" "_3d0222d010bd41e3f2b449a973=resfs/src//py_modules/library.python.runtime.import_test" "_c95f73c4165e9d076dde830143=/py_code/library.python.runtime.import_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -132,9 +132,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime/879596b2b9478f69f921680bdf.cpp	</Message>
+      <Message>$B/library/python/runtime/16bfc61bbaf4fa6f63b1ca42d5.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\879596b2b9478f69f921680bdf.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\16bfc61bbaf4fa6f63b1ca42d5.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -245,7 +245,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/_879596b2b9478f69f921680bdf.yasm" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_31e84497db52dc15513e0b8b45.rodata" "-" "library/python/runtime/entry_points.py" "_509a739e05ecb2fbc490a3ba0a.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_c14ecccb07d7bd081030af3e4f.rodata" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_e2e375597d6958d4287b6ad865.rodata" "-" "library/python/runtime/import_test.py" "_3d0222d010bd41e3f2b449a973.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_ed406d6863fc16f13718a7ba01.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.yasm" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_31e84497db52dc15513e0b8b45.rodata" "-" "library/python/runtime/entry_points.py" "_509a739e05ecb2fbc490a3ba0a.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_f82235d0c9aeb95d0c339d3d7e.rodata" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_e2e375597d6958d4287b6ad865.rodata" "-" "library/python/runtime/import_test.py" "_3d0222d010bd41e3f2b449a973.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_c95f73c4165e9d076dde830143.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -256,7 +256,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/_879596b2b9478f69f921680bdf.yasm" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_31e84497db52dc15513e0b8b45.rodata" "-" "library/python/runtime/entry_points.py" "_509a739e05ecb2fbc490a3ba0a.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_c14ecccb07d7bd081030af3e4f.rodata" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_e2e375597d6958d4287b6ad865.rodata" "-" "library/python/runtime/import_test.py" "_3d0222d010bd41e3f2b449a973.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_ed406d6863fc16f13718a7ba01.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.yasm" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_31e84497db52dc15513e0b8b45.rodata" "-" "library/python/runtime/entry_points.py" "_509a739e05ecb2fbc490a3ba0a.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_f82235d0c9aeb95d0c339d3d7e.rodata" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/_e2e375597d6958d4287b6ad865.rodata" "-" "library/python/runtime/import_test.py" "_3d0222d010bd41e3f2b449a973.rodata" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/runtime/_c95f73c4165e9d076dde830143.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -264,9 +264,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime/_879596b2b9478f69f921680bdf.yasm	</Message>
+      <Message>$B/library/python/runtime/_16bfc61bbaf4fa6f63b1ca42d5.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\runtime\entry_points.py;$(SolutionDir)$(Configuration)\library\python\runtime\entry_points.py.yapyc;$(SolutionDir)..\library\python\runtime\import_test.py;$(SolutionDir)$(Configuration)\library\python\runtime\import_test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\_879596b2b9478f69f921680bdf.yasm;$(SolutionDir)$(Configuration)\library\python\runtime\_31e84497db52dc15513e0b8b45.rodata;$(SolutionDir)$(Configuration)\library\python\runtime\_c14ecccb07d7bd081030af3e4f.rodata;$(SolutionDir)$(Configuration)\library\python\runtime\_e2e375597d6958d4287b6ad865.rodata;$(SolutionDir)$(Configuration)\library\python\runtime\_ed406d6863fc16f13718a7ba01.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\_16bfc61bbaf4fa6f63b1ca42d5.yasm;$(SolutionDir)$(Configuration)\library\python\runtime\_31e84497db52dc15513e0b8b45.rodata;$(SolutionDir)$(Configuration)\library\python\runtime\_f82235d0c9aeb95d0c339d3d7e.rodata;$(SolutionDir)$(Configuration)\library\python\runtime\_e2e375597d6958d4287b6ad865.rodata;$(SolutionDir)$(Configuration)\library\python\runtime\_c95f73c4165e9d076dde830143.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
