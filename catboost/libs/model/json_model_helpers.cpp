@@ -69,7 +69,7 @@ static TJsonValue VectorToJson(const TVector<double>& array) {
 static TJsonValue ToJson(const TFloatSplit& floatSplit) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("float_feature_index", floatSplit.FloatFeature);
-    jsonValue.InsertValue("border_id", floatSplit.Split);
+    jsonValue.InsertValue("border", floatSplit.Split);
     return jsonValue;
 }
 
@@ -100,7 +100,7 @@ static TJsonValue ToJson(const TFeatureCombination& featureCombination) {
 
 static TFloatSplit FloatSplitFromJson(const TJsonValue& value) {
     return TFloatSplit(
-            value["float_feature_index"].GetInteger(), FromJson<float>(value["border_id"])
+            value["float_feature_index"].GetInteger(), FromJson<float>(value["border"])
     );
 }
 
