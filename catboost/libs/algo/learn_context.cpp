@@ -10,10 +10,11 @@
 #include <library/digest/crc32c/crc32c.h>
 #include <library/digest/md5/md5.h>
 
-#include <util/generic/guid.h>
 #include <util/folder/path.h>
-#include <util/system/fs.h>
+#include <util/generic/guid.h>
 #include <util/stream/file.h>
+#include <util/stream/labeled.h>
+#include <util/system/fs.h>
 
 TLearnContext::~TLearnContext() {
     if (Params.SystemOptions->IsMaster()) {
@@ -167,18 +168,31 @@ bool TLearnContext::TryLoadProgress() {
     try {
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
         {
-            TLearnProgress learnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
+            // use progress copy to avoid partial deserialization of corrupted progress file
+            TLearnProgress learnProgressRestored = LearnProgress;
             TProfileInfoData ProfileRestored;
-            ::LoadMany(in, Rand, learnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
+
+            // fail here does nothing with real LearnProgress
+            ::LoadMany(in, Rand, learnProgressRestored, ProfileRestored);
+
             const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
-                learnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
+                learnProgressRestored.SerializedTrainParams,
+                LearnProgress.SerializedTrainParams);
+            CATBOOST_DEBUG_LOG
+                << LabeledOutput(learnProgressRestored.SerializedTrainParams) << ' '
+                << LabeledOutput(LearnProgress.SerializedTrainParams) << Endl;
             CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
+
             const bool poolCompatible = (learnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
-            CB_ENSURE(poolCompatible, "Current pool differs from the original pool");
+            CB_ENSURE(
+                poolCompatible,
+                "Current pool differs from the original pool "
+                LabeledOutput(learnProgressRestored.PoolCheckSum, LearnProgress.PoolCheckSum));
+
             LearnProgress = std::move(learnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
-            CATBOOST_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
+            CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size() << " trees" << Endl;
         });
         return true;
     } catch(const TCatboostException&) {
