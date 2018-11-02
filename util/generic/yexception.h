@@ -121,7 +121,8 @@ class TIoSystemError: public TSystemError, public TIoException {
 class TFileError: public TIoSystemError {
 };
 
-/* TBadArgumentException should be thrown when an argument supplied to some function (or constructor)
+/**
+ * TBadArgumentException should be thrown when an argument supplied to some function (or constructor)
  * is invalid or incorrect.
  *
  * \note
@@ -132,7 +133,8 @@ class TFileError: public TIoSystemError {
 struct TBadArgumentException: public virtual yexception {
 };
 
-/* TBadCastException should be thrown to indicate the failure of some type casting procedure
+/**
+ * TBadCastException should be thrown to indicate the failure of some type casting procedure
  * (e.g. reading an integer parameter from string).
  */
 struct TBadCastException: public virtual TBadArgumentException {
