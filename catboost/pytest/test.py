@@ -5552,6 +5552,7 @@ def test_eval_result_on_different_pool_type():
             CATBOOST_PATH, 'fit',
             '--use-best-model', 'false',
             '--loss-function', 'Logloss',
+            '--border-count', '128',
             '-f', train,
             '-t', test,
             '--cd', data_file('querywise', 'train.cd'),

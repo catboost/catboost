@@ -123,7 +123,7 @@
         "ignored_features" : [ ],
         "class_weights" : [ ],
         "float_features_binarization" : {
-            "border_count" : 128,
+            "border_count" : 254,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         }
