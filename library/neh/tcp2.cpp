@@ -497,6 +497,7 @@ namespace {
                 }
 
                 void SetConnection(TConnection* conn) noexcept {
+                    auto g = Guard(AL_);
                     Conn_ = conn;
                 }
 
