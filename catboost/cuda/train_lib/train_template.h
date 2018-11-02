@@ -48,12 +48,14 @@ namespace NCatboostCuda {
 
         auto model = boosting.Run();
 
-        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
-        if (test && !evalOutputFileName.empty()) {
+        if (test) {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
+        }
 
+        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
+        if (test && !evalOutputFileName.empty()) {
             NCB::OutputGpuEvalResultToFile(
                 progressTracker.GetBestTestCursor(),
                 catBoostOptions.SystemOptions->NumThreads,

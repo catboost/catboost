@@ -3155,18 +3155,13 @@ def test_best_iteration(task_type):
     }
     model = CatBoostClassifier(**params)
     model.fit(train_pool, eval_set=test_pool)
-    log_path = 'log.txt'
-    normal_stdout = sys.stdout
-    try:
-        with open(log_path, 'w') as log_file:
-            sys.stdout = log_file
-            model.fit(train_pool, eval_set=test_pool)
-        with open(log_path, 'r') as log_file:
-            content = log_file.read()
-            best_iteration_from_log = re.search(r'(?<=bestIteration = )\d+', content).group(0)
-            assert str(model.best_iteration_) == best_iteration_from_log
-    finally:
-        sys.stdout = normal_stdout
+    log_path = test_output_path('log.txt')
+    with LogStdout(open(log_path, 'w')):
+        model.fit(train_pool, eval_set=test_pool)
+    with open(log_path, 'r') as log_file:
+        content = log_file.read()
+        best_iteration_from_log = re.search(r'(?<=bestIteration = )\d+', content).group(0)
+    assert str(model.best_iteration_) == best_iteration_from_log
 
 
 def test_model_merging():
