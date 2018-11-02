@@ -101,8 +101,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\methods\methods.vcxproj">
       <Project>2335A927-8D1F-0395-59E1-489790E4193B</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\targets.vcxproj">
-      <Project>59D63632-46B4-5714-3BC2-5664B8ADDC73</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\catboost-cuda-targets.vcxproj">
+      <Project>1D3CF7E0-080E-0EC6-D27D-211F8567FEC0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\ut\targets_tests.vcxproj">
       <Project>66A62357-263D-CDBA-251F-01195649737F</Project>
