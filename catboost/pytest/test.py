@@ -5215,7 +5215,7 @@ def test_bad_metrics_combination(loss_function, metric):
 
     try:
         yatest.common.execute(cmd)
-    except:
+    except Exception:
         assert metric in BAD_PAIRS[loss_function]
         return
 

@@ -115,6 +115,12 @@ def _check_data(data1, data2):
     return np.all(np.isclose(data1, data2, rtol=0.001, equal_nan=True))
 
 
+def _count_lines(afile):
+    with open(afile, 'r') as f:
+        num_lines = sum(1 for line in f)
+    return num_lines
+
+
 def _generate_nontrivial_binary_target(num):
     '''
     Generate binary vector with non zero variance
@@ -1612,15 +1618,11 @@ def test_verbose_int(verbose, task_type):
 
     with LogStdout(open(tmpfile, 'w')):
         cv(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
-    with open(tmpfile, 'r') as output:
-        line_conut = sum(1 for line in output)
-        assert(line_conut == expected_line_count[verbose])
+    assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     with LogStdout(open(tmpfile, 'w')):
         train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
-    with open(tmpfile, 'r') as output:
-        line_conut = sum(1 for line in output)
-        assert(line_conut == expected_line_count[verbose])
+    assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
@@ -1901,35 +1903,33 @@ def test_serialization_of_numpy_objects_execution_case():
 @fails_on_gpu(how='assert 0 == 4')
 def test_metric_period_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    tmpfile = 'test_data_dumps'
+    tmpfile1 = test_output_path('tmpfile1')
+    tmpfile2 = test_output_path('tmpfile2')
     model = CatBoost(dict(iterations=10, metric_period=3, task_type=task_type, devices='0'))
 
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile1, 'w')):
         model.fit(pool)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 4)
-
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile2, 'w')):
         model.fit(pool, metric_period=2)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 6)
+
+    assert(_count_lines(tmpfile1) == 4)
+    assert(_count_lines(tmpfile2) == 6)
 
 
 @fails_on_gpu(how='AssertionError: (assertion failed, but when it was re-run for printing intermediate values, it did not fail.  Suggestions: compute assert expression before the assert or use --assert=plain)')  # noqa
 def test_verbose_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    tmpfile = 'test_data_dumps'
+    tmpfile1 = test_output_path('tmpfile1')
+    tmpfile2 = test_output_path('tmpfile2')
     model = CatBoost(dict(iterations=10, verbose=False, task_type=task_type, devices='0'))
 
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile1, 'w')):
         model.fit(pool)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile2, 'w')):
         model.fit(pool, verbose=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 10)
+
+    assert(_count_lines(tmpfile1) == 0)
+    assert(_count_lines(tmpfile2) == 10)
 
 
 class TestInvalidCustomLossAndMetric(object):
@@ -2025,36 +2025,32 @@ class TestInvalidCustomLossAndMetric(object):
 
 def test_silent():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    tmpfile = 'test_data_dumps'
+    tmpfile1 = test_output_path('tmpfile1')
+    tmpfile2 = test_output_path('tmpfile2')
+    tmpfile3 = test_output_path('tmpfile3')
+    tmpfile4 = test_output_path('tmpfile4')
+    tmpfile5 = test_output_path('tmpfile5')
 
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile1, 'w')):
         model = CatBoost(dict(iterations=10, silent=True))
         model.fit(pool)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile2, 'w')):
         model = CatBoost(dict(iterations=10, silent=True))
         model.fit(pool, silent=False)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 10)
-
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile3, 'w')):
         train(pool, {'silent': True})
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile4, 'w')):
         model = CatBoost(dict(iterations=10, silent=False))
         model.fit(pool, silent=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-
-    with LogStdout(open(tmpfile, 'w')):
+    with LogStdout(open(tmpfile5, 'w')):
         model = CatBoost(dict(iterations=10, verbose=5))
         model.fit(pool, silent=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
+
+    assert(_count_lines(tmpfile1) == 0)
+    assert(_count_lines(tmpfile2) == 10)
+    assert(_count_lines(tmpfile3) == 0)
+    assert(_count_lines(tmpfile4) == 0)
+    assert(_count_lines(tmpfile5) == 0)
 
 
 def test_set_params_with_synonyms(task_type):
@@ -2215,12 +2211,10 @@ def test_shap_verbose():
     model = CatBoost(dict(iterations=250))
     model.fit(pool)
 
-    tmpfile = 'test_data_dumps'
+    tmpfile = test_output_path('test_data_dumps')
     with LogStdout(open(tmpfile, 'w')):
         model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool, verbose=12)
-    with open(tmpfile, 'r') as output:
-        line_count = sum(1 for line in output)
-        assert(line_count == 5)
+    assert(_count_lines(tmpfile) == 5)
 
 
 def test_eval_set_with_nans(task_type):

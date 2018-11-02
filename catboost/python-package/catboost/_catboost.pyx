@@ -1704,7 +1704,7 @@ cdef class _CatBoost:
 
     def _get_random_seed(self):
         if not self.__model.ModelInfo.has("params"):
-            return {}
+            return 0
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)

@@ -15,7 +15,7 @@ from operator import itemgetter
 if platform.system() == 'Linux':
     try:
         ctypes.CDLL('librt.so')
-    except:
+    except Exception:
         pass
 
 try:
@@ -69,7 +69,7 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 
 
-from contextlib import contextmanager
+from contextlib import contextmanager  # noqa E402
 
 
 _configure_malloc()
@@ -2333,7 +2333,7 @@ class CatBoostClassifier(CatBoost):
     def _check_is_classification_objective(self, loss_function):
         if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
-                                    "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
+                                "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
 
 class CatBoostRegressor(CatBoost):
@@ -2620,7 +2620,7 @@ class CatBoostRegressor(CatBoost):
     def _check_is_regressor_loss(self, loss_function):
         if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for regressor use "
-                                    "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, SMAPE or custom objective object".format(loss_function))
+                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, SMAPE or custom objective object".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
