@@ -9,7 +9,7 @@
 
 
 template <typename T>
-static TVector<const T*> GetConstPointers(const TVector<T>& objects) {
+inline TVector<const T*> GetConstPointers(const TVector<T>& objects) {
     TVector<const T*> result(objects.size());
     for (size_t i = 0; i < objects.size(); ++i) {
         result[i] = &objects[i];
@@ -18,7 +18,7 @@ static TVector<const T*> GetConstPointers(const TVector<T>& objects) {
 }
 
 template <typename T>
-static TVector<T*> GetMutablePointers(TVector<T>& objects) {
+inline TVector<T*> GetMutablePointers(TVector<T>& objects) {
     TVector<T*> result(objects.size());
     for (size_t i = 0; i < objects.size(); ++i) {
         result[i] = &objects[i];
@@ -27,7 +27,7 @@ static TVector<T*> GetMutablePointers(TVector<T>& objects) {
 }
 
 template <typename T>
-static TVector<const T*> GetConstPointers(const TVector<THolder<T>>& holders) {
+inline TVector<const T*> GetConstPointers(const TVector<THolder<T>>& holders) {
     TVector<const T*> result(holders.size());
     for (size_t i = 0; i < holders.size(); ++i) {
         result[i] = holders[i].Get();
@@ -52,6 +52,7 @@ template <typename T>
 inline TMinMax<T> CalcMinMax(const TVector<T>& v) {
     return CalcMinMax(v.begin(), v.end());
 }
+
 inline bool IsConst(const TVector<float>& values) {
     if (values.empty()) {
         return true;
@@ -88,5 +89,3 @@ bool ApproximatelyEqual(TConstArrayRef<T> lhs, TConstArrayRef<T> rhs, const T ep
         [eps](T lElement, T rElement) { return Abs(lElement - rElement) < eps; }
     );
 }
-
-

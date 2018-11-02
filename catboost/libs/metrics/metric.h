@@ -2,21 +2,17 @@
 
 #include "metric_holder.h"
 #include "ders_holder.h"
-#include "pfound.h"
 
 #include <catboost/libs/algo/hessian.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
-#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/metric_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
-#include <library/containers/2d_array/2d_array.h>
 
-#include <util/generic/hash.h>
-#include <util/string/cast.h>
+#include <util/generic/fwd.h>
 
 #include <cmath>
 
@@ -325,14 +321,10 @@ TVector<THolder<IMetric>> CreateMetrics(
     int approxDimension);
 
 TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics);
-inline TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics) {
-    return GetMetricsDescription(GetConstPointers(metrics));
-}
+TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
 
 TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics);
-inline TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
-    return GetSkipMetricOnTrain(GetConstPointers(metrics));
-}
+TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
 
 TMetricHolder EvalErrors(
     const TVector<TVector<double>>& approx,
@@ -349,23 +341,6 @@ inline bool IsMaxOptimal(const IMetric& metric) {
     return bestValueType == EMetricBestValue::Max;
 }
 
-inline void CheckTarget(const TVector<float>& target, ELossFunction lossFunction) {
-    if (lossFunction == ELossFunction::CrossEntropy) {
-        auto targetBounds = CalcMinMax(target);
-        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
-        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
-    }
-
-    if (lossFunction == ELossFunction::QuerySoftMax) {
-        float minTarget = *MinElement(target.begin(), target.end());
-        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
-    }
-
-    if (IsMultiClassMetric(lossFunction)) {
-        CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
-    }
-}
-
-inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss);
+void CheckTarget(const TVector<float>& target, ELossFunction lossFunction);
 
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);

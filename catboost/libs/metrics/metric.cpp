@@ -8,12 +8,15 @@
 #include "hinge_loss.h"
 #include "kappa.h"
 #include "llp.h"
+#include "pfound.h"
 #include "precision_recall_at_k.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 
+#include <util/generic/hash.h>
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/generic/ymath.h>
@@ -267,9 +270,9 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -328,8 +331,8 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         double Q;
@@ -387,8 +390,8 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         ELossFunction LossFunction;
@@ -463,8 +466,9 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
     private:
         double Alpha;
     };
@@ -526,8 +530,8 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -583,8 +587,8 @@ namespace {
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         double GreaterThen;
@@ -639,8 +643,8 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -695,9 +699,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -743,7 +747,7 @@ void TMSLEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TMedianAbsoluteErrorMetric : public TNonAdditiveMetric {
-        virtual TMetricHolder Eval(
+        TMetricHolder Eval(
                 const TVector<TVector<double>>& approx,
                 const TVector<float>& target,
                 const TVector<float>& weight,
@@ -751,8 +755,8 @@ namespace {
                 int begin,
                 int end,
                 NPar::TLocalExecutor& executor) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         TMedianAbsoluteErrorMetric() {
             UseWeights.MakeIgnored();
         }
@@ -814,9 +818,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -871,10 +875,10 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual TVector<TString> GetStatDescriptions() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TVector<TString> GetStatDescriptions() const override;
     };
 }
 
@@ -921,8 +925,8 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -990,8 +994,8 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -1049,9 +1053,9 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -1118,10 +1122,10 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         double CalcQueryAvrg(
@@ -1213,10 +1217,10 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int TopSize;
@@ -1286,10 +1290,10 @@ namespace {
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int TopSize;
@@ -1362,9 +1366,9 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         TMetricHolder EvalSingleQuery(
@@ -1485,9 +1489,9 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -1548,7 +1552,7 @@ namespace {
             , IsMultiClass(true) {
         }
 
-        virtual TMetricHolder Eval(
+        TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
             const TVector<float>& weight,
@@ -1556,8 +1560,8 @@ namespace {
             int begin,
             int end,
             NPar::TLocalExecutor& executor) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int PositiveClass = 1;
@@ -1647,8 +1651,8 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         double Border = GetDefaultClassificationBorder();
@@ -1700,9 +1704,9 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int PositiveClass = 1;
@@ -1858,9 +1862,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int PositiveClass = 1;
@@ -1912,9 +1916,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int PositiveClass = 1;
@@ -1966,9 +1970,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         double Border = GetDefaultClassificationBorder();
@@ -2026,9 +2030,9 @@ namespace {
                 int end
         ) const;
 
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
 
     private:
         double Border = GetDefaultClassificationBorder();
@@ -2088,10 +2092,10 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual TVector<TString> GetStatDescriptions() const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TVector<TString> GetStatDescriptions() const override;
 
     private:
         int PositiveClass = 1;
@@ -2152,9 +2156,9 @@ void TF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TTotalF1Metric : public TAdditiveMetric<TTotalF1Metric> {
-    explicit TTotalF1Metric(int classesCount)
+        explicit TTotalF1Metric(int classesCount)
             : ClassCount(classesCount) {
-            }
+        }
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
@@ -2163,10 +2167,10 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TVector<TString> GetStatDescriptions() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TVector<TString> GetStatDescriptions() const override;
 
     private:
         int ClassCount;
@@ -2284,10 +2288,11 @@ namespace {
             int begin,
             int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual TVector<TString> GetStatDescriptions() const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TVector<TString> GetStatDescriptions() const override;
+
     private:
         int ClassesCount;
     };
@@ -2350,7 +2355,7 @@ void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TBrierScoreMetric : public TAdditiveMetric<TBrierScoreMetric> {
-        virtual TMetricHolder EvalSingleThread(
+        TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
                 const TVector<float>& target,
                 const TVector<float>& weight,
@@ -2358,9 +2363,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
         TBrierScoreMetric() {
             UseWeights.MakeIgnored();
         }
@@ -2399,7 +2404,7 @@ double TBrierScoreMetric::GetFinalError(const TMetricHolder& error) const {
 
 namespace {
     struct THingeLossMetric : public TAdditiveMetric<THingeLossMetric> {
-        virtual TMetricHolder EvalSingleThread(
+        TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
                 const TVector<float>& target,
                 const TVector<float>& weight,
@@ -2407,9 +2412,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
     };
 }
 
@@ -2453,9 +2458,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
     private:
         double Border = GetDefaultClassificationBorder();
         bool IsMultiClass = false;
@@ -2513,9 +2518,9 @@ namespace {
                 int begin,
                 int end
         ) const;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
 
     private:
         double Border = GetDefaultClassificationBorder();
@@ -2596,9 +2601,9 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     };
 }
 
@@ -2657,10 +2662,10 @@ namespace {
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
         int TopSize;
         double Border;
@@ -2729,10 +2734,11 @@ namespace {
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
     private:
         int TopSize;
         double Border;
@@ -2801,10 +2807,10 @@ namespace {
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         int TopSize;
@@ -2869,7 +2875,7 @@ namespace {
     class TCustomMetric: public IMetric {
     public:
         explicit TCustomMetric(const TCustomMetricDescriptor& descriptor);
-        virtual TMetricHolder Eval(
+        TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
             const TVector<float>& weight,
@@ -2878,13 +2884,13 @@ namespace {
             int end,
             NPar::TLocalExecutor& executor
         ) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-        virtual EErrorType GetErrorType() const override;
-        virtual double GetFinalError(const TMetricHolder& error) const override;
-        virtual TVector<TString> GetStatDescriptions() const override;
-        virtual const TMap<TString, TString>& GetHints() const override;
-        virtual void AddHint(const TString& key, const TString& value) override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        TVector<TString> GetStatDescriptions() const override;
+        const TMap<TString, TString>& GetHints() const override;
+        void AddHint(const TString& key, const TString& value) override;
         //we don't now anything about custom metrics
         bool IsAdditiveMetric() const final {
             return false;
@@ -2955,7 +2961,7 @@ namespace {
     class TUserDefinedPerObjectMetric : public TMetric {
     public:
         explicit TUserDefinedPerObjectMetric(const TMap<TString, TString>& params);
-        virtual TMetricHolder Eval(
+        TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
             const TVector<float>& weight,
@@ -2964,8 +2970,8 @@ namespace {
             int end,
             NPar::TLocalExecutor& executor
         ) const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         bool IsAdditiveMetric() const final {
             return true;
         }
@@ -3024,9 +3030,9 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         double Alpha;
@@ -3090,9 +3096,9 @@ namespace {
             int queryStartIndex,
             int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
         int TopSize;
     };
@@ -3639,19 +3645,29 @@ TVector<THolder<IMetric>> CreateMetrics(
 
 TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics) {
     TVector<TString> result;
+    result.reserve(metrics.size());
     for (const auto& metric : metrics) {
         result.push_back(metric->GetDescription());
     }
     return result;
 }
 
+TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics) {
+    return GetMetricsDescription(GetConstPointers(metrics));
+}
+
 TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics) {
     TVector<bool> result;
+    result.reserve(metrics.size());
     for (const auto& metric : metrics) {
         const TMap<TString, TString>& hints = metric->GetHints();
         result.push_back(hints.has("skip_train") && hints.at("skip_train") == "true");
     }
     return result;
+}
+
+TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
+    return GetSkipMetricOnTrain(GetConstPointers(metrics));
 }
 
 TMetricHolder EvalErrors(
@@ -3729,9 +3745,9 @@ namespace {
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
-        virtual EErrorType GetErrorType() const override;
-        virtual TString GetDescription() const override;
-        virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
         void AddSingleQuery(const double* approxes,
@@ -3864,5 +3880,22 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
             metric = ELossFunction::Custom;
         }
         CheckMetric(metric, modelLoss);
+    }
+}
+
+void CheckTarget(const TVector<float>& target, ELossFunction lossFunction) {
+    if (lossFunction == ELossFunction::CrossEntropy) {
+        auto targetBounds = CalcMinMax(target);
+        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
+        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
+    }
+
+    if (lossFunction == ELossFunction::QuerySoftMax) {
+        float minTarget = *MinElement(target.begin(), target.end());
+        CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
+    }
+
+    if (IsMultiClassMetric(lossFunction)) {
+        CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
     }
 }

@@ -4,6 +4,7 @@
 
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/defaults_helper.h>
 
 #include <library/digest/crc32c/crc32c.h>
@@ -13,9 +14,6 @@
 #include <util/folder/path.h>
 #include <util/system/fs.h>
 #include <util/stream/file.h>
-
-
-
 
 TLearnContext::~TLearnContext() {
     if (Params.SystemOptions->IsMaster()) {
