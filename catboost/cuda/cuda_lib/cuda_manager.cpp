@@ -280,7 +280,7 @@ inline void InitMemPerformanceTables(TCudaManager& manager) {
 
 THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
                                                          const ELoggingLevel loggingLevel) {
-    SetLoggingLevel(loggingLevel);
+    TSetLogging inThisScope(loggingLevel);
 
 #if defined(USE_MPI)
     CB_ENSURE(GetMpiManager().IsMaster(), "Error: can't run cudaManager on slave");

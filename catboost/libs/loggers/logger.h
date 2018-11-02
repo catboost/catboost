@@ -86,7 +86,7 @@ public:
 };
 
 inline bool DoOutputIteration(int currentIteration, int iterationsCount, int writePeriod) {
-    return currentIteration % writePeriod == 0 || currentIteration == iterationsCount - 1;
+    return writePeriod > 0 && (currentIteration % writePeriod == 0 || currentIteration == iterationsCount - 1);
 }
 
 class TJsonLoggingBackend : public ILoggingBackend {

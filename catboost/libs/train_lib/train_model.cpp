@@ -403,11 +403,8 @@ namespace {
                 sortedCatFeatures,
                 pools.Learn->FeatureId
             );
-            SetLoggingLevel(ctx.Params.LoggingLevel);
 
-            Y_DEFER {
-                SetSilentLoggingMode();
-            };
+            TSetLogging inThisScope(ctx.Params.LoggingLevel);
 
             TVector<ui64> indices(pools.Learn->Docs.GetDocCount());
             std::iota(indices.begin(), indices.end(), 0);
@@ -719,7 +716,7 @@ namespace {
                 NCatboostOptions::AddExtension(NCatboostOptions::GetModelExtensionFromType(modelFormat), &modelPath);
             }
 
-            SetVerboseLoggingMode();
+            TSetLoggingVerbose inThisScope;
             if (!evalOutputFileName.empty()) {
                 TFullModel model = ReadModel(modelPath, modelFormat);
                 auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
@@ -770,7 +767,6 @@ namespace {
             }
 
             CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
-            SetSilentLoggingMode();
         }
     };
 }
@@ -813,7 +809,7 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
 
 /// Used by cross validation, hence one test dataset.
 void TrainOneIteration(const TDataset& trainData, const TDataset* testDataPtr, TLearnContext* ctx) {
-    SetLoggingLevel(ctx->Params.LoggingLevel);
+    TSetLogging inThisScope(ctx->Params.LoggingLevel);
 
     TTrainOneIterationFunc trainFunc;
     ELossFunction lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();

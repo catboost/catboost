@@ -68,11 +68,7 @@ namespace NCB {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount - 1);
 
-        if (verbose) {
-            SetVerboseLoggingMode();
-        } else {
-            SetSilentLoggingMode();
-        }
+        TSetLoggingVerboseOrSilent inThisScope(verbose);
 
         TDataProviderPtr dataProviderPtr = ReadDataset(
             poolPath,
@@ -83,8 +79,6 @@ namespace NCB {
             objectsOrder,
             &localExecutor
         );
-
-        SetVerboseLoggingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
 
         return dataProviderPtr;
     }

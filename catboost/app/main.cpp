@@ -36,7 +36,7 @@ int main(int argc, const char* argv[]) {
     try {
         NCB::TCmdLineInit::Do(argc, argv);
 
-        SetVerboseLoggingMode();
+        TSetLoggingVerbose inThisScope;
         TModChooser modChooser;
         modChooser.AddMode("fit", mode_fit, "train model");
         modChooser.AddMode("calc", mode_calc, "evaluate model predictions");

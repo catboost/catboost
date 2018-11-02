@@ -621,11 +621,7 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor,
         IPoolBuilder* poolBuilder
     ) {
-        if (verbose) {
-            SetVerboseLoggingMode();
-        } else {
-            SetSilentLoggingMode();
-        }
+        TSetLoggingVerboseOrSilent inThisScope(verbose);
 
         auto docPoolDataProvider = GetProcessor<IDocPoolDataProvider>(
             poolPath, // for choosing processor
@@ -648,8 +644,6 @@ namespace NCB {
         );
 
         docPoolDataProvider->Do(poolBuilder);
-
-        SetVerboseLoggingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
     }
 
     void ReadPool(

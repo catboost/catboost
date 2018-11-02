@@ -58,6 +58,11 @@ public:
     void SetLogPriority(ELogPriority logPriority) {
         LogPriority = logPriority;
     }
+
+    ELogPriority GetLogPriority() const {
+        return LogPriority;
+    }
+
 private:
     bool OutputExtendedInfo = false;
     bool HaveTraceLog = false;
@@ -78,39 +83,74 @@ public:
     }
 };
 
-inline void SetLoggingLevel(ELoggingLevel level) {
-    ELogPriority logPriority = TLOG_EMERG;
-    switch (level) {
-        case ELoggingLevel::Silent: {
-            logPriority = TLOG_WARNING;
-            break;
-        }
-        case ELoggingLevel::Verbose: {
-            logPriority = TLOG_NOTICE;
-            break;
-        }
-        case ELoggingLevel::Info: {
-            logPriority = TLOG_INFO;
-            break;
-        }
-        case ELoggingLevel::Debug: {
-            logPriority = TLOG_DEBUG;
-            break;
-        }
-        default:{
-            ythrow yexception() << "Unknown logging level " << level;
+class TSetLogging { /* in current scope */
+public:
+    explicit TSetLogging(ELoggingLevel level)
+        : SavedLogPriority(TCatBoostLogSettings::GetRef().Log.GetLogPriority())
+    {
+        ELogPriority newLogPriority = GetLogPriorityForLoggingLevel(level);
+        RestoreLogPriority = SavedLogPriority != newLogPriority;
+        TCatBoostLogSettings::GetRef().Log.SetLogPriority(newLogPriority);
+    }
+
+    ~TSetLogging() {
+        if (RestoreLogPriority) {
+            TCatBoostLogSettings::GetRef().Log.SetLogPriority(SavedLogPriority);
         }
     }
-    TCatBoostLogSettings::GetRef().Log.SetLogPriority(logPriority);
-}
 
-inline void SetSilentLoggingMode() {
-    SetLoggingLevel(ELoggingLevel::Silent);
-}
+private:
+    ELogPriority GetLogPriorityForLoggingLevel(ELoggingLevel level) {
+        ELogPriority logPriority = TLOG_EMERG;
+        switch (level) {
+            case ELoggingLevel::Silent: {
+                logPriority = TLOG_WARNING;
+                break;
+            }
+            case ELoggingLevel::Verbose: {
+                logPriority = TLOG_NOTICE;
+                break;
+            }
+            case ELoggingLevel::Info: {
+                logPriority = TLOG_INFO;
+                break;
+            }
+            case ELoggingLevel::Debug: {
+                logPriority = TLOG_DEBUG;
+                break;
+            }
+            default:{
+                ythrow yexception() << "Unknown logging level " << level;
+            }
+        }
+        return logPriority;
+    }
 
-inline void SetVerboseLoggingMode() {
-    SetLoggingLevel(ELoggingLevel::Debug);
-}
+private:
+    ELogPriority SavedLogPriority;
+    bool RestoreLogPriority = false;
+};
+
+class TSetLoggingSilent : TSetLogging {
+public:
+    TSetLoggingSilent()
+    : TSetLogging(ELoggingLevel::Silent)
+    {}
+};
+
+class TSetLoggingVerbose : TSetLogging {
+public:
+    TSetLoggingVerbose()
+    : TSetLogging(ELoggingLevel::Debug)
+    {}
+};
+
+class TSetLoggingVerboseOrSilent : TSetLogging {
+public:
+    explicit TSetLoggingVerboseOrSilent(bool verbose)
+    : TSetLogging(verbose ? ELoggingLevel::Debug : ELoggingLevel::Silent)
+    {}
+};
 
 void ResetTraceBackend(const TString& string);
 

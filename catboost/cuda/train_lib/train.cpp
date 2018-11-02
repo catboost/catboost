@@ -317,7 +317,7 @@ namespace NCatboostCuda {
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager,
                           TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
-        SetLoggingLevel(trainCatBoostOptions.LoggingLevel);
+        TSetLogging inThisScope(trainCatBoostOptions.LoggingLevel);
         CreateDirIfNotExist(outputOptions.GetTrainDir());
         auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
         auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
@@ -343,7 +343,7 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedParams = params;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
         catBoostOptions.Load(updatedParams);
-        SetLoggingLevel(catBoostOptions.LoggingLevel);
+        TSetLogging inThisScope(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
         if (testPool.Docs.GetDocCount()) {
@@ -484,7 +484,8 @@ namespace NCatboostCuda {
         TryUpdateSeedFromSnapshot(outputOptions, &updatedOptions);
         auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
 
-        SetLoggingLevel(catBoostOptions.LoggingLevel);
+        TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+        const bool verboseReadPool = catBoostOptions.LoggingLevel == ELoggingLevel::Debug;
         const auto resultModelPath = outputOptions.CreateResultModelFullPath();
         TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
 
@@ -549,7 +550,7 @@ namespace NCatboostCuda {
                         poolLoadOptions.GroupWeightsFilePath,
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
-                        true,
+                        verboseReadPool,
                         &targetConverter,
                         &NPar::LocalExecutor(),
                         &dataProviderBuilder);
@@ -594,7 +595,7 @@ namespace NCatboostCuda {
                         poolLoadOptions.TestGroupWeightsFilePath,
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
-                        true,
+                        verboseReadPool,
                         &targetConverter,
                         &NPar::LocalExecutor(),
                         &testBuilder);

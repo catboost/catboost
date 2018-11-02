@@ -110,11 +110,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         NLastGetopt::TOptsParseResult parseResult(&parser, argc, argv);
         Y_UNUSED(parseResult);
     }
-    if (verbose) {
-        SetVerboseLoggingMode();
-    } else {
-        SetSilentLoggingMode();
-    }
+    TSetLoggingVerboseOrSilent inThisScope(verbose);
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.DsvPoolFormatParams.CdFilePath.Inited(),

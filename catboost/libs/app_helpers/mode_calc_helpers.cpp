@@ -125,7 +125,7 @@ void NCB::CalcModelSingleHost(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
-    SetVerboseLoggingMode();
+    TSetLoggingVerbose inThisScope;
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
     auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.DsvPoolFormatParams.Format);
@@ -139,7 +139,7 @@ void NCB::CalcModelSingleHost(
 
         poolColumnsPrinter->UpdateColumnTypeInfo(poolPart.MetaInfo.ColumnsInfo);
 
-        SetSilentLoggingMode();
+        TSetLoggingSilent inThisScope;
         OutputEvalResultToFile(
             approx,
             &executor,

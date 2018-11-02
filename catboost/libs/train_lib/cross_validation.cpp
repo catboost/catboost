@@ -270,11 +270,7 @@ void CrossValidate(
     // without fields duplication.
     auto& ctx = contexts.front();
 
-    SetLoggingLevel(ctx->Params.LoggingLevel);
-
-    Y_DEFER {
-        SetSilentLoggingMode();
-    };
+    TSetLogging inThisScope(ctx->Params.LoggingLevel);
 
     if (IsMultiClassMetric(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         for (const auto& context : contexts) {
