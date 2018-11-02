@@ -72,3 +72,5 @@ ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в 
 
 26. Load progress from snapshot if `thread_count` or max memory are different.
 And if this is the case, then time estimates should be updated: time estimate is made based on previous timings. In case if one of these parameters has changed, previous time estimates become not trustable.
+
+27. AUC for MultiClass
