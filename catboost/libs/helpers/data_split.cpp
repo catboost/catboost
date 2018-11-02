@@ -3,6 +3,8 @@
 
 #include <catboost/libs/logging/logging.h>
 
+#include <util/generic/array_ref.h>
+
 TVector<std::pair<ui32, ui32>> Split(ui32 docCount, ui32 partCount) {
     TVector<std::pair<ui32, ui32>> result(partCount);
     for (ui32 part = 0; part < partCount; ++part) {
