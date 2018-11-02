@@ -48,7 +48,6 @@ def test_queryrmse(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -81,7 +80,6 @@ def test_queryrmse_newton_gradient(boosting_type, dev_score_calc_obj_block_size)
             '--leaf-estimation-method', leaf_estimation_method,
             '-i', '20',
             '-T', '4',
-            '-r', '0',
             '--eval-file', eval_path,
             '--use-best-model', 'false',
         ]
@@ -106,7 +104,6 @@ def test_pool_with_QueryId(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -136,7 +133,6 @@ def test_rmse_on_qwise_pool(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -159,7 +155,6 @@ def test_averagegain(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'AverageGain:top=2;hints=skip_train~false',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -184,7 +179,6 @@ def test_queryaverage(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'QueryAverage:top=2;hints=skip_train~false',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -211,7 +205,6 @@ def test_averagegain_with_query_weights(boosting_type, top):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'AverageGain:top={};hints=skip_train~false'.format(top),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -238,7 +231,6 @@ def test_pfound(top_size, boosting_type, cd_file):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'PFound:top={};hints=skip_train~false'.format(top_size),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -262,7 +254,6 @@ def test_recall_at_k():
         '--boosting-type', 'Ordered',
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'RecallAt:top=3;border=0',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -286,7 +277,6 @@ def test_precision_at_k():
         '--boosting-type', 'Ordered',
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'PrecisionAt:top=3;border=0',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -311,7 +301,6 @@ def test_mapk(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'MAP:top={}'.format(10),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -337,7 +326,6 @@ def test_ndcg(boosting_type, ndcg_power_mode):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'NDCG:top={};type={};hints=skip_train~false'.format(10, ndcg_power_mode),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -360,7 +348,6 @@ def test_queryrmse_approx_on_full_history():
         '--approx-on-full-history',
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -399,7 +386,6 @@ def test_pairlogit(boosting_type, dev_score_calc_obj_block_size):
             '--l2-leaf-reg', '0',
             '-i', '20',
             '-T', '4',
-            '-r', '0',
             '-m', output_model_path,
             '--eval-file', eval_path,
             '--learn-err-log', learn_error_path,
@@ -434,7 +420,6 @@ def test_pairs_generation():
             '--l2-leaf-reg', '0',
             '-i', '20',
             '-T', '4',
-            '-r', '0',
             '-m', output_model_path,
             '--eval-file', eval_path,
             '--learn-err-log', learn_error_path,
@@ -469,7 +454,6 @@ def test_pairs_generation_with_max_pairs():
             '--l2-leaf-reg', '0',
             '-i', '20',
             '-T', '4',
-            '-r', '0',
             '-m', output_model_path,
             '--eval-file', eval_path,
             '--learn-err-log', learn_error_path,
@@ -501,7 +485,6 @@ def test_pairlogit_no_target(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -526,7 +509,6 @@ def test_pairlogit_approx_on_full_history():
         '--approx-on-full-history',
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -557,7 +539,6 @@ def test_pairlogit_pairwise(pairs_file, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -587,7 +568,6 @@ def test_yetirank(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -611,7 +591,6 @@ def test_pairwise_reproducibility(loss_function):
             '--cd', data_file('querywise', 'train.cd'),
             '-i', '5',
             '-T', str(threads),
-            '-r', '0',
             '-m', model_path,
             '--eval-file', eval_path,
         ]
@@ -645,7 +624,6 @@ def test_yetirank_with_params(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -672,7 +650,6 @@ def test_yetirank_pairwise(dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -699,7 +676,6 @@ def test_nan_mode(nan_mode, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--nan-mode', nan_mode,
@@ -734,7 +710,6 @@ def test_nan_mode_forbidden(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--nan-mode', 'Forbidden',
@@ -760,7 +735,6 @@ def test_overfit_detector_iter(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '2000',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -791,7 +765,6 @@ def test_overfit_detector_inc_to_dec(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '2000',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -824,7 +797,6 @@ def test_overfit_detector_with_resume_from_snapshot(boosting_type, overfitting_d
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -866,7 +838,6 @@ def test_shrink_model(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '100',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -909,7 +880,6 @@ def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type, dev
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--leaf-estimation-method', leaf_estimation_method,
@@ -952,7 +922,6 @@ def test_doc_id(loss_function, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -993,7 +962,6 @@ def test_apply_missing_vals(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--use-best-model', 'false',
     )
@@ -1034,7 +1002,6 @@ def test_crossentropy(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -1065,7 +1032,6 @@ def test_permutation_block(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--fold-permutation-block', '239',
@@ -1092,7 +1058,6 @@ def test_ignored_features(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '-I', '0:1:3:5-7:10000',
         '--eval-file', output_eval_path,
@@ -1129,7 +1094,6 @@ def test_ignored_features_not_read():
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '-I', '4:6',  # Ignore the corrupted features
         '--eval-file', output_eval_path,
@@ -1155,7 +1119,6 @@ def test_baseline(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -1207,7 +1170,6 @@ def test_multiclass_baseline(boosting_type, loss_function):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--eval-file', eval_path,
         '--use-best-model', 'false',
@@ -1260,7 +1222,6 @@ def test_multiclass_baseline_lost_class(boosting_type, loss_function):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--eval-file', eval_path,
         '--use-best-model', 'false',
@@ -1306,7 +1267,6 @@ def test_weights(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -1338,7 +1298,6 @@ def test_weights_no_bootstrap(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -1368,7 +1327,6 @@ def test_weights_gradient(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--leaf-estimation-method', 'Gradient'
@@ -1400,7 +1358,6 @@ def test_logloss_with_not_binarized_target(boosting_type, dev_score_calc_obj_blo
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path
     )
@@ -1434,7 +1391,6 @@ def test_all_targets(loss_function, boosting_type, dev_score_calc_obj_block_size
         '--counter-calc-method', 'SkipTest',  # TODO(kirillovs): remove after setting SkipTest as default type
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
     )
 
     traint_with_test_cmd = base_cmd + (
@@ -1496,7 +1452,6 @@ def test_cv(is_inverted, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         ('-Y' if is_inverted else '-X'), '2/10',
         '--eval-file', output_eval_path,
@@ -1521,7 +1476,6 @@ def test_cv_for_query(is_inverted, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         ('-Y' if is_inverted else '-X'), '2/7',
         '--eval-file', output_eval_path,
@@ -1547,7 +1501,6 @@ def test_cv_for_pairs(is_inverted, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         ('-Y' if is_inverted else '-X'), '2/7',
         '--eval-file', output_eval_path,
@@ -1571,7 +1524,6 @@ def test_empty_eval(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -1596,7 +1548,6 @@ def test_time(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--has-time',
         '--eval-file', output_eval_path,
@@ -1627,7 +1578,6 @@ def test_gradient(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--leaf-estimation-method', 'Gradient',
         '--eval-file', output_eval_path,
@@ -1658,7 +1608,6 @@ def test_newton(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--leaf-estimation-method', 'Newton',
         '--eval-file', output_eval_path,
@@ -1689,7 +1638,6 @@ def test_newton_on_pool_with_weights(boosting_type, dev_score_calc_obj_block_siz
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--leaf-estimation-method', 'Newton',
         '--leaf-estimation-iterations', '7',
@@ -1716,7 +1664,6 @@ def test_custom_priors(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--ctr', 'Borders:Prior=-2:Prior=0:Prior=8:Prior=1:Prior=-1:Prior=3,'
                  'Counter:Prior=0',
@@ -1751,7 +1698,6 @@ def test_ctr_buckets(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--ctr', 'Buckets'
@@ -1782,7 +1728,6 @@ def test_fold_len_multiplier(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--fold-len-multiplier', '1.5'
@@ -1811,7 +1756,6 @@ def test_fstr(fstr_type, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '--one-hot-max-size', '10',
         '-m', model_path
     )
@@ -1854,7 +1798,6 @@ def test_reproducibility(loss_function, dev_score_calc_obj_block_size):
             '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '-i', '25',
             '-T', str(threads),
-            '-r', '0',
             '-m', model_path,
             '--eval-file', eval_path,
         ]
@@ -1889,7 +1832,6 @@ def test_feature_border_types(border_type, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--feature-border-type', border_type,
@@ -1915,7 +1857,6 @@ def test_deep_tree_classification(depth, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '--depth', str(depth),
         '-m', output_model_path,
         '--eval-file', output_eval_path,
@@ -1947,7 +1888,6 @@ def test_regularization(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--leaf-estimation-method', 'Newton',
         '--eval-file', output_eval_path,
@@ -1983,7 +1923,6 @@ def test_reg_targets(loss_function, boosting_type, dev_score_calc_obj_block_size
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path
     )
@@ -2015,7 +1954,6 @@ def test_multi_targets(loss_function, boosting_type, dev_score_calc_obj_block_si
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path
     )
@@ -2057,7 +1995,6 @@ def test_target_border(border_type, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '3',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--ctr', 'Borders:TargetBorderCount=3:TargetBorderType=' + border_type
@@ -2087,7 +2024,6 @@ def test_counter_calc(counter_calc_method, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '60',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--counter-calc-method', counter_calc_method
@@ -2123,7 +2059,6 @@ def test_ctr_type(ctr_type, boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '3',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--ctr', ctr_type
@@ -2152,7 +2087,6 @@ def test_custom_overfitting_detector_metric(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path
@@ -2180,7 +2114,6 @@ def test_custom_loss_for_classification(boosting_type):
         '-w', '0.03',
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--custom-metric',
         'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,BalancedAccuracy,BalancedErrorRate,Kappa,WKappa,BrierScore,ZeroOneLoss,HammingLoss,HingeLoss',
         '--learn-err-log', learn_error_path,
@@ -2207,7 +2140,6 @@ def test_loglikelihood_of_prediction(boosting_type):
         '-w', '0.03',
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'LogLikelihoodOfPrediction',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -2234,7 +2166,6 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
@@ -2262,7 +2193,6 @@ def test_calc_prediction_type(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
     )
     yatest.common.execute(cmd)
@@ -2320,7 +2250,6 @@ def test_calc_no_target(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--counter-calc-method', 'SkipTest',
         '--eval-file', fit_output_eval_path
@@ -2360,7 +2289,6 @@ def test_classification_progress_restore(boosting_type):
             '--boosting-type', boosting_type,
             '-i', str(iters),
             '-T', '4',
-            '-r', '0',
             '-m', model_path,
             '--eval-file', eval_path,
         ]
@@ -2398,7 +2326,6 @@ def test_prediction_type(prediction_type, loss_function, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--prediction-type', prediction_type
@@ -2437,7 +2364,6 @@ def test_const_feature(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -2466,7 +2392,6 @@ def test_quantile_targets(loss_function, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '5',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -2498,7 +2423,6 @@ def test_custom_loss(custom_loss_function, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '50',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric', custom_loss_function,
@@ -2527,7 +2451,6 @@ def test_meta(loss_function, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--name', 'test experiment',
@@ -2551,7 +2474,6 @@ def test_train_dir():
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '2',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--train-dir', train_dir_path,
@@ -2580,7 +2502,6 @@ def test_feature_id_fstr(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
     )
     yatest.common.execute(cmd)
@@ -2615,7 +2536,6 @@ def test_class_names_logloss(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--class-names', '1,0'
@@ -2642,7 +2562,6 @@ def test_class_names_multiclass(loss_function, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--prediction-type', 'RawFormulaVal,Class',
         '--eval-file', output_eval_path,
@@ -2670,7 +2589,6 @@ def test_class_names_multiclass_last_class_missed(loss_function, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--prediction-type', 'RawFormulaVal,Class',
         '--eval-file', output_eval_path,
@@ -2698,7 +2616,6 @@ def test_class_weight_logloss(boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--class-weights', '0.5,2'
@@ -2725,7 +2642,6 @@ def test_class_weight_multiclass(loss_function, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--class-weights', '0.5,2'
@@ -2752,7 +2668,6 @@ def test_params_from_file(boosting_type):
         '-i', '6',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--params-file', data_file('params.json')
@@ -2779,7 +2694,6 @@ def test_lost_class(boosting_type, loss_function):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--classes-count', '3',
@@ -2806,7 +2720,6 @@ def test_class_weight_with_lost_class(boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--classes-count', '3',
@@ -2841,7 +2754,6 @@ def test_one_hot(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '100',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -2887,7 +2799,6 @@ def test_random_strength(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '100',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -2922,7 +2833,6 @@ def test_only_categorical_features(boosting_type, dev_score_calc_obj_block_size)
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '100',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-x', '1',
@@ -2959,7 +2869,6 @@ def test_weight_sampling_per_tree(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--learn-err-log', learn_error_path,
@@ -2999,7 +2908,6 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit, d
         '-i', '20',
         '-w', '0.03',
         '-T', '6',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -3023,7 +2931,6 @@ def test_apply_with_permuted_columns():
         '-i', '20',
         '-w', '0.03',
         '-T', '6',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -3075,7 +2982,6 @@ def test_subsample_per_tree(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--learn-err-log', learn_error_path,
@@ -3113,7 +3019,6 @@ def test_subsample_per_tree_level(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--learn-err-log', learn_error_path,
@@ -3150,7 +3055,6 @@ def test_bagging_per_tree_level(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--learn-err-log', learn_error_path,
@@ -3184,7 +3088,6 @@ def test_plain(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--boosting-type', 'Plain',
         '--eval-file', output_eval_path,
@@ -3218,7 +3121,6 @@ def test_bootstrap(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
     )
     for bootstrap in bootstrap_option:
         model_path = yatest.common.test_output_path('model_' + bootstrap + '.bin')
@@ -3248,7 +3150,6 @@ def test_json_logging():
         '-w', '0.03',
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--json-log', json_path,
@@ -3274,7 +3175,6 @@ def test_json_logging_metric_period():
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--json-log', json_path,
@@ -3298,7 +3198,6 @@ def test_output_columns_format():
         # Intentionally skipped: -t ...
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--output-columns', 'DocId,RawFormulaVal,#2,Label',
         '--eval-file', output_eval_path
@@ -3332,7 +3231,6 @@ def test_eval_period():
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
     )
     yatest.common.execute(cmd)
@@ -3367,7 +3265,6 @@ def test_weights_output():
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--output-columns', 'DocId,RawFormulaVal,Weight,Label',
@@ -3392,7 +3289,6 @@ def test_baseline_output():
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--output-columns', 'DocId,RawFormulaVal,Baseline,Label',
@@ -3415,7 +3311,6 @@ def test_query_output():
         '--column-description', data_file('querywise', 'train.cd'),
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--output-columns', 'DocId,Label,RawFormulaVal,GroupId',
@@ -3438,7 +3333,6 @@ def test_subgroup_output():
         '--column-description', data_file('querywise', 'train.cd.subgroup_id'),
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--output-columns', 'GroupId,SubgroupId,DocId,Label,RawFormulaVal',
@@ -3469,7 +3363,6 @@ def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-w', '0.1',
         '--one-hot-max-size', '102',
         '--bootstrap-type', 'No',
@@ -3496,7 +3389,6 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '--random-strength', '0',
         '--has-time',
         '--bootstrap-type', 'No',
@@ -3810,7 +3702,6 @@ def test_eval_metrics(metric, metric_period):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -3859,7 +3750,6 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
         '--column-description', cd,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -3916,7 +3806,6 @@ def test_eval_metrics_class_names():
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -3965,7 +3854,6 @@ def test_eval_metrics_with_baseline(metric_period, metric):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -4024,7 +3912,6 @@ def test_eval_metrics_multiclass_with_baseline(metric_period, metric):
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -4075,7 +3962,6 @@ def test_ctr_leaf_count_limit(boosting_type, dev_score_calc_obj_block_size):
         '-i', '30',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
@@ -4099,7 +3985,6 @@ def test_eval_non_additive_metric(eval_period):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
     )
     yatest.common.execute(cmd)
@@ -4173,7 +4058,6 @@ def test_eval_eq_calc(boosting_type, max_ctr_complexity):
                '-m', model_path,
                '--eval-file', test_eval_path,
                '-i', '5',
-               '-r', '0',
                '-T', '1',
                '--max-ctr-complexity', str(max_ctr_complexity),
                '--one-hot-max-size', str(one_hot_max_size),
@@ -4207,7 +4091,6 @@ def test_object_importances(loss_function, leaf_estimation_iteration):
         '--leaf-estimation-iterations', leaf_estimation_iteration,
         '--boosting-type', 'Plain',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--use-best-model', 'false'
     )
@@ -4282,7 +4165,6 @@ def test_multiple_eval_sets_order_independent(boosting_type, num_tests):
                 '--boosting-type', boosting_type,
                 '-i', '5',
                 '-T', '4',
-                '-r', '0',
                 '--use-best-model', 'false',
                 )
     calc_stem = (CATBOOST_PATH, 'calc',
@@ -4308,7 +4190,6 @@ def test_multiple_eval_sets_querywise_order_independent(boosting_type, num_tests
                 '--boosting-type', boosting_type,
                 '-i', '5',
                 '-T', '4',
-                '-r', '0',
                 '--use-best-model', 'false',
                 )
     calc_stem = (CATBOOST_PATH, 'calc',
@@ -4331,7 +4212,6 @@ def test_multiple_eval_sets_no_empty():
                 '--cd', cd_path,
                 '-i', '5',
                 '-T', '4',
-                '-r', '0',
                 '--use-best-model', 'false',
                 )
     test0_path = yatest.common.test_output_path('test0.txt')
@@ -4357,7 +4237,6 @@ def test_multiple_eval_sets(loss_function):
            '--column-description', cd_path,
            '-i', '5',
            '-T', '4',
-           '-r', '0',
            '--use-best-model', 'false',
            '--eval-file', eval_path,
            )
@@ -4380,7 +4259,6 @@ def test_multiple_eval_sets_err_log():
            '--column-description', cd_path,
            '-i', '5',
            '-T', '4',
-           '-r', '0',
            '--test-err-log', test_err_log_path,
            '--json-log', json_log_path,
            )
@@ -4416,7 +4294,6 @@ def test_const_cat_feature(cat_value):
            '--column-description', cd_path,
            '-i', '5',
            '-T', '4',
-           '-r', '0',
            '--eval-file', eval_path,
            )
     with pytest.raises(yatest.common.ExecutionError):
@@ -4436,7 +4313,6 @@ def test_model_metadata():
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '2',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '-w', '0.1',
@@ -4505,7 +4381,6 @@ def test_fit_multiclass_with_class_names():
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--use-best-model', 'false',
         '--prediction-type', 'RawFormulaVal,Class',
         '--eval-file', eval_path
@@ -4544,7 +4419,6 @@ def test_extract_multiclass_labels_from_class_names():
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--use-best-model', 'false',
     )
@@ -4597,7 +4471,6 @@ def test_save_multiclass_labels_from_data(loss_function):
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--use-best-model', 'false',
     )
@@ -4641,7 +4514,6 @@ def test_apply_multiclass_labels_from_data(prediction_type):
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--use-best-model', 'false',
     )
@@ -4710,7 +4582,6 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--use-best-model', 'false',
     )
@@ -4793,7 +4664,6 @@ def test_set_class_names_implicitly():
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '-m', model_path,
         '--use-best-model', 'false',
     )
@@ -4877,7 +4747,6 @@ def test_learning_rate_auto_set(boosting_type, use_best_model):
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--od-type', 'Iter',
@@ -4901,7 +4770,6 @@ def test_paths_with_dsv_scheme():
         '--boosting-type', 'Ordered',
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -4924,7 +4792,6 @@ def test_skip_train():
         '--column-description', data_file('querywise', 'train.cd'),
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--custom-metric', 'AverageGain:top=2;hints=skip_train~true',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
@@ -4960,7 +4827,6 @@ def test_group_weight(boosting_type, dev_score_calc_obj_block_size):
             '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '-i', '10',
             '-T', '4',
-            '-r', '0',
             '-m', output_model_path,
             '--eval-file', eval_path,
         )
@@ -4996,7 +4862,6 @@ def test_group_weight_and_object_weight(boosting_type, loss_function, dev_score_
             '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '-i', '10',
             '-T', '4',
-            '-r', '0',
             '--eval-file', eval_path,
         )
         yatest.common.execute(cmd)
@@ -5105,7 +4970,6 @@ def test_snapshot_with_different_params():
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-T', '4',
-        '-r', '0',
         '-i', '10',
         '--snapshot-file', 'snapshot.cbp'
     ]
@@ -5143,7 +5007,6 @@ def test_querysoftmax(boosting_type, leaf_estimation_method, dev_score_calc_obj_
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -5208,7 +5071,6 @@ def test_querywise_bayesian_bootstrap(bagging_temperature, dev_score_calc_obj_bl
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -5239,7 +5101,6 @@ def test_querywise_bernoulli_bootstrap(subsample, dev_score_calc_obj_block_size)
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -5276,7 +5137,6 @@ def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function, dev_sco
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -5310,7 +5170,6 @@ def test_pairwise_bernoulli_bootstrap(subsample, loss_function, dev_score_calc_o
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
@@ -5352,7 +5211,6 @@ def test_bad_metrics_combination(loss_function, metric):
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
-        '-r', '0',
     )
 
     try:
@@ -5398,7 +5256,6 @@ def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-x', '128',
         '--feature-border-type', 'GreedyLogSum',
         '-m', model_path,
@@ -5545,7 +5402,6 @@ def test_group_weights_file():
             '--column-description', data_file('querywise', cd_file),
             '-i', '5',
             '-T', '4',
-            '-r', '0',
             '--eval-file', eval_path,
         ]
         if is_additional_query_weights:
@@ -5576,7 +5432,6 @@ def test_group_weights_file_quantized():
             '-t', 'quantized://' + data_file('querywise', test),
             '-i', '5',
             '-T', '4',
-            '-r', '0',
             '--eval-file', eval_path,
         ]
         if is_additional_query_weights:
@@ -5606,7 +5461,6 @@ def test_mode_roc():
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
-        '-r', '0',
         '--counter-calc-method', 'SkipTest',
         '--eval-file', eval_path,
         '--use-best-model', 'false',
@@ -5637,7 +5491,6 @@ def test_convert_model_to_json(pool):
         '--column-description', data_file(pool, 'train.cd'),
         '-i', '20',
         '-T', '4',
-        '-r', '0',
         '--eval-file', output_eval_path,
         '-m', output_model_path,
         '--model-format', 'json'
@@ -5679,7 +5532,6 @@ def test_quantized_adult_pool(loss_function, boosting_type):
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
-        '-r', '0',
         '-m', output_model_path,
     )
 
@@ -5705,7 +5557,6 @@ def test_eval_result_on_different_pool_type():
             '--cd', data_file('querywise', 'train.cd'),
             '-i', '10',
             '-T', '4',
-            '-r', '0',
             '--eval-file', eval_path,
         )
 

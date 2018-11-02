@@ -4,7 +4,6 @@
 #include <library/json/json_reader.h>
 
 #include <util/string/cast.h>
-#include <util/system/compiler.h>
 
 template <>
 void Out<NCatboostOptions::TCatBoostOptions>(IOutputStream& out, const NCatboostOptions::TCatBoostOptions& options) {
@@ -527,7 +526,7 @@ NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
     , CatFeatureParams("cat_feature_params", TCatFeatureParams(taskType))
     , FlatParams("flat_params", NJson::TJsonValue(NJson::JSON_MAP))
     , Metadata("metadata", NJson::TJsonValue(NJson::JSON_MAP))
-    , RandomSeed("random_seed", GetCycleCount())
+    , RandomSeed("random_seed", 0)
     , LoggingLevel("logging_level", ELoggingLevel::Verbose)
     , IsProfile("detailed_profile", false)
     , MetricOptions("metrics", TMetricOptions())
