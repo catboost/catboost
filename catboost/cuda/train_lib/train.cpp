@@ -343,7 +343,6 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedParams = params;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
         catBoostOptions.Load(updatedParams);
-        CATBOOST_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
         SetLoggingLevel(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
@@ -484,7 +483,6 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedOptions = jsonOptions;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedOptions);
         auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
-        CATBOOST_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
 
         SetLoggingLevel(catBoostOptions.LoggingLevel);
         const auto resultModelPath = outputOptions.CreateResultModelFullPath();
