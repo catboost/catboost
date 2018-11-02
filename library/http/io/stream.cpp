@@ -16,6 +16,7 @@
 #include <util/stream/length.h>
 #include <util/stream/null.h>
 #include <util/stream/multi.h>
+#include <util/stream/tee.h>
 
 #include <util/system/compat.h>
 #include <util/system/yassert.h>
@@ -702,6 +703,10 @@ public:
         return FirstLine_;
     }
 
+    inline size_t SentSize() const noexcept {
+        return SizeCalculator_.Length();
+    }
+
 private:
     static inline bool IsResponse(const TString& s) noexcept {
         return strnicmp(~s, "HTTP/", 5) == 0;
@@ -909,6 +914,8 @@ private:
             Output_ = Streams_.Add(new TChunkedOutput(Output_));
         }
 
+        Output_ = Streams_.Add(new TTeeOutput(Output_, &SizeCalculator_));
+
         if (encoder) {
             Output_ = Streams_.Add((*encoder)(Output_));
         }
@@ -943,6 +950,8 @@ private:
     bool KeepAliveEnabled_;
 
     bool Finished_;
+
+    TSizeCalculator SizeCalculator_;
 };
 
 THttpOutput::THttpOutput(IOutputStream* slave)
@@ -1014,6 +1023,10 @@ void THttpOutput::SendContinue() {
 
 const TString& THttpOutput::FirstLine() const noexcept {
     return Impl_->FirstLine();
+}
+
+size_t THttpOutput::SentSize() const noexcept {
+    return Impl_->SentSize();
 }
 
 unsigned ParseHttpRetCode(const TStringBuf& ret) {
