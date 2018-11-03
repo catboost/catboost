@@ -24,8 +24,8 @@ namespace NPar {
         };
         EType EventType;
         TGUID ReqId;
-        TSimpleSharedPtr<TNetworkRequest> Request;
-        TSimpleSharedPtr<TNetworkResponse> Response;
+        TAtomicSharedPtr<TNetworkRequest> Request;
+        TAtomicSharedPtr<TNetworkResponse> Response;
         TNetworkEvent() = default;
         explicit TNetworkEvent(TNetworkRequest* request)
             : EventType(EType::IncomingQuery)
@@ -45,6 +45,7 @@ namespace NPar {
         {
         }
     };
+
     struct ICmdProcessor : virtual public TThrRefBase {
         virtual void NewRequest(TRemoteQueryProcessor* p, TNetworkRequest* req) = 0;
     };
