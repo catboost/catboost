@@ -483,6 +483,7 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedOptions = jsonOptions;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedOptions);
         auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
+        CB_ENSURE(poolLoadOptions.CvParams.FoldCount == 0, "Cross validation on GPU is not implemented");
 
         TSetLogging inThisScope(catBoostOptions.LoggingLevel);
         const bool verboseReadPool = catBoostOptions.LoggingLevel == ELoggingLevel::Debug;

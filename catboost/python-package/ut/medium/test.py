@@ -1330,8 +1330,9 @@ def test_copy_model():
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 def test_cv(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(pool, {
         "iterations": 5,
@@ -1349,8 +1350,9 @@ def test_cv(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 def test_cv_query(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type})
     assert "train-QueryRMSE-mean" in results
@@ -1362,8 +1364,9 @@ def test_cv_query(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 def test_cv_pairs(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
     results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 8, "loss_function": "PairLogit", "task_type": task_type})
     assert "train-PairLogit-mean" in results
@@ -1469,15 +1472,17 @@ def test_full_history(task_type):
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
-@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU')
 def test_cv_logging(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU')
 def test_cv_with_not_binarized_target(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
@@ -1609,19 +1614,19 @@ def test_call_score_with_pool_and_y(catboost_class):
         model.score(test_features)
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 @pytest.mark.parametrize('verbose', [5, False, True])
 def test_verbose_int(verbose, task_type):
     expected_line_count = {5: 3, False: 0, True: 10}
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
-    with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
-    assert(_count_lines(tmpfile) == expected_line_count[verbose])
+    if task_type != 'GPU':
+        with LogStdout(open(tmpfile, 'w')):
+            cv(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
+        assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
+        train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'}, verbose=verbose)
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
@@ -1916,7 +1921,6 @@ def test_metric_period_redefinition(task_type):
     assert(_count_lines(tmpfile2) == 6)
 
 
-@fails_on_gpu(how='AssertionError: (assertion failed, but when it was re-run for printing intermediate values, it did not fail.  Suggestions: compute assert expression before the assert or use --assert=plain)')  # noqa
 def test_verbose_redefinition(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile1 = test_output_path('tmpfile1')
@@ -2242,8 +2246,9 @@ def test_learning_rate_auto_set(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU')
 def test_learning_rate_auto_set_in_cv(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(pool, {"iterations": 5, "loss_function": "Logloss", "task_type": task_type})
     assert "train-Logloss-mean" in results

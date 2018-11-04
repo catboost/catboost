@@ -165,6 +165,18 @@
         "checksum": "8a8425b9a593c8ad437269641185425b",
         "uri": "file://test.test_staged_predict_GPU_/predictions.npy"
     },
+    "test.test_verbose_int[GPU-5]": {
+        "checksum": "3cd114e13190f5dbbfb51171c3e5ad19",
+        "uri": "file://test.test_verbose_int_GPU-5_/catboost_training.json"
+    },
+    "test.test_verbose_int[GPU-False]": {
+        "checksum": "3cd114e13190f5dbbfb51171c3e5ad19",
+        "uri": "file://test.test_verbose_int_GPU-False_/catboost_training.json"
+    },
+    "test.test_verbose_int[GPU-True]": {
+        "checksum": "3cd114e13190f5dbbfb51171c3e5ad19",
+        "uri": "file://test.test_verbose_int_GPU-True_/catboost_training.json"
+    },
     "test.test_zero_baseline[GPU]": {
         "checksum": "4c40e300bc5f4732e62f8460b6c73993",
         "uri": "file://test.test_zero_baseline_GPU_/model.bin"
