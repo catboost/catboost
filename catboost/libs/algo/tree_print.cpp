@@ -1,9 +1,9 @@
 #include "tree_print.h"
 
-#include <catboost/libs/data/pool.h>
-
 #include <util/string/builder.h>
 #include <util/string/cast.h>
+#include <util/system/yassert.h>
+
 
 TString BuildFeatureDescription(const NCB::TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
     TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(internalFeatureIdx, type);
