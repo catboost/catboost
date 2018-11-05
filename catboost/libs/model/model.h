@@ -565,7 +565,7 @@ struct TFullModel {
     }
 
     /**
-     * Evaluate raw fomula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
+     * Evaluate raw formula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
      * @param floatFeatures
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param treeStart
@@ -579,7 +579,7 @@ struct TFullModel {
               TArrayRef<double> results) const;
 
     /**
-     * Evaluate raw fomula predictions for objects. Uses all model trees.
+     * Evaluate raw formula predictions for objects. Uses all model trees.
      * @param floatFeatures
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param results indexation is [objectIndex * ApproxDimension + classId]
