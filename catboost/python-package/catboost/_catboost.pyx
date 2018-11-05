@@ -781,6 +781,9 @@ cdef class _PreprocessParams:
         if devices is not None and isinstance(devices, list):
             params['devices'] = ':'.join(map(str, devices))
 
+        params['verbose'] = int(params['verbose']) if 'verbose' in params else (
+            params['metric_period'] if 'metric_period' in params else 1)
+
         params_to_json = params
 
         if is_custom_objective or is_custom_eval_metric:

@@ -145,7 +145,7 @@ static void Train(
     }
 
     if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker.IsActive() && hasTest) {
-        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is" <<
+        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 

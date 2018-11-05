@@ -188,7 +188,7 @@ ui64 NCatboostOptions::TOutputFilesOptions::GetSnapshotSaveInterval() const {
 }
 
 int NCatboostOptions::TOutputFilesOptions::GetVerbosePeriod() const {
-    return VerbosePeriod.Get();
+    return VerbosePeriod.IsSet() ? VerbosePeriod.Get() : MetricPeriod.IsSet() ? MetricPeriod.Get() : VerbosePeriod.Get();
 }
 
 int NCatboostOptions::TOutputFilesOptions::GetMetricPeriod() const {
@@ -279,8 +279,8 @@ void NCatboostOptions::TOutputFilesOptions::Validate() const {
         CB_ENSURE(!SaveSnapshotFlag.Get(),
                 "allow_writing_files is set to False, and save_snapshot is set to True.");
     }
-    CB_ENSURE(MetricPeriod.Get() != 0 && (VerbosePeriod.Get() % MetricPeriod.Get() == 0),
-            "verbose should be a multiple of metric_period");
+    CB_ENSURE(GetMetricPeriod() != 0 && (GetVerbosePeriod() % GetMetricPeriod() == 0),
+            "verbose should be a multiple of metric_period, got " << GetVerbosePeriod() << " vs " << GetMetricPeriod());
 }
 
 TString NCatboostOptions::TOutputFilesOptions::GetFullPath(const TString& fileName) const {

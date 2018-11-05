@@ -66,7 +66,7 @@ namespace NCatboostCuda {
             LearnToken,
             TestTokens,
             /*hasTrain=*/true,
-            OutputOptions.GetMetricPeriod(),
+            OutputOptions.GetVerbosePeriod(),
             CatboostOptions.BoostingOptions->IterationCount,
             &Logger);
         FirstCall = false;

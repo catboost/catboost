@@ -248,10 +248,14 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["train_dir"] = path;
         });
 
-    parser.AddLongOption("verbose", "period of printing metrics to stdout")
-        .RequiredArgument("int")
-        .Handler1T<int>([plainJsonPtr](const auto period) {
-            (*plainJsonPtr)["verbose"] = period;
+    parser.AddLongOption("verbose", "period of printing metrics to stdout; never if 0 or False")
+        .RequiredArgument("PERIOD")
+        .Handler1T<TString>([plainJsonPtr](const TString& period) {
+            try {
+                (*plainJsonPtr)["verbose"] = FromString<int>(period);
+            } catch (...) {
+                (*plainJsonPtr)["verbose"] = int(FromString<bool>(period));
+            }
         });
 
     parser.AddLongOption("metric-period", "period of calculating metrics")
