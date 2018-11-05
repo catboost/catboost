@@ -1,14 +1,26 @@
 #include "plot.h"
 
-#include <catboost/libs/metrics/metric.h>
+#include "apply.h"
+
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/model/model_pool_compatibility.h>
 
-#include <library/threading/local_executor/local_executor.h>
-
+#include <util/folder/path.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/guid.h>
+#include <util/generic/utility.h>
 #include <util/generic/xrange.h>
+#include <util/stream/fwd.h>
+#include <util/string/builder.h>
+#include <util/system/file.h>
+#include <util/system/yassert.h>
+#include <util/ysaveload.h>
+
+#include <cmath>
 
 
 TMetricsPlotCalcer::TMetricsPlotCalcer(

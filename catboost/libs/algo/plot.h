@@ -1,16 +1,20 @@
 #pragma once
 
-#include "apply.h"
-#include "approx_calcer.h"
-
-#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/loggers/logger.h>
 
-#include <util/string/builder.h>
-#include <util/generic/guid.h>
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
+#include <util/stream/input.h>
 #include <util/system/fs.h>
+#include <util/system/types.h>
+
 
 class TMetricsPlotCalcer {
 public:

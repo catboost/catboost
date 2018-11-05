@@ -5,6 +5,7 @@
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/analytical_mode_params.h>
 #include <catboost/libs/app_helpers/proceed_pool_in_blocks.h>
