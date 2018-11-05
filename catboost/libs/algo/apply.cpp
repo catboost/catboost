@@ -1,9 +1,15 @@
 #include "apply.h"
-#include "target_classifier.h"
-#include "learn_context.h"
 
 #include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/model/model_pool_compatibility.h>
+
+#include <util/generic/array_ref.h>
+#include <util/generic/utility.h>
+
+#include <cmath>
+
 
 TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          const TPool& pool,

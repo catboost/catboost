@@ -1,12 +1,13 @@
 #pragma once
 
-#include "index_calcer.h"
-
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
-#include <catboost/libs/model/model_pool_compatibility.h>
+#include <catboost/libs/options/enums.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 
 TVector<TVector<double>> ApplyModelMulti(
