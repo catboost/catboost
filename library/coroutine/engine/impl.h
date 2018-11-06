@@ -104,7 +104,7 @@ inline int ExecuteEvent(T* event) noexcept;
 
 class IPollEvent: public TIntrusiveListItem<IPollEvent> {
 public:
-    inline IPollEvent(SOCKET fd, ui16 what)
+    inline IPollEvent(SOCKET fd, ui16 what) noexcept
         : Fd_(fd)
         , What_(what)
     {
@@ -158,7 +158,7 @@ public:
     ~TContPollEventHolder();
 
     void ScheduleIoWait(TContExecutor* executor);
-    TFdEvent* TriggeredEvent();
+    TFdEvent* TriggeredEvent() noexcept;
 
 private:
     TFdEvent* Events_;
@@ -167,7 +167,7 @@ private:
 
 class TInterruptibleEvent {
 public:
-    TInterruptibleEvent(TCont* cont)
+    TInterruptibleEvent(TCont* cont) noexcept
         : Cont_(cont)
     {
     }
@@ -176,7 +176,7 @@ public:
         return Interrupted_;
     }
 
-    void Interrupt();
+    void Interrupt() noexcept;
 
     template <typename F>
     TContIOStatus Wait(F&& f);
@@ -286,7 +286,7 @@ public:
         return SelectD(fds, what, nfds, outfd, TInstant::Max());
     }
 
-    inline int PollD(SOCKET fd, int what, TInstant deadline) {
+    inline int PollD(SOCKET fd, int what, TInstant deadline) noexcept {
         DBGOUT(PCORO(this) << " prepare poll");
 
         TFdEvent event(this, fd, (ui16)what, deadline);
@@ -294,16 +294,16 @@ public:
         return ExecuteEvent(&event);
     }
 
-    inline int PollT(SOCKET fd, int what, TDuration timeout) {
+    inline int PollT(SOCKET fd, int what, TDuration timeout) noexcept {
         return PollD(fd, what, timeout.ToDeadLine());
     }
 
-    inline int PollI(SOCKET fd, int what) {
+    inline int PollI(SOCKET fd, int what) noexcept {
         return PollD(fd, what, TInstant::Max());
     }
 
     /// @return ETIMEDOUT on success
-    inline int SleepD(TInstant deadline) {
+    inline int SleepD(TInstant deadline) noexcept {
         DBGOUT(PCORO(this) << " do sleep");
 
         TTimerEvent event(this, deadline);
@@ -311,82 +311,82 @@ public:
         return ExecuteEvent(&event);
     }
 
-    inline int SleepT(TDuration timeout) {
+    inline int SleepT(TDuration timeout) noexcept {
         return SleepD(timeout.ToDeadLine());
     }
 
-    inline int SleepI() {
+    inline int SleepI() noexcept {
         return SleepD(TInstant::Max());
     }
 
-    TContIOStatus ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline);
+    TContIOStatus ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept;
 
-    inline TContIOStatus ReadT(SOCKET fd, void* buf, size_t len, TDuration timeout) {
+    inline TContIOStatus ReadT(SOCKET fd, void* buf, size_t len, TDuration timeout) noexcept {
         return ReadD(fd, buf, len, timeout.ToDeadLine());
     }
 
-    inline TContIOStatus ReadI(SOCKET fd, void* buf, size_t len) {
+    inline TContIOStatus ReadI(SOCKET fd, void* buf, size_t len) noexcept {
         return ReadD(fd, buf, len, TInstant::Max());
     }
 
-    TContIOStatus WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline);
+    TContIOStatus WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept;
 
-    inline TContIOStatus WriteVectorT(SOCKET fd, TContIOVector* vec, TDuration timeOut) {
+    inline TContIOStatus WriteVectorT(SOCKET fd, TContIOVector* vec, TDuration timeOut) noexcept {
         return WriteVectorD(fd, vec, timeOut.ToDeadLine());
     }
 
-    inline TContIOStatus WriteVectorI(SOCKET fd, TContIOVector* vec) {
+    inline TContIOStatus WriteVectorI(SOCKET fd, TContIOVector* vec) noexcept {
         return WriteVectorD(fd, vec, TInstant::Max());
     }
 
-    TContIOStatus WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline);
+    TContIOStatus WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline) noexcept;
 
-    inline TContIOStatus WriteT(SOCKET fd, const void* buf, size_t len, TDuration timeout) {
+    inline TContIOStatus WriteT(SOCKET fd, const void* buf, size_t len, TDuration timeout) noexcept {
         return WriteD(fd, buf, len, timeout.ToDeadLine());
     }
 
-    inline TContIOStatus WriteI(SOCKET fd, const void* buf, size_t len) {
+    inline TContIOStatus WriteI(SOCKET fd, const void* buf, size_t len) noexcept {
         return WriteD(fd, buf, len, TInstant::Max());
     }
 
     inline void Exit();
 
-    int Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine);
-    int Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine);
+    int Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine) noexcept;
+    int Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine) noexcept;
 
-    inline int Connect(TSocketHolder& s, const TNetworkAddress& addr, TDuration timeOut) {
+    inline int Connect(TSocketHolder& s, const TNetworkAddress& addr, TDuration timeOut) noexcept {
         return Connect(s, addr, timeOut.ToDeadLine());
     }
 
-    inline int Connect(TSocketHolder& s, const TNetworkAddress& addr) {
+    inline int Connect(TSocketHolder& s, const TNetworkAddress& addr) noexcept {
         return Connect(s, addr, TInstant::Max());
     }
 
-    int ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline);
+    int ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline) noexcept;
 
-    inline int ConnectT(SOCKET s, const struct sockaddr* name, socklen_t namelen, TDuration timeout) {
+    inline int ConnectT(SOCKET s, const struct sockaddr* name, socklen_t namelen, TDuration timeout) noexcept {
         return ConnectD(s, name, namelen, timeout.ToDeadLine());
     }
 
-    inline int ConnectI(SOCKET s, const struct sockaddr* name, socklen_t namelen) {
+    inline int ConnectI(SOCKET s, const struct sockaddr* name, socklen_t namelen) noexcept {
         return ConnectD(s, name, namelen, TInstant::Max());
     }
 
-    int AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline);
+    int AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline) noexcept;
 
-    inline int AcceptT(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TDuration timeout) {
+    inline int AcceptT(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TDuration timeout) noexcept {
         return AcceptD(s, addr, addrlen, timeout.ToDeadLine());
     }
 
-    inline int AcceptI(SOCKET s, struct sockaddr* addr, socklen_t* addrlen) {
+    inline int AcceptI(SOCKET s, struct sockaddr* addr, socklen_t* addrlen) noexcept {
         return AcceptD(s, addr, addrlen, TInstant::Max());
     }
 
-    static inline SOCKET Socket(int domain, int type, int protocol) {
+    static inline SOCKET Socket(int domain, int type, int protocol) noexcept {
         return Socket4(domain, type, protocol);
     }
 
-    static inline SOCKET Socket(const struct addrinfo& ai) {
+    static inline SOCKET Socket(const struct addrinfo& ai) noexcept {
         return Socket(ai.ai_family, ai.ai_socktype, ai.ai_protocol);
     }
 
