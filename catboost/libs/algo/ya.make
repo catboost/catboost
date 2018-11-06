@@ -46,7 +46,6 @@ SRCS(
     yetirank_helpers.cpp
     pairwise_leaves_calculation.cpp
     pairwise_scoring.cpp
-    model_stats.cpp
     roc_curve.cpp
 )
 
