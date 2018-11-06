@@ -14,6 +14,7 @@
 #endif
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
+constexpr ui32 MAX_VALUES_PER_BIN = 254;
 
 inline void OneHotBinsFromTransposedCatFeatures(
     const TVector<TOneHotFeature>& OneHotFeatures,
@@ -25,23 +26,27 @@ inline void OneHotBinsFromTransposedCatFeatures(
         const auto catIdx = catFeaturePackedIndex.at(oheFeature.CatFeatureIndex);
         for (size_t docId = 0; docId < docCount; ++docId) {
             const auto val = transposedHash[catIdx * docCount + docId];
-            for (size_t borderIdx = 0; borderIdx < oheFeature.Values.size(); ++borderIdx) {
-                result[docId] |= (ui8)(val == oheFeature.Values[borderIdx]) * (borderIdx + 1);
+            ui8* writePosition = &result[docId];
+            for (size_t blockStart = 0; blockStart < oheFeature.Values.size(); blockStart += MAX_VALUES_PER_BIN) {
+                const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, oheFeature.Values.size());
+                for (size_t borderIdx = blockStart; borderIdx < blockEnd; ++borderIdx) {
+                    *writePosition |= (ui8)(val == oheFeature.Values[borderIdx]) * (borderIdx - blockStart + 1);
+                }
+                writePosition += docCount;
             }
         }
-        result += docCount;
+        result += docCount * ((oheFeature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
     }
 }
 
-#ifndef _sse2_
 template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
-Y_FORCE_INLINE void BinarizeFloats(
-    const size_t docCount,
-    TFloatFeatureAccessor floatAccessor,
-    const TConstArrayRef<float> borders,
-    size_t start,
-    ui8*& result,
-    float nanSubstitutionValue=0.0f
+Y_FORCE_INLINE void BinarizeFloatsNonSse(
+        const size_t docCount,
+        TFloatFeatureAccessor floatAccessor,
+        const TConstArrayRef<float> borders,
+        size_t start,
+        ui8*& result,
+        float nanSubstitutionValue=0.0f
 ) {
     const auto docCount8 = (docCount | 0x7) ^ 0x7;
     for (size_t docId = 0; docId < docCount8; docId += 8) {
@@ -62,10 +67,15 @@ Y_FORCE_INLINE void BinarizeFloats(
                 }
             }
         }
-        auto writePtr = (ui32*)(result + docId);
-        for (const auto border : borders) {
-            writePtr[0] += (val[0] > border) + ((val[1] > border) << 8) + ((val[2] > border) << 16) + ((val[3] > border) << 24);
-            writePtr[1] += (val[4] > border) + ((val[5] > border) << 8) + ((val[6] > border) << 16) + ((val[7] > border) << 24);
+        ui32* writePtr = (ui32*)(result + docId);
+        for (size_t blockStart = 0; blockStart < borders.size(); blockStart += MAX_VALUES_PER_BIN) {
+            const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, borders.size());
+            for (size_t borderId = blockStart; borderId < blockEnd; ++borderId) {
+                const auto border = borders[borderId];
+                writePtr[0] += (val[0] > border) + ((val[1] > border) << 8) + ((val[2] > border) << 16) + ((val[3] > border) << 24);
+                writePtr[1] += (val[4] > border) + ((val[5] > border) << 8) + ((val[6] > border) << 16) + ((val[7] > border) << 24);
+            }
+            writePtr = (ui32*)((ui8*)writePtr + docCount);
         }
     }
     for (size_t docId = docCount8; docId < docCount; ++docId) {
@@ -75,14 +85,35 @@ Y_FORCE_INLINE void BinarizeFloats(
                 val = nanSubstitutionValue;
             }
         }
-        for (const auto border : borders) {
-            result[docId] += (ui8)(val > border);
+
+        ui8* writePtr = result + docId;
+        for (size_t blockStart = 0; blockStart < borders.size(); blockStart += MAX_VALUES_PER_BIN) {
+            const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, borders.size());
+            for (size_t borderId = blockStart; borderId < blockEnd; ++borderId) {
+                *writePtr += (ui8) (val > borders[borderId]);
+            }
+            writePtr += docCount;
         }
     }
-    result += docCount;
+    result += docCount * ((borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
 }
 
+#ifndef _sse2_
+
+template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
+Y_FORCE_INLINE void BinarizeFloats(
+    const size_t docCount,
+    TFloatFeatureAccessor floatAccessor,
+    const TConstArrayRef<float> borders,
+    size_t start,
+    ui8*& result,
+    const float nanSubstitutionValue = 0.0f
+) {
+    BinarizeFloatsNonSse<UseNanSubstitution, TFloatFeatureAccessor>(docCount, floatAccessor, borders, start, result, nanSubstitutionValue);
+};
+
 #else
+
 template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(
     const size_t docCount,
@@ -118,7 +149,6 @@ Y_FORCE_INLINE void BinarizeFloats(
         __m128 floats1 = _mm_load_ps(val + 4);
         __m128 floats2 = _mm_load_ps(val + 8);
         __m128 floats3 = _mm_load_ps(val + 12);
-        __m128i resultVec = _mm_setzero_si128();
 
         if (UseNanSubstitution) {
             {
@@ -138,17 +168,22 @@ Y_FORCE_INLINE void BinarizeFloats(
                 floats3 = _mm_or_ps(_mm_andnot_ps(masks, floats3), _mm_and_ps(masks, substitutionValVec));
             }
         }
-
-        for (const auto border : borders) {
-            const __m128 borderVec = _mm_set1_ps(border);
-            const __m128i r0 = _mm_castps_si128(_mm_cmpgt_ps(floats0, borderVec));
-            const __m128i r1 = _mm_castps_si128(_mm_cmpgt_ps(floats1, borderVec));
-            const __m128i r2 = _mm_castps_si128(_mm_cmpgt_ps(floats2, borderVec));
-            const __m128i r3 = _mm_castps_si128(_mm_cmpgt_ps(floats3, borderVec));
-            const __m128i packed = _mm_packs_epi16(_mm_packs_epi32(r0, r1), _mm_packs_epi32(r2, r3));
-            resultVec = _mm_add_epi8(resultVec, _mm_and_si128(packed, mask));
+        ui8* writePtr = result + docId;
+        for (size_t blockStart = 0; blockStart < borders.size(); blockStart += MAX_VALUES_PER_BIN) {
+            __m128i resultVec = _mm_setzero_si128();
+            const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, borders.size());
+            for (size_t borderId = blockStart; borderId < blockEnd; ++borderId) {
+                const __m128 borderVec = _mm_set1_ps(borders[borderId]);
+                const __m128i r0 = _mm_castps_si128(_mm_cmpgt_ps(floats0, borderVec));
+                const __m128i r1 = _mm_castps_si128(_mm_cmpgt_ps(floats1, borderVec));
+                const __m128i r2 = _mm_castps_si128(_mm_cmpgt_ps(floats2, borderVec));
+                const __m128i r3 = _mm_castps_si128(_mm_cmpgt_ps(floats3, borderVec));
+                const __m128i packed = _mm_packs_epi16(_mm_packs_epi32(r0, r1), _mm_packs_epi32(r2, r3));
+                resultVec = _mm_add_epi8(resultVec, _mm_and_si128(packed, mask));
+            }
+            _mm_storeu_si128((__m128i *)writePtr, resultVec);
+            writePtr += docCount;
         }
-        _mm_storeu_si128((__m128i*)(result + docId), resultVec);
     }
     for (size_t docId = docCount16; docId < docCount; ++docId) {
         float val = floatAccessor(start + docId);
@@ -157,11 +192,16 @@ Y_FORCE_INLINE void BinarizeFloats(
                 val = nanSubstitutionValue;
             }
         }
-        for (const auto border : borders) {
-            result[docId] += (ui8)(val > border);
+        ui8* writePtr = result + docId;
+        for (size_t blockStart = 0; blockStart < borders.size(); blockStart += MAX_VALUES_PER_BIN) {
+            const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, borders.size());
+            for (size_t borderId = blockStart; borderId < blockEnd; ++borderId) {
+                *writePtr += (ui8)(val > borders[borderId]);
+            }
+            writePtr += docCount;
         }
     }
-    result += docCount;
+    result += docCount * ((borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN);
 }
 
 #endif

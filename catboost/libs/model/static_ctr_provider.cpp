@@ -1,5 +1,6 @@
 #include "static_ctr_provider.h"
 #include "json_model_helpers.h"
+#include "formula_evaluator.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model_export/export_helpers.h>
@@ -200,20 +201,20 @@ void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& fl
             continue;
         }
         for (size_t borderIdx = 0; borderIdx < floatFeature.Borders.size(); ++borderIdx) {
-            TBinFeatureIndexValue featureIdx{currentIndex, false, (ui8)(borderIdx + 1)};
+            TBinFeatureIndexValue featureIdx{currentIndex + (ui32)borderIdx / MAX_VALUES_PER_BIN, false, (ui8)((borderIdx % MAX_VALUES_PER_BIN)+ 1)};
             TFloatSplit split{floatFeature.FeatureIndex, floatFeature.Borders[borderIdx]};
             FloatFeatureIndexes[split] = featureIdx;
         }
-        ++currentIndex;
+        currentIndex += (floatFeature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     OneHotFeatureIndexes.clear();
     for (const auto& oheFeature : oheFeatures) {
-        for (int valueId = 0; valueId < oheFeature.Values.ysize(); ++valueId) {
-            TBinFeatureIndexValue featureIdx{currentIndex, true, (ui8)(valueId + 1)};
+        for (size_t valueId = 0; valueId < oheFeature.Values.size(); ++valueId) {
+            TBinFeatureIndexValue featureIdx{currentIndex + (ui32)valueId / MAX_VALUES_PER_BIN, true, (ui8)((valueId % MAX_VALUES_PER_BIN) + 1)};
             TOneHotSplit feature{oheFeature.CatFeatureIndex, oheFeature.Values[valueId]};
             OneHotFeatureIndexes[feature] = featureIdx;
         }
-        ++currentIndex;
+        currentIndex += (oheFeature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     CatFeatureIndex.clear();
     for (const auto& catFeature : catFeatures) {

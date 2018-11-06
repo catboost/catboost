@@ -11,7 +11,7 @@ static TFullModel SimpleFloatModel() {
     model.ObliviousTrees.FloatFeatures = {
         TFloatFeature{
             false, 0, 0,
-            {1.f, 2.f}, // bin splits 0, 1
+            {}, // bin splits 0, 1
             ""
         },
         TFloatFeature{
@@ -25,8 +25,11 @@ static TFullModel SimpleFloatModel() {
             ""
         }
     };
+    for (auto i : xrange(301)) {
+        model.ObliviousTrees.FloatFeatures[0].Borders.push_back(-298.0f + i);
+    }
     {
-        TVector<int> tree = {1, 2, 3};
+        TVector<int> tree = {300, 301, 302};
         model.ObliviousTrees.AddBinTree(tree);
         model.ObliviousTrees.LeafValues = {
             {0., 1., 2., 3., 4., 5., 6., 7.}

@@ -156,13 +156,10 @@ static void CalcShapValuesForLeafRecursive(
             }
         }
     } else {
-        const TRepackedBin& split = forest.GetRepackedBins()[forest.TreeStartOffsets[treeIdx] + depth];
-        const int splitFeature = split.FeatureIndex;
-
         double newZeroPathsFraction = 1.0;
         double newOnePathsFraction = 1.0;
 
-        const int combinationClass = binFeatureCombinationClass[splitFeature];
+        const int combinationClass = binFeatureCombinationClass[forest.TreeSplits[forest.TreeStartOffsets[treeIdx] + depth]];
 
         const auto sameFeatureElement = FindIf(
             featurePath.begin(),
@@ -295,54 +292,61 @@ static void MapBinFeaturesToClasses(
     TVector<int>* binFeatureCombinationClass,
     TVector<TVector<int>>* combinationClassFeatures
 ) {
-    const auto featureCount = forest.GetEffectiveBinaryFeaturesBucketsCount();
     NCB::TFeaturesLayout layout(forest.FloatFeatures, forest.CatFeatures);
-    TVector<TVector<int>> binFeaturesCombinations;
-    binFeaturesCombinations.reserve(featureCount);
+    TVector<TVector<int>> featuresCombinations;
+    TVector<size_t> featureBucketSizes;
 
     for (const TFloatFeature& floatFeature : forest.FloatFeatures) {
         if (!floatFeature.UsedInModel()) {
             continue;
         }
-        binFeaturesCombinations.emplace_back();
-        binFeaturesCombinations.back() = { floatFeature.FlatFeatureIndex };
+        featuresCombinations.emplace_back();
+        featuresCombinations.back() = { floatFeature.FlatFeatureIndex };
+        featureBucketSizes.push_back(floatFeature.Borders.size());
     }
 
     for (const TOneHotFeature& oneHotFeature: forest.OneHotFeatures) {
-        binFeaturesCombinations.emplace_back();
-        binFeaturesCombinations.back() = { (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex, EFeatureType::Categorical) };
+        featuresCombinations.emplace_back();
+        featuresCombinations.back() = { (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex, EFeatureType::Categorical) };
+        featureBucketSizes.push_back(oneHotFeature.Values.size());
     }
 
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
-        binFeaturesCombinations.emplace_back();
+        featuresCombinations.emplace_back();
         for (int catFeatureIdx : combination.CatFeatures) {
-            binFeaturesCombinations.back().push_back(layout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical));
+            featuresCombinations.back().push_back(layout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical));
         }
+        featureBucketSizes.push_back(ctrFeature.Borders.size());
     }
-    Y_ASSERT(binFeaturesCombinations.size() == featureCount);
-    TVector<int> sortedBinFeatures(featureCount);
+    TVector<size_t> featureFirstBinBucket(featureBucketSizes.size(), 0);
+    for (size_t i = 1; i < featureBucketSizes.size(); ++i) {
+        featureFirstBinBucket[i] = featureFirstBinBucket[i - 1] + featureBucketSizes[i - 1];
+    }
+    TVector<int> sortedBinFeatures(featuresCombinations.size());
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
     Sort(
         sortedBinFeatures.begin(),
         sortedBinFeatures.end(),
-        [binFeaturesCombinations](int feature1, int feature2) {
-            return binFeaturesCombinations[feature1] < binFeaturesCombinations[feature2];
+        [featuresCombinations](int feature1, int feature2) {
+            return featuresCombinations[feature1] < featuresCombinations[feature2];
         }
     );
 
-    *binFeatureCombinationClass = TVector<int>(featureCount);
+    *binFeatureCombinationClass = TVector<int>(forest.GetBinaryFeaturesFullCount());
     *combinationClassFeatures = TVector<TVector<int>>();
 
     int equivalenceClassesCount = 0;
-    for (ui32 featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
+    for (ui32 featureIdx = 0; featureIdx < featuresCombinations.size(); ++featureIdx) {
         int currentFeature = sortedBinFeatures[featureIdx];
         int previousFeature = featureIdx == 0 ? -1 : sortedBinFeatures[featureIdx - 1];
-        if (featureIdx == 0 || binFeaturesCombinations[currentFeature] != binFeaturesCombinations[previousFeature]) {
-            combinationClassFeatures->push_back(binFeaturesCombinations[currentFeature]);
+        if (featureIdx == 0 || featuresCombinations[currentFeature] != featuresCombinations[previousFeature]) {
+            combinationClassFeatures->push_back(featuresCombinations[currentFeature]);
             ++equivalenceClassesCount;
         }
-        (*binFeatureCombinationClass)[currentFeature] = equivalenceClassesCount - 1;
+        for (size_t binBucketId = featureFirstBinBucket[currentFeature]; binBucketId < featureFirstBinBucket[currentFeature] + featureBucketSizes[currentFeature]; ++binBucketId) {
+            (*binFeatureCombinationClass)[binBucketId] = equivalenceClassesCount - 1;
+        }
     }
 }
 

@@ -179,7 +179,7 @@ TFullModel DeserializeModel(const TString& serializedModel) {
 
 void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
-    CB_ENSURE(end <= TreeStartOffsets.size(), "end tree index should be not greater than tree count.");
+    CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, ApproxDimension);
     const auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
@@ -270,10 +270,10 @@ void TObliviousTrees::UpdateMetadata() const {
             TFloatSplit fs{feature.FeatureIndex, feature.Borders[borderId]};
             ref.BinFeatures.emplace_back(fs);
             auto& bf = splitIds.emplace_back();
-            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
-            bf.SplitIdx = borderId + 1;
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
+            bf.SplitIdx = (borderId % MAX_VALUES_PER_BIN) + 1;
         }
-        ++ref.EffectiveBinFeaturesBucketCount;
+        ref.EffectiveBinFeaturesBucketCount += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     for (const auto& feature : CatFeatures) {
         if (!feature.UsedInModel) {
@@ -288,10 +288,10 @@ void TObliviousTrees::UpdateMetadata() const {
             TOneHotSplit oh{feature.CatFeatureIndex, feature.Values[valueId]};
             ref.BinFeatures.emplace_back(oh);
             auto& bf = splitIds.emplace_back();
-            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
-            bf.SplitIdx = valueId + 1;
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + valueId / MAX_VALUES_PER_BIN;
+            bf.SplitIdx = (valueId % MAX_VALUES_PER_BIN) + 1;
         }
-        ++ref.EffectiveBinFeaturesBucketCount;
+        ref.EffectiveBinFeaturesBucketCount += (feature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     for (size_t i = 0; i < CtrFeatures.size(); ++i) {
         const auto& feature = CtrFeatures[i];
@@ -301,16 +301,15 @@ void TObliviousTrees::UpdateMetadata() const {
             ctrSplit.Border = feature.Borders[borderId];
             ref.BinFeatures.emplace_back(std::move(ctrSplit));
             auto& bf = splitIds.emplace_back();
-            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount;
-            bf.SplitIdx = borderId + 1;
+            bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
+            bf.SplitIdx = (borderId % MAX_VALUES_PER_BIN) + 1;
         }
-        ++ref.EffectiveBinFeaturesBucketCount;
+        ref.EffectiveBinFeaturesBucketCount += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     for (const auto& binSplit : TreeSplits) {
         const auto& feature = ref.BinFeatures[binSplit];
         const auto& featureIndex = splitIds[binSplit];
         Y_ENSURE(featureIndex.FeatureIdx <= 0xffff, "To many features in model, ask catboost team for support");
-        Y_ENSURE(featureIndex.SplitIdx <= 254, "To many splits in feature, ask catboost team for support");
         TRepackedBin rb;
         rb.FeatureIndex = featureIndex.FeatureIdx;
         if (feature.Type != ESplitType::OneHotFeature) {
