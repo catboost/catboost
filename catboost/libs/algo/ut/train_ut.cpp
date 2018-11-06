@@ -1,5 +1,4 @@
 #include <catboost/libs/train_lib/train_model.h>
-#include <catboost/libs/options/plain_options_helper.h>
 
 #include <library/unittest/registar.h>
 #include <library/json/json_reader.h>
