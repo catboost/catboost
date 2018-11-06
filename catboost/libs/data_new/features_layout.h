@@ -177,6 +177,10 @@ namespace NCB {
             }
         }
 
+        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const {
+            return CatFeatureInternalIdxToExternalIdx;
+        }
+
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;

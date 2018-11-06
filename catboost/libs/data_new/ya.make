@@ -17,6 +17,7 @@ SRCS(
     load_data.cpp
     loader.cpp
     meta_info.cpp
+    model_dataset_compatibility.cpp
     objects.cpp
     objects_grouping.cpp
     quantization.cpp
