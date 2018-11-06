@@ -478,6 +478,7 @@ def onadd_check(unit, *args):
 def onadd_check_py_imports(unit, *args):
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE').strip() == "":
         return
+    unit.onpeerdir(['library/python/testing/import_test'])
     check_type = "py.imports"
     test_dir = unit.resolve(os.path.join(unit.path()))
 
