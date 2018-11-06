@@ -19,7 +19,6 @@ NCatboostCuda::TComputePairwiseScoresHelper::TComputePairwiseScoresHelper(NCatbo
           , NeedPointwiseWeights(subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size() > 0)
           , LambdaDiag(l2Reg)
           , LambdaNonDiag(nonDiagReg)  {
-        CB_ENSURE(MaxDepth <= 8, "Error: GPU pairwise learning works with tree depth <= 10 only");
         if (rsm < 1.0 && Policy != EFeaturesGroupingPolicy::BinaryFeatures) {
             SampleFeatures(random, rsm);
         }

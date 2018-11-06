@@ -374,6 +374,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             if (!ObliviousTreeOptions->Rsm.IsDefault()) {
                 CATBOOST_WARNING_LOG << "RSM on GPU will work only for non-binary features. Plus current implementation will sample by groups, so this could slightly affect quality in positive or negative way" << Endl;
             }
+            CB_ENSURE(ObliviousTreeOptions->MaxDepth.Get() <= 8, "Error: GPU pairwise learning works with tree depth <= 8 only");
         }
     }
 

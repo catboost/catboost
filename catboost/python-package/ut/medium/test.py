@@ -3184,3 +3184,10 @@ def test_model_merging():
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
     merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
     assert np.all(pred == merged_pred)
+
+
+def test_tree_depth_pairwise(task_type):
+    if task_type == 'GPU':
+        with pytest.raises(CatboostError):
+            CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 9})
+        CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 8})
