@@ -3,6 +3,8 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/pool.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/vector.h>
 
 struct TRocPoint {

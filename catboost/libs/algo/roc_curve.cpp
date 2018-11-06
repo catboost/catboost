@@ -4,7 +4,13 @@
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
+#include <util/stream/fwd.h>
+#include <util/string/cast.h>
+
+#include <cmath>
+
 
 namespace {
     struct TClassWithProbability {
