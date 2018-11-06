@@ -1,17 +1,21 @@
 #include "calc_fstr.h"
+
 #include "feature_str.h"
 #include "shap_values.h"
 #include "util.h"
 
-#include <catboost/libs/algo/index_calcer.h>
-#include <catboost/libs/algo/quantization.h>
-#include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/tree_print.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <util/generic/algorithm.h>
-#include <util/generic/maybe.h>
-#include <util/generic/scope.h>
-#include <util/generic/set.h>
-#include <util/generic/xrange.h>
+#include <util/generic/hash.h>
+#include <util/string/builder.h>
+#include <util/string/cast.h>
+#include <util/system/compiler.h>
+
+#include <functional>
+
 
 static TFeature GetFeature(const TModelSplit& split) {
     TFeature result;

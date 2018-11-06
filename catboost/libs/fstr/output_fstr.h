@@ -5,6 +5,10 @@
 #include <catboost/libs/algo/tree_print.h>
 
 #include <util/stream/file.h>
+#include <util/system/yassert.h>
+
+#include <utility>
+
 
 inline void OutputFstr(const NCB::TFeaturesLayout& layout,
                        const TVector<std::pair<double, TFeature>>& effect,

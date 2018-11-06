@@ -1,17 +1,15 @@
 #pragma once
 
-#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/algo/split.h>
-#include <catboost/libs/algo/tree_print.h>
-
 #include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/model/model.h>
-
-#include <util/digest/multi.h>
-#include <util/string/builder.h>
 #include <catboost/libs/options/enums.h>
 
-#include <functional>
+#include <util/digest/multi.h>
+#include <util/system/yassert.h>
+
+#include <utility>
 
 
 struct TRegularFeature {

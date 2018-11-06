@@ -1,11 +1,18 @@
 #include "shap_values.h"
+
 #include "util.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
+#include <util/generic/ymath.h>
+
 
 namespace {
     struct TFeaturePathElement {

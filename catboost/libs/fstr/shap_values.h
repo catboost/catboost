@@ -3,9 +3,14 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/pool.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/vector.h>
 #include <util/stream/input.h>
 #include <util/stream/output.h>
+#include <util/system/types.h>
+#include <util/ysaveload.h>
+
 
 struct TShapValue {
     int Feature = -1;

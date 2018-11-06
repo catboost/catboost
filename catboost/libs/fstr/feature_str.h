@@ -2,6 +2,7 @@
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
+#include <util/system/types.h>
 
 struct TMxTree {
     struct TValsInLeaf {
