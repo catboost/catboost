@@ -91,6 +91,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\load_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\model_dataset_compatibility.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\objects.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.cpp"/>
@@ -198,6 +199,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\model_dataset_compatibility.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantized_features_info.h"/>
