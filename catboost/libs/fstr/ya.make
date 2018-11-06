@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     feature_str.cpp
     calc_fstr.cpp
+    output_fstr.cpp
     shap_values.cpp
     util.cpp
 )
