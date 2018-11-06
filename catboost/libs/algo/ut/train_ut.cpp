@@ -28,7 +28,6 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         NJson::TJsonValue metadata;
         metadata["a"] = "b";
         plainFitParams.InsertValue("metadata", metadata);
-        std::vector<int> emptyCatFeatures;
         TEvalResult testApprox;
         TPool testPool;
         TFullModel model;
