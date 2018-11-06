@@ -8,3 +8,6 @@
 
 * [Export CatBoost Model as Python code Tutorial](apply_model/model_export_as_python_code_tutorial.md)
     * Catboost model could be saved as standalone Python code.
+
+* [Export CatBoost Model in JSON format Tutorial](apply_model/json_model_tutorial.ipynb)
+    * Catboost model could be saved in JSON format and applied.
