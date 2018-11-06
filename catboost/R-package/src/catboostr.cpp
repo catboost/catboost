@@ -5,6 +5,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
+#include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>

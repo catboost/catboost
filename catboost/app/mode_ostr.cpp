@@ -2,6 +2,8 @@
 #include "bind_options.h"
 
 #include <catboost/libs/documents_importance/docs_importance.h>
+#include <catboost/libs/documents_importance/enums.h>
+
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/options/analytical_mode_params.h>
