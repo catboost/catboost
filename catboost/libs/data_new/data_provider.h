@@ -13,6 +13,7 @@
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
+#include <util/system/yassert.h>
 
 
 namespace NCB {
@@ -86,10 +87,12 @@ namespace NCB {
 
             tasks.emplace_back(
                 [&, this]() {
-                    objectsDataSubset = ObjectsData->GetSubset(
+                    auto baseObjectsDataSubset = ObjectsData->GetSubset(
                         objectsGroupingSubset,
                         localExecutor
                     );
+                    objectsDataSubset = dynamic_cast<TTObjectsDataProvider*>(baseObjectsDataSubset.Get());
+                    Y_VERIFY(objectsDataSubset);
                 }
             );
 
