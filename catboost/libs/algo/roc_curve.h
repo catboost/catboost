@@ -12,6 +12,7 @@ struct TRocPoint {
     double FalseNegativeRate = 0.0;
     double FalsePositiveRate = 0.0;
 
+public:
     TRocPoint() = default;
     TRocPoint(
         double boundary,
@@ -57,6 +58,7 @@ private:
     TVector<TRocPoint> Points; // Points are sorted by Boundary from higher to lower
     size_t RateCurvesIntersection;
 
+private:
     void BuildCurve(
         const TVector<TVector<double>>& approxes, // [poolId][docId]
         const TVector<TVector<float>>& labels, // [poolId][docId]

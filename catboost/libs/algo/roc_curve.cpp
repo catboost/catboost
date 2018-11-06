@@ -17,9 +17,12 @@ namespace {
         int ClassId = 0;
         double Probability = 0.0;
 
+    public:
         TClassWithProbability() = default;
         TClassWithProbability(int classId, double probability)
-            : ClassId(classId), Probability(probability) {}
+            : ClassId(classId)
+            , Probability(probability)
+        {}
     };
 }
 
