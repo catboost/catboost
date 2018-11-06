@@ -42,7 +42,6 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
             TVector<TConstArrayRef<float>> repackedFeatures(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
             const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
             const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
-            CB_ENSURE((size_t)pool.Docs.GetEffectiveFactorCount() >= model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
             if (columnReorderMap.empty()) {
                 for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
                     repackedFeatures[i] = MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId);
