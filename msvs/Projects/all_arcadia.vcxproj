@@ -719,6 +719,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\uuid\python-symbols-uuid.vcxproj">
       <Project>EDB0FDCB-BB9D-C1F0-4E99-99941382FCC0</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\import_test\pypython-testing-import_test.vcxproj">
+      <Project>8B8BC972-CC2F-567D-7196-F4B2070D8544</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_common\pypython-testing-yatest_common.vcxproj">
       <Project>1E8708B1-BCBA-6127-8C89-4F03EC0CEDB5</Project>
     </ProjectReference>
