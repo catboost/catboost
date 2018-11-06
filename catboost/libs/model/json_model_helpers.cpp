@@ -250,7 +250,9 @@ static TJsonValue GetFeaturesInfoJson(
         const THashMap<int, TString>* catFeaturesHashToString
 ) {
     TJsonValue jsonValue;
-    jsonValue.InsertValue("float_features", TJsonValue());
+    if (!obliviousTrees.FloatFeatures.empty()) {
+        jsonValue.InsertValue("float_features", TJsonValue());
+    }
     for (const auto& floatFeature: obliviousTrees.FloatFeatures) {
         jsonValue["float_features"].AppendValue(ToJson(floatFeature));
         if (featureId) {
@@ -260,35 +262,38 @@ static TJsonValue GetFeaturesInfoJson(
             }
         }
     }
-
-    jsonValue.InsertValue("categorical_features", TJsonValue());
-    THashMap<int, int> oneHotIndexes;
-    for (int idx = 0; idx < obliviousTrees.OneHotFeatures.ysize(); ++idx) {
-        oneHotIndexes[obliviousTrees.OneHotFeatures[idx].CatFeatureIndex] = idx;
-    }
-    for (const auto& catFeature: obliviousTrees.CatFeatures) {
-        auto catFeatureJsonValue = ToJson(catFeature);
-        if (oneHotIndexes.has(catFeature.FlatFeatureIndex)) {
-            auto& ohFeauture = obliviousTrees.OneHotFeatures[oneHotIndexes[catFeature.FlatFeatureIndex]];
-            catFeatureJsonValue.InsertValue("values", VectorToJson(ohFeauture.Values));
-            if (!ohFeauture.StringValues.empty()) {
-                catFeatureJsonValue.InsertValue("string_values", VectorToJson(ohFeauture.StringValues));
-            }
+    if (!obliviousTrees.CatFeatures.empty()) {
+        jsonValue.InsertValue("categorical_features", TJsonValue());
+        THashMap<int, int> oneHotIndexes;
+        for (int idx = 0; idx < obliviousTrees.OneHotFeatures.ysize(); ++idx) {
+            oneHotIndexes[obliviousTrees.OneHotFeatures[idx].CatFeatureIndex] = idx;
         }
-        if (featureId) {
-            const auto& name = (*featureId)[catFeature.FlatFeatureIndex];
-            if (!name.empty()) {
-                catFeatureJsonValue.InsertValue("feature_name", name);
+        for (const auto &catFeature: obliviousTrees.CatFeatures) {
+            auto catFeatureJsonValue = ToJson(catFeature);
+            if (oneHotIndexes.has(catFeature.FlatFeatureIndex)) {
+                auto &ohFeauture = obliviousTrees.OneHotFeatures[oneHotIndexes[catFeature.FlatFeatureIndex]];
+                catFeatureJsonValue.InsertValue("values", VectorToJson(ohFeauture.Values));
+                if (!ohFeauture.StringValues.empty()) {
+                    catFeatureJsonValue.InsertValue("string_values", VectorToJson(ohFeauture.StringValues));
+                }
             }
+            if (featureId) {
+                const auto &name = (*featureId)[catFeature.FlatFeatureIndex];
+                if (!name.empty()) {
+                    catFeatureJsonValue.InsertValue("feature_name", name);
+                }
+            }
+            jsonValue["categorical_features"].AppendValue(catFeatureJsonValue);
         }
-        jsonValue["categorical_features"].AppendValue(catFeatureJsonValue);
     }
-    jsonValue.InsertValue("ctrs",  TJsonValue());
+    if (!obliviousTrees.CtrFeatures.empty()) {
+        jsonValue.InsertValue("ctrs", TJsonValue());
+    }
     for (const auto& ctr: obliviousTrees.CtrFeatures) {
         jsonValue["ctrs"].AppendValue(ToJson(ctr));
     }
-    jsonValue.InsertValue("cat_features_hash", TJsonValue());
     if (catFeaturesHashToString) {
+        jsonValue.InsertValue("cat_features_hash", TJsonValue());
         for (const auto& key_value: *catFeaturesHashToString) {
             TJsonValue catFeaturesHash;
             catFeaturesHash.InsertValue("hash", key_value.first);
@@ -297,28 +302,31 @@ static TJsonValue GetFeaturesInfoJson(
         }
     }
     return jsonValue;
-
 }
 
 static void GetFeaturesInfo(const TJsonValue& jsonValue, TObliviousTrees* obliviousTrees) {
-    for (const auto& value: jsonValue["float_features"].GetArray()) {
-        obliviousTrees->FloatFeatures.push_back(FloatFeatureFromJson(value));
-    }
-
-    for (const auto& value: jsonValue["categorical_features"].GetArray()) {
-        auto catFeature = CatFeatureFromJson(value);
-        obliviousTrees->CatFeatures.push_back(catFeature);
-        if (value.Has("values")) {
-            TOneHotFeature ohFeature;
-            ohFeature.CatFeatureIndex = catFeature.FlatFeatureIndex;
-            ohFeature.Values = JsonToVector<int>(value["values"]);
-            ohFeature.StringValues = JsonToVector<TString>(value["string_values"]);
-            obliviousTrees->OneHotFeatures.push_back(ohFeature);
+    if (jsonValue.Has("float_features")) {
+        for (const auto &value: jsonValue["float_features"].GetArray()) {
+            obliviousTrees->FloatFeatures.push_back(FloatFeatureFromJson(value));
         }
     }
-
-    for (const auto& value: jsonValue["ctrs"].GetArray()) {
-        obliviousTrees->CtrFeatures.push_back(CtrFeatureFromJson(value));
+    if (jsonValue.Has("categorical_features")) {
+        for (const auto &value: jsonValue["categorical_features"].GetArray()) {
+            auto catFeature = CatFeatureFromJson(value);
+            obliviousTrees->CatFeatures.push_back(catFeature);
+            if (value.Has("values")) {
+                TOneHotFeature ohFeature;
+                ohFeature.CatFeatureIndex = catFeature.FlatFeatureIndex;
+                ohFeature.Values = JsonToVector<int>(value["values"]);
+                ohFeature.StringValues = JsonToVector<TString>(value["string_values"]);
+                obliviousTrees->OneHotFeatures.push_back(ohFeature);
+            }
+        }
+    }
+    if (jsonValue.Has("ctrs")) {
+        for (const auto &value: jsonValue["ctrs"].GetArray()) {
+            obliviousTrees->CtrFeatures.push_back(CtrFeatureFromJson(value));
+        }
     }
 }
 
