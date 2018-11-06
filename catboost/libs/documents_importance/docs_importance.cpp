@@ -1,8 +1,17 @@
 #include "docs_importance.h"
+
+#include "docs_importance_helpers.h"
 #include "enums.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/ymath.h>
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
+
+#include <functional>
+#include <numeric>
+
 
 static TUpdateMethod ParseUpdateMethod(const TString& updateMethod) {
     TString errorMessage = "Incorrect update-method param value. Should be one of: SinglePoint, \

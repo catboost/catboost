@@ -14,8 +14,9 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/model
     catboost/libs/options
-    catboost/libs/metrics
     catboost/libs/helpers
+    library/fast_exp
+    library/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(

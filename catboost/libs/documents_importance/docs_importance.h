@@ -1,6 +1,11 @@
 #pragma once
 
-#include "docs_importance_helpers.h"
+#include <catboost/libs/data/pool.h>
+#include <catboost/libs/model/model.h>
+
+#include <util/generic/string.h>
+#include <util/system/types.h>
+
 
 struct TDStrResult {
     TDStrResult() = default;
