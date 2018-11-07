@@ -4930,7 +4930,6 @@ def test_snapshot_with_interval():
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-T', '4',
-        '-r', '0'
     ]
 
     measure_time_iters = 100
@@ -5233,7 +5232,6 @@ def test_output_params():
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '5',
         '-T', '4',
-        '-r', '0',
         '--train-dir', train_dir,
         '--training-options-file', output_options_path,
     )

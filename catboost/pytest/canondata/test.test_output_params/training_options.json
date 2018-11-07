@@ -153,7 +153,6 @@
         "training_options_file" : "training_options.json",
         "train_dir" : "catboost_info",
         "thread_count" : 4,
-        "random_seed" : 0,
         "iterations" : 5
     },
     "random_seed" : 0,
