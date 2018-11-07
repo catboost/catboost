@@ -820,20 +820,24 @@ bool CheckAndSetString(
 }
 
 PyObject* ToStringObject(const FieldDescriptor* descriptor, string value) {
-//  if (descriptor->type() != FieldDescriptor::TYPE_STRING) {
-//    return PyBytes_FromStringAndSize(value.c_str(), value.length());
-//  }
+#if PY_MAJOR_VERSION >= 3
+  if (descriptor->type() != FieldDescriptor::TYPE_STRING) {
+    return PyBytes_FromStringAndSize(value.c_str(), value.length());
+  }
 
-//  PyObject* result = PyUnicode_DecodeUTF8(value.c_str(), value.length(), NULL);
-//  // If the string can't be decoded in UTF-8, just return a string object that
-//  // contains the raw bytes. This can't happen if the value was assigned using
-//  // the members of the Python message object, but can happen if the values were
-//  // parsed from the wire (binary).
-//  if (result == NULL) {
-//    PyErr_Clear();
-//    result = PyBytes_FromStringAndSize(value.c_str(), value.length());
-//  }
+  PyObject* result = PyUnicode_DecodeUTF8(value.c_str(), value.length(), NULL);
+  // If the string can't be decoded in UTF-8, just return a string object that
+  // contains the raw bytes. This can't happen if the value was assigned using
+  // the members of the Python message object, but can happen if the values were
+  // parsed from the wire (binary).
+  if (result == NULL) {
+    PyErr_Clear();
+    result = PyBytes_FromStringAndSize(value.c_str(), value.length());
+  }
+  return result;
+#else
   return PyBytes_FromStringAndSize(value.c_str(), value.length());
+#endif
 }
 
 bool CheckFieldBelongsToMessage(const FieldDescriptor* field_descriptor,
