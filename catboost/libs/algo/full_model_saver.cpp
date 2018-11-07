@@ -6,6 +6,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/model/model.h>
 
 #include <library/svnversion/svnversion.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -387,12 +388,18 @@ namespace NCB {
         }
     }
 
-    void TCoreModelToFullModelConverter::Do(const TString& fullModelPath) {
+    void TCoreModelToFullModelConverter::Do(
+            const TString& fullModelPath,
+            const TVector<EModelType>& formats,
+            bool addFileFormatExtension,
+            const TVector<TString>* featureId,
+            const THashMap<int, TString>* catFeaturesHashToString
+    ) {
         TFullModel& model = GetCoreModelFunc();
         Do(&model, false);
-
-        TOFStream fileOutput(fullModelPath);
-        model.Save(&fileOutput);
+        for (const auto& format: formats) {
+            ExportModel(model, fullModelPath, format, "", addFileFormatExtension, featureId, catFeaturesHashToString);
+        }
         model.CtrProvider.Reset();
     }
 

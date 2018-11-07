@@ -709,11 +709,10 @@ namespace {
                 GetMutablePointers(evalResults),
                 nullptr
             );
-            auto modelPath = outputOptions.CreateResultModelFullPath();
             auto modelFormat = outputOptions.GetModelFormats()[0];
-            if (outputOptions.AddFileFormatExtension()) {
-                NCatboostOptions::AddExtension(NCatboostOptions::GetModelExtensionFromType(modelFormat), &modelPath);
-            }
+            const auto modelPath = NCatboostOptions::AddExtension(modelFormat,
+                                                                  outputOptions.CreateResultModelFullPath(),
+                                                                  outputOptions.AddFileFormatExtension());
 
             TSetLoggingVerbose inThisScope;
             if (!evalOutputFileName.empty()) {

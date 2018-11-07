@@ -125,10 +125,7 @@ void ExportModel(
         const TVector<TString>* featureId,
         const THashMap<int, TString>* catFeaturesHashToString
 ) {
-    auto modelFileName = modelFile;
-    if (addFileFormatExtension) {
-        NCatboostOptions::AddExtension(NCatboostOptions::GetModelExtensionFromType(format), &modelFileName);
-    }
+    const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
     switch (format) {
         case EModelType::CatboostBinary:
             CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");

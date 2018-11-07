@@ -16,11 +16,11 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_convert_model_to_json[CPU-adult]": {
-        "checksum": "a3d9ff40626d771b182b77605fec039d",
+        "checksum": "5f0420e98231dda333c468da98354c2f",
         "uri": "file://test.test_convert_model_to_json_CPU-adult_/converted_model.bin"
     },
     "test.test_convert_model_to_json[CPU-higgs]": {
-        "checksum": "0aa91d5b390c53151b2078ceb37279d5",
+        "checksum": "d90773f10004ebab5447c9f988771665",
         "uri": "file://test.test_convert_model_to_json_CPU-higgs_/converted_model.bin"
     },
     "test.test_copy_model": {

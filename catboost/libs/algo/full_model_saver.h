@@ -67,7 +67,11 @@ namespace NCB {
 
         void Do(TFullModel* dstModel, bool requiresStaticCtrProvider);
 
-        void Do(const TString& fullModelPath);
+        void Do(const TString& fullModelPath,
+                const TVector<EModelType>& formats,
+                bool addFileFormatExtension = false,
+                const TVector<TString>* featureId=nullptr,
+                const THashMap<int, TString>* catFeaturesHashToString=nullptr);
 
     private:
         void CalcFinalCtrs(

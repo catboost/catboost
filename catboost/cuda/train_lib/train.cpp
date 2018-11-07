@@ -335,7 +335,9 @@ namespace NCatboostCuda {
                     const TPool& testPool,
                     TFullModel* model,
                     TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
-        TString outputModelPath = outputOptions.CreateResultModelFullPath();
+        const TString outputModelPath = NCatboostOptions::AddExtension(EModelType::CatboostBinary,
+                                                                       outputOptions.CreateResultModelFullPath(),
+                                                                       outputOptions.AddFileFormatExtension());
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
         NJson::TJsonValue updatedParams = params;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
@@ -468,7 +470,13 @@ namespace NCatboostCuda {
 
         if (model == nullptr) {
             CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
-            coreModelToFullModelConverter.Do(outputModelPath);
+            coreModelToFullModelConverter.Do(
+                    outputModelPath,
+                    outputOptions.GetModelFormats(),
+                    outputOptions.AddFileFormatExtension(),
+                    &learnPool.FeatureId,
+                    &learnPool.CatFeaturesHashToString
+            );
         } else {
             coreModelToFullModelConverter.Do(model, true);
         }
@@ -484,8 +492,7 @@ namespace NCatboostCuda {
 
         TSetLogging inThisScope(catBoostOptions.LoggingLevel);
         const bool verboseReadPool = catBoostOptions.LoggingLevel == ELoggingLevel::Debug;
-        const auto resultModelPath = outputOptions.CreateResultModelFullPath();
-        TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
+        TString coreModelPath = TStringBuilder() << outputOptions.CreateResultModelFullPath() << ".core";
 
         const int numThreads = catBoostOptions.SystemOptions->NumThreads;
         if (NPar::LocalExecutor().GetThreadCount() < numThreads) {
@@ -499,11 +506,11 @@ namespace NCatboostCuda {
             // TODO(yazevnul): quantized pool do not support categorical features yet
             ctrComputationMode = EFinalCtrComputationMode::Skip;
         }
+        TDataProvider dataProvider;
         {
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                       catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
 
-            TDataProvider dataProvider;
             THolder<TDataProvider> testProvider;
 
             TBinarizedFloatFeaturesMetaInfo binarizedFloatFeaturesInfo;
@@ -624,7 +631,6 @@ namespace NCatboostCuda {
             }
             targetClassifiers = CreateTargetClassifiers(featuresManager);
         }
-
         NCB::TCoreModelToFullModelConverter(
             numThreads,
             ctrComputationMode,
@@ -639,8 +645,13 @@ namespace NCatboostCuda {
             catBoostOptions.DataProcessingOptions->ClassNames,
             targetClassifiers
         ).Do(
-            resultModelPath
+            outputOptions.CreateResultModelFullPath(),
+            outputOptions.GetModelFormats(),
+            outputOptions.AddFileFormatExtension(),
+            &dataProvider.GetFeatureNames()
         );
+        auto modelFormat = outputOptions.GetModelFormats()[0];
+        const auto resultModelPath = NCatboostOptions::AddExtension(modelFormat, outputOptions.CreateResultModelFullPath(), outputOptions.AddFileFormatExtension());
 
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
         const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();

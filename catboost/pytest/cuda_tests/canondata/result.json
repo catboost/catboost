@@ -201,6 +201,12 @@
             "uri": "file://test_gpu.test_class_weight_with_lost_class/eval_error.tsv"
         }
     ],
+    "test_gpu.test_convert_model_to_json_without_cat_features": [
+        {
+            "checksum": "8de36d9024aaecce50f853921a7c583b",
+            "uri": "file://test_gpu.test_convert_model_to_json_without_cat_features/test.eval"
+        }
+    ],
     "test_gpu.test_crossentropy[Ordered]": [
         {
             "checksum": "1c6e67b6cb44b323774f1e1debeb9473",

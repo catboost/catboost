@@ -152,6 +152,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("PATH")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
             (*plainJsonPtr)["result_model_file"] = name;
+            (*plainJsonPtr)["model_format"].AppendValue(ToString(NCatboostOptions::DefineModelFormat(name)));
         });
 
     parser.AddLongOption("model-format")

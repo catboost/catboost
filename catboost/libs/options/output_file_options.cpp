@@ -48,11 +48,12 @@ EModelType NCatboostOptions::DefineModelFormat(TStringBuf modelPath) {
     return EModelType::CatboostBinary;
 }
 
-void NCatboostOptions::AddExtension(TStringBuf extension, TString* modelFileName) {
-    if (!modelFileName->EndsWith(TString::Join(".", extension))) {
-        modelFileName->append(".");
-        modelFileName->append(extension);
+TString NCatboostOptions::AddExtension(const EModelType& format, const TString& modelFileName, bool addExtension) {
+    auto extension = NCatboostOptions::GetModelExtensionFromType(format);
+    if (addExtension && !modelFileName.EndsWith("." + extension)) {
+        return modelFileName + "." + extension;
     }
+    return modelFileName;
 }
 
 NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions(ETaskType taskType)

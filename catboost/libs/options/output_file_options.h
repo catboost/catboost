@@ -17,7 +17,7 @@ namespace NCatboostOptions {
 
     EModelType DefineModelFormat(TStringBuf modelPath);
 
-    void AddExtension(TStringBuf extension, TString* modelFileName);
+    TString AddExtension(const EModelType& format, const TString& modelFileName, bool addExtension = true);
 
     class TOutputFilesOptions {
     public:

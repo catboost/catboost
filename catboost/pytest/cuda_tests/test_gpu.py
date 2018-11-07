@@ -194,7 +194,6 @@ def test_bootstrap(boosting_type):
     params = {
         '--use-best-model': 'false',
         '--loss-function': 'Logloss',
-        '--random-strength': '0',
         '-f': data_file('adult', 'train_small'),
         '-t': test_file,
         '--column-description': cd_file,
@@ -2008,3 +2007,44 @@ def test_eval_result_on_different_pool_type():
 
     assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
     return [local_canonical_file(output_eval_path)]
+
+
+def compare_evals_with_precision(fit_eval, calc_eval):
+    array_fit = np.genfromtxt(fit_eval, delimiter='\t', skip_header=True)
+    array_calc = np.genfromtxt(calc_eval, delimiter='\t', skip_header=True)
+    if open(fit_eval, "r").readline().split()[:-1] != open(calc_eval, "r").readline().split():
+        return False
+    array_fit = np.delete(array_fit, np.s_[-1], 1)
+    return np.all(np.isclose(array_fit, array_calc, rtol=1e-6))
+
+
+def test_convert_model_to_json_without_cat_features():
+    output_model_path = yatest.common.test_output_path('model.json')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    fit_params = [
+        '--use-best-model', 'false',
+        '-f', data_file('higgs', 'train_small'),
+        '-t', data_file('higgs', 'test_small'),
+        '--column-description', data_file('higgs', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '--eval-file', output_eval_path,
+        '-m', output_model_path,
+        '--model-format', 'Json'
+    ]
+    fit_catboost_gpu(fit_params)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('higgs', 'test_small'),
+        '--column-description', data_file('higgs', 'train.cd'),
+        '-m', output_model_path,
+        '--model-format', 'Json',
+        '--output-path', formula_predict_path
+    )
+    execute(calc_cmd)
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]

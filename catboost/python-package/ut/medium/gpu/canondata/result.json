@@ -16,12 +16,16 @@
         "uri": "file://test.test_classification_ctr_GPU_/model.bin"
     },
     "test.test_convert_model_to_json[GPU-adult]": {
-        "checksum": "ff1340c9530b86f9c568eae23505ca07",
+        "checksum": "d492dd5bcf7297b326b0fbe37d0b9c38",
         "uri": "file://test.test_convert_model_to_json_GPU-adult_/converted_model.bin"
     },
     "test.test_convert_model_to_json[GPU-higgs]": {
-        "checksum": "c0a82334137ca2607f4aa2f2077d62eb",
+        "checksum": "655551a4328a90fd39f5996c17eb8c46",
         "uri": "file://test.test_convert_model_to_json_GPU-higgs_/converted_model.bin"
+    },
+    "test.test_coreml_cbm_import_export[GPU]": {
+        "checksum": "89e99222227d22642f9e6653ea2e8fc7",
+        "uri": "file://test.test_coreml_cbm_import_export_GPU_/model.mlmodel"
     },
     "test.test_coreml_import_export[GPU]": {
         "checksum": "1ba1cb9dc4fc3fb7b8c67bc7df061b50",
