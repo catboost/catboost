@@ -93,8 +93,9 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\model_dataset_compatibility.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\objects.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\order.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\order.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantized_features_info.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\target.cpp"/>
@@ -104,11 +105,11 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\visitor.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\visitor.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\weights.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\objects.h">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\order.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/objects.h" "--include-path" "catboost/libs/data_new/objects.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/objects.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/order.h" "--include-path" "catboost/libs/data_new/order.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/order.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -119,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/objects.h" "--include-path" "catboost/libs/data_new/objects.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/objects.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/order.h" "--include-path" "catboost/libs/data_new/order.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/order.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -127,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/objects.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data_new\objects.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\objects.h_serialized.cpp;</Outputs>
+      <Message>$B/catboost/libs/data_new/order.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data_new\order.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\order.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\target.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -200,6 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\model_dataset_compatibility.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantized_features_info.h"/>
