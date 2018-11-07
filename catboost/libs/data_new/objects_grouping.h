@@ -1,5 +1,7 @@
 #pragma once
 
+#include "order.h"
+
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
@@ -119,12 +121,18 @@ namespace NCB {
         TObjectsGroupingSubset(
             TObjectsGroupingPtr subsetGrouping,
             TArraySubsetIndexing<ui32>&& groupsSubset,
+            EObjectsOrder groupSubsetOrder,
             THolder<TArraySubsetIndexing<ui32>>&& objectsSubsetForNonTrivialGrouping
-                = THolder<TArraySubsetIndexing<ui32>>()
+                = THolder<TArraySubsetIndexing<ui32>>(),
+
+            // used only if objectsSubsetForNonTrivialGrouping is specified
+            EObjectsOrder objectSubsetOrder = EObjectsOrder::Undefined
         )
             : SubsetGrouping(std::move(subsetGrouping))
             , GroupsSubset(std::move(groupsSubset))
+            , GroupSubsetOrder(groupSubsetOrder)
             , ObjectsSubsetForNonTrivialGrouping(std::move(objectsSubsetForNonTrivialGrouping))
+            , ObjectSubsetOrder(objectSubsetOrder)
         {
             CB_ENSURE(SubsetGrouping, "subsetGrouping must be initialized");
         }
@@ -157,18 +165,30 @@ namespace NCB {
                 *ObjectsSubsetForNonTrivialGrouping : GroupsSubset;
         }
 
+        EObjectsOrder GetGroupSubsetOrder() const {
+            return GroupSubsetOrder;
+        }
+
+        EObjectsOrder GetObjectSubsetOrder() const {
+            return ObjectsSubsetForNonTrivialGrouping ? GroupSubsetOrder : ObjectSubsetOrder;
+        }
+
     private:
         TObjectsGroupingPtr SubsetGrouping;
 
         TArraySubsetIndexing<ui32> GroupsSubset;
+        EObjectsOrder GroupSubsetOrder;
 
         // created only if grouping is non-trivial
         THolder<TArraySubsetIndexing<ui32>> ObjectsSubsetForNonTrivialGrouping;
+        // used only if ObjectsSubsetForNonTrivialGrouping is defined
+        EObjectsOrder ObjectSubsetOrder;
     };
 
     TObjectsGroupingSubset GetSubset(
         TObjectsGroupingPtr objectsGrouping,
-        TArraySubsetIndexing<ui32>&& groupsSubset
+        TArraySubsetIndexing<ui32>&& groupsSubset,
+        EObjectsOrder groupSubsetOrder
     );
 
 }

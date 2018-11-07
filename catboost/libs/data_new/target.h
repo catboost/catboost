@@ -76,7 +76,7 @@ namespace NCB {
 
         void Check(const TObjectsGrouping& objectsGrouping, NPar::TLocalExecutor* localExecutor) const;
 
-        void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount);
+        void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailSize);
     };
 
 
@@ -165,6 +165,7 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
+        friend class TRawBuilderDataHelper;
 
     private:
         void AssignWeights(TConstArrayRef<float> src, TWeights<float>* dst);

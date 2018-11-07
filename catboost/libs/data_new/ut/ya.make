@@ -12,6 +12,8 @@ SRCS(
     meta_info_ut.cpp
     objects_grouping_ut.cpp
     objects_ut.cpp
+    order_ut.cpp
+    process_data_blocks_from_dsv_ut.cpp
     quantization_ut.cpp
     target_ut.cpp
     unaligned_mem_ut.cpp

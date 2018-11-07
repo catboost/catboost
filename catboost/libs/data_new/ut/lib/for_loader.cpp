@@ -21,5 +21,25 @@ namespace NCB {
         }
     }
 
+    void SaveSrcData(
+        const TSrcData& srcData,
+        TReadDatasetMainParams* readDatasetMainParams,
+        TVector<THolder<TTempFile>>* srcDataFiles
+    ) {
+        SaveDataToTempFile(
+            srcData.CdFileData,
+            &(readDatasetMainParams->DsvPoolFormatParams.CdFilePath),
+            srcDataFiles
+        );
+        SaveDataToTempFile(srcData.DsvFileData, &(readDatasetMainParams->PoolPath), srcDataFiles);
+        readDatasetMainParams->DsvPoolFormatParams.Format.HasHeader = srcData.DsvFileHasHeader;
+        SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
+        SaveDataToTempFile(
+            srcData.GroupWeightsFileData,
+            &(readDatasetMainParams->GroupWeightsFilePath),
+            srcDataFiles
+        );
+    }
+
     }
 }

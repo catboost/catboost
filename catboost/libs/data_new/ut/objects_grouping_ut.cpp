@@ -73,15 +73,20 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
 
 
         TVector<TArraySubsetIndexing<ui32>> subsetVector;
+        TVector<EObjectsOrder> subsetGroupOrders;
+
         subsetVector.emplace_back(TFullSubset<ui32>(10));
+        subsetGroupOrders.emplace_back(EObjectsOrder::Ordered);
 
         {
             TVector<TIndexRange<ui32>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
             TSavedIndexRanges<ui32> savedIndexRanges(std::move(indexRanges));
             subsetVector.emplace_back(TRangesSubset<ui32>(savedIndexRanges));
+            subsetGroupOrders.emplace_back(EObjectsOrder::Undefined);
         }
 
         subsetVector.emplace_back(TIndexedSubset<ui32>{8, 9, 0, 2});
+        subsetGroupOrders.emplace_back(EObjectsOrder::Undefined);
 
 
         using TExpectedMapIndex = std::pair<ui32, ui32>;
@@ -94,7 +99,8 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                 TExpectedMapIndex(0, subsetIdx),
                 TObjectsGroupingSubset(
                     MakeIntrusive<TObjectsGrouping>(subsetVector[subsetIdx].Size()),
-                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx])
+                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
+                    subsetGroupOrders[subsetIdx]
                 )
             );
         }
@@ -106,7 +112,9 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                 TObjectsGroupingSubset(
                     MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>(groups1)),
                     TArraySubsetIndexing<ui32>(subsetVector[0]),
-                    MakeHolder<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(42))
+                    subsetGroupOrders[0],
+                    MakeHolder<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(42)),
+                    subsetGroupOrders[0]
                 )
             );
         }
@@ -121,7 +129,9 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                         TVector<TGroupBounds>{{0, 2}, {2, 8}, {8, 17}, {17, 24}, {24, 25}, {25, 32}}
                     ),
                     TArraySubsetIndexing<ui32>(subsetVector[1]),
-                    MakeHolder<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges))
+                    subsetGroupOrders[1],
+                    MakeHolder<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges)),
+                    subsetGroupOrders[1]
                 )
             );
         }
@@ -136,7 +146,9 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                         TVector<TGroupBounds>{{0, 6}, {6, 15}, {15, 16}, {16, 23}}
                     ),
                     TArraySubsetIndexing<ui32>(subsetVector[2]),
-                    MakeHolder<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges))
+                    subsetGroupOrders[2],
+                    MakeHolder<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges)),
+                    subsetGroupOrders[2]
                 )
             );
         }
@@ -145,7 +157,8 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
             for (auto subsetIdx : xrange(subsetVector.size())) {
                 TObjectsGroupingSubset subset = GetSubset(
                     MakeIntrusive<TObjectsGrouping>(objectGroupings[objectGroupingIdx]),
-                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx])
+                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
+                    subsetGroupOrders[subsetIdx]
                 );
                 const auto& expectedSubset = expectedSubsets.at(TExpectedMapIndex(objectGroupingIdx, subsetIdx));
                 UNIT_ASSERT_EQUAL(subset, expectedSubset);

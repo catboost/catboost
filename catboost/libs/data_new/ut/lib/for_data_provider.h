@@ -66,16 +66,22 @@ namespace NCB {
     using TExpectedQuantizedData = TExpectedData<TExpectedQuantizedObjectsData>;
 
 
-    void CompareObjectsData(const TRawObjectsDataProvider& objectsData, const TExpectedRawData& expectedData);
+    void CompareObjectsData(
+        const TRawObjectsDataProvider& objectsData,
+        const TExpectedRawData& expectedData,
+        bool catFeaturesHashCanContainExtraData = false
+    );
 
     void CompareObjectsData(
         const TQuantizedObjectsDataProvider& objectsData,
-        const TExpectedQuantizedData& expectedData
+        const TExpectedQuantizedData& expectedData,
+        bool catFeaturesHashCanContainExtraData = false
     );
 
     void CompareObjectsData(
         const TQuantizedForCPUObjectsDataProvider& objectsData,
-        const TExpectedQuantizedData& expectedData
+        const TExpectedQuantizedData& expectedData,
+        bool catFeaturesHashCanContainExtraData = false
     );
 
     void CompareTargetData(
@@ -87,7 +93,8 @@ namespace NCB {
     template <class TObjectsDataProvider, class TExpectedObjectsDataProvider>
     void Compare(
         TDataProviderPtr dataProvider,
-        const TExpectedData<TExpectedObjectsDataProvider>& expectedData
+        const TExpectedData<TExpectedObjectsDataProvider>& expectedData,
+        bool catFeaturesHashCanContainExtraData = false
     ) {
         const TIntrusivePtr<TDataProviderTemplate<TObjectsDataProvider>> subtypeDataProvider =
             dataProvider->CastMoveTo<TObjectsDataProvider>();
@@ -95,7 +102,11 @@ namespace NCB {
         UNIT_ASSERT(subtypeDataProvider);
 
         UNIT_ASSERT_EQUAL(subtypeDataProvider->MetaInfo, expectedData.MetaInfo);
-        CompareObjectsData(*(subtypeDataProvider->ObjectsData), expectedData);
+            CompareObjectsData(
+                *(subtypeDataProvider->ObjectsData),
+                expectedData,
+                catFeaturesHashCanContainExtraData
+            );
         UNIT_ASSERT_EQUAL(*subtypeDataProvider->ObjectsGrouping, expectedData.ObjectsGrouping);
         CompareTargetData(
             subtypeDataProvider->RawTargetData,

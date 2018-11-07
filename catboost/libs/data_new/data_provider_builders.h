@@ -15,6 +15,11 @@ namespace NCB {
         virtual ~IDataProviderBuilder() = default;
 
         virtual TDataProviderPtr GetResult() = 0;
+
+        /* can return nullptr, needed to get last group data when processing is by blocks,
+         * call after last GetResult
+         */
+        virtual TDataProviderPtr GetLastResult() { return nullptr; }
     };
 
     struct TDataProviderBuilderOptions {

@@ -24,49 +24,6 @@ using namespace NCB;
 using namespace NCB::NDataNewUT;
 
 
-
-Y_UNIT_TEST_SUITE(EObjectsOrder) {
-    Y_UNIT_TEST(Combine) {
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::Ordered, EObjectsOrder::Ordered),
-            EObjectsOrder::Ordered
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::Ordered, EObjectsOrder::RandomShuffled),
-            EObjectsOrder::RandomShuffled
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::Ordered, EObjectsOrder::Undefined),
-            EObjectsOrder::Undefined
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::RandomShuffled, EObjectsOrder::Ordered),
-            EObjectsOrder::RandomShuffled
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::RandomShuffled, EObjectsOrder::RandomShuffled),
-            EObjectsOrder::RandomShuffled
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::RandomShuffled, EObjectsOrder::Undefined),
-            EObjectsOrder::RandomShuffled
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::Undefined, EObjectsOrder::Ordered),
-            EObjectsOrder::Undefined
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::Undefined, EObjectsOrder::RandomShuffled),
-            EObjectsOrder::RandomShuffled
-        );
-        UNIT_ASSERT_VALUES_EQUAL(
-            Combine(EObjectsOrder::Undefined, EObjectsOrder::Undefined),
-            EObjectsOrder::Undefined
-        );
-    }
-}
-
-
 template <class TTObjectsDataProvider>
 static TTObjectsDataProvider GetMaybeSubsetDataProvider(
     TTObjectsDataProvider&& objectsDataProvider,
@@ -77,12 +34,12 @@ static TTObjectsDataProvider GetMaybeSubsetDataProvider(
     if (subsetForGetSubset.Defined()) {
         TObjectsGroupingSubset objectsGroupingSubset = GetSubset(
             objectsDataProvider.GetObjectsGrouping(),
-            TArraySubsetIndexing<ui32>(*subsetForGetSubset)
+            TArraySubsetIndexing<ui32>(*subsetForGetSubset),
+            *objectsOrderForGetSubset
         );
 
         auto subsetDataProvider = objectsDataProvider.GetSubset(
             objectsGroupingSubset,
-            *objectsOrderForGetSubset,
             localExecutor
         );
         objectsDataProvider = std::move(

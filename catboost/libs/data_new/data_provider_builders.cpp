@@ -24,10 +24,25 @@
 #include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
 
+#include <algorithm>
 #include <array>
 
 
 namespace NCB {
+
+    // hack to extract provate data from inside providers
+    class TRawBuilderDataHelper {
+    public:
+        static TRawBuilderData Extract(TRawDataProvider&& rawDataProvider) {
+            TRawBuilderData data;
+            data.MetaInfo = std::move(rawDataProvider.MetaInfo);
+            data.TargetData = std::move(rawDataProvider.RawTargetData.Data);
+            data.CommonObjectsData = std::move(rawDataProvider.ObjectsData->CommonData);
+            data.ObjectsData = std::move(rawDataProvider.ObjectsData->Data);
+            return data;
+        }
+    };
+
 
     class TRawObjectsOrderDataProviderBuilder : public IDataProviderBuilder,
                                                 public IRawObjectsOrderDataVisitor
@@ -37,7 +52,8 @@ namespace NCB {
             const TDataProviderBuilderOptions& options,
             NPar::TLocalExecutor* localExecutor
         )
-            : ObjectCount(0)
+            : InBlock(false)
+            , ObjectCount(0)
             , CatFeatureCount(0)
             , Cursor(NotSet)
             , NextCursor(0)
@@ -48,6 +64,7 @@ namespace NCB {
         {}
 
         void Start(
+            bool inBlock,
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
@@ -59,28 +76,38 @@ namespace NCB {
             InProcess = true;
             ResultTaken = false;
 
-            ObjectCount = objectCount;
+            InBlock = inBlock;
+
+            ui32 prevTailSize = 0;
+            if (InBlock) {
+                CB_ENSURE(!metaInfo.HasPairs, "Pairs are not supported in block processing");
+
+                prevTailSize = (NextCursor < ObjectCount) ? (ObjectCount - NextCursor) : 0;
+                NextCursor = prevTailSize;
+            } else {
+                NextCursor = 0;
+            }
+            ObjectCount = objectCount + prevTailSize;
             CatFeatureCount = metaInfo.FeaturesLayout->GetCatFeatureCount();
 
             Cursor = NotSet;
-            NextCursor = 0;
 
             Data.MetaInfo = metaInfo;
-            Data.TargetData.PrepareForInitialization(metaInfo, objectCount);
-            Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount);
+            Data.TargetData.PrepareForInitialization(metaInfo, ObjectCount, prevTailSize);
+            Data.CommonObjectsData.PrepareForInitialization(metaInfo, ObjectCount, prevTailSize);
             Data.ObjectsData.PrepareForInitialization(metaInfo);
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
 
-            FloatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, objectCount);
-            CatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, objectCount);
+            FloatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
+            CatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, ObjectCount, prevTailSize);
 
             if (metaInfo.HasWeights) {
-                WeightsBuffer.yresize(objectCount);
+                PrepareForInitialization(ObjectCount, prevTailSize, &WeightsBuffer);
             }
             if (metaInfo.HasGroupWeight) {
-                GroupWeightsBuffer.yresize(objectCount);
+                PrepareForInitialization(ObjectCount, prevTailSize, &GroupWeightsBuffer);
             }
         }
 
@@ -208,6 +235,12 @@ namespace NCB {
                 // should this be an error?
                 CATBOOST_ERROR_LOG << "No objects info loaded" << Endl;
             }
+
+            // if data has groups and we're in block mode, skip last group data
+            if (InBlock && Data.MetaInfo.HasGroupId) {
+                RollbackNextCursorToLastGroupStart();
+            }
+
             InProcess = false;
         }
 
@@ -215,11 +248,22 @@ namespace NCB {
             CB_ENSURE_INTERNAL(!InProcess, "Attempt to GetResult before finishing processing");
             CB_ENSURE_INTERNAL(!ResultTaken, "Attempt to GetResult several times");
 
-            if (Data.MetaInfo.HasWeights) {
-                Data.TargetData.Weights = TWeights<float>(std::move(WeightsBuffer));
-            }
-            if (Data.MetaInfo.HasGroupWeight) {
-                Data.TargetData.GroupWeights = TWeights<float>(std::move(GroupWeightsBuffer));
+            if (InBlock && Data.MetaInfo.HasGroupId) {
+                // copy, not move weights buffers
+
+                if (Data.MetaInfo.HasWeights) {
+                    Data.TargetData.Weights = TWeights<float>(TVector<float>(WeightsBuffer));
+                }
+                if (Data.MetaInfo.HasGroupWeight) {
+                    Data.TargetData.GroupWeights = TWeights<float>(TVector<float>(GroupWeightsBuffer));
+                }
+            } else {
+                if (Data.MetaInfo.HasWeights) {
+                    Data.TargetData.Weights = TWeights<float>(std::move(WeightsBuffer));
+                }
+                if (Data.MetaInfo.HasGroupWeight) {
+                    Data.TargetData.GroupWeights = TWeights<float>(std::move(GroupWeightsBuffer));
+                }
             }
 
             Data.CommonObjectsData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
@@ -254,18 +298,88 @@ namespace NCB {
                 }
             }
 
-
             ResultTaken = true;
 
-            return MakeDataProvider<TRawObjectsDataProvider>(
+            if (InBlock && Data.MetaInfo.HasGroupId) {
+                auto fullData = MakeDataProvider<TRawObjectsDataProvider>(
+                    /*objectsGrouping*/ Nothing(), // will init from data
+                    std::move(Data),
+                    false,
+                    LocalExecutor
+                );
+
+                ui32 groupCount = fullData->ObjectsGrouping->GetGroupCount();
+                CB_ENSURE(groupCount != 1, "blocks must be big enough to contain more than a single group");
+                TVector<TSubsetBlock<ui32>> subsetBlocks = {TSubsetBlock<ui32>{{ui32(0), groupCount - 1}, 0}};
+                auto result = fullData->GetSubset(
+                    GetSubset(
+                        fullData->ObjectsGrouping,
+                        TArraySubsetIndexing<ui32>(
+                            TRangesSubset<ui32>(groupCount - 1, std::move(subsetBlocks))
+                        ),
+                        EObjectsOrder::Ordered
+                    ),
+                    LocalExecutor
+                )->CastMoveTo<TObjectsDataProvider>();
+
+                // save Data parts - it still contains last group data
+                Data = TRawBuilderDataHelper::Extract(std::move(*fullData));
+
+                return result;
+            } else {
+                return MakeDataProvider<TRawObjectsDataProvider>(
+                    /*objectsGrouping*/ Nothing(), // will init from data
+                    std::move(Data),
+                    false,
+                    LocalExecutor
+                )->CastMoveTo<TObjectsDataProvider>();
+            }
+        }
+
+        TDataProviderPtr GetLastResult() override {
+            CB_ENSURE_INTERNAL(!InProcess, "Attempt to GetLastResult before finishing processing");
+            CB_ENSURE_INTERNAL(ResultTaken, "Attempt to call GetLastResult before GetResult");
+
+            if (!InBlock || !Data.MetaInfo.HasGroupId) {
+                return nullptr;
+            }
+
+            auto fullData = MakeDataProvider<TRawObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 false,
+                LocalExecutor
+            );
+
+            ui32 groupCount = fullData->ObjectsGrouping->GetGroupCount();
+            Y_VERIFY(groupCount != 1);
+            TVector<TSubsetBlock<ui32>> subsetBlocks = {TSubsetBlock<ui32>{{groupCount - 1, groupCount}, 0}};
+            return fullData->GetSubset(
+                GetSubset(
+                    fullData->ObjectsGrouping,
+                    TArraySubsetIndexing<ui32>(TRangesSubset<ui32>(1, std::move(subsetBlocks))),
+                    EObjectsOrder::Ordered
+                ),
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
 
     private:
+        void RollbackNextCursorToLastGroupStart() {
+            const auto& groupIds = *Data.CommonObjectsData.GroupIds;
+            if (ObjectCount == 0) {
+                return;
+            }
+            auto rit = groupIds.rbegin();
+            TGroupId lastGroupId = *rit;
+            for (++rit; rit != groupIds.rend(); ++rit) {
+                if (*rit != lastGroupId) {
+                    break;
+                }
+            }
+            NextCursor = ObjectCount - (rit - groupIds.rbegin());
+        }
+
         template <EFeatureType FeatureType>
         TFeatureIdx<FeatureType> GetInternalFeatureIdx(ui32 flatFeatureIdx) const {
             return TFeatureIdx<FeatureType>(
@@ -295,26 +409,49 @@ namespace NCB {
             TVector<bool> IsAvailable; // [perTypeFeatureIdx]
 
         public:
-            void PrepareForInitialization(const TFeaturesLayout& featuresLayout, ui32 objectCount) {
-                const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
+            void PrepareForInitialization(
+                const TFeaturesLayout& featuresLayout,
+                ui32 objectCount,
+                ui32 prevTailSize
+            ) {
+                const size_t featureCount = (size_t) featuresLayout.GetFeatureCount(FeatureType);
                 Storage.resize(featureCount);
                 DstView.resize(featureCount);
                 IsAvailable.yresize(featureCount);
                 for (auto perTypeFeatureIdx : xrange(featureCount)) {
-                    if (featuresLayout.GetInternalFeatureMetaInfo(
-                            perTypeFeatureIdx,
-                            FeatureType
-                        ).IsAvailable)
+                    if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable)
                     {
                         auto& maybeSharedStoragePtr = Storage[perTypeFeatureIdx];
-                        if (!maybeSharedStoragePtr || (maybeSharedStoragePtr->RefCount() > 1)) {
-                            /* storage is either uninited or shared with some other references
-                             * so it has to be reset to be reused
-                             */
+                        if (!maybeSharedStoragePtr) {
+                            Y_VERIFY(!prevTailSize);
                             maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
+                            maybeSharedStoragePtr->Data.yresize(objectCount);
+                        } else if (maybeSharedStoragePtr->RefCount() > 1) {
+                            /* storage is shared with some other references
+                             * so it has to be reset
+                             */
+
+                            Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
+                            if (prevTailSize) {
+                                auto newMaybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
+                                newMaybeSharedStoragePtr->Data.yresize(objectCount);
+                                std::copy(
+                                    maybeSharedStoragePtr->Data.end() - prevTailSize,
+                                    maybeSharedStoragePtr->Data.end(),
+                                    newMaybeSharedStoragePtr->Data.begin()
+                                );
+                                maybeSharedStoragePtr = std::move(newMaybeSharedStoragePtr);
+                            }
+                        } else {
+                            Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
+                            std::move(
+                                maybeSharedStoragePtr->Data.end() - prevTailSize,
+                                maybeSharedStoragePtr->Data.end(),
+                                maybeSharedStoragePtr->Data.begin()
+                            );
+                            maybeSharedStoragePtr->Data.yresize(objectCount);
                         }
-                        maybeSharedStoragePtr->Data.yresize(objectCount);
-                        DstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
+                        DstView[perTypeFeatureIdx] = maybeSharedStoragePtr->Data;
                         IsAvailable[perTypeFeatureIdx] = true;
                     } else {
                         Storage[perTypeFeatureIdx] = nullptr;
@@ -369,6 +506,8 @@ namespace NCB {
         };
 
     private:
+        bool InBlock;
+
         ui32 ObjectCount;
         ui32 CatFeatureCount;
 
@@ -434,8 +573,8 @@ namespace NCB {
             ClassNames = poolQuantizationSchema.ClassNames;
 
             Data.MetaInfo = metaInfo;
-            Data.TargetData.PrepareForInitialization(metaInfo, objectCount);
-            Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount);
+            Data.TargetData.PrepareForInitialization(metaInfo, objectCount, 0);
+            Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount, 0);
             Data.ObjectsData.PrepareForInitialization(
                 metaInfo,
 

@@ -1,6 +1,7 @@
 #include "util.h"
 
 #include <util/generic/hash_set.h>
+#include <util/system/yassert.h>
 
 
 namespace NCB {

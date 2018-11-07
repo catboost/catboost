@@ -498,8 +498,11 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
 
         TVector<TArraySubsetIndexing<ui32>> subsetVector;
+        TVector<EObjectsOrder> subsetOrdersVector;
         subsetVector.emplace_back(TFullSubset<ui32>(6));
+        subsetOrdersVector.emplace_back(EObjectsOrder::Ordered);
         subsetVector.emplace_back(TIndexedSubset<ui32>{2, 3});
+        subsetOrdersVector.emplace_back(EObjectsOrder::Undefined);
 
         using TExpectedMapIndex = std::pair<size_t, size_t>;
 
@@ -561,7 +564,8 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                 TObjectsGroupingSubset objectsGroupingSubset = GetSubset(
                     rawTargetDataProvider.GetObjectsGrouping(),
-                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx])
+                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
+                    subsetOrdersVector[subsetIdx]
                 );
 
                 TRawTargetDataProvider subsetDataProvider =
@@ -616,8 +620,11 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         const TVector<TTargetDataProviders>& expectedSecondSubsets
     ) {
         TVector<TArraySubsetIndexing<ui32>> subsetVector;
+        TVector<EObjectsOrder> subsetOrdersVector;
         subsetVector.emplace_back(TFullSubset<ui32>(6));
+        subsetOrdersVector.emplace_back(EObjectsOrder::Ordered);
         subsetVector.emplace_back(TIndexedSubset<ui32>{2, 3});
+        subsetOrdersVector.emplace_back(EObjectsOrder::Undefined);
 
         using TExpectedMapIndex = std::pair<size_t, size_t>;
 
@@ -636,7 +643,8 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                         they all should be equal in all vector elements
                     */
                     targetsVector[targetVectorIdx].begin()->second->GetObjectsGrouping(),
-                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx])
+                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
+                    subsetOrdersVector[subsetIdx]
                 );
 
                 NPar::TLocalExecutor localExecutor;

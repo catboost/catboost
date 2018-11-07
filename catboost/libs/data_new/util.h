@@ -9,6 +9,8 @@
 
 #include <util/system/types.h>
 
+#include <algorithm>
+
 
 namespace NCB {
 
@@ -51,17 +53,39 @@ namespace NCB {
     // pairs are a special case because there's no guaranteed order for now, so compare them as multisets
     bool EqualAsMultiSets(TConstArrayRef<TPair> lhs, TConstArrayRef<TPair> rhs);
 
+    template <class T>
+    void PrepareForInitialization(
+        size_t size,
+        size_t prevTailSize,
+        TVector<T>* data
+    ) {
+        if (prevTailSize) {
+            Y_VERIFY(prevTailSize <= size);
+            Y_VERIFY(prevTailSize <= data->size());
+            std::move(data->end() - prevTailSize, data->end(), data->begin());
+        }
+        data->yresize(size);
+    }
+
 
     template <class T>
-    void PrepareForInitialization(bool defined, size_t size, TMaybeData<TVector<T>>* data) {
+    void PrepareForInitialization(
+        bool defined,
+        size_t size,
+        size_t prevTailSize,
+        TMaybeData<TVector<T>>* data
+    ) {
+        auto& dataRef = *data;
         if (defined) {
-            if (!*data) {
-                *data = TVector<T>();
+            if (!dataRef) {
+                Y_VERIFY(prevTailSize == 0);
+                dataRef = TVector<T>();
             }
-            (*data)->yresize(size);
+            PrepareForInitialization(size, prevTailSize, &*dataRef);
         } else {
-            *data = Nothing();
+            dataRef = Nothing();
         }
     }
+
 
 }

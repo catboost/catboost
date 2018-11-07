@@ -4,6 +4,7 @@
 #include "features_layout.h"
 #include "meta_info.h"
 #include "objects_grouping.h"
+#include "order.h"
 #include "quantized_features_info.h"
 #include "util.h"
 
@@ -47,15 +48,6 @@ namespace NCB {
     );
 
 
-    enum class EObjectsOrder {
-        Ordered, // order is important
-        RandomShuffled,
-        Undefined
-    };
-
-    EObjectsOrder Combine(EObjectsOrder srcOrder, EObjectsOrder subsetOrder);
-
-
     // for use while building
     struct TCommonObjectsData {
     public:
@@ -76,7 +68,7 @@ namespace NCB {
 
     public:
         // not a constructor to enable reuse of allocated data
-        void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount);
+        void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailCount);
 
         /* used in TObjectsDataProvider to avoid double checking
          * when ObjectsGrouping is created from GroupIds and GroupId's consistency is already checked
@@ -89,7 +81,6 @@ namespace NCB {
 
         TCommonObjectsData GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const;
 
@@ -117,7 +108,6 @@ namespace NCB {
 
         virtual TIntrusivePtr<TObjectsDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
@@ -152,6 +142,7 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
+        friend class TRawBuilderDataHelper;
 
     protected:
         TObjectsGroupingPtr ObjectsGrouping;
@@ -210,7 +201,6 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
@@ -241,6 +231,7 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
+        friend class TRawBuilderDataHelper;
 
     private:
         TRawObjectsData Data;
@@ -307,12 +298,10 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const override {
             return GetSubsetImpl<TQuantizedObjectsDataProvider>(
                 objectsGroupingSubset,
-                subsetOrder,
                 localExecutor
             );
         }
@@ -349,12 +338,10 @@ namespace NCB {
         template <class TTQuantizedObjectsDataProvider>
         TIntrusivePtr<TQuantizedObjectsDataProvider> GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const {
             TCommonObjectsData subsetCommonData = CommonData.GetSubset(
                 objectsGroupingSubset,
-                subsetOrder,
                 localExecutor
             );
             TQuantizedObjectsData subsetData = Data.GetSubset(subsetCommonData.SubsetIndexing.Get());
@@ -390,12 +377,10 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const override {
             return GetSubsetImpl<TQuantizedForCPUObjectsDataProvider>(
                 objectsGroupingSubset,
-                subsetOrder,
                 localExecutor
             );
         }

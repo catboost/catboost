@@ -86,7 +86,8 @@ namespace NCB {
 
     void CompareObjectsData(
         const TRawObjectsDataProvider& objectsData,
-        const TExpectedRawData& expectedData
+        const TExpectedRawData& expectedData,
+        bool catFeaturesHashCanContainExtraData
     ) {
         UNIT_ASSERT_EQUAL(objectsData.GetObjectCount(), expectedData.ObjectsGrouping.GetObjectCount());
         UNIT_ASSERT_EQUAL(*objectsData.GetObjectsGrouping(), expectedData.ObjectsGrouping);
@@ -136,16 +137,27 @@ namespace NCB {
         );
 
         for (auto catFeatureIdx : xrange(catFeatureCount)) {
-            UNIT_ASSERT_VALUES_EQUAL(
-                objectsData.GetCatFeaturesHashToString(catFeatureIdx),
-                expectedCatFeaturesHashToString[catFeatureIdx]
-            );
+            if (catFeaturesHashCanContainExtraData) {
+                // check that hashes for expected data are present in objectsData.GetCatFeaturesHashToString
+                const auto& catFeaturesHashToString = objectsData.GetCatFeaturesHashToString(catFeatureIdx);
+                for (const auto& [key, value] : expectedCatFeaturesHashToString[catFeatureIdx]) {
+                    auto it = catFeaturesHashToString.find(key);
+                    UNIT_ASSERT(it != catFeaturesHashToString.end());
+                    UNIT_ASSERT_VALUES_EQUAL(value, it->second);
+                }
+            } else {
+                UNIT_ASSERT_VALUES_EQUAL(
+                    objectsData.GetCatFeaturesHashToString(catFeatureIdx),
+                    expectedCatFeaturesHashToString[catFeatureIdx]
+                );
+            }
         }
     }
 
     void CompareObjectsData(
         const TQuantizedObjectsDataProvider& objectsData,
-        const TExpectedQuantizedData& expectedData
+        const TExpectedQuantizedData& expectedData,
+        bool /*catFeaturesHashCanContainExtraData*/
     ) {
         UNIT_ASSERT_EQUAL(objectsData.GetObjectCount(), expectedData.ObjectsGrouping.GetObjectCount());
         UNIT_ASSERT_EQUAL(*objectsData.GetObjectsGrouping(), expectedData.ObjectsGrouping);
@@ -191,7 +203,8 @@ namespace NCB {
 
     void CompareObjectsData(
         const TQuantizedForCPUObjectsDataProvider& objectsData,
-        const TExpectedQuantizedData& expectedData
+        const TExpectedQuantizedData& expectedData,
+        bool /*catFeaturesHashCanContainExtraData*/
     ) {
         CompareObjectsData((const TQuantizedObjectsDataProvider&)objectsData, expectedData);
 

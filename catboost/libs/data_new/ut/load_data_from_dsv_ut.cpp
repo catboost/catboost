@@ -22,49 +22,10 @@ using namespace NCB::NDataNewUT;
 
 
 Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
-    struct TSrcData {
-        TStringBuf CdFileData;
-        TStringBuf DsvFileData;
-        bool DsvFileHasHeader;
-        TStringBuf PairsFileData;
-        TStringBuf GroupWeightsFileData;
-        TVector<ui32> IgnoredFeatures;
-        EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
-    };
-
     struct TTestCase {
         TSrcData SrcData;
         TExpectedRawData ExpectedData;
     };
-
-    struct TReadDatasetMainParams {
-        TPathWithScheme PoolPath;
-        TPathWithScheme PairsFilePath; // can be uninited
-        TPathWithScheme GroupWeightsFilePath; // can be uninited
-        NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
-    };
-
-
-    void SaveSrcData(
-        const TSrcData& srcData,
-        TReadDatasetMainParams* readDatasetMainParams,
-        TVector<THolder<TTempFile>>* srcDataFiles
-    ) {
-        SaveDataToTempFile(
-            srcData.CdFileData,
-            &(readDatasetMainParams->DsvPoolFormatParams.CdFilePath),
-            srcDataFiles
-        );
-        SaveDataToTempFile(srcData.DsvFileData, &(readDatasetMainParams->PoolPath), srcDataFiles);
-        readDatasetMainParams->DsvPoolFormatParams.Format.HasHeader = srcData.DsvFileHasHeader;
-        SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
-        SaveDataToTempFile(
-            srcData.GroupWeightsFileData,
-            &(readDatasetMainParams->GroupWeightsFilePath),
-            srcDataFiles
-        );
-    }
-
 
     void Test(const TTestCase& testCase) {
         TReadDatasetMainParams readDatasetMainParams;

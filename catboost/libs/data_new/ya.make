@@ -20,6 +20,7 @@ SRCS(
     model_dataset_compatibility.cpp
     objects.cpp
     objects_grouping.cpp
+    order.cpp
     quantization.cpp
     quantized_features_info.cpp
     target.cpp
@@ -47,7 +48,7 @@ PEERDIR(
     catboost/libs/quantization_schema
 )
 
-GENERATE_ENUM_SERIALIZATION(objects.h)
+GENERATE_ENUM_SERIALIZATION(order.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
 GENERATE_ENUM_SERIALIZATION(visitor.h)
 

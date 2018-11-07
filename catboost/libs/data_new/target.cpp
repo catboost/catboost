@@ -249,12 +249,16 @@ void TRawTargetData::Check(
 }
 
 
-void TRawTargetData::PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount) {
-    NCB::PrepareForInitialization(metaInfo.HasTarget, objectCount, &Target);
+void TRawTargetData::PrepareForInitialization(
+    const TDataMetaInfo& metaInfo,
+    ui32 objectCount,
+    ui32 prevTailSize
+) {
+    NCB::PrepareForInitialization(metaInfo.HasTarget, objectCount, prevTailSize, &Target);
 
     Baseline.resize(metaInfo.BaselineCount);
     for (auto& dim : Baseline) {
-        dim.yresize(objectCount);
+        NCB::PrepareForInitialization(objectCount, prevTailSize, &dim);
     }
 
     // if weights are not trivial reset at the end of building

@@ -20,7 +20,8 @@ void NCB::CheckIsConsecutive(TConstArrayRef<TGroupBounds> groups) {
 
 TObjectsGroupingSubset NCB::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
-    TArraySubsetIndexing<ui32>&& groupsSubset
+    TArraySubsetIndexing<ui32>&& groupsSubset,
+    EObjectsOrder groupSubsetOrder
 ) {
     using TSubsetVariantType = typename TArraySubsetIndexing<ui32>::TBase;
 
@@ -28,7 +29,8 @@ TObjectsGroupingSubset NCB::GetSubset(
         return TObjectsGroupingSubset(
             (groupsSubset.Index() == TSubsetVariantType::template TagOf<TFullSubset<ui32>>()) ?
                 objectsGrouping : MakeIntrusive<TObjectsGrouping>(groupsSubset.Size()),
-            std::move(groupsSubset)
+            std::move(groupsSubset),
+            groupSubsetOrder
         );
     } else {
         THolder<TArraySubsetIndexing<ui32>> objectsSubset;
@@ -42,9 +44,11 @@ TObjectsGroupingSubset NCB::GetSubset(
                 return TObjectsGroupingSubset(
                     objectsGrouping,
                     std::move(groupsSubset),
+                    groupSubsetOrder,
                     MakeHolder<TArraySubsetIndexing<ui32>>(
                         TFullSubset<ui32>(objectsGrouping->GetObjectCount())
-                    )
+                    ),
+                    groupSubsetOrder
                 );
             case TSubsetVariantType::template TagOf<TRangesSubset<ui32>>(): {
                     const auto& groupsSubsetBlocks =
@@ -116,7 +120,9 @@ TObjectsGroupingSubset NCB::GetSubset(
         return TObjectsGroupingSubset(
             MakeIntrusive<TObjectsGrouping>(std::move(subsetGroupBounds), true),
             std::move(groupsSubset),
-            std::move(objectsSubset)
+            groupSubsetOrder,
+            std::move(objectsSubset),
+            groupSubsetOrder
         );
     }
 }

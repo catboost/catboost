@@ -111,34 +111,16 @@ TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
 }
 
 
-EObjectsOrder NCB::Combine(EObjectsOrder srcOrder, EObjectsOrder subsetOrder) {
-    switch (srcOrder) {
-        case EObjectsOrder::Ordered:
-            return subsetOrder; // TODO(akhropov). Prohibit shuffling ordered data?
-
-        case EObjectsOrder::RandomShuffled:
-            return EObjectsOrder::RandomShuffled;
-
-        case EObjectsOrder::Undefined:
-            switch (subsetOrder) {
-                case EObjectsOrder::RandomShuffled:
-                    return EObjectsOrder::RandomShuffled;
-                case EObjectsOrder::Ordered:
-                case EObjectsOrder::Undefined:
-                    return EObjectsOrder::Undefined;
-            }
-    }
-    Y_FAIL("This place can't be reached");
-    return EObjectsOrder::Undefined; // to make compiler happy
-}
-
-
-void NCB::TCommonObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount) {
+void NCB::TCommonObjectsData::PrepareForInitialization(
+    const TDataMetaInfo& metaInfo,
+    ui32 objectCount,
+    ui32 prevTailCount
+) {
     FeaturesLayout = metaInfo.FeaturesLayout;
 
-    NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, &GroupIds);
-    NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, &SubgroupIds);
-    NCB::PrepareForInitialization(metaInfo.HasTimestamp, objectCount, &Timestamp);
+    NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds);
+    NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds);
+    NCB::PrepareForInitialization(metaInfo.HasTimestamp, objectCount, prevTailCount, &Timestamp);
 }
 
 
@@ -172,13 +154,12 @@ void NCB::TCommonObjectsData::Check(TMaybe<TObjectsGroupingPtr> objectsGrouping)
 
 NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    EObjectsOrder subsetOrder,
     NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData result;
     result.ResourceHolders = ResourceHolders;
     result.FeaturesLayout = FeaturesLayout;
-    result.Order = Combine(Order, subsetOrder);
+    result.Order = Combine(Order, objectsGroupingSubset.GetObjectSubsetOrder());
 
     TVector<std::function<void()>> tasks;
 
@@ -397,12 +378,10 @@ static void CreateSubsetFeatures(
 
 TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    EObjectsOrder subsetOrder,
     NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
-        subsetOrder,
         localExecutor
     );
 

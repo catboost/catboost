@@ -69,11 +69,11 @@ namespace NCB {
     }
 
 
-    void TCBDsvDataLoader::StartBuilder(bool /*inBlock*/,
+    void TCBDsvDataLoader::StartBuilder(bool inBlock,
                                           ui32 objectCount, ui32 /*offset*/,
                                           IRawObjectsOrderDataVisitor* visitor)
     {
-        visitor->Start(DataMetaInfo, objectCount, Args.ObjectsOrder, {});
+        visitor->Start(inBlock, DataMetaInfo, objectCount, Args.ObjectsOrder, {});
     }
 
 

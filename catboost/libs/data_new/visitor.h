@@ -60,6 +60,7 @@ namespace NCB {
     class IRawObjectsOrderDataVisitor : public IDatasetVisitor {
     public:
         virtual void Start(
+            bool inBlock, // subset processing - Start/Finish is called for each block
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
