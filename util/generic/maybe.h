@@ -2,6 +2,7 @@
 
 #include <utility>
 #include "yexception.h"
+#include "bt_exception.h"
 
 #include <util/system/align.h>
 #include <util/stream/output.h>
@@ -10,7 +11,7 @@
 namespace NMaybe {
     struct TPolicyUndefinedExcept {
         static void OnEmpty() {
-            ythrow yexception() << AsStringBuf("TMaybe is empty");
+            ythrow TWithBackTrace<yexception>() << AsStringBuf("TMaybe is empty");
         }
     };
 
