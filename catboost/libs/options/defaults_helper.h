@@ -53,19 +53,6 @@ inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostO
     }
 }
 
-inline void UpdateLeavesEstimation(bool hasNonTrivialWeights, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
-    auto& leavesEstimationMethod = catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod;
-    auto& leavesEstimationIterations = catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations;
-    if (hasNonTrivialWeights && IsBinaryClassMetric(catBoostOptions->LossFunctionDescription->GetLossFunction())) {
-        if (leavesEstimationMethod.NotSet()) {
-            leavesEstimationMethod = ELeavesEstimation::Gradient;
-        }
-        if (leavesEstimationIterations.NotSet()) {
-            leavesEstimationIterations = 40;
-        }
-    }
-}
-
 inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
     auto& learningRate = catBoostOptions->BoostingOptions->LearningRate;
     const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
@@ -104,14 +91,10 @@ inline void SetDataDependentDefaults(
     int learnPoolSize,
     int testPoolSize,
     bool hasTestConstTarget,
-    bool hasNonTrivialWeights,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
     UpdateUseBestModel(testPoolSize, hasTestConstTarget, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
-
-    // TODO(nikitxskv): Remove it when the l2 normalization will be added.
-    UpdateLeavesEstimation(hasNonTrivialWeights, catBoostOptions);
 }

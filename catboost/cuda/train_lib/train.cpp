@@ -236,9 +236,6 @@ namespace NCatboostCuda {
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
-
-        // TODO(nikitxskv): Remove it when the l2 normalization will be added.
-        UpdateLeavesEstimation(!dataProvider.IsTrivialWeights(), &catBoostOptions);
     }
 
     static inline bool NeedShuffle(const ui64 catFeatureCount, const ui64 docCount, const NCatboostOptions::TCatBoostOptions& catBoostOptions) {

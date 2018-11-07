@@ -389,7 +389,6 @@ namespace {
                 pools.Learn->Docs.GetDocCount(),
                 /*testPoolSize*/ GetDocCount(pools.Test),
                 /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),
-                !pools.Learn->IsTrivialWeights(),
                 &updatedOutputOptions.UseBestModel,
                 &updatedParams
             );
