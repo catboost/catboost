@@ -1,41 +1,44 @@
 Benchmark that compares quality of GBDT packages on rossman-store-sales dataset.
 
-##Requirements:
+## Results
 
-OS - Linux (was tested on Ubuntu LTS 16.04)
+### Hyperparameters tuned with hyperopt
 
-Installed packages (via 'pip install'):
-- kaggle
-- hyperopt
-- numpy
-- pandas
-- scipy
-- scikit-learn
+Number of hyperopt iterations was set to 50, final model is tuned with best hyperparameters on all train data.
 
-##GBDT packages
+<table>
+    <tr>
+        <td>Experiment</td>
+        <td>Best hyperparameters</td>
+        <td>RMSE on test</td>
+    </tr>
+    <tr>
+        <td>catboost with specifying cat features</td>
+        <td>best_n_estimators = 1415<br>
+params = {'random_seed': 0, 'learning_rate': 0.10663314690544494, 'iterations': 1500, 'od_wait': 100, 'one_hot_max_size': 143.0, 'bagging_temperature': 0.39933964736871874, 'random_strength': 1, 'depth': 8.0, 'loss_function': 'RMSE', 'l2_leaf_reg': 5.529962582104021, 'border_count': 254, 'boosting_type': 'Plain', 'bootstrap_type': 'Bayesian'}</td>
+        <td><font color="green">489.75</font></td>
+    </tr>
+    <tr>
+        <td>lightgbm with specifying cat features</td>
+        <td>best_n_estimators = 3396<br>
+params = {'num_leaves': 63, 'max_cat_threshold': 2, 'cat_l2': 12.93150760783131, 'verbose': -1, 'bagging_seed': 3, 'max_cat_to_onehot': 2, 'learning_rate': 0.12103165638430856, 'max_delta_step': 0.0, 'data_random_seed': 1, 'cat_smooth': 4.287437698866151, 'min_data_in_leaf': 26, 'bagging_fraction': 0.6207358917316325, 'min_data_per_group': 261, 'min_sum_hessian_in_leaf': 7.515138790064522e-05, 'feature_fraction_seed': 2, 'min_gain_to_split': 0.0, 'lambda_l1': 0, 'bagging_freq': 1, 'lambda_l2': 0.1709660204090765, 'max_depth': -1, 'objective': 'mean_squared_error', 'drop_seed': 4, 'metric': 'l2', 'feature_fraction': 0.8168930995735235}</td>
+        <td>504.76</td>
+    </tr>
+    <tr>
+        <td>xgboost</td>
+        <td>best_n_estimators = 4011<br>
+params = {'reg_alpha': 0.14747200224681817, 'tree_method': 'gpu_hist', 'colsample_bytree': 0.883176060062088, 'silent': 1, 'eval_metric': 'rmse', 'grow_policy': 'depthwise', 'learning_rate': 0.10032091014826115, 'subsample': 0.5740170782945163, 'reg_lambda': 0, 'max_bin': 1020, 'objective': 'reg:linear', 'min_split_loss': 0, 'max_depth': 7}</td>
+        <td><font color="green">490.83</font></td>
+    </tr>
+</table>
 
-Tested on:
-- catboost 0.11.0
-- lightgbm 2.2.1
-- xgboost 0.80
-   
-##How to run
-
-- Download dataset from kaggle
-- Preprocess it (extract features and save in CatBoost data format)
-- Run benchmarks
-
-(see 'run_all.sh' that does all these steps)
-
-##Results
-
-<h2>Early stopping with default hyperparameters</h2>
+### Early stopping with default hyperparameters
 
 Max iterations limit was set to 9999 and `early_stopping_rounds` to 100.
 
 Note that for CatBoost results differ between CPU and GPU implementations because ```border_count``` parameter has default value 254 in CPU mode and 128 in GPU mode.
 
-<h3>Results on CPU</h3>
+#### Results on CPU
 
 CPU - Intel Xeon E312xx (Sandy Bridge) VM, 16 cores.
 
@@ -78,7 +81,7 @@ CPU - Intel Xeon E312xx (Sandy Bridge) VM, 16 cores.
     </tr>
 </table>
 
-<h3>Results on GPU</h3>
+#### Results on GPU
 
 GPU - 2x nVidia GeForce 1080 Ti.
 
@@ -128,7 +131,7 @@ GPU - 2x nVidia GeForce 1080 Ti.
 </table>
 
 
-<h2>Hyperparameters tuned with RandomizedSearchCV</h2>
+### Hyperparameters tuned with RandomizedSearchCV
 
 Hyperparameter distributions:
 
@@ -177,34 +180,31 @@ CPU - Intel Xeon E312xx (Sandy Bridge) VM, 16 cores.
     </tr>
 </table>
 
+## Requirements
 
-<h2>Hyperparameters tuned with hyperopt</h2>
+OS - Linux (was tested on Ubuntu LTS 16.04)
 
-Number of hyperopt iterations was set to 50, model tuned with best hyperparameters on all train data.
+Installed packages (via 'pip install'):
+- kaggle
+- hyperopt
+- numpy
+- pandas
+- scipy
+- scikit-learn
 
-<table>
-    <tr>
-        <td>Experiment</td>
-        <td>Best hyperparameters</td>
-        <td>RMSE on test</td>
-    </tr>
-    <tr>
-        <td>catboost with specifying cat features</td>
-        <td>best_n_estimators = 1415<br>
-params = {'random_seed': 0, 'learning_rate': 0.10663314690544494, 'iterations': 1500, 'od_wait': 100, 'one_hot_max_size': 143.0, 'bagging_temperature': 0.39933964736871874, 'random_strength': 1, 'depth': 8.0, 'loss_function': 'RMSE', 'l2_leaf_reg': 5.529962582104021, 'border_count': 254, 'boosting_type': 'Plain', 'bootstrap_type': 'Bayesian'}</td>
-        <td><font color="green">489.75</font></td>
-    </tr>
-    <tr>
-        <td>lightgbm with specifying cat features</td>
-        <td>best_n_estimators = 3396<br>
-params = {'num_leaves': 63, 'max_cat_threshold': 2, 'cat_l2': 12.93150760783131, 'verbose': -1, 'bagging_seed': 3, 'max_cat_to_onehot': 2, 'learning_rate': 0.12103165638430856, 'max_delta_step': 0.0, 'data_random_seed': 1, 'cat_smooth': 4.287437698866151, 'min_data_in_leaf': 26, 'bagging_fraction': 0.6207358917316325, 'min_data_per_group': 261, 'min_sum_hessian_in_leaf': 7.515138790064522e-05, 'feature_fraction_seed': 2, 'min_gain_to_split': 0.0, 'lambda_l1': 0, 'bagging_freq': 1, 'lambda_l2': 0.1709660204090765, 'max_depth': -1, 'objective': 'mean_squared_error', 'drop_seed': 4, 'metric': 'l2', 'feature_fraction': 0.8168930995735235}</td>
-        <td>504.76</td>
-    </tr>
-    <tr>
-        <td>xgboost</td>
-        <td>best_n_estimators = 4011<br>
-params = {'reg_alpha': 0.14747200224681817, 'tree_method': 'gpu_hist', 'colsample_bytree': 0.883176060062088, 'silent': 1, 'eval_metric': 'rmse', 'grow_policy': 'depthwise', 'learning_rate': 0.10032091014826115, 'subsample': 0.5740170782945163, 'reg_lambda': 0, 'max_bin': 1020, 'objective': 'reg:linear', 'min_split_loss': 0, 'max_depth': 7}</td>
-        <td><font color="green">490.83</font></td>
-    </tr>
-</table>
+## GBDT packages versions
+
+Tested on:
+- catboost 0.11.0
+- lightgbm 2.2.1
+- xgboost 0.80
+   
+## How to run
+
+- Download dataset from kaggle
+- Preprocess it (extract features and save in CatBoost data format)
+- Run benchmarks
+
+(see 'run_all.sh' that does all these steps)
+
 
