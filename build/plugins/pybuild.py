@@ -115,7 +115,7 @@ def py_program(unit):
 
 def py3_program(unit):
     unit.onpeerdir(['library/python/runtime_py3/main'])
-    #unit.onadd_check_py_imports()
+    unit.onadd_check_py_imports()
 
 
 def onpy_srcs(unit, *args):
