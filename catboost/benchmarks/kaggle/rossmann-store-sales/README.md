@@ -114,7 +114,7 @@ GPU - 2x nVidia GeForce 1080 Ti.
         <td>lightgbm with specifying cat features</td>
         <td>n/a</td>
         <td>n/a</td>
-        <td><font color="red">Failed: [LightGBM] [Fatal] bin size 1093 cannot run on GPU</font>, see https://github.com/Microsoft/LightGBM/issues/1116</td>
+        <td><font color="red">Failed: [LightGBM] [Fatal] bin size 1093 cannot run on GPU</font>, see <a href="https://github.com/Microsoft/LightGBM/issues/1116">https://github.com/Microsoft/LightGBM/issues/1116</a> </td>
     </tr>
     <tr>
         <td>xgboost in 'gpu-exact' mode</td>
