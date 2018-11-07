@@ -287,7 +287,12 @@ namespace NLastGetopt {
     }
 
     void TOpts::PrintCmdLine(const TStringBuf& program, IOutputStream& os, const NColorizer::TColors& colors) const {
-        os << colors.BoldColor() << "Usage" << colors.OldColor() << ": " << program << " ";
+        os << colors.BoldColor() << "Usage" << colors.OldColor() << ": ";
+        if (CustomUsage) {
+            os << CustomUsage;
+        } else {
+            os << program << " ";
+        }
         if (CustomCmdLineDescr) {
             os << CustomCmdLineDescr << Endl;
             return;
