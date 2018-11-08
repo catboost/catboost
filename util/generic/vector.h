@@ -120,7 +120,7 @@ public:
 
     inline void crop(size_type size) {
         if (this->size() > size) {
-            this->resize(size);
+            this->erase(this->begin() + size, this->end());
         }
     }
 };
