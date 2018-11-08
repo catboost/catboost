@@ -92,6 +92,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\local_promise_future.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\mpi_promise_future.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\promise_factory.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\fwd.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\gpu_single_worker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\hwloc_wrapper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_lib\inter_device_stream_section.cpp"/>
@@ -180,6 +181,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\local_promise_future.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\mpi_promise_future.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\future\promise_factory.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\fwd.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\gpu_single_worker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\hwloc_wrapper.h"/>
