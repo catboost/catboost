@@ -64,7 +64,8 @@
         "run_python_udf": {"description": "run_python_udf tool"},
         "gitarc": { "description": "Run git-like client with FUSE support"},
         "arc": { "description": "Arcadia command-line client" },
-        "graphs_difference": { "description": "Run graphs_difference tool", "visible": false }
+        "graphs_difference": { "description": "Run graphs_difference tool", "visible": false },
+        "crypta": { "description": "Run Crypta client" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1116,6 +1117,15 @@
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true}
             ]
+        },
+        "crypta": {
+            "tools": {
+                "crypta": {"bottle": "crypta", "executable": "crypta"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -1862,6 +1872,15 @@
             },
             "executable": {
                 "graphs_difference": ["graphs_difference"]
+            }
+        },
+        "crypta": {
+            "formula": {
+                "sandbox_id": 328645822,
+                "match": "crypta"
+            },
+            "executable": {
+                "crypta": ["crypta"]
             }
         }
     }
