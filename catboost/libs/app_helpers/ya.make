@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     mode_calc_helpers.cpp
     mode_fstr_helpers.cpp
+    proceed_pool_in_blocks.cpp
 )
 
 PEERDIR(
