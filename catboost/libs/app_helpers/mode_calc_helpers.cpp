@@ -1,11 +1,17 @@
 #include "mode_calc_helpers.h"
+
 #include "proceed_pool_in_blocks.h"
 
 #include <catboost/libs/algo/apply.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/eval_result/eval_result.h>
+#include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
+
+#include <util/generic/utility.h>
 
 
 void NCB::PrepareCalcModeParamsParser(

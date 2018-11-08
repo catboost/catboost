@@ -10,12 +10,17 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/column_description
     catboost/libs/data
     catboost/libs/eval_result
     catboost/libs/fstr
+    catboost/libs/helpers
+    catboost/libs/labels
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
+    library/getopt/small
+    library/object_factory
     library/threading/local_executor
 )
 

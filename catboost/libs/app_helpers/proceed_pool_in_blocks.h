@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/data/doc_pool_data_provider.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/options/analytical_mode_params.h>

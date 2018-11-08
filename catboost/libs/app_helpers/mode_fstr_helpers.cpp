@@ -1,10 +1,15 @@
 #include "mode_fstr_helpers.h"
 
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/fstr/shap_values.h>
-#include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/fstr/shap_values.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
+
+#include <util/generic/ptr.h>
+#include <util/string/cast.h>
+#include <util/system/yassert.h>
+
 
 namespace {
     class TLazyPoolLoader {
