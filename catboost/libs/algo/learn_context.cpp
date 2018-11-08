@@ -50,6 +50,20 @@ static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
     return checkSum;
 }
 
+static bool IsPermutationNeeded(bool hasTime, bool hasCtrs, bool isOrderedBoosting, bool isAveragingFold) {
+    if (hasTime) {
+        return false;
+    }
+    if (hasCtrs) {
+        return true;
+    }
+    return isOrderedBoosting && !isAveragingFold;
+}
+
+static int CountLearningFolds(int permutationCount, bool isPermutationNeededForLearning) {
+    return isPermutationNeededForLearning ? Max<ui32>(1, permutationCount - 1) : 1;
+}
+
 void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
     LearnProgress.EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
     LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
@@ -58,12 +72,13 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
     }
 
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
-    int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
-    const bool noCtrs = IsCategoricalFeaturesEmpty(learnData.AllFeatures);
-    if (Params.BoostingOptions->BoostingType == EBoostingType::Plain && noCtrs) {
-        foldCount = 1;
-    }
-    LearnProgress.Folds.reserve(foldCount);
+    const bool hasCtrs = !IsCategoricalFeaturesEmpty(learnData.AllFeatures);
+    const bool hasTime = Params.DataProcessingOptions->HasTimeFlag;
+    const bool isOrderedBoosting = !IsPlainMode(Params.BoostingOptions->BoostingType);
+    const bool isLearnFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ false);
+    const int learningFoldCount = CountLearningFolds(Params.BoostingOptions->PermutationCount, isLearnFoldPermuted);
+
+    LearnProgress.Folds.reserve(learningFoldCount);
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
 
     CtrsHelper.InitCtrHelper(Params.CatFeatureParams,
@@ -79,14 +94,14 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
     if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
         foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnData.GetSampleCount());
     }
-    if (IsPlainMode(Params.BoostingOptions->BoostingType) && noCtrs) {
+    if (!isLearnFoldPermuted) {
         foldPermutationBlockSize = learnData.GetSampleCount();
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params.LossFunctionDescription->GetLossFunction());
     const bool hasPairwiseWeights = IsPairwiseError(Params.LossFunctionDescription->GetLossFunction());
 
     if (IsPlainMode(Params.BoostingOptions->BoostingType)) {
-        for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
+        for (int foldIdx = 0; foldIdx < learningFoldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 TFold::BuildPlainFold(
                     learnData,
@@ -101,7 +116,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
             );
         }
     } else {
-        for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
+        for (int foldIdx = 0; foldIdx < learningFoldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 TFold::BuildDynamicFold(
                     learnData,
@@ -118,10 +133,11 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
         }
     }
 
+    const bool isAverageFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ true);
     LearnProgress.AveragingFold = TFold::BuildPlainFold(
         learnData,
         CtrsHelper.GetTargetClassifiers(),
-        !(Params.DataProcessingOptions->HasTimeFlag),
+        isAverageFoldPermuted,
         /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
         LearnProgress.ApproxDimension,
         storeExpApproxes,

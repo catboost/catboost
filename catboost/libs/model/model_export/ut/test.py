@@ -134,7 +134,7 @@ def test_python_export_from_app(dataset):
 def test_python_export_from_python(dataset, iterations):
     train_pool, test_pool = _get_train_test_pool(dataset)
 
-    model = CatBoost({'iterations': iterations, 'random_seed': 0})
+    model = CatBoost({'iterations': iterations, 'random_seed': 0, 'loss_function': 'Logloss'})
     model.fit(train_pool)
     pred_model = model.predict(test_pool, prediction_type='RawFormulaVal')
 
