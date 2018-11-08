@@ -1,9 +1,24 @@
 #pragma once
 
 #include "pool_printer.h"
-#include "eval_helpers.h"
 
-#include <util/generic/hash_set.h>
+#include <catboost/libs/column_description/column.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/labels/external_label_helper.h>
+#include <catboost/libs/options/enums.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/maybe.h>
+#include <util/generic/hash.h>
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
+#include <util/stream/output.h>
+#include <util/system/compiler.h>
+#include <util/system/types.h>
+
+#include <utility>
 
 
 namespace NCB {

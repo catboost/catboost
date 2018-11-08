@@ -1,9 +1,14 @@
 #include "eval_result.h"
-#include "pool_printer.h"
 
+#include "eval_helpers.h"
+
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/hash_set.h>
+#include <util/stream/fwd.h>
+#include <util/string/builder.h>
+#include <util/string/cast.h>
 
 
 const TString BaselinePrefix = "Baseline#";

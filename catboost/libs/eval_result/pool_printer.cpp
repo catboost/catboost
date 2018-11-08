@@ -1,6 +1,14 @@
 #include "pool_printer.h"
 
+#include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/quantized_pool/serialization.h>
+
+#include <util/generic/xrange.h>
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
+#include <util/system/byteorder.h>
+#include <util/system/unaligned_mem.h>
 
 
 namespace NCB {

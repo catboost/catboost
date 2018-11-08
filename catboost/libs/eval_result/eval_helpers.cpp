@@ -1,10 +1,16 @@
 #include "eval_helpers.h"
 
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/labels/label_helper_builder.h>
+
 #include <library/fast_exp/fast_exp.h>
 
-#include <util/generic/ymath.h>
+#include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
+#include <util/string/cast.h>
 
-#include <functional>
+#include <cmath>
+#include <limits>
 
 
 void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax) {

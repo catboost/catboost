@@ -1,5 +1,10 @@
 #include "column_printer.h"
 
+#include "eval_helpers.h"
+
+#include <util/generic/utility.h>
+#include <util/string/builder.h>
+
 
 namespace NCB {
 

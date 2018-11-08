@@ -5,6 +5,9 @@
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <util/string/iterator.h>
+
+
 void NCB::PrepareCalcModeParamsParser(
     NCB::TAnalyticalModeCommonParams* paramsPtr,
     size_t* iterationsLimitPtr,

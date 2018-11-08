@@ -1,7 +1,22 @@
 #pragma once
 
-#include "eval_helpers.h"
 #include "column_printer.h"
+#include "pool_printer.h"
+
+#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/libs/data_util/path_with_scheme.h>
+#include <catboost/libs/data/pool.h>
+#include <catboost/libs/labels/external_label_helper.h>
+
+#include <util/generic/fwd.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
+#include <util/stream/output.h>
+#include <util/system/types.h>
+
+#include <utility>
 
 
 namespace NCB {

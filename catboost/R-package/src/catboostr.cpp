@@ -3,6 +3,7 @@
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/documents_importance/enums.h>

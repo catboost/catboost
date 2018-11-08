@@ -1,14 +1,15 @@
 #pragma once
 
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/quantized_pool/pool.h>
-#include <catboost/libs/quantized_pool/serialization.h>
-#include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 
-#include <util/generic/hash_set.h>
-#include <util/generic/xrange.h>
-#include <util/system/byteorder.h>
-#include <util/system/unaligned_mem.h>
+#include <util/generic/hash.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
+#include <util/stream/output.h>
+#include <util/system/types.h>
 
 
 namespace NCB {
