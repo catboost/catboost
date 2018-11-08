@@ -22,4 +22,12 @@ Y_UNIT_TEST_SUITE(TJsonModelExport) {
             UNIT_ASSERT_DOUBLES_EQUAL(model.ObliviousTrees.LeafValues[idx], model2.ObliviousTrees.LeafValues[idx], 1e-9);
         }
     }
+    Y_UNIT_TEST(TestEmptyLeafWeights) {
+        TFullModel model = TrainFloatCatboostModel();
+        model.ObliviousTrees.LeafWeights[0].clear();
+        ExportModel(model, "model.json", EModelType::Json);
+        model = ReadModel("model.json", EModelType::Json);
+        UNIT_ASSERT(model.ObliviousTrees.LeafWeights[0].empty());
+        UNIT_ASSERT(!model.ObliviousTrees.LeafWeights[1].empty());
+    }
 }
