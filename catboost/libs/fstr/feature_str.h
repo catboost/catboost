@@ -60,17 +60,18 @@ TVector<double> CalcEffect(const TVector<TMxTree>& trees,
 }
 
 
-TVector<double> CalcFeaturesInfo(TVector<TVector<ui64>> trueDocsPerFeature,
-                                 const ui64 docCount,
-                                 bool symmetric);
+TVector<double> CalcFeaturesInfo(
+    TVector<TVector<ui64>> trueDocsPerFeature,
+    const ui64 docCount,
+    bool symmetric);
 
-TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
-                                          const TVector<double>& info);
+TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect, const TVector<double>& info);
 
 struct TFeaturePairInteractionInfo {
     double Score;
     int Feature1, Feature2;
 
+public:
     TFeaturePairInteractionInfo()
         : Score(0)
         , Feature1(-1)

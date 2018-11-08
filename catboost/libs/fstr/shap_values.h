@@ -16,6 +16,7 @@ struct TShapValue {
     int Feature = -1;
     TVector<double> Value;
 
+public:
     TShapValue() = default;
 
     TShapValue(int feature, int approxDimension)
@@ -31,6 +32,7 @@ struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees;
     TVector<TVector<double>> MeanValuesForAllTrees;
 
+public:
     TShapPreparedTrees() = default;
 
     TShapPreparedTrees(
@@ -61,16 +63,16 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod = 0
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 );
 
 // returned: ShapValues[documentIdx][feature]
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod = 0
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 );
 
 // outputs for each document in order for each dimension in order an array of feature contributions

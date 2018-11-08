@@ -55,11 +55,16 @@ static TVector<TFeaturePathElement> ExtendFeaturePath(
     return newFeaturePath;
 }
 
-static TVector<TFeaturePathElement> UnwindFeaturePath(const TVector<TFeaturePathElement>& oldFeaturePath, size_t eraseElementIdx) {
+static TVector<TFeaturePathElement> UnwindFeaturePath(
+    const TVector<TFeaturePathElement>& oldFeaturePath,
+    size_t eraseElementIdx)
+{
     const size_t pathLength = oldFeaturePath.size();
     CB_ENSURE(pathLength > 0, "Path to unwind must have at least one element");
 
-    TVector<TFeaturePathElement> newFeaturePath(oldFeaturePath.begin(), oldFeaturePath.begin() + pathLength - 1);
+    TVector<TFeaturePathElement> newFeaturePath(
+        oldFeaturePath.begin(),
+        oldFeaturePath.begin() + pathLength - 1);
 
     for (size_t elementIdx = eraseElementIdx; elementIdx < pathLength - 1; ++elementIdx) {
         newFeaturePath[elementIdx].Feature = oldFeaturePath[elementIdx + 1].Feature;
@@ -74,15 +79,18 @@ static TVector<TFeaturePathElement> UnwindFeaturePath(const TVector<TFeaturePath
     if (!FuzzyEquals(onePathsFraction, 0.0)) {
         for (int elementIdx = pathLength - 2; elementIdx >= 0; --elementIdx) {
             double oldWeight = newFeaturePath[elementIdx].Weight;
-            newFeaturePath[elementIdx].Weight = weightDiff * pathLength / (onePathsFraction * (elementIdx + 1));
-            weightDiff = oldWeight - newFeaturePath[elementIdx].Weight * zeroPathsFraction * (pathLength - elementIdx - 1) / pathLength;
+            newFeaturePath[elementIdx].Weight = weightDiff * pathLength
+                / (onePathsFraction * (elementIdx + 1));
+            weightDiff = oldWeight
+                - newFeaturePath[elementIdx].Weight * zeroPathsFraction * (pathLength - elementIdx - 1)
+                    / pathLength;
         }
     } else {
         for (int elementIdx = pathLength - 2; elementIdx >= 0; --elementIdx) {
-            newFeaturePath[elementIdx].Weight *= pathLength / (zeroPathsFraction * (pathLength - elementIdx - 1));
+            newFeaturePath[elementIdx].Weight *= pathLength
+                / (zeroPathsFraction * (pathLength - elementIdx - 1));
         }
     }
-
 
     return newFeaturePath;
 }
@@ -118,7 +126,11 @@ static void CalcShapValuesForLeafRecursive(
     int feature,
     TVector<TShapValue>* shapValues
 ) {
-    TVector<TFeaturePathElement> featurePath = ExtendFeaturePath(oldFeaturePath, zeroPathsFraction, onePathsFraction, feature);
+    TVector<TFeaturePathElement> featurePath = ExtendFeaturePath(
+        oldFeaturePath,
+        zeroPathsFraction,
+        onePathsFraction,
+        feature);
     auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
     if (depth == forest.TreeSizes[treeIdx]) {
         for (size_t elementIdx = 1; elementIdx < featurePath.size(); ++elementIdx) {
@@ -140,7 +152,8 @@ static void CalcShapValuesForLeafRecursive(
                         return shapValue.Feature == flatFeatureIdx;
                     }
                 );
-                double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction) / flatFeatures.size();
+                double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction)
+                    / flatFeatures.size();
                 if (sameFeatureShapValue == shapValues->end()) {
                     shapValues->emplace_back(flatFeatureIdx, approxDimension);
                     for (int dimension = 0; dimension < approxDimension; ++dimension) {
@@ -159,7 +172,9 @@ static void CalcShapValuesForLeafRecursive(
         double newZeroPathsFraction = 1.0;
         double newOnePathsFraction = 1.0;
 
-        const int combinationClass = binFeatureCombinationClass[forest.TreeSplits[forest.TreeStartOffsets[treeIdx] + depth]];
+        const int combinationClass = binFeatureCombinationClass[
+            forest.TreeSplits[forest.TreeStartOffsets[treeIdx] + depth]
+        ];
 
         const auto sameFeatureElement = FindIf(
             featurePath.begin(),
@@ -180,7 +195,8 @@ static void CalcShapValuesForLeafRecursive(
         const size_t skipNodeIdx = goNodeIdx ^ (1 << depth);
 
         if (!FuzzyEquals(subtreeWeights[depth + 1][goNodeIdx], 0.0)) {
-            double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeWeights[depth + 1][goNodeIdx] / subtreeWeights[depth][nodeIdx];
+            double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeWeights[depth + 1][goNodeIdx]
+                / subtreeWeights[depth][nodeIdx];
             CalcShapValuesForLeafRecursive(
                 forest,
                 binFeatureCombinationClass,
@@ -199,7 +215,8 @@ static void CalcShapValuesForLeafRecursive(
         }
 
         if (!FuzzyEquals(subtreeWeights[depth + 1][skipNodeIdx], 0.0)) {
-            double newZeroPathsFractionSkipNode = newZeroPathsFraction * subtreeWeights[depth + 1][skipNodeIdx] / subtreeWeights[depth][nodeIdx];
+            double newZeroPathsFractionSkipNode = newZeroPathsFraction * subtreeWeights[depth + 1][skipNodeIdx]
+                / subtreeWeights[depth][nodeIdx];
             CalcShapValuesForLeafRecursive(
                 forest,
                 binFeatureCombinationClass,
@@ -307,7 +324,10 @@ static void MapBinFeaturesToClasses(
 
     for (const TOneHotFeature& oneHotFeature: forest.OneHotFeatures) {
         featuresCombinations.emplace_back();
-        featuresCombinations.back() = { (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex, EFeatureType::Categorical) };
+        featuresCombinations.back() = {
+            (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex,
+            EFeatureType::Categorical)
+        };
         featureBucketSizes.push_back(oneHotFeature.Values.size());
     }
 
@@ -315,7 +335,8 @@ static void MapBinFeaturesToClasses(
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
         featuresCombinations.emplace_back();
         for (int catFeatureIdx : combination.CatFeatures) {
-            featuresCombinations.back().push_back(layout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical));
+            featuresCombinations.back().push_back(
+                layout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical));
         }
         featureBucketSizes.push_back(ctrFeature.Borders.size());
     }
@@ -344,7 +365,10 @@ static void MapBinFeaturesToClasses(
             combinationClassFeatures->push_back(featuresCombinations[currentFeature]);
             ++equivalenceClassesCount;
         }
-        for (size_t binBucketId = featureFirstBinBucket[currentFeature]; binBucketId < featureFirstBinBucket[currentFeature] + featureBucketSizes[currentFeature]; ++binBucketId) {
+        for (size_t binBucketId = featureFirstBinBucket[currentFeature];
+             binBucketId < featureFirstBinBucket[currentFeature] + featureBucketSizes[currentFeature];
+             ++binBucketId)
+        {
             (*binFeatureCombinationClass)[binBucketId] = equivalenceClassesCount - 1;
         }
     }
@@ -450,7 +474,8 @@ static void CalcShapValuesByLeafForTreeBlock(
                 &shapValuesByLeaf[leafIdx]
             );
 
-            preparedTrees->MeanValuesForAllTrees[treeIdx] = CalcMeanValueForTree(forest, subtreeWeights, treeIdx);
+            preparedTrees->MeanValuesForAllTrees[treeIdx]
+                = CalcMeanValueForTree(forest, subtreeWeights, treeIdx);
         }
     }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
@@ -459,7 +484,8 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
         if (!combination.IsSingleCatFeature()) {
-            CATBOOST_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated approximately." << Endl;
+            CATBOOST_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated"
+                " approximately." << Endl;
             return;
         }
     }
@@ -468,8 +494,8 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
 static TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
     WarnForComplexCtrs(model.ObliviousTrees);
 
@@ -518,20 +544,20 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
         !model.ObliviousTrees.LeafWeights.empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    return PrepareTrees(model, TPool(), localExecutor, 0);
+    return PrepareTrees(model, TPool(), 0, localExecutor);
 }
 
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         pool,
-        localExecutor,
-        logPeriod
+        logPeriod,
+        localExecutor
     );
 
     const size_t documentCount = pool.Docs.GetDocCount();
@@ -570,15 +596,15 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
         model,
         pool,
-        localExecutor,
-        logPeriod
+        logPeriod,
+        localExecutor
     );
     size_t documentsCount = pool.Docs.GetDocCount();
     TVector<TVector<double>> shapValues(documentsCount);
@@ -612,8 +638,8 @@ void CalcAndOutputShapValues(
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         pool,
-        &localExecutor,
-        logPeriod
+        logPeriod,
+        &localExecutor
     );
 
     const size_t documentCount = pool.Docs.GetDocCount();
