@@ -666,7 +666,7 @@ namespace {
 
                 //called from client thread
                 bool Run(TRequestRef& req) {
-                    if (Y_UNLIKELY(State_ == Closed)) {
+                    if (Y_UNLIKELY(AtomicGet(State_) == Closed)) {
                         return false;
                     }
 
@@ -730,7 +730,7 @@ namespace {
 
                 //must be called only from asio thread
                 void ProcessReqsInFlyQueue() {
-                    if (State_ == Closed) {
+                    if (AtomicGet(State_) == Closed) {
                         return;
                     }
 
@@ -774,7 +774,7 @@ namespace {
                 //must be called only after succes aquiring output
                 void SendMessages(bool asioThread) {
                     //DBGOUT("SendMessages");
-                    if (Y_UNLIKELY(State_ == Closed)) {
+                    if (Y_UNLIKELY(AtomicGet(State_) == Closed)) {
                         if (asioThread) {
                             OnError(Error_);
                         } else {
@@ -989,7 +989,7 @@ namespace {
 
                 //must be called only from asio thread
                 void OnError(const TString& err, const i32 systemCode = 0) {
-                    if (State_ != Closed) {
+                    if (AtomicGet(State_) != Closed) {
                         Error_ = err;
                         SystemCode_ = systemCode;
                         AtomicSet(State_, Closed);
