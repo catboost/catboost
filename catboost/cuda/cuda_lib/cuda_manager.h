@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "cuda_base.h"
 #include "devices_list.h"
 #include "memory_provider_trait.h"

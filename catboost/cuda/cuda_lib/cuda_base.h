@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fwd.h"
+
 #include <cuda_runtime.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
@@ -114,12 +116,6 @@ namespace NCudaLib {
     static inline void SetDefaultStream(TCudaStream& stream) {
         FastTlsSingleton<TDefaultStreamRef>()->SetDefaultStream(stream);
     }
-
-    enum class EPtrType {
-        CudaDevice,
-        CudaHost, //pinned cuda memory
-        Host      //CPU, non-pinned
-    };
 
     inline constexpr bool IsHostPtr(EPtrType type) {
         return type != EPtrType::CudaDevice;
