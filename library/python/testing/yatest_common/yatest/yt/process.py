@@ -332,4 +332,13 @@ def _dump_spec(data):
 
 
 def _dump_func(func):
-    return base64.b64encode(marshal.dumps(func.func_code))
+    def encode(d):
+        return base64.b64encode(marshal.dumps(d))
+
+    res = {
+        'code': func.func_code,
+        'defaults': func.__defaults__ or '',
+        'closure': [c.cell_contents for c in func.__closure__] if func.__closure__ else '',
+    }
+
+    return {k: encode(v) for k, v in res.items()}
