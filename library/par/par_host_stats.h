@@ -3,6 +3,8 @@
 #include <library/binsaver/bin_saver.h>
 
 #include <util/generic/singleton.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
 
 #include <atomic>
 
@@ -64,13 +66,13 @@ namespace NPar {
 
     struct TParTimings {
         TParTimings(const TParTimings&) {
-            Y_VERIFY(0, "you should not be there");
+            Y_FAIL("you should not be there");
         }
         TParTimings(TParTimings&&) {
-            Y_VERIFY(0, "you should not be there");
+            Y_FAIL("you should not be there");
         }
         TParTimings& operator=(const TParTimings&) {
-            Y_VERIFY(0, "you should not be there");
+            Y_FAIL("you should not be there");
         }
         TVector<THolder<TTiming>> Timings;
 

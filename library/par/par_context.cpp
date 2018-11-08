@@ -4,6 +4,8 @@
 #include <util/random/random.h>
 #include <util/random/shuffle.h>
 #include <util/system/atomic_ops.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
 #include <util/system/yield.h>
 
 const int MAX_SIMULTANEOUS_SENDS = 1;

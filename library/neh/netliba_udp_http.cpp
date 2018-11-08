@@ -11,6 +11,8 @@
 #include <util/system/shmat.h>
 #include <util/system/spinlock.h>
 #include <util/system/thread.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
 #include <util/thread/lfqueue.h>
 
 #if !defined(_win_)
@@ -277,7 +279,10 @@ namespace NNehNetliba {
         }
 
         void SendRequest(const TUdpAddress& addr, const TString& url, const TString& data, const TGUID& reqId) override {
-            Y_VERIFY(data.Size() < MAX_PACKET_SIZE, "data size is too large");
+            Y_VERIFY(
+                data.size() < MAX_PACKET_SIZE,
+                "data size is too large; data.size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
+                data.size(), MAX_PACKET_SIZE);
 
             TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
             if (data.Size() > MIN_SHARED_MEM_PACKET && IsLocal(addr)) {
@@ -314,7 +319,9 @@ namespace NNehNetliba {
 
         void SendResponse(const TGUID& reqId, TVector<char>* data) override {
             if (data && data->size() > MAX_PACKET_SIZE) {
-                Y_VERIFY(0, "data size is too large");
+               Y_FAIL(
+                    "data size is too large; data->size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
+                    data->size(), MAX_PACKET_SIZE);
             }
             SendRespList_.Enqueue(new TSendResponse(reqId, PP_NORMAL, data));
             Host_->CancelWait();

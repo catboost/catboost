@@ -288,7 +288,10 @@ namespace NPar {
         auto& masterTimings = Singleton<TParHostStats>()->ParTimings;
         TVector<TVector<char>> res;
         mr->GetResults(&res);
-        Y_VERIFY(res.ysize() == searcherCount);
+        Y_VERIFY(
+            res.ysize() == searcherCount,
+            "res.ysize()=%d, searcherCount=%d",
+            res.ysize(), searcherCount);
         for (int i = 0; i < searcherCount; ++i) {
             TParHostStats tmpStats;
             SerializeFromMem(&res.at(i), tmpStats);

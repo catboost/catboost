@@ -4,7 +4,9 @@
 
 #include <library/binsaver/mem_io.h>
 
+#include <util/generic/type_name.h>
 #include <util/generic/vector.h>
+#include <util/system/compiler.h>
 #include <util/system/event.h>
 #include <util/system/yassert.h>
 
@@ -19,7 +21,11 @@ namespace NPar {
         {
             const IObjectBase* obj = ctx->GetContextData(envId, hostId);
             if (obj) {
-                Y_VERIFY(typeid(*obj) == typeid(T), "type mismatch");
+                if (Y_UNLIKELY(typeid(*obj) != typeid(T))) {
+                    const auto objTypeName = TypeName(obj);
+                    const auto expectedTypeName = TypeName<T>();
+                    Y_FAIL("type mismatch: %s != %s", objTypeName.c_str(), expectedTypeName.c_str());
+                }
                 Ptr = CastToUserObject(const_cast<IObjectBase*>(obj), (T*)nullptr);
             }
         }
@@ -77,13 +83,13 @@ namespace NPar {
             (void)hostId;
             (void)src;
             (void)dst;
-            Y_VERIFY(false, "missing map implementation");
+            Y_FAIL("missing map implementation");
         }
         virtual void DoReduce(TVector<TOutput>* src, TOutput* dst) const {
             CHROMIUM_TRACE_FUNCTION();
             (void)src;
             (void)dst;
-            Y_VERIFY(false, "missing reduce implementation");
+            Y_FAIL("missing reduce implementation");
         }
     };
 
@@ -147,7 +153,7 @@ namespace NPar {
         void GetResult(T* res) {
             TVector<TVector<char>> buf;
             GetRawResult(&buf);
-            Y_VERIFY(buf.ysize() == 1);
+            Y_VERIFY(buf.ysize() == 1, "buf.ysize()=%d", buf.ysize());
             SerializeFromMem(&buf[0], *res);
         }
         template <class T>

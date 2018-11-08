@@ -183,7 +183,7 @@ namespace NPar {
                         --infoDataPtr->RetriesRest;
                         if (infoDataPtr->RetriesRest < 0) {
                             Singleton<TParLogger>()->OutputLogTailToCout();
-                            Y_VERIFY(false, "got unexpected network error, no retries rest");
+                            Y_FAIL("got unexpected network error, no retries rest");
                         }
                         NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                              Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -191,7 +191,7 @@ namespace NPar {
                     } else {
                         if (resp->Data != TStringBuf{"OK"}) {
                             ERROR_LOG << "query info: " << infoDataPtr->ToString() << Endl;
-                            Y_VERIFY(false, "reply isn't OK");
+                            Y_FAIL("reply isn't OK");
                         }
                     }
                 } else if (ev.Type == NNeh::IMultiClient::TEvent::Timeout) {
@@ -201,7 +201,7 @@ namespace NPar {
                     --infoDataPtr->RetriesRest;
                     if (infoDataPtr->RetriesRest < 0) {
                         Singleton<TParLogger>()->OutputLogTailToCout();
-                        Y_VERIFY(false, "got timeout for some request :(");
+                        Y_FAIL("got timeout for some request :(");
                     }
                     NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                          Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -281,7 +281,7 @@ namespace NPar {
             PAR_DEBUG_LOG << "From " << GetHostAndPort() << " sending request " << GetGuidAsString(reqId) << " url: " << url << " data len: " << (data ? data->size() : 0) << Endl;
             InternalSendQuery(address, reqId, url + "@" + ToString(ListenPort), data);
             reqInfo->Event.WaitI();
-            Y_VERIFY(DirectRequestsInfo.EraseValueIfPresent(reqId), "");
+            Y_VERIFY(DirectRequestsInfo.EraseValueIfPresent(reqId));
             return std::move(reqInfo->Response);
         }
 
@@ -493,7 +493,7 @@ namespace NPar {
                     std::move(processQueryCallback),
                     std::move(processReplyCallback));
             default:
-                Y_VERIFY(0, "Unknown requester type");
+                Y_FAIL("Unknown requester type");
         }
     }
 }
