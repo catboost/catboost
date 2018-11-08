@@ -39,6 +39,8 @@ def pb2_grpc_arg(path, mod, unit):
 def ev_arg(path, mod, unit):
     return '{}_ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
+def gly_arg(path, mod, unit):
+    return '{}.py={}'.format(stripext(to_build_root(path, unit)), mod)
 
 def mangle(name):
     if '.' not in name:
@@ -173,6 +175,7 @@ def onpy_srcs(unit, *args):
     protos = []
     evs = []
     swigs = []
+    glys = []
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -238,6 +241,8 @@ def onpy_srcs(unit, *args):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
                 swigs.append(path)  # ignore mod, use last (and only) ns
+            elif path.endswith('.gly'):
+                glys.append(pathmod)
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -359,6 +364,11 @@ def onpy_srcs(unit, *args):
         path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(unit.path()[3:], project)
         arg = '{}={}'.format(path, ns + project.replace('/', '.'))
         unit.onpy_srcs([arg])
+
+    if glys:
+        gly_paths = [path for path, mod in glys]
+        unit.ongenerate_py_glys(gly_paths)
+        unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in glys])
 
 
 def onpy3_srcs(unit, *args):
