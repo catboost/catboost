@@ -1,3 +1,11 @@
+# Release 0.11.0
+## Changes:
+* Changed default border count for float feature binarization to 254 on CPU to achieve better quality
+* Fixed random seed to `0` by default
+* Support model with more than 254 feature borders or one hot values when doing predictions
+* Added model summation support in python: use `catboost.sum_models()` to sum models with provided weights.
+* Added json model tutorial [json_model_tutorial.ipynb](https://github.com/catboost/catboost/blob/master/catboost/tutorials/apply_model/json_model_tutorial.ipynb)
+
 # Release 0.10.4.1
 ## Changes:
 - Bugfix for #518
