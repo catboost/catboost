@@ -160,7 +160,7 @@ class ResourceImporter(object):
         relpath = _relpath(mod_path(fullname))
         if isinstance(relpath, bytes):
             relpath = utf_8_decode(relpath)[0]
-        return relpath
+        return relpath or modname
 
     # PEP-302 extension 3 of 3: packaging introspection.
     # Used by `linecache` (while printing tracebacks) unless module filename
