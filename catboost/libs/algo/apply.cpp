@@ -174,7 +174,7 @@ TModelCalcerOnPool::TModelCalcerOnPool(
         const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
         const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
         if (columnReorderMap.empty()) {
-            for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
+            for (size_t i = 0; i < Model->ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
                 repackedFeatures[i] = MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId);
             }
         } else {
