@@ -1,10 +1,20 @@
 #include "preprocess.h"
 
-#include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/loggers/catboost_logger_helpers.h>
-#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/helpers/binarize_target.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/enum_helpers.h>
+
+#include <library/json/json_reader.h>
+
+#include <util/generic/algorithm.h>
+#include <util/string/cast.h>
+#include <util/system/fs.h>
+
 
 static int CountGroups(const TVector<TGroupId>& queryIds) {
     if (queryIds.empty()) {
