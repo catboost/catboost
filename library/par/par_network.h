@@ -97,15 +97,9 @@ namespace NPar {
         virtual ~IRequester() = default;
 
         TString GetHostAndPort() {
-            if (!hostAndPort) {
-                TNetworkAddress myAddress(HostName(), GetListenPort());
-                hostAndPort = myAddress.GetNehAddr();
-            }
-            return hostAndPort;
+            TNetworkAddress myAddress(HostName(), GetListenPort());
+            return myAddress.GetNehAddr();
         }
-
-    private:
-        TString hostAndPort;
     };
 
     TIntrusivePtr<IRequester> CreateRequester(

@@ -29,10 +29,11 @@
 #include <util/network/socket.h>
 #include <util/stream/str.h>
 #include <util/stream/zlib.h>
-#include <util/string/cast.h>
 #include <util/string/builder.h>
+#include <util/string/cast.h>
 #include <util/system/condvar.h>
 #include <util/system/error.h>
+#include <util/system/types.h>
 #include <util/thread/pool.h>
 
 #if defined(_unix_)
@@ -1968,19 +1969,28 @@ namespace NNeh {
     }
 
     void SetHttpOutputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        Y_VERIFY(hardLimit > softLimit, "invalid output fd limits");
+        Y_VERIFY(
+            hardLimit > softLimit,
+            "invalid output fd limits; hardLimit=%" PRISZT ", softLimit=%" PRISZT,
+            hardLimit, softLimit);
 
         NHttps::SocketCache()->SetFdLimits(softLimit, hardLimit);
     }
 
     void SetHttpInputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        Y_VERIFY(hardLimit > softLimit, "invalid input fd limits");
+        Y_VERIFY(
+            hardLimit > softLimit,
+            "invalid output fd limits; hardLimit=%" PRISZT ", softLimit=%" PRISZT,
+            hardLimit, softLimit);
 
         NHttps::InputConnections()->SetFdLimits(softLimit, hardLimit);
     }
 
     void SetHttpInputConnectionsTimeouts(unsigned minSec, unsigned maxSec) {
-        Y_VERIFY(maxSec > minSec, "invalid input fd limits timeouts");
+        Y_VERIFY(
+            maxSec > minSec,
+            "invalid input fd limits timeouts; maxSec=%u, minSec=%u",
+            maxSec, minSec);
 
         NHttps::InputConnections()->MinUnusedConnKeepaliveTimeout = minSec;
         NHttps::InputConnections()->MaxUnusedConnKeepaliveTimeout = maxSec;
