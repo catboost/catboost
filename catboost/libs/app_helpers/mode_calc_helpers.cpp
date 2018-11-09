@@ -33,7 +33,7 @@ void NCB::PrepareCalcModeParamsParser(
         .RequiredArgument("Comma separated list of column indexes")
         .Handler1T<TString>([&](const TString& outputColumns) {
             params.OutputColumnsIds.clear();
-            for (const auto& typeName : StringSplitter(outputColumns).Split(',')) {
+            for (const auto& typeName : StringSplitter(outputColumns).Split(',').SkipEmpty()) {
                 params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
             }
         });
@@ -43,7 +43,7 @@ void NCB::PrepareCalcModeParamsParser(
         .Handler1T<TString>([&](const TString& predictionTypes) {
             params.PredictionTypes.clear();
             params.OutputColumnsIds = {"DocId"};
-            for (const auto& typeName : StringSplitter(predictionTypes).Split(',')) {
+            for (const auto& typeName : StringSplitter(predictionTypes).Split(',').SkipEmpty()) {
                 params.PredictionTypes.push_back(FromString<EPredictionType>(typeName.Token()));
                 params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
             }

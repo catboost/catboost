@@ -5221,6 +5221,28 @@ def test_bad_metrics_combination(loss_function, metric):
     assert metric not in BAD_PAIRS[loss_function]
 
 
+@pytest.mark.parametrize('metric', [('good', ',AUC,'), ('bad', ',')])
+def test_extra_commas(metric):
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-w', '0.03',
+        '-i', '10',
+        '-T', '4',
+        '--custom-metric', metric[1]
+    )
+    if metric[0] == 'good':
+        yatest.common.execute(cmd)
+    if metric[0] == 'bad':
+        with pytest.raises(yatest.common.ExecutionError):
+            yatest.common.execute(cmd)
+
+
 def test_output_params():
     output_options_path = 'training_options.json'
     train_dir = 'catboost_info'

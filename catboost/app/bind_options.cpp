@@ -50,11 +50,12 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddLongOption('t', "test-set", "path to one or more test sets")
         .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            for (const auto& path : StringSplitter(str).Split(',')) {
+            for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
                 if (!path.Empty()) {
                     loadParamsPtr->TestSetPaths.emplace_back(path.Token().ToString(), "dsv");
                 }
             }
+            CB_ENSURE(!loadParamsPtr->TestSetPaths.empty(), "Empty test path");
         });
 
     parser->AddLongOption("learn-pairs", "path to learn pairs")
@@ -143,10 +144,11 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
         .Handler1T<TString>([&](const TString& lossFunctionsLine) {
-            for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',')) {
+            for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',').SkipEmpty()) {
                 FromString<ELossFunction>(lossFunction.Token().Before(':'));
                 (*plainJsonPtr)["custom_metric"].AppendValue(NJson::TJsonValue(lossFunction.Token()));
             }
+            CB_ENSURE(!(*plainJsonPtr)["custom_metric"].GetArray().empty(), "Empty custom metrics list " << lossFunctionsLine);
         });
 
     parser.AddLongOption("eval-metric")
@@ -168,10 +170,11 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("model-format")
             .RequiredArgument("comma separated list of formats")
             .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
-                for (const auto& format : StringSplitter(formatsLine).Split(',')) {
+                for (const auto& format : StringSplitter(formatsLine).Split(',').SkipEmpty()) {
                     const auto enum_ = FromString<EModelType>(format.Token());
                     (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
                 }
+                CB_ENSURE(!(*plainJsonPtr)["model_format"].GetArray().empty(), "Empty model format list " << formatsLine);
             })
             .Help(BuildModelFormatHelpMessage() + " Corresponding extensions will be added to model-file if more than one format is set.");
 
@@ -292,20 +295,21 @@ void ParseCommandLine(int argc, const char* argv[],
             .RequiredArgument("Comma separated list of column indexes")
             .Handler1T<TString>([plainJsonPtr](const TString& indexesLine) {
                 (*plainJsonPtr)["output_columns"] = NULL;
-                for (const auto& t : StringSplitter(indexesLine).Split(',')) {
+                for (const auto& t : StringSplitter(indexesLine).Split(',').SkipEmpty()) {
                     (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
-
                 }
+                CB_ENSURE(!(*plainJsonPtr)["output_columns"].GetArray().empty(), "Empty column indexes list " << indexesLine);
             });
 
     parser.AddLongOption("prediction-type")
         .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal. CPU only")
         .Handler1T<TString>([plainJsonPtr](const TString& predictionTypes) {
             (*plainJsonPtr)["output_columns"].AppendValue("DocId");
-            for (const auto& t : StringSplitter(predictionTypes).Split(',')) {
+            for (const auto& t : StringSplitter(predictionTypes).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["prediction_type"].AppendValue(t.Token());
                 (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["prediction_type"].GetArray().empty(), "Empty prediction type list " << predictionTypes);
             (*plainJsonPtr)["output_columns"].AppendValue(ToString(EColumn::Label));
         });
 
@@ -572,28 +576,31 @@ void ParseCommandLine(int argc, const char* argv[],
                          "Ctr description should be written in format CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["simple_ctr"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["simple_ctr"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
     parser.AddLongOption("combinations-ctr",
                          "Ctr description should be written in format CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["combinations_ctr"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["combinations_ctr"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
-    parser.AddLongOption("per-feature-ctr",
-                         "Ctr description should be written in format FeatureId:CtrType:[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
+    parser.AddLongOption("per-feature-ctr")
         .AddLongName("feature-ctr")
-        .RequiredArgument("comma separated list of ctr descriptions")
+        .RequiredArgument("DESC[;DESC...]")
+        .Help("Semicolon separated list of ctr descriptions. Ctr description should be written in format FeatureId:CtrType:[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';').SkipEmpty()) {
                 (*plainJsonPtr)["per_feature_ctr"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["per_feature_ctr"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
     //legacy fallback
@@ -601,9 +608,10 @@ void ParseCommandLine(int argc, const char* argv[],
                          "Ctr description should be written in format FeatureId:CtrType:[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["ctr_description"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["ctr_description"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
     const auto counterCalcMethodHelp = TString::Join(
@@ -669,18 +677,20 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("class-names", "names for classes.")
         .RequiredArgument("comma separated list of names")
         .Handler1T<TString>([plainJsonPtr](const TString& namesLine) {
-            for (const auto& t : StringSplitter(namesLine).Split(',')) {
+            for (const auto& t : StringSplitter(namesLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["class_names"].AppendValue(t.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["class_names"].GetArray().empty(), "Empty class names list" << namesLine);
         })
         .Help("Takes effect only with MultiClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
 
     parser.AddLongOption("class-weights", "Weights for classes.")
         .RequiredArgument("comma separated list of weights")
         .Handler1T<TString>([plainJsonPtr](const TString& weightsLine) {
-            for (const auto& t : StringSplitter(weightsLine).Split(',')) {
+            for (const auto& t : StringSplitter(weightsLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["class_weights"].AppendValue(FromString<float>(t.Token()));
             }
+            CB_ENSURE(!(*plainJsonPtr)["class_weights"].GetArray().empty(), "Empty class weights list " << weightsLine);
         })
         .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 

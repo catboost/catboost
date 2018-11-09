@@ -86,9 +86,10 @@ NJson::TJsonValue NCatboostOptions::ParseCtrDescription(TStringBuf ctrStringDesc
 NJson::TJsonValue
 NCatboostOptions::ParseCtrDescriptions(const TStringBuf description) {
     NJson::TJsonValue ctrs(NJson::JSON_ARRAY);
-    for (const auto oneCtrConfig : StringSplitter(description).Split(',')) {
+    for (const auto oneCtrConfig : StringSplitter(description).Split(',').SkipEmpty()) {
         ctrs.AppendValue(ParseCtrDescription(oneCtrConfig.Token()));
     }
+    CB_ENSURE(!ctrs.GetArray().empty(), "Empty ctr description " << description);
     return ctrs;
 }
 

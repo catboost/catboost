@@ -78,9 +78,10 @@ static TVector<THolder<IMetric>> CreateMetrics(
     int approxDim) {
 
     TVector<TString> metricsDescription;
-    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
+    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',').SkipEmpty()) {
         metricsDescription.emplace_back(metricDescription.Token());
     }
+    CB_ENSURE(!metricsDescription.empty(), "No metric in metrics description " << plotParams.MetricsDescription);
 
     auto metrics = CreateMetricsFromDescription(metricsDescription, approxDim);
     return metrics;
