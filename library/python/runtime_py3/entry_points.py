@@ -6,10 +6,10 @@ def repl():
     py_main = __res.find('PY_MAIN')
 
     if py_main:
-        mod_name, func_name = py_main.split(':', 1)
+        mod_name, func_name = py_main.split(b':', 1)
         try:
             import importlib
-            mod = importlib.import_module(mod_name)
+            mod = importlib.import_module(mod_name.decode('UTF-8'))
             user_ns = mod.__dict__
         except:
             import traceback
@@ -29,8 +29,10 @@ def repl():
 
     try:
         import IPython
-    except ImportError:
-        import code
-        code.interact(local=user_ns)
+    except ModuleNotFoundError:
+        pass
     else:
-        IPython.start_ipython(user_ns=user_ns)
+        return IPython.start_ipython(user_ns=user_ns)
+
+    import code
+    code.interact(local=user_ns)

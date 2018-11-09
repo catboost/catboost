@@ -13,6 +13,8 @@ CFLAGS(
 )
 
 PY_SRCS(
+    entry_points.py
+
     TOP_LEVEL
     __res.pyx
 )
