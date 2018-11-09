@@ -1,12 +1,19 @@
 #include "modes.h"
 
-#include <catboost/libs/init/init_reg.h>
-#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/app_helpers/mode_calc_helpers.h>
 #include <catboost/libs/app_helpers/mode_fstr_helpers.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/init/init_reg.h>
+#include <catboost/libs/logging/logging.h>
 
-#include <library/svnversion/svnversion.h>
 #include <library/getopt/small/modchooser.h>
+#include <library/svnversion/svnversion.h>
+
+#include <util/generic/ptr.h>
+#include <util/stream/output.h>
+
+#include <cstdlib>
+
 
 static int mode_calc(int argc, const char** argv) {
     THolder<NCB::IModeCalcImplementation> modeCalcImplementaion;

@@ -20,22 +20,24 @@ SRCS(
 PEERDIR(
     catboost/libs/algo
     catboost/libs/app_helpers
-    catboost/libs/train_lib
+    catboost/libs/column_description
     catboost/libs/data
-    catboost/libs/eval_result
-    catboost/libs/fstr
+    catboost/libs/data_util
+    catboost/libs/distributed
     catboost/libs/documents_importance
     catboost/libs/helpers
     catboost/libs/init
     catboost/libs/labels
     catboost/libs/logging
+    catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/train_lib
     library/getopt/small
     library/grid_creator
     library/json
+    library/logger
     library/svnversion
-    library/threading/local_executor
 )
 
 IF(HAVE_CUDA)

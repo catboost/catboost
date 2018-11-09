@@ -1,14 +1,23 @@
 #include "modes.h"
 #include "bind_options.h"
+
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #if defined(USE_MPI)
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/mpi/mpi_manager.h>
+
+#include <catboost/libs/logging/logging.h>
 #endif
 
+#include <library/json/json_reader.h>
+
+#include <util/generic/ptr.h>
+#include <util/stream/fwd.h>
 #include <util/system/fs.h>
 
 

@@ -1,13 +1,15 @@
-#include "bind_options.h"
 #include "modes.h"
 #include "model_metainfo_helpers.h"
 
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/analytical_mode_params.h>
 
-#include <library/getopt/small/last_getopt.h>
 #include <library/getopt/small/modchooser.h>
+#include <library/getopt/small/last_getopt.h>
+#include <library/json/json_value.h>
 
+#include <util/stream/output.h>
 #include <util/string/join.h>
 
 

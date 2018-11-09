@@ -1,15 +1,25 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/output_file_options.h>
-#include <catboost/libs/options/analytical_mode_params.h>
-#include <catboost/libs/logging/logging.h>
 
+#include <library/getopt/small/last_getopt_opts.h>
+#include <library/grid_creator/binarization.h>
 #include <library/logger/log.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/serialized_enum.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/vector.h>
+#include <util/string/cast.h>
+#include <util/string/iterator.h>
 #include <util/string/join.h>
+#include <util/string/split.h>
 #include <util/system/yassert.h>
 
 
