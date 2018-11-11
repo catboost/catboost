@@ -11,6 +11,8 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/train_lib/train_model.h>
 
+#include <library/object_factory/object_factory.h>
+
 #include <util/generic/ptr.h>
 
 

@@ -8,7 +8,6 @@
 #include <catboost/cuda/cuda_lib/memory_copy_performance.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/data/load_data.h>
-#include <catboost/cuda/data/cat_feature_perfect_hash.h>
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
