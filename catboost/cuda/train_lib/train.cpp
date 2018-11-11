@@ -3,29 +3,37 @@
 #include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_lib/devices_provider.h>
-#include <catboost/cuda/cuda_lib/memory_copy_performance.h>
-#include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
-#include <catboost/cuda/models/additive_model.h>
-#include <catboost/cuda/models/oblivious_model.h>
 
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/defaults_helper.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/train_lib/preprocess.h>
 
 #include <library/json/json_prettifier.h>
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
 
+#include <util/folder/path.h>
 #include <util/generic/scope.h>
+#include <util/system/compiler.h>
+#include <util/system/guard.h>
 #include <util/system/info.h>
+#include <util/system/spinlock.h>
+#include <util/system/yassert.h>
+
 
 class TGPUModelTrainer: public IModelTrainer {
 public:
