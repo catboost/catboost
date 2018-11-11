@@ -389,11 +389,11 @@ namespace NCB {
     }
 
     void TCoreModelToFullModelConverter::Do(
-            const TString& fullModelPath,
-            const TVector<EModelType>& formats,
-            bool addFileFormatExtension,
-            const TVector<TString>* featureId,
-            const THashMap<int, TString>* catFeaturesHashToString
+        const TString& fullModelPath,
+        const TVector<EModelType>& formats,
+        bool addFileFormatExtension,
+        const TVector<TString>* featureId,
+        const THashMap<int, TString>* catFeaturesHashToString
     ) {
         TFullModel& model = GetCoreModelFunc();
         Do(&model, false);
