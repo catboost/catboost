@@ -1,4 +1,4 @@
-#include "model_calcer_wrapper.h"
+#include "c_api.h"
 
 #include <catboost/libs/model/model.h>
 
