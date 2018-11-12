@@ -77,8 +77,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\model_interface\model_calcer_wrapper.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\model_interface\model_calcer_wrapper.h"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\model_interface\c_api.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\model_interface\c_api.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
