@@ -37,7 +37,7 @@ def get_so_paths(dir_name):
 def get_catboost_bin_module():
     if '_catboost' in sys.modules:
         return sys.modules['_catboost']
-    so_paths = get_so_paths('./gpu') + get_so_paths('./')
+    so_paths = get_so_paths('./')
     for so_path in so_paths:
         try:
             loaded_catboost = imp.load_dynamic('_catboost', so_path)
