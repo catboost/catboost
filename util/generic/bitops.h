@@ -430,8 +430,8 @@ constexpr T RotateBitsRightCT(T value, const ui8 shift) noexcept {
  */
 template <size_t Offset, size_t Size, class T>
 Y_FORCE_INLINE T SelectBits(T value) {
-    Y_ASSERT(Size < sizeof(T) * 8);
-    Y_ASSERT(Offset < sizeof(T) * 8);
+    static_assert(Size < sizeof(T) * 8, "violated: Size < sizeof(T) * 8");
+    static_assert(Offset < sizeof(T) * 8, "violated: Offset < sizeof(T) * 8");
     T id = 1;
     return (value >> Offset) & ((id << Size) - id);
 }
@@ -441,8 +441,8 @@ Y_FORCE_INLINE T SelectBits(T value) {
  */
 template <size_t Offset, size_t Size, class T>
 void SetBits(T& value, T bits) {
-    Y_ASSERT(Size < sizeof(T) * 8);
-    Y_ASSERT(Offset < sizeof(T) * 8);
+    static_assert(Size < sizeof(T) * 8, "violated: Size < sizeof(T) * 8");
+    static_assert(Offset < sizeof(T) * 8, "violated: Offset < sizeof(T) * 8");
     T id = 1;
     T maxValue = ((id << Size) - id);
     Y_ASSERT(bits <= maxValue);
