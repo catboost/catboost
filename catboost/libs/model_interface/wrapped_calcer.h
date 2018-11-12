@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model_calcer_wrapper.h"
+#include "c_api.h"
 
 #include <string>
 #include <array>
@@ -122,22 +122,31 @@ public:
         size_t floatFeatureCount = 0;
 
         for (const auto& floatFeatureVec : floatFeatures) {
-            floatFeatureCount = floatFeatureVec.size();
+            if (floatFeatureCount == 0) {
+                floatFeatureCount = floatFeatureVec.size();
+            }
             floatPtrsVector.push_back(floatFeatureVec.data());
         }
 
         size_t catFeatureCount = 0;
         size_t currentOffset = 0;
         for (const auto& stringVec : catFeatures) {
-            catFeatureCount = stringVec.size();
             if (catFeatureCount == 0) {
-                break;
+                catFeatureCount = stringVec.size();
             }
-            for (const auto& string : stringVec) {
-                catFeaturesPtrsVector.push_back(string.data());
+            if (catFeatureCount != stringVec.size()) {
+                throw std::runtime_error("All categorical feature vectors should be of the same length");
             }
-            charPtrPtrsVector.push_back(catFeaturesPtrsVector.data() + currentOffset);
-            currentOffset += catFeatureCount;
+        }
+        if (catFeatureCount != 0) {
+            catFeaturesPtrsVector.reserve(catFeatures.size() * catFeatureCount);
+            for (const auto& stringVec : catFeatures) {
+                for (const auto& string : stringVec) {
+                    catFeaturesPtrsVector.push_back(string.data());
+                }
+                charPtrPtrsVector.push_back(catFeaturesPtrsVector.data() + currentOffset);
+                currentOffset += catFeatureCount;
+            }
         }
 
         if (!CalcModelPrediction(
@@ -203,23 +212,23 @@ public:
     }
 
     size_t GetTreeCount() const {
-        return GetTreeCount(CalcerHolder.get());
+        return ::GetTreeCount(CalcerHolder.get());
     }
 
     size_t GetFloatFeaturesCount() const {
-        return GetFloatFeaturesCount(CalcerHolder.get());
+        return ::GetFloatFeaturesCount(CalcerHolder.get());
     }
 
     size_t GetCatFeaturesCount() const {
-        return GetCatFeaturesCount(CalcerHolder.get());
+        return ::GetCatFeaturesCount(CalcerHolder.get());
     }
 
     bool CheckMetadataHasKey(const std::string& key) {
-        return CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
+        return ::CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
     }
 
     std::string GetMetadataKeyValue(const std::string& key) {
-        if (!check_metadata_has_key(key)) {
+        if (!CheckMetadataHasKey(key)) {
             return "";
         }
         size_t value_size = GetModelInfoValueSize(CalcerHolder.get(), key.c_str(), key.size());
