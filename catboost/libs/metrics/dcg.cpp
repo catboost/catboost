@@ -1,10 +1,12 @@
 #include "dcg.h"
 #include "doc_comparator.h"
 #include "sample.h"
-#include <util/generic/ymath.h>
+
 #include <util/generic/algorithm.h>
-#include <util/generic/maybe.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
+#include <util/generic/vector.h>
+#include <util/generic/ymath.h>
 
 using NMetrics::TSample;
 
