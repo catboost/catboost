@@ -206,6 +206,14 @@ public:
         return GetTreeCount(CalcerHolder.get());
     }
 
+    size_t GetFloatFeaturesCount() const {
+        return GetFloatFeaturesCount(CalcerHolder.get());
+    }
+
+    size_t GetCatFeaturesCount() const {
+        return GetCatFeaturesCount(CalcerHolder.get());
+    }
+
     bool CheckMetadataHasKey(const std::string& key) {
         return CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
     }
