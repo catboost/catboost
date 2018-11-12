@@ -189,19 +189,28 @@ public:
         return result;
     }
 
-    bool init_from_file(const std::string& filename) {
+
+    bool InitFromFile(const std::string& filename) {
         return LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
     }
 
-    size_t get_tree_count() const {
+    bool InitFromMemory(const void* pointer, size_t size) {
+        return LoadFullModelFromBuffer(CalcerHolder.get(), pointer, size);
+    }
+
+    bool init_from_file(const std::string& filename) {  // TODO(kirillovs): mark as deprecated
+        return InitFromFile(filename);
+    }
+
+    size_t GetTreeCount() const {
         return GetTreeCount(CalcerHolder.get());
     }
 
-    bool check_metadata_has_key(const std::string& key) {
+    bool CheckMetadataHasKey(const std::string& key) {
         return CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
     }
 
-    std::string get_metadata_key_value(const std::string& key) {
+    std::string GetMetadataKeyValue(const std::string& key) {
         if (!check_metadata_has_key(key)) {
             return "";
         }
