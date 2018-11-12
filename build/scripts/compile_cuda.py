@@ -66,6 +66,16 @@ def main():
     for prefix in skip_prefix_list:
         cflags = [i for i in cflags if not i.startswith(prefix)]
 
+    if not is_clang(command):
+        def good(arg):
+            if arg.startswith('--target='):
+                return False
+            if arg in ('-Wno-exceptions',
+                       '-Wno-inconsistent-missing-override'):
+                return False
+            return True
+        cflags = filter(good, cflags)
+
     cpp_args = []
     compiler_args = []
 
@@ -103,7 +113,8 @@ def main():
         compiler_args.append(arg)
 
     command += cpp_args
-    command += ['--compiler-options', ','.join(compiler_args)]
+    if compiler_args:
+        command += ['--compiler-options', ','.join(compiler_args)]
 
     if dump_args:
         sys.stdout.write('\n'.join(command))
