@@ -1,6 +1,8 @@
 #pragma once
 
 #include <utility>
+
+#include "maybe_traits.h"
 #include "yexception.h"
 
 #include <util/system/align.h>
@@ -37,91 +39,72 @@ constexpr bool operator==(TNothing, TNothing) noexcept {
 }
 
 template <class T, class Policy /*= ::NMaybe::TPolicyUndefinedExcept*/>
-class TMaybe {
+class TMaybe : private TMaybeBase<T> {
 public:
-    struct TInPlace {
-    };
+    using TInPlace = NMaybe::TInPlace;
 
-    static_assert(!std::is_same<std::remove_cv_t<T>, TNothing>::value, "Instantiation of TMaybe with a TNothing type is ill-formed");
-    static_assert(!std::is_same<std::remove_cv_t<T>, TInPlace>::value, "Instantiation of TMaybe with a TInPlace type is ill-formed");
-    static_assert(!std::is_reference<T>::value, "Instantiation of TMaybe with reference type is ill-formed");
-    static_assert(std::is_destructible<T>::value, "Instantiation of TMaybe with non-destructible type is ill-formed");
-
-    template <class U>
-    using TConstructibleFromMaybeSomehow = std::integral_constant<bool,
-                                                                  std::is_constructible<T, TMaybe<U, Policy>&>::value ||
-                                                                      std::is_constructible<T, const TMaybe<U, Policy>&>::value ||
-                                                                      std::is_constructible<T, TMaybe<U, Policy>&&>::value ||
-                                                                      std::is_constructible<T, const TMaybe<U, Policy>&&>::value ||
-                                                                      std::is_convertible<TMaybe<U, Policy>&, T>::value ||
-                                                                      std::is_convertible<const TMaybe<U, Policy>&, T>::value ||
-                                                                      std::is_convertible<TMaybe<U, Policy>&&, T>::value ||
-                                                                      std::is_convertible<const TMaybe<U, Policy>&&, T>::value>;
+private:
+    static_assert(!std::is_same<std::remove_cv_t<T>, TNothing>::value,
+                  "Instantiation of TMaybe with a TNothing type is ill-formed");
+    static_assert(!std::is_same<std::remove_cv_t<T>, TInPlace>::value,
+                  "Instantiation of TMaybe with a TInPlace type is ill-formed");
+    static_assert(!std::is_reference<T>::value,
+                  "Instantiation of TMaybe with reference type is ill-formed");
+    static_assert(std::is_destructible<T>::value,
+                  "Instantiation of TMaybe with non-destructible type is ill-formed");
 
     template <class U>
-    using TAssignableFromMaybeSomehow = std::integral_constant<bool,
-                                                               TConstructibleFromMaybeSomehow<U>::value ||
-                                                                   std::is_assignable<T&, TMaybe<U, Policy>&>::value ||
-                                                                   std::is_assignable<T&, const TMaybe<U, Policy>&>::value ||
-                                                                   std::is_assignable<T&, TMaybe<U, Policy>&&>::value ||
-                                                                   std::is_assignable<T&, const TMaybe<U, Policy>&&>::value>;
+    using TConstructibleFromMaybeSomehow = TDisjunction<std::is_constructible<T, TMaybe<U, Policy>&>,
+                                                        std::is_constructible<T, const TMaybe<U, Policy>&>,
+                                                        std::is_constructible<T, TMaybe<U, Policy>&&>,
+                                                        std::is_constructible<T, const TMaybe<U, Policy>&&>,
+                                                        std::is_convertible<TMaybe<U, Policy>&, T>,
+                                                        std::is_convertible<const TMaybe<U, Policy>&, T>,
+                                                        std::is_convertible<TMaybe<U, Policy>&&, T>,
+                                                        std::is_convertible<const TMaybe<U, Policy>&&, T>>;
 
-    using TValueType = T;
+    template <class U>
+    using TAssignableFromMaybeSomehow = TDisjunction<TConstructibleFromMaybeSomehow<U>,
+                                                     std::is_assignable<T&, TMaybe<U, Policy>&>,
+                                                     std::is_assignable<T&, const TMaybe<U, Policy>&>,
+                                                     std::is_assignable<T&, TMaybe<U, Policy>&&>,
+                                                     std::is_assignable<T&, const TMaybe<U, Policy>&&>>;
 
-    constexpr TMaybe() noexcept {
-    }
+    using TBase = TMaybeBase<T>;
 
-    template <class... TArgs>
-    constexpr explicit TMaybe(TInPlace, TArgs&&... args)
-        : Defined_(true)
-        , Data_(std::forward<TArgs>(args)...)
-    {
-    }
+public:
+    using value_type = T;
+    using TValueType = value_type;
+
+    TMaybe() noexcept = default;
+
+    constexpr TMaybe(const TMaybe&) = default;
+    constexpr TMaybe(TMaybe&&) = default;
+
+    template <class... Args>
+    constexpr explicit TMaybe(TInPlace, Args&&... args)
+        : TBase(TInPlace{}, std::forward<Args>(args)...) {}
 
     template <class U, class... TArgs>
     constexpr explicit TMaybe(TInPlace, std::initializer_list<U> il, TArgs&&... args)
-        : Defined_(true)
-        , Data_(il, std::forward<TArgs>(args)...)
-    {
-    }
+        : TBase(TInPlace{}, il, std::forward<TArgs>(args)...) {}
 
-    constexpr TMaybe(TNothing) noexcept {
-    }
+    constexpr TMaybe(TNothing) noexcept {}
 
     constexpr TMaybe(const T& right)
-        : Defined_(true)
-        , Data_(right)
-    {
-    }
+        : TBase(TInPlace{}, right) {}
 
     constexpr TMaybe(T&& right)
-        : Defined_(true)
-        , Data_(std::move(right))
-    {
-    }
+        : TBase(TInPlace{}, std::move(right)) {}
 
-    inline TMaybe(const TMaybe& right)
-        : Defined_(right.Defined_)
-    {
-        if (Defined_) {
-            new (Data()) T(right.Data_);
-        }
-    }
-
-    inline TMaybe(TMaybe&& right) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : Defined_(right.Defined_)
-    {
-        if (Defined_) {
-            new (Data()) T(std::move(right.Data_));
-        }
-    }
-
-    template <class U, class = std::enable_if_t<std::is_constructible<T, const U&>::value && std::is_convertible<const U&, T>::value && !TConstructibleFromMaybeSomehow<U>::value>>
-    inline TMaybe(const TMaybe<U, Policy>& right)
-        : Defined_(right.Defined())
-    {
-        if (Defined_) {
+    template <class U, class = std::enable_if_t<
+        std::is_constructible<T, const U&>::value
+        && std::is_convertible<const U&, T>::value
+        && !TConstructibleFromMaybeSomehow<U>::value>>
+    TMaybe(const TMaybe<U, Policy>& right) {
+        if (right.Defined()) {
             new (Data()) T(right.GetRef());
+            this->Defined_ = true;
         }
     }
 
@@ -131,20 +114,21 @@ public:
                       !std::is_convertible<const U&, T>::value &&
                       !TConstructibleFromMaybeSomehow<U>::value,
                   bool> = false>
-    inline explicit TMaybe(const TMaybe<U, Policy>& right)
-        : Defined_(right.Defined())
-    {
-        if (Defined_) {
+    explicit TMaybe(const TMaybe<U, Policy>& right) {
+        if (right.Defined()) {
             new (Data()) T(right.GetRef());
+            this->Defined_ = true;
         }
     }
 
-    template <class U, class = std::enable_if_t<std::is_constructible<T, const U&>::value && std::is_convertible<const U&, T>::value && !TConstructibleFromMaybeSomehow<U>::value>>
-    inline TMaybe(TMaybe<U, Policy>&& right) noexcept(std::is_nothrow_constructible<T, U&&>::value)
-        : Defined_(right.Defined())
-    {
-        if (Defined_) {
+    template <class U, class = std::enable_if_t<
+        std::is_constructible<T, const U&>::value
+        && std::is_convertible<const U&, T>::value
+        && !TConstructibleFromMaybeSomehow<U>::value>>
+    TMaybe(TMaybe<U, Policy>&& right) noexcept(std::is_nothrow_constructible<T, U&&>::value) {
+        if (right.Defined()) {
             new (Data()) T(std::move(right.GetRef()));
+            this->Defined_ = true;
         }
     }
 
@@ -154,31 +138,26 @@ public:
                       !std::is_convertible<U&&, T>::value &&
                       !TConstructibleFromMaybeSomehow<U>::value,
                   bool> = false>
-    inline explicit TMaybe(TMaybe<U, Policy>&& right) noexcept(std::is_nothrow_constructible<T, U&&>::value)
-        : Defined_(right.Defined())
+    explicit TMaybe(TMaybe<U, Policy>&& right) noexcept(
+        std::is_nothrow_constructible<T, U&&>::value)
     {
-        if (Defined_) {
+        if (right.Defined()) {
             new (Data()) T(std::move(right.GetRef()));
+            this->Defined_ = true;
         }
     }
 
-    inline ~TMaybe() {
-        Clear();
-    }
+    ~TMaybe() = default;
 
-    template <typename... Args>
-    inline T& ConstructInPlace(Args&&... args) {
-        Clear();
-        Init(std::forward<Args>(args)...);
-        return *Data();
-    }
+    TMaybe& operator=(const TMaybe&) = default;
+    TMaybe& operator=(TMaybe&&) = default;
 
-    inline TMaybe& operator=(TNothing) noexcept {
+    TMaybe& operator=(TNothing) noexcept {
         Clear();
         return *this;
     }
 
-    inline TMaybe& operator=(const T& right) {
+    TMaybe& operator=(const T& right) {
         if (Defined()) {
             *Data() = right;
         } else {
@@ -188,7 +167,7 @@ public:
         return *this;
     }
 
-    inline TMaybe& operator=(T&& right) {
+    TMaybe& operator=(T&& right) {
         if (Defined()) {
             *Data() = std::move(right);
         } else {
@@ -198,29 +177,11 @@ public:
         return *this;
     }
 
-    inline TMaybe& operator=(const TMaybe& right) {
-        if (right.Defined()) {
-            operator=(*right.Data());
-        } else {
-            Clear();
-        }
-
-        return *this;
-    }
-
-    inline TMaybe& operator=(TMaybe&& right) noexcept(std::is_nothrow_move_assignable<T>::value&&
-                                                          std::is_nothrow_move_constructible<T>::value) {
-        if (right.Defined()) {
-            operator=(std::move(*right.Data()));
-        } else {
-            Clear();
-        }
-
-        return *this;
-    }
-
-    template <class U, class = std::enable_if_t<std::is_constructible<T, const U&>::value && std::is_assignable<T&, const U&>::value && !TAssignableFromMaybeSomehow<U>::value>>
-    inline TMaybe& operator=(const TMaybe<U, Policy>& right) {
+    template <class U, class = std::enable_if_t<
+        std::is_constructible<T, const U&>::value
+        && std::is_assignable<T&, const U&>::value
+        && !TAssignableFromMaybeSomehow<U>::value>>
+    TMaybe& operator=(const TMaybe<U, Policy>& right) {
         if (right.Defined()) {
             if (Defined()) {
                 GetRef() = right.GetRef();
@@ -234,9 +195,14 @@ public:
         return *this;
     }
 
-    template <class U, class = std::enable_if_t<std::is_constructible<T, U&&>::value && std::is_assignable<T&, U&&>::value && !TAssignableFromMaybeSomehow<U>::value>>
-    inline TMaybe& operator=(TMaybe<U, Policy>&& right) noexcept(std::is_nothrow_assignable<T&, U&&>::value&&
-                                                             std::is_nothrow_constructible<T, U&&>::value) {
+    template <class U, class = std::enable_if_t<
+        std::is_constructible<T, U&&>::value
+        && std::is_assignable<T&, U&&>::value
+        && !TAssignableFromMaybeSomehow<U>::value>>
+    TMaybe& operator=(TMaybe<U, Policy>&& right) noexcept(
+        std::is_nothrow_assignable<T&, U&&>::value
+        && std::is_nothrow_constructible<T, U&&>::value)
+    {
         if (right.Defined()) {
             if (Defined()) {
                 GetRef() = std::move(right.GetRef());
@@ -250,77 +216,84 @@ public:
         return *this;
     }
 
-    inline void Clear() {
+    template <typename... Args>
+    T& ConstructInPlace(Args&&... args) {
+        Clear();
+        Init(std::forward<Args>(args)...);
+        return *Data();
+    }
+
+    void Clear() noexcept {
         if (Defined()) {
-            Defined_ = false;
+            this->Defined_ = false;
             Data()->~T();
         }
     }
 
-    inline bool Defined() const noexcept {
-        return Defined_;
+    constexpr bool Defined() const noexcept {
+        return this->Defined_;
     }
 
     Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
+    constexpr bool Empty() const noexcept {
         return !Defined();
     }
 
-    inline void CheckDefined() const {
+    void CheckDefined() const {
         if (!Defined()) {
             Policy::OnEmpty();
         }
     }
 
-    inline const T* Get() const noexcept {
+    const T* Get() const noexcept {
         return Defined() ? Data() : nullptr;
     }
 
-    inline T* Get() noexcept {
+    T* Get() noexcept {
         return Defined() ? Data() : nullptr;
     }
 
-    inline const T& GetRef() const {
+    constexpr const T& GetRef() const {
         CheckDefined();
 
         return *Data();
     }
 
-    inline T& GetRef() {
+    constexpr T& GetRef() {
         CheckDefined();
 
         return *Data();
     }
 
-    inline const T& operator*() const {
+    constexpr const T& operator*() const {
         return GetRef();
     }
 
-    inline T& operator*() {
+    constexpr T& operator*() {
         return GetRef();
     }
 
-    inline const T* operator->() const {
+    constexpr const T* operator->() const {
         return &GetRef();
     }
 
-    inline T* operator->() {
+    constexpr T* operator->() {
         return &GetRef();
     }
 
-    inline const T& GetOrElse(const T& elseValue) const {
+    constexpr const T& GetOrElse(const T& elseValue) const {
         return Defined() ? *Data() : elseValue;
     }
 
-    inline T& GetOrElse(T& elseValue) {
+    constexpr T& GetOrElse(T& elseValue) {
         return Defined() ? *Data() : elseValue;
     }
 
-    inline const TMaybe& OrElse(const TMaybe& elseValue) const noexcept {
+    constexpr const TMaybe& OrElse(const TMaybe& elseValue) const noexcept {
         return Defined() ? *this : elseValue;
     }
 
-    inline TMaybe& OrElse(TMaybe& elseValue) {
+    constexpr TMaybe& OrElse(TMaybe& elseValue) {
         return Defined() ? *this : elseValue;
     }
 
@@ -330,7 +303,7 @@ public:
     }
 
     constexpr explicit operator bool() const noexcept {
-        return Defined_;
+        return Defined();
     }
 
     void Save(IOutputStream* out) const {
@@ -359,7 +332,7 @@ public:
         }
     }
 
-    inline void Swap(TMaybe& other) {
+    void Swap(TMaybe& other) {
         if (this->Defined_ == other.Defined_) {
             if (this->Defined_) {
                 ::DoSwap(this->Data_, other.Data_);
@@ -375,29 +348,23 @@ public:
         }
     }
 
-    inline void swap(TMaybe& other) {
+    void swap(TMaybe& other) {
         Swap(other);
     }
 
 private:
-    bool Defined_{false};
-    union {
-        char NullState_{'\0'};
-        T Data_;
-    };
-
-    inline const T* Data() const noexcept {
-        return std::addressof(Data_);
+    constexpr const T* Data() const noexcept {
+        return std::addressof(this->Data_);
     }
 
-    inline T* Data() noexcept {
-        return std::addressof(Data_);
+    constexpr T* Data() noexcept {
+        return std::addressof(this->Data_);
     }
 
     template <typename... Args>
-    inline void Init(Args&&... args) {
+    void Init(Args&&... args) {
         new (Data()) T(std::forward<Args>(args)...);
-        Defined_ = true;
+        this->Defined_ = true;
     }
 };
 
@@ -665,7 +632,7 @@ constexpr bool operator>=(const U& value, const TMaybe<T, TPolicy>& maybe) {
 class IOutputStream;
 
 template <class T, class TPolicy>
-static inline IOutputStream& operator<<(IOutputStream& out, const TMaybe<T, TPolicy>& maybe) {
+inline IOutputStream& operator<<(IOutputStream& out, const TMaybe<T, TPolicy>& maybe) {
     if (maybe.Defined()) {
         out << *maybe;
     } else {

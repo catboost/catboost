@@ -21,6 +21,24 @@ public:
 };
 
 Y_UNIT_TEST_SUITE(TMaybeTest) {
+    Y_UNIT_TEST(TestStatic) {
+        using T1 = TMaybe<int>;
+        static_assert(std::is_trivially_copy_constructible<T1>::value, "");
+        static_assert(std::is_trivially_destructible<T1>::value, "");
+
+        using T2 = TMaybe<TString*>;
+        static_assert(std::is_trivially_copy_constructible<T2>::value, "");
+        static_assert(std::is_trivially_destructible<T2>::value, "");
+
+        using T3 = TMaybe<TMaybe<double>>;
+        static_assert(std::is_trivially_copy_constructible<T3>::value, "");
+        static_assert(std::is_trivially_destructible<T3>::value, "");
+
+        using T4 = TMaybe<TString>;
+        static_assert(!std::is_trivially_copy_constructible<T4>::value, "");
+        static_assert(!std::is_trivially_destructible<T4>::value, "");
+    }
+
     Y_UNIT_TEST(TestWarning) {
         TMaybe<size_t> x;
         TStringStream ss;
