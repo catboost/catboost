@@ -192,6 +192,23 @@ public:
     bool init_from_file(const std::string& filename) {
         return LoadFullModelFromFile(CalcerHolder.get(), filename.c_str());
     }
+
+    size_t get_tree_count() const {
+        return GetTreeCount(CalcerHolder.get());
+    }
+
+    bool check_metadata_has_key(const std::string& key) {
+        return CheckModelMetadataHasKey(CalcerHolder.get(), key.c_str(), key.size());
+    }
+
+    std::string get_metadata_key_value(const std::string& key) {
+        if (!check_metadata_has_key(key)) {
+            return "";
+        }
+        size_t value_size = GetModelInfoValueSize(CalcerHolder.get(), key.c_str(), key.size());
+        const char* value_ptr = GetModelInfoValue(CalcerHolder.get(), key.c_str(), key.size());
+        return std::string(value_ptr, value_size);
+    }
 private:
     using CalcerHolderType = std::unique_ptr<ModelCalcerHandle, std::function<void(ModelCalcerHandle*)>>;
     CalcerHolderType CalcerHolder;
