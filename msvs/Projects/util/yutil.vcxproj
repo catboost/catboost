@@ -309,6 +309,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\generic\map.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\mapfindptr.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\maybe.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\maybe_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\mem_copy.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\noncopyable.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\object_counter.h"/>
