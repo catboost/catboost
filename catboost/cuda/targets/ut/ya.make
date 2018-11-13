@@ -12,7 +12,10 @@ ENDIF()
 
 
 PEERDIR(
+    catboost/cuda/cuda_lib
+    catboost/cuda/cuda_util
     catboost/cuda/targets
+    catboost/cuda/ut_helpers
     catboost/libs/metrics
     catboost/libs/helpers
 )
