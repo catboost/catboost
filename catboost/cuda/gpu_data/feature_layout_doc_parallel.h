@@ -1,17 +1,25 @@
 #pragma once
 
+#include "feature_layout_common.h"
+
+#include "cuda_features_helper.h"
 #include "gpu_structures.h"
 #include "grid_policy.h"
-#include "feature_layout_common.h"
 #include "kernels.h"
-#include "cuda_features_helper.h"
 
-#include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/cuda/cuda_util/fill.h>
-#include <catboost/cuda/data/feature.h>
-#include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#include <catboost/cuda/cuda_lib/mapping.h>
+#include <catboost/cuda/cuda_lib/slice.h>
+
+#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/libs/helpers/exception.h>
+
+#include <util/generic/ptr.h>
+#include <util/random/shuffle.h>
+
+#include <algorithm>
+
 
 namespace NCatboostCuda {
 
