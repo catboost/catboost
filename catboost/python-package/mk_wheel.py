@@ -180,7 +180,7 @@ def make_record(dir_path, dist_info_dir):
         tmp_dir_length = len(dir_path) + 1
         for item in wheel_items:
             if item != record_filename:
-                record.write(item[tmp_dir_length:] + ',sha256=' + urlsafe_b64encode(calc_sha256_digest(item))[:-1] + ',' + str(os.path.getsize(item)) + '\n')
+                record.write(item[tmp_dir_length:] + ',sha256=' + urlsafe_b64encode(calc_sha256_digest(item)).decode('ascii') + ',' + str(os.path.getsize(item)) + '\n')
             else:
                 record.write(item[tmp_dir_length:] + ',,\n')
 
@@ -246,8 +246,9 @@ def build(arc_root, out_root, tail_args):
             make_wheel(wheel_name, pkg_name, ver, arc_root, dst)
             os.remove(dst)
             return wheel_name
-        except Exception:
-            print('{} version build failed'.format(task_type), file=sys.stderr)
+        except Exception as e:
+            print('{} version build failed: {}'.format(task_type, e), file=sys.stderr)
+        raise Exception('Nothing built')
 
 
 if __name__ == '__main__':
