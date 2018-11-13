@@ -1,3 +1,15 @@
+# Release 0.11.1
+## Changes: 
+* Accelerated formula evaluation by ~15%
+* Improved model application interface
+* Improved compilation time for building GPU version
+* Better handling of stray commas in list arguments
+* Added a benchmark that employs Rossman Store Sales dataset to compare quality of GBDT packages
+* Added references to Catboost papers in R-package CITATION file
+* Fixed a build issue in compilation for GPU
+* Fixed a bug in model applicator
+* Fixed model conversion, #533 
+
 # Release 0.11.0
 ## Changes:
 * Changed default border count for float feature binarization to 254 on CPU to achieve better quality
