@@ -248,7 +248,7 @@ def build(arc_root, out_root, tail_args):
             return wheel_name
         except Exception as e:
             print('{} version build failed: {}'.format(task_type, e), file=sys.stderr)
-        raise Exception('Nothing built')
+    raise Exception('Nothing built')
 
 
 if __name__ == '__main__':
