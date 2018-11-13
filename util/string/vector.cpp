@@ -128,19 +128,3 @@ TUtf16String JoinStrings(const TVector<TUtf16String>& v, size_t index, size_t co
 
     return JoinStrings(v.begin() + f, v.begin() + l, delim);
 }
-
-size_t SplitString(char* str, char delim, char* tokens[], size_t maxCount) {
-    if (!str)
-        return 0;
-
-    size_t i = 0;
-    while (i < maxCount) {
-        tokens[i++] = str;
-        str = strchr(str, delim);
-        if (!str)
-            break;
-        *str++ = 0;
-    }
-
-    return i;
-}

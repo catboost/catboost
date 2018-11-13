@@ -2,7 +2,7 @@ import os
 from _common import rootrel_arc_src
 
 
-go_root = os.path.join('contrib', 'go', 'src') + os.path.sep
+go_root = os.path.join('contrib', 'go', '_std', 'src') + os.path.sep
 runtime_cgo_path = os.path.join('runtime', 'cgo')
 runtime_msan_path = os.path.join('runtime', 'msan')
 runtime_race_path = os.path.join('runtime', 'race')

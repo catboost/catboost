@@ -94,10 +94,6 @@ public:
         {
         }
 
-        const value_type& Value() const noexcept {
-            return Cur_;
-        }
-
         inline bool operator==(const TIterator& it) const noexcept {
             return Cur_ == it.Cur_;
         }

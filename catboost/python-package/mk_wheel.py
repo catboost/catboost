@@ -7,6 +7,9 @@ import stat
 import sys
 import platform
 import tempfile
+import hashlib
+
+from base64 import urlsafe_b64encode
 
 
 sys.dont_write_bytecode = True
@@ -155,6 +158,33 @@ def allow_to_write(path):
     os.chmod(path, st.st_mode | stat.S_IWRITE)
 
 
+def calc_sha256_digest(filename):
+    sha256 = hashlib.sha256()
+    with open(filename, 'rb') as f:
+        while True:
+            chunk_size = 65536
+            data = f.read(chunk_size)
+            if not data:
+                break
+            sha256.update(data)
+    return sha256.digest()
+
+
+def make_record(dir_path, dist_info_dir):
+    record_filename = os.path.join(dist_info_dir, 'RECORD')
+    with open(record_filename, 'w') as record:
+        wheel_items = []
+        for root, dirnames, filenames in os.walk(dir_path):
+            for filename in filenames:
+                wheel_items.append(os.path.join(root, filename))
+        tmp_dir_length = len(dir_path) + 1
+        for item in wheel_items:
+            if item != record_filename:
+                record.write(item[tmp_dir_length:] + ',sha256=' + urlsafe_b64encode(calc_sha256_digest(item))[:-1] + ',' + str(os.path.getsize(item)) + '\n')
+            else:
+                record.write(item[tmp_dir_length:] + ',,\n')
+
+
 def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
     dir_path = tempfile.mkdtemp()
 
@@ -186,6 +216,10 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
             fm.write(metadata)
     substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
     substitute_vars(os.path.join(dist_info_dir, 'top_level.txt'))
+
+    # Create record
+    make_record(dir_path, dist_info_dir)
+
     # Create wheel
     shutil.make_archive(wheel_name, 'zip', dir_path)
     shutil.move(wheel_name + '.zip', wheel_name)

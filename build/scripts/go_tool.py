@@ -6,16 +6,22 @@ import sys
 import tempfile
 
 
-contrib_go_src_prefix = 'contrib/go/src/'
+arcadia_project_prefix = 'a.yandex-team.ru/'
+contrib_go_std_src_prefix = 'contrib/go/_std/src/'
+contrib_go_prefix = 'vendor/'
 vendor_prefix = 'vendor/'
 
 
 def get_import_path(module_path):
     assert len(module_path) > 0
     import_path = module_path.replace('\\', '/')
-    is_std_module = import_path.startswith(contrib_go_src_prefix)
+    is_std_module = import_path.startswith(contrib_go_std_src_prefix)
     if is_std_module:
-        import_path = import_path[len(contrib_go_src_prefix):]
+        import_path = import_path[len(contrib_go_std_src_prefix):]
+    elif import_path.startswith(contrib_go_prefix):
+        import_path = import_path[len(contrib_go_prefix):]
+    else:
+        import_path = arcadia_project_prefix + import_path
     assert len(import_path) > 0
     return import_path, is_std_module
 
@@ -66,7 +72,7 @@ def do_compile_go(args):
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     else:
-        if import_path == 'contrib/go/src/unsafe' or len(args.objects) > 0 or args.asmhdr:
+        if import_path == 'unsafe' or len(args.objects) > 0 or args.asmhdr:
             pass
         else:
             cmd.append('-complete')

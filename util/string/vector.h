@@ -86,15 +86,6 @@ SplitString(const typename ::NPrivate::TStringDeducer<C>::type& str, const C* de
     return SplitString(~str, +str, delimiter, maxFields, options);
 }
 
-/// Splits input string by given delimiter character.
-/*! @param[in, out] str input string
-        (will be modified: delimiter will be replaced by NULL character)
-    @param[in] delim delimiter character
-    @param[out] arr output array of substrings
-    @param[in] maxCount max number of substrings to return
-    @return count of substrings
-*/
-size_t SplitString(char* str, char delim, char* arr[], size_t maxCount);
 
 void SplitStringBySet(TVector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
 void SplitStringBySet(TVector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0);
