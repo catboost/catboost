@@ -9,6 +9,8 @@
 * Fixed a build issue in compilation for GPU
 * Fixed a bug in model applicator
 * Fixed model conversion, #533 
+* Returned pre 0.11 behaviour for `best_score_` and `evals_result_` (issue #539)
+* Make valid RECORD in wheel (issue #534)
 
 # Release 0.11.0
 ## Changes:
