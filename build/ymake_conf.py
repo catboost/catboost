@@ -1210,7 +1210,7 @@ class GnuToolchain(Toolchain):
                 self.c_flags_platform.append('-fPIE')
                 if target.is_armv7_neon:
                     self.c_flags_platform.append('-mfpu=neon')
-                self.c_flags_platform.extend(('-fexceptions', '-fsigned-char'))
+                self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
@@ -1299,7 +1299,7 @@ class GnuCompiler(Compiler):
 
         self.extra_compile_opts = []
 
-        self.c_flags = self.tc.arch_opt + ['-pipe']
+        self.c_flags = self.tc.arch_opt + ['-pipe', '-fexceptions']
         self.c_only_flags = []
         self.cxx_flags = []
 
@@ -1909,7 +1909,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
