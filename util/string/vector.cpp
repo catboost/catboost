@@ -96,26 +96,12 @@ void SplitStringBySetImpl(TVector<T>* res, const typename T::char_type* ptr, con
     DoSplit0(res, TFixedString<typename T::char_type>(ptr), d, maxFields, options);
 }
 
-template <class T>
-void SplitStringBySetImpl(TVector<T>* res, const typename T::char_type* ptr, size_t len, const typename T::char_type* delimiters, size_t maxFields, int options) {
-    TSetDelimiter<const typename T::char_type> d(delimiters);
-    DoSplit0(res, TFixedString<typename T::char_type>(ptr, len), d, maxFields, options);
-}
-
 void SplitStringBySet(TVector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields, int options) {
     SplitStringBySetImpl<TString>(res, ptr, delimiters, maxFields, options);
 }
 
-void SplitStringBySet(TVector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields, int options) {
-    SplitStringBySetImpl<TString>(res, ptr, len, delimiters, maxFields, options);
-}
-
 void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields, int options) {
     SplitStringBySetImpl<TUtf16String>(res, ptr, delimiters, maxFields, options);
-}
-
-void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields, int options) {
-    SplitStringBySetImpl<TUtf16String>(res, ptr, len, delimiters, maxFields, options);
 }
 
 TUtf16String JoinStrings(const TVector<TUtf16String>& v, const TWtringBuf delim) {
