@@ -24,6 +24,7 @@ PEERDIR(
     catboost/libs/options
     library/binsaver
     library/containers/2d_array
+    library/dot_product
     library/threading/local_executor
 )
 

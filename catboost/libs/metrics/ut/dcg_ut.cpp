@@ -11,8 +11,8 @@ Y_UNIT_TEST(DCGTest) {
         TVector<double> approx{1.0, 0.0, 2.0};
         TVector<double> target{1.0, 0.0, 2.0};
         TVector<NMetrics::TSample> samples = NMetrics::TSample::FromVectors(target, approx);
-        UNIT_ASSERT_EQUAL(CalcNdcg(samples, ENdcgMetricType::Base), 1);
-        UNIT_ASSERT_EQUAL(CalcNdcg(samples, ENdcgMetricType::Exp), 1);
+        UNIT_ASSERT_VALUES_EQUAL(CalcNdcg(samples, ENdcgMetricType::Base), 1);
+        UNIT_ASSERT_VALUES_EQUAL(CalcNdcg(samples, ENdcgMetricType::Exp), 1);
     }
     {
         TVector<double> approx{1.0, 1.0, 2.0};
