@@ -71,6 +71,7 @@ Y_MAP_ARGS(
     (ui64, TSingleMapping),
     (float, TSingleMapping),
     (double, TSingleMapping),
+    (bool, TStripeMapping),
     (char, TStripeMapping),
     (i32, TStripeMapping),
     (ui32, TStripeMapping),

@@ -8,10 +8,15 @@
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/helpers.h>
 
+#include <util/generic/va_args.h>
+
 using NCatboostCuda::EAucType;
+using NCudaLib::TCudaBuffer;
+using NCudaLib::TMirrorMapping;
+using NCudaLib::TStripeMapping;
 
 template <class TFloat, class TMapping>
-static double ComputeAUC(
+static double ComputeAucImpl(
     const TCudaBuffer<TFloat, TMapping>& target,
     const TCudaBuffer<TFloat, TMapping>& weights,
     const TCudaBuffer<TFloat, TMapping>& cursor)
@@ -87,20 +92,24 @@ static double ComputeAUC(
     return auc / 2;
 }
 
-template <>
-double NCatboostCuda::ComputeAUC<const float, NCudaLib::TStripeMapping>(
-    const NCudaLib::TCudaBuffer<const float, NCudaLib::TStripeMapping>& target,
-    const NCudaLib::TCudaBuffer<const float, NCudaLib::TStripeMapping>& weights,
-    const NCudaLib::TCudaBuffer<const float, NCudaLib::TStripeMapping>& cursor)
-{
-    return ::ComputeAUC(target, weights, cursor);
-}
+#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
+    Y_CATBOOST_CUDA_F_IMPL x
 
-template <>
-double NCatboostCuda::ComputeAUC<const float, NCudaLib::TMirrorMapping>(
-    const NCudaLib::TCudaBuffer<const float, NCudaLib::TMirrorMapping>& target,
-    const NCudaLib::TCudaBuffer<const float, NCudaLib::TMirrorMapping>& weights,
-    const NCudaLib::TCudaBuffer<const float, NCudaLib::TMirrorMapping>& cursor)
-{
-    return ::ComputeAUC(target, weights, cursor);
-}
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)               \
+    template <>                                           \
+    double NCatboostCuda::ComputeAUC<T, TMapping>(        \
+        const TCudaBuffer<T, TMapping>& target,           \
+        const TCudaBuffer<T, TMapping>& weights,          \
+        const TCudaBuffer<T, TMapping>& cursor)           \
+    {                                                     \
+        return ::ComputeAucImpl(target, weights, cursor); \
+    }
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL_PROXY,
+    (float, TStripeMapping),
+    (const float, TMirrorMapping),
+    (const float, TStripeMapping));
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
