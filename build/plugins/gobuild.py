@@ -26,6 +26,12 @@ def on_go_process_srcs(unit):
     """
 
     go_files = get_appended_values(unit, 'GO_FILES_VALUE')
+
+    proto_files = filter(lambda x: x.endswith('.proto'), go_files)
+    if len(proto_files) > 0:
+        for f in proto_files:
+            unit.ongo_proto_cmd(f)
+
     s_files = filter(lambda x: x.endswith('.S'), go_files)
     c_files = filter(lambda x: x.endswith('.c'), go_files)
     if len(c_files) + len(s_files) > 0:
