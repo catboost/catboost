@@ -86,16 +86,6 @@ SplitString(const typename ::NPrivate::TStringDeducer<C>::type& str, const C* de
     return SplitString(~str, +str, delimiter, maxFields, options);
 }
 
-void SplitStringBySet(TVector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
-
-void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
-
-inline TVector<TString> SplitStringBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {
-    TVector<TString> res;
-    SplitStringBySet(&res, ptr, delimiters, maxFields, options);
-    return res;
-}
-
 template <class TIter>
 inline TString JoinStrings(TIter begin, TIter end, const TStringBuf delim) {
     if (begin == end)
