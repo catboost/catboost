@@ -166,6 +166,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
     if sys.version_info.major == 3:
         exceptions += [
+            "antigravity",
             "tkinter",
             "msvcrt",
             "msilib.*",
