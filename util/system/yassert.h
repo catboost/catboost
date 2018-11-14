@@ -78,7 +78,7 @@ inline bool YaIsDebuggerPresent() {
 #define Y_ASSERT(a)                            \
     do {                                       \
         if (false) {                           \
-            bool __xxx = static_cast<bool>(a); \
+            auto __xxx = static_cast<bool>(a); \
             Y_UNUSED(__xxx);                   \
         }                                      \
     } while (false)
