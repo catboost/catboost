@@ -73,7 +73,7 @@ namespace NCB {
         TConstArrayRef<TGroupId> groupIds,
         ui64 docCount
     ) {
-        CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond with object count.");
+        CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond to object count.");
         TVector<float> groupWeights;
         groupWeights.reserve(docCount);
         ui64 groupIdCursor = 0;
@@ -89,7 +89,7 @@ namespace NCB {
             const float groupWeight = FromString<float>(tokens[1]);
             ui64 groupSize = 0;
             CB_ENSURE(groupId == groupIds[groupIdCursor],
-                "GroupId from the file with group weights do not match GroupId from the dataset.");
+                "GroupId from the file with group weights does not match GroupId from the dataset.");
             while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
                 ++groupSize;
                 ++groupIdCursor;
