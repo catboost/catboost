@@ -2,16 +2,24 @@
 
 #include "non_diag_target_der.h"
 #include "weak_objective.h"
-#include <catboost/libs/metrics/metric_holder.h>
-#include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
+
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#include <catboost/cuda/cuda_lib/mapping.h>
+#include <catboost/cuda/cuda_lib/slice.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
-#include <catboost/cuda/cuda_util/fill.h>
-#include <catboost/cuda/cuda_util/algorithm.h>
-#include <catboost/libs/helpers/cpu_random.h>
-#include <catboost/libs/options/bootstrap_options.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/gpu_data/dataset_base.h>
+#include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/metric_holder.h>
+#include <catboost/libs/options/bootstrap_options.h>
+
+#include <util/generic/buffer.h>
+#include <util/generic/utility.h>
+#include <util/generic/vector.h>
+
 
 #define CB_DEFINE_CUDA_TARGET_BUFFERS()       \
     template <class T>                        \

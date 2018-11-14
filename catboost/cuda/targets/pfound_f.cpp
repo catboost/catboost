@@ -1,6 +1,12 @@
 #include "pfound_f.h"
 #include "kernel.h"
 
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_util/algorithm.h>
+#include <catboost/cuda/cuda_util/bootstrap.h>
+#include <catboost/cuda/gpu_data/non_zero_filter.h>
+
+
 namespace NCatboostCuda {
     void TPFoundF<NCudaLib::TStripeMapping>::ApproximateStochastic(
             const TPFoundF<NCudaLib::TStripeMapping>::TConstVec& point,

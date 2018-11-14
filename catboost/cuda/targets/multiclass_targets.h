@@ -1,10 +1,20 @@
 #pragma once
 
-#include "target_func.h"
 #include "oracle_type.h"
+#include "target_func.h"
+
+#include <catboost/cuda/cuda_lib/mapping.h>
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/cuda/cuda_util/algorithm.h>
-#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+
+#include <util/generic/algorithm.h>
+#include <util/generic/strbuf.h>
+#include <util/string/cast.h>
+#include <util/system/yassert.h>
+
 
 namespace NCatboostCuda {
 

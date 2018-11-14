@@ -1,6 +1,7 @@
 #include "multiclass_targets.h"
 #include "multiclass_kernels.h"
-#include <catboost/cuda/cuda_util/fill.h>
+
+#include <catboost/cuda/cuda_util/algorithm.h>
 
 
 namespace NCatboostCuda {

@@ -1,5 +1,13 @@
 #include "pair_logit_pairwise.h"
+
 #include "kernel.h"
+
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_reader.h>
+#include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/cuda_util/transform.h>
+#include <catboost/cuda/gpu_data/bootstrap.h>
+#include <catboost/cuda/gpu_data/non_zero_filter.h>
+
 
 namespace NCatboostCuda {
     TAdditiveStatistic TPairLogitPairwise<NCudaLib::TStripeMapping>::ComputeStats(

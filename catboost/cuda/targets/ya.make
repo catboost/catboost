@@ -32,6 +32,7 @@ PEERDIR(
     catboost/cuda/cuda_util
     catboost/cuda/gpu_data
     catboost/libs/helpers
+    catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/options
 )
