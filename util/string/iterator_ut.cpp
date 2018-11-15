@@ -280,5 +280,10 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         for (TWtringBuf elem : StringSplitter(UTF8ToWide("привет, как дела")).Split(wchar16(' '))) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual2[num++]);
         }
+
+        TVector<TString> copy(4);
+        auto v = StringSplitter("11 22 33 44").Split(' ');
+        Copy(v.begin(), v.end(), copy.begin());
+        UNIT_ASSERT_VALUES_EQUAL(actual0, copy);
     }
 }
