@@ -7,6 +7,8 @@ import sys
 import ast
 
 import py
+
+import pytest  # noqa
 from _pytest.assertion import util
 from _pytest.assertion.util import BuiltinAssertionError
 

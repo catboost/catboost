@@ -2,6 +2,8 @@ import sys
 import traceback
 
 import py
+
+import pytest  # noqa
 import _pytest.python
 import _pytest.doctest
 
