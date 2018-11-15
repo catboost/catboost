@@ -444,17 +444,19 @@ public:
 
         c->Waiters_.PushBack(&ev);
 
-        if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
-            if (!ev.Empty()) {
-                c->Cancel();
+        do {
+            if (SleepD(deadLine) == ETIMEDOUT || Cancelled()) {
+                if (!ev.Empty()) {
+                    c->Cancel();
 
-                do {
-                    SwitchToScheduler();
-                } while (!ev.Empty());
+                    do {
+                        SwitchToScheduler();
+                    } while (!ev.Empty());
+                }
+
+                return false;
             }
-
-            return false;
-        }
+        } while (!ev.Empty());
 
         return true;
     }
