@@ -210,6 +210,10 @@ class TStringSplitter {
         {
         }
 
+        operator TStrBuf() const noexcept {
+            return Token();
+        }
+
         inline It TokenStart() const noexcept {
             return TokS;
         }

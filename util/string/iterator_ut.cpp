@@ -1,5 +1,7 @@
 #include "iterator.h"
 
+#include <util/charset/wide.h>
+
 #include <library/unittest/registar.h>
 
 template <typename I, typename C>
@@ -258,5 +260,25 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TVector<TString> expected3 = { "dd", "bb" };
         auto actual3 = TVector<TString>(StringSplitter("dd\tbb").Split('\t'));
         UNIT_ASSERT_VALUES_EQUAL(expected3, actual3);
+    }
+
+    Y_UNIT_TEST(TestRangeBasedFor) {
+        TVector<TString> actual0 = { "11", "22", "33", "44" };
+        size_t num = 0;
+        for (TStringBuf elem : StringSplitter("11 22 33 44").Split(' ')) {
+            UNIT_ASSERT_VALUES_EQUAL(elem, actual0[num++]);
+        }
+
+        TVector<TString> actual1 = { "another", "one,", "and", "another", "one" };
+        num = 0;
+        for (TStringBuf elem : StringSplitter(AsStringBuf("another one, and \n\n     another    one")).SplitBySet(" \n").SkipEmpty()) {
+            UNIT_ASSERT_VALUES_EQUAL(elem, actual1[num++]);
+        }
+
+        TVector<TUtf16String> actual2 = { UTF8ToWide("привет,"), UTF8ToWide("как"), UTF8ToWide("дела") };
+        num = 0;
+        for (TWtringBuf elem : StringSplitter(UTF8ToWide("привет, как дела")).Split(wchar16(' '))) {
+            UNIT_ASSERT_VALUES_EQUAL(elem, actual2[num++]);
+        }
     }
 }
