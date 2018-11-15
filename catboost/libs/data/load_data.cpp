@@ -454,7 +454,17 @@ namespace NCB {
                   "Cannot postprocess labels without MakeClassNames target policy.");
         THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
         TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
-        Sort(uniqueLabels);
+        // Kind of heuristic for proper ordering class names if they all are numeric
+        if (AllOf(uniqueLabels, [](const TString& label) -> bool {
+            float tmp;
+            return TryFromString<float>(label, tmp);
+        })) {
+            Sort(uniqueLabels, [](const TString& label1, const TString& label2) {
+                return FromString<float>(label1) < FromString<float>(label2);
+            });
+        } else {
+            Sort(uniqueLabels);
+        }
         CB_ENSURE(LabelToClass.empty(), "PostprocessLabels: label-to-class map must be empty before label converting.");
         for (const auto& label: uniqueLabels) {
             ProcessLabel(label);

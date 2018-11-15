@@ -4481,7 +4481,7 @@ def test_save_multiclass_labels_from_data(loss_function):
 
     if loss_function in MULTICLASS_LOSSES:
         assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
-        assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['0.0', '10000000.0', '7.0', '9999.0']
+        assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['0.0', '7.0', '9999.0', '10000000.0']
         assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 0
     else:
         assert 'multiclass_params' not in py_catboost.get_metadata()
@@ -4535,13 +4535,13 @@ def test_apply_multiclass_labels_from_data(prediction_type):
     py_catboost.load_model(model_path)
 
     assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['0.0', '10000000.0', '7.0', '9999.0']
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['0.0', '7.0', '9999.0', '10000000.0']
     assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 0
 
     if prediction_type in ['Probability', 'RawFormulaVal']:
         with open(eval_path, "rt") as f:
             for line in f:
-                assert line[:-1] == 'DocId\t{}:Class=0.0\t{}:Class=10000000.0\t{}:Class=7.0\t{}:Class=9999.0'\
+                assert line[:-1] == 'DocId\t{}:Class=0.0\t{}:Class=7.0\t{}:Class=9999.0\t{}:Class=10000000.0'\
                     .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 break
     else:  # Class
