@@ -3,7 +3,7 @@ import os
 import re
 
 from collections import namedtuple
-from experiments import DATASETS
+from experiments import EXPERIMENTS
 
 
 ALGORITHMS = [method + '-' + device_type
@@ -95,11 +95,11 @@ class Track:
         return np.min(self.scores)
 
 
-TASK_TYPES_ACCURACY = ['Classification', 'Multiclass']
+TASK_TYPES_ACCURACY = ['binclass', 'multiclass']
 METRIC_NAME = {
-    'lightgbm': {'Regression': 'rmse', 'Classification': 'binary_error', 'Multiclass': 'multi_error'},
-    'xgboost': {'Regression': 'eval-rmse', 'Classification': 'eval-error', 'Multiclass': 'eval-merror'},
-    'catboost': {'Regression': 'RMSE', 'Classification': 'Accuracy', 'Multiclass': 'Accuracy'}
+    'lightgbm': {'regression': 'rmse', 'binclass': 'binary_error', 'multiclass': 'multi_error'},
+    'xgboost': {'regression': 'eval-rmse', 'binclass': 'eval-error', 'multiclass': 'eval-merror'},
+    'catboost': {'regression': 'RMSE', 'binclass': 'Accuracy', 'multiclass': 'Accuracy'}
 }
 
 
@@ -168,13 +168,11 @@ def parse_log(algorithm_name, task_type, file_name, iterations):
 
 
 def read_results(dir_name):
-    dataset_name = os.path.basename(dir_name.rstrip(os.path.sep))
-    task_type = filter(lambda dataset: dataset.name == dataset_name, DATASETS.itervalues())[0].task
-    print(dataset_name + ' ' + task_type)
+    experiment_name = os.path.basename(dir_name.rstrip(os.path.sep))
+    task_type = filter(lambda experiment: experiment.name == experiment_name, EXPERIMENTS.itervalues())[0].task
+    print(experiment_name + ' ' + task_type)
 
     results = {}
-
-    dataset_name = os.path.basename(dir_name.strip(os.path.sep))
 
     for algorithm_name in os.listdir(dir_name):
         print(algorithm_name)
@@ -200,7 +198,7 @@ def read_results(dir_name):
                 continue
 
             time_series, values, duration = payload
-            track = Track(algorithm_name, dataset_name, task_type, log_name, time_series, values, duration)
+            track = Track(algorithm_name, experiment_name, task_type, log_name, time_series, values, duration)
             results[algorithm_name].append(track)
 
     return results

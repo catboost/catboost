@@ -11,7 +11,6 @@ from datetime import datetime
 from sklearn.metrics import mean_squared_error, accuracy_score
 
 
-# Global parameter
 RANDOM_SEED = 0
 
 
@@ -69,9 +68,9 @@ def eval_metric(data, prediction):
     if data.metric == "RMSE":
         return np.sqrt(mean_squared_error(data.y_test, prediction))
     elif data.metric == "Accuracy":
-        if data.task == "Classification":
+        if data.task == "binclass":
             prediction = prediction > 0.5
-        elif data.task == "Multiclass":
+        elif data.task == "multiclass":
             if prediction.ndim > 1:
                 prediction = np.argmax(prediction, axis=1)
         return accuracy_score(data.y_test, prediction)
@@ -129,7 +128,7 @@ class Learner:
 
 
 class XGBoostLearner(Learner):
-    def __init__(self, data, use_gpu):
+    def __init__(self, data, task, metric, use_gpu):
         Learner.__init__(self)
         params = {
             'n_gpus': 1,
@@ -142,22 +141,25 @@ class XGBoostLearner(Learner):
         else:
             params['tree_method'] = 'hist'
 
-        if data.task == "Regression":
+        if task == "regression":
             params["objective"] = "reg:linear"
             if use_gpu:
                 params["objective"] = "gpu:" + params["objective"]
-        elif data.task == "Multiclass":
+        elif task == "multiclass":
             params["objective"] = "multi:softmax"
-            params["num_class"] = np.max(data.y_test) + 1
-        elif data.task == "Classification":
+            params["num_class"] = int(np.max(data.y_test)) + 1
+        elif task == "binclass":
             params["objective"] = "binary:logistic"
             if use_gpu:
                 params["objective"] = "gpu:" + params["objective"]
         else:
-            raise ValueError("Unknown task: " + data.task)
+            raise ValueError("Unknown task: " + task)
 
-        if data.metric == 'Accuracy':
-            params['eval_metric'] = 'error' if data.task == 'Classification' else 'merror'
+        if metric == 'Accuracy':
+            if task == 'binclass':
+                params['eval_metric'] = 'error'
+            elif task == 'multiclass':
+                params['eval_metric'] = 'merror'
 
         self.train = xgb.DMatrix(data.X_train, data.y_train)
         self.test = xgb.DMatrix(data.X_test, data.y_test)
@@ -177,7 +179,7 @@ class XGBoostLearner(Learner):
 
 
 class LightGBMLearner(Learner):
-    def __init__(self, data, use_gpu):
+    def __init__(self, data, task, metric, use_gpu):
         Learner.__init__(self)
 
         params = {
@@ -191,21 +193,22 @@ class LightGBMLearner(Learner):
         if use_gpu:
             params["device"] = "gpu"
 
-        if data.task == "Regression":
+        if task == "regression":
             params["objective"] = "regression"
-        elif data.task == "Multiclass":
+        elif task == "multiclass":
             params["objective"] = "multiclass"
-            params["num_class"] = np.max(data.y_test) + 1
-        elif data.task == "Classification":
+            params["num_class"] = int(np.max(data.y_test)) + 1
+        elif task == "binclass":
             params["objective"] = "binary"
         else:
-            raise ValueError("Unknown task: " + data.task)
+            raise ValueError("Unknown task: " + task)
 
-        if data.task == 'Classification':
-            params['metric'] = 'binary_error'
-        elif data.task == 'Multiclass':
-            params['metric'] = 'multi_error'
-        elif data.task == 'Regression':
+        if metric == 'Accuracy':
+            if task == 'binclass':
+                params['metric'] = 'binary_error'
+            elif task == 'multiclass':
+                params['metric'] = 'multi_error'
+        elif metric == 'RMSE':
             params['metric'] = 'rmse'
 
         self.train = lgb.Dataset(data.X_train, data.y_train)
@@ -238,27 +241,28 @@ class LightGBMLearner(Learner):
 
 
 class CatBoostLearner(Learner):
-    def __init__(self, data, use_gpu):
+    def __init__(self, data, task, metric, use_gpu):
         Learner.__init__(self)
 
         params = {
             'devices': [0],
             'logging_level': 'Info',
             'use_best_model': False,
-            'bootstrap_type': 'Bernoulli'
+            'bootstrap_type': 'Bernoulli',
+            'random_seed': RANDOM_SEED
         }
 
         if use_gpu:
             params['task_type'] = 'GPU'
 
-        if data.task == 'Regression':
+        if task == 'regression':
             params['loss_function'] = 'RMSE'
-        elif data.task == 'Classification':
+        elif task == 'binclass':
             params['loss_function'] = 'Logloss'
-        elif data.task == 'Multiclass':
+        elif task == 'multiclass':
             params['loss_function'] = 'MultiClass'
 
-        if data.metric == 'Accuracy':
+        if metric == 'Accuracy':
             params['custom_metric'] = 'Accuracy'
 
         self.train = cat.Pool(data.X_train, data.y_train)
@@ -272,10 +276,6 @@ class CatBoostLearner(Learner):
 
     def _fit(self, tunable_params):
         params = Learner._fit(self, tunable_params)
-        if 'nthread' in params:
-            params['thread_count'] = params['nthread']
-            del params['nthread']
-
         self.model = cat.CatBoost(params)
         self.model.fit(self.train, eval_set=self.test, verbose_eval=True)
 
@@ -283,7 +283,7 @@ class CatBoostLearner(Learner):
         params["train_dir"] = path
 
     def predict(self, n_tree):
-        if self.default_params['loss_function'] == "Multiclass":
+        if self.default_params['loss_function'] == "MultiClass":
             prediction = self.model.predict_proba(self.test, ntree_end=n_tree)
         else:
             prediction = self.model.predict(self.test, ntree_end=n_tree)
