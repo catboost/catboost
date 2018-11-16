@@ -7,6 +7,8 @@
 #include <util/string/iterator.h>
 #include <util/system/types.h>
 
+#include <utility>
+
 
 namespace NCB {
 
@@ -51,18 +53,41 @@ namespace NCB {
             if (tokens.empty()) {
                 continue;
             }
-            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
-                "Incorrect file with pairs. Each line should have two or three columns. " <<
-                "Invalid line number #" << lineNumber << ": " << line);
-            ui64 winnerId = FromString<int>(tokens[0]);
-            ui64 loserId = FromString<int>(tokens[1]);
-            float weight = 1;
-            if (tokens.ysize() == 3) {
-                weight = FromString<float>(tokens[2]);
+            try {
+                CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                    "Each line should have two or three columns. This line has " << tokens.size()
+                );
+                TPair pair;
+
+                size_t tokenIdx = 0;
+                auto parseIdFunc = [&](TStringBuf description, ui32* id) {
+                    CB_ENSURE(
+                        TryFromString(tokens[tokenIdx], *id),
+                        "Invalid " << description << " index: cannot parse as nonnegative index ("
+                        << tokens[tokenIdx] << ')'
+                    );
+                    CB_ENSURE(
+                        *id < docCount,
+                        "Invalid " << description << " index (" << *id << "): not less than number of samples"
+                        " (" << docCount << ')'
+                    );
+                    ++tokenIdx;
+                };
+                parseIdFunc(AsStringBuf("Winner"), &pair.WinnerId);
+                parseIdFunc(AsStringBuf("Loser"), &pair.LoserId);
+
+                pair.Weight = 1.0f;
+                if (tokens.ysize() == 3) {
+                    CB_ENSURE(
+                        TryFromString(tokens[2], pair.Weight),
+                        "Invalid weight: cannot parse as float (" << tokens[2] << ')'
+                    );
+                }
+                pairs.push_back(std::move(pair));
+            } catch (const TCatboostException& e) {
+                throw TCatboostException() << "Incorrect file with pairs. Invalid line number #" << lineNumber
+                    << ": " << e.what();
             }
-            CB_ENSURE(winnerId >= 0 && winnerId < docCount, "Invalid winner index " << winnerId);
-            CB_ENSURE(loserId >= 0 && loserId < docCount, "Invalid loser index " << loserId);
-            pairs.emplace_back(winnerId, loserId, weight);
         }
 
         return pairs;
@@ -80,21 +105,30 @@ namespace NCB {
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
         TString line;
         for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
-            TVector<TString> tokens = StringSplitter(line).Split('\t');
-            CB_ENSURE(tokens.ysize() == 2,
-                "Each line in group weights file should have two columns. " <<
-                "Invalid line number #" << lineNumber << ": " << line);
+            try {
+                TVector<TString> tokens = StringSplitter(line).Split('\t');
+                CB_ENSURE(tokens.size() == 2,
+                    "Each line should have two columns. This line has " << tokens.size()
+                );
+                const TGroupId groupId = CalcGroupIdFor(tokens[0]);
+                float groupWeight = 1.0f;
+                CB_ENSURE(
+                    TryFromString(tokens[1], groupWeight),
+                    "Invalid group weight: cannot parse as float (" << tokens[1] << ')'
+                );
 
-            const TGroupId groupId = CalcGroupIdFor(tokens[0]);
-            const float groupWeight = FromString<float>(tokens[1]);
-            ui64 groupSize = 0;
-            CB_ENSURE(groupId == groupIds[groupIdCursor],
-                "GroupId from the file with group weights does not match GroupId from the dataset.");
-            while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
-                ++groupSize;
-                ++groupIdCursor;
+                ui64 groupSize = 0;
+                CB_ENSURE(groupId == groupIds[groupIdCursor],
+                    "GroupId from the file with group weights does not match GroupId from the dataset.");
+                while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
+                    ++groupSize;
+                    ++groupIdCursor;
+                }
+                groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
+            } catch (const TCatboostException& e) {
+                throw TCatboostException() << "Incorrect file with group weights. Invalid line number #"
+                    << lineNumber << ": " << e.what();
             }
-            groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
         }
         CB_ENSURE(groupWeights.size() == docCount,
             "Group weights file should have as many weights as the objects in the dataset.");

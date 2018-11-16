@@ -5602,3 +5602,43 @@ def test_eval_result_on_different_pool_type():
 
     assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.xfail(strict=True)
+@pytest.mark.parametrize(
+    'dataset_name,loss_function,has_pairs,has_group_weights',
+    [
+        ('adult_small_broken_features', 'Logloss', False, False),
+        ('querywise_broken_pairs', 'RMSE', True, False),
+        ('querywise_broken_group_weights', 'RMSE', False, True),
+    ]
+)
+def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_weights):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    # iterations and threads are specified just to finish fast if test is xpass
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--learn-set', data_file('broken_format', dataset_name, 'train'),
+        '--test-set', data_file('broken_format', dataset_name, 'test'),
+        '--column-description', data_file('broken_format', dataset_name, 'train.cd'),
+        '-i', '1',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    if has_pairs:
+        cmd += (
+            '--learn-pairs', data_file('broken_format', dataset_name, 'train.pairs'),
+            '--test-pairs', data_file('broken_format', dataset_name, 'test.pairs'),
+        )
+    if has_group_weights:
+        cmd += (
+            '--learn-group-weights', data_file('broken_format', dataset_name, 'train.group_weights'),
+            '--test-group-weights', data_file('broken_format', dataset_name, 'test.group_weights'),
+        )
+
+    yatest.common.execute(cmd)
