@@ -34,7 +34,7 @@ namespace NLastGetopt {
             const TStringBuf curval(parser->CurValOrDef());
             if (curval.IsInited()) {
                 TConsumer cons = {parser->CurOpt(), Target, RangesDelim};
-                SplitStringTo(curval, ElementsDelim, &cons);
+                StringSplitter(curval).Split(ElementsDelim).AddTo(&cons);
             }
         }
 
@@ -82,7 +82,7 @@ namespace NLastGetopt {
             const TStringBuf curval(parser->CurValOrDef());
             if (curval.IsInited()) {
                 TConsumer cons = {parser->CurOpt(), Target};
-                SplitStringTo(curval, Delim, &cons);
+                StringSplitter(curval).Split(Delim).AddTo(&cons);
             }
         }
 
