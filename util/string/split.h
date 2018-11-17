@@ -411,11 +411,6 @@ static inline void SplitRangeToImpl(I* b, I* e, I* d, C* c) {
     SplitString(b, e, delim, consumer);
 }
 
-template <class TConsumer, class S, class C>
-static inline void SplitStringToImpl(const S& s, const S& d, C* c) {
-    SplitRangeToImpl<TConsumer, const char, C>(~s, ~s + +s, d.data(), c);
-}
-
 // Split functions
 template <class I, class C>
 static inline void SplitRangeTo(I* b, I* e, I d, C* c) {
@@ -428,11 +423,6 @@ static inline void SplitRangeBySetTo(I* b, I* e, I* d, C* c) {
 }
 
 template <class S, class C>
-static inline void SplitStringTo(const S& s, char delim, C* c) {
-    SplitRangeTo<const char, C>(~s, ~s + +s, delim, c);
-}
-
-template <class S, class C>
 static inline void SplitStringBySetTo(const S& s, const char* delim, C* c) {
     SplitRangeBySetTo<const char, C>(~s, ~s + +s, delim, c);
 }
@@ -440,11 +430,6 @@ static inline void SplitStringBySetTo(const S& s, const char* delim, C* c) {
 template <class I, class C>
 static inline void SplitRangeTo(I* b, I* e, I* d, C* c) {
     SplitRangeToImpl<TContainerConsumer<C>>(b, e, d, c);
-}
-
-template <class S, class C>
-static inline void SplitStringTo(const S& s, const S& d, C* c) {
-    SplitRangeTo<const char, C>(~s, ~s + +s, d.data(), c);
 }
 
 // Split and Convert functions

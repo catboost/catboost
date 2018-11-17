@@ -174,15 +174,6 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test);
     }
 
-    Y_UNIT_TEST(TestSplitSet) {
-        TString data("ab,bc,cd,cd,defgh");
-        TString canonic[] = {"ab", "bc", "cd", "defgh"};
-        TSet<TString> good(canonic, canonic + 4);
-        TSet<TString> test;
-        SplitStringTo(data, ',', &test);
-        Cmp(good, test);
-    }
-
     Y_UNIT_TEST(TestCharSkipEmty) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab", "qwabcab"};
