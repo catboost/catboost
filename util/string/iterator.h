@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cast.h"
 #include "split.h"
 
 #include <util/generic/algorithm.h>
@@ -40,6 +41,34 @@ namespace NPrivate {
         template<class OtherContainer, class Char>
         auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(value_type(e))) {
             return c->insert(value_type(e));
+        }
+
+        Container* C_;
+    };
+
+    template <class Container>
+    struct TContainerConvertingConsumer {
+        using value_type = typename Container::value_type;
+
+        TContainerConvertingConsumer(Container* c)
+            : C_(c)
+        {
+        }
+
+        template <class Char>
+        void operator()(TGenericStringBuf<Char> e) const {
+            this->operator()(C_, e);
+        }
+
+    private:
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->push_back(FromString<value_type>(e))) {
+            return c->push_back(FromString<value_type>(e));
+        }
+
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(FromString<value_type>(e))) {
+            return c->insert(FromString<value_type>(e));
         }
 
         Container* C_;
@@ -90,6 +119,13 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
     inline void AddTo(Container* c) {
         Y_ASSERT(c);
         ::NPrivate::TContainerConsumer<Container> consumer(c);
+        Consume(consumer);
+    }
+
+    template <class Container>
+    inline void ParseInto(Container* c) {
+        Y_ASSERT(c);
+        ::NPrivate::TContainerConvertingConsumer<Container> consumer(c);
         Consume(consumer);
     }
 

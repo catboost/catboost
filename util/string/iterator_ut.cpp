@@ -275,9 +275,9 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual1[num++]);
         }
 
-        TVector<TUtf16String> actual2 = { UTF8ToWide("привет,"), UTF8ToWide("как"), UTF8ToWide("дела") };
+        TVector<TUtf16String> actual2 = { UTF8ToWide(u8"привет,"), UTF8ToWide(u8"как"), UTF8ToWide(u8"дела") };
         num = 0;
-        for (TWtringBuf elem : StringSplitter(UTF8ToWide("привет, как дела")).Split(wchar16(' '))) {
+        for (TWtringBuf elem : StringSplitter(UTF8ToWide(u8"привет, как дела")).Split(wchar16(' '))) {
             UNIT_ASSERT_VALUES_EQUAL(elem, actual2[num++]);
         }
 
@@ -285,5 +285,30 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         auto v = StringSplitter("11 22 33 44").Split(' ');
         Copy(v.begin(), v.end(), copy.begin());
         UNIT_ASSERT_VALUES_EQUAL(actual0, copy);
+    }
+
+    Y_UNIT_TEST(TestParseInto) {
+        TVector<int> actual0 = { 1, 2, 3, 4 };
+        TVector<int> answer0;
+
+        StringSplitter("1 2 3 4").Split(' ').ParseInto(&answer0);
+        UNIT_ASSERT_VALUES_EQUAL(actual0, answer0);
+
+
+        TVector<int> actual1 = { 42, 1, 2, 3, 4 };
+        TVector<int> answer1 = { 42 };
+        StringSplitter("1 2 3 4").Split(' ').ParseInto(&answer1);
+        UNIT_ASSERT_VALUES_EQUAL(actual1, answer1);
+
+        answer1.clear();
+        UNIT_ASSERT_EXCEPTION(StringSplitter("1 2    3 4").Split(' ').ParseInto(&answer1), yexception);
+
+        answer1 = { 42 };
+        StringSplitter("   1    2     3 4").Split(' ').SkipEmpty().ParseInto(&answer1);
+        UNIT_ASSERT_VALUES_EQUAL(actual1, answer1);
+
+        answer1.clear();
+        StringSplitter("  \n 1    2  \n\n\n   3 4\n ").SplitBySet(" \n").SkipEmpty().ParseInto(&answer1);
+        UNIT_ASSERT_VALUES_EQUAL(actual0, answer1);
     }
 }
