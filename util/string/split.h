@@ -414,27 +414,6 @@ static inline void SplitRangeTo(I* b, I* e, I* d, C* c) {
     SplitRangeToImpl<TContainerConsumer<C>>(b, e, d, c);
 }
 
-// Split and Convert functions
-template <class I, class C>
-static inline void SplitConvertRangeTo(I* b, I* e, I d, C* c) {
-    SplitRangeToImpl<TContainerConvertingConsumer<C>, I, C>(b, e, d, c);
-}
-
-template <class S, class C>
-static inline void SplitConvertStringTo(const S& s, char delim, C* c) {
-    SplitConvertRangeTo<const char, C>(~s, ~s + +s, delim, c);
-}
-
-template <class I, class C>
-static inline void SplitConvertRangeTo(I* b, I* e, I* d, C* c) {
-    SplitRangeToImpl<TContainerConvertingConsumer<C>>(b, e, d, c);
-}
-
-template <class S, class C>
-static inline void SplitConvertStringTo(const S& s, const S& d, C* c) {
-    SplitConvertRangeTo<const char, C>(~s, ~s + +s, d.data(), c);
-}
-
 template <class T>
 struct TSimplePusher {
     inline bool Consume(char* b, char* d, char*) {
