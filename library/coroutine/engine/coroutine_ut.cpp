@@ -762,6 +762,7 @@ namespace NCoroTestJoinRescheduleBug {
             cont->Yield();
         }
         cont->Join(subC);
+        UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
         state.SubA = nullptr;
         state.SubAState = EState::Finished;
     }
