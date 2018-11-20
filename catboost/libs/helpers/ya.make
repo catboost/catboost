@@ -7,6 +7,7 @@ SRCS(
     binarize_target.cpp
     checksum.cpp
     clear_array.cpp
+    compare.cpp
     compression.cpp
     cpu_random.cpp
     data_split.cpp
