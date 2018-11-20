@@ -21,6 +21,8 @@ def to_build_root(path, unit):
 def pb2_arg(path, mod, unit):
     return '{}_pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
+def proto_arg(path, mod, unit):
+    return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
 
 def pb_cc_arg(path, unit):
     return '{}.pb.cc'.format(stripext(to_build_root(path, unit)))
@@ -34,7 +36,6 @@ def ev_cc_arg(path, unit):
 
 def pb2_grpc_arg(path, mod, unit):
     return '{}_pb2_grpc.py={}_pb2_grpc'.format(stripext(to_build_root(path, unit)), mod)
-
 
 def ev_arg(path, mod, unit):
     return '{}_ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
@@ -370,6 +371,7 @@ def onpy_srcs(unit, *args):
     if glys:
         gly_paths = [path for path, mod in glys]
         unit.ongenerate_py_glys(gly_paths)
+        unit.onpy_srcs([proto_arg(path, mod, unit) for path, mod in glys])
         unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in glys])
 
 
