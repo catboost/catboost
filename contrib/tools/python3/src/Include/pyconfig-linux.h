@@ -1328,7 +1328,9 @@
 #define SIZEOF_SHORT 2
 
 /* The size of `size_t', as computed by sizeof. */
+#if !defined(SIZEOF_SIZE_T)
 #define SIZEOF_SIZE_T 8
+#endif
 
 /* The size of `time_t', as computed by sizeof. */
 #define SIZEOF_TIME_T 8
