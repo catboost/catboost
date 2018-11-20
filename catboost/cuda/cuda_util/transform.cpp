@@ -360,9 +360,10 @@ namespace {
         void Run(const TCudaStream& stream) const {
             using namespace NKernel;
             switch (Type) {
-                case EFuncType::Exp:
+                case EFuncType::Exp: {
                     ExpVector<T>(X.Get(), X.Size(), stream.GetStream());
                     break;
+                }
                 case EFuncType::Identity: {
                     CB_ENSURE(false, "Unimplemented");
                 }
@@ -736,7 +737,55 @@ Y_MAP_ARGS(
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
-using namespace NKernelHost;
+// PowVector
+
+namespace {
+    template <typename T>
+    class TPowKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<T> X;
+        T Base = 0;
+
+    public:
+        TPowKernel() = default;
+
+        TPowKernel(TCudaBufferPtr<T> x, T base)
+            : X(x)
+            , Base(base)
+        {
+        }
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::PowVector(X.Get(), X.Size(), Base, stream);
+        }
+
+        Y_SAVELOAD_DEFINE(X, Base);
+    };
+}
+
+template <typename T, typename TMapping>
+void PowVectorImpl(TCudaBuffer<T, TMapping>& x, float base, ui32 stream) {
+    using TKernel = TPowKernel<T>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, base);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
+    Y_CATBOOST_CUDA_F_IMPL x
+
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                             \
+    template <>                                                                         \
+    void PowVector<T, TMapping>(TCudaBuffer<T, TMapping>& x, float base, ui32 stream) { \
+        PowVectorImpl(x, base, stream);                                                 \
+    }
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL_PROXY,
+    (float, TMirrorMapping),
+    (float, TSingleMapping),
+    (float, TStripeMapping));
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
 namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0x110001, TBinOpKernel, float);
@@ -755,4 +804,6 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE_2(0x110012, TMapCopyKernel, ui32, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110013, TMapCopyKernel, uint2, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110014, TMapCopyKernel, bool, ui32);
+
+    REGISTER_KERNEL_TEMPLATE(0x110015, TPowKernel, float);
 }

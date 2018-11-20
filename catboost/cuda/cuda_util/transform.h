@@ -61,6 +61,13 @@ void DivideVector(
     const NCudaLib::TCudaBuffer<T, TMapping>& y,
     ui32 stream = 0);
 
+// [x_1, x_2, ..., x_n] -> [base^x_1, base^x_2, ..., base^x_n]
+template <typename T, typename TMapping>
+extern void PowVector(
+    NCudaLib::TCudaBuffer<T, TMapping>& src,
+    T base,
+    ui32 stream = 0);
+
 template <typename T, class TMapping>
 void ExpVector(
     NCudaLib::TCudaBuffer<T, TMapping>& x,

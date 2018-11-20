@@ -296,5 +296,40 @@ Y_UNIT_TEST_SUITE(TTransformTest) {
             }
         }
     }
-    //
+
+    Y_UNIT_TEST(TestPowVector) {
+        const auto stopCudaManagerGuard = StartCudaManager();
+        const ui64 seed = 0;
+        const size_t size = 1000000;
+        const float base = 2.f;
+
+        TRandom rand(seed);
+        TVector<float> exponents;
+        exponents.yresize(size);
+        for (auto& exponent : exponents) {
+            exponent = rand.NextUniform();
+        }
+
+        TVector<float> cpuPow;
+        cpuPow.yresize(size);
+        for (size_t i = 0; i < size; ++i) {
+            cpuPow[i] = pow(base, exponents[i]);
+        }
+
+        const auto mapping = TStripeMapping::SplitBetweenDevices(size);
+        auto tmp = TStripeBuffer<float>::Create(mapping);
+        tmp.Write(exponents);
+
+        TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
+        const auto guard = profiler.Profile("PowVector");
+
+        PowVector(tmp, base);
+
+        TVector<float> gpuPow;
+        tmp.Read(gpuPow);
+
+        for (size_t i = 0; i < size; ++i) {
+            UNIT_ASSERT_DOUBLES_EQUAL(cpuPow[i], gpuPow[i], 1e-5);
+        }
+    }
 }
