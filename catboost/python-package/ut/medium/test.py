@@ -1,5 +1,6 @@
 import hashlib
 import math
+import numpy as np
 import pprint
 import pytest
 import re
@@ -8,23 +9,30 @@ import sys
 import tempfile
 import time
 
-import numpy as np
-from pandas import read_table, DataFrame, Series
-from six.moves import xrange
-from six import PY3
-from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train, sum_models
-from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
+from catboost import (
+    CatBoost,
+    CatBoostClassifier,
+    CatBoostRegressor,
+    CatboostError,
+    EFstrType,
+    FeaturesData,
+    Pool,
+    cv,
+    sum_models,
+    train,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation
-
+from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
+from pandas import read_table, DataFrame, Series
+from six import PY3
+from six.moves import xrange
 from catboost_pytest_lib import (
+    DelayedTee,
+    binary_path,
     data_file,
     local_canonical_file,
+    permute_dataset_columns,
     remove_time_from_json,
-    binary_path,
-    test_output_path,
-    DelayedTee,
-    permute_dataset_columns
-)
+    test_output_path,)
 
 if sys.version_info.major == 2:
     import cPickle as pickle
@@ -547,8 +555,9 @@ def test_predict_regress(task_type):
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     assert(model.is_fitted())
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_predict_sklearn_regress(task_type):
@@ -556,8 +565,9 @@ def test_predict_sklearn_regress(task_type):
     model = CatBoostRegressor(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(train_pool)
     assert(model.is_fitted())
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_predict_sklearn_class(task_type):
@@ -565,8 +575,9 @@ def test_predict_sklearn_class(task_type):
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, loss_function='Logloss:border=0.5', task_type=task_type, devices='0')
     model.fit(train_pool)
     assert(model.is_fitted())
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_predict_class_raw(task_type):
@@ -575,8 +586,9 @@ def test_predict_class_raw(task_type):
     model = CatBoostClassifier(iterations=2, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred = model.predict(test_pool)
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 @fails_on_gpu(how='model.get_test_eval() returns `bool`')
@@ -647,30 +659,33 @@ def test_coreml_import_export(task_type):
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+    output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
+    model.save_model(output_coreml_model_path, format="coreml")
     canon_pred = model.predict(test_pool)
     coreml_loaded_model = CatBoostRegressor()
-    coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+    coreml_loaded_model.load_model(output_coreml_model_path, format="coreml")
     assert all(canon_pred == coreml_loaded_model.predict(test_pool))
-    return compare_canonical_models(OUTPUT_COREML_MODEL_PATH)
+    return compare_canonical_models(output_coreml_model_path)
 
 
 @pytest.mark.parametrize('pool', ['adult', 'higgs'])
 def test_convert_model_to_json(task_type, pool):
     train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
     test_pool = Pool(data_file(pool, 'test_small'), column_description=data_file(pool, 'train.cd'))
-    converted_model_path = "converted_model.bin"
+    converted_model_path = test_output_path("converted_model.bin")
     model = CatBoost({'iterations': 20, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    model.save_model(OUTPUT_JSON_MODEL_PATH, format="json")
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    output_json_model_path = test_output_path(OUTPUT_JSON_MODEL_PATH)
+    model.save_model(output_model_path)
+    model.save_model(output_json_model_path, format="json")
     model2 = CatBoost()
-    model2.load_model(OUTPUT_JSON_MODEL_PATH, format="json")
+    model2.load_model(output_json_model_path, format="json")
     model2.save_model(converted_model_path)
     pred1 = model.predict(test_pool)
     pred2 = model2.predict(test_pool)
     assert _check_data(pred1, pred2)
-    subprocess.check_call((model_diff_tool, OUTPUT_MODEL_PATH, converted_model_path, '--diff-limit', '0.000001'))
+    subprocess.check_call((model_diff_tool, output_model_path, converted_model_path, '--diff-limit', '0.000001'))
     return compare_canonical_models(converted_model_path)
 
 
@@ -680,32 +695,36 @@ def test_coreml_cbm_import_export(task_type):
     model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     canon_pred = model.predict(test_pool)
-    model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+    output_coreml_model_path = test_output_path(OUTPUT_COREML_MODEL_PATH)
+    model.save_model(output_coreml_model_path, format="coreml")
 
     coreml_loaded_model = CatBoost()
-    coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
-    coreml_loaded_model.save_model(OUTPUT_MODEL_PATH)
+    coreml_loaded_model.load_model(output_coreml_model_path, format="coreml")
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    coreml_loaded_model.save_model(output_model_path)
 
     cbm_loaded_model = CatBoost()
-    cbm_loaded_model.load_model(OUTPUT_MODEL_PATH)
+    cbm_loaded_model.load_model(output_model_path)
     assert all(canon_pred == cbm_loaded_model.predict(test_pool))
-    return compare_canonical_models(OUTPUT_COREML_MODEL_PATH)
+    return compare_canonical_models(output_coreml_model_path)
 
 
 def test_cpp_export_no_cat_features(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_CPP_MODEL_PATH, format="cpp")
-    return local_canonical_file(OUTPUT_CPP_MODEL_PATH)
+    output_cpp_model_path = test_output_path(OUTPUT_CPP_MODEL_PATH)
+    model.save_model(output_cpp_model_path, format="cpp")
+    return local_canonical_file(output_cpp_model_path)
 
 
 def test_cpp_export_with_cat_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 20, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_CPP_MODEL_PATH, format="cpp")
-    return local_canonical_file(OUTPUT_CPP_MODEL_PATH)
+    output_cpp_model_path = test_output_path(OUTPUT_CPP_MODEL_PATH)
+    model.save_model(output_cpp_model_path, format="cpp")
+    return local_canonical_file(output_cpp_model_path)
 
 
 @pytest.mark.parametrize('iterations', [2, 40])
@@ -713,8 +732,9 @@ def test_export_to_python_no_cat_features(task_type, iterations):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost({'iterations': iterations, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
-    return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
+    output_python_model_path = test_output_path(OUTPUT_PYTHON_MODEL_PATH)
+    model.save_model(output_python_model_path, format="python")
+    return local_canonical_file(output_python_model_path)
 
 
 @pytest.mark.parametrize('iterations', [2, 40])
@@ -722,8 +742,9 @@ def test_export_to_python_with_cat_features(task_type, iterations):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': iterations, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python", pool=train_pool)
-    return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
+    output_python_model_path = test_output_path(OUTPUT_PYTHON_MODEL_PATH)
+    model.save_model(output_python_model_path, format="python", pool=train_pool)
+    return local_canonical_file(output_python_model_path)
 
 
 def test_export_to_python_with_cat_features_from_pandas(task_type):
@@ -732,8 +753,9 @@ def test_export_to_python_with_cat_features_from_pandas(task_type):
     y = [1, 0]
     cat_features = [1]
     model.fit(X, y, cat_features)
-    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python", pool=X)
-    return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
+    output_python_model_path = test_output_path(OUTPUT_PYTHON_MODEL_PATH)
+    model.save_model(output_python_model_path, format="python", pool=X)
+    return local_canonical_file(output_python_model_path)
 
 
 def test_predict_class(task_type):
@@ -742,8 +764,9 @@ def test_predict_class(task_type):
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred = model.predict(test_pool, prediction_type="Class")
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 def test_predict_class_proba(task_type):
@@ -752,8 +775,9 @@ def test_predict_class_proba(task_type):
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred = model.predict_proba(test_pool)
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 @fails_on_gpu(how='assert 0.031045619651137835 < EPS, where 0.031045619651137835 = <function amax at ...')
@@ -806,9 +830,10 @@ def test_save_model(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoost({'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
     model2 = CatBoost()
-    model2.load_model(OUTPUT_MODEL_PATH)
+    model2.load_model(output_model_path)
     pred1 = model.predict(test_pool)
     pred2 = model2.predict(test_pool)
     assert _check_data(pred1, pred2)
@@ -818,12 +843,14 @@ def test_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(pool)
-    classifier.save_model(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
     new_classifier = CatBoostClassifier()
-    new_classifier.load_model(OUTPUT_MODEL_PATH)
+    new_classifier.load_model(output_model_path)
     pred = new_classifier.predict_proba(pool)
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 def test_multiclass_classes_count_missed_classes(task_type):
@@ -831,15 +858,17 @@ def test_multiclass_classes_count_missed_classes(task_type):
     pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([1, 3], size=100))
     classifier = CatBoostClassifier(classes_count=4, iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(pool)
-    classifier.save_model(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
     new_classifier = CatBoostClassifier()
-    new_classifier.load_model(OUTPUT_MODEL_PATH)
+    new_classifier.load_model(output_model_path)
     pred = new_classifier.predict_proba(pool)
     classes = new_classifier.predict(pool)
     assert pred.shape == (100, 4)
     assert np.array(classes).all() in [1, 3]
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 def test_querywise(task_type):
@@ -890,8 +919,9 @@ def test_zero_baseline(task_type):
     pool.set_baseline(baseline)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_ones_weight(task_type):
@@ -900,8 +930,9 @@ def test_ones_weight(task_type):
     pool.set_weight(weight)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_non_ones_weight(task_type):
@@ -910,8 +941,9 @@ def test_non_ones_weight(task_type):
     pool.set_weight(weight)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_ones_weight_equal_to_nonspecified_weight(task_type):
@@ -992,8 +1024,9 @@ def test_fit_data(task_type):
     data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
     model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     pred = model.predict_proba(eval_pool)
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 def test_ntree_limit(task_type):
@@ -1002,8 +1035,9 @@ def test_ntree_limit(task_type):
     model = CatBoostClassifier(iterations=100, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred = model.predict_proba(test_pool, ntree_end=10)
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 def test_staged_predict(task_type):
@@ -1014,8 +1048,9 @@ def test_staged_predict(task_type):
     preds = []
     for pred in model.staged_predict(test_pool):
         preds.append(pred)
-    np.save(PREDS_PATH, np.array(preds))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)
 
 
 @fails_on_gpu(how='assert 1.0 < EPS')
@@ -1273,8 +1308,9 @@ def test_priors(task_type):
         task_type=task_type, devices='0',
     )
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_ignored_features(task_type):
@@ -1287,16 +1323,18 @@ def test_ignored_features(task_type):
     predictions1 = model1.predict_proba(test_pool)
     predictions2 = model2.predict_proba(test_pool)
     assert not _check_data(predictions1, predictions2)
-    model1.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model1.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_class_weights(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, class_weights=[1, 2], task_type=task_type, devices='0')
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_classification_ctr(task_type):
@@ -1305,8 +1343,9 @@ def test_classification_ctr(task_type):
                                ctr_description=['Borders', 'FeatureFreq' if task_type == 'GPU' else 'Counter'],
                                task_type=task_type, devices='0')
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 @fails_on_gpu(how="libs/options/catboost_options.cpp:280: Error: GPU doesn't not support target binarization per CTR description currently. Please use target_borders option instead")
@@ -1314,8 +1353,9 @@ def test_regression_ctr(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'], task_type=task_type, devices='0')
     model.fit(pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_copy_model():
@@ -1326,8 +1366,9 @@ def test_copy_model():
     predictions1 = model1.predict(pool)
     predictions2 = model2.predict(pool)
     assert _check_data(predictions1, predictions2)
-    model2.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model2.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_cv(task_type):
@@ -1382,16 +1423,18 @@ def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.feature_importances_))
-    return local_canonical_file(FIMP_NPY_PATH)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.feature_importances_))
+    return local_canonical_file(fimp_npy_path)
 
 
 def test_feature_importance_explicit(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.FeatureImportance)))
-    return local_canonical_file(FIMP_NPY_PATH)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.FeatureImportance)))
+    return local_canonical_file(fimp_npy_path)
 
 
 def test_feature_importance_prettified(task_type):
@@ -1400,26 +1443,29 @@ def test_feature_importance_prettified(task_type):
     model.fit(pool)
 
     feature_importances = model.get_feature_importance(fstr_type=EFstrType.FeatureImportance, prettified=True)
-    with open(FIMP_TXT_PATH, 'w') as ofile:
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    with open(fimp_txt_path, 'w') as ofile:
         for f_id, f_imp in feature_importances:
             ofile.write('{}\t{}\n'.format(f_id, f_imp))
-    return local_canonical_file(FIMP_TXT_PATH)
+    return local_canonical_file(fimp_txt_path)
 
 
 def test_interaction_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.Interaction)))
-    return local_canonical_file(FIMP_NPY_PATH)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.Interaction)))
+    return local_canonical_file(fimp_npy_path)
 
 
 def test_shap_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
     model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)))
-    return local_canonical_file(FIMP_NPY_PATH)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
 
 
 def test_od(task_type):
@@ -1427,8 +1473,9 @@ def test_od(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42, task_type=task_type, devices='0')
     model.fit(train_pool, eval_set=test_pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_clone(task_type):
@@ -1468,8 +1515,9 @@ def test_full_history(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42, approx_on_full_history=True, task_type=task_type, devices='0')
     model.fit(train_pool, eval_set=test_pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
+    return compare_canonical_models(output_model_path)
 
 
 def test_cv_logging(task_type):
@@ -1659,9 +1707,10 @@ def test_object_importances(task_type):
     model = CatBoost({'loss_function': 'RMSE', 'iterations': 10, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     indices, scores = model.get_object_importance(pool, train_pool, top_size=10)
-    np.savetxt(OIMP_PATH, scores)
+    oimp_path = test_output_path(OIMP_PATH)
+    np.savetxt(oimp_path, scores)
 
-    return local_canonical_file(OIMP_PATH)
+    return local_canonical_file(oimp_path)
 
 
 def test_shap(task_type):
@@ -1685,8 +1734,9 @@ def test_shap(task_type):
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
 
-    np.savetxt(FIMP_TXT_PATH, shap_values)
-    return local_canonical_file(FIMP_TXT_PATH)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, shap_values)
+    return local_canonical_file(fimp_txt_path)
 
 
 def test_shap_complex_ctr(task_type):
@@ -1698,8 +1748,9 @@ def test_shap_complex_ctr(task_type):
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
 
-    np.savetxt(FIMP_TXT_PATH, shap_values)
-    return local_canonical_file(FIMP_TXT_PATH)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, shap_values)
+    return local_canonical_file(fimp_txt_path)
 
 
 def random_xy(num_rows, num_cols_x):
@@ -1826,29 +1877,32 @@ def test_metadata():
         metadata={"type": "AAA", "postprocess": "BBB"}
     )
     model.fit(train_pool)
-    model.save_model(OUTPUT_MODEL_PATH)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path)
 
     model2 = CatBoost()
-    model2.load_model(OUTPUT_MODEL_PATH)
+    model2.load_model(output_model_path)
     assert 'type' in model2.get_metadata()
     assert model2.get_metadata()['type'] == 'AAA'
     assert 'postprocess' in model2.get_metadata()
     assert model2.get_metadata()['postprocess'] == 'BBB'
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    return compare_canonical_models(output_model_path)
 
 
 @pytest.mark.parametrize('metric', ['Logloss', 'RMSE'])
 def test_util_eval_metric(metric):
     metric_results = eval_metric([1, 0], [0.88, 0.22], metric)
-    np.savetxt(PREDS_PATH, np.array(metric_results))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.savetxt(preds_path, np.array(metric_results))
+    return local_canonical_file(preds_path)
 
 
 @pytest.mark.parametrize('metric', ['MultiClass', 'AUC'])
 def test_util_eval_metric_multiclass(metric):
     metric_results = eval_metric([1, 0, 2], [[0.88, 0.22, 0.3], [0.21, 0.45, 0.1], [0.12, 0.32, 0.9]], metric)
-    np.savetxt(PREDS_PATH, np.array(metric_results))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.savetxt(preds_path, np.array(metric_results))
+    return local_canonical_file(preds_path)
 
 
 def test_option_used_ram_limit():
@@ -1896,7 +1950,8 @@ def test_serialization_of_numpy_objects_save_model():
         loss_function='Logloss'
     )
     model.fit(train_pool)
-    model.save_model(OUTPUT_MODEL_PATH, format='coreml',
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    model.save_model(output_model_path, format='coreml',
                      export_parameters=get_values_that_json_dumps_breaks_on())
 
 
@@ -2078,10 +2133,11 @@ def test_set_params_with_synonyms(task_type):
     label = _generate_nontrivial_binary_target(20)
     train_pool = Pool(data, label, cat_features=[1, 2])
     model1.fit(train_pool)
-    model1.save_model('model.cb')
+    model_path = test_output_path('model.cb')
+    model1.save_model(model_path)
 
     model2 = CatBoost()
-    model2.load_model('model.cb')
+    model2.load_model(model_path)
     params_after_save_model = model2.get_params()
     assert(params.keys() != params_after_save_model.keys())
 
@@ -2096,11 +2152,11 @@ def test_set_params_with_synonyms(task_type):
 
 
 def test_feature_names_from_model():
-    input_file = 'pool'
+    input_file = test_output_path('pool')
     with open(input_file, 'w') as inp:
         inp.write('0\t1\t2\t0\n1\t2\t3\t1\n')
 
-    column_description1 = 'description1.cd'
+    column_description1 = test_output_path('description1.cd')
     create_cd(
         label=3,
         cat_features=[0, 1],
@@ -2108,14 +2164,14 @@ def test_feature_names_from_model():
         output_path=column_description1
     )
 
-    column_description2 = 'description2.cd'
+    column_description2 = test_output_path('description2.cd')
     create_cd(
         label=3,
         cat_features=[0, 1],
         output_path=column_description2
     )
 
-    column_description3 = 'description3.cd'
+    column_description3 = test_output_path('description3.cd')
     create_cd(
         label=3,
         cat_features=[0, 1],
@@ -2129,7 +2185,7 @@ def test_feature_names_from_model():
         Pool(input_file, column_description=column_description3)
     ]
 
-    output_file = 'feature_names'
+    output_file = test_output_path('feature_names')
     with open(output_file, 'w') as output:
         for i in range(len(pools)):
             pool = pools[i]
@@ -2282,8 +2338,9 @@ def test_shap_multiclass(task_type):
             assert abs(s - pred[i][j]) < EPS
         result.append(result_for_doc)
     result = np.array([np.array([value for value in doc]) for doc in result])
-    np.savetxt(FIMP_TXT_PATH, result)
-    return local_canonical_file(FIMP_TXT_PATH)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, result)
+    return local_canonical_file(fimp_txt_path)
 
 
 def test_loading_pool_with_numpy_int():
@@ -2424,8 +2481,9 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
     )
     model.fit(train_pool, eval_set=test_pool)
     pred = model.predict(test_pool)
-    np.save(PREDS_PATH, np.array(pred))
-    return local_canonical_file(PREDS_PATH)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
 
 
 def test_permuted_columns_dataset():
@@ -2466,7 +2524,8 @@ def test_roc():
 
     curve = get_roc_curve(model, test_pool, thread_count=4)
     table = np.array(list(zip(curve[2], [1 - x for x in curve[1]], curve[0])))
-    np.savetxt('out_model', table)
+    out_model = test_output_path('out_model')
+    np.savetxt(out_model, table)
 
     try:
         select_threshold(model, data=test_pool, FNR=0.5, FPR=0.5)
@@ -2474,7 +2533,8 @@ def test_roc():
     except CatboostError:
         pass
 
-    with open('bounds', 'w') as f:
+    bounds = test_output_path('bounds')
+    with open(bounds, 'w') as f:
         fnr_boundary = select_threshold(model, data=test_pool, FNR=0.4)
         fpr_boundary = select_threshold(model, data=test_pool, FPR=0.2)
         inter_boundary = select_threshold(model, data=test_pool)
@@ -2495,8 +2555,8 @@ def test_roc():
 
     return [
         local_canonical_file('catboost_info/out_cv'),
-        local_canonical_file('out_model'),
-        local_canonical_file('bounds')
+        local_canonical_file(out_model),
+        local_canonical_file(bounds)
     ]
 
 
