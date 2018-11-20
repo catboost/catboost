@@ -1896,7 +1896,7 @@
         },
         "crypta": {
             "formula": {
-                "sandbox_id": 331824056,
+                "sandbox_id": 334422043,
                 "match": "crypta"
             },
             "executable": {
@@ -1916,3 +1916,4 @@
         }
     }
 }
+
