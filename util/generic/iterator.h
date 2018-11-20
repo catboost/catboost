@@ -5,33 +5,28 @@
 
 namespace NStlIterator {
     template <class T>
-    struct TRefFromPtr;
-
-    template <class T>
-    struct TRefFromPtr<T*> {
-        using TResult = T&;
-    };
-
-    template <class T>
-    struct TTraits {
-        using TPtr = typename T::TPtr;
-        using TRef = typename TRefFromPtr<TPtr>::TResult;
-
-        static inline TPtr Ptr(const T& p) noexcept {
-            return T::Ptr(p);
+    class TProxy {
+    public:
+        TProxy() = default;
+        TProxy(T&& value) : Value_(std::move(value)) {
         }
-    };
 
-    template <class T>
-    struct TTraits<T*> {
-        using TPtr = T*;
-        using TRef = T&;
-
-        static inline TPtr Ptr(TPtr p) noexcept {
-            return p;
+        const T* operator->() const noexcept {
+            return &Value_;
         }
+
+        const T& operator*() const noexcept {
+            return Value_;
+        }
+
+        bool operator==(const TProxy& rhs) const {
+            return Value_ == rhs.Value_;
+        }
+
+    private:
+        T Value_;
     };
-}
+} // namespace NStlIterator
 
 /**
  * Range adaptor that turns a derived class with a Java-style iteration
@@ -76,10 +71,8 @@ public:
         static constexpr bool IsNoexceptNext = noexcept(std::declval<TSlave>().Next());
 
         using difference_type = std::ptrdiff_t;
-        using TNextType = decltype(std::declval<TSlave>().Next());
-        using TValueTraits = NStlIterator::TTraits<TNextType>; // TODO: DROP!
-        using pointer = typename TValueTraits::TPtr;
-        using reference = typename TValueTraits::TRef;
+        using pointer = decltype(std::declval<TSlave>().Next());
+        using reference = decltype(*std::declval<TSlave>().Next());
         using value_type = std::remove_cv_t<std::remove_reference_t<reference>>;
         using iterator_category = std::input_iterator_tag;
 
@@ -104,11 +97,11 @@ public:
         }
 
         inline pointer operator->() const noexcept {
-            return TValueTraits::Ptr(Cur_);
+            return Cur_;
         }
 
         inline reference operator*() const noexcept {
-            return *TValueTraits::Ptr(Cur_);
+            return *Cur_;
         }
 
         inline TIterator& operator++() noexcept(IsNoexceptNext) {
@@ -119,7 +112,7 @@ public:
 
     private:
         TSlave* Slave_;
-        TNextType Cur_;
+        pointer Cur_;
     };
 
 public:

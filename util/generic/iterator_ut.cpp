@@ -35,4 +35,27 @@ Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
             }
         }
     }
+
+    class TUrlPart : public TInputRangeAdaptor<TUrlPart> {
+    public:
+        TUrlPart(const TStringBuf& url) : Url_(url) {
+        }
+
+        NStlIterator::TProxy<TStringBuf> Next() {
+            return Url_.NextTok('/');
+        }
+
+    private:
+        TStringBuf Url_;
+    };
+
+    Y_UNIT_TEST(TUrlPart) {
+        const TVector<TStringBuf> expected = {AsStringBuf("yandex.ru"), AsStringBuf("search?")};
+        auto expected_part = expected.begin();
+        for (const TStringBuf& part : TUrlPart(AsStringBuf("yandex.ru/search?"))) {
+           UNIT_ASSERT_VALUES_EQUAL(part, *expected_part);
+           ++expected_part;
+        }
+        UNIT_ASSERT(expected_part == expected.end())
+    }
 }
