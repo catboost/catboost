@@ -1288,7 +1288,7 @@ class GnuCompiler(Compiler):
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
-            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-Wno-deprecated-declarations'])
+            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):
                 self.c_defines.append('-faligned-allocation')
             else:
@@ -1418,7 +1418,7 @@ class GnuCompiler(Compiler):
         emit('USE_GCCFILTER', preset('USE_GCCFILTER') or 'yes')
         emit('USE_GCCFILTER_COLOR', preset('USE_GCCFILTER_COLOR') or 'yes')
         emit('SFDL_FLAG', self.sfdl_flags, '-o', '$SFDL_TMP_OUT')
-        emit('WERROR_FLAG', '-Werror', '-Wno-error=deprecated-declarations')
+        emit('WERROR_FLAG', '-Werror')
         # TODO(somov): Убрать чтение настройки из os.environ
         emit('USE_ARC_PROFILE', 'yes' if preset('USE_ARC_PROFILE') or os.environ.get('USE_ARC_PROFILE') else 'no')
         emit('DEBUG_INFO_FLAGS', self.debug_info_flags)
@@ -1444,7 +1444,6 @@ class GnuCompiler(Compiler):
                 ENABLE(UNUSED_MACRO)
             }''')
 
-        append('C_WARNING_OPTS', '-Wno-error=deprecated')
         append('CXX_WARNING_OPTS', '-Wno-register')  # IGNIETFERRO-722 understand what to do with the contrib
         append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
         append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec')  # IGNIETFERRO-282 some problems with lucid
@@ -1493,6 +1492,7 @@ class GnuCompiler(Compiler):
                  'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
                  'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
                  'contrib/libs/libfuzzer-5.0')
+            emit('WERROR_FLAG', '-Werror', '-Wno-error=deprecated')
 
 
 class Linker(object):
