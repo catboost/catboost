@@ -5604,7 +5604,6 @@ def test_eval_result_on_different_pool_type():
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.xfail(strict=True)
 @pytest.mark.parametrize(
     'dataset_name,loss_function,has_pairs,has_group_weights',
     [
@@ -5641,4 +5640,5 @@ def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_wei
             '--test-group-weights', data_file('broken_format', dataset_name, 'test.group_weights'),
         )
 
-    yatest.common.execute(cmd)
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
