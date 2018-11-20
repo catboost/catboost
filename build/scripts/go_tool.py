@@ -146,14 +146,14 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     # Get the list of "internal" tests
     os.makedirs(os.path.join(test_src_dir, test_module_path))
     os.symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
-    cmd = [test_miner, test_module_path]
+    cmd = [test_miner, '-tests', test_module_path]
     tests = (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n')
 
     # Get the list of "external" tests
     if xtest_lib_args:
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os.symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
-        cmd = [test_miner, xtest_module_path]
+        cmd = [test_miner, '-tests', xtest_module_path]
         xtests = (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n')
 
     content = """package main
