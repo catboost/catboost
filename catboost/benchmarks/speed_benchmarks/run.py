@@ -1,9 +1,8 @@
 import argparse
-import json
 
+from data_loader import DATASET_CHARACTERISTIC
 from experiments import *
 from learners import *
-from data_loader import DATASET_CHARACTERISTIC
 
 LEARNERS = {
     "xgb": XGBoostLearner,
@@ -37,7 +36,8 @@ if __name__ == '__main__':
                                                             ' to learner parameter e.g. max_depth, and'
                                                             ' list of values to run in experiment')
     parser.add_argument('--dataset-dir', default='datasets')
-    parser.add_argument('-o', '--out-dir', default='results')
+    parser.add_argument('-l', '--log-dir', default='logs')
+    parser.add_argument('-o', '--result', default='result.json')
     args = parser.parse_args()
 
     experiment_learners = _get_all_values_from_subset(LEARNERS, args.learners)
@@ -57,4 +57,4 @@ if __name__ == '__main__':
         params_grid.update(grid)
 
     print(experiment.name)
-    experiment.run(args.use_gpu, experiment_learners, params_grid, args.dataset_dir, args.out_dir)
+    experiment.run(args.use_gpu, experiment_learners, params_grid, args.dataset_dir, args.result, args.log_dir)

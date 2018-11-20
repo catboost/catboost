@@ -1,16 +1,16 @@
 # coding=utf-8
 import argparse
 import json
-import os
 
 import numpy as np
 import pandas as pd
 
-from experiments import EXPERIMENT_TYPE
 from log_parser import read_results
 
 
 def calculate_statistics(tracks, niter):
+    niter -= 1
+
     best_track = None
     best_quality = np.inf
     best_iter = -1
@@ -23,7 +23,7 @@ def calculate_statistics(tracks, niter):
     for track in tracks:
         cur_quality = track.get_best_score()
         time_per_iter = track.get_time_per_iter()
-        if time_per_iter.shape[0] <= niter:
+        if time_per_iter.shape[0] < niter:
             continue
 
         median.append(np.median(time_per_iter))
@@ -57,22 +57,19 @@ def calculate_statistics(tracks, niter):
     }
 
 
-def get_experiment_stats(results_directory, gpu, niter):
-    EXPERIMENT_NAMES = EXPERIMENT_TYPE.keys()
+def get_experiment_stats(results_file, gpu, niter):
     stats = {}
+    tracks = read_results(results_file)
 
-    for experiment_name in os.listdir(results_directory):
-        if experiment_name not in EXPERIMENT_NAMES:
-            continue
-
+    for experiment_name in tracks.iterkeys():
         stats[experiment_name] = {}
 
-        tracks = read_results(os.path.join(results_directory, experiment_name))
-        tracks = dict(filter(lambda track: gpu == ('GPU' in track[0]), tracks.items()))
+        experiment_tracks = tracks[experiment_name]
+        experiment_tracks = dict(filter(lambda track: gpu == ('GPU' in track[0]), experiment_tracks.items()))
 
-        for algorithm_name in tracks.iterkeys():
+        for algorithm_name in experiment_tracks.iterkeys():
             stats[experiment_name][algorithm_name] = {}
-            table_tracks = split_tracks(tracks[algorithm_name])
+            table_tracks = split_tracks(experiment_tracks[algorithm_name])
 
             for params, cur_tracks in table_tracks.iteritems():
                 stat = calculate_statistics(cur_tracks, niter)
@@ -208,7 +205,6 @@ def split_tracks(tracks):
     samples = set(samples)
 
     table_tracks = {(depth, subsample): [] for depth in depths for subsample in samples}
-    print(table_tracks)
 
     for track in tracks:
         subsample = track.params.subsample if "subsample" in track.params_dict.keys() else 1.
@@ -219,7 +215,7 @@ def split_tracks(tracks):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--results-dir', default='./results')
+    parser.add_argument('-i', '--result', default='./results.json')
     parser.add_argument('-o', '--output')
     parser.add_argument('-t', '--type', choices=['common-table', 'by-depth-table', 'json'], default='common-table')
     parser.add_argument('-f', '--filter', choices=['only-gpu', 'only-cpu'], default='only-gpu')
@@ -228,7 +224,7 @@ def main():
     args = parser.parse_args()
 
     on_gpu = args.filter == 'only-gpu'
-    stats = get_experiment_stats(args.results_dir, on_gpu, niter=args.niter)
+    stats = get_experiment_stats(args.result, on_gpu, niter=args.niter)
 
     output = args.output
     if args.output is None:

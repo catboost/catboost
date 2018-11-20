@@ -214,37 +214,13 @@ def get_default_file_name(plot_type, params):
         return params_to_str(params) + '.png'
 
 
-def main():
-    plot_functions = {
-        'time-per-iter': plot_time_per_iter,
-        'best': plot_quality,
-        'quality-vs-time': plot_quality_vs_time,
-        'custom': plot_quality
-    }
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--type', choices=plot_functions.keys(), required=True)
-    parser.add_argument('--only', nargs='+', choices=ONLY_TYPES.keys(), required=False)
-    parser.add_argument('-i', '--results-dir', required=True)
-    parser.add_argument('-t', '--title')
-    parser.add_argument('-f', '--fig-size', nargs=2, type=int, default=FIGURE_SIZE)
-    parser.add_argument('-o', '--out-dir', default='plots')
-    parser.add_argument('-d', '--file-name', required=False)
-    parser.add_argument('--params-cases', help='draw plots only with those params (tracks filtering)'
-                                               ' path to json file, each line corresponds to learner '
-                                               'parameter (e.g. max_depth) and list of its values')
-    parser.add_argument('--from-iter', type=int, default=0, help='only custom, best modes')
-    parser.add_argument('--to-iter', type=int, default=None, help='only custom, best modes')
-    parser.add_argument('--low-percent', type=float, default=0.9, help='only quality-vs-time mode')
-    parser.add_argument('--num-bins', type=int, default=200, help='only quality-vs-time mode')
-    parser.add_argument('--only-min', action='store_true', help='only quality-vs-time mode')
-    parser.add_argument('--top', type=int, default=3, help='only best mode')
-    args = parser.parse_args()
-
-    tracks = read_results(args.results_dir)
-
+def plot_experiment(tracks, experiment_name, args):
     file_name = args.file_name if args.file_name else get_default_file_name(args.type, args.params_cases)
-    save_path = os.path.join(args.out_dir, file_name)
+    save_dir = os.path.join(args.out_dir, experiment_name)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    save_path = os.path.join(save_dir, file_name)
 
     if args.only:
         filtered_tracks = {}
@@ -288,6 +264,38 @@ def main():
 
     if args.type == 'time-per-iter':
         plot_time_per_iter(tracks, figsize=args.fig_size, title=args.title, save_path=save_path)
+
+
+def main():
+    plot_functions = {
+        'time-per-iter': plot_time_per_iter,
+        'best': plot_quality,
+        'quality-vs-time': plot_quality_vs_time,
+        'custom': plot_quality
+    }
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--type', choices=plot_functions.keys(), required=True)
+    parser.add_argument('--only', nargs='+', choices=ONLY_TYPES.keys(), required=False)
+    parser.add_argument('-i', '--results-file', required=True)
+    parser.add_argument('-t', '--title')
+    parser.add_argument('-f', '--fig-size', nargs=2, type=int, default=FIGURE_SIZE)
+    parser.add_argument('-o', '--out-dir', default='plots')
+    parser.add_argument('--params-cases', help='draw plots only with those params (tracks filtering)'
+                                               ' path to json file, each line corresponds to learner '
+                                               'parameter (e.g. max_depth) and list of its values')
+    parser.add_argument('--from-iter', type=int, default=0, help='only custom, best modes')
+    parser.add_argument('--to-iter', type=int, default=None, help='only custom, best modes')
+    parser.add_argument('--low-percent', type=float, default=0.9, help='only quality-vs-time mode')
+    parser.add_argument('--num-bins', type=int, default=200, help='only quality-vs-time mode')
+    parser.add_argument('--only-min', action='store_true', help='only quality-vs-time mode')
+    parser.add_argument('--top', type=int, default=3, help='only best mode')
+    args = parser.parse_args()
+
+    tracks = read_results(args.results_file)
+
+    for experiment_name in tracks.iterkeys():
+        plot_experiment(tracks[experiment_name], experiment_name, args)
 
 
 if __name__ == '__main__':

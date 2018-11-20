@@ -1,10 +1,9 @@
-import numpy as np
+import json
 import os
 import re
-
 from collections import namedtuple
-from experiments import EXPERIMENTS
 
+import numpy as np
 
 ALGORITHMS = [method + '-' + device_type
               for device_type in ['CPU', 'GPU']
@@ -23,13 +22,14 @@ LOG_LINE_REGEX = {
 class Track:
     param_regex = re.compile(r'(\w+)\[(\d+\.?\d*)\]')
 
-    def __init__(self, algorithm_name, dataset, task_type, parameters_str, time_series, scores, duration):
+    def __init__(self, algorithm_name, experiment_name, task_type, parameters_str, time_series, scores, duration):
         self.log_name = parameters_str
-        self.owner_name = algorithm_name
+        self.algorithm_name = algorithm_name
         self.scores = scores
-        self.dataset = dataset
+        self.experiment_name = experiment_name
         self.task_type = task_type
         self.duration = duration
+        self.parameters_str = parameters_str
 
         for i in range(1, time_series.shape[0]):
             if time_series[i] - time_series[i - 1] < 0.:
@@ -44,10 +44,7 @@ class Track:
         self.time_series = time_series
         assert(np.all(self.time_series - self.time_series[0] >= 0.))
 
-        time_per_iter = time_series[1:] - time_series[:-1]
-        # remove outliers
-        ids = np.where(time_per_iter < np.quantile(time_per_iter, 0.99))
-        self.time_per_iter = time_per_iter[ids]
+        self.time_per_iter = time_series[1:] - time_series[:-1]
 
         params = Track.param_regex.findall(parameters_str)
 
@@ -71,13 +68,30 @@ class Track:
 
             params_str += ', ' + field + ':' + str(self.params[i])
 
-        return self.owner_name + params_str
+        return self.algorithm_name + params_str
 
     def __eq__(self, other):
-        return self.owner_name == other.owner_name and self.params == other.params
+        return self.algorithm_name == other.owner_name and self.params == other.params
+
+    @staticmethod
+    def hash(experiment_name, algorithm_name, task_type, parameters_str):
+        return hash(experiment_name + algorithm_name + task_type + parameters_str)
 
     def __hash__(self):
-        return hash(self.params)
+        return Track.hash(self.experiment_name, self.algorithm_name, self.task_type, self.parameters_str)
+
+    def dump_to_json(self):
+        return {
+            self.__hash__(): {
+                "dataset": self.experiment_name,
+                "algorithm_name": self.algorithm_name,
+                "task_type": self.task_type,
+                "parameters": self.parameters_str,
+                "scores": list(self.scores),
+                "time_series": list(self.time_series),
+                "duration": self.duration
+            }
+        }
 
     def get_series(self):
         return self.time_series, self.scores
@@ -131,13 +145,13 @@ def parse_catboost_log(test_error_file, task_type, iterations):
     return values
 
 
-def parse_log(algorithm_name, task_type, file_name, iterations):
+def parse_log(algorithm_name, experiment_name, task_type, params_str, file_name, iterations):
     time_series = []
     values = []
     algorithm = algorithm_name.rstrip('-CPU|GPU')
 
     if algorithm == 'catboost':
-        catboost_train_dir = os.path.splitext(file_name)[0]
+        catboost_train_dir = file_name + 'dir'
         test_error_file = os.path.join(catboost_train_dir, 'test_error.tsv')
         values = parse_catboost_log(test_error_file, task_type, iterations)
 
@@ -164,41 +178,30 @@ def parse_log(algorithm_name, task_type, file_name, iterations):
         duration = ELAPSED_REGEX.findall(file_content)
         duration = float(duration[0]) if len(duration) > 0 else 0.
 
-    return np.array(time_series), np.array(values), duration
+    return Track(algorithm_name, experiment_name, task_type, params_str,
+                 np.array(time_series), np.array(values), duration)
 
 
-def read_results(dir_name):
-    experiment_name = os.path.basename(dir_name.rstrip(os.path.sep))
-    task_type = filter(lambda experiment: experiment.name == experiment_name, EXPERIMENTS.itervalues())[0].task
-    print(experiment_name + ' ' + task_type)
+def read_results(results_file):
+    with open(results_file, 'r') as f:
+        results_json = json.load(f)
 
-    results = {}
+    results = results_json.values()
 
-    for algorithm_name in os.listdir(dir_name):
-        print(algorithm_name)
-        if algorithm_name not in ALGORITHMS:
-            continue
+    tracks = {}
 
-        results[algorithm_name] = []
+    for result in results:
+        experiment_name = result["dataset"]
+        algorithm_name = result["algorithm_name"]
 
-        cur_dir = os.path.join(dir_name, algorithm_name)
-        for log_name in os.listdir(cur_dir):
-            path = os.path.join(cur_dir, log_name)
+        if experiment_name not in tracks:
+            tracks[experiment_name] = {}
+        if algorithm_name not in tracks[experiment_name]:
+            tracks[experiment_name][algorithm_name] = []
 
-            iterations_str = re.findall(r'iterations\[(\d+)\]', log_name)
+        track = Track(algorithm_name, experiment_name, result["task_type"], result["parameters"],
+                      np.array(result["time_series"]), np.array(result["scores"]), result["duration"])
 
-            if not os.path.isfile(path) or len(iterations_str) != 1:
-                continue
+        tracks[experiment_name][algorithm_name].append(track)
 
-            iterations = int(iterations_str[0])
-            try:
-                payload = parse_log(algorithm_name, task_type, path, iterations)
-            except Exception as e:
-                print('Log for ' + path + ' is broken: ' + repr(e))
-                continue
-
-            time_series, values, duration = payload
-            track = Track(algorithm_name, experiment_name, task_type, log_name, time_series, values, duration)
-            results[algorithm_name].append(track)
-
-    return results
+    return tracks
