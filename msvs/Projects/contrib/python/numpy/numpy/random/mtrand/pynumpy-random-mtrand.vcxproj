@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{794E1CFC-77F3-9455-DA27-A631729E33E2}</ProjectGUID>
+    <ProjectGUID>{162DA5F9-DE9F-B82B-1189-842D94DE8923}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>numpy-random-mtrand</ProjectName>
+    <ProjectName>pynumpy-random-mtrand</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>numpy-random-mtrand</TargetName>
+    <TargetName>pynumpy-random-mtrand</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\794E1CFC-77F3-9455-DA27-A631729E33E2\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\162DA5F9-DE9F-B82B-1189-842D94DE8923\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -62,7 +62,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/python/numpy/numpy/core/src/private;$(SolutionDir)../contrib/python/numpy/numpy/core/include;$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/python/Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/python/numpy/numpy/core/src/private;$(SolutionDir)../contrib/python/numpy/numpy/core/include;$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -132,7 +132,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-suffix" "5numpy6random6mtrand" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

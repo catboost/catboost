@@ -115,7 +115,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -126,7 +126,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -134,9 +134,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.obj	</Message>
+      <Message>$B/contrib/python/numpy/join_047f26062b5cdd9a18e647400c.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\join_047f26062b5cdd9a18e647400c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\join_047f26062b5cdd9a18e647400c.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\join_047f26062b5cdd9a18e647400c.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\_methods.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -2116,20 +2116,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
-      <Project>{83EDB3BB-30AF-677F-74C1-971A8947E4E5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\pycore-src-multiarray.vcxproj">
+      <Project>{27240284-1593-7CC6-D071-39FB18DABC88}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
-      <Project>{9597A7D1-7866-3170-611F-3A0AA615D847}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\pycore-src-umath.vcxproj">
+      <Project>{BF83B640-6F6B-4884-E087-B10DFDBE5504}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
-      <Project>{AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\pynumpy-numpy-fft.vcxproj">
+      <Project>{0333D85B-95E8-3188-EEAC-9ECD9E3DA5E1}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\numpy-numpy-linalg.vcxproj">
-      <Project>{2C53A7F8-146C-2E01-A4DD-B0D7D23E4518}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\pynumpy-numpy-linalg.vcxproj">
+      <Project>{D024E71D-9552-4094-E945-CF72AC4E5BA3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
-      <Project>{794E1CFC-77F3-9455-DA27-A631729E33E2}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\pynumpy-random-mtrand.vcxproj">
+      <Project>{162DA5F9-DE9F-B82B-1189-842D94DE8923}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
       <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
