@@ -2560,7 +2560,7 @@ def test_roc():
     ]
 
 
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('boosting_type', ['Ordered'])
 @pytest.mark.parametrize('overfitting_detector_type', OVERFITTING_DETECTOR_TYPE)
 def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_type, overfitting_detector_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)

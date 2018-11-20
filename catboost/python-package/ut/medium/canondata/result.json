@@ -1,10 +1,10 @@
 {
     "test.test_allow_writing_files_and_used_ram_limit[CPU-1024]": {
-        "checksum": "3267801ae3db6d207d1de56f1ffdf438",
+        "checksum": "a01ebbcf5e68b47844e6b06ff7b23a97",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-1024_/predictions.npy"
     },
     "test.test_allow_writing_files_and_used_ram_limit[CPU-2Gb]": {
-        "checksum": "c3c9ce2db14d9f264e644c5e3a7cca4b",
+        "checksum": "a01ebbcf5e68b47844e6b06ff7b23a97",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
     },
     "test.test_class_weights[CPU]": {

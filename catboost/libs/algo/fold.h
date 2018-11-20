@@ -21,7 +21,6 @@ struct TRestorableFastRng64;
 
 struct TFold {
     struct TBodyTail {
-
         TBodyTail(int bodyQueryFinish,
                   int tailQueryFinish,
                   int bodyFinish,
@@ -33,12 +32,13 @@ struct TFold {
             , TailFinish(tailFinish)
             , BodySumWeight(bodySumWeight) {
         }
-        TVector<TVector<double>> Approx;
-        TVector<TVector<double>> WeightedDerivatives;
+
+        TVector<TVector<double>> Approx;  // [dim][]
+        TVector<TVector<double>> WeightedDerivatives;  // [dim][]
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
-        TVector<TVector<double>> SampleWeightedDerivatives;
-        TVector<float> PairwiseWeights;
-        TVector<float> SamplePairwiseWeights;
+        TVector<TVector<double>> SampleWeightedDerivatives;  // [dim][]
+        TVector<float> PairwiseWeights;  // [dim][]
+        TVector<float> SamplePairwiseWeights;  // [dim][]
 
         int GetBodyDocCount() const { return BodyFinish; }
 
