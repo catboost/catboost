@@ -1245,6 +1245,9 @@ sys/proc_info.h
 sys/statfs.h
 CoreFoundation/CoreFoundation.h
 CoreFoundation/CFRunLoop.h
+IOKit/ps/IOPSKeys.h
+IOKit/ps/IOPowerSources.h 
+IOKit/ps/IOPowerSources.h
 IOKit/IOKitLib.h
 IOKit/storage/IOBlockStorageDriver.h
 IOKit/storage/IOMedia.h
