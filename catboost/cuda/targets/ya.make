@@ -7,6 +7,7 @@ NO_WERROR()
 SRCS(
     auc.cpp
     gpu_metrics.cpp
+    kernel/dcg.cu
     kernel/multilogit.cu
     kernel/pair_logit.cu
     kernel/pfound_f.cu
@@ -22,9 +23,10 @@ SRCS(
     query_cross_entropy.cpp
     querywise_targets_impl.cpp
     target_func.cpp
+    GLOBAL dcg.cpp
     GLOBAL kernel.cpp
-    GLOBAL query_cross_entropy_kernels.cpp
     GLOBAL multiclass_kernels.cpp
+    GLOBAL query_cross_entropy_kernels.cpp
 )
 
 PEERDIR(
