@@ -5,7 +5,7 @@
 	.quad	_OPENSSL_cpuid_setup
 
 .private_extern	_OPENSSL_ia32cap_P
-.comm	_OPENSSL_ia32cap_P,16,2
+.lcomm	_OPENSSL_ia32cap_P,16,2
 
 .text	
 
