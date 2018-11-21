@@ -621,14 +621,26 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     return result;
 }
 
-TVector<TString> GetModelClassNames(const TFullModel& model) {
-    const TString& modelInfoParams = model.ModelInfo.at("params");
-    NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
+inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& arr) {
     TVector<TString> classNames;
-    if (paramsJson.Has("data_processing_options")
-        && paramsJson["data_processing_options"].Has("class_names")) {
-        for (const auto& token : paramsJson["data_processing_options"]["class_names"].GetArraySafe()) {
-            classNames.push_back(token.GetStringSafe());
+    for (const auto& token : arr.GetArraySafe()) {
+        classNames.push_back(token.GetStringSafe());
+    }
+    return classNames;
+}
+
+TVector<TString> GetModelClassNames(const TFullModel& model) {
+    TVector<TString> classNames;
+
+    if (model.ModelInfo.has("multiclass_params")) {
+        NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("multiclass_params"));
+        classNames = ExtractClassNamesFromJsonArray(paramsJson["class_names"]);
+    } else if (model.ModelInfo.has("params")) {
+        const TString& modelInfoParams = model.ModelInfo.at("params");
+        NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
+        if (paramsJson.Has("data_processing_options")
+            && paramsJson["data_processing_options"].Has("class_names")) {
+            classNames = ExtractClassNamesFromJsonArray(paramsJson["data_processing_options"]["class_names"]);
         }
     }
     return classNames;

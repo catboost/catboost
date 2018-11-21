@@ -439,7 +439,7 @@ TMetricsPlotCalcer CreateMetricCalcer(
     const TString& tmpDir,
     const TVector<THolder<IMetric>>& metrics
 ) {
-    if (ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function")) {
+    if (model.ModelInfo.has("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function")) {
         CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
     }
 
