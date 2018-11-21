@@ -162,6 +162,10 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "gevent.win32util",
 
         "library.python.ctypes.__init__",
+	"celery.events.cursesmon",
+	"billiard.popen_forkserver",
+	"billiard.forkserver",
+	"celery.contrib.sphinx",
     ] + list(no_check or [])
 
     if sys.version_info.major == 3:
