@@ -34,23 +34,21 @@ namespace NStlIterator {
  *
  * Derived class is expected to define:
  * \code
- * using TRetVal = <pointer>;
- * TRetVal Next();
+ * TSomething* Next();
  * \endcode
  *
- * `TRetVal` is expected to be a pointer-like type. `Next()` returning nullptr
- * signals end of range.
+ * `Next()` returning `nullptr` signals end of range. Note that you can also use
+ * pointer-like types instead of actual pointers (e.g. `TAtomicSharedPtr`).
  *
  * Since iteration state is stored inside the derived class, the resulting range
  * is an input range (works for single pass algorithms only). Technically speaking,
- * if `TRetVal` is a non-const pointer, it can also work as an output range.
+ * if you're returning a non-const pointer from `Next`, it can also work as an output range.
  *
  * Example usage:
  * \code
  * class TSquaresGenerator: public TInputRangeAdaptor<TSquaresGenerator> {
  * public:
- *     using TRetVal = const double*;
- *     TRetVal Next() {
+ *     const double* Next() {
  *         Current_ = State_ * State_;
  *         State_ += 1.0;
  *         // Never return nullptr => we have infinite range!
