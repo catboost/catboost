@@ -341,6 +341,10 @@ def onpy_srcs(unit, *args):
                 else:
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
+        if unit.get('GLYCINE_FLAG') == 'yes':
+            unit.ongenerate_py_glys(proto_paths)
+            unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in protos])
+
 
     if evs:
         if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
