@@ -387,32 +387,6 @@ struct TKeepDelimiters {
     S* Slave;
 };
 
-template <class TConsumer, class I, class C>
-static inline void SplitRangeToImpl(I* b, I* e, I d, C* c) {
-    TCharDelimiter<I> delim(d);
-    TConsumer consumer(c);
-
-    SplitString(b, e, delim, consumer);
-}
-
-template <class TConsumer, class I, class C>
-static inline void SplitRangeToImpl(I* b, I* e, I* d, C* c) {
-    TStringDelimiter<I> delim(d);
-    TConsumer consumer(c);
-
-    SplitString(b, e, delim, consumer);
-}
-
-// Split functions
-template <class I, class C>
-static inline void SplitRangeTo(I* b, I* e, I d, C* c) {
-    SplitRangeToImpl<TContainerConsumer<C>, I, C>(b, e, d, c);
-}
-
-template <class I, class C>
-static inline void SplitRangeTo(I* b, I* e, I* d, C* c) {
-    SplitRangeToImpl<TContainerConsumer<C>>(b, e, d, c);
-}
 
 template <class T>
 struct TSimplePusher {
