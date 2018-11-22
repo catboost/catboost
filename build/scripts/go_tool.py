@@ -122,7 +122,6 @@ def do_link_exe(args):
 
 def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     test_module_path = test_lib_args.module_path
-    xtest_module_path = xtest_lib_args.module_path
 
     # Prepare GOPATH
     # $BINDIR
@@ -151,6 +150,7 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
 
     # Get the list of "external" tests
     if xtest_lib_args:
+        xtest_module_path = xtest_lib_args.module_path
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os.symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-tests', xtest_module_path]
@@ -214,7 +214,8 @@ def do_link_test(args):
     test_args.srcs = [test_main_name]
     classify_srcs(test_args.srcs, test_args)
     test_args.module_map[args.test_import_path] = test_lib_args.output
-    test_args.module_map[args.test_import_path + '_test'] = xtest_lib_args.output
+    if xtest_lib_args:
+        test_args.module_map[args.test_import_path + '_test'] = xtest_lib_args.output
     do_link_exe(test_args)
 
 
