@@ -354,6 +354,7 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory
         ) const override {
             CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
+            CB_ENSURE(pools.Test.size() == evalResultPtrs.size());
 
             // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
             auto sortedCatFeatures = ToUnsigned(pools.Learn->CatFeatures);
@@ -568,10 +569,6 @@ namespace {
             for (int testIdx = 0; testIdx < testDataPtrs.ysize(); ++testIdx) {
                 evalResultPtrs[testIdx]->SetRawValuesByMove(rawValues[testIdx]);
             }
-            if (testDataPtrs.empty() && evalResultPtrs.ysize() > 0) {
-                // need at least one evalResult, maybe empty
-                evalResultPtrs[0]->SetRawValuesByMove(oneRawValues);
-            }
 
             TObliviousTrees obliviousTrees;
             THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
@@ -704,7 +701,7 @@ namespace {
                 ValidateColumnOutput(outputOptions.GetOutputColumns(), pools.Learn, false,
                                      loadOptions.CvParams.FoldCount > 0);
             }
-            TVector<TEvalResult> evalResults(Max(pools.Test.ysize(), 1)); // need at least one evalResult, maybe empty
+            TVector<TEvalResult> evalResults(pools.Test.ysize());
 
             NJson::TJsonValue updatedTrainJson = trainJson;
             UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
