@@ -283,7 +283,7 @@ namespace NCB {
             );
 
             if (CatFeatureCount) {
-                auto& catFeaturesHashToString = *Data.ObjectsData.CatFeaturesHashToString;
+                auto& catFeaturesHashToString = *Data.CommonObjectsData.CatFeaturesHashToString;
                 catFeaturesHashToString.resize(CatFeatureCount);
                 for (const auto& part : HashMapParts) {
                     if (part.CatFeatureHashes.empty()) {

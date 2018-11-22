@@ -66,7 +66,12 @@ namespace NCB {
         TMaybeData<TVector<TSubgroupId>> SubgroupIds; // [objectIdx]
         TMaybeData<TVector<ui64>> Timestamp; // [objectIdx]
 
+        // can be empty if there's no cat features
+        TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
+
     public:
+        bool operator==(const TCommonObjectsData& rhs) const;
+
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailCount);
 
@@ -97,6 +102,10 @@ namespace NCB {
             TCommonObjectsData&& commonData,
             bool skipCheck
         );
+
+        virtual bool operator==(const TObjectsDataProvider& rhs) const {
+            return (*ObjectsGrouping == *rhs.ObjectsGrouping) && (CommonData == rhs.CommonData);
+        }
 
         ui32 GetObjectCount() const {
             return ObjectsGrouping->GetObjectCount();
@@ -136,6 +145,10 @@ namespace NCB {
             return CommonData.Timestamp;
         }
 
+        const THashMap<ui32, TString>& GetCatFeaturesHashToString(ui32 catFeatureIdx) const {
+            return (*CommonData.CatFeaturesHashToString)[catFeatureIdx];
+        }
+
         void SaveCommonDataNonSharedPart(IBinSaver* binSaver) const {
             CommonData.SaveNonSharedPart(binSaver);
         }
@@ -161,10 +174,9 @@ namespace NCB {
         TVector<THolder<TFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<THashedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
 
-        // can be empty if there's no cat features
-        TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
-
     public:
+        bool operator==(const TRawObjectsData& rhs) const;
+
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(const TDataMetaInfo& metaInfo);
 
@@ -172,6 +184,9 @@ namespace NCB {
         void Check(
             ui32 objectCount,
             const TFeaturesLayout& featuresLayout,
+
+            // can be nullptr is there's no categorical features
+            const TVector<THashMap<ui32, TString>>* catFeaturesHashToString,
             NPar::TLocalExecutor* localExecutor
         ) const;
     };
@@ -194,15 +209,33 @@ namespace NCB {
             : TObjectsDataProvider(std::move(objectsGrouping), std::move(commonData), skipCheck)
         {
             if (!skipCheck) {
-                data.Check(GetObjectCount(), *GetFeaturesLayout(), *localExecutor);
+                data.Check(
+                    GetObjectCount(),
+                    *GetFeaturesLayout(),
+                    CommonData.CatFeaturesHashToString.Get(),
+                    *localExecutor
+                );
             }
             Data = std::move(data);
+        }
+
+        bool operator==(const TObjectsDataProvider& rhs) const override {
+            const auto* rhsRawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&rhs);
+            if (!rhsRawObjectsData) {
+                return false;
+            }
+            return TObjectsDataProvider::operator==(rhs) && (Data == rhsRawObjectsData->Data);
         }
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::TLocalExecutor* localExecutor
         ) const override;
+
+        // needed for low-level optimizations in CPU applying code
+        const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
+            return *CommonData.SubsetIndexing;
+        }
 
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
@@ -216,10 +249,6 @@ namespace NCB {
          */
         TMaybeData<const THashedCatValuesHolder*> GetCatFeature(ui32 catFeatureIdx) const {
             return MakeMaybeData<const THashedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
-        }
-
-        const THashMap<ui32, TString>& GetCatFeaturesHashToString(ui32 catFeatureIdx) const {
-            return (*Data.CatFeaturesHashToString)[catFeatureIdx];
         }
 
         /* set functions are needed for current python mutable Pool interface
@@ -250,6 +279,8 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
 
     public:
+        bool operator==(const TQuantizedObjectsData& rhs) const;
+
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(
             const TDataMetaInfo& metaInfo,
@@ -294,6 +325,14 @@ namespace NCB {
                 data.Check(GetObjectCount(), *GetFeaturesLayout(), *localExecutor);
             }
             Data = std::move(data);
+        }
+
+        bool operator==(const TObjectsDataProvider& rhs) const override {
+            const auto* rhsQuantizedObjectsData = dynamic_cast<const TQuantizedObjectsDataProvider*>(&rhs);
+            if (!rhsQuantizedObjectsData) {
+                return false;
+            }
+            return TObjectsDataProvider::operator==(rhs) && (Data == rhsQuantizedObjectsData->Data);
         }
 
         TObjectsDataProviderPtr GetSubset(

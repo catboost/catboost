@@ -13,6 +13,193 @@ using namespace NCB;
 using namespace NCB::NDataNewUT;
 
 
+template <class TTObjectsDataProvider>
+static void CreateQuantizedObjectsDataProviderTestData(
+    bool hasPairs,
+    TDataMetaInfo* metaInfo,
+    TObjectsGroupingPtr* objectsGrouping,
+    TIntrusivePtr<TTObjectsDataProvider>* objectsData
+) {
+    TDataColumnsMetaInfo dataColumnsMetaInfo;
+    dataColumnsMetaInfo.Columns = {
+        {EColumn::Label, ""},
+        {EColumn::GroupId, ""},
+        {EColumn::SubgroupId, ""},
+        {EColumn::Timestamp, ""},
+        {EColumn::Num, "float0"},
+        {EColumn::Categ, "Gender1"},
+        {EColumn::Num, "float2"},
+        {EColumn::Categ, "Country3"},
+        {EColumn::Num, "float4"},
+    };
+
+    TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
+
+    *metaInfo = TDataMetaInfo(
+        std::move(dataColumnsMetaInfo),
+        /*hasAdditionalGroupWeight*/ false,
+        hasPairs,
+        &featureId
+    );
+
+    *objectsGrouping = MakeIntrusive<TObjectsGrouping>(
+        TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
+    );
+
+    TCommonObjectsData commonObjectsData;
+    commonObjectsData.FeaturesLayout = metaInfo->FeaturesLayout;
+    commonObjectsData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+        TIndexedSubset<ui32>{0, 4, 3, 1, 7, 8}
+    );
+
+    commonObjectsData.Order = EObjectsOrder::RandomShuffled;
+    commonObjectsData.GroupIds = TVector<TGroupId>{
+        CalcGroupIdFor("query0"),
+        CalcGroupIdFor("query0"),
+        CalcGroupIdFor("query1"),
+        CalcGroupIdFor("Query 2"),
+        CalcGroupIdFor("Query 2"),
+        CalcGroupIdFor("Query 2")
+    };
+
+    commonObjectsData.SubgroupIds = TVector<TSubgroupId>{0, 12, 18, 21, 0, 2};
+    commonObjectsData.Timestamp = TVector<ui64>{10, 20, 10, 30, 50, 70};
+
+
+    TQuantizedObjectsData quantizedObjectsData;
+
+    TVector<TVector<ui8>> quantizedFloatFeatures = {
+        TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2, 0, 3, 4, 1},
+        TVector<ui8>{0, 0, 2, 3, 1, 1, 4, 4, 2, 2, 0, 3, 1},
+        TVector<ui8>{5, 1, 2, 0, 4, 3, 0, 5, 2, 1, 3, 3, 4}
+    };
+
+    TVector<TVector<ui32>> quantizedCatFeatures = {
+        TVector<ui32>{0, 1, 2, 3, 4, 0, 5, 6, 7, 8, 0, 3, 1},
+        TVector<ui32>{0, 1, 2, 3, 4, 5, 2, 0, 2, 3, 6, 7, 8}
+    };
+
+    InitQuantizedFeatures(
+        quantizedFloatFeatures,
+        commonObjectsData.SubsetIndexing.Get(),
+        {0, 2, 4},
+        &quantizedObjectsData.FloatFeatures
+    );
+
+    InitQuantizedFeatures(
+        quantizedCatFeatures,
+        commonObjectsData.SubsetIndexing.Get(),
+        {1, 3},
+        &quantizedObjectsData.CatFeatures
+    );
+
+
+    NCatboostOptions::TBinarizationOptions binarizationOptions(
+        EBorderSelectionType::GreedyLogSum,
+        4,
+        ENanMode::Min
+    );
+
+    quantizedObjectsData.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+        metaInfo->FeaturesLayout,
+        binarizationOptions
+    );
+
+    TVector<TVector<float>> borders = {
+        {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f},
+        {0.1299999952f, 0.1949999928f, 0.875f, 1.565000057f},
+        {
+            std::numeric_limits<float>::lowest(),
+            0.0549999997f,
+            0.1550000012f,
+            0.3199999928f,
+            0.6349999905f
+        }
+    };
+    TVector<ENanMode> nanModes = {ENanMode::Forbidden, ENanMode::Forbidden, ENanMode::Min};
+
+    TVector<TMap<ui32, ui32>> expectedPerfectHash = {
+        {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {1, 5}, {0, 6}, {112, 7}, {23, 8}},
+        {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}, {90, 7}, {0, 8}}
+    };
+
+    for (auto i : xrange(3)) {
+        auto floatFeatureIdx = TFloatFeatureIdx(i);
+        quantizedObjectsData.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
+        quantizedObjectsData.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
+    }
+
+    for (auto i : xrange(2)) {
+        auto catFeatureIdx = TCatFeatureIdx(i);
+        quantizedObjectsData.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
+            catFeatureIdx,
+            std::move(expectedPerfectHash[i])
+        );
+    }
+
+    *objectsData = MakeIntrusive<TTObjectsDataProvider>(
+        *objectsGrouping,
+        std::move(commonObjectsData),
+        std::move(quantizedObjectsData),
+        true,
+        Nothing()
+    );
+}
+
+
+static TRawTargetData CreateRawTargetData() {
+    TRawTargetData targetData;
+    targetData.Target = TVector<TString>{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"};
+    targetData.Baseline = TVector<TVector<float>>{
+        TVector<float>{0.12f, 0.0f, 0.11f, 0.31f, 0.2f, 0.9f}
+    };
+    targetData.Weights = TWeights<float>{TVector<float>{1.0f, 0.0f, 0.2f, 0.12f, 0.45f, 0.89f}};
+    targetData.GroupWeights = TWeights<float>(6);
+    targetData.Pairs = {TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
+
+    return targetData;
+}
+
+
+Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
+    template <class TTObjectsDataProvider>
+    void TestEqual() {
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(3);
+
+        THolder<TDataProviderTemplate<TTObjectsDataProvider>> dataProviders[2];
+        for (auto i : xrange(2)) {
+            TDataMetaInfo metaInfo;
+            TObjectsGroupingPtr objectsGrouping;
+            TIntrusivePtr<TTObjectsDataProvider> objectsData;
+
+            CreateQuantizedObjectsDataProviderTestData(true, &metaInfo, &objectsGrouping, &objectsData);
+
+            TRawTargetData rawTargetData = CreateRawTargetData();
+
+            dataProviders[i] = MakeHolder<TDataProviderTemplate<TTObjectsDataProvider>>(
+                std::move(metaInfo),
+                std::move(objectsData),
+                objectsGrouping,
+                TRawTargetDataProvider(objectsGrouping, std::move(rawTargetData), false, &localExecutor)
+            );
+        }
+
+        UNIT_ASSERT_EQUAL(*dataProviders[0], *dataProviders[1]);
+
+        dataProviders[1]->RawTargetData.SetWeights(TVector<float>{1.0f, 0.0f, 2.0f, 1.1f, 0.67f, 0.0f});
+
+        UNIT_ASSERT_UNEQUAL(*dataProviders[0], *dataProviders[1]);
+    }
+
+    Y_UNIT_TEST(Equal) {
+        TestEqual<TQuantizedObjectsDataProvider>();
+        TestEqual<TQuantizedForCPUObjectsDataProvider>();
+    }
+}
+
+
+
 Y_UNIT_TEST_SUITE(TTrainingDataProviderTemplate) {
 
     template <class TTObjectsDataProvider>
@@ -26,133 +213,16 @@ Y_UNIT_TEST_SUITE(TTrainingDataProviderTemplate) {
         CompareTargetDataProviders(lhs.TargetData, rhs.TargetData);
     }
 
+
     template <class TTObjectsDataProvider>
     void TestSerialization() {
         TTrainingDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider;
 
-        TDataColumnsMetaInfo dataColumnsMetaInfo;
-        dataColumnsMetaInfo.Columns = {
-            {EColumn::Label, ""},
-            {EColumn::GroupId, ""},
-            {EColumn::SubgroupId, ""},
-            {EColumn::Timestamp, ""},
-            {EColumn::Num, "float0"},
-            {EColumn::Categ, "Gender1"},
-            {EColumn::Num, "float2"},
-            {EColumn::Categ, "Country3"},
-            {EColumn::Num, "float4"},
-        };
-
-        TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
-
-        trainingDataProvider.MetaInfo = TDataMetaInfo(
-            std::move(dataColumnsMetaInfo),
+        CreateQuantizedObjectsDataProviderTestData(
             false,
-            false,
-            &featureId
-        );
-
-        trainingDataProvider.ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-            TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
-        );
-
-        TCommonObjectsData commonObjectsData;
-        commonObjectsData.FeaturesLayout = trainingDataProvider.MetaInfo.FeaturesLayout;
-        commonObjectsData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
-            TIndexedSubset<ui32>{0, 4, 3, 1, 7, 8}
-        );
-
-        commonObjectsData.Order = EObjectsOrder::RandomShuffled;
-        commonObjectsData.GroupIds = TVector<TGroupId>{
-            CalcGroupIdFor("query0"),
-            CalcGroupIdFor("query0"),
-            CalcGroupIdFor("query1"),
-            CalcGroupIdFor("Query 2"),
-            CalcGroupIdFor("Query 2"),
-            CalcGroupIdFor("Query 2")
-        };
-
-        commonObjectsData.SubgroupIds = TVector<TSubgroupId>{0, 12, 18, 21, 0, 2};
-        commonObjectsData.Timestamp = TVector<ui64>{10, 20, 10, 30, 50, 70};
-
-
-        TQuantizedObjectsData quantizedObjectsData;
-
-        TVector<TVector<ui8>> quantizedFloatFeatures = {
-            TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2, 0, 3, 4, 1},
-            TVector<ui8>{0, 0, 2, 3, 1, 1, 4, 4, 2, 2, 0, 3, 1},
-            TVector<ui8>{5, 1, 2, 0, 4, 3, 0, 5, 2, 1, 3, 3, 4}
-        };
-
-        TVector<TVector<ui32>> quantizedCatFeatures = {
-            TVector<ui32>{0, 1, 2, 3, 4, 0, 5, 6, 7, 8, 0, 3, 1},
-            TVector<ui32>{0, 1, 2, 3, 4, 5, 2, 0, 2, 3, 6, 7, 8}
-        };
-
-        InitQuantizedFeatures(
-            quantizedFloatFeatures,
-            commonObjectsData.SubsetIndexing.Get(),
-            {0, 2, 4},
-            &quantizedObjectsData.FloatFeatures
-        );
-
-        InitQuantizedFeatures(
-            quantizedCatFeatures,
-            commonObjectsData.SubsetIndexing.Get(),
-            {1, 3},
-            &quantizedObjectsData.CatFeatures
-        );
-
-
-        NCatboostOptions::TBinarizationOptions binarizationOptions(
-            EBorderSelectionType::GreedyLogSum,
-            4,
-            ENanMode::Min
-        );
-
-        quantizedObjectsData.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-            trainingDataProvider.MetaInfo.FeaturesLayout,
-            binarizationOptions
-        );
-
-        TVector<TVector<float>> borders = {
-            {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f},
-            {0.1299999952f, 0.1949999928f, 0.875f, 1.565000057f},
-            {
-                std::numeric_limits<float>::lowest(),
-                0.0549999997f,
-                0.1550000012f,
-                0.3199999928f,
-                0.6349999905f
-            }
-        };
-        TVector<ENanMode> nanModes = {ENanMode::Forbidden, ENanMode::Forbidden, ENanMode::Min};
-
-        TVector<TMap<ui32, ui32>> expectedPerfectHash = {
-            {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {1, 5}, {0, 6}, {112, 7}, {23, 8}},
-            {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}, {90, 7}, {0, 8}}
-        };
-
-        for (auto i : xrange(3)) {
-            auto floatFeatureIdx = TFloatFeatureIdx(i);
-            quantizedObjectsData.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
-            quantizedObjectsData.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
-        }
-
-        for (auto i : xrange(2)) {
-            auto catFeatureIdx = TCatFeatureIdx(i);
-            quantizedObjectsData.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
-                catFeatureIdx,
-                std::move(expectedPerfectHash[i])
-            );
-        }
-
-        trainingDataProvider.ObjectsData = MakeIntrusive<TTObjectsDataProvider>(
-            trainingDataProvider.ObjectsGrouping,
-            std::move(commonObjectsData),
-            std::move(quantizedObjectsData),
-            true,
-            Nothing()
+            &trainingDataProvider.MetaInfo,
+            &trainingDataProvider.ObjectsGrouping,
+            &trainingDataProvider.ObjectsData
         );
 
         TSharedWeights<float> weights = Share(

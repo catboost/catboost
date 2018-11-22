@@ -2,6 +2,7 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/checksum.h>
+#include <catboost/libs/helpers/compare.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
@@ -111,6 +112,13 @@ TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
 }
 
 
+bool NCB::TCommonObjectsData::operator==(const NCB::TCommonObjectsData& rhs) const {
+    return (*FeaturesLayout == *rhs.FeaturesLayout) && (Order == rhs.Order) && (GroupIds == rhs.GroupIds) &&
+        (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp) &&
+        ArePointeesEqual(CatFeaturesHashToString, rhs.CatFeaturesHashToString);
+}
+
+
 void NCB::TCommonObjectsData::PrepareForInitialization(
     const TDataMetaInfo& metaInfo,
     ui32 objectCount,
@@ -121,6 +129,14 @@ void NCB::TCommonObjectsData::PrepareForInitialization(
     NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds);
     NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds);
     NCB::PrepareForInitialization(metaInfo.HasTimestamp, objectCount, prevTailCount, &Timestamp);
+
+    const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
+    if (catFeatureCount) {
+        if (!CatFeaturesHashToString) {
+            CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>();
+        }
+        CatFeaturesHashToString->resize(catFeatureCount);
+    }
 }
 
 
@@ -160,6 +176,8 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     result.ResourceHolders = ResourceHolders;
     result.FeaturesLayout = FeaturesLayout;
     result.Order = Combine(Order, objectsGroupingSubset.GetObjectSubsetOrder());
+
+    result.CatFeaturesHashToString = CatFeaturesHashToString;
 
     TVector<std::function<void()>> tasks;
 
@@ -208,10 +226,15 @@ void NCB::TCommonObjectsData::Load(TFeaturesLayoutPtr featuresLayout, ui32 objec
     FeaturesLayout = featuresLayout;
     SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(objectCount));
     LoadMulti(binSaver, &Order, &GroupIds, &SubgroupIds, &Timestamp);
+    AddWithShared(binSaver, &CatFeaturesHashToString);
 }
 
 void NCB::TCommonObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
     SaveMulti(binSaver, Order, GroupIds, SubgroupIds, Timestamp);
+    AddWithShared(
+        binSaver,
+        const_cast<TAtomicSharedPtr<TVector<THashMap<ui32, TString>>>*>(&CatFeaturesHashToString)
+    );
 }
 
 
@@ -251,6 +274,67 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
 }
 
 
+template <class T, EFeatureValuesType TType>
+static bool AreFeaturesValuesEqual(
+    const TArrayValuesHolder<T, TType>& lhs,
+    const TArrayValuesHolder<T, TType>& rhs
+) {
+    auto lhsArrayData = lhs.GetArrayData();
+    auto lhsData = GetSubset<T>(*lhsArrayData.GetSrc(), *lhsArrayData.GetSubsetIndexing());
+    return Equal<T>(lhsData, rhs.GetArrayData());
+}
+
+template <class IQuantizedValuesHolder>
+static bool AreFeaturesValuesEqual(
+    const IQuantizedValuesHolder& lhs,
+    const IQuantizedValuesHolder& rhs
+) {
+    return *(lhs.ExtractValues(&NPar::LocalExecutor())) == *(rhs.ExtractValues(&NPar::LocalExecutor()));
+}
+
+
+template <class TFeaturesValuesHolder>
+static bool AreFeaturesValuesEqual(
+    const THolder<TFeaturesValuesHolder>& lhs,
+    const THolder<TFeaturesValuesHolder>& rhs
+) {
+    if (!lhs) {
+        return !rhs;
+    }
+    if (lhs->GetSize() != rhs->GetSize()) {
+        return false;
+    }
+    return AreFeaturesValuesEqual(*lhs, *rhs);
+
+}
+
+
+template <class TFeaturesValuesHolder>
+static bool AreFeaturesValuesEqual(
+    const TVector<THolder<TFeaturesValuesHolder>>& lhs,
+    const TVector<THolder<TFeaturesValuesHolder>>& rhs
+) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (auto featureIdx : xrange(lhs.size())) {
+        if (!AreFeaturesValuesEqual(
+                lhs[featureIdx],
+                rhs[featureIdx]
+            ))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+bool NCB::TRawObjectsData::operator==(const NCB::TRawObjectsData& rhs) const {
+    return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
+        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
+}
+
 void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
     // FloatFeatures and CatFeatures members are initialized at the end of building
     FloatFeatures.clear();
@@ -259,12 +343,6 @@ void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInf
     CatFeatures.clear();
     const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
     CatFeatures.resize(catFeatureCount);
-    if (catFeatureCount) {
-        if (!CatFeaturesHashToString) {
-            CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>();
-        }
-        CatFeaturesHashToString->resize(catFeatureCount);
-    }
 }
 
 
@@ -311,13 +389,14 @@ static void CheckDataSizes(
 void NCB::TRawObjectsData::Check(
     ui32 objectCount,
     const TFeaturesLayout& featuresLayout,
+    const TVector<THashMap<ui32, TString>>* catFeaturesHashToString,
     NPar::TLocalExecutor* localExecutor
 ) const {
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
 
     if (CatFeatures.size()) {
         CheckDataSize(
-            CatFeaturesHashToString->size(),
+            catFeaturesHashToString ? catFeaturesHashToString->size() : 0,
             CatFeatures.size(),
             "CatFeaturesHashToString",
             /*dataCanBeEmpty*/ false,
@@ -331,7 +410,7 @@ void NCB::TRawObjectsData::Check(
         [&] (int catFeatureIdx) {
             auto* catFeaturePtr = CatFeatures[catFeatureIdx].Get();
             if (catFeaturePtr) {
-                const auto& hashToStringMap = (*CatFeaturesHashToString)[catFeatureIdx];
+                const auto& hashToStringMap = (*catFeaturesHashToString)[catFeatureIdx];
                 catFeaturePtr->GetArrayData().ParallelForEach(
                     [&] (ui32 objectIdx, ui32 hashValue) {
                         CB_ENSURE_INTERNAL(
@@ -397,8 +476,6 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
         &subsetData.CatFeatures
     );
 
-    subsetData.CatFeaturesHashToString = Data.CatFeaturesHashToString;
-
     return MakeIntrusive<TRawObjectsDataProvider>(
         objectsGroupingSubset.GetSubsetGrouping(),
         std::move(subsetCommonData),
@@ -439,6 +516,10 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
     CommonData.SubgroupIds = std::move(newSubgroupIds);
 }
 
+bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
+    return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
+        AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
+}
 
 
 void NCB::TQuantizedObjectsData::PrepareForInitialization(

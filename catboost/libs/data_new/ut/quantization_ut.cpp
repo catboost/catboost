@@ -414,9 +414,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 }
             }
 
-            srcData.ObjectsData.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
-                catFeaturesHashToString
-            );
+            srcData.CommonObjectsData.CatFeaturesHashToString
+                = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(catFeaturesHashToString);
 
 
             NCatboostOptions::TBinarizationOptions binarizationOptions(
@@ -536,9 +535,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 }
             }
 
-            srcData.ObjectsData.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
-                catFeaturesHashToString
-            );
+            srcData.CommonObjectsData.CatFeaturesHashToString
+                = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(catFeaturesHashToString);
 
 
             NCatboostOptions::TBinarizationOptions binarizationOptions(
@@ -679,9 +677,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 }
             }
 
-            srcData.ObjectsData.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
-                catFeaturesHashToString
-            );
+            srcData.CommonObjectsData.CatFeaturesHashToString
+                = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(catFeaturesHashToString);
 
 
             NCatboostOptions::TBinarizationOptions binarizationOptions(

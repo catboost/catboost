@@ -272,10 +272,11 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             if (useFeatureTypes.first) {
                 InitFeatures(srcFloatFeatures, *commonData.SubsetIndexing, &featureId, &data.FloatFeatures);
             }
+            TCommonObjectsData commonDataCopy = commonData;
             if (useFeatureTypes.second) {
                 ui32 catFeaturesIndicesStart = featureId;
 
-                data.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
+                commonDataCopy.CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>(
                     catFeaturesHashToString
                 );
                 InitFeatures(srcCatFeatures, *commonData.SubsetIndexing, &featureId, &data.CatFeatures);
@@ -286,8 +287,6 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             }
 
             TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
-
-            TCommonObjectsData commonDataCopy = commonData;
             commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
             NPar::TLocalExecutor localExecutor;
