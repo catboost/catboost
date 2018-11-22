@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{66A62357-263D-CDBA-251F-01195649737F}</ProjectGUID>
+    <ProjectGUID>{0F6C4D16-E040-1532-73DE-DA7A23FFFDA5}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>targets_tests</ProjectName>
+    <ProjectName>catboost-cuda-targets-ut</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>targets_tests</TargetName>
+    <TargetName>catboost-cuda-targets-ut</TargetName>
     <TargetExtention>.exe</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\catboost\cuda\targets\ut\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\66A62357-263D-CDBA-251F-01195649737F\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0F6C4D16-E040-1532-73DE-DA7A23FFFDA5\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -306,6 +306,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\float16\float16_avx_impl\library-float16-float16_avx_impl.vcxproj">
+      <Project>{E5D2F8A6-52D9-A48D-9522-A4F4E5EA6626}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\float16\library-float16.vcxproj">
+      <Project>{1C45FF0F-0120-CA53-5202-C69A88A98E2E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>

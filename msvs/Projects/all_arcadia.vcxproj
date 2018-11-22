@@ -104,8 +104,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\catboost-cuda-targets.vcxproj">
       <Project>1D3CF7E0-080E-0EC6-D27D-211F8567FEC0</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\ut\targets_tests.vcxproj">
-      <Project>66A62357-263D-CDBA-251F-01195649737F</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\ut\catboost-cuda-targets-ut.vcxproj">
+      <Project>0F6C4D16-E040-1532-73DE-DA7A23FFFDA5</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\catboost-cuda-train_lib.vcxproj">
       <Project>D8550C12-2887-902A-28EC-36996021F9BC</Project>
@@ -604,6 +604,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
       <Project>B07A4621-4CF7-3047-5301-F164A4A90693</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\float16\float16_avx_impl\library-float16-float16_avx_impl.vcxproj">
+      <Project>E5D2F8A6-52D9-A48D-9522-A4F4E5EA6626</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\float16\library-float16.vcxproj">
+      <Project>1C45FF0F-0120-CA53-5202-C69A88A98E2E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>DB9C26F0-E241-89AB-6F12-8CE533A7E012</Project>
