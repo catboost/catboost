@@ -130,7 +130,10 @@ namespace {
         out << requestType;
         out << ' ';
         if (isAbsoluteUri) {
-            out << loc.Scheme << AsStringBuf("://") << loc.Host << ':' << loc.Port;
+            out << loc.Scheme << AsStringBuf("://") << loc.Host;
+            if (loc.Port) {
+                out << ':' << loc.Port;
+            }
         }
         out << '/' << loc.Service;
 
