@@ -874,6 +874,8 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         processExitCode = WEXITSTATUS(status);
         if (WIFEXITED(status) && processExitCode == 0)
             cleanExit = true;
+        else if (WIFSIGNALED(status))
+            processExitCode = -WTERMSIG(status);
 #else
         if (waitPidResult == WAIT_OBJECT_0) {
             DWORD exitCode = STILL_ACTIVE;
