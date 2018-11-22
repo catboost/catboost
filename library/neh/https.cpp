@@ -1646,6 +1646,10 @@ namespace NNeh {
                     return Headers_;
                 }
 
+                TStringBuf Cgi() const override {
+                    return H_.Cgi;
+                }
+
                 TStringBuf Service() override {
                     return TStringBuf(H_.Path).Skip(1);
                 }
@@ -1718,6 +1722,10 @@ namespace NNeh {
                 TStringBuf Data() override {
                     return H_.Cgi;
                 }
+
+                TStringBuf Body() const override {
+                    return TStringBuf();
+                }
             };
 
             class TPostRequest: public TRequest {
@@ -1729,6 +1737,10 @@ namespace NNeh {
                 }
 
                 TStringBuf Data() override {
+                    return Data_;
+                }
+
+                TStringBuf Body() const override {
                     return Data_;
                 }
 

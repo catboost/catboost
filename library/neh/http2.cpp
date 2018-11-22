@@ -1301,6 +1301,14 @@ namespace {
                 return P_->Headers();
             }
 
+            TStringBuf Body() const override {
+                return P_->DecodedContent();
+            }
+
+            TStringBuf Cgi() const override {
+                return H_.Cgi;
+            }
+
             TStringBuf RequestId() override {
                 return TStringBuf();
             }
