@@ -1252,6 +1252,8 @@ IOKit/IOKitLib.h
 IOKit/storage/IOBlockStorageDriver.h
 IOKit/storage/IOMedia.h
 IOKit/IOBSD.h
+IOKit/ps/IOPowerSources.h
+IOKit/ps/IOPSKeys.h
 IOKit/kext/KextManager.h
 System/pthread_machdep.h
 util.h

@@ -19,12 +19,6 @@ SRCDIR(
     contrib/tools/python/src/Include
 )
 
-IF (OS_DARWIN OR OS_IOS)
-    ADDINCL(
-        contrib/tools/python/base/darwin
-    )
-ENDIF ()
-
 INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 INCLUDE(CMakeLists.inc)
 

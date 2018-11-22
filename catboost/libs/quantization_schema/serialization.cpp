@@ -114,15 +114,15 @@ static NCB::TPoolQuantizationSchema LoadInProtobufFormat(IInputStream* const inp
 }
 
 NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     IInputStream* const input) {
 
     switch (format) {
-        case EQuantizationsSchemaSerializationFormat::Protobuf:
+        case EQuantizationSchemaSerializationFormat::Protobuf:
             return ::LoadInProtobufFormat(input);
-        case EQuantizationsSchemaSerializationFormat::Matrixnet:
+        case EQuantizationSchemaSerializationFormat::Matrixnet:
             return ::LoadInMatrixnetFormat(input);
-        case EQuantizationsSchemaSerializationFormat::Unknown:
+        case EQuantizationSchemaSerializationFormat::Unknown:
             break;
     }
 
@@ -130,7 +130,7 @@ NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
 }
 
 NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     const TStringBuf path) {
 
     TFileInput input{TString(path)};  // {} because of the most vexing parse
@@ -170,15 +170,15 @@ void SaveInProtobufFormat(
 
 void NCB::SaveQuantizationSchema(
     const TPoolQuantizationSchema& schema,
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     IOutputStream* const output) {
 
     switch (format) {
-        case EQuantizationsSchemaSerializationFormat::Protobuf:
+        case EQuantizationSchemaSerializationFormat::Protobuf:
             return ::SaveInProtobufFormat(schema, output);
-        case EQuantizationsSchemaSerializationFormat::Matrixnet:
+        case EQuantizationSchemaSerializationFormat::Matrixnet:
             return ::SaveInMatrixnetFormat(schema, output);
-        case EQuantizationsSchemaSerializationFormat::Unknown:
+        case EQuantizationSchemaSerializationFormat::Unknown:
             break;
     }
 
@@ -187,7 +187,7 @@ void NCB::SaveQuantizationSchema(
 
 void NCB::SaveQuantizationSchema(
     const TPoolQuantizationSchema& schema,
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     const TStringBuf path) {
 
     TFileOutput output{TString(path)};  // {} because of the most vexing parse
