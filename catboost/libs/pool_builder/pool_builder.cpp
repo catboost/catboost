@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/string/split.h>
+#include <util/string/iterator.h>
 
 ui32 TPoolColumnsMetaInfo::CountColumns(const EColumn columnType) const {
     return CountIf(
@@ -92,7 +93,7 @@ TVector<TString> TPoolColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TString>&
         }
     } else if (header.Defined()) {
         TVector<TStringBuf> words;
-        SplitRangeTo<const char, TVector<TStringBuf>>(~(*header), ~(*header) + header->size(), fieldDelimiter, &words);
+        StringSplitter(~(*header), ~(*header) + header->size()).Split(fieldDelimiter).AddTo(&words);
         for (int i = 0; i < words.ysize(); ++i) {
             if (Columns[i].Type == EColumn::Categ || Columns[i].Type == EColumn::Num) {
                 featureIds.push_back(ToString(words[i]));
