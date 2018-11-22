@@ -191,4 +191,9 @@ namespace NCB {
         EObjectsOrder groupSubsetOrder
     );
 
+    TObjectsGroupingSubset GetGroupingSubsetFromObjectsSubset(
+        TObjectsGroupingPtr objectsGrouping,
+        TArraySubsetIndexing<ui32>&& objectsSubset,
+        EObjectsOrder subsetOrder
+    );
 }

@@ -167,6 +167,112 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
 
     }
 
+    Y_UNIT_TEST(GetGroupingSubsetFromObjectsSubset) {
+        {
+             auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(ui32(10));
+             auto objectsSubset = TArraySubsetIndexing<ui32>(TFullSubset<ui32>(10));
+
+             auto objectsGroupingSubset = GetGroupingSubsetFromObjectsSubset(
+                 objectsGrouping,
+                 std::move(objectsSubset),
+                 EObjectsOrder::Undefined
+             );
+
+             UNIT_ASSERT(
+                 IndicesEqual(
+                     objectsGroupingSubset.GetGroupsIndexing(),
+                     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+                 )
+             );
+             UNIT_ASSERT(
+                 IndicesEqual(
+                     objectsGroupingSubset.GetObjectsIndexing(),
+                     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+                 )
+             );
+        }
+        {
+             auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(ui32(10));
+             auto objectsSubset = TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>{3, 7, 1});
+
+             auto objectsGroupingSubset = GetGroupingSubsetFromObjectsSubset(
+                 objectsGrouping,
+                 std::move(objectsSubset),
+                 EObjectsOrder::Undefined
+             );
+
+             UNIT_ASSERT(
+                 IndicesEqual(
+                     objectsGroupingSubset.GetGroupsIndexing(),
+                     {3, 7, 1}
+                 )
+             );
+             UNIT_ASSERT(
+                 IndicesEqual(
+                     objectsGroupingSubset.GetObjectsIndexing(),
+                     {3, 7, 1}
+                 )
+             );
+        }
+        {
+            auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(
+                TVector<TGroupBounds>{{0, 1}, {1, 3}, {3, 6}, {6, 7}, {7, 9}}
+            );
+            auto objectsSubset = TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>{3, 4, 5, 0});
+
+            auto objectsGroupingSubset = GetGroupingSubsetFromObjectsSubset(
+                objectsGrouping,
+                std::move(objectsSubset),
+                EObjectsOrder::Undefined
+            );
+
+            UNIT_ASSERT(
+                IndicesEqual(
+                    objectsGroupingSubset.GetGroupsIndexing(),
+                    {2, 0}
+                )
+            );
+            UNIT_ASSERT(
+                IndicesEqual(
+                    objectsGroupingSubset.GetObjectsIndexing(),
+                    {3, 4, 5, 0}
+                )
+            );
+        }
+        {
+            // partial groups case
+            auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(
+                TVector<TGroupBounds>{{0, 1}, {1, 3}, {3, 6}, {6, 7}, {7, 9}}
+            );
+            auto objectsSubset = TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>{3, 4});
+
+            UNIT_ASSERT_EXCEPTION(
+                GetGroupingSubsetFromObjectsSubset(
+                    objectsGrouping,
+                    std::move(objectsSubset),
+                    EObjectsOrder::Undefined
+                ),
+                TCatboostException
+            );
+        }
+        {
+            // order violation case
+            auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(
+                TVector<TGroupBounds>{{0, 1}, {1, 3}, {3, 6}, {6, 7}, {7, 9}}
+            );
+            auto objectsSubset = TArraySubsetIndexing<ui32>(TIndexedSubset<ui32>{7, 8, 0});
+
+            UNIT_ASSERT_EXCEPTION(
+                GetGroupingSubsetFromObjectsSubset(
+                    objectsGrouping,
+                    std::move(objectsSubset),
+                    EObjectsOrder::Ordered
+                ),
+                TCatboostException
+            );
+        }
+    }
+
     Y_UNIT_TEST(GetGroupIdxForObject) {
         // trivial
         {

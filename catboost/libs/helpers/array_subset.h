@@ -580,6 +580,12 @@ namespace NCB {
     }
 
 
+    template <class TSize = size_t>
+    bool IndicesEqual(const TArraySubsetIndexing<TSize>& lhs, TConstArrayRef<TSize> rhs) {
+        return !lhs.Find([rhs](TSize idx, TSize srcIdx) { return rhs[idx] != srcIdx; });
+    }
+
+
     // TArrayLike must have O(1) random-access operator[].
     template <class TArrayLike, class TSize = size_t>
     class TArraySubset {
