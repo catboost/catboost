@@ -320,9 +320,6 @@ Y_UNIT_TEST_SUITE(TTransformTest) {
         auto tmp = TStripeBuffer<float>::Create(mapping);
         tmp.Write(exponents);
 
-        TCudaProfiler profiler(EProfileMode::ImplicitLabelSync);
-        const auto guard = profiler.Profile("PowVector");
-
         PowVector(tmp, base);
 
         TVector<float> gpuPow;
