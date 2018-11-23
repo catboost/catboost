@@ -41,7 +41,6 @@ class CatboostEvaluation(object):
                  delimiter='\t',
                  partition_random_seed=0,
                  min_fold_count=1,
-                 shuffle=True,
                  time_split_mode=False):
         """
         Args:
@@ -73,7 +72,6 @@ class CatboostEvaluation(object):
         self._seed = partition_random_seed
         self._min_fold_count = int(min_fold_count)
         self._remove_models = remove_models
-        self._shuffle = shuffle
         self._time_split_mode = time_split_mode
 
         if group_column is not None:
@@ -187,7 +185,6 @@ class CatboostEvaluation(object):
                                  self._column_description,
                                  seed=self._seed,
                                  min_folds_count=self._min_fold_count,
-                                 shuffle=self._shuffle,
                                  time_split_mode=self._time_split_mode)
 
             result = handler.proceed(splitter=splitter,

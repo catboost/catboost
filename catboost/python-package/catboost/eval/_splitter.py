@@ -17,7 +17,7 @@ class _Splitter(object):
     """
     _REST_SIZE = 100000
 
-    def __init__(self, line_reader, column_description, seed, min_folds_count, shuffle, time_split_mode):
+    def __init__(self, line_reader, column_description, seed, min_folds_count, time_split_mode):
         self._line_reader = line_reader
         self._line_groups_ids, self._groups_ids = self._read_groups_ids()
         # line_groups_ids -- group ids of each line
@@ -27,7 +27,6 @@ class _Splitter(object):
         self._column_description = column_description
         self._min_folds_count = min_folds_count
         self._random = random.Random(seed)
-        self._shuffle = shuffle
         self._time_split_mode = time_split_mode
 
     # line_reader -- Reader for getting lines from file. It have to support iteration through lines.
