@@ -1077,6 +1077,31 @@ private:
     int TopSize;
 };
 
+//Normalized GINI metric
+struct TNormalizedGINI: public TNonAdditiveMetric {
+    explicit TNormalizedGINI(double border = GetDefaultClassificationBorder())
+            : Border(border) {
+        UseWeights.SetDefaultValue(false);
+    }
+
+    static THolder<TNormalizedGINI> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TNormalizedGINI> CreateMultiClassMetric(int positiveClass);
+    virtual TMetricHolder Eval(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    int PositiveClass = 1;
+    bool IsMultiClass = false;
+    double Border = GetDefaultClassificationBorder();
+};
+
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);

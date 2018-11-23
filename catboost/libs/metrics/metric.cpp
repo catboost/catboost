@@ -2086,6 +2086,86 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+/* NormalizedGINI */
+
+THolder<TNormalizedGINI> TNormalizedGINI::CreateBinClassMetric(double border) {
+    return new TNormalizedGINI(border);
+}
+
+THolder<TNormalizedGINI> TNormalizedGINI::CreateMultiClassMetric(int positiveClass) {
+    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
+
+    auto metric = new TNormalizedGINI();
+    metric->PositiveClass = positiveClass;
+    metric->IsMultiClass = true;
+    return metric;
+}
+
+TMetricHolder TNormalizedGINI::Eval(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weightIn,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& /* executor */
+) const {
+    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+    const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
+    Y_ASSERT(approxVec.size() == target.size());
+    const auto& weight = UseWeights ? weightIn : TVector<float>{};
+
+    TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
+    TVector<double> targetCopy(target.begin() + begin, target.begin() + end);
+
+    if (!IsMultiClass) {
+        for (ui32 i = 0; i < targetCopy.size(); ++i) {
+            targetCopy[i] = targetCopy[i] > Border;
+        }
+    }
+
+    if (approx.ysize() > 1) {
+        int positiveClass = PositiveClass;
+        ForEach(targetCopy.begin(), targetCopy.end(), [positiveClass](double& x) {
+            x = (x == static_cast<double>(positiveClass));
+        });
+    }
+
+    TVector<NMetrics::TSample> samplesTargetApprox;
+    TVector<NMetrics::TSample> samplesTargetTarget;
+    if (weight.empty()) {
+        samplesTargetApprox = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
+        samplesTargetTarget = NMetrics::TSample::FromVectors(targetCopy, targetCopy);
+    } else {
+        TVector<double> weightCopy(weight.begin() + begin, weight.begin() + end);
+        samplesTargetApprox = NMetrics::TSample::FromVectors(targetCopy, approxCopy, weightCopy);
+        samplesTargetTarget = NMetrics::TSample::FromVectors(targetCopy, targetCopy, weightCopy);
+    }
+
+    double giniTargetApprox = 2. * CalcAUC(&samplesTargetApprox) - 1;
+//    double giniTargetTarget = 2 * CalcAUC(&samplesTargetTarget) - 1;
+    double giniTargetTarget = 1;
+
+    TMetricHolder error(2);
+    error.Stats[0] = giniTargetApprox / giniTargetTarget;
+    error.Stats[1] = 1.0;
+    return error;
+}
+
+TString TNormalizedGINI::GetDescription() const {
+    if (IsMultiClass) {
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::NormalizedGINI, UseWeights, positiveClass);
+    } else {
+        return BuildDescription(ELossFunction::NormalizedGINI, UseWeights, MakeBorderParam(Border));
+    }
+}
+
+void TNormalizedGINI::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+
 /* Create */
 
 static void CheckParameters(
@@ -2450,6 +2530,17 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
                 result.emplace_back(new TQueryCrossEntropyMetric());
             }
             validParams = {"alpha"};
+            break;
+        }
+        case ELossFunction::NormalizedGINI: {
+            if (approxDimension == 1) {
+                result.emplace_back(TNormalizedGINI::CreateBinClassMetric(border));
+                validParams = {"border"};
+            } else {
+                for (int i = 0; i < approxDimension; ++i) {
+                    result.emplace_back(TNormalizedGINI::CreateMultiClassMetric(i));
+                }
+            }
             break;
         }
         default:
