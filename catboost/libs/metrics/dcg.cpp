@@ -2,6 +2,7 @@
 #include "doc_comparator.h"
 #include "sample.h"
 
+#include <library/containers/stack_vector/stack_vec.h>
 #include <library/dot_product/dot_product.h>
 
 #include <util/generic/algorithm.h>
@@ -13,8 +14,8 @@
 using NMetrics::TSample;
 
 template <typename F>
-static TVector<double> GetSortedTargets(const TConstArrayRef<TSample> samples, F&& cmp) {
-    TVector<ui32> indices;
+static TStackVec<double> GetSortedTargets(const TConstArrayRef<TSample> samples, F&& cmp) {
+    TStackVec<ui32> indices;
     indices.yresize(samples.size());
     Iota(indices.begin(), indices.end(), static_cast<ui32>(0));
 
@@ -23,7 +24,7 @@ static TVector<double> GetSortedTargets(const TConstArrayRef<TSample> samples, F
     });
 
     Y_ASSERT(samples.size() == indices.size());
-    TVector<double> targets;
+    TStackVec<double> targets;
     targets.yresize(samples.size());
     for (size_t i = 0; i < samples.size(); ++i) {
         targets[i] = samples[indices[i]].Target;
@@ -39,7 +40,7 @@ static double CalcDcgSorted(
 {
     const auto size = sortedTargets.size();
 
-    TVector<double> decay;
+    TStackVec<double> decay;
     decay.yresize(size);
     decay.front() = 1.;
     if (expDecay.Defined()) {
@@ -53,7 +54,7 @@ static double CalcDcgSorted(
         }
     }
 
-    TVector<double> modifiedTargetsHolder;
+    TStackVec<double> modifiedTargetsHolder;
     TConstArrayRef<double> modifiedTargets = sortedTargets;
     if (ENdcgMetricType::Exp == type) {
         modifiedTargetsHolder.yresize(size);
