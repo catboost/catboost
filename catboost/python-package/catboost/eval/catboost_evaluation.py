@@ -41,7 +41,8 @@ class CatboostEvaluation(object):
                  delimiter='\t',
                  partition_random_seed=0,
                  min_fold_count=1,
-                 shuffle=True):
+                 shuffle=True,
+                 time_split_mode=False):
         """
         Args:
             :param path_to_dataset: (str) Path to dataset to be used for evaluation.
@@ -73,6 +74,7 @@ class CatboostEvaluation(object):
         self._min_fold_count = int(min_fold_count)
         self._remove_models = remove_models
         self._shuffle = shuffle
+        self._time_split_mode = time_split_mode
 
         if group_column is not None:
             self._group_feature_num = int(group_column)
@@ -111,7 +113,7 @@ class CatboostEvaluation(object):
                                                                            [],
                                                                            label_mode=label_mode)
                                             ))
-        elif eval_type == EvalType.SeqRem:
+        if eval_type == EvalType.SeqRem:
             for feature_num in features_to_eval:
                 test_cases.append(ExecutionCase(params,
                                                 ignored_features=[feature_num],
@@ -175,7 +177,8 @@ class CatboostEvaluation(object):
                                         metrics=metrics,
                                         eval_step=evaluation_step,
                                         thread_count=thread_count,
-                                        remove_models=self._remove_models)
+                                        remove_models=self._remove_models,
+                                        time_split_mode=self._time_split_mode)
 
             reader = _SimpleStreamingFileReader(self._path_to_dataset,
                                                 sep=self._delimiter,
@@ -184,7 +187,8 @@ class CatboostEvaluation(object):
                                  self._column_description,
                                  seed=self._seed,
                                  min_folds_count=self._min_fold_count,
-                                 shuffle=self._shuffle)
+                                 shuffle=self._shuffle,
+                                 time_split_mode=self._time_split_mode)
 
             result = handler.proceed(splitter=splitter,
                                      fold_size=self._fold_size,

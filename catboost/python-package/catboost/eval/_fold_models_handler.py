@@ -27,7 +27,7 @@ class FoldModelsHandler(object):
         except OSError as err:
             get_eval_logger().warning(str(err))
 
-    def __init__(self, metrics, cases, thread_count, eval_step, remove_models):
+    def __init__(self, metrics, cases, thread_count, eval_step, remove_models, time_split_mode):
         """
         Args:
             :param remove_models: Set true if you want models to be removed after applying them.
@@ -44,6 +44,7 @@ class FoldModelsHandler(object):
         self._eval_step = eval_step
         self._flag_remove_models = remove_models
         self._metric_descriptions = None
+        self._time_split_mode = time_split_mode
 
     def _init_case_results(self, metric_descriptions):
         self._metric_descriptions = metric_descriptions
@@ -71,15 +72,19 @@ class FoldModelsHandler(object):
                 elif self._metric_descriptions != metric_calcer.metric_descriptions():
                     raise CatboostError("Error: metric names should be consistent")
 
-        for file_num, fold_file in enumerate(learn_folds + skipped_folds + rest_folds):
+        for file_num, fold_file in enumerate(skipped_folds + learn_folds + rest_folds):
             pool = FoldModelsHandler._create_pool(fold_file, self._thread_count)
 
             for case, case_models in grouped_by_case_models.items():
                 calcers = metric_calcers[case]
 
                 for model_num, model in enumerate(case_models):
-                    if file_num != model_num:
-                        calcers[model_num].add(pool)
+                    if self._time_split_mode:
+                        if file_num <= (model_num + len(skipped_folds)):
+                            continue
+                    elif file_num == (model_num + len(skipped_folds)):
+                        continue
+                    calcers[model_num].add(pool)
 
         for case, case_models in grouped_by_case_models.items():
             calcers = metric_calcers[case]
@@ -90,7 +95,7 @@ class FoldModelsHandler(object):
                     case_results[metric]._add(model, scores.get_result(metric))
 
     @staticmethod
-    def _fit_model(pool, case, fold_id, model_path):
+    def _fit_model(pool, case, fold_id, model_path, time_split_mode=False):
         from catboost import CatBoost
         # Learn model
         make_dirs_if_not_exists(FoldModelsHandler.__MODEL_DIR)
@@ -104,7 +109,10 @@ class FoldModelsHandler(object):
                                     "Check eval_feature set and ignored features options".format(ignored_features))
         get_eval_logger().debug('Learn model {} on fold #{}'.format(str(case), fold_id))
         cur_time = time.time()
-        instance = CatBoost(params=case.get_params())
+        params=case.get_params()
+        if time_split_mode:
+            params['has_time']=True
+        instance = CatBoost(params=params)
         instance.fit(pool)
         instance.save_model(fname=model_path)
 
@@ -133,7 +141,7 @@ class FoldModelsHandler(object):
                 model_path = os.path.join(FoldModelsHandler.__MODEL_DIR,
                                           FoldModelsHandler._create_model_name(case, fold_id))
                 get_eval_logger().debug("For model {} on fold #{} path is {}".format(str(case), fold_id, model_path))
-                fold_model = self._fit_model(pool, case, fold_id, model_path)
+                fold_model = self._fit_model(pool, case, fold_id, model_path, time_split_mode=self._time_split_mode)
                 get_eval_logger().info("Model {} on fold #{} was fitted".format(str(case), fold_id))
                 models[case].append(fold_model)
 
