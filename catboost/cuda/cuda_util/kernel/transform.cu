@@ -372,4 +372,33 @@ namespace NKernel {
         float);
 
 #undef Y_CATBOOST_CUDA_F_IMPL
+
+    // PowVector
+
+    template <typename T>
+    __global__ void PowVectorImpl(const T* const x, const T base, const ui64 size, T* y) {
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
+        while (i < size) {
+            y[i] = pow(base, x[i]);
+            i += gridDim.x * blockDim.x;
+        }
+    }
+
+    template <typename T>
+    void PowVector(const T* x, const ui64 size, const T base, T* y, const TCudaStream stream) {
+        const ui32 blockSize = 512;
+        const ui64 numBlocks = Min(
+            (size + blockSize - 1) / blockSize,
+            (ui64)TArchProps::MaxBlockCount());
+        PowVectorImpl<T><<<numBlocks, blockSize, 0, stream>>>(x, base, size, y);
+    }
+
+#define Y_CATBOOST_CUDA_F_IMPL(T) \
+        template void PowVector<T>(const T* x, ui64 size, T base, T* y, TCudaStream stream);
+
+    Y_MAP_ARGS(
+        Y_CATBOOST_CUDA_F_IMPL,
+        float);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
 }

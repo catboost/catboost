@@ -787,6 +787,72 @@ Y_MAP_ARGS(
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
+// PowVector
+
+namespace {
+    template <typename T>
+    class TPowWithOutputKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const T> X;
+        TCudaBufferPtr<T> Y;
+        T Base = 0;
+
+    public:
+        TPowWithOutputKernel() = default;
+
+        TPowWithOutputKernel(TCudaBufferPtr<const T> x, T base, TCudaBufferPtr<T> y)
+            : X(x)
+            , Y(y)
+            , Base(base)
+        {
+            Y_ASSERT(X.Size() == Y.Size());
+        }
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::PowVector(X.Get(), X.Size(), Base, Y.Get(), stream);
+        }
+
+        Y_SAVELOAD_DEFINE(X, Base);
+    };
+}
+
+template <typename T, typename U, typename TMapping>
+void PowVectorImpl(
+    const TCudaBuffer<T, TMapping>& x,
+    std::remove_const_t<T> base,
+    TCudaBuffer<U, TMapping>& y,
+    ui32 stream)
+{
+    using TKernel = TPowWithOutputKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, base, y);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
+    Y_CATBOOST_CUDA_F_IMPL x
+
+#define Y_CATBOOST_CUDA_F_IMPL(T, U, TMapping) \
+    template <>                                \
+    void PowVector<T, U, TMapping>(            \
+        const TCudaBuffer<T, TMapping>& x,     \
+        std::remove_const_t<T> base,           \
+        TCudaBuffer<U, TMapping>& y,           \
+        ui32 stream)                           \
+    {                                          \
+        PowVectorImpl(x, base, y, stream);     \
+    }
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL_PROXY,
+    (float, float, TMirrorMapping),
+    (const float, float, TMirrorMapping),
+    (float, float, TSingleMapping),
+    (const float, float, TSingleMapping),
+    (float, float, TStripeMapping),
+    (const float, float, TStripeMapping));
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
+
 namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0x110001, TBinOpKernel, float);
     REGISTER_KERNEL_TEMPLATE(0x110002, TBinOpKernel, int);
@@ -806,4 +872,5 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE_2(0x110014, TMapCopyKernel, bool, ui32);
 
     REGISTER_KERNEL_TEMPLATE(0x110015, TPowKernel, float);
+    REGISTER_KERNEL_TEMPLATE(0x110021, TPowWithOutputKernel, float);
 }

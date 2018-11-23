@@ -2,6 +2,11 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
+#include <catboost/cuda/cuda_util/dot_product.h>
+#include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/cuda_util/helpers.h>
+#include <catboost/cuda/cuda_util/sort.h>
+#include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/targets/kernel/dcg.cuh>
 #include <catboost/libs/helpers/exception.h>
 
@@ -9,12 +14,201 @@
 
 #include <type_traits>
 
+using NCatboostCuda::NDetail::FuseUi32AndFloatIntoUi64;
+using NCatboostCuda::NDetail::FuseUi32AndTwoFloatsIntoUi64;
+using NCatboostCuda::NDetail::MakeDcgDecay;
+using NCatboostCuda::NDetail::MakeDcgExponentialDecay;
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
 using NKernelHost::TCudaBufferPtr;
 using NKernelHost::TCudaStream;
 using NKernelHost::TStatelessKernel;
+
+// CalculateNdcg
+
+template <typename TMapping>
+static float CalculateNdcgImpl(
+    const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
+    const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
+    const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay,
+    ui32 stream)
+{
+    CB_ENSURE(false, "Not implemented yet; see MLTOOLS-2431");
+    (void)targets;
+    (void)approxes;
+    (void)biasedOffsets;
+    (void)type;
+    (void)exponentialDecay;
+    (void)stream;
+    return 0;
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                              \
+    template <>                                                                                       \
+    float NCatboostCuda::CalculateNdcg<TMapping>(                                                     \
+        const NCudaLib::TCudaBuffer<const float, TMapping>& targets,                                  \
+        const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,                                 \
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,                             \
+        ENdcgMetricType type,                                                                         \
+        TMaybe<float> exponentialDecay,                                                               \
+        ui32 stream)                                                                                  \
+    {                                                                                                 \
+        return ::CalculateNdcgImpl(targets, approxes, biasedOffsets, type, exponentialDecay, stream); \
+    }
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL,
+    TMirrorMapping,
+    TSingleMapping,
+    TStripeMapping);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+
+// CalculateIDcg
+
+template <typename TMapping>
+static float CalculateIdcgImpl(
+    const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
+    const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay,
+    ui32 stream)
+{
+    const auto mapping = targets.GetMapping();
+    auto tmp = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto decay = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto fused = TCudaBuffer<ui64, TMapping>::Create(mapping);
+    auto indices = TCudaBuffer<ui32, TMapping>::Create(mapping);
+    TCudaBuffer<float, TMapping> expTargets;
+    if (ENdcgMetricType::Exp == type) {
+        expTargets = TCudaBuffer<float, TMapping>::Create(mapping);
+    }
+
+    if (exponentialDecay.Defined()) {
+        MakeDcgExponentialDecay(biasedOffsets, *exponentialDecay, tmp, stream);
+    } else {
+        MakeDcgDecay(biasedOffsets, tmp, stream);
+    }
+
+    // here we rely on the fact that `biasedOffsets` are sorted in ascending order
+    // and since we only want to sort by `targets `while keeping groups at the same place as they
+    // were we will negate `targets` (bitwise) thus within a group they will be sorted in descending
+    // order.
+    FuseUi32AndFloatIntoUi64(biasedOffsets, targets, fused, true, stream);
+    MakeSequence(indices, stream);
+    RadixSort(fused, indices, false, stream);
+    Gather(decay, tmp, indices, stream);
+
+    if (ENdcgMetricType::Exp == type) {
+        PowVector(targets, 2.f, expTargets, stream);
+        AddVector(expTargets, -1.f, stream);
+    }
+
+    const TCudaBuffer<float, TMapping>* weights = nullptr;
+    const auto dotProduct = ENdcgMetricType::Exp == type
+        ? DotProduct(decay, expTargets, weights, stream)
+        : DotProduct(decay, targets, weights, stream);
+    return dotProduct;
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                    \
+    template <>                                                                             \
+    float NCatboostCuda::CalculateIdcg<TMapping>(                                           \
+        const NCudaLib::TCudaBuffer<const float, TMapping>& targets,                        \
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,                   \
+        ENdcgMetricType type,                                                               \
+        TMaybe<float> exponentialDecay,                                                     \
+        ui32 stream)                                                                        \
+    {                                                                                       \
+        return ::CalculateIdcgImpl(targets, biasedOffsets, type, exponentialDecay, stream); \
+    }
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL,
+    TMirrorMapping,
+    TSingleMapping,
+    TStripeMapping);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+
+// CalculateDcg
+template <typename TMapping>
+static float CalculateDcgImpl(
+    const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
+    const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
+    const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay,
+    ui32 stream)
+{
+    const auto mapping = targets.GetMapping();
+    auto tmp = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto decay = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto fused = TCudaBuffer<ui64, TMapping>::Create(mapping);
+    auto indices = TCudaBuffer<ui32, TMapping>::Create(mapping);
+    TCudaBuffer<float, TMapping> expTargets;
+    if (ENdcgMetricType::Exp == type) {
+        expTargets = TCudaBuffer<float, TMapping>::Create(mapping);
+    }
+
+    if (exponentialDecay.Defined()) {
+        MakeDcgExponentialDecay(biasedOffsets, *exponentialDecay, tmp, stream);
+    } else {
+        MakeDcgDecay(biasedOffsets, tmp, stream);
+    }
+
+    // we want to sort them using following predicate (based on `CompareDocs`):
+    // bool Cmp(lhsOffset, lhsApprox, lhsTarget, rhsOffset, rhsApprox, rhsTarget) {
+    //     if (lhsOffset == rhsOffset) {
+    //         if (lhsApprox == rhsApprox) {
+    //             return lhsTarget < rhsTarget;
+    //         }
+    //         return lhsApprox > rhsApprox;
+    //     }
+    //     return lhsOffset < rhsOffset;
+    // }
+    FuseUi32AndTwoFloatsIntoUi64(biasedOffsets, approxes, targets, fused, true, false, stream);
+    MakeSequence(indices, stream);
+    RadixSort(fused, indices, false, stream);
+    Gather(decay, tmp, indices, stream);
+
+    if (ENdcgMetricType::Exp == type) {
+        PowVector(targets, 2.f, expTargets, stream);
+        AddVector(expTargets, -1.f, stream);
+    }
+
+    const TCudaBuffer<float, TMapping>* weights = nullptr;
+    const auto dotProduct = ENdcgMetricType::Exp == type
+        ? DotProduct(decay, expTargets, weights, stream)
+        : DotProduct(decay, targets, weights, stream);
+    return dotProduct;
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                             \
+    template <>                                                                                      \
+    float NCatboostCuda::CalculateDcg<TMapping>(                                                     \
+        const NCudaLib::TCudaBuffer<const float, TMapping>& targets,                                 \
+        const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,                                \
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,                            \
+        ENdcgMetricType type,                                                                        \
+        TMaybe<float> exponentialDecay,                                                              \
+        ui32 stream)                                                                                 \
+    {                                                                                                \
+        return ::CalculateDcgImpl(targets, approxes, biasedOffsets, type, exponentialDecay, stream); \
+    }
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL,
+    TMirrorMapping,
+    TSingleMapping,
+    TStripeMapping);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+
+// MakeDcgDecay
 
 namespace {
     template <typename I, typename T>
@@ -68,8 +262,11 @@ static void MakeDcgDecayImpl(
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (ui32, float, TMirrorMapping),
+    (const ui32, float, TMirrorMapping),
     (ui32, float, TSingleMapping),
-    (ui32, float, TStripeMapping));
+    (const ui32, float, TSingleMapping),
+    (ui32, float, TStripeMapping),
+    (const ui32, float, TStripeMapping));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY

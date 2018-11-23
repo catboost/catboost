@@ -8,16 +8,23 @@
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/targets/dcg.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/dcg.h>
+#include <catboost/libs/metrics/sample.h>
 
+#include <library/accurate_accumulate/accurate_accumulate.h>
 #include <library/float16/float16.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/random/fast.h>
 #include <util/stream/labeled.h>
 
+using NCatboostCuda::CalculateDcg;
+using NCatboostCuda::CalculateIdcg;
+using NCatboostCuda::CalculateNdcg;
 using NCatboostCuda::NDetail::FuseUi32AndFloatIntoUi64;
 using NCatboostCuda::NDetail::FuseUi32AndTwoFloatsIntoUi64;
 using NCatboostCuda::NDetail::GetBits;
@@ -26,6 +33,7 @@ using NCatboostCuda::NDetail::MakeDcgExponentialDecay;
 using NCudaLib::GetCudaManager;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
+using NMetrics::TSample;
 
 static TVector<ui32> MakeOffsets(const ui32 groupCount, const ui32 maxGroupSize, const ui64 seed) {
     TFastRng<ui64> prng(seed);
@@ -60,7 +68,7 @@ static TStripeMapping MakeGroupAwareStripeMapping(const TConstArrayRef<ui32> off
     }
 
     // init rest of slices
-    slices.resize(deviceCount);
+    slices.insert(slices.begin(), deviceCount - slices.size(), TSlice());
     return TStripeMapping(std::move(slices));
 }
 
@@ -260,6 +268,74 @@ static void Sort(
             (*sortedFloats2)[i] = floats2[slice.Left + indices[i]];
         }
     }
+}
+
+static float CalculateIdcg(
+    const TConstArrayRef<float> targets,
+    const TConstArrayRef<ui32> offsets,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay)
+{
+    TVector<float> perQueryMetrics;
+    TMaybe<double> doubleDecay;
+    TVector<TSample> docs;
+    size_t start = 0;
+    while (start < offsets.size()) {
+        size_t end = start + 1;
+        for (; end < offsets.size() && offsets[end - 1] == offsets[end]; ++end) {
+        }
+
+        docs.resize(end - start);
+        for (size_t i = 0, iEnd = end - start; i < iEnd; ++i) {
+            docs[i].Target = targets[start + i];
+        }
+
+        if (exponentialDecay.Defined()) {
+            doubleDecay = exponentialDecay.GetRef();
+        } else {
+            doubleDecay = Nothing();
+        }
+
+        perQueryMetrics.push_back(CalcIDcg(docs, type, doubleDecay));
+        start = end;
+    }
+
+    return FastAccumulate(perQueryMetrics);
+}
+
+static float CalculateDcg(
+    const TConstArrayRef<float> targets,
+    const TConstArrayRef<float> approxes,
+    const TConstArrayRef<ui32> offsets,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay)
+{
+    TVector<float> perQueryMetrics;
+    TMaybe<double> doubleDecay;
+    TVector<TSample> docs;
+    size_t start = 0;
+    while (start < offsets.size()) {
+        size_t end = start + 1;
+        for (; end < offsets.size() && offsets[end - 1] == offsets[end]; ++end) {
+        }
+
+        docs.resize(end - start);
+        for (size_t i = 0, iEnd = end - start; i < iEnd; ++i) {
+            docs[i].Target = targets[start + i];
+            docs[i].Prediction = approxes[start + i];
+        }
+
+        if (exponentialDecay.Defined()) {
+            doubleDecay = exponentialDecay.GetRef();
+        } else {
+            doubleDecay = Nothing();
+        }
+
+        perQueryMetrics.push_back(CalcDcg(docs, type, doubleDecay));
+        start = end;
+    }
+
+    return FastAccumulate(perQueryMetrics);
 }
 
 Y_UNIT_TEST_SUITE(NdcgTests) {
@@ -648,6 +724,142 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
                 UNIT_ASSERT_VALUES_EQUAL_C(
                     cpuDst[i], gpuDst[i],
                     LabeledOutput(bitsOffset, bitsCount, i));
+            }
+        }
+    }
+
+    static void TestIdcg(
+        const size_t size,
+        const size_t maxDocsPerQuery,
+        const ui64 seed,
+        const ENdcgMetricType type,
+        const TMaybe<float> exponentialDecay,
+        const float eps)
+    {
+        const auto deviceGuard = StartCudaManager();
+        const float scale = 5;
+
+        TFastRng<ui64> prng(seed);
+        TVector<ui32> offsets;
+        offsets.yresize(size);
+        size_t queryCount = 0;
+        for (size_t i = 0; i < size; ++queryCount) {
+            const size_t docsPerQuery = prng.Uniform(maxDocsPerQuery) + 1;
+            const ui32 offset = i;
+            for (size_t j = 0; i < size && j < docsPerQuery; ++i, (void)++j) {
+                offsets[i] = offset + j;
+            }
+        }
+        TVector<float> targets;
+        targets.yresize(size);
+        for (auto& target : targets) {
+            target = prng.GenRandReal1() * scale;
+        }
+
+        const auto mapping = MakeGroupAwareStripeMapping(offsets);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(mapping);
+        auto deviceTargets = TStripeBuffer<float>::Create(mapping);
+
+        deviceBiasedOffsets.Write(MakeBiasedOffsets(offsets, mapping));
+        deviceTargets.Write(targets);
+
+        const auto gpuIdcg = CalculateIdcg(
+            deviceTargets.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            type,
+            exponentialDecay) / queryCount;
+        const auto cpuIdcg = CalculateIdcg(targets, offsets, type, exponentialDecay) / queryCount;
+        UNIT_ASSERT_DOUBLES_EQUAL_C(
+            cpuIdcg, gpuIdcg, eps,
+            LabeledOutput(size, maxDocsPerQuery, seed, type, exponentialDecay));
+    }
+
+    Y_UNIT_TEST(TestIdcg) {
+        const ui64 seed = 0;
+        const TMaybe<float> exponentialDecays[] = {Nothing(), 0.5};
+        for (const size_t size : {1000, 10000, 10000000}) {
+            for (const size_t maxDocsPerQuery : {10, 30}) {
+                for (const auto type : {ENdcgMetricType::Base, ENdcgMetricType::Exp}) {
+                    for (const auto exponentialDecay : exponentialDecays) {
+                        float eps = 1e-5;
+                        if (size == 10000000) {
+                            eps = 1e-2;
+                        }
+                        TestIdcg(size, maxDocsPerQuery, seed, type, exponentialDecay, eps);
+                    }
+                }
+            }
+        }
+    }
+
+    static void TestDcg(
+        const size_t size,
+        const size_t maxDocsPerQuery,
+        const ui64 seed,
+        const ENdcgMetricType type,
+        const TMaybe<float> exponentialDecay,
+        const float eps)
+    {
+        const auto deviceGuard = StartCudaManager();
+        const float scale = 5;
+
+        TFastRng<ui64> prng(seed);
+        TVector<ui32> offsets;
+        offsets.yresize(size);
+        size_t queryCount = 0;
+        for (size_t i = 0; i < size; ++queryCount) {
+            const size_t docsPerQuery = prng.Uniform(maxDocsPerQuery) + 1;
+            const ui32 offset = i;
+            for (size_t j = 0; i < size && j < docsPerQuery; ++i, (void)++j) {
+                offsets[i] = offset + j;
+            }
+        }
+        TVector<float> targets;
+        targets.yresize(size);
+        for (auto& target : targets) {
+            target = prng.GenRandReal1() * scale;
+        }
+        TVector<float> approxes;
+        approxes.yresize(size);
+        for (auto& approx: approxes) {
+            approx = prng.GenRandReal1() * scale;
+        }
+
+        const auto mapping = MakeGroupAwareStripeMapping(offsets);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(mapping);
+        auto deviceTargets = TStripeBuffer<float>::Create(mapping);
+        auto deviceApproxes = TStripeBuffer<float>::Create(mapping);
+
+        deviceBiasedOffsets.Write(MakeBiasedOffsets(offsets, mapping));
+        deviceTargets.Write(targets);
+        deviceApproxes.Write(approxes);
+
+        const auto gpuIdcg = CalculateDcg(
+            deviceTargets.ConstCopyView(),
+            deviceApproxes.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            type,
+            exponentialDecay) / queryCount;
+        const auto cpuIdcg = CalculateDcg(targets, approxes, offsets, type, exponentialDecay) / queryCount;
+        UNIT_ASSERT_DOUBLES_EQUAL_C(
+            cpuIdcg, gpuIdcg, eps,
+            LabeledOutput(size, maxDocsPerQuery, seed, type, exponentialDecay));
+    }
+
+    Y_UNIT_TEST(TestDcg) {
+        const ui64 seed = 0;
+        const TMaybe<float> exponentialDecays[] = {Nothing(), 0.5};
+        for (const size_t size : {1000, 10000, 10000000}) {
+            for (const size_t maxDocsPerQuery : {10, 30}) {
+                for (const auto type : {ENdcgMetricType::Base, ENdcgMetricType::Exp}) {
+                    for (const auto exponentialDecay : exponentialDecays) {
+                        float eps = 1e-5;
+                        if (size == 10000000) {
+                            eps = 1e-2;
+                        }
+                        TestDcg(size, maxDocsPerQuery, seed, type, exponentialDecay, eps);
+                    }
+                }
             }
         }
     }

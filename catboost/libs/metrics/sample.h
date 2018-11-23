@@ -4,9 +4,11 @@
 
 namespace NMetrics {
     struct TSample {
-        double Target;
-        double Prediction;
-        double Weight;
+        double Target = 0;
+        double Prediction = 0;
+        double Weight = 0;
+
+        TSample() = default;
 
         TSample(double target, double prediction, double weight = 1)
             : Target(target)

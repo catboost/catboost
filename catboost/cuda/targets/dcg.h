@@ -1,8 +1,36 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/fwd.h>
+#include <catboost/libs/options/enums.h>
+#include <util/generic/maybe.h>
 
 namespace NCatboostCuda {
+    template <typename TMapping>
+    float CalculateNdcg(
+        const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
+        const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+        ENdcgMetricType type = ENdcgMetricType::Base,
+        TMaybe<float> exponentialDecay = Nothing(),
+        ui32 stream = 0);
+
+    template <typename TMapping>
+    float CalculateIdcg(
+        const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+        ENdcgMetricType type = ENdcgMetricType::Base,
+        TMaybe<float> exponentialDecay = Nothing(),
+        ui32 stream = 0);
+
+    template <typename TMapping>
+    float CalculateDcg(
+        const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
+        const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+        ENdcgMetricType type = ENdcgMetricType::Base,
+        TMaybe<float> exponentialDecay = Nothing(),
+        ui32 stream = 0);
+
     namespace NDetail {
         template <typename I, typename T, typename TMapping>
         void MakeDcgDecay(
@@ -45,3 +73,4 @@ namespace NCatboostCuda {
             ui32 stream = 0);
     }
 }
+

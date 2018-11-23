@@ -19,6 +19,7 @@ PEERDIR(
     catboost/cuda/ut_helpers
     catboost/libs/helpers
     catboost/libs/metrics
+    library/accurate_accumulate
     library/float16
 )
 

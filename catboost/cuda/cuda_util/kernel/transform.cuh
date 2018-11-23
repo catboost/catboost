@@ -27,6 +27,8 @@ namespace NKernel {
     template <typename T>
     void PowVector(T* x, ui64 size, T base, TCudaStream stream);
     template <typename T>
+    void PowVector(const T* x, ui64 size, T base, T* y, TCudaStream stream);
+    template <typename T>
     void ExpVector(T *x, ui64 size, TCudaStream stream);
     template <typename T>
     void Reverse(T* data, ui64 size, TCudaStream stream);
