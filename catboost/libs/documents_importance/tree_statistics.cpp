@@ -3,6 +3,8 @@
 
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
 // ITreeStatisticsEvaluator
 
@@ -22,7 +24,13 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     TVector<TTreeStatistics> treeStatistics;
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);
+
+    TFstrLogger treesLogger(treeCount, "Trees processed", "Processing trees...", 1);
+    TProfileInfo processTreesProfile(treeCount);
+
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {
+        processTreesProfile.StartIterationBlock();
+
         LeafCount = 1 << model.ObliviousTrees.TreeSizes[treeId];
         LeafIndices = BuildIndicesForBinTree(model, binarizedFeatures, treeId);
 
@@ -82,6 +90,10 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
             formulaNumeratorAdding,
             formulaNumeratorMultiplier
         });
+
+        processTreesProfile.FinishIteration();
+        auto profileResults = processTreesProfile.GetProfileResults();
+        treesLogger.Log(profileResults);
     }
     return treeStatistics;
 }
