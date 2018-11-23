@@ -1550,7 +1550,7 @@ class CatBoost(_CatBoostBase):
         elif fstr_type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
+    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1594,7 +1594,16 @@ class CatBoost(_CatBoostBase):
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
-        return self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+
+        if not isinstance(verbose, bool) and not isinstance(verbose, int):
+            raise CatboostError('verbose should be bool or int.')
+        verbose = int(verbose)
+        if verbose < 0:
+            raise CatboostError('verbose should be non-negative.')
+
+        with log_fixup():
+            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+        return result
 
     def shrink(self, ntree_end, ntree_start=0):
         """
