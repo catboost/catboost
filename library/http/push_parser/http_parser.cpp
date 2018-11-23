@@ -1,5 +1,8 @@
 #include "http_parser.h"
 
+#include <library/blockcodecs/stream.h>
+#include <library/blockcodecs/codecs.h>
+
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
 #include <util/stream/mem.h>
@@ -288,6 +291,20 @@ bool THttpParser::DecodeContent() {
             TMemoryInput retryInput(~Content_, +Content_);
             DecodedContent_ = TZLibDecompress(&retryInput, ZLib::Raw).ReadAll();
         }
+    } else if (ContentEncoding_.StartsWith("z-")) {
+        // opposite for library/http/io/stream.h
+        const NBlockCodecs::ICodec* codec = nullptr;
+        try {
+            const TStringBuf codecName = TStringBuf(ContentEncoding_).SubStr(2);
+            if (codecName.StartsWith("zstd06") || codecName.StartsWith("zstd08")) {
+                ythrow NBlockCodecs::TNotFound() << codecName;
+            }
+            codec = NBlockCodecs::Codec(codecName);
+        } catch(const NBlockCodecs::TNotFound& exc) {
+            throw THttpParseException() << "Unsupported content-encoding method: " << exc.AsStrBuf();
+        }
+        NBlockCodecs::TDecodedInput decoder(&in, codec);
+        DecodedContent_ = decoder.ReadAll();
     } else {
         throw THttpParseException() << "Unsupported content-encoding method: " << ContentEncoding_;
     }
