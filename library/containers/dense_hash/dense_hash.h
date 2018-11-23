@@ -135,22 +135,14 @@ public:
     }
 
     TDenseHash(const TDenseHash&) = default;
-
-    TDenseHash(TDenseHash&& init) {
-        Swap(init);
-    }
+    TDenseHash(TDenseHash&&) = default;
 
     TDenseHash& operator=(const TDenseHash& rhs) {
-        EmptyMarker = rhs.EmptyMarker;
-        NumFilled = rhs.EmptyMarker;
-        BucketMask = rhs.BucketMask;
-        GrowThreshold = rhs.GrowThreshold;
-        Buckets.clear();
-        for (const auto& b : rhs.Buckets) {
-            Buckets.emplace_back(b.first, b.second);
-        }
-        return *this;
+        TDenseHash tmp{ rhs };
+        return *this = std::move(tmp);
     }
+
+    TDenseHash& operator=(TDenseHash&&) = default;
 
     friend bool operator==(const TDenseHash& lhs, const TDenseHash& rhs) {
         return lhs.Size() == rhs.Size() &&
