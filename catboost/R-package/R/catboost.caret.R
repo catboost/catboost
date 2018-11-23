@@ -65,17 +65,24 @@ catboost.caret$grid <- function(x, y, len = 5, search = "grid") {
 catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs, ...) {
     param <- c(param, list(...))
     if (is.null(param$loss_function)) {
-        param$loss_function = "RMSE"
+        param$loss_function <- "RMSE"
         if (is.factor(y)) {
-            param$loss_function = "Logloss"
+            param$loss_function <- "Logloss"
             if (length(lev) > 2) {
-                param$loss_function = "MultiClass"
+                param$loss_function <- "MultiClass"
             }
-            y = as.double(y) - 1
+            y <- as.double(y) - 1
         }
     }
+    test_pool <- NULL
+    if (!is.null(param$test_pool)) {
+        test_pool <- param$test_pool
+        if (class(test_pool) != "catboost.Pool")
+            stop("Expected catboost.Pool, got: ", class(test_pool))
+        param <- within(param, rm(test_pool))
+    }
     pool <- catboost.from_data_frame(x, y, weight = wts)
-    model <- catboost.train(pool, NULL, param)
+    model <- catboost.train(pool, test_pool, param)
     model$lev <- lev
     return(model)
 }
