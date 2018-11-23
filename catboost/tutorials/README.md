@@ -58,6 +58,9 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [Export CatBoost Model as Python code Tutorial](apply_model/model_export_as_python_code_tutorial.md)
     * Catboost model could be saved as standalone Python code.
 
+* [Export CatBoost Model in JSON format Tutorial](apply_model/model_export_as_json_tutorial.ipynb)
+    * Catboost model could be saved in JSON format and applied.
+
 ## Competition examples
 
 * [Kaggle Paribas Competition Tutorial](competition_examples/kaggle_paribas.ipynb)

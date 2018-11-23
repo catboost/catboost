@@ -136,6 +136,9 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m5 == TMaybe<int>());
         UNIT_ASSERT(m5 == Nothing());
         UNIT_ASSERT(m5 != TMaybe<int>(5));
+
+        m5 = {};
+        UNIT_ASSERT(m5.Empty());
     }
 
     Y_UNIT_TEST(TestInPlace) {
@@ -954,5 +957,35 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(testStructMaybe.Defined());
         UNIT_ASSERT_EQUAL(testStructMaybe.GetRef().From_, TestStruct::FromValue);
         UNIT_ASSERT_EQUAL(testStructMaybe.GetRef().Value_, 23);
+    }
+
+    Y_UNIT_TEST(TestMaybeConvertion) {
+        struct TSrc {};
+        struct TDst {
+            bool FromMaybeConstructorApplied;
+
+            explicit TDst(TSrc)
+                : FromMaybeConstructorApplied(false) {}
+
+            explicit TDst(TMaybe<TSrc>)
+                : FromMaybeConstructorApplied(true) {}
+
+            TDst& operator=(TSrc) {
+                FromMaybeConstructorApplied = false;
+                return *this;
+            }
+            TDst& operator=(TMaybe<TSrc>) {
+                FromMaybeConstructorApplied = true;
+                return *this;
+            }
+        };
+
+        auto m = TMaybe<TDst>(TMaybe<TSrc>());
+        UNIT_ASSERT(m.Defined());
+        UNIT_ASSERT(m->FromMaybeConstructorApplied);
+
+        m = TMaybe<TSrc>();
+        UNIT_ASSERT(m.Defined());
+        UNIT_ASSERT(m->FromMaybeConstructorApplied);
     }
 }
