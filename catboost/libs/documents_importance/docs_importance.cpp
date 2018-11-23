@@ -8,6 +8,7 @@
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
 #include <util/string/iterator.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <functional>
 #include <numeric>
@@ -114,6 +115,8 @@ TDStrResult GetDocumentImportances(
     } else {
         CB_ENSURE(topSize >= 0, "Top size should be nonnegative integer or -1 (for unlimited top size).");
     }
+
+    TSetLoggingVerbose inThisScope;
 
     TUpdateMethod updateMethod = ParseUpdateMethod(updateMethodStr);
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
