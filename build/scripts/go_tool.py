@@ -190,9 +190,11 @@ def do_link_test(args):
     assert args.test_miner is not None
     assert args.test_import_path is not None
 
+    test_import_path, _ = get_import_path(args.test_import_path)
+
     test_lib_args = copy.deepcopy(args)
     test_lib_args.output = os.path.join(args.output_root, 'test.a')
-    test_lib_args.module_path = args.test_import_path
+    test_lib_args.module_path = test_import_path
     do_link_lib(test_lib_args)
     xtest_lib_args = None
 
@@ -201,9 +203,9 @@ def do_link_test(args):
         xtest_lib_args.srcs = xtest_lib_args.xtest_srcs
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
-        xtest_lib_args.module_path = args.test_import_path + '_test'
+        xtest_lib_args.module_path = test_import_path + '_test'
         assert test_lib_args.output.startswith(args.build_root)
-        xtest_lib_args.module_map[args.test_import_path] = test_lib_args.output
+        xtest_lib_args.module_map[test_import_path] = test_lib_args.output
         do_link_lib(xtest_lib_args)
 
     test_main_content = gen_test_main(args.test_miner, test_lib_args, xtest_lib_args)
@@ -213,9 +215,9 @@ def do_link_test(args):
     test_args = copy.deepcopy(args)
     test_args.srcs = [test_main_name]
     classify_srcs(test_args.srcs, test_args)
-    test_args.module_map[args.test_import_path] = test_lib_args.output
+    test_args.module_map[test_import_path] = test_lib_args.output
     if xtest_lib_args:
-        test_args.module_map[args.test_import_path + '_test'] = xtest_lib_args.output
+        test_args.module_map[test_import_path + '_test'] = xtest_lib_args.output
     do_link_exe(test_args)
 
 
