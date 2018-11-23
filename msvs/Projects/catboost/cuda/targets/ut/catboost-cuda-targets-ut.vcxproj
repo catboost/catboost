@@ -268,6 +268,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\accurate_accumulate\library-accurate_accumulate.vcxproj">
+      <Project>{F147C10C-CE54-5773-ED1B-953056696152}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
     </ProjectReference>
