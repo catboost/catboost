@@ -264,4 +264,28 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         UNIT_ASSERT_VALUES_EQUAL(it->ToString(), TString("Vary: Accept-Encoding, \tAccept-Language"));
         UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString("Host: any.com"));
     }
+
+    Y_UNIT_TEST(THttpIoStreamInteroperability) {
+        TStringBuf content = AsStringBuf("very very very long content");
+
+        TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: z-snappy\r\n\r\n");
+        THttpInput i(&request);
+
+        TString result;
+        TStringOutput out(result);
+        THttpOutput httpOut(&out, &i);
+        httpOut.EnableCompression(true);
+        httpOut << "HTTP/1.1 200 OK\r\n";
+        httpOut << "Content-Length: " << content.Size() << "\r\n\r\n";
+        httpOut << content;
+        httpOut.Finish();
+        // check that compression works
+        UNIT_ASSERT(!result.Contains(content));
+
+        THttpParser p;
+        UNIT_ASSERT(p.Parse(result.Data(), result.Size()));
+        UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 200);
+        UNIT_ASSERT(p.Headers().HasHeader("Content-Encoding"));
+        UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), content);
+    }
 }
