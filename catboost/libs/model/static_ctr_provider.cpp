@@ -364,6 +364,7 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
             continue;
         }
         auto& target = result->CtrData.LearnCtrs[ctrBase];
+        target.ModelCtrBase = ctrBase;
         switch (mergePolicy)
         {
         case ECtrTableMergePolicy::FailIfCtrsIntersects:

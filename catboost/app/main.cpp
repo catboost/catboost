@@ -51,6 +51,7 @@ int main(int argc, const char* argv[]) {
         modChooser.AddMode("ostr", mode_ostr, "evaluate object importances");
         modChooser.AddMode("eval-metrics", mode_eval_metrics, "evaluate metrics for model");
         modChooser.AddMode("metadata", mode_metadata, "get/set/dump metainfo fields from model");
+        modChooser.AddMode("model-sum", mode_model_sum, "sum model files");
         modChooser.AddMode("run-worker", mode_run_worker, "run worker");
         modChooser.AddMode("roc", mode_roc, "evaluate data for roc curve");
         modChooser.DisableSvnRevisionOption();
