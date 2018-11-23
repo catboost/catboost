@@ -321,6 +321,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
       <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
+      <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>
