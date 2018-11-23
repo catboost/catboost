@@ -3,6 +3,7 @@
 RECURSE(
     algo
     algo/ut
+    app_helpers
     data
     data/ut
     data_new
@@ -17,8 +18,10 @@ RECURSE(
     gpu_config
     helpers
     helpers/ut
+    index_range
     init
     labels
+    lapack
     loggers
     logging
     metrics

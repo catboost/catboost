@@ -10,17 +10,17 @@
 #include <util/generic/algorithm.h>
 
 // Returns pair <start, end> for each part.
-TVector<std::pair<size_t, size_t>> Split(size_t docCount, int partCount);
-TVector<std::pair<size_t, size_t>> Split(size_t docCount, const TVector<TGroupId>& queryId, int partCount);
+TVector<std::pair<ui32, ui32>> Split(ui32 docCount, ui32 partCount);
+TVector<std::pair<ui32, ui32>> Split(ui32 docCount, const TVector<TGroupId>& queryId, ui32 partCount);
 
 // Returns vector of document indices for each part.
-TVector<TVector<size_t>> StratifiedSplit(const TVector<float>& target, int partCount);
+TVector<TVector<ui32>> StratifiedSplit(const TVector<float>& target,ui32 partCount);
 
 // Split pairs into learn and test pairs, without changing doc indices
 void SplitPairs(
     const TVector<TPair>& pairs,
-    int testDocsBegin,
-    int testDocsEnd,
+    ui32 testDocsBegin,
+    ui32 testDocsEnd,
     TVector<TPair>* learnPairs,
     TVector<TPair>* testPairs
 );
@@ -28,8 +28,8 @@ void SplitPairs(
 // Split pairs into learn and test pairs, changing doc indices
 void SplitPairsAndReindex(
     const TVector<TPair>& pairs,
-    int testDocsBegin,
-    int testDocsEnd,
+    ui32 testDocsBegin,
+    ui32 testDocsEnd,
     TVector<TPair>* learnPairs,
     TVector<TPair>* testPairs
 );

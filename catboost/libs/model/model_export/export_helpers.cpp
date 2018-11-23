@@ -12,6 +12,9 @@ namespace NCatboostModelExportHelpers {
     int GetBinaryFeatureCount(const TFullModel& model) {
         int binaryFeatureCount = 0;
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+            if (!floatFeature.UsedInModel()) {
+                continue;
+            }
             binaryFeatureCount += floatFeature.Borders.size();
         }
         return binaryFeatureCount;
@@ -25,6 +28,9 @@ namespace NCatboostModelExportHelpers {
         TStringBuilder outString;
         TSequenceCommaSeparator comma(model.ObliviousTrees.FloatFeatures.size(), AddSpaceAfterComma);
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+            if (!floatFeature.UsedInModel()) {
+                continue;
+            }
             outString << OutputArrayInitializer([&floatFeature, addFloatingSuffix] (size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 8) + (addFloatingSuffix ? "f" : ""); }, floatFeature.Borders.size()) << comma;
         }
         return outString;

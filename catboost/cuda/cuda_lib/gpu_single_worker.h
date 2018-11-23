@@ -7,15 +7,19 @@
 #include "helpers.h"
 
 #include <catboost/cuda/cuda_lib/tasks_impl/kernel_task.h>
-#include <catboost/cuda/cuda_lib/tasks_impl/request_stream_task.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_state_func.h>
+#include <catboost/cuda/cuda_lib/tasks_impl/request_stream_task.h>
+#include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
+
+#include <library/threading/name_guard/name_guard.h>
+
 #include <util/generic/map.h>
 #include <util/generic/queue.h>
-#include <util/system/yield.h>
 #include <util/generic/set.h>
+#include <util/string/builder.h>
 #include <util/system/event.h>
-#include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
-#include <catboost/cuda/cuda_lib/tasks_queue/single_host_task_queue.h>
+#include <util/system/yield.h>
 
 namespace NCudaLib {
     class IExceptionCallback: public TThrRefBase {
@@ -304,7 +308,7 @@ namespace NCudaLib {
                 ui64 total = 0;
                 CUDA_SAFE_CALL(cudaMemGetInfo(&free, &total));
                 if (free * 1.0 / DeviceProperties.GetDeviceMemory() < 0.75) {
-                    MATRIXNET_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << free * 1.0 / 1024 / 1024 << Endl;
+                    CATBOOST_WARNING_LOG << "Warning: less than 75% gpu memory available for training. Free: " << free * 1.0 / 1024 / 1024 << " Total: " << free * 1.0 / 1024 / 1024 << Endl;
                 }
                 gpuMemorySize = (ui64)(free * initTask.GpuMemoryPart);
             }
@@ -326,6 +330,7 @@ namespace NCudaLib {
                 RegisterErrorCallback(callback);
             }
             WorkingThread.reset(new std::thread([=]() -> void {
+                Y_THREAD_NAME_GUARD(TStringBuilder() << "GpuWorker" << LocalDeviceId);
                 this->Run();
             }));
         }

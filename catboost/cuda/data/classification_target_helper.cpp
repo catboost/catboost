@@ -15,7 +15,7 @@ void NCatboostCuda::TClassificationTargetHelper::MakeTargetAndWeights(bool isLea
                                                                       TVector<float>* loadedTargets,
                                                                       TVector<float>* loadedWeights) {
 
-    const auto isMultiClass = IsMultiClassError(Options.LossFunctionDescription->GetLossFunction());
+    const auto isMultiClass = IsMultiClassMetric(Options.LossFunctionDescription->GetLossFunction());
 
     if (isMultiClass) {
         if (!LabelConverter.IsInitialized()) {

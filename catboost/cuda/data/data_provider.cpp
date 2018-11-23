@@ -71,6 +71,6 @@ namespace NCatboostCuda {
                 }
             }
         }
-        MATRIXNET_DEBUG_LOG << pairCount << " pairs generated" << Endl;
+        CATBOOST_DEBUG_LOG << pairCount << " pairs generated" << Endl;
     }
 }

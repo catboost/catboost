@@ -5,7 +5,7 @@
 
 namespace NKernel {
 
-    template<typename T>
+    template <typename T>
     cudaError_t ScanVector(const T* input, T* output, ui32 size, bool inclusive, TScanKernelContext<T>& context, TCudaStream stream) {
         using TKernelContext = TScanKernelContext<T>;
 
@@ -27,7 +27,7 @@ namespace NKernel {
         using TSignedType = int;
     };
 
-    template<typename T_>
+    template <typename T_>
     cudaError_t SegmentedScanNonNegativeVector(const T_* input, T_* output, ui32 size, bool inclusive, TScanKernelContext<T_>& context, TCudaStream stream) {
         using TKernelContext = TScanKernelContext<T_>;
         using T = typename TToSignedConversion<T_>::TSignedType;
@@ -40,7 +40,7 @@ namespace NKernel {
     }
 
 
-    template<typename T_>
+    template <typename T_>
     cudaError_t SegmentedScanAndScatterNonNegativeVector(const T_* input, const ui32* indices, T_* output,
                                                          ui32 size, bool inclusive,
                                                          TScanKernelContext<T_>& context,

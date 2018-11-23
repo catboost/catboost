@@ -4,6 +4,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 

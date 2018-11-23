@@ -4,8 +4,8 @@
 
 namespace NKernel {
 
-    struct TRemoveQueryMeansContext: public IKernelContext {
-        TDevicePointer<float> QueryMeans;
+    struct TRemoveQueryBiasContext: public IKernelContext {
+        TDevicePointer<float> QueryBias;
     };
 
 
@@ -18,11 +18,16 @@ namespace NKernel {
                            float* result, TCudaStream stream);
 
 
-    void RemoveGroupMeans(const float* queryMeans, const ui32* qids, ui32 size, float* dst, TCudaStream stream);
+    void RemoveGroupBias(const float *queryMeans, const ui32 *qids, ui32 size, float *dst, TCudaStream stream);
 
     void ComputeGroupMeans(const float* target, const float* weights,
                            const ui32* qOffsets,  ui32 qCount,
                            float* result, TCudaStream stream);
+
+    void ComputeGroupMax(const float* target,
+                         const ui32* qOffsets,  ui32 qCount,
+                         float* result, TCudaStream stream);
+
 
     void FillQueryEndMask(const ui32* qids, const ui32* docs, ui32 docCount, ui32* masks, TCudaStream stream);
     void CreateSortKeys(ui64* seeds, ui32 seedSize, const ui32* qids,  ui32 docCount, ui64* keys, TCudaStream stream);

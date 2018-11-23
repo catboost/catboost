@@ -3,6 +3,7 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/option.h>
+
 #include <util/system/types.h>
 
 namespace NCatboostOptions {
@@ -134,12 +135,12 @@ namespace NCatboostOptions {
             return !(rhs == *this);
         }
 
-        template<typename TComparableType>
+        template <typename TComparableType>
         bool operator==(const TComparableType& otherValue) const {
             return TOption<TValue>::operator==(otherValue);
         }
 
-        template<typename TComparableType>
+        template <typename TComparableType>
         bool operator!=(const TComparableType& otherValue) const {
             return TOption<TValue>::operator!=(otherValue);
         }

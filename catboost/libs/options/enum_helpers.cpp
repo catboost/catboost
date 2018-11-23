@@ -1,7 +1,23 @@
 #include "enum_helpers.h"
 #include "loss_description.h"
 
+#include <util/generic/array_ref.h>
+#include <util/generic/is_in.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/vector.h>
 #include <util/string/cast.h>
+
+TConstArrayRef<ELossFunction> GetAllObjectives() {
+    static TVector<ELossFunction> allObjectives = {
+        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
+        ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
+        ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
+        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
+        ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
+        ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
+        ELossFunction::Lq};
+    return allObjectives;
+}
 
 
 bool IsSingleDimensionalError(ELossFunction lossFunction) {
@@ -54,9 +70,8 @@ bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::QueryCrossEntropy);
 }
 
-bool IsForOrderOptimization(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::AUC ||  // classification metric
-            lossFunction == ELossFunction::YetiRank ||  // ranking metrics
+bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::YetiRank ||
             lossFunction == ELossFunction::PrecisionAt ||
             lossFunction == ELossFunction::RecallAt ||
             lossFunction == ELossFunction::MAP ||
@@ -65,6 +80,10 @@ bool IsForOrderOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::NDCG ||
             lossFunction == ELossFunction::AverageGain ||
             lossFunction == ELossFunction::QueryAverage);
+}
+
+bool IsForOrderOptimization(ELossFunction lossFunction) {
+    return lossFunction == ELossFunction::AUC || IsGroupwiseOrderMetric(lossFunction);
 }
 
 bool IsForAbsoluteValueOptimization(ELossFunction lossFunction) {
@@ -91,13 +110,13 @@ bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::CtrFactor);
 }
 
-bool IsBinaryClassError(ELossFunction lossFunction) {
+bool IsBinaryClassMetric(ELossFunction lossFunction) {
     return (IsOnlyForCrossEntropyOptimization(lossFunction) ||
             lossFunction == ELossFunction::BrierScore ||
             lossFunction == ELossFunction::HingeLoss);
 }
 
-bool IsMultiClassError(ELossFunction lossFunction) {
+bool IsMultiClassMetric(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MultiClass ||
             lossFunction == ELossFunction::MultiClassOneVsAll ||
             lossFunction == ELossFunction::HingeLoss ||
@@ -107,23 +126,43 @@ bool IsMultiClassError(ELossFunction lossFunction) {
             lossFunction == ELossFunction::ZeroOneLoss);
 }
 
-bool IsClassificationLoss(ELossFunction lossFunction) {
-    return IsBinaryClassError(lossFunction) || IsMultiClassError(lossFunction);
+
+bool IsClassificationMetric(ELossFunction lossFunction) {
+    return IsBinaryClassMetric(lossFunction) || IsMultiClassMetric(lossFunction);
 }
 
-bool IsClassificationLoss(const TString& lossDescription) {
+
+bool IsClassificationObjective(ELossFunction lossFunction) {
+    return IsClassificationMetric(lossFunction) && IsIn(GetAllObjectives(), lossFunction);
+}
+
+bool IsClassificationObjective(const TStringBuf lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
-    return IsClassificationLoss(lossType);
+    return IsClassificationObjective(lossType);
 }
 
-bool IsQuerywiseError(ELossFunction lossFunction) {
+bool IsRegressionObjective(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::MAE ||
+            lossFunction == ELossFunction::MAPE ||
+            lossFunction == ELossFunction::Poisson ||
+            lossFunction == ELossFunction::Quantile ||
+            lossFunction == ELossFunction::RMSE ||
+            lossFunction == ELossFunction::LogLinQuantile
+    );
+}
+
+bool IsRegressionObjective(const TStringBuf lossDescription) {
+    ELossFunction lossType = ParseLossType(lossDescription);
+    return IsRegressionObjective(lossType);
+}
+
+bool IsGroupwiseMetric(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::QueryRMSE ||
-        lossFunction == ELossFunction::QuerySoftMax ||
-        lossFunction == ELossFunction::PairLogit ||
-        lossFunction == ELossFunction::YetiRank ||
-        lossFunction == ELossFunction::YetiRankPairwise ||
-        lossFunction == ELossFunction::PairLogitPairwise
+        lossFunction == ELossFunction::QuerySoftMax  ||
+        lossFunction == ELossFunction::QueryCrossEntropy ||
+        IsGroupwiseOrderMetric(lossFunction) ||
+        IsPairwiseError(lossFunction)
     );
 }
 
@@ -153,7 +192,8 @@ bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction) {
             lossFunction == ELossFunction::YetiRankPairwise ||
             lossFunction == ELossFunction::PairLogitPairwise ||
             lossFunction == ELossFunction::QueryCrossEntropy ||
-            lossFunction == ELossFunction::MultiClass
+            lossFunction == ELossFunction::MultiClass ||
+            lossFunction == ELossFunction::MultiClassOneVsAll
     );
 }
 
@@ -215,6 +255,7 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
         case ELossFunction::YetiRank:
         case ELossFunction::NDCG:
         case ELossFunction::AUC:
+        case ELossFunction::MedianAbsoluteError:
             return true;
         default:
             return false;

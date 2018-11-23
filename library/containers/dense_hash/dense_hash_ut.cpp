@@ -37,6 +37,28 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         }
         UNIT_ASSERT_EQUAL(sumKeys, sumKeysTarget);
         UNIT_ASSERT_EQUAL(sumValues, sumValuesTarget);
+
+        auto denseHash2 = denseHash;
+        UNIT_ASSERT_EQUAL(denseHash.Size(), denseHash2.Size());
+        UNIT_ASSERT_EQUAL(denseHash.Capacity(), denseHash2.Capacity());
+        UNIT_ASSERT_EQUAL(denseHash, denseHash2);
+
+        denseHash2.Clear();
+
+        denseHash2 = denseHash;
+        UNIT_ASSERT_EQUAL(denseHash.Size(), denseHash2.Size());
+        UNIT_ASSERT_EQUAL(denseHash.Capacity(), denseHash2.Capacity());
+        UNIT_ASSERT_EQUAL(denseHash, denseHash2);
+
+        auto denseHash3 = std::move(denseHash2);
+        UNIT_ASSERT_EQUAL(denseHash.Size(), denseHash3.Size());
+        UNIT_ASSERT_EQUAL(denseHash.Capacity(), denseHash3.Capacity());
+        UNIT_ASSERT_EQUAL(denseHash, denseHash3);
+
+        denseHash2 = std::move(denseHash3);
+        UNIT_ASSERT_EQUAL(denseHash.Size(), denseHash2.Size());
+        UNIT_ASSERT_EQUAL(denseHash.Capacity(), denseHash2.Capacity());
+        UNIT_ASSERT_EQUAL(denseHash, denseHash2);
     }
 
     Y_UNIT_TEST(TestInsert) {

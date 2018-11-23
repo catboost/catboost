@@ -1,5 +1,7 @@
 #pragma once
 
+#include "features_layout.h"
+
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
@@ -12,6 +14,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/stream/buffer.h>
+#include <util/system/yassert.h>
 
 #include <cmath>
 #include <type_traits>
@@ -28,11 +31,12 @@ namespace NCB {
         PerfectHashedCategorical,   //after perfect hashing.
     };
 
-    using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui64>;
-    using TCompressedArraySubset = TArraySubset<TCompressedArray, ui64>;
+    using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
+    using TCompressedArraySubset = TArraySubset<TCompressedArray, ui32>;
+    using TConstCompressedArraySubset = TArraySubset<const TCompressedArray, ui32>;
 
     template <class T>
-    using TConstPtrArraySubset = TArraySubset<const T*, ui64>;
+    using TConstPtrArraySubset = TArraySubset<const T*, ui32>;
 
     class IFeatureValuesHolder: TMoveOnly {
     public:
@@ -40,11 +44,27 @@ namespace NCB {
 
         IFeatureValuesHolder(EFeatureValuesType type,
                              ui32 featureId,
-                             ui64 size)
+                             ui32 size)
             : Type(type)
             , FeatureId(featureId)
             , Size(size)
         {
+        }
+
+        IFeatureValuesHolder(IFeatureValuesHolder&& arg) noexcept = default;
+        IFeatureValuesHolder& operator=(IFeatureValuesHolder&& arg) noexcept = default;
+
+        EFeatureType GetFeatureType() const {
+            switch (Type) {
+                case EFeatureValuesType::Float:
+                case EFeatureValuesType::QuantizedFloat:
+                    return EFeatureType::Float;
+                case EFeatureValuesType::HashedCategorical:
+                case EFeatureValuesType::PerfectHashedCategorical:
+                    return EFeatureType::Categorical;
+            }
+            Y_FAIL("This place should be inaccessible");
+            return EFeatureType::Float; // to keep compiler happy
         }
 
         EFeatureValuesType GetType() const {
@@ -62,10 +82,18 @@ namespace NCB {
     private:
         EFeatureValuesType Type;
         ui32 FeatureId;
-        ui64 Size;
+        ui32 Size;
     };
 
     using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
+
+
+    inline bool IsConsistentWithLayout(
+        const IFeatureValuesHolder& feature,
+        const TFeaturesLayout& featuresLayout
+    ) {
+        return featuresLayout.IsCorrectExternalFeatureIdxAndType(feature.GetId(), feature.GetFeatureType());
+    }
 
 
     /*******************************************************************************************************
@@ -82,16 +110,18 @@ namespace NCB {
                                    featureId,
                                    subsetIndexing->Size())
             , SrcData(std::move(srcData))
-            , Data(&SrcData, subsetIndexing)
-        {}
+            , SubsetIndexing(subsetIndexing)
+        {
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
+        }
 
-        const TMaybeOwningArraySubset<T>& GetArrayData() const {
-            return Data;
+        const TConstMaybeOwningArraySubset<T, ui32> GetArrayData() const {
+            return {&SrcData, SubsetIndexing};
         }
 
     private:
         TMaybeOwningArrayHolder<T> SrcData;
-        TMaybeOwningArraySubset<T> Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
     using TFloatValuesHolder = TArrayValuesHolder<float, EFeatureValuesType::Float>;
@@ -112,23 +142,33 @@ namespace NCB {
             : TBase(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
             , SrcDataRawPtr(SrcData.GetRawPtr())
-            , Data(&SrcData, subsetIndexing)
-        {}
+            , SubsetIndexing(subsetIndexing)
+        {
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
+        }
 
-        const TCompressedArraySubset& GetCompressedData() const {
-            return Data;
+        THolder<TBase> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override {
+            return MakeHolder<TCompressedValuesHolderImpl>(TBase::GetId(), SrcData, subsetIndexing);
+        }
+
+        TConstCompressedArraySubset GetCompressedData() const {
+            return {&SrcData, SubsetIndexing};
         }
 
         template <class T = typename TBase::TValueType>
         TConstPtrArraySubset<T> GetArrayData() const {
             SrcData.CheckIfCanBeInterpretedAsRawArray<T>();
-            return TConstPtrArraySubset<T>((const T**)&SrcDataRawPtr, Data.GetSubsetIndexing());
+            return TConstPtrArraySubset<T>((const T**)&SrcDataRawPtr, SubsetIndexing);
         }
 
         // in some cases non-standard T can be useful / more efficient
         template <class T = typename TBase::TValueType>
         TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
-            return ParallelExtractValues<T>(Data, localExecutor);
+            return TMaybeOwningArrayHolder<T>::CreateOwning(
+                ::NCB::GetSubset<T>(SrcData, *SubsetIndexing, localExecutor)
+            );
         }
 
         TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(
@@ -144,7 +184,7 @@ namespace NCB {
     private:
         TCompressedArray SrcData;
         void* SrcDataRawPtr;
-        TCompressedArraySubset Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
 
@@ -156,11 +196,18 @@ namespace NCB {
         using TValueType = ui8;
     public:
         IQuantizedFloatValuesHolder(const ui32 featureId,
-                                    ui64 size)
+                                    ui32 size)
             : IFeatureValuesHolder(EFeatureValuesType::QuantizedFloat,
                                    featureId,
                                    size)
         {}
+
+        /* note: subsetIndexing is already a composition - this is an optimization to call compose once per
+         * all features data and not for each feature
+         */
+        virtual THolder<IQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const = 0;
 
         /* For one-time use on GPU.
          * On CPU TQuantizedCatValuesHolder::GetArrayData should be used
@@ -181,11 +228,18 @@ namespace NCB {
         using TValueType = ui32;
     public:
         IQuantizedCatValuesHolder(const ui32 featureId,
-                                  ui64 size)
+                                  ui32 size)
             : IFeatureValuesHolder(EFeatureValuesType::PerfectHashedCategorical,
                                    featureId,
                                    size)
         {}
+
+        /* note: subsetIndexing is already a composition - this is an optimization to call compose once per
+         * all features data and not for each feature
+         */
+        virtual THolder<IQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const = 0;
 
         /* For one-time use on GPU.
          * On CPU TQuantizedCatValuesHolder::GetArrayData should be used

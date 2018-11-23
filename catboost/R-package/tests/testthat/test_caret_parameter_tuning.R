@@ -1,10 +1,10 @@
 context("test_caret_parameter_tuning.R")
 
-load_pool <- function() {
+load_adult_pool <- function() {
   pool_path = system.file("extdata", "adult_train.1000", package="catboost")
 
   column_description_vector = rep('numeric', 15)
-  cat_features <- c(3, 5, 7, 8, 9, 10, 11, 15)
+  cat_features <- c(3, 5, 7, 8, 9, 10, 11, 15) # same as extdata/adult.cd
   for (i in cat_features) {
     column_description_vector[i] <- 'factor'
   }
@@ -24,9 +24,13 @@ load_pool <- function() {
 }
 
 test_that("test caret train and parameter tuning on adult pool", {
-  data <- load_pool()
+  data <- load_adult_pool()
   X <- data$X
   y <- data$y
+
+  test_path <- system.file("extdata", "adult_test.1000", package="catboost")
+  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+  test_pool <- catboost.load_pool(test_path, column_description = cd_path)
 
   fit_control <- caret::trainControl(method="cv",
                                      number=5,
@@ -41,7 +45,8 @@ test_that("test caret train and parameter tuning on adult pool", {
 
   report <- caret::train(X, as.factor(make.names(y)),
                          method=catboost::catboost.caret, preProc=NULL,
-                         tuneGrid=grid, trControl=fit_control)
+                         tuneGrid=grid, trControl=fit_control,
+                         test_pool=test_pool)
 
   expect_true(report$results$Accuracy > 0.75)
 })

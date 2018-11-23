@@ -8,7 +8,7 @@
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
-extern Y_NO_RETURN void ThrowBadAlloc();
+[[noreturn]] extern void ThrowBadAlloc();
 
 /**
  * @addtogroup Streams

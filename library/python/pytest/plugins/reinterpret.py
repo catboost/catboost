@@ -1,7 +1,13 @@
 import sys
 import py
+
+import pytest  # noqa
 from _pytest.assertion.util import BuiltinAssertionError
-import newinterpret
+
+try:
+    from . import newinterpret
+except ValueError:
+    import newinterpret
 
 u = py.builtin._totext
 

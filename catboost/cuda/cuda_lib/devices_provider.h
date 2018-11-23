@@ -9,7 +9,7 @@ namespace NCudaLib {
     class TTerminateOnErrorCallback: public IExceptionCallback {
     public:
         void Call(const TString& message) override {
-            MATRIXNET_ERROR_LOG << "Application terminated with error: " << message << Endl;
+            CATBOOST_ERROR_LOG << "Application terminated with error: " << message << Endl;
             std::terminate();
         }
     };
@@ -17,7 +17,7 @@ namespace NCudaLib {
     class TSetDeviceExceptionCallback: public IExceptionCallback {
     public:
         void Call(const TString& message) override {
-            MATRIXNET_ERROR_LOG << "Exception on device #" << Device->GetDeviceId() << " Error: " << message << Endl;
+            CATBOOST_ERROR_LOG << "Exception on device #" << Device->GetDeviceId() << " Error: " << message << Endl;
             AtomicIncrement(Device->ExceptionsCount);
         }
 
@@ -243,18 +243,18 @@ namespace NCudaLib {
             }
 
             CB_ENSURE(requestedDevices.size(), "Error: no devices found");
-            MATRIXNET_INFO_LOG << "Requested devices:" << Endl;
+            CATBOOST_INFO_LOG << "Requested devices:" << Endl;
             for (ui32 i = 0; i < devCount; i++) {
                 if (requestedDevices.count(i)) {
                     const auto& props = Devices[i]->GetDeviceProperties();
                     TDeviceId id = Devices[i]->GetDevice();
 
-                    MATRIXNET_INFO_LOG << "  " << i << ". " << props.GetName() << " (compute capability "
+                    CATBOOST_INFO_LOG << "  " << i << ". " << props.GetName() << " (compute capability "
                                        << props.GetMajor() << "." << props.GetMinor();
                     if (id.HostId != 0) {
-                        MATRIXNET_INFO_LOG << ", host " << id.HostId << ")" << Endl;
+                        CATBOOST_INFO_LOG << ", host " << id.HostId << ")" << Endl;
                     } else {
-                        MATRIXNET_INFO_LOG << ")" << Endl;
+                        CATBOOST_INFO_LOG << ")" << Endl;
                     }
                 }
             }

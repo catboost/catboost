@@ -219,11 +219,11 @@ enum class ENodeType {
 };
 
 enum class EModelType {
-    CatboostBinary,
-    AppleCoreML,
-    CPP,
-    Python,
-    json
+    CatboostBinary /* "CatboostBinary", "cbm", "catboost" */,
+    AppleCoreML    /* "AppleCoreML", "coreml"     */,
+    Cpp            /* "Cpp", "CPP", "cpp" */,
+    Python         /* "Python", "python" */,
+    Json           /* "Json", "json"       */
 };
 
 enum class EFinalCtrComputationMode {
@@ -240,6 +240,11 @@ enum class ELeavesEstimationStepBacktracking {
 enum class EKappaMetricType {
     Cohen,
     Weighted
+};
+
+enum class ENdcgMetricType {
+    Base,
+    Exp
 };
 
 enum class EMetricBestValue {

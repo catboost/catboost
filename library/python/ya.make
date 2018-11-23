@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    cores
     filelock
     filelock/ut
     find_root
@@ -11,23 +12,19 @@ RECURSE(
     pytest/allure
     pytest/empty
     pytest/plugins
-    resource
-    resource/ut
+    reservoir_sampling
     runtime
     runtime/main
     runtime/test
+    runtime_py3
+    runtime_py3/main
+    runtime_py3/test
     strings
     strings/ut
     testing
     windows
     windows/ut
 )
-
-IF (OS_LINUX)
-    RECURSE(
-    
-)
-ENDIF()
 
 IF (NOT MUSL)
     RECURSE(

@@ -31,7 +31,7 @@ class TThreadedLogBackend::TImpl {
         TImpl* Parent_;
     };
 
-    class TReopener: public IObjectInQueue, public Event, public TAtomicRefCount<TReopener> {
+    class TReopener: public IObjectInQueue, public TSystemEvent, public TAtomicRefCount<TReopener> {
     public:
         inline TReopener(TImpl* parent)
             : Parent_(parent)

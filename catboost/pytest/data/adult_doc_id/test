@@ -1,7 +1,7 @@
 0	1	n	1	44.0	Private	403782.0	Assoc-voc	11.0	Divorced	Sales	Not-in-family	White	Male	0.0	0.0	45.0	United-States
-1	1	n	1	19.0	?	208874.0	Some-college	10.0	Never-married	?	Own-child	White	Male	0.0	0.0	40.0	United-States
-2	1	n	1	27.0	Private	158647.0	Some-college	10.0	Never-married	Adm-clerical	Not-in-family	White	Female	0.0	0.0	40.0	United-States
-3	1	n	1	18.0	Private	115258.0	10th	6.0	Never-married	Craft-repair	Unmarried	White	Male	0.0	0.0	40.0	United-States
+a	1	n	1	19.0	?	208874.0	Some-college	10.0	Never-married	?	Own-child	White	Male	0.0	0.0	40.0	United-States
+ab	1	n	1	27.0	Private	158647.0	Some-college	10.0	Never-married	Adm-clerical	Not-in-family	White	Female	0.0	0.0	40.0	United-States
+a-b	1	n	1	18.0	Private	115258.0	10th	6.0	Never-married	Craft-repair	Unmarried	White	Male	0.0	0.0	40.0	United-States
 4	1	n	1	49.0	Private	141944.0	Assoc-voc	11.0	Married-spouse-absent	Handlers-cleaners	Unmarried	White	Male	0.0	1380.0	42.0	United-States
 5	1	n	1	37.0	Private	227128.0	5th-6th	3.0	Married-civ-spouse	Craft-repair	Husband	White	Male	0.0	0.0	40.0	United-States
 6	1	n	1	28.0	Private	22422.0	HS-grad	9.0	Never-married	Transport-moving	Unmarried	White	Male	0.0	0.0	55.0	United-States

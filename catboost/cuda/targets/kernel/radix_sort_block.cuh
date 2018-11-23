@@ -6,7 +6,7 @@
 //TODO(noxoomo): compare with CUB routines and pour implementation (cub temp storage is not flexible enough to
 namespace NKernel {
 
-    template<typename T, ui32 BLOCK_SIZE>
+    template <typename T, ui32 BLOCK_SIZE>
     __forceinline__ __device__ void InplaceInclusiveScan(T *data, ui32 tid) {
         T val = data[tid];
         __syncthreads();
@@ -79,7 +79,7 @@ namespace NKernel {
         }
     }
 
-    template<ui32 BLOCK_SIZE, typename TFlag, typename T>
+    template <ui32 BLOCK_SIZE, typename TFlag, typename T>
     __forceinline__ __device__ void InplaceInclusiveSegScan(TFlag *flags, T *data) {
         TFlag flg = flags[threadIdx.x];
         T val = data[threadIdx.x];

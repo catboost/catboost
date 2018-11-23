@@ -1,5 +1,43 @@
 #include "catboost_logger_helpers.h"
 
+void TMetricsAndTimeLeftHistory::TryUpdateBestError(const IMetric& metric, double error, THashMap<TString, double>& bestError, bool updateBestIteration) {
+    TString metricDescription = metric.GetDescription();
+    bool shouldUpdate = false;
+    if (!bestError.has(metricDescription)) {
+        shouldUpdate = true;
+    } else {
+        double currentBestError = bestError.at(metricDescription);
+        float bestValue = 0;
+        EMetricBestValue metricBestValueType;
+        metric.GetBestValue(&metricBestValueType, &bestValue);
+        shouldUpdate |= (metricBestValueType == EMetricBestValue::Min && error < currentBestError);
+        shouldUpdate |= (metricBestValueType == EMetricBestValue::Max && error > currentBestError);
+        shouldUpdate |= (metricBestValueType == EMetricBestValue::FixedValue &&
+                         Abs(error - static_cast<double>(bestValue)) < Abs(currentBestError - static_cast<double>(bestValue)));
+    }
+    if (shouldUpdate) {
+        bestError[metricDescription] = error;
+        if (updateBestIteration) {
+            BestIteration = TestMetricsHistory.size() - 1;
+        }
+    }
+}
+
+void TMetricsAndTimeLeftHistory::AddLearnError(const IMetric& metric, double error) {
+    LearnMetricsHistory.back()[metric.GetDescription()] = error;
+    TryUpdateBestError(metric, error, LearnBestError, false);
+}
+
+void TMetricsAndTimeLeftHistory::AddTestError(size_t testIdx, const IMetric& metric, double error, bool updateBestIteration) {
+    if (testIdx >= TestMetricsHistory.back().size()) {
+        TestMetricsHistory.back().resize(testIdx + 1);
+    }
+    TestMetricsHistory.back()[testIdx][metric.GetDescription()] = error;
+    if (testIdx >= TestBestError.size()) {
+        TestBestError.resize(testIdx + 1);
+    }
+    TryUpdateBestError(metric, error, TestBestError[testIdx], updateBestIteration);
+}
 
 TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
     const TFsPath filePath(fileName);
@@ -122,9 +160,8 @@ void AddConsoleLogger(
 void Log(
         int iteration,
         const TVector<TString>& metricsDescription,
-        const TVector<bool>& skipMetricOnTrain,
-        const TVector<TVector<double>>& learnErrorsHistory, // [iter][metric]
-        const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
+        const TVector<THashMap<TString, double>>& learnErrorsHistory, // [iter][metric]
+        const TVector<TVector<THashMap<TString, double>>>& testErrorsHistory, // [iter][test][metric]
         double bestErrorValue,
         int bestIteration,
         const TProfileResults& profileResults,
@@ -137,12 +174,11 @@ void Log(
 
     if (outputErrors) {
         if (iteration < learnErrorsHistory.ysize()) {
-            const TVector<double>& learnErrors = learnErrorsHistory[iteration];
-            size_t learnErrorIdx = 0;
+            const THashMap<TString, double>& learnErrors = learnErrorsHistory[iteration];
             for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
-                if (!skipMetricOnTrain[metricIdx]) {
-                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[metricIdx], learnErrors[learnErrorIdx], metricIdx == 0));
-                    ++learnErrorIdx;
+                const TString& metricDescription = metricsDescription[metricIdx];
+                if (learnErrors.has(metricDescription)) {
+                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricDescription, learnErrors.at(metricDescription), metricIdx == 0));
                 }
             }
         }
@@ -150,7 +186,7 @@ void Log(
             const int testCount = testErrorsHistory[iteration].ysize();
             for (int testIdx = 0; testIdx < testCount; ++testIdx) {
                 const TString& token = testTokens[testIdx];
-                const TVector<double>& testErrors = testErrorsHistory[iteration][testIdx];
+                const THashMap<TString, double>& testErrors = testErrorsHistory[iteration][testIdx];
                 CB_ENSURE(
                     testErrors.size() == metricsDescription.size(),
                     "Wrong number of calculated metrics (" << testErrors.size() << "), expected "
@@ -158,14 +194,15 @@ void Log(
                 );
 
                 for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
-                    double testError = testErrors[metricIdx];
+                    const TString& metricDescription = metricsDescription[metricIdx];
+                    double testError = testErrors.at(metricDescription);
                     bool isMainMetric = metricIdx == 0;
 
                     if (testIdx == testCount - 1) {
                         // Only last test should be followed by 'best:'
-                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx], testError, bestErrorValue, bestIteration, isMainMetric));
+                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription, testError, bestErrorValue, bestIteration, isMainMetric));
                     } else {
-                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx] + ":" + ToString(testIdx), testError, isMainMetric));
+                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription + ":" + ToString(testIdx), testError, isMainMetric));
                     }
                 }
             }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "columns.h"
-#include "quantizations_manager.h"
+#include "quantized_features_info.h"
 
 
 namespace NCB {
@@ -11,23 +11,26 @@ namespace NCB {
         TExternalFloatValuesHolder(ui32 featureId,
                                    NCB::TMaybeOwningArrayHolder<float> srcData,
                                    const TFeaturesArraySubsetIndexing* subsetIndexing,
-                                   TIntrusivePtr<TQuantizedFeaturesManager> featuresManager)
+                                   TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : IQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
-            , Data(&SrcData, subsetIndexing)
-            , FeaturesManager(std::move(featuresManager))
+            , SubsetIndexing(subsetIndexing)
+            , QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
         {
-            FeatureManagerFeatureId = FeaturesManager->GetFeatureManagerId(*this);
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
+
+        THolder<IQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override;
 
         NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
     private:
         NCB::TMaybeOwningArrayHolder<float> SrcData;
-        TMaybeOwningArraySubset<float> Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
-        TIntrusivePtr<TQuantizedFeaturesManager> FeaturesManager;
-        ui32 FeatureManagerFeatureId = -1;
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
 
@@ -36,23 +39,26 @@ namespace NCB {
         TExternalCatValuesHolder(ui32 featureId,
                                  NCB::TMaybeOwningArrayHolder<ui32> srcData,
                                  const TFeaturesArraySubsetIndexing* subsetIndexing,
-                                 TIntrusivePtr<TQuantizedFeaturesManager> featuresManager)
+                                 TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : IQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
-            , Data(&SrcData, subsetIndexing)
-            , FeaturesManager(std::move(featuresManager))
+            , SubsetIndexing(subsetIndexing)
+            , QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
         {
-            FeatureManagerFeatureId = FeaturesManager->GetFeatureManagerId(*this);
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
+
+        THolder<IQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override;
 
         NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
     private:
         NCB::TMaybeOwningArrayHolder<ui32> SrcData;
-        TMaybeOwningArraySubset<ui32> Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
-        TIntrusivePtr<TQuantizedFeaturesManager> FeaturesManager;
-        ui32 FeatureManagerFeatureId = -1;
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
 }

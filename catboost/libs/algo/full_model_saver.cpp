@@ -1,15 +1,18 @@
 #include "full_model_saver.h"
 
-#include <catboost/libs/data_new/features_layout.h>
 #include "online_ctr.h"
 #include "quantization.h"
 
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/model/model.h>
 
+#include <library/svnversion/svnversion.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
+#include <util/datetime/base.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
@@ -336,7 +339,8 @@ namespace NCB {
         if (&coreModel != dstModel) {
             *dstModel = std::move(coreModel);
         }
-
+        dstModel->ModelInfo["train_finish_time"] = TInstant::Now().ToStringUpToSeconds();
+        dstModel->ModelInfo["catboost_version_info"] = GetProgramSvnVersion();
         if (FinalCtrComputationMode == EFinalCtrComputationMode::Skip) {
             return;
         }
@@ -384,12 +388,18 @@ namespace NCB {
         }
     }
 
-    void TCoreModelToFullModelConverter::Do(const TString& fullModelPath) {
+    void TCoreModelToFullModelConverter::Do(
+        const TString& fullModelPath,
+        const TVector<EModelType>& formats,
+        bool addFileFormatExtension,
+        const TVector<TString>* featureId,
+        const THashMap<int, TString>* catFeaturesHashToString
+    ) {
         TFullModel& model = GetCoreModelFunc();
         Do(&model, false);
-
-        TOFStream fileOutput(fullModelPath);
-        model.Save(&fileOutput);
+        for (const auto& format: formats) {
+            ExportModel(model, fullModelPath, format, "", addFileFormatExtension, featureId, catFeaturesHashToString);
+        }
         model.CtrProvider.Reset();
     }
 

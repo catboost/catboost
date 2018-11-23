@@ -98,7 +98,7 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
                     }
                     for (ui32 i = 0; i < segmentSums.size(); ++i) {
                         UNIT_ASSERT_DOUBLES_EQUAL(segmentSums[i], reducedOnGpu[i], 1e-8);
-                        UNIT_ASSERT_DOUBLES_EQUAL_C(segmentSums[i], cudaLibReduceImplCpu[i], 1e-8, i << " " << segmentSums[i] << " ≠ " << cudaLibReduceImplCpu[i]);
+                        UNIT_ASSERT_DOUBLES_EQUAL_C(segmentSums[i], cudaLibReduceImplCpu[i], 1e-8, i << " " << segmentSums[i] << " ≠ " << cudaLibReduceImplCpu[i] << " " << segmentSums.size());
                         UNIT_ASSERT_VALUES_EQUAL(offsetsAfterReduce[i], segmentOffsets[i]);
                     }
                 }

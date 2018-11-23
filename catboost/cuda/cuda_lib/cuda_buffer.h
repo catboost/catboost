@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "cuda_base.h"
 #include "column_aligment_helper.h"
 #include "memory_provider_trait.h"
@@ -18,7 +19,7 @@ namespace NCudaLib {
 
     template <class T,
               class TMapping,
-              EPtrType Type = EPtrType::CudaDevice>
+              EPtrType Type>
     class TCudaBuffer: public TMoveOnly {
     private:
         using TRawPtr = typename TMemoryProviderImplTrait<Type>::TRawFreeMemory;

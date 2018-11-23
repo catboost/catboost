@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
  */
 
 
@@ -338,7 +339,7 @@ typedef U32 DTable_max_t[FSE_DTABLE_SIZE_U32(FSE_MAX_TABLELOG)];
 /****************************************************************
 *  Internal functions
 ****************************************************************/
-FORCE_INLINE unsigned FSE_highbit32 (register U32 val)
+FORCE_INLINE unsigned FSE_highbit32 (U32 val)
 {
 #   if defined(_MSC_VER)   /* Visual */
     unsigned long r;
@@ -1432,7 +1433,7 @@ typedef struct ZSTD_Cctx_s
 #else
     U32 hashTable[HASH_TABLESIZE];
 #endif
-	BYTE buffer[WORKPLACESIZE];
+    BYTE buffer[WORKPLACESIZE];
 } cctxi_t;
 
 
@@ -1992,6 +1993,37 @@ size_t ZSTDv01_decompress(void* dst, size_t maxDstSize, const void* src, size_t 
     return ZSTDv01_decompressDCtx(&ctx, dst, maxDstSize, src, srcSize);
 }
 
+size_t ZSTDv01_findFrameCompressedSize(const void* src, size_t srcSize)
+{
+    const BYTE* ip = (const BYTE*)src;
+    size_t remainingSize = srcSize;
+    U32 magicNumber;
+    blockProperties_t blockProperties;
+
+    /* Frame Header */
+    if (srcSize < ZSTD_frameHeaderSize+ZSTD_blockHeaderSize) return ERROR(srcSize_wrong);
+    magicNumber = ZSTD_readBE32(src);
+    if (magicNumber != ZSTD_magicNumber) return ERROR(prefix_unknown);
+    ip += ZSTD_frameHeaderSize; remainingSize -= ZSTD_frameHeaderSize;
+
+    /* Loop on each block */
+    while (1)
+    {
+        size_t blockSize = ZSTDv01_getcBlockSize(ip, remainingSize, &blockProperties);
+        if (ZSTDv01_isError(blockSize)) return blockSize;
+
+        ip += ZSTD_blockHeaderSize;
+        remainingSize -= ZSTD_blockHeaderSize;
+        if (blockSize > remainingSize) return ERROR(srcSize_wrong);
+
+        if (blockSize == 0) break;   /* bt_end */
+
+        ip += blockSize;
+        remainingSize -= blockSize;
+    }
+
+    return ip - (const BYTE*)src;
+}
 
 /*******************************
 *  Streaming Decompression API

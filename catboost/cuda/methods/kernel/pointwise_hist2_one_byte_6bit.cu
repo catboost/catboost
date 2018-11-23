@@ -49,7 +49,7 @@ namespace NKernel
     };
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     struct TPointHist<0, 1, BLOCK_SIZE> {
         float* __restrict__ Buffer;
 

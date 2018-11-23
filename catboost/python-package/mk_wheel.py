@@ -7,6 +7,9 @@ import stat
 import sys
 import platform
 import tempfile
+import hashlib
+
+from base64 import urlsafe_b64encode
 
 
 sys.dont_write_bytecode = True
@@ -155,7 +158,34 @@ def allow_to_write(path):
     os.chmod(path, st.st_mode | stat.S_IWRITE)
 
 
-def make_wheel(wheel_name, pkg_name, ver, arc_root, cpu_so_path, gpu_so_path=None):
+def calc_sha256_digest(filename):
+    sha256 = hashlib.sha256()
+    with open(filename, 'rb') as f:
+        while True:
+            chunk_size = 65536
+            data = f.read(chunk_size)
+            if not data:
+                break
+            sha256.update(data)
+    return sha256.digest()
+
+
+def make_record(dir_path, dist_info_dir):
+    record_filename = os.path.join(dist_info_dir, 'RECORD')
+    with open(record_filename, 'w') as record:
+        wheel_items = []
+        for root, dirnames, filenames in os.walk(dir_path):
+            for filename in filenames:
+                wheel_items.append(os.path.join(root, filename))
+        tmp_dir_length = len(dir_path) + 1
+        for item in wheel_items:
+            if item != record_filename:
+                record.write(item[tmp_dir_length:] + ',sha256=' + urlsafe_b64encode(calc_sha256_digest(item)).decode('ascii') + ',' + str(os.path.getsize(item)) + '\n')
+            else:
+                record.write(item[tmp_dir_length:] + ',,\n')
+
+
+def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
     dir_path = tempfile.mkdtemp()
 
     # Create py files
@@ -171,12 +201,7 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, cpu_so_path, gpu_so_path=Non
 
     # Create so files
     so_name = PythonTrait('', '', []).so_name()
-    shutil.copy(cpu_so_path, os.path.join(dir_path, pkg_name, so_name))
-    if gpu_so_path:
-        gpu_dir = os.path.join(dir_path, pkg_name, 'gpu')
-        os.makedirs(gpu_dir)
-        open(os.path.join(gpu_dir, '__init__.py'), 'w').close()
-        shutil.copy(gpu_so_path, os.path.join(gpu_dir, so_name))
+    shutil.copy(so_path, os.path.join(dir_path, pkg_name, so_name))
 
     # Create metadata
     dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
@@ -191,6 +216,10 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, cpu_so_path, gpu_so_path=Non
             fm.write(metadata)
     substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
     substitute_vars(os.path.join(dist_info_dir, 'top_level.txt'))
+
+    # Create record
+    make_record(dir_path, dist_info_dir)
+
     # Create wheel
     shutil.make_archive(wheel_name, 'zip', dir_path)
     shutil.move(wheel_name + '.zip', wheel_name)
@@ -202,7 +231,6 @@ def build(arc_root, out_root, tail_args):
 
     py_trait = PythonTrait(arc_root, out_root, tail_args)
     ver = get_version(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.py'))
-    so_paths = {}
     pkg_name = os.environ.get('CATBOOST_PACKAGE_NAME', 'catboost')
     for task_type in ('GPU', 'CPU'):
         try:
@@ -214,17 +242,13 @@ def build(arc_root, out_root, tail_args):
             src = os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name())
             dst = '.'.join([src, task_type])
             shutil.move(src, dst)
-            so_paths[task_type] = dst
-        except Exception:
-            print('{} version build failed'.format(task_type), file=sys.stderr)
-
-    wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package', '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
-    make_wheel(wheel_name, pkg_name, ver, arc_root, so_paths['CPU'], so_paths.get('GPU', None))
-
-    for path in so_paths.values():
-        os.remove(path)
-
-    return wheel_name
+            wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package', '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
+            make_wheel(wheel_name, pkg_name, ver, arc_root, dst)
+            os.remove(dst)
+            return wheel_name
+        except Exception as e:
+            print('{} version build failed: {}'.format(task_type, e), file=sys.stderr)
+    raise Exception('Nothing built')
 
 
 if __name__ == '__main__':

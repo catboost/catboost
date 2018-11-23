@@ -3,7 +3,7 @@
 #    linux-x86_64
 #    windows-x86_64
 
-TOOL()
+PROGRAM()
 
 
 

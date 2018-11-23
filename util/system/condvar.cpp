@@ -21,7 +21,7 @@ namespace {
     class TCondVarImpl {
         using TLock = TAdaptiveLock;
 
-        struct TWaitEvent: public TIntrusiveListItem<TWaitEvent>, public Event {
+        struct TWaitEvent: public TIntrusiveListItem<TWaitEvent>, public TSystemEvent {
         };
 
         using TWaitEvents = TIntrusiveList<TWaitEvent>;

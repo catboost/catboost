@@ -41,8 +41,7 @@ namespace NCatboostCuda {
         }
 
         bool NeedBestTestCursor() const {
-            return false; //TODO(nikitxskv): uncomment with evalFileName will be implemetnted
-            // HasTest && !OutputOptions.CreateEvalFullPath().empty();
+            return HasTest && !OutputOptions.CreateEvalFullPath().empty();
         }
 
         size_t GetCurrentIteration() const {
@@ -64,6 +63,10 @@ namespace NCatboostCuda {
         void MaybeRestoreFromSnapshot(std::function<void(IInputStream*)> loader);
 
         void MaybeSaveSnapshot(std::function<void(IOutputStream*)> saver);
+
+        const TMetricsAndTimeLeftHistory& GetMetricsAndTimeLeftHistory() const {
+            return this->History;
+        }
 
     private:
         void OnFirstCall();

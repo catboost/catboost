@@ -14,7 +14,7 @@ namespace NKernel
 {
 
 
-    template<int BlockSize, bool IsFullPass, int M>
+    template <int BlockSize, bool IsFullPass, int M>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
@@ -94,7 +94,7 @@ namespace NKernel
     }
 
 
-    template<int BlockSize,
+    template <int BlockSize,
              int BlocksPerFeatureCount>
     inline void RunComputeHist2HalfByteKernel(const TCFeature* nbFeatures, int nbCount,
                                               const ui32* cindex,

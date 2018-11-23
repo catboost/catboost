@@ -14,6 +14,7 @@ def onregister_yql_python_udf(unit, *args):
     resource_name = get_or_default(kv, 'RESOURCE_NAME', name)
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON') == 'yes'
+    py3 = unit.get('PYTHON3') == 'yes'
 
     unit.onyql_abi_version(['2', '9', '0'])
     unit.onpeerdir(['yql/udfs/common/python/python_udf'])
@@ -23,7 +24,9 @@ def onregister_yql_python_udf(unit, *args):
         flavor = 'Arcadia'
         unit.onpeerdir([
             'library/python/runtime',
-            'yql/udfs/common/python/main',
+            'yql/udfs/common/python/main'
+        ] if not py3 else [
+            'library/python/runtime_py3',
         ])
     else:
         flavor = 'System'

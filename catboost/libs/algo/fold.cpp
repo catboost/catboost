@@ -1,5 +1,6 @@
 #include "fold.h"
 #include "helpers.h"
+#include "approx_updater_helpers.h"
 
 #include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data_types/groupid.h>
@@ -7,7 +8,7 @@
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 
-static int UpdateSize(int size, const TVector<TQueryInfo>& queryInfo, const TVector<int>& queryIndices, int learnSampleCount) {
+static ui32 UpdateSize(ui32 size, const TVector<TQueryInfo>& queryInfo, const TVector<ui32>& queryIndices, ui32 learnSampleCount) {
     size = Min(size, learnSampleCount);
     if (!queryInfo.empty()) {
         size = queryInfo[queryIndices[size - 1]].End;
@@ -15,11 +16,11 @@ static int UpdateSize(int size, const TVector<TQueryInfo>& queryInfo, const TVec
     return size;
 }
 
-static int SelectMinBatchSize(int learnSampleCount) {
-    return learnSampleCount > 500 ? Min<int>(100, learnSampleCount / 50) : 1;
+static ui32 SelectMinBatchSize(ui32 learnSampleCount) {
+    return learnSampleCount > 500 ? Min<ui32>(100, learnSampleCount / 50) : 1;
 }
 
-static double SelectTailSize(int oldSize, double multiplier) {
+static double SelectTailSize(ui32 oldSize, double multiplier) {
     return ceil(oldSize * multiplier);
 }
 
@@ -27,7 +28,7 @@ static void InitFromBaseline(
     const int beginIdx,
     const int endIdx,
     const TVector<TVector<double>>& baseline,
-    const TVector<size_t>& learnPermutation,
+    const TVector<ui32>& learnPermutation,
     bool storeExpApproxes,
     TVector<TVector<double>>* approx
 ) {
@@ -97,9 +98,9 @@ TFold TFold::BuildDynamicFold(
     ff.AssignTarget(learnData.Target, targetClassifiers);
     ff.SetWeights(learnData.Weights, learnSampleCount);
 
-    TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    TVector<ui32> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
-    TVector<int> queryIndices;
+    TVector<ui32> queryIndices;
     if (!learnData.QueryId.empty()) {
         if (shuffle) {
             TVector<TGroupId> groupIds;
@@ -190,7 +191,7 @@ TFold TFold::BuildPlainFold(
     ff.AssignTarget(learnData.Target, targetClassifiers);
     ff.SetWeights(learnData.Weights, learnSampleCount);
 
-    TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    TVector<ui32> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     if (shuffle) {
         TVector<TGroupId> groupIds;

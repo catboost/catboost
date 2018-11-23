@@ -336,7 +336,7 @@ PyMODINIT_FUNC PyInit_lapack_lite(void)
 #else
 #define RETVAL
 PyMODINIT_FUNC
-init5numpy6linalg11lapack_lite(void)
+initlapack_lite(void)
 #endif
 {
     PyObject *m,*d;

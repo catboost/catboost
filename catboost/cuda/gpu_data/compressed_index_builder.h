@@ -195,7 +195,7 @@ namespace NCatboostCuda {
 
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
-            MATRIXNET_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
+            CATBOOST_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
 
             const ui32 blockCount = SeenFeatures.size();
 

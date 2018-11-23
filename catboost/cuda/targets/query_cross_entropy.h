@@ -1,16 +1,24 @@
 #pragma once
 
 #include "target_func.h"
+
 #include "non_diag_target_der.h"
 #include "oracle_type.h"
 
+#include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_lib/mapping.h>
+#include <catboost/cuda/gpu_data/querywise_helper.h>
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/bootstrap_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/cuda/gpu_data/dataset_base.h>
-#include <catboost/cuda/gpu_data/querywise_helper.h>
-#include <catboost/cuda/cuda_util/sort.h>
-#include <catboost/cuda/methods/helpers.h>
-#include <catboost/libs/options/bootstrap_options.h>
+
+#include <util/generic/map.h>
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/string/builder.h>
+
 
 namespace NCatboostCuda {
     template <class TMapping>

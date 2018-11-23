@@ -7,13 +7,21 @@
 #include <type_traits>
 #include <stlfwd>
 
-//NOTE: to be replaced with std::bool_constant in c++17
+#if _LIBCPP_STD_VER >= 17
+template <bool B>
+using TBoolConstant = std::bool_constant<B>;
+#else
 template <bool B>
 struct TBoolConstant : std::integral_constant<bool, B> {};
+#endif
 
-//NOTE: to be replaced with std::negation in c++17
+#if _LIBCPP_STD_VER >= 17
+template <class B>
+using TNegation = std::negation<B>;
+#else
 template <class B>
 struct TNegation : ::TBoolConstant<!bool(B::value)> {};
+#endif
 
 namespace NPrivate {
     template <class... Bs>
@@ -39,17 +47,29 @@ namespace NPrivate {
     }
 }
 
-//NOTE: to be replaced with std::conjunction in c++17
+#if _LIBCPP_STD_VER >= 17
+template <class... Bs>
+using TConjunction = std::conjunction<Bs...>;
+#else
 template <class... Bs>
 struct TConjunction : ::TBoolConstant< ::NPrivate::ConjunctionImpl<Bs...>()> {};
+#endif
 
-//NOTE: to be replaced with std::disjunction in c++17
+#if _LIBCPP_STD_VER >= 17
+template <class... Bs>
+using TDisjunction = std::disjunction<Bs...>;
+#else
 template <class... Bs>
 struct TDisjunction : ::TBoolConstant< ::NPrivate::DisjunctionImpl<Bs...>()> {};
+#endif
 
-//NOTE: to be replaced with std::void_t in c++17
+#if _LIBCPP_STD_VER >= 17
+template <class... Bs>
+using TVoidT = std::void_t<Bs...>;
+#else
 template <class...>
 using TVoidT = void;
+#endif
 
 template <class T>
 struct TPodTraits {

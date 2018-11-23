@@ -56,16 +56,16 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=20180820T174921.419655629 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=20180820T174921.419655629 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ "-I$(CUDA_PATH)/include" /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../catboost/libs/data_new;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../catboost/libs/data_new;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\2C228BC9-6312-D2CC-3CFB-6F34BAB794C9\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -77,15 +77,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\borders_io_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\columns_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\data_provider_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\external_columns_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\features_layout_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\load_data_from_dsv_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\meta_info_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_grouping_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\order_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\process_data_blocks_from_dsv_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\quantization_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\target_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\unaligned_mem_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\util.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\weights_ut.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\ut\util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\build\cuda\build-cuda.vcxproj">
       <Project>{2B3A11A1-3302-EA3C-4933-FD6C802962AE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
+      <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
@@ -98,6 +115,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
       <Project>{2C228BC9-6312-D2CC-3CFB-6F34BAB794C9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\ut\lib\data_new-ut-lib.vcxproj">
+      <Project>{55D68D14-CB30-7D37-2B5C-0FAED1DFFE7F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
@@ -113,6 +133,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
+      <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
@@ -132,6 +155,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
+      <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
     </ProjectReference>
@@ -150,20 +176,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\ssse3\libs-base64-ssse3.vcxproj">
       <Project>{DD9D736A-4883-1CB0-3953-E0D477192D2F}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
-      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
-      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
-      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
-      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
       <Project>{93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
+      <Project>{1EE751F2-33FA-3640-4C59-F20313BE143E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
@@ -182,9 +199,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
-      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
@@ -243,8 +257,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
       <Project>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
+      <Project>{60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
       <Project>{ECB75138-E9C8-5662-6E1E-06BCA3ED01E6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
+      <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
       <Project>{779D8853-F643-71C6-90BD-D7B34A2441E9}</Project>
@@ -290,6 +310,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
       <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
+      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

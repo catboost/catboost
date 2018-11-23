@@ -81,7 +81,7 @@ public:
 
     template<class T>
     void AppendValue(const T& text) {
-        // by pg@ adivce, do not parse enum value
+        // by pg@ advice, do not parse enum value
         // leave it to C++ compiler to parse/interpret
 
         if (!CurrentItem.Value)
@@ -188,6 +188,12 @@ public:
         // For some reason, parser sometimes passes chunks like '{};' here,
         // so we handle each symbol separately.
         const TString& syn = text.Data;
+        if (syn == "::" && InCompositeNamespace) {
+            LastScope += syn;
+            InCompositeNamespace = false;
+            ScopeDeclaration = true;
+            return;
+        }
         for (size_t i = 0; i < +syn; ++i) {
             if ('{' == syn[i]) {
                 OnEnterScope(text.Offset + i);
@@ -234,6 +240,7 @@ public:
             //PrintScope();
         } else if (text.Data == "namespace") {
             NextScopeName = NAMESPACE;
+            LastScope.clear();
             ScopeDeclaration = true;
             //PrintScope();
         }
@@ -246,7 +253,12 @@ public:
         if (InEnum) {
             CurrentEnum.CppName = text.Data;
         } else {
-            LastScope = text.Data;
+            if (NextScopeName == NAMESPACE) {
+                InCompositeNamespace = true;
+                LastScope += text.Data;
+            } else {
+                LastScope = text.Data;
+            }
         }
         ScopeDeclaration = false;
     }
@@ -256,7 +268,7 @@ public:
             // unnamed declaration or typedef
             ScopeDeclaration = false;
         }
-
+        InCompositeNamespace = false;
         Scope.push_back(LastScope);
         LastScope.clear();
         //PrintScope();
@@ -339,6 +351,7 @@ private:
 
     bool InEnum = false;
     bool ScopeDeclaration = false;
+    bool InCompositeNamespace = false;
     TString NextScopeName = BLOCK;
     TString LastScope;
     size_t EnumPos = 0;

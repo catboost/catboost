@@ -5,7 +5,7 @@
 #include "score_bin.h"
 #include "split.h"
 
-#include <catboost/libs/helpers/index_range.h>
+#include <catboost/libs/index_range/index_range.h>
 
 #include <library/binsaver/bin_saver.h>
 
@@ -30,7 +30,7 @@ struct TPairwiseStats {
 };
 
 
-template<typename TBucketIndexType>
+template <typename TBucketIndexType>
 TVector<TVector<double>> ComputeDerSums(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
@@ -40,7 +40,7 @@ TVector<TVector<double>> ComputeDerSums(
     NCB::TIndexRange<int> docIndexRange
 );
 
-template<typename TBucketIndexType>
+template <typename TBucketIndexType>
 TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     const TFlatPairsInfo& pairs,
     int leafCount,

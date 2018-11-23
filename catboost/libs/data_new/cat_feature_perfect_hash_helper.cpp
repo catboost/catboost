@@ -1,5 +1,7 @@
 #include "cat_feature_perfect_hash_helper.h"
 
+#include "util.h"
+
 #include <util/system/guard.h>
 #include <util/generic/map.h>
 
@@ -9,56 +11,66 @@
 namespace NCB {
 
     void TCatFeaturesPerfectHashHelper::UpdatePerfectHashAndMaybeQuantize(
-        ui32 dataProviderId,
-        TMaybeOwningArraySubset<ui32> hashedCatArraySubset,
-        TMaybe<TVector<ui32>*> dstBins
+        const TCatFeatureIdx catFeatureIdx,
+        TConstMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
+        TMaybe<TArrayRef<ui32>*> dstBins
     ) {
-        const ui32 featureId = FeaturesManager->GetFeatureManagerIdForCatFeature(dataProviderId);
-        auto& featuresHash = FeaturesManager->CatFeaturesPerfectHash;
+        QuantizedFeaturesInfo->CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
+        auto& featuresHash = QuantizedFeaturesInfo->CatFeaturesPerfectHash;
 
-        TVector<ui32>* dstBinsPtr = nullptr;
+        TArrayRef<ui32> dstBinsValue;
         if (dstBins.Defined()) {
-            dstBinsPtr = *dstBins;
-            dstBinsPtr->yresize((int)hashedCatArraySubset.Size());
+            dstBinsValue = **dstBins;
+            CheckDataSize(
+                dstBinsValue.size(),
+                (size_t)hashedCatArraySubset.Size(),
+                /*dataName*/ "dstBins",
+                /*dataCanBeEmpty*/ false,
+                /*expectedSizeName*/ "hashedCatArraySubset",
+                /*internalCheck*/ true
+            );
         }
 
-        TMap<int, ui32> perfectHashMap;
+        TMap<ui32, ui32> perfectHashMap;
         {
-            TGuard<TAdaptiveLock> guard(UpdateLock);
+            TWriteGuard guard(QuantizedFeaturesInfo->GetRWMutex());
             if (!featuresHash.HasHashInRam) {
                 featuresHash.Load();
             }
-            perfectHashMap.swap(featuresHash.FeaturesPerfectHash[featureId]);
+            perfectHashMap.swap(featuresHash.FeaturesPerfectHash[*catFeatureIdx]);
         }
 
         constexpr size_t MAX_UNIQ_CAT_VALUES =
             static_cast<size_t>(Max<ui32>()) + ((sizeof(size_t) > sizeof(ui32)) ? 1 : 0);
 
         hashedCatArraySubset.ForEach(
-            [&] (ui64 idx, ui32 hashedCatValue) {
+            [&] (ui32 idx, ui32 hashedCatValue) {
                 auto it = perfectHashMap.find(hashedCatValue);
                 if (it == perfectHashMap.end()) {
                     CB_ENSURE(
                         perfectHashMap.size() != MAX_UNIQ_CAT_VALUES,
-                        "Error: categorical feature with id #" << dataProviderId
+                        "Error: categorical feature with id #" << *catFeatureIdx
                         << " has more than " << MAX_UNIQ_CAT_VALUES
                         << " unique values, which is currently unsupported"
                     );
-                    if (dstBinsPtr) {
-                        (*dstBinsPtr)[idx] = perfectHashMap.size();
+                    if (dstBins) {
+                        dstBinsValue[idx] = perfectHashMap.size();
                     }
                     perfectHashMap.emplace_hint(it, hashedCatValue, perfectHashMap.size());
-                } else if (dstBinsPtr) {
-                    (*dstBinsPtr)[idx] = it->second;
+                } else if (dstBins) {
+                    dstBinsValue[idx] = it->second;
                 }
             }
         );
 
         if (perfectHashMap.size() > 1) {
-            TGuard<TAdaptiveLock> guard(UpdateLock);
-            const ui32 uniqueValues = perfectHashMap.size();
-            featuresHash.FeaturesPerfectHash[featureId].swap(perfectHashMap);
-            featuresHash.CatFeatureUniqueValues[featureId] = uniqueValues;
+            TWriteGuard guard(QuantizedFeaturesInfo->GetRWMutex());
+            auto& uniqValuesCounts = featuresHash.CatFeatureUniqValuesCountsVector[*catFeatureIdx];
+            if (!uniqValuesCounts.OnAll) {
+                uniqValuesCounts.OnLearnOnly = perfectHashMap.size();
+            }
+            uniqValuesCounts.OnAll = perfectHashMap.size();
+            featuresHash.FeaturesPerfectHash[*catFeatureIdx].swap(perfectHashMap);
         }
     }
 

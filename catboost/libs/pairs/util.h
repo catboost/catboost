@@ -14,8 +14,8 @@ void GeneratePairLogitPairs(
     TVector<TPair>* result);
 
 TVector<TPair> GeneratePairLogitPairs(
-        const TVector<TGroupId>& groupId,
-        const TVector<float>& targetId,
-        int maxPairCount,
-        ui64 seed);
+    const TVector<TGroupId>& groupId,
+    const TVector<float>& targetId,
+    int maxPairCount,
+    ui64 seed);
 

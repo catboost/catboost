@@ -57,6 +57,7 @@ extern void initspwd(void);
 
 #ifdef _DARWIN_
 extern void init_multiprocessing(void);
+extern void init_scproxy(void);
 #endif
 
 #ifdef _CYGWIN_

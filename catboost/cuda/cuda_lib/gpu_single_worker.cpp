@@ -1,4 +1,5 @@
 #include "gpu_single_worker.h"
+
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_allocation.h>
 
 #if defined(WITH_HWLOC)
@@ -57,7 +58,7 @@ namespace NCudaLib {
             }
 
             if (!hasRunning && isEmpty) {
-                InputTaskQueue.Wait(TDuration::Seconds(10));
+                InputTaskQueue.Wait(TDuration::Max());
             } else if (!isEmpty) {
                 THolder<ICommand> task = InputTaskQueue.Dequeue();
 

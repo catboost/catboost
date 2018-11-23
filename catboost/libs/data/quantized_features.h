@@ -15,3 +15,5 @@ struct TAllFeatures {
     void Swap(TAllFeatures& other);
     SAVELOAD(FloatHistograms, CatFeaturesRemapped, OneHotValues, IsOneHot);
 };
+
+bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures);

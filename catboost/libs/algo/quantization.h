@@ -33,7 +33,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              size_t oneHotMaxSize,
                              bool clearPool,
                              NPar::TLocalExecutor& localExecutor,
-                             const TVector<size_t>& selectedDocIndices,
+                             const TVector<ui32>& selectedDocIndices,
                              TDocumentStorage* learnDocStorage,
                              TAllFeatures* learnFeatures);
 
@@ -53,7 +53,7 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
                             bool allowNansOnlyInTest,
                             bool clearPool,
                             NPar::TLocalExecutor& localExecutor,
-                            const TVector<size_t>& selectedDocIndices,
+                            const TVector<ui32>& selectedDocIndices,
                             TDocumentStorage* testDocStorage,
                             TAllFeatures* testFeatures);
 

@@ -5,6 +5,8 @@
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
+#include <cmath>
+
 using namespace cooperative_groups;
 namespace NKernel {
 
@@ -64,10 +66,10 @@ namespace NKernel {
                 ui64 offset = ((ui64) partIdx * histLineSize * 4ULL);
                 float4 hist = __ldg((float4*)(pairwiseHistogram + offset));
 
-                const float w00 = (x != y ? hist.x : 0.0f);
-                const float w01 = hist.y;
-                const float w10 = hist.z;
-                const float w11 = (x != y ? hist.w : 0.0f);
+                const float w00 = max((x != y ? hist.x : 0.0f), 0.0f);
+                const float w01 = max(hist.y, 0.0f);
+                const float w10 = max(hist.z, 0.0f);
+                const float w11 = max((x != y ? hist.w : 0.0f), 0.0f);
 
 //                sync for row write done in reduce if we need it
 
@@ -101,10 +103,10 @@ namespace NKernel {
                 ui64 offset = ((ui64) partIdx * histLineSize * 4ULL);
                 float4 hist = __ldg((float4*)(pairwiseHistogram + offset));
 
-                const float w00 = (x != y ? hist.x : 0.0f);
-                const float w01 = hist.y;
-                const float w10 = hist.z;
-                const float w11 = (x != y ? hist.w : 0.0f);
+                const float w00 = max((x != y ? hist.x : 0.0f), 0.0f);
+                const float w01 = max(hist.y, 0.0f);
+                const float w10 = max(hist.z, 0.0f);
+                const float w11 = max((x != y ? hist.w : 0.0f), 0.0f);
 
 //                sync for row write done in reduce if we need it
 
@@ -281,7 +283,7 @@ namespace NKernel {
     __global__ void SelectBestSplitImpl(const float* scores,
                                         const TCBinFeature* binFeature, int size,
                                         int bestIndexBias, TBestSplitPropertiesWithIndex* best) {
-        float maxScore = -5000000.0f;
+        float maxScore = -INFINITY;
         int maxIdx = -1;
         int tid = threadIdx.x;
 
@@ -320,8 +322,8 @@ namespace NKernel {
             if (bestIdx != -1) {
                 bestFeature = binFeature[bestIdx];
             } else {
-                bestFeature.BinId = 0;
-                bestFeature.FeatureId = 0;
+                bestFeature.BinId = -1;
+                bestFeature.FeatureId = -1;
             }
             best->Index = bestIndexBias + bestIdx;
             best->Score = -bestScore;

@@ -80,17 +80,18 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/cuda/models
+    catboost/cuda/ctrs
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
     catboost/cuda/data
-    catboost/cuda/ctrs
     catboost/cuda/gpu_data
+    catboost/cuda/models
     catboost/cuda/targets
     catboost/libs/ctr_description
     catboost/libs/helpers
-    catboost/libs/overfitting_detector
+    catboost/libs/lapack
     catboost/libs/loggers
+    catboost/libs/overfitting_detector
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

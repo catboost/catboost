@@ -16,9 +16,12 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/data_util
     catboost/libs/helpers
+    catboost/idl/pool/flat
     catboost/libs/labels
     catboost/libs/logging
+    catboost/libs/model
     catboost/libs/options
+    catboost/libs/quantized_pool
 )
 
 GENERATE_ENUM_SERIALIZATION(eval_helpers.h)

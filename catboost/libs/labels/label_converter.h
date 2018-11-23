@@ -32,6 +32,4 @@ private:
 
 void PrepareTargetCompressed(const TLabelConverter& labelConverter, TVector<float>* labels);
 
-THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCount);
-
 int GetClassesCount(int classesCount, const TVector<TString>& classNames);

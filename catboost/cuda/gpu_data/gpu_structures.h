@@ -2,10 +2,14 @@
 
 #include <util/system/types.h>
 
+#include <limits>
+
 #ifndef __NVCC__
 
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
+
 #include <util/ysaveload.h>
+
 #include <float.h>
 
 #endif
@@ -59,7 +63,7 @@ struct TBinarizedFeature {
 struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
-    float Score = 10e6;
+    float Score = std::numeric_limits<float>::infinity();
 
     TBestSplitProperties() = default;
 

@@ -8,6 +8,7 @@
 
 #include <library/dns/cache.h>
 #include <library/neh/asio/executor.h>
+#include <library/threading/atomic/bool.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>
@@ -496,6 +497,7 @@ namespace {
                 }
 
                 void SetConnection(TConnection* conn) noexcept {
+                    auto g = Guard(AL_);
                     Conn_ = conn;
                 }
 
@@ -593,7 +595,7 @@ namespace {
                 const TParsedLocation Loc_;
                 const TResolvedHost* Addr_;
                 TConnectionRef Conn_;
-                volatile bool Canceled_;
+                NAtomic::TBool Canceled_;
                 TSpinLock IdLock_;
                 volatile TRequestId Id_;
             };
@@ -664,7 +666,7 @@ namespace {
 
                 //called from client thread
                 bool Run(TRequestRef& req) {
-                    if (Y_UNLIKELY(State_ == Closed)) {
+                    if (Y_UNLIKELY(AtomicGet(State_) == Closed)) {
                         return false;
                     }
 
@@ -728,7 +730,7 @@ namespace {
 
                 //must be called only from asio thread
                 void ProcessReqsInFlyQueue() {
-                    if (State_ == Closed) {
+                    if (AtomicGet(State_) == Closed) {
                         return;
                     }
 
@@ -772,7 +774,7 @@ namespace {
                 //must be called only after succes aquiring output
                 void SendMessages(bool asioThread) {
                     //DBGOUT("SendMessages");
-                    if (Y_UNLIKELY(State_ == Closed)) {
+                    if (Y_UNLIKELY(AtomicGet(State_) == Closed)) {
                         if (asioThread) {
                             OnError(Error_);
                         } else {
@@ -987,7 +989,7 @@ namespace {
 
                 //must be called only from asio thread
                 void OnError(const TString& err, const i32 systemCode = 0) {
-                    if (State_ != Closed) {
+                    if (AtomicGet(State_) != Closed) {
                         Error_ = err;
                         SystemCode_ = systemCode;
                         AtomicSet(State_, Closed);
@@ -1137,7 +1139,7 @@ namespace {
 
         class TServer: public IRequester {
             typedef TAutoPtr<TTcpAcceptor> TTcpAcceptorPtr;
-            typedef TSimpleSharedPtr<TTcpSocket> TTcpSocketRef;
+            typedef TAtomicSharedPtr<TTcpSocket> TTcpSocketRef;
             class TConnection;
             typedef TIntrusivePtr<TConnection> TConnectionRef;
 
@@ -1503,7 +1505,7 @@ namespace {
             private:
                 TServer& Srv_;
                 TTcpSocketRef AS_;
-                volatile bool Canceled_;
+                NAtomic::TBool Canceled_;
                 TString RemoteHost_;
 
                 //input
@@ -1546,11 +1548,11 @@ namespace {
             }
 
             void StartAccept(TTcpAcceptor* a) {
-                TSimpleSharedPtr<TTcpSocket> s(new TTcpSocket(EP_.Size() ? EP_.GetExecutor().GetIOService() : EA_.GetIOService()));
+                const auto s = MakeAtomicShared<TTcpSocket>(EP_.Size() ? EP_.GetExecutor().GetIOService() : EA_.GetIOService());
                 a->AsyncAccept(*s, std::bind(&TServer::OnAccept, this, a, s, _1, _2));
             }
 
-            void OnAccept(TTcpAcceptor* a, TSimpleSharedPtr<TTcpSocket> s, const TErrorCode& ec, IHandlingContext&) {
+            void OnAccept(TTcpAcceptor* a, TTcpSocketRef s, const TErrorCode& ec, IHandlingContext&) {
                 if (Y_UNLIKELY(ec)) {
                     if (ec.Value() == ECANCELED) {
                         return;

@@ -294,6 +294,7 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
             cmd.Terminate();
             cmd.Wait();
             UNIT_ASSERT(TShellCommand::SHELL_ERROR == cmd.GetStatus());
+            UNIT_ASSERT(cmd.GetExitCode().Defined() && -15 == cmd.GetExitCode());
         }
         sleep(1);
         UNIT_ASSERT(!NFs::Exists(tmpfile));

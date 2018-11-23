@@ -19,16 +19,6 @@ static TVector<T> SampleVector(const TVector<T>& vec,
     return result;
 };
 
-inline static ui32 GetSampleSizeForBorderSelectionType(ui32 vecSize,
-                                                       EBorderSelectionType borderSelectionType) {
-    switch (borderSelectionType) {
-        case EBorderSelectionType::MinEntropy:
-        case EBorderSelectionType::MaxLogSum:
-            return Min<ui32>(vecSize, 100000);
-        default:
-            return vecSize;
-    }
-};
 
 TVector<float> NCB::BuildBorders(const TVector<float>& floatFeature, const ui32 seed,
                                  const NCatboostOptions::TBinarizationOptions& config){

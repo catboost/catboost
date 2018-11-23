@@ -72,6 +72,26 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT(T::Equal("\0AAA", "\0BBB"));
     }
 
+    Y_UNIT_TEST(TestLongCompareEqual) {
+        using T = TCharTraits<char>;
+
+        i8 data1[Max<ui8>()];
+        i8 data2[Max<ui8>()];
+
+        for (ui8 i = 0; i < Max<ui8>(); ++i) {
+            data1[i] = i;
+            data2[i] = i;
+        }
+
+        UNIT_ASSERT(T::Equal(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1)));
+        UNIT_ASSERT(!T::Equal(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[1]), sizeof(data1) - 1));
+        UNIT_ASSERT(!T::Equal(reinterpret_cast<const char*>(&data1[1]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1) - 1));
+
+        UNIT_ASSERT(T::Compare(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1)) == 0);
+        UNIT_ASSERT(T::Compare(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[1]), sizeof(data1) - 1) == -1);
+        UNIT_ASSERT(T::Compare(reinterpret_cast<const char*>(&data1[1]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1) - 1) == 1);
+    }
+
     Y_UNIT_TEST(TestFind) {
         using T = TCharTraits<char>;
 

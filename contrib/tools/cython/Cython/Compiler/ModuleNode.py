@@ -206,7 +206,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
             h_code.putln("/* It now returns a PyModuleDef instance instead of a PyModule instance. */")
             h_code.putln("")
             h_code.putln("#if PY_MAJOR_VERSION < 3")
-            init_name = options.init_name or 'init' + env.module_name
+            init_name = 'init' + (options.init_suffix or env.module_name)
             h_code.putln("PyMODINIT_FUNC %s(void);" % init_name)
             h_code.putln("#else")
             h_code.putln("PyMODINIT_FUNC %s(void);" % self.mod_init_func_cname('PyInit', env, options))
@@ -2280,7 +2280,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         code.enter_cfunc_scope(self.scope)
         code.putln("")
         code.putln(UtilityCode.load_as_string("PyModInitFuncType", "ModuleSetupCode.c")[0])
-        init_name = options.init_name or 'init' + env.module_name
+        init_name = 'init' + (options.init_suffix or env.module_name)
         header2 = "__Pyx_PyMODINIT_FUNC %s(void)" % init_name
         header3 = "__Pyx_PyMODINIT_FUNC %s(void)" % self.mod_init_func_cname('PyInit', env, options)
         code.putln("#if PY_MAJOR_VERSION < 3")
@@ -2703,9 +2703,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                 wmain_method=wmain))
 
     def mod_init_func_cname(self, prefix, env, options=None):
-        if options and options.init_name:
-            return options.init_name
-        return '%s_%s' % (prefix, env.module_name)
+        return '%s_%s' % (prefix, options and options.init_suffix or env.module_name)
 
     def generate_pymoduledef_struct(self, env, options, code):
         if env.doc:

@@ -147,42 +147,6 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConvertingConsumer>(good, ~data, data.end(), delim);
     }
 
-    Y_UNIT_TEST(TestConvertAndSplit) {
-        TString data("42 4242 -12345 0");
-        i32 canonic[] = {42, 4242, -12345, 0};
-        TVector<i32> good(canonic, canonic + 4);
-        TCharDelimiter<const char> delim(' ');
-
-        TVector<i32> test;
-        SplitConvertStringTo(TStringBuf(~data), AsStringBuf(" "), &test);
-        Cmp(good, test);
-
-        test.clear();
-        good.pop_back();
-        SplitConvertRangeTo(~data, ~data + data.size() - 2, " ", &test);
-        Cmp(good, test);
-    }
-
-    Y_UNIT_TEST(TestConvertAndSplitSet) {
-        TString data("42 4242 -12345 0 0 42");
-        i32 canonic[] = {42, 4242, -12345, 0};
-        TSet<i32> good(canonic, canonic + 4);
-        TCharDelimiter<const char> delim(' ');
-
-        TSet<i32> test;
-        SplitConvertStringTo(TStringBuf(~data), AsStringBuf(" "), &test);
-        Cmp(good, test);
-    }
-
-    Y_UNIT_TEST(TestSplitSet) {
-        TString data("ab,bc,cd,cd,defgh");
-        TString canonic[] = {"ab", "bc", "cd", "defgh"};
-        TSet<TString> good(canonic, canonic + 4);
-        TSet<TString> test;
-        SplitStringTo(data, ',', &test);
-        Cmp(good, test);
-    }
-
     Y_UNIT_TEST(TestCharSkipEmty) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab", "qwabcab"};

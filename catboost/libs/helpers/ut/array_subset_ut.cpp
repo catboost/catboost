@@ -2,8 +2,11 @@
 
 #include <util/datetime/base.h>
 #include <util/generic/is_in.h>
+#include <util/generic/hash.h>
 #include <util/generic/xrange.h>
 #include <util/stream/output.h>
+
+#include <utility>
 
 #include <library/unittest/registar.h>
 
@@ -42,8 +45,8 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                 NPar::TLocalExecutor localExecutor;
 
                 arraySubset.ParallelForEach(
-                    localExecutor,
                     [](size_t /*index*/, int /*value*/) { Sleep(TDuration::MilliSeconds(1)); },
+                    &localExecutor,
                     0
                 );
             }()),
@@ -76,7 +79,6 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
             for (size_t approximateBlockSize : xrange(0, 12)) { // use 0 as undefined
                 TVector<bool> indicesIterated(expectedSubset.size(), false);
                 arraySubset.ParallelForEach(
-                    localExecutor,
                     [&](size_t index, int value) {
                         UNIT_ASSERT_VALUES_EQUAL(expectedSubset[index], value);
 
@@ -84,6 +86,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                         UNIT_ASSERT(!indexIterated); // each index must be visited only once
                         indexIterated = true;
                     },
+                    &localExecutor,
                     approximateBlockSize != 0 ? TMaybe<size_t>(approximateBlockSize) : Nothing()
                 );
                 UNIT_ASSERT(!IsIn(indicesIterated, false)); // each index was visited
@@ -124,6 +127,24 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                 UNIT_ASSERT(!IsIn(indicesIterated, false)); // each index was visited
             }
         }
+
+        // test Equal
+        UNIT_ASSERT(Equal<int>(expectedSubset, arraySubset));
+
+        UNIT_ASSERT(!Equal(TConstArrayRef<int>(), arraySubset));
+
+        {
+            TVector<int> modifiedExpectedSubset = expectedSubset;
+            ++modifiedExpectedSubset.back();
+
+            UNIT_ASSERT(!Equal<int>(modifiedExpectedSubset, arraySubset));
+        }
+        {
+            TVector<int> modifiedExpectedSubset = expectedSubset;
+            modifiedExpectedSubset.push_back(11);
+
+            UNIT_ASSERT(!Equal<int>(modifiedExpectedSubset, arraySubset));
+        }
     }
 
     enum class EIterationType {
@@ -132,7 +153,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         External
     };
 
-    template<class F>
+    template <class F>
     void TestMutable(
         const TVector<int>& array,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
@@ -158,7 +179,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                         NPar::TLocalExecutor localExecutor;
                         localExecutor.RunAdditionalThreads(3);
 
-                        arraySubset.ParallelForEach(localExecutor, f, 3);
+                        arraySubset.ParallelForEach(f, &localExecutor, 3);
                     }
                     break;
                 case EIterationType::External: {
@@ -184,21 +205,42 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
     void TestGetSubset(
         const TVector<int>& v,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
-        const TVector<int>& expectedVSubset
+        const TVector<int>& expectedVSubset,
+        TMaybe<NPar::TLocalExecutor*> localExecutor
     ) {
         {
-            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing, localExecutor);
             UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
         }
         {
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(v, arraySubsetIndexing);
-            UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
+            TMaybe<TVector<int>> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                MakeMaybe((TConstArrayRef<int>)v),
+                arraySubsetIndexing,
+                localExecutor
+            );
+            UNIT_ASSERT(vSubset);
+            UNIT_ASSERT_EQUAL(*vSubset, expectedVSubset);
         }
         {
-            TVector<int> vEmpty;
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(vEmpty, arraySubsetIndexing);
-            UNIT_ASSERT_VALUES_EQUAL(vSubset, vEmpty);
+            TMaybe<TVector<int>> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                TMaybe<TConstArrayRef<int>>(),
+                arraySubsetIndexing,
+                localExecutor
+            );
+            UNIT_ASSERT_EQUAL(vSubset, Nothing());
         }
+    }
+
+    void TestGetSubset(
+        const TVector<int>& v,
+        const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
+        const TVector<int>& expectedVSubset
+    ) {
+        TestGetSubset(v, arraySubsetIndexing, expectedVSubset, Nothing());
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(3);
+        TestGetSubset(v, arraySubsetIndexing, expectedVSubset, &localExecutor);
     }
 
     Y_UNIT_TEST(TestFullSubset) {
@@ -224,7 +266,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 15; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 0; }));
 
-        TestGetSubset(v, arraySubsetIndexing, v);
+        TestGetSubset(v, arraySubsetIndexing, v, Nothing());
     }
 
     Y_UNIT_TEST(TestRangesSubset) {
@@ -286,5 +328,110 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 17; }));
 
         TestGetSubset(v, arraySubsetIndexing, expectedSubset);
+    }
+
+    Y_UNIT_TEST(TestCompose) {
+        TVector<NCB::TArraySubsetIndexing<size_t>> srcs;
+        {
+            srcs.emplace_back( NCB::TFullSubset<size_t>(6) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            srcs.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            srcs.emplace_back( NCB::TIndexedSubset<size_t>{6, 5, 2, 0, 1, 7} );
+        }
+
+        TVector<NCB::TArraySubsetIndexing<size_t>> srcSubsets;
+        {
+            srcSubsets.emplace_back( NCB::TFullSubset<size_t>(6) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{2, 3}, {3, 6}, {0, 2}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            srcSubsets.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            srcSubsets.emplace_back( NCB::TIndexedSubset<size_t>{5, 2, 0, 1} );
+        }
+
+
+        using TExpectedMapIndex = std::pair<size_t, size_t>;
+
+        // (src index, srcSubset index) -> expectedResult
+        THashMap<TExpectedMapIndex, NCB::TArraySubsetIndexing<size_t>> expectedResults;
+
+        for (auto srcIndex : xrange(srcs.size())) {
+            expectedResults.emplace(TExpectedMapIndex(srcIndex, 0), srcs[srcIndex]);
+        }
+
+        for (auto srcSubsetIndex : xrange<size_t>(1, srcSubsets.size())) {
+            expectedResults.emplace(TExpectedMapIndex(0, srcSubsetIndex), srcSubsets[srcSubsetIndex]);
+        }
+
+        {
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{9, 10}, {2, 3}, {4, 6}, {7, 9}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            expectedResults.emplace(
+                TExpectedMapIndex(1, 1),
+                NCB::TArraySubsetIndexing<size_t>( NCB::TRangesSubset<size_t>(savedIndexRanges) )
+            );
+        }
+
+        expectedResults.emplace(
+            TExpectedMapIndex(1, 2),
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{5, 9, 7, 8} )
+        );
+
+        expectedResults.emplace(
+            TExpectedMapIndex(2, 1),
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{2, 0, 1, 7, 6, 5} )
+        );
+
+        expectedResults.emplace(
+            TExpectedMapIndex(2, 2),
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{7, 2, 6, 5} )
+        );
+
+        for (auto srcIdx : xrange(srcs.size())) {
+            for (auto srcSubsetIdx : xrange(srcSubsets.size())) {
+                // result created as a named variable to simplify debugging
+                auto result = Compose(srcs[srcIdx], srcSubsets[srcSubsetIdx]);
+                UNIT_ASSERT_EQUAL(result, expectedResults.at(TExpectedMapIndex(srcIdx, srcSubsetIdx)));
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestBadCompose) {
+        TVector<NCB::TArraySubsetIndexing<size_t>> srcs;
+        {
+            srcs.emplace_back( NCB::TFullSubset<size_t>(6) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            srcs.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            srcs.emplace_back( NCB::TIndexedSubset<size_t>{6, 5, 2, 0, 1, 7} );
+        }
+
+        TVector<NCB::TArraySubsetIndexing<size_t>> badSrcSubsets;
+        {
+            badSrcSubsets.emplace_back( NCB::TFullSubset<size_t>(4) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{2, 3}, {3, 8}, {0, 2}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            badSrcSubsets.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            badSrcSubsets.emplace_back( NCB::TIndexedSubset<size_t>{5, 2, 7, 1} );
+        }
+
+        for (auto srcIdx : xrange(srcs.size())) {
+            for (auto badSrcSubsetIdx : xrange(badSrcSubsets.size())) {
+                UNIT_ASSERT_EXCEPTION(
+                    ([&]{
+                        Compose(srcs[srcIdx], badSrcSubsets[badSrcSubsetIdx]);
+                    }()),
+                    TCatboostException
+                );
+            }
+        }
     }
 }

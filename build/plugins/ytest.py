@@ -16,6 +16,14 @@ import collections
 import ymake
 
 
+MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
+MDS_SHEME = 'mds'
+CANON_DATA_DIR_NAME = 'canondata'
+CANON_OUTPUT_STORAGE = 'canondata_storage'
+CANON_RESULT_FILE_NAME = 'result.json'
+CANON_MDS_RESOURCE_REGEX = re.compile(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)')
+CANON_SBR_RESOURCE_REGEX = re.compile(r'(sbr:/?/?(\d+))')
+
 VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
@@ -54,7 +62,7 @@ def validate_test(kw, is_fuzz_test):
 
     if valid_kw.get('SCRIPT-REL-PATH') == 'boost.test':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("mail", "maps", "metrika", "devtools")):
+        if not project_path.startswith(("contrib", "mail", "maps", "metrika", "devtools")):
             errors.append("BOOSTTEST is not allowed here")
             has_fatal_error = True
     elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
@@ -470,6 +478,7 @@ def onadd_check(unit, *args):
 def onadd_check_py_imports(unit, *args):
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE').strip() == "":
         return
+    unit.onpeerdir(['library/python/testing/import_test'])
     check_type = "py.imports"
     test_dir = unit.resolve(os.path.join(unit.path()))
 
@@ -515,11 +524,13 @@ def onadd_pytest_script(unit, *args):
     split_factor = unit.get('TEST_SPLIT_FACTOR') or ''
     test_size = unit.get('TEST_SIZE_NAME') or ''
 
-    test_dir = unit.resolve(os.path.join(unit.path()))
+    unit_path = unit.path()
+    test_dir = unit.resolve(unit_path)
     test_files = get_values_list(unit, 'TEST_SRCS_VALUE')
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data += get_canonical_test_resources(test_dir, unit_path)
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     binary_path = None
     test_cwd = unit.get('TEST_CWD_VALUE') or ''
@@ -550,14 +561,16 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     test_size = unit.get('TEST_SIZE_NAME') or ''
     test_cwd = unit.get('TEST_CWD_VALUE') or ''
 
-    test_dir = unit.resolve(os.path.join(unit.path()))
+    unit_path = unit.path()
+    test_dir = unit.resolve(unit_path)
     test_files = get_values_list(unit, 'TEST_SRCS_VALUE')
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data += get_canonical_test_resources(test_dir, unit_path)
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     if not binary_path:
-        binary_path = os.path.join(unit.path(), unit.filename())
+        binary_path = os.path.join(unit_path, unit.filename())
     _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin)
 
 
@@ -661,6 +674,7 @@ def onjava_test_deps(unit, *args):
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TAG': '',
         'SIZE': 'SMALL',
+        'IGNORE_CLASSPATH_CLASH': ' '.join(get_values_list(unit, 'JAVA_IGNORE_CLASSPATH_CLASH_VALUE')),
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
@@ -780,3 +794,82 @@ def onsetup_exectest(unit, *args):
 def onsetup_run_python(unit):
     if unit.get("USE_ARCADIA_PYTHON") == "yes":
         unit.ondepends('contrib/tools/python')
+
+
+def get_canonical_test_resources(test_dir, unit_path):
+    canon_data_dir = os.path.join(test_dir, CANON_DATA_DIR_NAME)
+
+    try:
+        _, dirs, files = next(os.walk(canon_data_dir))
+    except StopIteration:
+        # path doesn't exist
+        return []
+
+    if CANON_RESULT_FILE_NAME in files:
+        return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
+    return _get_canonical_data_resources_v1(canon_data_dir, dirs, unit_path)
+
+
+def _load_canonical_file(filename, unit_path):
+    try:
+        with open(filename) as results_file:
+            return json.load(results_file)
+    except Exception as e:
+        print>>sys.stderr, "malformed canonical data in {}: {} ({})".format(unit_path, e, filename)
+        return {}
+
+
+def _get_resource_from_uri(uri):
+    m = CANON_MDS_RESOURCE_REGEX.match(uri)
+    if m:
+        res_id = m.group(1)
+        return "{}:{}".format(MDS_SHEME, res_id)
+
+    m = CANON_SBR_RESOURCE_REGEX.match(uri)
+    if m:
+        # There might be conflict between resources, because all resources in sandbox have 'resource.tar.gz' name
+        # That's why we use notation with '=' to specify specific path for resource
+        uri = m.group(1)
+        res_id = m.group(2)
+        return "{}={}".format(uri, '/'.join([CANON_OUTPUT_STORAGE, res_id]))
+
+
+def _get_external_resources_from_canon_data(data):
+    # Method should work with both canonization versions:
+    #   result.json: {'uri':X 'checksum':Y}
+    #   result.json: {'testname': {'uri':X 'checksum':Y}}
+    #   result.json: {'testname': [{'uri':X 'checksum':Y}]}
+    # Also there is a bug - if user returns {'uri': 1} from test - machinery will fail
+    # That's why we check 'uri' and 'checksum' fields presence
+    # (it's still a bug - user can return {'uri':X, 'checksum': Y}, we need to unify canonization format)
+    res = set()
+
+    if isinstance(data, dict):
+        if 'uri' in data and 'checksum' in data:
+            resource = _get_resource_from_uri(data['uri'])
+            if resource:
+                res.add(resource)
+        else:
+            for k, v in data.iteritems():
+                res.update(_get_external_resources_from_canon_data(v))
+    elif isinstance(data, list):
+        for e in data:
+            res.update(_get_external_resources_from_canon_data(e))
+
+    return res
+
+
+def _get_canonical_data_resources_v2(filename, unit_path):
+    return _get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path))
+
+
+# TODO migrate all canondata to v2 canonization + remove v1 canonization support
+def _get_canonical_data_resources_v1(test_dir, subdirs, unit_path):
+    res = set()
+
+    for dirname in subdirs:
+        filename = os.path.join(test_dir, dirname, CANON_RESULT_FILE_NAME)
+        if os.path.exists(filename):
+            res.update(_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)))
+
+    return res

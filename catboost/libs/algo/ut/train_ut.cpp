@@ -1,5 +1,4 @@
 #include <catboost/libs/train_lib/train_model.h>
-#include <catboost/libs/options/plain_options_helper.h>
 
 #include <library/unittest/registar.h>
 #include <library/json/json_reader.h>
@@ -29,7 +28,6 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         NJson::TJsonValue metadata;
         metadata["a"] = "b";
         plainFitParams.InsertValue("metadata", metadata);
-        std::vector<int> emptyCatFeatures;
         TEvalResult testApprox;
         TPool testPool;
         TFullModel model;

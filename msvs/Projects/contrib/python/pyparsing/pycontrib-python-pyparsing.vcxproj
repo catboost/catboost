@@ -56,13 +56,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=20180820T174921.419655629 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=20180820T174921.419655629 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -77,12 +77,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\ba1b882b576923f447c64a4271.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_ba1b882b576923f447c64a4271.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.obj;</Outputs>
+      <Message>$B/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_ba1b882b576923f447c64a4271.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_ba1b882b576923f447c64a4271.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/ba1b882b576923f447c64a4271.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_c4dc8c49eeb45272afa4c13f7e=/py_code/pyparsing"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/ba1b882b576923f447c64a4271.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_c4dc8c49eeb45272afa4c13f7e=/py_code/pyparsing"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp	</Message>
+      <Message>$B/contrib/python/pyparsing/ba1b882b576923f447c64a4271.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\ba1b882b576923f447c64a4271.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -163,7 +163,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6802243c71f8bacddc40a3844f.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_c315079c99027032109eef519e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_f67b5c58f4578f23be0be39d77.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6802243c71f8bacddc40a3844f.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_c315079c99027032109eef519e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_c4dc8c49eeb45272afa4c13f7e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6802243c71f8bacddc40a3844f.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_c315079c99027032109eef519e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_f67b5c58f4578f23be0be39d77.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6802243c71f8bacddc40a3844f.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_c315079c99027032109eef519e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_c4dc8c49eeb45272afa4c13f7e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,14 +182,17 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm	</Message>
+      <Message>$B/contrib/python/pyparsing/_ba1b882b576923f447c64a4271.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_6802243c71f8bacddc40a3844f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_f67b5c58f4578f23be0be39d77.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_ba1b882b576923f447c64a4271.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_6802243c71f8bacddc40a3844f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_c4dc8c49eeb45272afa4c13f7e.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
+      <Project>{32E78DFF-5451-B440-4B35-E627E82B514E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
@@ -217,6 +220,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
+      <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
       <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
     </ProjectReference>
@@ -241,17 +247,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
-      <Project>{57C4C922-9CD2-A4EF-D043-BB03C860BFA1}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
-      <Project>{22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
+      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>

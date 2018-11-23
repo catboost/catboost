@@ -49,6 +49,22 @@
 
 #include "javacodegen.h"
 
+#include "gocodegen.h"
+#include "gotable.h"
+#include "goftable.h"
+#include "goflat.h"
+#include "gofflat.h"
+#include "gogoto.h"
+#include "gofgoto.h"
+#include "goipgoto.h"
+
+#include "mltable.h"
+#include "mlftable.h"
+#include "mlflat.h"
+#include "mlfflat.h"
+#include "mlgoto.h"
+#include "mlfgoto.h"
+
 #include "rubytable.h"
 #include "rubyftable.h"
 #include "rubyflat.h"
@@ -145,6 +161,35 @@ CodeGenData *cdMakeCodeGen( const char *sourceFileName, const char *fsmName, ost
 		}
 		break;
 
+	case HostLang::D2:
+		switch ( codeStyle ) {
+		case GenTables:
+			codeGen = new D2TabCodeGen(out);
+			break;
+		case GenFTables:
+			codeGen = new D2FTabCodeGen(out);
+			break;
+		case GenFlat:
+			codeGen = new D2FlatCodeGen(out);
+			break;
+		case GenFFlat:
+			codeGen = new D2FFlatCodeGen(out);
+			break;
+		case GenGoto:
+			codeGen = new D2GotoCodeGen(out);
+			break;
+		case GenFGoto:
+			codeGen = new D2FGotoCodeGen(out);
+			break;
+		case GenIpGoto:
+			codeGen = new D2IpGotoCodeGen(out);
+			break;
+		case GenSplit:
+			codeGen = new D2SplitCodeGen(out);
+			break;
+		}
+		break;
+
 	default: break;
 	}
 
@@ -158,6 +203,44 @@ CodeGenData *cdMakeCodeGen( const char *sourceFileName, const char *fsmName, ost
 CodeGenData *javaMakeCodeGen( const char *sourceFileName, const char *fsmName, ostream &out )
 {
 	CodeGenData *codeGen = new JavaTabCodeGen(out);
+
+	codeGen->sourceFileName = sourceFileName;
+	codeGen->fsmName = fsmName;
+
+	return codeGen;
+}
+
+/* Invoked by the parser when a ragel definition is opened. */
+CodeGenData *goMakeCodeGen( const char *sourceFileName, const char *fsmName, ostream &out )
+{
+	CodeGenData *codeGen = 0;
+
+	switch ( codeStyle ) {
+	case GenTables:
+		codeGen = new GoTabCodeGen(out);
+		break;
+	case GenFTables:
+		codeGen = new GoFTabCodeGen(out);
+		break;
+	case GenFlat:
+		codeGen = new GoFlatCodeGen(out);
+		break;
+	case GenFFlat:
+		codeGen = new GoFFlatCodeGen(out);
+		break;
+	case GenGoto:
+		codeGen = new GoGotoCodeGen(out);
+		break;
+	case GenFGoto:
+		codeGen = new GoFGotoCodeGen(out);
+		break;
+	case GenIpGoto:
+		codeGen = new GoIpGotoCodeGen(out);
+		break;
+	default:
+		cerr << "Invalid output style, only -T0, -T1, -F0, -F1, -G0, -G1 and -G2 are supported for Go.\n";
+		exit(1);
+	}
 
 	codeGen->sourceFileName = sourceFileName;
 	codeGen->fsmName = fsmName;
@@ -242,6 +325,41 @@ CodeGenData *csharpMakeCodeGen( const char *sourceFileName, const char *fsmName,
 	return codeGen;
 }
 
+/* Invoked by the parser when a ragel definition is opened. */
+CodeGenData *ocamlMakeCodeGen( const char *sourceFileName, const char *fsmName, ostream &out )
+{
+	CodeGenData *codeGen = 0;
+
+	switch ( codeStyle ) {
+	case GenTables:
+		codeGen = new OCamlTabCodeGen(out);
+		break;
+	case GenFTables:
+		codeGen = new OCamlFTabCodeGen(out);
+		break;
+	case GenFlat:
+		codeGen = new OCamlFlatCodeGen(out);
+		break;
+	case GenFFlat:
+		codeGen = new OCamlFFlatCodeGen(out);
+		break;
+	case GenGoto:
+		codeGen = new OCamlGotoCodeGen(out);
+		break;
+	case GenFGoto:
+		codeGen = new OCamlFGotoCodeGen(out);
+		break;
+	default:
+		cerr << "I only support the -T0 -T1 -F0 -F1 -G0 and -G1 output styles for OCaml.\n";
+		exit(1);
+	}
+
+	codeGen->sourceFileName = sourceFileName;
+	codeGen->fsmName = fsmName;
+
+	return codeGen;
+}
+
 
 CodeGenData *makeCodeGen( const char *sourceFileName, const char *fsmName, ostream &out )
 {
@@ -252,12 +370,18 @@ CodeGenData *makeCodeGen( const char *sourceFileName, const char *fsmName, ostre
 		cgd = cdMakeCodeGen( sourceFileName, fsmName, out );
 	else if ( hostLang == &hostLangD )
 		cgd = cdMakeCodeGen( sourceFileName, fsmName, out );
+	else if ( hostLang == &hostLangD2 )
+		cgd = cdMakeCodeGen( sourceFileName, fsmName, out );
+	else if ( hostLang == &hostLangGo )
+		cgd = goMakeCodeGen( sourceFileName, fsmName, out );
 	else if ( hostLang == &hostLangJava )
 		cgd = javaMakeCodeGen( sourceFileName, fsmName, out );
 	else if ( hostLang == &hostLangRuby )
 		cgd = rubyMakeCodeGen( sourceFileName, fsmName, out );
 	else if ( hostLang == &hostLangCSharp )
 		cgd = csharpMakeCodeGen( sourceFileName, fsmName, out );
+	else if ( hostLang == &hostLangOCaml )
+		cgd = ocamlMakeCodeGen( sourceFileName, fsmName, out );
 	return cgd;
 }
 
@@ -268,12 +392,18 @@ void lineDirective( ostream &out, const char *fileName, int line )
 			cdLineDirective( out, fileName, line );
 		else if ( hostLang == &hostLangD )
 			cdLineDirective( out, fileName, line );
+		else if ( hostLang == &hostLangD2 )
+			cdLineDirective( out, fileName, line );
+		else if ( hostLang == &hostLangGo )
+			goLineDirective( out, fileName, line );
 		else if ( hostLang == &hostLangJava )
 			javaLineDirective( out, fileName, line );
 		else if ( hostLang == &hostLangRuby )
 			rubyLineDirective( out, fileName, line );
 		else if ( hostLang == &hostLangCSharp )
 			csharpLineDirective( out, fileName, line );
+		else if ( hostLang == &hostLangOCaml )
+			ocamlLineDirective( out, fileName, line );
 	}
 }
 
@@ -322,6 +452,7 @@ CodeGenData::CodeGenData( ostream &out )
 	noPrefix(false),
 	noFinal(false),
 	noError(false),
+	noEntry(false),
 	noCS(false)
 {}
 
@@ -707,6 +838,10 @@ void CodeGenData::analyzeAction( GenAction *act, GenInlineList *inlineList )
 				redFsm->bAnyActionCalls = true;
 			else if ( item->type == GenInlineItem::Ret )
 				redFsm->bAnyActionRets = true;
+
+			if ( item->type == GenInlineItem::CallExpr || item->type == GenInlineItem::GotoExpr )
+				redFsm->bAnyActionByValControl = true;
+
 		}
 
 		/* Check for various things in regular actions. */
@@ -932,16 +1067,16 @@ void CodeGenData::write_option_error( InputLoc &loc, char *arg )
 	source_warning(loc) << "unrecognized write option \"" << arg << "\"" << endl;
 }
 
-void CodeGenData::writeStatement( InputLoc &loc, int nargs, char **args )
+/* returns true if the following section should generate line directives. */
+bool CodeGenData::writeStatement( InputLoc &loc, int nargs, char **args )
 {
-	/* FIXME: This should be moved to the virtual functions in the code
-	 * generators.
-	 *
-	 * Force a newline. */
-	out << '\n';
-	genLineDirective( out );
+	bool followLineDirective = false;
 
 	if ( strcmp( args[0], "data" ) == 0 ) {
+		out << '\n';
+		genLineDirective( out );
+		followLineDirective = true;
+
 		for ( int i = 1; i < nargs; i++ ) {
 			if ( strcmp( args[i], "noerror" ) == 0 )
 				noError = true;
@@ -949,12 +1084,18 @@ void CodeGenData::writeStatement( InputLoc &loc, int nargs, char **args )
 				noPrefix = true;
 			else if ( strcmp( args[i], "nofinal" ) == 0 )
 				noFinal = true;
+			else if ( strcmp( args[i], "noentry" ) == 0 )
+				noEntry = true;
 			else
 				write_option_error( loc, args[i] );
 		}
 		writeData();
 	}
 	else if ( strcmp( args[0], "init" ) == 0 ) {
+		out << '\n';
+		genLineDirective( out );
+		followLineDirective = true;
+
 		for ( int i = 1; i < nargs; i++ ) {
 			if ( strcmp( args[i], "nocs" ) == 0 )
 				noCS = true;
@@ -964,6 +1105,10 @@ void CodeGenData::writeStatement( InputLoc &loc, int nargs, char **args )
 		writeInit();
 	}
 	else if ( strcmp( args[0], "exec" ) == 0 ) {
+		out << '\n';
+		genLineDirective( out );
+		followLineDirective = true;
+
 		for ( int i = 1; i < nargs; i++ ) {
 			if ( strcmp( args[i], "noend" ) == 0 )
 				noEnd = true;
@@ -973,6 +1118,10 @@ void CodeGenData::writeStatement( InputLoc &loc, int nargs, char **args )
 		writeExec();
 	}
 	else if ( strcmp( args[0], "exports" ) == 0 ) {
+		out << '\n';
+		genLineDirective( out );
+		followLineDirective = true;
+
 		for ( int i = 1; i < nargs; i++ )
 			write_option_error( loc, args[i] );
 		writeExports();
@@ -997,6 +1146,7 @@ void CodeGenData::writeStatement( InputLoc &loc, int nargs, char **args )
 		source_error(loc) << "unrecognized write command \"" << 
 				args[0] << "\"" << endl;
 	}
+	return followLineDirective;
 }
 
 ostream &CodeGenData::source_warning( const InputLoc &loc )

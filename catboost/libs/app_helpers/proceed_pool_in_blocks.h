@@ -1,0 +1,42 @@
+#pragma once
+
+#include <catboost/libs/column_description/cd_parser.h>
+#include <catboost/libs/data/doc_pool_data_provider.h>
+#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/options/analytical_mode_params.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
+template <class TConsumer>
+inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& params,
+                                       ui32 blockSize,
+                                       TConsumer&& poolConsumer,
+                                       NPar::TLocalExecutor* localExecutor) {
+    TPool pool;
+    THolder<NCB::IPoolBuilder> poolBuilder = NCB::InitBuilder(params.InputPath, *localExecutor, &pool);
+    NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(params.ClassNames);
+
+    auto docPoolDataProvider = NCB::GetProcessor<NCB::IDocPoolDataProvider>(
+        params.InputPath, // for choosing processor
+
+        // processor args
+        NCB::TDocPoolPullDataProviderArgs {
+            params.InputPath,
+
+            NCB::TDocPoolCommonDataProviderArgs {
+                params.PairsFilePath,
+                /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
+                params.DsvPoolFormatParams.Format,
+                MakeCdProviderFromFile(params.DsvPoolFormatParams.CdFilePath),
+                /*ignoredFeatures*/ {},
+                blockSize,
+                &targetConverter,
+                localExecutor
+            }
+        }
+    );
+
+    while (docPoolDataProvider->DoBlock(poolBuilder.Get())) {
+        poolConsumer(pool);
+    }
+}

@@ -441,7 +441,7 @@ namespace {
         public:
             inline TProto(IOnRequest* cb, TSocketHolder& s)
                 : CB_(cb)
-                , ToSendEv_(Event::rAuto)
+                , ToSendEv_(TSystemEvent::rAuto)
                 , S_(s.Release())
             {
                 SetSocketTimeout(S_, 10);
@@ -588,7 +588,7 @@ namespace {
             IOnRequest* CB_;
             NNeh::TAutoLockFreeQueue<TPacket> ToSend_;
             NNeh::TAutoLockFreeQueue<TRequestDescr> ScheduledReqs_;
-            Event ToSendEv_;
+            TSystemEvent ToSendEv_;
             TSocketHolder S_;
             TVector<TThreadRef> Thrs_;
         };

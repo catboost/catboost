@@ -1,8 +1,14 @@
 #include "eval_result.h"
-#include "pool_printer.h"
-#include "column_printer.h"
+
+#include "eval_helpers.h"
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 
 #include <util/generic/hash_set.h>
+#include <util/stream/fwd.h>
+#include <util/string/builder.h>
+#include <util/string/cast.h>
 
 
 const TString BaselinePrefix = "Baseline#";
@@ -30,17 +36,6 @@ static TFeatureIdToDesc GetFeatureIdToDesc(const TPool& pool) {
     }
 
     return res;
-}
-
-
-static int GetColumnIndex(const TPoolColumnsMetaInfo& poolColumnsMetaInfo, EColumn columnType) {
-    const auto& columns = poolColumnsMetaInfo.Columns;
-    auto it = FindIf(columns.begin(), columns.end(),
-                     [columnType](const TColumn& col) {
-                         return col.Type == columnType;
-                     });
-    CB_ENSURE(it != columns.end(), "column " << columnType << " not found");
-    return int(it - columns.begin());
 }
 
 namespace NCB {
@@ -130,7 +125,21 @@ namespace NCB {
         CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
     }
 
-
+    TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
+        const TPathWithScheme& testSetPath,
+        const TDsvFormatOptions& testSetFormat,
+        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
+    ) {
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
+        if (testSetPath.Inited()) {
+            if (testSetPath.Scheme == "quantized") {
+                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
+            } else if (testSetPath.Scheme == "dsv" || testSetPath.Scheme == "yt-dsv") {
+                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
+            }
+        }
+        return poolColumnsPrinter;
+    }
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
@@ -140,9 +149,8 @@ namespace NCB {
         const TPool& pool,
         bool isPartOfFullTestSet,
         IOutputStream* outputStream,
-        const TPathWithScheme& testSetPath,
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
-        const TDsvFormatOptions& testSetFormat,
         bool writeHeader,
         ui64 docIdOffset,
         TMaybe<std::pair<size_t, size_t>> evalParameters) {
@@ -152,24 +160,6 @@ namespace NCB {
         TVector<TString> convertedTarget = ConvertTargetToExternalName(pool.Docs.Target, visibleLabelsHelper);
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
-
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
-
-        // lazy init
-        auto getPoolColumnsPrinter = [&]() {
-            /* there's a special case when poolColumnsPrinter can be empty:
-              when we need only header output
-            */
-            if (testSetPath.Inited() && !poolColumnsPrinter) {
-                if (testSetPath.Scheme == "quantized") {
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-                } else {
-                    CB_ENSURE(testSetPath.Scheme == "dsv", "OutputEvalResultToFile supports only quantized and dsv pool schema. Got: " << testSetPath.Scheme << ".");
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo->Columns));
-                }
-            }
-            return poolColumnsPrinter;
-        };
 
         for (const auto& columnName : outputColumns) {
             EPredictionType type;
@@ -189,21 +179,11 @@ namespace NCB {
                     if (testFileWhichOf.second > 1) {
                         columnPrinter.push_back(MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":"));
                     }
-                    bool needToGenerate = true;
-                    TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
-                    try {
-                        GetColumnIndex(*(pool.MetaInfo.ColumnsInfo), outputType);
-                        poolColumnsPrinter = getPoolColumnsPrinter();
-                        needToGenerate = false;
-                    } catch (...) {
-                    }
                     columnPrinter.push_back(
-                          (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
-                              poolColumnsPrinter,
-                              needToGenerate,
-                              docIdOffset,
-                              columnName
-                          )
+                        (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
+                            poolColumnsPrinter,
+                            docIdOffset,
+                            columnName)
                     );
                     continue;
                 }
@@ -216,21 +196,14 @@ namespace NCB {
                     continue;
                 }
                 if ((outputType == EColumn::GroupId) || (outputType == EColumn::SubgroupId)) {
-                    CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
                     CB_ENSURE(!isPartOfFullTestSet, "output for column " << columnName << "is currently supported only for full pools, not pool parts");
 
                     columnPrinter.push_back(
-                        (outputType == EColumn::GroupId) ?
-                          (THolder<IColumnPrinter>)MakeHolder<TGroupOrSubgroupIdPrinter<TGroupId>>(
-                              getPoolColumnsPrinter(),
-                              EColumn::GroupId,
-                              columnName
-                          )
-                        : (THolder<IColumnPrinter>)MakeHolder<TGroupOrSubgroupIdPrinter<TSubgroupId>>(
-                              getPoolColumnsPrinter(),
-                              EColumn::SubgroupId,
-                              columnName
-                          )
+                        (THolder<IColumnPrinter>)MakeHolder<TColumnPrinter>(
+                            poolColumnsPrinter,
+                            outputType,
+                            docIdOffset,
+                            columnName)
                     );
                     continue;
                 }
@@ -256,8 +229,9 @@ namespace NCB {
 
                 columnPrinter.push_back(
                     MakeHolder<TNumColumnPrinter>(
-                        getPoolColumnsPrinter(),
-                        FromString<int>(columnName.substr(1))
+                        poolColumnsPrinter,
+                        FromString<int>(columnName.substr(1)),
+                        docIdOffset
                     )
                 );
             } else {
@@ -318,6 +292,12 @@ namespace NCB {
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
+
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
+            testSetPath,
+            testSetFormat,
+            pool.MetaInfo.ColumnsInfo);
+
         OutputEvalResultToFile(
             evalResult,
             &executor,
@@ -326,11 +306,90 @@ namespace NCB {
             pool,
             isPartOfFullTestSet,
             outputStream,
-            testSetPath,
+            poolColumnsPrinter,
             testFileWhichOf,
-            testSetFormat,
             writeHeader,
             docIdOffset);
+    }
+
+    void OutputGpuEvalResultToFile(
+        const TVector<TVector<double>>& approxes,
+        ui32 threadCount,
+        TConstArrayRef<TString> outputColumns,
+        const TPathWithScheme& testSetPath,
+        const TDsvFormatOptions& testSetFormat,
+        const TPoolMetaInfo& poolMetaInfo,
+        const TString& serializedMulticlassLabelParams,
+        const TString& evalOutputFileName
+    ) {
+        NPar::TLocalExecutor executor;
+        executor.RunAdditionalThreads(threadCount - 1);
+
+        TVector<THolder<IColumnPrinter>> columnPrinter;
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
+            testSetPath,
+            testSetFormat,
+            poolMetaInfo.ColumnsInfo);
+
+        TExternalLabelsHelper visibleLabelsHelper;
+        if (approxes.ysize() > 1) {
+            visibleLabelsHelper.Initialize(serializedMulticlassLabelParams);
+        }
+
+        for (const auto& columnName : outputColumns) {
+            EPredictionType type;
+            if (TryFromString<EPredictionType>(columnName, type)) {
+                columnPrinter.push_back(MakeHolder<TEvalPrinter>(&executor, TVector<TVector<TVector<double>>>(1, approxes), type, visibleLabelsHelper, TMaybe<std::pair<size_t, size_t>>()));
+                continue;
+            }
+            EColumn outputType;
+            if (TryFromString<EColumn>(columnName, outputType)) {
+                switch (outputType) {
+                    case EColumn::DocId:
+                        columnPrinter.push_back(
+                              (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
+                                  poolColumnsPrinter,
+                                  /*docIdOffset=*/0u,
+                                  columnName
+                              )
+                        );
+                        break;
+                    case EColumn::Label:
+                    case EColumn::Weight:
+                    case EColumn::GroupId:
+                    case EColumn::SubgroupId:
+                        columnPrinter.push_back(
+                            (THolder<IColumnPrinter>)MakeHolder<TColumnPrinter>(
+                                poolColumnsPrinter,
+                                outputType,
+                                /*docIdOffset=*/0u,
+                                columnName));
+                        break;
+                    default:
+                        CATBOOST_WARNING_LOG << "OutputGpuEvalResultToFile doesnt support " << ToString(outputType) << " column type" << Endl;
+                }
+            }
+        }
+
+        const ui64 docCount = approxes.empty() ? 0 : approxes[0].size();
+        TOFStream outputStream(evalOutputFileName);
+        TString delimiter = "";
+        for (auto& printer : columnPrinter) {
+            outputStream << delimiter;
+            printer->OutputHeader(&outputStream);
+            delimiter = printer->GetAfterColumnDelimiter();
+        }
+        outputStream << Endl;
+        for (size_t docId = 0; docId < docCount; ++docId) {
+            TString delimiter = "";
+            for (auto& printer : columnPrinter) {
+                outputStream << delimiter;
+                printer->OutputValue(&outputStream, docId);
+                delimiter = printer->GetAfterColumnDelimiter();
+            }
+            outputStream << Endl;
+        }
+
     }
 
 } // namespace NCB

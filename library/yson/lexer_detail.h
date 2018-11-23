@@ -196,7 +196,7 @@ namespace NYT {
                             }
                         } else { // None
                             Y_ASSERT(state == EReadStartCase::None);
-                            ythrow TYsonException() << Sprintf("Unexpected %c", ch1);
+                            ythrow TYsonException() << "Unexpected " << ch1;
                         }
                     } else { // BinaryScalar = x01b
                         TBase::Advance(1);
@@ -243,19 +243,19 @@ namespace NYT {
                     try {
                         *token = TToken(FromString<double>(valueBuffer));
                     } catch (yexception&) {
-                        ythrow TYsonException() << Sprintf("Error parsing double literal %s", ~TString(valueBuffer));
+                        ythrow TYsonException() << "Error parsing double literal " << valueBuffer;
                     }
                 } else if (numericResult == ENumericResult::Int64) {
                     try {
                         *token = TToken(FromString<i64>(valueBuffer));
                     } catch (yexception&) {
-                        ythrow TYsonException() << Sprintf("Error parsing int64 literal %s", ~TString(valueBuffer));
+                        ythrow TYsonException() << "Error parsing int64 literal " << valueBuffer;
                     }
                 } else if (numericResult == ENumericResult::Uint64) {
                     try {
                         *token = TToken(FromString<ui64>(valueBuffer.SubStr(0, valueBuffer.size() - 1)));
                     } catch (yexception&) {
-                        ythrow TYsonException() << Sprintf("Error parsing uint64 literal %s", ~TString(valueBuffer));
+                        ythrow TYsonException() << "Error parsing uint64 literal " << valueBuffer;
                     }
                 }
             }

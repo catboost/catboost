@@ -3,6 +3,8 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/pool.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/vector.h>
 
 struct TRocPoint {
@@ -10,6 +12,7 @@ struct TRocPoint {
     double FalseNegativeRate = 0.0;
     double FalsePositiveRate = 0.0;
 
+public:
     TRocPoint() = default;
     TRocPoint(
         double boundary,
@@ -32,6 +35,12 @@ struct TRocCurve {
         NPar::TLocalExecutor* localExecutor
     );
 
+    TRocCurve(
+        const TVector<TVector<double>>& approxes,
+        const TVector<TVector<float>>& labels,
+        int threadCount
+    );
+
     TRocCurve(const TVector<TRocPoint>& points);
 
     TRocCurve() = default;
@@ -44,14 +53,15 @@ struct TRocCurve {
 
     TVector<TRocPoint> GetCurvePoints();
 
-    void Output(const TString& outputPath);
+    void OutputRocCurve(const TString& outputPath);
 private:
     TVector<TRocPoint> Points; // Points are sorted by Boundary from higher to lower
     size_t RateCurvesIntersection;
 
+private:
     void BuildCurve(
-        const TVector<TVector<double>>& approxes,
-        const TVector<TPool>& pool,
+        const TVector<TVector<double>>& approxes, // [poolId][docId]
+        const TVector<TVector<float>>& labels, // [poolId][docId]
         NPar::TLocalExecutor* localExecutor
     );
 

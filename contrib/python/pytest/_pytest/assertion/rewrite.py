@@ -15,6 +15,7 @@ from fnmatch import fnmatch
 
 import py
 from _pytest.assertion import util
+from six import reraise
 
 
 # pytest caches rewritten pycs in __pycache__.
@@ -360,7 +361,7 @@ def _make_rewritten_pyc(state, source_stat, pyc, co):
                 os.rename(proc_pyc, pyc)
             except OSError:
                 ei = sys.exc_info()
-                raise ei[0], "{}\npyc={}".format(ei[1], pyc), ei[2]
+                reraise(ei[0], "{}\npyc={}".format(ei[1], pyc), ei[2])
 
 def _read_pyc(source, pyc, trace=lambda x: None):
     """Possibly read a pytest pyc containing rewritten code.

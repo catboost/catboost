@@ -4,6 +4,8 @@
 
 #include <library/object_factory/object_factory.h>
 
+#include <util/system/fs.h>
+
 
 namespace NCB {
 
@@ -19,5 +21,11 @@ namespace NCB {
      * for heavy usage get IExistsChecker and call its Exists method directly
      */
     bool CheckExists(const TPathWithScheme& pathWithScheme);
+
+    struct TFSExistsChecker : public IExistsChecker {
+        bool Exists(const TPathWithScheme& pathWithScheme) const override {
+            return NFs::Exists(pathWithScheme.Path);
+        }
+    };
 
 }

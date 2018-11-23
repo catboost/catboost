@@ -115,6 +115,7 @@ public:
         return Size();
     }
 
+    Y_PURE_FUNCTION
     inline bool Empty() const noexcept {
         return !Len;
     }
@@ -123,6 +124,7 @@ public:
         return !Empty();
     }
 
+    Y_PURE_FUNCTION
     inline bool empty() const noexcept {
         return Empty();
     }

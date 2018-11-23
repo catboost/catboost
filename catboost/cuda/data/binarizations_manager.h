@@ -4,11 +4,18 @@
 #include "feature.h"
 #include "cat_feature_perfect_hash.h"
 #include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/logging/logging.h>
 
 #include <util/generic/guid.h>
+#include <util/generic/map.h>
+#include <util/generic/set.h>
+#include <util/generic/vector.h>
+#include <util/string/builder.h>
+#include <util/system/types.h>
+
 
 namespace NCatboostCuda {
     //stores expression for binarized features calculations and mapping from this expression to unique ids
@@ -170,6 +177,7 @@ namespace NCatboostCuda {
         }
 
         const TVector<float>& GetBorders(ui32 id) const {
+            CB_ENSURE(Borders.has(id), "Can't find borders for feature #" << id);
             return Borders.at(id);
         }
 

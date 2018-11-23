@@ -6,17 +6,14 @@
 #include <util/string/ascii.h>
 #include <util/stream/mem.h>
 #include <util/stream/format.h>
-#include <util/system/atomic.h>
 #include <util/system/unaligned_mem.h>
 #include <util/random/easy.h>
 
 void CreateGuid(TGUID* res) {
-    static TAtomic cnt = 0;
+    ui64* dw = ReinterpretCast<ui64*>(res->dw);
 
-    WriteUnaligned(res->dw, RandomNumber<ui64>());
-
-    res->dw[2] = Random();
-    res->dw[3] = AtomicAdd(cnt, 1);
+    WriteUnaligned(&dw[0], RandomNumber<ui64>());
+    WriteUnaligned(&dw[1], RandomNumber<ui64>());
 }
 
 TString GetGuidAsString(const TGUID& g) {

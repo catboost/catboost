@@ -3,7 +3,7 @@
 DLL(catboost4j-prediction exports exports.exports)
 
 SRCS(
-    ai_catboost_CatBoostJNI.cpp
+    ai_catboost_CatBoostJNIImpl.cpp
 )
 
 PEERDIR(

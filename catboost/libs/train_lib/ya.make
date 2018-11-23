@@ -9,31 +9,21 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/data
     catboost/libs/algo
-    catboost/libs/options
+    catboost/libs/data
     catboost/libs/distributed
     catboost/libs/eval_result
+    catboost/libs/fstr
     catboost/libs/helpers
     catboost/libs/labels
-    catboost/libs/logging
     catboost/libs/loggers
+    catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/fstr
-    catboost/libs/overfitting_detector
+    catboost/libs/options
     catboost/libs/pairs
-    library/binsaver
-    library/containers/2d_array
-    library/containers/dense_hash
-    library/digest/md5
-    library/dot_product
-    library/fast_exp
-    library/fast_log
-    library/grid_creator
     library/json
     library/object_factory
-    library/threading/local_executor
 )
 
 

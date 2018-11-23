@@ -124,7 +124,7 @@ namespace {
         TMultiClient()
             : Interrupt_(false)
             , NearDeadline_(TInstant::Max().GetValue())
-            , E_(Event::rAuto)
+            , E_(::TSystemEvent::rAuto)
             , Shutdown_(false)
         {
         }
@@ -330,7 +330,7 @@ namespace {
         TRequestsSupervisors RS_;
         TAdaptiveLock NDLock_;
         volatile TInstant::TValue NearDeadline_;
-        Event E_;
+        ::TSystemEvent E_;
         volatile bool Shutdown_;
     };
 

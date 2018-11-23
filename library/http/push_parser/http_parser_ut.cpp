@@ -183,11 +183,30 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
         }
         {
+            // test snappy
+            THttpParser p(THttpParser::Request);
+            TString snappyTestLine(AsStringBuf(
+                "*\xc7\x10\x00\x00\x00\x00\x00\x00\x00\x0e"
+                "42.230-20181121*\xc7\x01\x00\x00\x00\x00\x00\x00\x00\x00"));
+            TString msg = MakeEncodedRequest("z-snappy", snappyTestLine);
+            UNIT_ASSERT(p.Parse(~msg, +msg));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), "2.230-20181121");
+        }
+        {
             // test unknown compressor
             THttpParser p(THttpParser::Request);
             TString content = "some trash";
             TString msg = MakeEncodedRequest("unknown", content);
-            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), THttpParseException);
+        }
+        {
+            for (auto contentEncoding : TVector<TString>{"z-unknown", "z-zstd06", "z-zstd08", "z-zstd08-0"}) {
+                // test unknown blockcodec compressor
+                THttpParser p(THttpParser::Request);
+                TString content = "some trash";
+                TString msg = MakeEncodedRequest(contentEncoding, content);
+                UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), THttpParseException);
+            }
         }
         {
             // test broken deflate
@@ -203,6 +222,13 @@ Y_UNIT_TEST_SUITE(THttpParser) {
                 "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
                 "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09some trash\x00\x00\x00"));
             TString msg = MakeEncodedRequest("gzip", content);
+            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+        }
+        {
+            // test broken snappy
+            THttpParser p(THttpParser::Request);
+            TString snappyTestLine(AsStringBuf("\x1b some very\x05,long payload"));
+            TString msg = MakeEncodedRequest("z-snappy", snappyTestLine);
             UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
         }
         {
@@ -237,5 +263,29 @@ Y_UNIT_TEST_SUITE(THttpParser) {
         THttpHeaders::TConstIterator it = p.Headers().Begin();
         UNIT_ASSERT_VALUES_EQUAL(it->ToString(), TString("Vary: Accept-Encoding, \tAccept-Language"));
         UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString("Host: any.com"));
+    }
+
+    Y_UNIT_TEST(THttpIoStreamInteroperability) {
+        TStringBuf content = AsStringBuf("very very very long content");
+
+        TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: z-snappy\r\n\r\n");
+        THttpInput i(&request);
+
+        TString result;
+        TStringOutput out(result);
+        THttpOutput httpOut(&out, &i);
+        httpOut.EnableCompression(true);
+        httpOut << "HTTP/1.1 200 OK\r\n";
+        httpOut << "Content-Length: " << content.Size() << "\r\n\r\n";
+        httpOut << content;
+        httpOut.Finish();
+        // check that compression works
+        UNIT_ASSERT(!result.Contains(content));
+
+        THttpParser p;
+        UNIT_ASSERT(p.Parse(result.Data(), result.Size()));
+        UNIT_ASSERT_VALUES_EQUAL(p.RetCode(), 200);
+        UNIT_ASSERT(p.Headers().HasHeader("Content-Encoding"));
+        UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), content);
     }
 }

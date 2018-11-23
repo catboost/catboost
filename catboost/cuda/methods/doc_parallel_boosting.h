@@ -5,16 +5,18 @@
 #include "doc_parallel_boosting_progress.h"
 #include "boosting_progress_tracker.h"
 
-#include <catboost/libs/overfitting_detector/overfitting_detector.h>
-#include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <catboost/cuda/models/additive_model.h>
+#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
+#include <catboost/cuda/models/additive_model.h>
+#include <catboost/cuda/targets/target_func.h>
+#include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/boosting_options.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/helpers/interrupt.h>
-#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+#include <catboost/libs/overfitting_detector/overfitting_detector.h>
+
 #include <util/stream/format.h>
 
 
@@ -171,7 +173,7 @@ namespace NCatboostCuda {
                                     &state->Cursors,
                                     TestDataProvider ? &state->TestCursor : nullptr);
                 }
-                MATRIXNET_DEBUG_LOG << "Restore #" << state->Models[0].Size() << " trees from progress" << Endl;
+                CATBOOST_DEBUG_LOG << "Restore #" << state->Models[0].Size() << " trees from progress" << Endl;
             });
 
             return state;
@@ -263,6 +265,7 @@ namespace NCatboostCuda {
             while (!(progressTracker->ShouldStop())) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
+                progressTracker->MaybeSaveSnapshot(snapshotSaver);
                 const auto iteration = progressTracker->GetCurrentIteration();
                 TRandom rand(iteration + BaseIterationSeed);
                 rand.Advance(10);
@@ -334,8 +337,6 @@ namespace NCatboostCuda {
                     Y_VERIFY(testCursor);
                     bestTestCursor->Copy(*testCursor);
                 }
-
-                progressTracker->MaybeSaveSnapshot(snapshotSaver);
             }
 
             progressTracker->MaybeSaveSnapshot(snapshotSaver);
@@ -351,7 +352,7 @@ namespace NCatboostCuda {
                 }
                 progressTracker->SetBestTestCursor(cpuApprox);
             }
-            MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
+            CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
 
     public:

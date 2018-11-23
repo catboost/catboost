@@ -1,18 +1,23 @@
 #pragma once
 
 #include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/quantization.h>
-
-#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data/pool.h>
-#include <catboost/libs/model/model.h>
 #include <catboost/libs/eval_result/eval_result.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/model/model.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/load_options.h>
+#include <catboost/libs/options/output_file_options.h>
+
+#include <library/json/json_value.h>
+#include <library/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
 
-#include <library/json/json_reader.h>
-#include <library/object_factory/object_factory.h>
 
 using NCB::TEvalResult;
 
@@ -25,7 +30,8 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TClearablePoolPtrs& pools,
         TFullModel* model,
-        const TVector<TEvalResult*>& evalResultPtrs) const = 0;
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 
     virtual void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadParams,
                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -41,7 +47,8 @@ void TrainModel(
     const TClearablePoolPtrs& pools,
     const TString& outputModelPath,
     TFullModel* model,
-    const TVector<TEvalResult*>& evalResultPtrs);
+    const TVector<TEvalResult*>& evalResultPtrs,
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr);
 
 /// Used by cross validation, hence one test dataset.
 void TrainOneIteration(

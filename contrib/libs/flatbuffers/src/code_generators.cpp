@@ -16,27 +16,23 @@
 
 #include "flatbuffers/code_generators.h"
 #include <assert.h>
+#include "flatbuffers/base.h"
 #include "flatbuffers/util.h"
 
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4127) // C4127: conditional expression is constant
+#  pragma warning(push)
+#  pragma warning(disable : 4127)  // C4127: conditional expression is constant
 #endif
 
 namespace flatbuffers {
 
 void CodeWriter::operator+=(std::string text) {
-
   while (true) {
     auto begin = text.find("{{");
-    if (begin == std::string::npos) {
-      break;
-    }
+    if (begin == std::string::npos) { break; }
 
     auto end = text.find("}}");
-    if (end == std::string::npos || end < begin) {
-      break;
-    }
+    if (end == std::string::npos || end < begin) { break; }
 
     // Write all the text before the first {{ into the stream.
     stream_.write(text.c_str(), begin);
@@ -51,14 +47,14 @@ void CodeWriter::operator+=(std::string text) {
       const std::string &value = iter->second;
       stream_ << value;
     } else {
-      assert(false && "could not find key");
+      FLATBUFFERS_ASSERT(false && "could not find key");
       stream_ << key;
     }
 
     // Update the text to everything after the }}.
     text = text.substr(end + 2);
   }
-  if (!text.empty() && text.back() == '\\') {
+  if (!text.empty() && string_back(text) == '\\') {
     text.pop_back();
     stream_ << text;
   } else {
@@ -118,7 +114,6 @@ std::string BaseGenerator::WrapInNameSpace(const Namespace *ns,
   return qualified_name + name;
 }
 
-
 std::string BaseGenerator::WrapInNameSpace(const Definition &def) const {
   return WrapInNameSpace(def.defined_namespace, def.name);
 }
@@ -129,8 +124,8 @@ std::string BaseGenerator::GetNameSpace(const Definition &def) const {
   std::string qualified_name = qualifying_start_;
   for (auto it = ns->components.begin(); it != ns->components.end(); ++it) {
     qualified_name += *it;
-    if (std::next(it) != ns->components.end()) {
-        qualified_name += qualifying_separator_;
+    if ((it + 1) != ns->components.end()) {
+      qualified_name += qualifying_separator_;
     }
   }
 
@@ -149,12 +144,12 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
   if (config != nullptr && config->first_line != nullptr) {
     code += std::string(prefix) + std::string(config->first_line) + "\n";
   }
-  std::string line_prefix = std::string(prefix) +
-      ((config != nullptr && config->content_line_prefix != nullptr) ?
-       config->content_line_prefix : "///");
-  for (auto it = dc.begin();
-       it != dc.end();
-       ++it) {
+  std::string line_prefix =
+      std::string(prefix) +
+      ((config != nullptr && config->content_line_prefix != nullptr)
+           ? config->content_line_prefix
+           : "///");
+  for (auto it = dc.begin(); it != dc.end(); ++it) {
     code += line_prefix + *it + "\n";
   }
   if (config != nullptr && config->last_line != nullptr) {
@@ -165,6 +160,5 @@ void GenComment(const std::vector<std::string> &dc, std::string *code_ptr,
 }  // namespace flatbuffers
 
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#  pragma warning(pop)
 #endif
-

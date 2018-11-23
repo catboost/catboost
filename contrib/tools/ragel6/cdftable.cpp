@@ -304,7 +304,7 @@ void FTabCodeGen::writeExec()
 
 	out <<
 		";\n"
-		"	" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_keys;\n"
+		"	" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_keys;\n"
 		"	int _trans;\n";
 
 	if ( redFsm->anyConditions() )

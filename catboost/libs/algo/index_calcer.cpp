@@ -32,12 +32,12 @@ static inline const TVector<int>& GetRemappedCatFeatures(const TSplit& split, co
 }
 
 template <typename TCount, bool (*CmpOp)(TCount, TCount), int vectorWidth>
-void BuildIndicesKernel(const size_t* permutation, const TCount* histogram, TCount value, int level, TIndexType* indices) {
+void BuildIndicesKernel(const ui32* permutation, const TCount* histogram, TCount value, int level, TIndexType* indices) {
     Y_ASSERT(vectorWidth == 4);
-    const int perm0 = permutation[0];
-    const int perm1 = permutation[1];
-    const int perm2 = permutation[2];
-    const int perm3 = permutation[3];
+    const ui32 perm0 = permutation[0];
+    const ui32 perm1 = permutation[1];
+    const ui32 perm2 = permutation[2];
+    const ui32 perm3 = permutation[3];
     const TCount hist0 = histogram[perm0];
     const TCount hist1 = histogram[perm1];
     const TCount hist2 = histogram[perm2];
@@ -60,7 +60,7 @@ void OfflineCtrBlock(const NPar::TLocalExecutor::TExecRangeParams& params,
                      TCount value,
                      int level,
                      TIndexType* indices) {
-    const size_t* permutation = fold.LearnPermutation.data();
+    const ui32* permutation = fold.LearnPermutation.data();
     const int blockStart = blockIdx * params.GetBlockSize();
     const int nextBlockStart = Min<ui64>(blockStart + params.GetBlockSize(), params.LastId);
     constexpr int vectorWidth = 4;
@@ -253,20 +253,33 @@ void BinarizeFeatures(const TFullModel& model,
                       size_t end,
                       TVector<ui8>* result) {
     CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
-    CheckModelAndPoolCompatibility(model, pool);
+    THashMap<int, int> columnReorderMap;
+    CheckModelAndPoolCompatibility(model, pool, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
+    TVector<int> transposedHash(docCount * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
+
+    TVector<TConstArrayRef<float>> repackedFeatures(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
+    if (columnReorderMap.empty()) {
+        for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
+            repackedFeatures[i] = MakeArrayRef(pool.Docs.Factors[i].data() + start, docCount);
+        }
+    } else {
+        for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
+            repackedFeatures[origIdx] = MakeArrayRef(pool.Docs.Factors[sourceIdx].data() + start, docCount);
+        }
+    }
+
     BinarizeFeatures(model,
-        [&pool](const TFloatFeature& floatFeature, size_t index) -> float {
-            return pool.Docs.Factors[floatFeature.FlatFeatureIndex][index];
+        [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
+            return repackedFeatures[floatFeature.FlatFeatureIndex][index];
         },
-        [&pool](const TCatFeature& catFeature, size_t index) -> int {
-            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[catFeature.FlatFeatureIndex][index]);
+        [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
         },
-        start,
-        end,
+        0,
+        docCount,
         *result,
         transposedHash,
         ctrs);

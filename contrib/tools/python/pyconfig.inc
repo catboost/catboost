@@ -1,6 +1,4 @@
 NO_COMPILER_WARNINGS()
-NO_UTIL()
-NO_JOIN_SRC()
 
 ENABLE(USE_ARCADIA_PYTHON)
 
@@ -11,6 +9,8 @@ SET(PYTHON_ROOT "${ARCADIA_ROOT}/${PYTHON_DIR}")
 SET(PYTHON_SRC_ROOT "${ARCADIA_ROOT}/${PYTHON_SRC_DIR}")
 
 SET(PYTHON_FLAGS "-DPy_BUILD_CORE")
+
+ADDINCL(${PYTHON_SRC_DIR}/Include)
 
 CFLAGS(
     -DUNQUOTED_VERSION=2.7
@@ -36,10 +36,10 @@ IF (NOT WIN32)
             -DUNQUOTED_PYTHONPATH=:plat-darwin
             -DUNQUOTED_PLATFORM=darwin
         )
-        #SET_APPEND(OBJADDE
-        #    -framework SystemConfiguration
-        #    -framework CoreFoundation
-        #)
+        LDFLAGS(
+           -framework SystemConfiguration
+           -framework CoreFoundation
+        )
     ENDIF ()
 ENDIF ()
 

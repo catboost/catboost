@@ -12,6 +12,7 @@ import py
 import pytest
 import _pytest
 import _pytest.mark
+import signal
 
 try:
     import resource
@@ -33,6 +34,7 @@ yatest_logger = logging.getLogger("ya.test")
 
 
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
+SHUTDOWN_REQUESTED = False
 
 
 def configure_pdb_on_demand():
@@ -104,6 +106,7 @@ def pytest_addoption(parser):
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
     parser.addoption("--mode", action="store", choices=[RunMode.List, RunMode.Run], dest="mode", default=RunMode.Run, help="testing mode")
+    parser.addoption("--test-list-file", action="store", dest="test_list_file")
     parser.addoption("--modulo", default=1, type=int)
     parser.addoption("--modulo-index", default=0, type=int)
     parser.addoption("--split-by-tests", action='store_true', help="Split test execution by tests instead of suites", default=False)
@@ -130,7 +133,10 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     if pytest.__version__ != "2.7.2":
         from _pytest.monkeypatch import monkeypatch
-        import reinterpret
+        try:
+            from . import reinterpret
+        except ValueError:
+            import reinterpret
         m = next(monkeypatch())
         m.setattr(py.builtin.builtins, 'AssertionError', reinterpret.AssertionError)  # noqa
 
@@ -235,6 +241,16 @@ def pytest_configure(config):
     sys.meta_path.append(CustomImporter([config.option.build_root] + [os.path.join(config.option.build_root, dep) for dep in config.option.dep_roots]))
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
+
+    if hasattr(signal, "SIGUSR2"):
+        signal.signal(signal.SIGUSR2, _smooth_shutdown)
+
+
+def _smooth_shutdown(*args):
+    cov = pytest.config.coverage
+    if cov:
+        cov.stop()
+    pytest.exit("Smooth shutdown requested")
 
 
 def _get_rusage():
@@ -378,7 +394,7 @@ def pytest_collection_modifyitems(items, config):
             else:
                 res.append([item])
 
-        shift = (len(res) + modulo - 1) / modulo
+        shift = int((len(res) + modulo - 1) / modulo)
         start = modulo_index * shift
         end = start + shift
         chunk_items = []
@@ -404,6 +420,10 @@ def pytest_collection_modifyitems(items, config):
                 "tags": _get_item_tags(item),
             }
             tests.append(record)
+        if config.option.test_list_file:
+            with open(config.option.test_list_file, 'w') as afile:
+                json.dump(tests, afile)
+        # TODO prettyboy remove after test_tool release - currently it's required for backward compatibility
         sys.stderr.write(json.dumps(tests))
 
 
@@ -669,11 +689,11 @@ class TraceReportGenerator(object):
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-started', {'class': test_item.class_name.decode('utf-8')})
+        self.trace('test-started', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_finish_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8')})
+        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_start_test_case(self, test_item):
         message = {
@@ -728,7 +748,7 @@ class TraceReportGenerator(object):
             'name': name
         }
         data = json.dumps(event, ensure_ascii=False)
-        if isinstance(data, unicode):
+        if sys.version_info[0] < 3 and isinstance(data, unicode):
             data = data.encode("utf8")
         self.File.write(data + '\n')
         self.File.flush()

@@ -29,7 +29,7 @@ Y_UNIT_TEST_SUITE(TMemoryPoolTest) {
     }
 
     Y_UNIT_TEST(TestSimpleDefragment) {
-        SetVerboseLogingMode();
+        TSetLoggingVerbose inThisScope;
         const ui64 MB = 1024 * 1024;
 
         TCudaStream defaultStream = GetStreamsProvider().RequestStream();
@@ -66,7 +66,7 @@ Y_UNIT_TEST_SUITE(TMemoryPoolTest) {
     }
 
     Y_UNIT_TEST(TestSimpleDefragment2) {
-        SetVerboseLogingMode();
+        TSetLoggingVerbose inThisScope;
         const ui64 MB = 1024 * 1024;
 
         TCudaStream defaultStream = GetStreamsProvider().RequestStream();

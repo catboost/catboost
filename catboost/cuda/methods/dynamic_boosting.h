@@ -241,6 +241,7 @@ namespace NCatboostCuda {
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
+                progressTracker->MaybeSaveSnapshot(snapshotSaver);
                 TOneIterationProgressTracker iterationProgressTracker(*progressTracker);
                 const ui32 iteration = iterationProgressTracker.GetCurrentIteration();
                 {
@@ -448,8 +449,6 @@ namespace NCatboostCuda {
                     Y_VERIFY(testCursor);
                     bestTestCursor->Copy(*testCursor);
                 }
-
-                progressTracker->MaybeSaveSnapshot(snapshotSaver);
             }
 
             progressTracker->MaybeSaveSnapshot(snapshotSaver);
@@ -459,7 +458,7 @@ namespace NCatboostCuda {
                 ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
                 progressTracker->SetBestTestCursor(cpuApprox);
             }
-            MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
+            CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
 
     public:

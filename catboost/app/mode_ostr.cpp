@@ -1,17 +1,15 @@
 #include "modes.h"
-#include "bind_options.h"
-#include "cmd_line.h"
 
-#include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/options/output_file_options.h>
-
+#include <catboost/libs/documents_importance/docs_importance.h>
+#include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/last_getopt.h>
 
-#include <util/system/fs.h>
-#include <util/string/iterator.h>
+#include <util/stream/fwd.h>
+#include <util/system/info.h>
 
 
 using namespace NCB;
@@ -30,7 +28,7 @@ struct TObjectImportancesParams {
     bool HasHeader = false;
 
     void BindParserOpts(NLastGetopt::TOpts& parser) {
-        BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
+        NCB::BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
         parser.AddLongOption('f', "learn-set", "learn set path")
             .StoreResult(&LearnSetPath)
             .RequiredArgument("PATH");

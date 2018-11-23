@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "cuda_manager.h"
 #include "cuda_kernel_buffer.h"
 #include "slice.h"

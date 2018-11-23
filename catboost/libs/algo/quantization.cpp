@@ -5,6 +5,7 @@
 #include <catboost/libs/data/load_data.h>
 
 #include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/set.h>
 #include <util/generic/xrange.h>
 #include <util/generic/algorithm.h>
@@ -180,37 +181,37 @@ namespace {
     /// Select all documents in range [0, docCount).
     class TSelectAll {
     public:
-        explicit TSelectAll(size_t docCount)
+        explicit TSelectAll(ui32 docCount)
         : DocCount(docCount)
         {}
 
-        size_t GetDocCount() const {
+        ui32 GetDocCount() const {
             return DocCount;
         }
 
-        size_t operator()(size_t i) const {
+        ui32 operator()(size_t i) const {
             return i;
         }
     private:
-        size_t DocCount;
+        ui32 DocCount;
     };
 
     /// Select documents by specified indices.
     class TSelectIndices {
     public:
-        explicit TSelectIndices(const TVector<size_t>& indices)
+        explicit TSelectIndices(const TVector<ui32>& indices)
         : Indices(indices)
         {}
 
-        size_t GetDocCount() const {
+        ui32 GetDocCount() const {
             return Indices.size();
         }
 
-        size_t operator()(size_t i) const {
+        ui32 operator()(size_t i) const {
             return Indices[i];
         }
     private:
-        const TVector<size_t>& Indices;
+        const TVector<ui32>& Indices;
     };
 
     /// File-local type for preparing and performing binarization
@@ -271,7 +272,7 @@ namespace {
         /// Perform binarization of `docStorage` into `features`.
         void Binarize(bool allowNans,
                       TDocumentStorage* docStorage,
-                      const TVector<size_t>& selectedDocIndices,
+                      const TVector<ui32>& selectedDocIndices,
                       bool clearPool,
                       TAllFeatures* features) const {
 
@@ -289,7 +290,7 @@ namespace {
                         if (selectedDocIndices.empty()) {
                             TSelectAll selectedDocs(docStorage->GetDocCount());
                             if (IgnoreRedundantCatFeatures && IsConstCatValue(featureIdx, *docStorage, selectedDocs)) {
-                                MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
+                                CATBOOST_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
                                 if (clearPool) {
                                     ClearVector(&docStorage->Factors[featureIdx]);
                                 }
@@ -299,7 +300,7 @@ namespace {
                         } else {
                             TSelectIndices selectedDocs(selectedDocIndices);
                             if (IgnoreRedundantCatFeatures && IsConstCatValue(featureIdx, *docStorage, selectedDocs)) {
-                                MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
+                                CATBOOST_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
                                 if (clearPool) {
                                     ClearVector(&docStorage->Factors[featureIdx]);
                                 }
@@ -374,7 +375,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              size_t oneHotMaxSize,
                              bool clearPool,
                              NPar::TLocalExecutor& localExecutor,
-                             const TVector<size_t>& selectedDocIndices,
+                             const TVector<ui32>& selectedDocIndices,
                              TDocumentStorage* learnDocStorage,
                              TAllFeatures* learnFeatures) {
     if (learnDocStorage->GetDocCount() == 0) {
@@ -396,7 +397,7 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
                             bool allowNansOnlyInTest,
                             bool clearPool,
                             NPar::TLocalExecutor& localExecutor,
-                            const TVector<size_t>& selectedDocIndices,
+                            const TVector<ui32>& selectedDocIndices,
                             TDocumentStorage* testDocStorage,
                             TAllFeatures* testFeatures) {
     if (testDocStorage->GetDocCount() == 0) {

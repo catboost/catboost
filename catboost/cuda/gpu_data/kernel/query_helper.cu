@@ -5,7 +5,7 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 namespace NKernel {
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupIdsImpl(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst) {
         const int queriesPerBlock = BLOCK_SIZE / 32;
         const int localQid = threadIdx.x / 32;
@@ -126,7 +126,7 @@ namespace NKernel {
     }
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupMeansImpl(const float* target, const float* weights,
                                           const ui32* qOffsets, int offsetsBias,
                                           const ui32* qSizes, int qCount,
@@ -187,7 +187,7 @@ namespace NKernel {
 
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupMeansImpl(const float* target, const float* weights,
                                           const ui32* qOffsets, int qCount,
                                           float* queryMeans)
@@ -243,6 +243,51 @@ namespace NKernel {
     }
 
 
+    template <int BLOCK_SIZE>
+    __global__ void ComputeGroupMaxImpl(const float* target,
+                                        const ui32* qOffsets, int qCount,
+                                        float* result) {
+        const int queriesPerBlock = BLOCK_SIZE / 32;
+        const int localQid = threadIdx.x / 32;
+        const int qid = blockIdx.x * queriesPerBlock + localQid;
+
+        __shared__ volatile float line[BLOCK_SIZE];
+        ui32 queryOffset = qid < qCount ? qOffsets[qid] : 0;
+        target += queryOffset;
+        result += blockIdx.x * queriesPerBlock;
+        line[threadIdx.x] = 0;
+
+        const int x = threadIdx.x & 31;
+        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0;
+
+        float maxValue = NegativeInfty();
+
+        for (int i = x; i < querySize; i += 32) {
+            const float t = __ldg(target + i);
+            maxValue = max(t, maxValue);
+        }
+
+        line[threadIdx.x] = maxValue;
+        const float queryMax = WarpReduce(x, line + localQid * 32, 32, TCudaMax<float>());
+
+        __syncthreads();
+
+        if (x == 0 && (qid < qCount)) {
+            result[localQid] = queryMax > NegativeInfty() ? queryMax : 0;
+        }
+    }
+
+    void ComputeGroupMax(const float* target,
+                         const ui32* qOffsets,  ui32 qCount,
+                         float* result, TCudaStream stream) {
+        const int blockSize = 128;
+        const int numBlocks = (qCount * 32 + blockSize - 1) / blockSize;
+        if (numBlocks > 0) {
+            ComputeGroupMaxImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (target, qOffsets,  qCount, result);
+        }
+    }
+
+
     __global__ void RemoveGroupMeansImpl(const float* queryMeans, const ui32* qids, ui32 size, float* dst) {
         const ui32 docId = blockIdx.x * blockDim.x + threadIdx.x;
         if (docId < size) {
@@ -250,7 +295,7 @@ namespace NKernel {
         }
     }
 
-    void RemoveGroupMeans(const float* queryMeans, const ui32* qids, ui32 size, float* dst, TCudaStream stream) {
+    void RemoveGroupBias(const float *queryMeans, const ui32 *qids, ui32 size, float *dst, TCudaStream stream) {
         const int blockSize = 256;
         const int numBlocks = (size + blockSize - 1) / blockSize;
         if (numBlocks > 0) {

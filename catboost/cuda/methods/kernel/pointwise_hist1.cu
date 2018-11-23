@@ -10,7 +10,7 @@ using namespace cooperative_groups;
 namespace NKernel
 {
 
-    template<int InnerHistBitsCount,
+    template <int InnerHistBitsCount,
              int BlockSize>
     struct TPointHistOneByte {
         volatile float* __restrict__ Buffer;
@@ -123,7 +123,7 @@ namespace NKernel
         }
     };
 
-    template<int BlockSize>
+    template <int BlockSize>
     struct TPointHistHalfByte {
         volatile float* Buffer;
 
@@ -199,7 +199,7 @@ namespace NKernel
     };
 
 
-    template<int StripeSize, int OuterUnroll, int N,  typename THist>
+    template <int StripeSize, int OuterUnroll, int N,  typename THist>
     __forceinline__ __device__ void ComputeHistogram(int BlocksPerFeature, const ui32* __restrict__ indices,
                                                      int offset, int dsSize,
                                                      const float* __restrict__ target,
@@ -306,7 +306,7 @@ namespace NKernel
 
 
 
-    template<int StripeSize, int OuterUnroll,  typename THist>
+    template <int StripeSize, int OuterUnroll,  typename THist>
     __forceinline__ __device__ void ComputeHistogram64BitLoads(int BlocksPerFeature, const ui32* __restrict__ indices,
                                                                int offset, int dsSize,
                                                                const float* __restrict__ target,
@@ -404,7 +404,7 @@ namespace NKernel
     }
 
 
-    template<int BlockSize,
+    template <int BlockSize,
              int InnerHistBitsCount,
              bool Use64BitLoads>
     __forceinline__ __device__ void ComputeSplitPropertiesPass(int BlocksPerFeature, const TCFeature* __restrict__ feature,
@@ -481,7 +481,7 @@ namespace NKernel
     ComputeSplitPropertiesPass<BlockSize, I,  USE_64_BIT_LOAD>(M, feature, cindex, target, indices, partition, fCount, binSums, &counters[0]);
 
 
-template<int BlockSize, bool IsFullPass>
+template <int BlockSize, bool IsFullPass>
 #if __CUDA_ARCH__ == 600
     __launch_bounds__(BlockSize, 1)
 #elif __CUDA_ARCH__ >= 520
@@ -535,7 +535,7 @@ template<int BlockSize, bool IsFullPass>
 
 
 
-    template<int BlockSize, bool IsFullPass>
+    template <int BlockSize, bool IsFullPass>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
@@ -618,7 +618,7 @@ template<int BlockSize, bool IsFullPass>
         }
     }
 
-    template<int BlockSize,
+    template <int BlockSize,
             int BlocksPerFeatureCount>
     inline void RunComputeHist1NonBinaryKernel(const TCFeature* nbFeatures, int nbCount,
                                                const ui32* cindex,
@@ -648,7 +648,7 @@ template<int BlockSize, bool IsFullPass>
 
 
 
-    template<int BlockSize, int BlocksPerFeatureCount>
+    template <int BlockSize, int BlocksPerFeatureCount>
     void RunComputeHist1BinaryKernel(const TCFeature* bFeatures, int bCount,
                                      const ui32* cindex,
                                      const float* target, const ui32* indices,
@@ -668,7 +668,7 @@ template<int BlockSize, bool IsFullPass>
 
 
 
-    template<int BlockSize, bool IsFullPass>
+    template <int BlockSize, bool IsFullPass>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
@@ -746,7 +746,7 @@ template<int BlockSize, bool IsFullPass>
     }
 
 
-    template<int BlockSize,
+    template <int BlockSize,
              int BlocksPerFeatureCount>
     inline void RunComputeHist1HalfByteKernel(const TCFeature* nbFeatures, int nbCount,
                                              const ui32* cindex,

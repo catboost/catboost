@@ -191,7 +191,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                            testDataSetId);
                 ctrsWriter.Write(permutationDependent);
             }
-            MATRIXNET_INFO_LOG << "Ctr computation for " << permutationId << " is finished" << Endl;
+            CATBOOST_INFO_LOG << "Ctr computation for " << permutationId << " is finished" << Endl;
         }
     }
     compressedIndexBuilder.Finish();

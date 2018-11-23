@@ -17,7 +17,7 @@
 inline void CalcHashes(const TProjection& proj,
                        const TAllFeatures& allFeatures,
                        size_t offset,
-                       const TVector<size_t>* learnPermutation,
+                       const TVector<ui32>* learnPermutation,
                        bool calculateExactCatHashes,
                        ui64* begin,
                        ui64* end) {

@@ -1,6 +1,8 @@
 #include "auc.h"
 
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
+#include <util/generic/vector.h>
 
 using NMetrics::TSample;
 

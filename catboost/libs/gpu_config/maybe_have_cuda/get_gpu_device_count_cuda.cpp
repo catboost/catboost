@@ -11,7 +11,7 @@ namespace NCB {
 
         cudaError_t status;
         if (cudaSuccess != (status = cudaGetDeviceCount(&deviceCount))) {
-            MATRIXNET_WARNING_LOG << "Error " << int(status) << " (" << cudaGetErrorString(status) << ") ignored while obtaining device count" << Endl;
+            CATBOOST_WARNING_LOG << "Error " << int(status) << " (" << cudaGetErrorString(status) << ") ignored while obtaining device count" << Endl;
         }
         return deviceCount;
     }

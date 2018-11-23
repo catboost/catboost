@@ -39,7 +39,7 @@ struct TCtr {
     }
 };
 
-template<>
+template <>
 struct THash<TCtr> {
     size_t operator()(const TCtr& ctr) const noexcept {
         return ctr.GetHash();

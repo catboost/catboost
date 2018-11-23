@@ -3,16 +3,28 @@
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/query.h>
 
-#include <util/generic/vector.h>
+#include <util/generic/fwd.h>
 
-void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>& groupWeight, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo);
+void UpdateQueriesInfo(
+    TConstArrayRef<TGroupId> queriesId,
+    TConstArrayRef<float> groupWeight,
+    TConstArrayRef<ui32> subgroupId,
+    ui32 beginDoc,
+    ui32 endDoc,
+    TVector<TQueryInfo>* queryInfo);
 
-TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount);
+TVector<ui32> GetQueryIndicesForDocs(TConstArrayRef<TQueryInfo> queriesInfo, ui32 learnSampleCount);
 
-void UpdateQueriesPairs(const TVector<TPair>& pairs, int beginPair, int endPair, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo);
+void UpdateQueriesPairs(
+    TConstArrayRef<TPair> pairs,
+    ui32 beginPair,
+    ui32 endPair,
+    TConstArrayRef<ui32> invertedPermutation,
+    TVector<TQueryInfo>* queryInfo);
 
-inline void UpdateQueriesPairs(const TVector<TPair>& pairs, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
-    UpdateQueriesPairs(pairs, 0, pairs.ysize(), invertedPermutation, queryInfo);
-}
+void UpdateQueriesPairs(
+    TConstArrayRef<TPair> pairs,
+    TConstArrayRef<ui32> invertedPermutation,
+    TVector<TQueryInfo>* queryInfo);
 
-TFlatPairsInfo UnpackPairsFromQueries(const TVector<TQueryInfo>& queries);
+TFlatPairsInfo UnpackPairsFromQueries(TConstArrayRef<TQueryInfo> queries);

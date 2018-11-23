@@ -3,10 +3,14 @@
 #include <util/generic/utility.h>
 #include <util/system/yassert.h>
 
-inline void InitElementRange(int partNumber, int partsCount,
-                                    int elementCount,
-                                    int* elemStartIdx, int* elemEndIdx) {
-    const int minGroupsInTask = elementCount / partsCount;
+inline void InitElementRange(
+    ui32 partNumber,
+    ui32 partsCount,
+    ui32 elementCount,
+    ui32* elemStartIdx,
+    ui32* elemEndIdx
+) {
+    const ui32 minGroupsInTask = elementCount / partsCount;
     *elemStartIdx = minGroupsInTask * partNumber + Min(partNumber, elementCount % partsCount);
 
     *elemEndIdx = *elemStartIdx + minGroupsInTask;

@@ -159,7 +159,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
         )");
 
         const auto proto = NCB::QuantizationSchemaToProto(NCB::LoadQuantizationSchema(
-            NCB::EQuantizationsSchemaSerializationFormat::Matrixnet,
+            NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
             &mxFormatBorders));
 
         DoCheck(proto, expected);
@@ -173,7 +173,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
 
         UNIT_ASSERT_EXCEPTION(
             NCB::LoadQuantizationSchema(
-                NCB::EQuantizationsSchemaSerializationFormat::Matrixnet,
+                NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
                 &mxFormatBorders),
             TCatboostException);
     }
@@ -186,7 +186,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
 
         UNIT_ASSERT_EXCEPTION(
             NCB::LoadQuantizationSchema(
-                NCB::EQuantizationsSchemaSerializationFormat::Matrixnet,
+                NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
                 &mxFormatBorders),
             TCatboostException);
     }
@@ -228,7 +228,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
         TStringStream ss;
         NCB::SaveQuantizationSchema(
             schema,
-            NCB::EQuantizationsSchemaSerializationFormat::Matrixnet,
+            NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
             &ss);
 
         UNIT_ASSERT_VALUES_EQUAL(ss.Str(), expected);
@@ -271,7 +271,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
         TStringStream ss;
         NCB::SaveQuantizationSchema(
             schema,
-            NCB::EQuantizationsSchemaSerializationFormat::Matrixnet,
+            NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
             &ss);
 
         UNIT_ASSERT_VALUES_EQUAL(ss.Str(), expected);

@@ -38,7 +38,7 @@ public:
     {
     }
 
-    template<typename T>
+    template <typename T>
     TConstArrayRef<T> GetTypedArrayRefForBlobData() const {
         if (Impl.Is<TSolidTable>()) {
             auto& solid = Impl.As<TSolidTable>();
@@ -55,7 +55,7 @@ public:
         }
     }
 
-    template<typename T>
+    template <typename T>
     TArrayRef<T> AllocateBlobAndGetArrayRef(size_t elementCount) {
         auto& solid = Impl.As<TSolidTable>();
         solid.CTRBlob.resize(elementCount * sizeof(T));

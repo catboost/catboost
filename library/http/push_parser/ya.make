@@ -8,6 +8,7 @@ SRCS(
 
 PEERDIR(
     library/http/io
+    library/blockcodecs
 )
 
 END()

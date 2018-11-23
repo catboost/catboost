@@ -25,4 +25,8 @@ private:
     IInputStream* N_;
 };
 
+/**
+ * See also "util/stream/tee.h" for multi output.
+ */
+
 /** @} */

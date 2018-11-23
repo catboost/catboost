@@ -10,7 +10,7 @@
 namespace NKernel {
 
 
-    template<typename T>
+    template <typename T>
     __global__ void CopyInLeavesImpl(const ui32* leaves,
                                      const TDataPartition* parts,
                                      const T *src,
@@ -39,7 +39,7 @@ namespace NKernel {
     }
 
     /* this should be called before updatePartProps */
-    template<typename T>
+    template <typename T>
     __global__ void GatherInLeavesImpl(const ui32* leaves,
                                        const TDataPartition* parts,
                                        const T *src,

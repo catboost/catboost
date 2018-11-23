@@ -2,8 +2,11 @@
 
 #include <util/stream/format.h>
 
+#ifdef _sse2_
 #include <emmintrin.h>
 #include <pmmintrin.h>
+#endif
+
 
 void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
     CB_ENSURE(results.size() == DocCount * Model.ObliviousTrees.ApproxDimension);
@@ -28,7 +31,7 @@ void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayR
 
 constexpr size_t SSE_BLOCK_SIZE = 16;
 
-template<bool NeedXorMask, size_t START_BLOCK, typename TIndexType>
+template <bool NeedXorMask, size_t START_BLOCK, typename TIndexType>
 Y_FORCE_INLINE void CalcIndexesBasic(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
@@ -76,150 +79,107 @@ void CalcIndexes(
         CalcIndexesBasic<false, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
     }
 }
+#ifdef _sse2_
 
-template<bool NeedXorMask, size_t SSEBlockCount>
-Y_FORCE_INLINE void CalcIndexesSse(
+template <bool NeedXorMask, size_t SSEBlockCount, int curTreeSize>
+Y_FORCE_INLINE void CalcIndexesSseDepthed(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
         ui8* __restrict indexesVec,
-        const TRepackedBin* __restrict treeSplitsCurPtr,
-        const int curTreeSize) {
+        const TRepackedBin* __restrict treeSplitsCurPtr) {
     if (SSEBlockCount == 0) {
         CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
         return;
     }
-    __m128i v0 = _mm_setzero_si128();
-    __m128i v1 = _mm_setzero_si128();
-    __m128i v2 = _mm_setzero_si128();
-    __m128i v3 = _mm_setzero_si128();
-    __m128i v4 = _mm_setzero_si128();
-    __m128i v5 = _mm_setzero_si128();
-    __m128i v6 = _mm_setzero_si128();
-    __m128i v7 = _mm_setzero_si128();
-    __m128i mask = _mm_set1_epi8(0x01);
-    for (int depth = 0; depth < curTreeSize; ++depth) {
-        const ui8* __restrict binFeaturePtr = binFeatures + treeSplitsCurPtr[depth].FeatureIndex * docCountInBlock;
 #define _mm_cmpge_epu8(a, b) _mm_cmpeq_epi8(_mm_max_epu8((a), (b)), (a))
-
-        const __m128i borderValVec = _mm_set1_epi8(treeSplitsCurPtr[depth].SplitIdx);
 #define LOAD_16_DOC_HISTS(reg, binFeaturesPtr16) \
         const __m128i val##reg = _mm_lddqu_si128((const __m128i *)(binFeaturesPtr16));
 #define UPDATE_16_DOC_BINS(reg) \
         reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(val##reg, borderValVec), mask));
 
-#define LOAD_AND_UPDATE_16_DOCUMENT_BITS(reg, binFeaturesPtr16) \
-        LOAD_16_DOC_HISTS(reg, binFeaturesPtr16); UPDATE_16_DOC_BINS(reg);
-
 #define LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(reg, binFeaturesPtr16) \
         LOAD_16_DOC_HISTS(reg, binFeaturesPtr16);\
         reg = _mm_or_si128(reg, _mm_and_si128(_mm_cmpge_epu8(_mm_xor_si128(val##reg, xorMaskVec), borderValVec), mask));
-
-        if (!NeedXorMask) {
-            if (SSEBlockCount == 8) {
-                LOAD_16_DOC_HISTS(v0, binFeaturePtr + 16 * 0);
-                LOAD_16_DOC_HISTS(v1, binFeaturePtr + 16 * 1);
-                LOAD_16_DOC_HISTS(v2, binFeaturePtr + 16 * 2);
-                LOAD_16_DOC_HISTS(v3, binFeaturePtr + 16 * 3);
-                LOAD_16_DOC_HISTS(v4, binFeaturePtr + 16 * 4);
-                LOAD_16_DOC_HISTS(v5, binFeaturePtr + 16 * 5);
-                LOAD_16_DOC_HISTS(v6, binFeaturePtr + 16 * 6);
-                LOAD_16_DOC_HISTS(v7, binFeaturePtr + 16 * 7);
-
+#define STORE_16_DOCS_RESULT(reg, addr) ((addr), reg);
+    for (size_t regId = 0; regId < SSEBlockCount; regId += 2) {
+        __m128i v0 = _mm_setzero_si128();
+        __m128i v1 = _mm_setzero_si128();
+        __m128i mask = _mm_set1_epi8(0x01);
+        for (int depth = 0; depth < curTreeSize; ++depth) {
+            const ui8 *__restrict binFeaturePtr = binFeatures + treeSplitsCurPtr[depth].FeatureIndex * docCountInBlock + SSE_BLOCK_SIZE * regId;
+            const __m128i borderValVec = _mm_set1_epi8(treeSplitsCurPtr[depth].SplitIdx);
+            if (!NeedXorMask) {
+                LOAD_16_DOC_HISTS(v0, binFeaturePtr);
+                if (regId + 1 < SSEBlockCount) {
+                    LOAD_16_DOC_HISTS(v1, binFeaturePtr + SSE_BLOCK_SIZE);
+                    UPDATE_16_DOC_BINS(v1);
+                }
                 UPDATE_16_DOC_BINS(v0);
-                UPDATE_16_DOC_BINS(v1);
-                UPDATE_16_DOC_BINS(v2);
-                UPDATE_16_DOC_BINS(v3);
-                UPDATE_16_DOC_BINS(v4);
-                UPDATE_16_DOC_BINS(v5);
-                UPDATE_16_DOC_BINS(v6);
-                UPDATE_16_DOC_BINS(v7);
             } else {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS(v0, binFeaturePtr + 16 * 0);
-                if (SSEBlockCount > 1) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v1, binFeaturePtr + 16 * 1);
-                }
-                if (SSEBlockCount > 2) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v2, binFeaturePtr + 16 * 2);
-                }
-                if (SSEBlockCount > 3) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v3, binFeaturePtr + 16 * 3);
-                }
-                if (SSEBlockCount > 4) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v4, binFeaturePtr + 16 * 4);
-                }
-                if (SSEBlockCount > 5) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v5, binFeaturePtr + 16 * 5);
-                }
-                if (SSEBlockCount > 6) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v6, binFeaturePtr + 16 * 6);
-                }
-                if (SSEBlockCount > 7) {
-                    LOAD_AND_UPDATE_16_DOCUMENT_BITS(v7, binFeaturePtr + 16 * 7);
+                const __m128i xorMaskVec = _mm_set1_epi8(treeSplitsCurPtr[depth].XorMask);
+                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v0, binFeaturePtr);
+                if (regId + 1 < SSEBlockCount) {
+                    LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v1, binFeaturePtr + SSE_BLOCK_SIZE);
                 }
             }
-        } else {
-            const __m128i xorMaskVec = _mm_set1_epi8(treeSplitsCurPtr[depth].XorMask);
-            LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v0, binFeaturePtr + 16 * 0);
-            if (SSEBlockCount > 1) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v1, binFeaturePtr + 16 * 1);
-            }
-            if (SSEBlockCount > 2) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v2, binFeaturePtr + 16 * 2);
-            }
-            if (SSEBlockCount > 3) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v3, binFeaturePtr + 16 * 3);
-            }
-            if (SSEBlockCount > 4) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v4, binFeaturePtr + 16 * 4);
-            }
-            if (SSEBlockCount > 5) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v5, binFeaturePtr + 16 * 5);
-            }
-            if (SSEBlockCount > 6) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v6, binFeaturePtr + 16 * 6);
-            }
-            if (SSEBlockCount > 7) {
-                LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED(v7, binFeaturePtr + 16 * 7);
-            }
+            mask = _mm_slli_epi16(mask, 1);
         }
-        mask = _mm_slli_epi16(mask, 1);
-    }
-#undef _mm_cmpge_epu8
-#undef LOAD_16_DOC_HISTS
-#undef UPDATE_16_DOC_BINS
-#undef LOAD_AND_UPDATE_16_DOCUMENT_BITS
-#undef LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED
-#define STORE_16_DOCS_RESULT(reg, addr) _mm_storeu_si128((__m128i *)(addr), reg);
-
-    STORE_16_DOCS_RESULT(v0, (indexesVec + 16 * 0));
-    if (SSEBlockCount > 1) {
-        STORE_16_DOCS_RESULT(v1, (indexesVec + 16 * 1));
-    }
-    if (SSEBlockCount > 2) {
-        STORE_16_DOCS_RESULT(v2, (indexesVec + 16 * 2));
-    }
-    if (SSEBlockCount > 3) {
-        STORE_16_DOCS_RESULT(v3, (indexesVec + 16 * 3));
-    }
-    if (SSEBlockCount > 4) {
-        STORE_16_DOCS_RESULT(v4, (indexesVec + 16 * 4));
-    }
-    if (SSEBlockCount > 5) {
-        STORE_16_DOCS_RESULT(v5, (indexesVec + 16 * 5));
-    }
-    if (SSEBlockCount > 6) {
-        STORE_16_DOCS_RESULT(v6, (indexesVec + 16 * 6));
-    }
-    if (SSEBlockCount > 7) {
-        STORE_16_DOCS_RESULT(v7, (indexesVec + 16 * 7));
+        _mm_storeu_si128((__m128i *)(indexesVec + SSE_BLOCK_SIZE * regId), v0);
+        if (regId + 1 < SSEBlockCount) {
+            _mm_storeu_si128((__m128i *)(indexesVec + SSE_BLOCK_SIZE * regId + SSE_BLOCK_SIZE), v1);
+        }
     }
     if (SSEBlockCount != 8) {
         CalcIndexesBasic<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
     }
+#undef _mm_cmpge_epu8
+#undef LOAD_16_DOC_HISTS
+#undef UPDATE_16_DOC_BINS
+#undef LOAD_AND_UPDATE_16_DOCUMENT_BITS_XORED
 #undef STORE_16_DOCS_RESULT
 }
 
-template<typename TIndexType>
+template <bool NeedXorMask, size_t SSEBlockCount>
+static void CalcIndexesSse(
+    const ui8* __restrict binFeatures,
+    size_t docCountInBlock,
+    ui8* __restrict indexesVec,
+    const TRepackedBin* __restrict treeSplitsCurPtr,
+    const int curTreeSize) {
+    switch (curTreeSize)
+    {
+    case 1:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 1>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 2:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 2>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 3:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 3>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 4:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 4>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 5:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 5>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 6:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 6>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 7:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 7>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    case 8:
+        CalcIndexesSseDepthed<NeedXorMask, SSEBlockCount, 8>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr);
+        break;
+    default:
+        break;
+    }
+}
+
+#endif
+
+template <typename TIndexType>
 Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const double* __restrict treeLeafPtr, const TIndexType* __restrict indexesPtr, double* __restrict writePtr) {
     Y_PREFETCH_READ(treeLeafPtr, 3);
     Y_PREFETCH_READ(treeLeafPtr + 128, 3);
@@ -239,7 +199,8 @@ Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const doub
     }
 }
 
-template<int SSEBlockCount>
+#ifdef _sse2_
+template <int SSEBlockCount>
 Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
     _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
 
@@ -271,7 +232,7 @@ Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr
 #undef ADD_LEAFS
 }
 
-template<int SSEBlockCount>
+template <int SSEBlockCount>
 Y_FORCE_INLINE void CalculateLeafValues4(
     const size_t docCountInBlock,
     const double* __restrict treeLeafPtr0,
@@ -308,8 +269,9 @@ Y_FORCE_INLINE void CalculateLeafValues4(
         }
     }
 }
+#endif
 
-template<typename TIndexType>
+template <typename TIndexType>
 Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const double* __restrict leafPtr, const TIndexType* __restrict indexesVec, const int approxDimension, double* __restrict writePtr) {
     for (size_t docId = 0; docId < docCountInBlock; ++docId) {
         auto leafValuePtr = leafPtr + indexesVec[docId] * approxDimension;
@@ -320,7 +282,7 @@ Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const
     }
 }
 
-template<bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount>
+template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount>
 Y_FORCE_INLINE void CalcTreesBlockedImpl(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
@@ -333,14 +295,15 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     const TRepackedBin* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() + model.ObliviousTrees.TreeStartOffsets[treeStart];
 
-    bool allTreesAreShallow = AllOf(
-        model.ObliviousTrees.TreeSizes.begin() + treeStart,
-        model.ObliviousTrees.TreeSizes.begin() + treeEnd,
-        [](int depth) { return depth <= 8; }
-    );
     ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
     const auto treeLeafPtr = model.ObliviousTrees.LeafValues.data();
     auto firstLeafOffsetsPtr = model.ObliviousTrees.GetFirstLeafOffsets().data();
+#ifdef _sse2_
+    bool allTreesAreShallow = AllOf(
+            model.ObliviousTrees.TreeSizes.begin() + treeStart,
+            model.ObliviousTrees.TreeSizes.begin() + treeEnd,
+            [](int depth) { return depth <= 8; }
+    );
     if (IsSingleClassModel && allTreesAreShallow) {
         auto alignedResultsPtr = resultsPtr;
         TVector<double> resultsTmpArray;
@@ -384,9 +347,11 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
         }
         treeStart = treeEnd4;
     }
+#endif
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
         memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
+#ifdef _sse2_
         if (curTreeSize <= 8) {
             CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
@@ -395,6 +360,9 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
                 CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, model.ObliviousTrees.ApproxDimension, resultsPtr);
             }
         } else {
+#else
+        {
+#endif
             CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
                 CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVecUI32, resultsPtr);
@@ -406,15 +374,16 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     }
 }
 
-template<bool IsSingleClassModel, bool NeedXorMask>
-inline void CalcTreesBlocked(
+template <bool IsSingleClassModel, bool NeedXorMask>
+Y_FORCE_INLINE void CalcTreesBlocked(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
     size_t docCountInBlock,
     TCalcerIndexType* __restrict indexesVec,
     size_t treeStart,
     size_t treeEnd,
-    double* __restrict resultsPtr) {
+    double* __restrict resultsPtr)
+{
     switch (docCountInBlock / SSE_BLOCK_SIZE) {
     case 0:
         CalcTreesBlockedImpl<IsSingleClassModel, NeedXorMask, 0>(model, binFeatures, docCountInBlock, indexesVec, treeStart, treeEnd, resultsPtr);
@@ -448,7 +417,7 @@ inline void CalcTreesBlocked(
     }
 }
 
-template<bool IsSingleClassModel, bool NeedXorMask>
+template <bool IsSingleClassModel, bool NeedXorMask>
 inline void CalcTreesSingleDocImpl(
     const TFullModel& model,
     const ui8* __restrict binFeatures,

@@ -95,6 +95,7 @@ namespace NCatboostCuda {
             Y_UNUSED(params);
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
+            FillBuffer(tmp, 0.0f);
 
             ApproximateForPermutation(point,
                                       /*indices*/ nullptr,

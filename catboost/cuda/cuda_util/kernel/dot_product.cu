@@ -3,7 +3,7 @@
 
 namespace NKernel {
 
-    template<typename T, int BLOCK_SIZE>
+    template <typename T, int BLOCK_SIZE>
     __global__ void DotProductImpl(const T *x, const T *y, T *partResults, ui64 size) {
         __shared__
         T sdata[BLOCK_SIZE];
@@ -30,13 +30,13 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void DotProduct(const T *x, const T *y, TDotProductContext<T>& context, TCudaStream stream) {
         const ui32 blockSize = GetDotProductBlockSize();
         DotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, y, context.PartResults.Get(), context.Size);
     }
 
-    template<typename T, int BLOCK_SIZE>
+    template <typename T, int BLOCK_SIZE>
     __global__ void WeightedDotProductImpl(const T *x, const T *weights, const T *y, T *partResults, ui64 size) {
         __shared__
         T sdata[BLOCK_SIZE];
@@ -64,7 +64,7 @@ namespace NKernel {
             partResults[blockIdx.x] = sdata[0];
     }
 
-    template<typename T>
+    template <typename T>
     void WeightedDotProduct(const T *x, const T *weights, const T *y, TDotProductContext<T>& context, TCudaStream stream) {
         const ui32 blockSize = GetDotProductBlockSize();
         WeightedDotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, weights, y, context.PartResults.Get(), context.Size);

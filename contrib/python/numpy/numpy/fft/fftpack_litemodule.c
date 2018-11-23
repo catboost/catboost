@@ -335,7 +335,7 @@ PyMODINIT_FUNC PyInit_fftpack_lite(void)
 #else
 #define RETVAL
 PyMODINIT_FUNC
-init5numpy3fft12fftpack_lite(void)
+initfftpack_lite(void)
 #endif
 {
     PyObject *m,*d;
@@ -344,7 +344,7 @@ init5numpy3fft12fftpack_lite(void)
 #else
     static const char fftpack_module_documentation[] = "";
 
-    m = Py_InitModule4("numpy.fft.fftpack_lite", fftpack_methods,
+    m = Py_InitModule4("fftpack_lite", fftpack_methods,
             fftpack_module_documentation,
             (PyObject*)NULL,PYTHON_API_VERSION);
 #endif

@@ -10,28 +10,11 @@
 
 #include <catboost/libs/options/enums.h>
 
-#include <util/generic/vector.h>
-
 #include <library/binsaver/bin_saver.h>
-#include <library/dot_product/dot_product.h>
 #include <library/threading/local_executor/local_executor.h>
 
-inline double CalcScoreStDev(const TFold& ff) {
-    double sum2 = 0, totalSum2Count = 0;
-    for (const TFold::TBodyTail& bt : ff.BodyTailArr) {
-        for (int dim = 0; dim < bt.WeightedDerivatives.ysize(); ++dim) {
-            sum2 += DotProduct(bt.WeightedDerivatives[dim].data() + bt.BodyFinish, bt.WeightedDerivatives[dim].data() + bt.BodyFinish, bt.TailFinish - bt.BodyFinish);
-        }
-        totalSum2Count += bt.TailFinish - bt.BodyFinish;
-    }
-    return sqrt(sum2 / Max(totalSum2Count, DBL_EPSILON));
-}
+#include <util/generic/vector.h>
 
-inline double CalcScoreStDevMult(int learnSampleCount, double modelLength) {
-    double modelExpLength = log(learnSampleCount * 1.0);
-    double modelLeft = exp(modelExpLength - modelLength);
-    return modelLeft / (1 + modelLeft);
-}
 
 struct TCandidateInfo {
     TSplitCandidate SplitCandidate;
@@ -76,11 +59,11 @@ template <>
 TUserDefinedQuerywiseError BuildError<TUserDefinedQuerywiseError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 template <>
 TLogLinQuantileError BuildError<TLogLinQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
-template<>
+template <>
 TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
-template<>
+template <>
 TLqError BuildError<TLqError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
-template<>
+template <>
 TQuerySoftMaxError BuildError<TQuerySoftMaxError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 
 template <typename TError>
@@ -152,29 +135,21 @@ inline void CalcWeightedDerivatives(
     }
 }
 
-template<bool StoreExpApprox>
+template <bool StoreExpApprox>
 inline void UpdateBodyTailApprox(const TVector<TVector<TVector<double>>>& approxDelta,
     double learningRate,
     NPar::TLocalExecutor* localExecutor,
     TFold* fold
 ) {
-    const int approxDimension = fold->GetApproxDimension();
+    const auto applyLearningRate = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+        approx[idx] = UpdateApprox<StoreExpApprox>(
+            approx[idx],
+            ApplyLearningRate<StoreExpApprox>(delta[idx], learningRate)
+        );
+    };
     for (int bodyTailId = 0; bodyTailId < fold->BodyTailArr.ysize(); ++bodyTailId) {
         TFold::TBodyTail& bt = fold->BodyTailArr[bodyTailId];
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            const double* approxDeltaData = approxDelta[bodyTailId][dim].data();
-            double* approxData = bt.Approx[dim].data();
-            localExecutor->ExecRange(
-                [=](int z) {
-                    approxData[z] = UpdateApprox<StoreExpApprox>(
-                        approxData[z],
-                        ApplyLearningRate<StoreExpApprox>(approxDeltaData[z], learningRate)
-                    );
-                },
-                NPar::TLocalExecutor::TExecRangeParams(0, bt.TailFinish).SetBlockSize(1000),
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
-        }
+        UpdateApprox(applyLearningRate, approxDelta[bodyTailId], &bt.Approx, localExecutor);
     }
 }
 

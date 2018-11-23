@@ -19,6 +19,8 @@ namespace NNeh {
         using IRequest::SendReply;
         virtual void SendReply(TData& data, const TString& headers) = 0;
         virtual const THttpHeaders& Headers() const = 0;
+        virtual TStringBuf Body() const = 0;
+        virtual TStringBuf Cgi() const = 0;
     };
 
     namespace NHttp {
@@ -173,12 +175,12 @@ namespace NNeh {
         };
 
         enum class ERequestType {
-            Any = 0,
-            Post,
-            Get,
-            Put,
-            Delete,
-            Patch,
+            Any = 0 /* "ANY" */,
+            Post    /* "POST" */,
+            Get     /* "GET" */,
+            Put     /* "PUT" */,
+            Delete  /* "DELETE" */,
+            Patch   /* "PATCH" */,
         };
 
         enum class ERequestFlag {

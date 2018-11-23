@@ -97,6 +97,11 @@ public:
         return !this->empty();
     }
 
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
+        return TBase::empty();
+    }
+
     inline size_type operator+() const noexcept {
         return this->size();
     }
@@ -115,7 +120,7 @@ public:
 
     inline void crop(size_type size) {
         if (this->size() > size) {
-            this->resize(size);
+            this->erase(this->begin() + size, this->end());
         }
     }
 };

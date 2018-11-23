@@ -5,8 +5,10 @@ import base64
 import itertools
 import json
 import logging
+import ntpath
 import optparse
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -243,6 +245,12 @@ class Platform(object):
         else:
             return self.os.upper()
 
+    def exe(self, *paths):
+        if self.is_windows:
+            return ntpath.join(*itertools.chain(paths[:-1], (paths[-1] + '.exe',)))
+        else:
+            return posixpath.join(*paths)
+
     def __str__(self):
         return '{name}-{os}-{arch}'.format(name=self.name, os=self.os, arch=self.arch)
 
@@ -301,23 +309,15 @@ def which(prog):
     return None
 
 
-def get_stdout_line(command, ignore_return_code=False):
-    output = get_stdout(command, ignore_return_code)
-    first_line, rest = output.split('\n', 1)
-    if rest:
-        logger.debug('Multiple lines in output from command %s: [\n%s\n]', command, output)
-    return first_line
-
-
-def get_stdout(command, ignore_return_code=False):
+def get_stdout(command):
     stdout, code = get_stdout_and_code(command)
-    return stdout if code == 0 or ignore_return_code else None
+    return stdout if code == 0 else None
 
 
-def get_stdout_and_code(command, env=None):
+def get_stdout_and_code(command):
     # noinspection PyBroadException
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = process.communicate()
         return stdout, process.returncode
     except Exception:
@@ -671,7 +671,7 @@ class Build(object):
         else:
             def find_svn():
                 for i in range(0, 3):
-                    for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'HEAD']):
+                    for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'HEAD'], ['.arc', 'TREE']):
                         path_parts = [os.pardir] * i + path
                         full_path = os.path.join(self.arcadia.root, *path_parts)
                         # HACK(somov): No "normpath" here. ymake fails with the "source file name is outside the build tree" error
@@ -1193,8 +1193,9 @@ class GnuToolchain(Toolchain):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_aarch64, ['-march=armv8a']),
-                (target.is_macos, ['-mmacosx-version-min=10.12']),
-                (target.is_ios, ['-mios-version-min=9.0']),
+                (target.is_macos, ['-mmacosx-version-min=10.11']),
+                (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
+                (target.is_ios and target.is_intel, ['-mios-version-min=10.0']),
                 (target.is_android and target.is_armv7a, ['-march=armv7-a', '-mfloat-abi=softfp']),
                 (target.is_android and target.is_armv8a, ['-march=armv8-a'])
             ])
@@ -1202,11 +1203,14 @@ class GnuToolchain(Toolchain):
             if target_flags:
                 self.c_flags_platform.extend(target_flags)
 
+            if target.is_ios:
+                self.c_flags_platform.append('-D__IOS__=1')
+
             if target.is_android:
                 self.c_flags_platform.append('-fPIE')
                 if target.is_armv7_neon:
                     self.c_flags_platform.append('-mfpu=neon')
-                self.c_flags_platform.extend(('-fexceptions', '-fsigned-char'))
+                self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
@@ -1284,7 +1288,7 @@ class GnuCompiler(Compiler):
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
-            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations'])
+            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):
                 self.c_defines.append('-faligned-allocation')
             else:
@@ -1295,7 +1299,7 @@ class GnuCompiler(Compiler):
 
         self.extra_compile_opts = []
 
-        self.c_flags = self.tc.arch_opt + ['-pipe']
+        self.c_flags = self.tc.arch_opt + ['-pipe', '-fexceptions']
         self.c_only_flags = []
         self.cxx_flags = []
 
@@ -1323,6 +1327,10 @@ class GnuCompiler(Compiler):
                     self.c_defines.append(define)
             else:
                 self.c_defines.append('-no-sse')
+
+        self.debug_info_flags = ['-g']
+        if self.target.is_linux:
+            self.debug_info_flags.append('-ggnu-pubnames')
 
         self.cross_suffix = '' if is_positive('FORCE_NO_PIC') else '.pic'
 
@@ -1361,7 +1369,7 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            self.optimize = '-O2'
+            self.optimize = '-O3'
 
         if self.build.with_ndebug:
             self.c_defines.append('-DNDEBUG')
@@ -1410,10 +1418,10 @@ class GnuCompiler(Compiler):
         emit('USE_GCCFILTER', preset('USE_GCCFILTER') or 'yes')
         emit('USE_GCCFILTER_COLOR', preset('USE_GCCFILTER_COLOR') or 'yes')
         emit('SFDL_FLAG', self.sfdl_flags, '-o', '$SFDL_TMP_OUT')
-        emit('WERROR_FLAG', '-Werror', '-Wno-error=deprecated-declarations')
+        emit('WERROR_FLAG', '-Werror')
         # TODO(somov): Убрать чтение настройки из os.environ
         emit('USE_ARC_PROFILE', 'yes' if preset('USE_ARC_PROFILE') or os.environ.get('USE_ARC_PROFILE') else 'no')
-        emit('DEBUG_INFO_FLAGS', '-g')
+        emit('DEBUG_INFO_FLAGS', self.debug_info_flags)
 
         emit_big('''
             when ($NO_COMPILER_WARNINGS == "yes") {
@@ -1436,10 +1444,9 @@ class GnuCompiler(Compiler):
                 ENABLE(UNUSED_MACRO)
             }''')
 
-        append('C_WARNING_OPTS', '-Wno-error=deprecated')
-        append('CXX_WARNING_OPTS', '-Wno-register') # IGNIETFERRO-722 understand what to do with the contrib
+        append('CXX_WARNING_OPTS', '-Wno-register')  # IGNIETFERRO-722 understand what to do with the contrib
         append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
-        append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec') # IGNIETFERRO-282 some problems with lucid
+        append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec')  # IGNIETFERRO-282 some problems with lucid
         append('CXX_WARNING_OPTS', '-Wno-attributes')
 
         if self.tc.is_clang and self.tc.version_at_least(3, 9):
@@ -1452,20 +1459,21 @@ class GnuCompiler(Compiler):
 
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output:SRC%s.o}' % self.cross_suffix, '${input:SRC} ${pre=-I:INCLUDE}')
+        emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output;suf=${OBJECT_SUF}:SRC}', '${input:SRC} ${pre=-I:INCLUDE}')
         emit('EXTRA_C_FLAGS')
-        emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide:SRC%s.gcno}' % self.cross_suffix)
-        emit('YNDEXER_OUTPUT_FILE', '${output;noauto:SRC%s.ydx.pb2}' % self.cross_suffix)  # should be the last output
+        emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
+        emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
         if is_positive('DUMP_COMPILER_DEPS'):
-            emit('DUMP_DEPS', '-MD', '${output;hide;noauto:SRC.o.d}')
+            emit('DUMP_DEPS', '-MD', '${output;hide;noauto;suf=${OBJ_SUF}.o.d:SRC}')
         elif is_positive('DUMP_COMPILER_DEPS_FAST'):
-            emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto:SRC.o.d}')
+            emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto;suf=${OBJ_SUF}.o.d:SRC}')
 
         if not self.build.is_coverage:
             emit('EXTRA_OUTPUT')
         else:
-            emit('EXTRA_OUTPUT', '${output;noauto;hide:SRC%s.gcno}' % self.cross_suffix)
+            emit('EXTRA_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
 
         append('EXTRA_OUTPUT')
 
@@ -1480,13 +1488,11 @@ class GnuCompiler(Compiler):
 
         # fuzzing configuration
         if self.tc.is_clang and self.tc.version_at_least(5, 0):
-            emit('FSANITIZE_FUZZER_SUPPORTED', 'yes')
-            if self.tc.version_at_least(7):
-                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer7')
-            elif self.tc.version_at_least(6):
-                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer6')
-            else:
-                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer-5.0')
+            emit('LIBFUZZER_PATH',
+                 'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
+                 'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
+                 'contrib/libs/libfuzzer-5.0')
+            emit('WERROR_FLAG', '-Werror', '-Wno-error=deprecated')
 
 
 class Linker(object):
@@ -1672,6 +1678,9 @@ class LD(Linker):
 
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
             self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')
+
+        if self.type in (Linker.LLD, Linker.GOLD):
+            self.ld_flags.append('-Wl,--gdb-index')
 
     def print_linker(self):
         super(LD, self).print_linker()
@@ -1900,7 +1909,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 }
 '''
 
-        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHsc', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
+        flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$FAKEID']
         flags += ['/we{}'.format(code) for code in warns_as_error]
         flags += ['/w1{}'.format(code) for code in warns_enabled]
         flags += ['/wd{}'.format(code) for code in warns_disabled]
@@ -1913,9 +1922,9 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         flags_c_only = []
 
         if target.is_arm:
-            masm_io = '-o ${output:SRC.obj} ${input;msvs_source:SRC}'
+            masm_io = '-o ${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
         else:
-            masm_io = '/nologo /c /Fo${output:SRC.obj} ${input;msvs_source:SRC}'
+            masm_io = '/nologo /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
 
         if is_positive('USE_UWP'):
             flags_cxx += ['/ZW', '/AI{vc_root}/lib/store/references'.format(vc_root=self.tc.vc_root)]
@@ -1925,6 +1934,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             defines.append('WINAPI_FAMILY=WINAPI_FAMILY_APP')
             winapi_unicode = True
 
+        emit('OBJECT_SUF', '$OBJ_SUF.obj')
         emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
         defines.append('{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
 
@@ -2015,11 +2025,11 @@ macro MSVC_FLAGS(Flags...) {
 }
 
 macro _SRC_cpp(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
 macro _SRC_c(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output:SRC.obj} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
 macro _SRC_m(SRC, SRCFLAGS...) {
@@ -2359,8 +2369,9 @@ class Cuda(object):
         self.have_cuda = Setting('HAVE_CUDA', auto=self.auto_have_cuda, convert=to_bool)
 
         self.cuda_root = Setting('CUDA_ROOT')
-        self.cuda_version = Setting('CUDA_VERSION', auto='9.1')  # TODO(somov): Определять автоматически для внешнего CUDA Toolkit
+        self.cuda_version = Setting('CUDA_VERSION', auto=self.auto_cuda_version)
         self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self.auto_use_arcadia_cuda, convert=to_bool)
+        self.use_arcadia_cuda_host_compiler = Setting('USE_ARCADIA_CUDA_HOST_COMPILER', auto=self.auto_use_arcadia_cuda_host_compiler, convert=to_bool)
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
         self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self.auto_cuda_host_compiler)
         self.cuda_host_compiler_env = Setting('CUDA_HOST_COMPILER_ENV')
@@ -2370,7 +2381,7 @@ class Cuda(object):
 
         self.peerdirs = ['build/cuda']
 
-        self.cuda_version_list = map(int, self.cuda_version.value.split('.'))
+        self.cuda_version_list = map(int, self.cuda_version.value.split('.')) if self.cuda_version.value else None
 
         self.nvcc_flags = ['-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11']
 
@@ -2402,26 +2413,28 @@ class Cuda(object):
         self.cuda_root.emit()
         self.cuda_version.emit()
         self.use_arcadia_cuda.emit()
+        self.use_arcadia_cuda_host_compiler.emit()
         self.cuda_use_clang.emit()
         self.cuda_host_compiler.emit()
         self.cuda_host_compiler_env.emit()
         self.cuda_host_msvc_version.emit()
         self.cuda_nvcc_flags.emit()
 
-        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+        emit('NVCC_UNQUOTED', self.build.host.exe('$CUDA_ROOT', 'bin', 'nvcc'))
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
 
     def print_macros(self):
         cmd_vars = {
+            'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
             'includes': '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
             'obj_ext': '.o' if not self.build.target.is_windows else '.obj',
         }
 
         if not self.cuda_use_clang.value:
-            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC%(obj_ext)s} %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}%(obj_ext)s:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
         else:
-            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output:SRC%(obj_ext)s} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
+            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}%(obj_ext)s:SRC} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
 
         emit_big('''
             macro _SRC("cu", SRC, SRCFLAGS...) {
@@ -2433,23 +2446,49 @@ class Cuda(object):
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
 
-        versions = select(default=(), selectors=(
-            (host.is_linux_x86_64 and target.is_linux_x86_64, ('8.0', '9.0', '9.1')),
-            (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, ('8.0',)),
-            (host.is_macos_x86_64 and target.is_macos_x86_64, ('9.0', '9.1')),
-            (host.is_windows_x86_64 and target.is_windows_x86_64, ('9.0', '9.1', '9.2',)),
-        ))
+        if not host.is_linux_x86_64 and not host.is_macos_x86_64 and not host.is_windows_x86_64:
+            return False
 
-        return self.cuda_version.value in versions
+        # We have no CUDA cross-build yet
+        if host != target:
+            return False
+
+        if self.cuda_version.value in ('9.0', '9.1', '9.2'):
+            return True
+
+        if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
+            return True
+
+        return False
 
     def auto_have_cuda(self):
-        return self.cuda_root.from_user or self.use_arcadia_cuda.value
+        return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
+
+    def auto_cuda_version(self):
+        if self.use_arcadia_cuda.value:
+            return '9.1'
+
+        if not self.have_cuda.value:
+            return None
+
+        nvcc_exe = self.build.host.exe(os.path.expanduser(self.cuda_root.value), 'bin', 'nvcc')
+
+        def error():
+            raise ConfigureError('Failed to get CUDA version from {}'.format(nvcc_exe))
+
+        version_output = get_stdout([nvcc_exe, '--version']) or error()
+        match = re.search(r'^Cuda compilation tools, release (\d+\.\d+),', version_output, re.MULTILINE) or error()
+
+        return match.group(1)
 
     def auto_use_arcadia_cuda(self):
-        return not self.cuda_root.from_user and self.have_cuda_in_arcadia()
+        return not self.cuda_root.from_user
+
+    def auto_use_arcadia_cuda_host_compiler(self):
+        return not self.cuda_host_compiler.from_user and not self.cuda_use_clang.value
 
     def auto_cuda_host_compiler(self):
-        if not self.use_arcadia_cuda.value or self.cuda_use_clang.value:
+        if not self.use_arcadia_cuda_host_compiler.value:
             return None
 
         host, target = self.build.host_target
@@ -2459,8 +2498,7 @@ class Cuda(object):
 
         return select((
             (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
-            (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'),
-            (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'),
+            (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/usr/bin/clang'),
         ))
 
     def cuda_windows_host_compiler(self):
@@ -2514,7 +2552,7 @@ class Yasm(object):
 
     def print_variables(self):
         d_platform = ' '.join([('-D ' + i) for i in self.platform])
-        output = '${{output;noext:SRC.{}}}'.format('o' if self.fmt != 'win' else 'obj')
+        output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
         print '''\
 macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
     .CMD={} -f {}$HARDWARE_ARCH {} -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :INCLUDE}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}

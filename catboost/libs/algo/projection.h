@@ -2,11 +2,12 @@
 
 #include <catboost/libs/model/split.h>
 
+#include <library/binsaver/bin_saver.h>
+
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
 #include <util/digest/multi.h>
 
-#include <library/binsaver/bin_saver.h>
 
 template <class T>
 static bool HasDuplicates(const TVector<T>& x) {

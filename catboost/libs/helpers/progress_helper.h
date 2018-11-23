@@ -13,34 +13,29 @@
 
 #include <library/digest/md5/md5.h>
 
-namespace {
+class TMD5Output : public IOutputStream {
+public:
+    explicit inline TMD5Output(IOutputStream* slave) noexcept
+            : Slave_(slave) {
+    }
 
-    class TMD5Output : public IOutputStream {
-    public:
-        explicit inline TMD5Output(IOutputStream* slave) noexcept
-                : Slave_(slave) {
-        }
+    inline const char* Sum(char* buf) {
+        return MD5Sum_.End(buf);
+    }
 
-        inline const char* Sum(char* buf) {
-            return MD5Sum_.End(buf);
-        }
+private:
+    void DoWrite(const void* buf, size_t len) override {
+        Slave_->Write(buf, len);
+        MD5Sum_.Update(buf, len);
+    }
 
-    private:
-        void DoWrite(const void* buf, size_t len) override {
-            Slave_->Write(buf, len);
-            MD5Sum_.Update(buf, len);
-        }
+    /* Note that default implementation of DoSkip works perfectly fine here as
+        * it's implemented in terms of DoRead. */
 
-        /* Note that default implementation of DoSkip works perfectly fine here as
-         * it's implemented in terms of DoRead. */
-
-    private:
-        IOutputStream* Slave_;
-        MD5 MD5Sum_;
-    };
-
-} // namespace
-
+private:
+    IOutputStream* Slave_;
+    MD5 MD5Sum_;
+};
 
 class TProgressHelper {
 public:
@@ -66,12 +61,12 @@ public:
                 writer(&md5out);
                 char md5buf[33];
                 if (CalcMd5) {
-                    MATRIXNET_INFO_LOG << SavedMessage << " (md5sum: " << md5out.Sum(md5buf) << " )" << Endl;
+                    CATBOOST_INFO_LOG << SavedMessage << " (md5sum: " << md5out.Sum(md5buf) << " )" << Endl;
                 }
             }
             NFs::Rename(tempName, path);
         } catch (...) {
-            MATRIXNET_WARNING_LOG << ExceptionMessage <<  CurrentExceptionMessage() << Endl;
+            CATBOOST_WARNING_LOG << ExceptionMessage <<  CurrentExceptionMessage() << Endl;
             NFs::Remove(tempName);
         }
     }
@@ -82,7 +77,7 @@ public:
         TString label;
         TIFStream input(path);
         ::Load(&input, label);
-        CB_ENSURE(Label == label, "Error: except " << Label << " progress. Got " << label);
+        CB_ENSURE(Label == label, "Error: expect " << Label << " progress. Got " << label);
         reader(&input);
     }
 

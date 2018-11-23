@@ -28,7 +28,7 @@ namespace NCudaLib {
             char msg[MPI_MAX_ERROR_STRING];                                   \
             int len;                                                          \
             MPI_Error_string(mpiErrNo, msg, &len);                            \
-            MATRIXNET_ERROR_LOG << "MPI failed with error code :" << mpiErrNo \
+            CATBOOST_ERROR_LOG << "MPI failed with error code :" << mpiErrNo \
                                 << " " << msg << Endl;                        \
             MPI_Abort(MPI_COMM_WORLD, mpiErrNo);                              \
         }                                                                     \

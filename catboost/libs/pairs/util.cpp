@@ -1,10 +1,11 @@
 #include "util.h"
 
-#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/options/loss_description.h>
+
 #include <util/generic/vector.h>
 #include <util/generic/set.h>
 #include <util/generic/hash.h>
+#include <util/random/shuffle.h>
 
 static void GenerateBruteForce(
     int groupBegin,
@@ -71,7 +72,7 @@ static void GenerateRandomly(
             generatedPairs.insert({firstIdx, secondIdx});
         }
     }
-    for (auto& pair : generatedPairs) {
+    for (const auto& pair : generatedPairs) {
         result->push_back(TPair(pair.first, pair.second, 1));
     }
 }
@@ -108,10 +109,10 @@ void GeneratePairLogitPairs(
 }
 
 TVector<TPair> GeneratePairLogitPairs(
-        const TVector<TGroupId>& groupId,
-        const TVector<float>& targetId,
-        int maxPairCount,
-        ui64 seed
+    const TVector<TGroupId>& groupId,
+    const TVector<float>& targetId,
+    int maxPairCount,
+    ui64 seed
 ) {
     TVector<TPair> pairs;
     TRestorableFastRng64 rand(seed);

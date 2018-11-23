@@ -62,7 +62,7 @@ namespace {
         }
 
         virtual bool OnMapKey(const TStringBuf& v) {
-            auto iv = P.AppendString(v);
+            auto iv = P.AppendCString(v);
 
             B.Key(~iv, +iv);
 

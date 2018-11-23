@@ -114,16 +114,19 @@ def open_resource(name):
 if getattr(sys, 'is_standalone_binary', False) and not os.environ.get('PYTZ_TZDATADIR', None):
     def open_resource(name):
         """Open a resource from the zoneinfo for reading.
- 
+
         Uses compiled-in timezone files
         """
         import __res
-        from cStringIO import StringIO
+        try:
+            from cStringIO import StringIO as Stream
+        except ImportError:
+            from io import BytesIO as Stream
         res_name = '/pytz_data/zoneinfo/' + name.lstrip('/')
         res_buf = __res.find(res_name)
         if res_buf is None:
             raise IOError("No such resource: " + res_name)
-        return StringIO(res_buf)
+        return Stream(res_buf)
 
 
 def resource_exists(name):
@@ -1097,7 +1100,7 @@ all_timezones = \
  'Zulu']
 all_timezones = LazyList(
         tz for tz in all_timezones if resource_exists(tz))
-        
+
 all_timezones_set = LazySet(all_timezones)
 common_timezones = \
 ['Africa/Abidjan',
@@ -1541,5 +1544,5 @@ common_timezones = \
  'UTC']
 common_timezones = LazyList(
             tz for tz in common_timezones if tz in all_timezones)
-        
+
 common_timezones_set = LazySet(common_timezones)

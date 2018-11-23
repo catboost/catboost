@@ -19,8 +19,8 @@
 #include "hide_ptr.h"
 #endif
 
-Y_NO_RETURN void ThrowLengthError(const char* descr);
-Y_NO_RETURN void ThrowRangeError(const char* descr);
+[[noreturn]] void ThrowLengthError(const char* descr);
+[[noreturn]] void ThrowRangeError(const char* descr);
 
 namespace NDetail {
     extern void const* STRING_DATA_NULL;
@@ -113,6 +113,7 @@ struct TFixedString {
     {
     }
 
+    Y_PURE_FUNCTION
     inline TFixedString SubString(size_t pos, size_t n) const noexcept {
         pos = Min(pos, Length);
         n = Min(n, Length - pos);
@@ -286,6 +287,7 @@ public:
         return *Ptr() == 0;
     }
 
+    Y_PURE_FUNCTION
     constexpr inline bool empty() const noexcept {
         return Len() == 0;
     }
@@ -303,7 +305,8 @@ public: // style-guide compliant methods
         return Len();
     }
 
-    constexpr bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    constexpr bool Empty() const noexcept  {
         return 0 == Len();
     }
 
@@ -622,7 +625,7 @@ public:
         return CopyImpl(pc, n, pos);
     }
 
-    inline size_t copy(TCharType* pc, size_t n) const {
+    inline size_t copy(TCharType* pc, size_t n) const noexcept {
         return CopyImpl(pc, n, 0);
     }
 
@@ -635,12 +638,12 @@ public:
         return n;
     }
 
-    inline TDerived copy() const {
+    inline TDerived copy() const Y_WARN_UNUSED_RESULT {
         return TDerived(Ptr(), Len());
     }
 
     // ~~~ Partial copy ~~~~
-    TDerived substr(size_t pos, size_t n = npos) const {
+    TDerived substr(size_t pos, size_t n = npos) const Y_WARN_UNUSED_RESULT {
         return TDerived(*This(), pos, n);
     }
 
@@ -1707,8 +1710,7 @@ public:
 
     using TBase::TBase;
 
-    TUtf16String() {
-    }
+    TUtf16String() = default;
 
     TUtf16String(TUtf16String&& s) noexcept {
         swap(s);
@@ -1808,8 +1810,7 @@ public:
 
     using TBase::TBase;
 
-    TUtf32String() {
-    }
+    TUtf32String() = default;
 
     TUtf32String(TUtf32String&& s) noexcept {
         swap(s);

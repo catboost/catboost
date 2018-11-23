@@ -28,6 +28,9 @@ namespace NKernelHost {
         context->Indices = manager.Allocate<ui32>(docCount);
 
         context->TempStorage = manager.Allocate<char>(tempStorageMemory);
+
+        context->UpdatePropsTempBufferSize = NKernel::GetTempVarsCount(Statistics.GetColumnCount(), LeafIdsToSplitCpu.Size());
+        context->UpdatePropsTempBuffer = manager.Allocate<double>(context->UpdatePropsTempBufferSize);
         return context;
     }
 
@@ -125,6 +128,8 @@ namespace NKernelHost {
                                                Statistics.Get(),
                                                Statistics.GetColumnCount(),
                                                Statistics.AlignedColumnSize(),
+                                               context.UpdatePropsTempBufferSize,
+                                               context.UpdatePropsTempBuffer.Get(),
                                                PartitionStats.Get(),
                                                stream.GetStream());
     }

@@ -67,7 +67,7 @@ static inline i64 DownToGranularity(i64 offset) noexcept {
 }
 
 // maybe we should move this function to another .cpp file to avoid unwanted optimization?
-static void PrechargeImpl(TFile f, void* data, size_t dataSize, size_t off, size_t size) {
+void NPrivate::Precharge(const void* data, size_t dataSize, size_t off, size_t size) {
     if (off > dataSize) {
         assert(false);
         return;
@@ -81,38 +81,7 @@ static void PrechargeImpl(TFile f, void* data, size_t dataSize, size_t off, size
     if (dataSize == 0 || size == 0)
         return;
 
-    volatile const char *c = (char*)data + off, *e = c + size;
-#ifdef _freebsd_
-    if (off % PAGE_SIZE) {
-        off = off / PAGE_SIZE * PAGE_SIZE; // align on PAGE_SIZE
-        size = endOff - off;
-        c = (char*)data + off;
-    }
-
-    madvise((void*)c, e - c, MADV_WILLNEED);
-    const size_t rdSize1 = 64 << 20, rdSize2 = 4 << 20;
-    const size_t rdSize = size > rdSize2 * 32 ? rdSize1 : rdSize2;
-    TArrayHolder<char> pages(new char[(rdSize + PAGE_SIZE - 1) / PAGE_SIZE]);
-    TBuffer buf(Min(rdSize, size));
-    ui32 nbufs = 0, nread = 0;
-    for (size_t r = 0; r < size; r += rdSize) {
-        bool needRead = true;
-        size_t toRead = Min(rdSize, size - r);
-        if (mincore((void*)(c + r), toRead, pages.Get()) != -1)
-            needRead = memchr(pages.Get(), 0, (toRead + PAGE_SIZE - 1) / PAGE_SIZE) != 0;
-        if (needRead)
-            f.Pread(buf.Data(), toRead, off + r);
-        madvise((void*)(c + r), toRead, MADV_WILLNEED);
-        for (volatile const char* d = c; d < c + r; d += 512)
-            *d;
-        ++nbufs;
-        nread += needRead;
-    }
-    //warnx("precharge: read %u/%u (blk %" PRISZT ")", nread, nbufs, rdSize);
-    return;
-#else
-    Y_UNUSED(f);
-#endif
+    volatile const char *c = (const char*)data + off, *e = c + size;
     for (; c < e; c += 512)
         *c;
 }
@@ -254,7 +223,7 @@ public:
         }
         NSan::Unpoison(result.Ptr, result.Size);
         if (Mode_ & oPrecharge) {
-            PrechargeImpl(File_, result.Ptr, result.Size, 0, result.Size);
+            NPrivate::Precharge(result.Ptr, result.Size, 0, result.Size);
         }
 
         return result;
@@ -513,7 +482,7 @@ TFileMap::~TFileMap() {
 }
 
 void TFileMap::Precharge(size_t pos, size_t size) const {
-    PrechargeImpl(GetFile(), Ptr(), MappedSize(), pos, size);
+    NPrivate::Precharge(Ptr(), MappedSize(), pos, size);
 }
 
 TMappedAllocation::TMappedAllocation(size_t size, bool shared, void* addr)

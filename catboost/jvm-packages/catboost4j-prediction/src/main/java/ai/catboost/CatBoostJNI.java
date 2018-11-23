@@ -1,86 +1,90 @@
 package ai.catboost;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 class CatBoostJNI {
-    private static final Log logger = LogFactory.getLog(CatBoostJNI.class);
-
-    static {
-        try {
-            NativeLibLoader.initCatBoost();
-        } catch (Exception ex) {
-            logger.error("Failed to load native library", ex);
-            throw new RuntimeException(ex);
-        }
+    final void catBoostHashCatFeature(
+            final @NotNull String catFeature,
+            final @NotNull int[] hash) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostHashCatFeature(catFeature, hash));
     }
 
-    static void checkCall(int ret) throws CatBoostException {
-        if (ret != 0) {
-            throw new CatBoostException(catBoostGetLastError());
-        }
+    final void catBoostHashCatFeatures(
+            final @NotNull String[] catFeatures,
+            final @NotNull int[] hashes) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostHashCatFeatures(catFeatures, hashes));
     }
 
-    final static native String catBoostGetLastError();
+    final void catBoostLoadModelFromFile(
+            final @NotNull String fname,
+            final @NotNull long[] handle) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(fname, handle));
+    }
 
-    final static native int catBoostHashCatFeature(
-            @NotNull String catFeature,
-            @NotNull int[] hash);
+    final void catBoostLoadModelFromArray(
+            final @NotNull byte[] data,
+            final @NotNull long[] handle) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(data, handle));
+    }
 
-    final static native int catBoostHashCatFeatures(
-            @NotNull String[] catFeatures,
-            @NotNull int[] hashes);
+    final void catBoostFreeModel(final long handle) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostFreeModel(handle));
+    }
 
-    final static native int catBoostLoadModelFromFile(
-            @NotNull String fname,
-            @NotNull long[] handle);
+    final void catBoostModelGetPredictionDimension(
+            final long handle,
+            final @NotNull int[] classesCount) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetPredictionDimension(handle, classesCount));
+    }
 
-    final static native int catBoostLoadModelFromArray(
-            @NotNull byte[] data,
-            @NotNull long[] handle);
+    final void catBoostModelGetUsedNumericFeatureCount(
+            final long handle,
+            final @NotNull int[] numericFeatureCount) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedNumericFeatureCount(handle, numericFeatureCount));
+    }
 
-    final static native int catBoostFreeModel(long handle);
+    final void catBoostModelGetUsedCategoricalFeatureCount(
+            final long handle,
+            final @NotNull int[] catFeatureCount) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedCategoricalFeatureCount(handle, catFeatureCount));
+    }
 
-    final static native int catBoostModelGetPredictionDimension(
-            long handle,
-            @NotNull int[] classesCount);
+    final void catBoostModelGetTreeCount(
+            final long handle,
+            final @NotNull int[] treeCount) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(handle, treeCount));
+    }
 
-    final static native int catBoostModelGetNumericFeatureCount(
-            long handle,
-            @NotNull int[] numericFeatureCount);
+    final void catBoostModelPredict(
+            final long handle,
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures,
+            final @NotNull double[] predictions) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatures, predictions));
+    }
 
-    final static native int catBoostModelGetCategoricalFeatureCount(
-            long handle,
-            @NotNull int[] catFeatureCount);
+    final void catBoostModelPredict(
+            final long handle,
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes,
+            final @NotNull double[] predictions) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, predictions));
+    }
 
-    final static native int catBoostModelGetTreeCount(
-            long handle,
-            @NotNull int[] treeCount);
+    final void catBoostModelPredict(
+            final long handle,
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures,
+            final @NotNull double[] predictions) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatures, predictions));
+    }
 
-    final static native int catBoostModelPredict(
-            long handle,
-            @Nullable float[] numericFeatures,
-            @Nullable String[] catFeatures,
-            @NotNull double[] result);
-
-    final static native int catBoostModelPredict(
-            long handle,
-            @Nullable float[] numericFeatures,
-            @Nullable int[] catFeatureHashes,
-            @NotNull double[] result);
-
-    final static native int catBoostModelPredict(
-            long handle,
-            @Nullable float[][] numericFeatures,
-            @Nullable String[][] catFeatures,
-            @NotNull double[] results);
-
-    final static native int catBoostModelPredict(
-            long handle,
-            @Nullable float[][] numericFeatures,
-            @Nullable int[][] catFeatureHashes,
-            @NotNull double[] results);
+    final void catBoostModelPredict(
+            final long handle,
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes,
+            final @NotNull double[] predictions) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, predictions));
+    }
 }

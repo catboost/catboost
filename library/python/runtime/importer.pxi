@@ -11,7 +11,7 @@ import __res as __resource
 
 env_entry_point = 'Y_PYTHON_ENTRY_POINT'
 env_source_root = 'Y_PYTHON_SOURCE_ROOT'
-executable = sys.executable
+executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
 find_py_module = lambda mod: __resource.find('/py_modules/' + mod)

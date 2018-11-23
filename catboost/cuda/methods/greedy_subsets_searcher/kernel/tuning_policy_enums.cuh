@@ -25,7 +25,7 @@ namespace NKernel {
     template <ELoadSize Size>
     struct TLoadSize;
 
-    template<>
+    template <>
     struct TLoadSize<ELoadSize::OneElement> {
         static constexpr int Size() {
             return 1;
@@ -33,7 +33,7 @@ namespace NKernel {
     };
 
 
-    template<>
+    template <>
     struct TLoadSize<ELoadSize::TwoElements> {
         static constexpr int Size() {
             return 2;
@@ -41,7 +41,7 @@ namespace NKernel {
     };
 
 
-    template<>
+    template <>
     struct TLoadSize<ELoadSize::FourElements> {
         static constexpr int Size() {
             return 4;

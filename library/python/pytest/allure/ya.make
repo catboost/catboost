@@ -1,6 +1,6 @@
 
 
-LIBRARY()
+PY_LIBRARY()
 
 PY_SRCS(
     conftest.py

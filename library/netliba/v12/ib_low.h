@@ -1,7 +1,17 @@
 #pragma once
 
-#if defined _linux_ && !defined CATBOOST_OPENSOURCE
+// TODO(yazevnul): this header doesn't include what it uses and thus triggers some wierd build
+// problems. Fix this. Also, it directly uses some low level primitives while they can only be
+// used from /util and whithin a translation unit.
+
+#include <util/system/platform.h>
+
+#if defined(_linux_) && !defined(CATBOOST_OPENSOURCE)
 #include <contrib/libs/ibdrv/iface.h>
+#endif
+
+#if defined(_linux_) || defined(_darwin_)
+#include <sys/socket.h>
 #endif
 
 namespace NNetliba_v12 {
@@ -19,7 +29,7 @@ namespace NNetliba_v12 {
     const size_t MAX_INLINE_DATA_SIZE = 16;
     const int MAX_OUTSTANDING_RDMA = 10;
 
-#if defined _linux_ && !defined CATBOOST_OPENSOURCE
+#if defined(_linux_) && !defined(CATBOOST_OPENSOURCE)
     class TIBContext: public TThrRefBase, TNonCopyable {
         ibv_context* Context;
         ibv_pd* ProtDomain;
@@ -747,7 +757,7 @@ namespace NNetliba_v12 {
         }
         TAddressHandle(TPtrArg<TIBPort>, int, int) {
         }
-        TAddressHandle(TPtrArg<TIBPort>, sockaddr&, sockaddr&, int) {
+        TAddressHandle(TPtrArg<TIBPort>, struct sockaddr&, struct sockaddr&, int) {
         }
         //ibv_ah *GetAH() { return AH; }
         bool IsValid() {

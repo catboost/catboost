@@ -9,7 +9,7 @@
 
 namespace NKernel {
 
-    template<bool IsFullPass>
+    template <bool IsFullPass>
     struct TEightBitPairwiseHistUnrollTrait {
 
         static constexpr int InnerUnroll() {
@@ -21,7 +21,7 @@ namespace NKernel {
         }
     };
 
-    template<int BlockSize, class TCmpBins = TCmpBinsWithoutOneHot>
+    template <int BlockSize, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TEightBitHistogram {
         TCmpBins CmpBinsFunc;
         float* Histogram;
@@ -165,7 +165,7 @@ namespace NKernel {
     };
 
 
-    template<int BlockSize, bool IsFullPass, bool OneHotPass>
+    template <int BlockSize, bool IsFullPass, bool OneHotPass>
     __global__ void ComputeSplitPropertiesNonBinaryPairs8Bit(const TCFeature* feature, int fCount, const ui32* cindex,
                                                              const uint2* pairs, const float* weight,
                                                              const TDataPartition* partition,

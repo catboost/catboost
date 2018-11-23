@@ -19,3 +19,12 @@ size_t TAllFeatures::GetDocCount() const {
     }
     return 0;
 }
+
+bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
+    for (int i = 0; i < allFeatures.CatFeaturesRemapped.ysize(); ++i) {
+        if (!allFeatures.IsOneHot[i] && !allFeatures.CatFeaturesRemapped[i].empty()) {
+            return false;
+        }
+    }
+    return true;
+}

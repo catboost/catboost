@@ -111,4 +111,14 @@ struct DTabCodeGen
 		FsmCodeGen(out), TabCodeGen(out), DCodeGen(out) {}
 };
 
+/*
+ * D2TabCodeGen
+ */
+struct D2TabCodeGen
+	: public TabCodeGen, public D2CodeGen
+{
+	D2TabCodeGen( ostream &out ) : 
+		FsmCodeGen(out), TabCodeGen(out), D2CodeGen(out) {}
+};
+
 #endif

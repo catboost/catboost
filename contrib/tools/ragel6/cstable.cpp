@@ -372,7 +372,11 @@ std::ostream &CSharpTabCodeGen::COND_KEYS()
 
 	/* Output one last number so we don't have to figure out when the last
 	 * entry is and avoid writing a comma. */
-	out << 0 << "\n";
+	if ( keyOps->alphType->isChar )
+		out << "(char) " << 0 << "\n";
+	else
+		out << 0 << "\n";
+
 	return out;
 }
 
@@ -424,7 +428,11 @@ std::ostream &CSharpTabCodeGen::KEYS()
 
 	/* Output one last number so we don't have to figure out when the last
 	 * entry is and avoid writing a comma. */
-	out << "(char) " << 0 << "\n";
+	if ( keyOps->alphType->isChar )
+		out << "(char) " << 0 << "\n";
+	else
+		out << 0 << "\n";
+
 	return out;
 }
 
@@ -610,15 +618,22 @@ std::ostream &CSharpTabCodeGen::TRANS_ACTIONS_WI()
 
 void CSharpTabCodeGen::GOTO( ostream &ret, int gotoDest, bool inFinish )
 {
-	ret << "{" << vCS() << " = " << gotoDest << "; " << 
-			CTRL_FLOW() << "goto _again;}";
+	ret << "{" << vCS() << " = " << gotoDest << ";";
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 }
 
 void CSharpTabCodeGen::GOTO_EXPR( ostream &ret, GenInlineItem *ilItem, bool inFinish )
 {
 	ret << "{" << vCS() << " = (";
 	INLINE_LIST( ret, ilItem->children, 0, inFinish );
-	ret << "); " << CTRL_FLOW() << "goto _again;}";
+	ret << ");";
+	
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 }
 
 void CSharpTabCodeGen::CURS( ostream &ret, bool inFinish )
@@ -650,8 +665,13 @@ void CSharpTabCodeGen::CALL( ostream &ret, int callDest, int targState, bool inF
 		INLINE_LIST( ret, prePushExpr, 0, false );
 	}
 
-	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = " << 
-			callDest << "; " << CTRL_FLOW() << "goto _again;}";
+	ret << "{";
+
+	ret << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = " << callDest << ";";
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 
 	if ( prePushExpr != 0 )
 		ret << "}";
@@ -664,9 +684,15 @@ void CSharpTabCodeGen::CALL_EXPR( ostream &ret, GenInlineItem *ilItem, int targS
 		INLINE_LIST( ret, prePushExpr, 0, false );
 	}
 
-	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = (";
+	ret << "{";
+
+	ret << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = (";
 	INLINE_LIST( ret, ilItem->children, targState, inFinish );
-	ret << "); " << CTRL_FLOW() << "goto _again;}";
+	ret << ");";
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 
 	if ( prePushExpr != 0 )
 		ret << "}";
@@ -674,8 +700,9 @@ void CSharpTabCodeGen::CALL_EXPR( ostream &ret, GenInlineItem *ilItem, int targS
 
 void CSharpTabCodeGen::RET( ostream &ret, bool inFinish )
 {
-	ret << "{" << vCS() << " = " << STACK() << "[--" << 
-			TOP() << "]; ";
+	ret << "{";
+
+	ret << vCS() << " = " << STACK() << "[--" << TOP() << "]; ";
 
 	if ( postPopExpr != 0 ) {
 		ret << "{";
@@ -683,7 +710,9 @@ void CSharpTabCodeGen::RET( ostream &ret, bool inFinish )
 		ret << "}";
 	}
 
-	ret << CTRL_FLOW() <<  "goto _again;}";
+	ret << CTRL_FLOW() <<  "goto _again;";
+
+	ret << "}";
 }
 
 void CSharpTabCodeGen::BREAK( ostream &ret, int targState )
@@ -949,8 +978,8 @@ void CSharpTabCodeGen::writeExec()
 			|| redFsm->anyFromStateActions() )
 	{
 		out << 
-			"	" << actsType << " _acts;\n"
-			"	" << nactsType << " _nacts;\n";
+			"	int _acts;\n"
+			"	int _nacts;\n";
 	}
 
 	out <<
@@ -1077,9 +1106,9 @@ void CSharpTabCodeGen::writeExec()
 
 		if ( redFsm->anyEofActions() ) {
 			out <<
-				"	" << actsType << " __acts = " << 
+				"	int __acts = " << 
 						EA() << "[" << vCS() << "]" << ";\n"
-				"	" << nactsType << " __nacts = " << 
+				"	int __nacts = " << 
 				A() << "[__acts++];\n"
 				"	while ( __nacts-- > 0 ) {\n"
 				"		switch ( " << A() << "[__acts++] ) {\n";
@@ -1112,6 +1141,4 @@ void CSharpTabCodeGen::initVarTypes()
 	klenType = ARRAY_TYPE(klenMax);
 	keysType = ARRAY_TYPE(keysMax);
 	signedKeysType = ARRAY_TYPE(keysMax, true);
-	actsType = ARRAY_TYPE(redFsm->maxActionLoc);
-	nactsType = ARRAY_TYPE(redFsm->maxActArrItem);
 }

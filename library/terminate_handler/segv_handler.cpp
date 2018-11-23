@@ -15,7 +15,7 @@
 static void SegvHandler(int sig) {
     Y_UNUSED(sig);
     const char msg[] = "Got SEGV\n";
-    write(STDERR_FILENO, msg, sizeof(msg));
+    Y_UNUSED(write(STDERR_FILENO, msg, sizeof(msg)));
     //PrintBackTrace();
     sig_t r = signal(SIGSEGV, SIG_DFL);
     if (r == SIG_ERR) {

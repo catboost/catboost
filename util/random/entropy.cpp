@@ -3,6 +3,7 @@
 #include "entropy.h"
 #include "mersenne.h"
 #include "shuffle.h"
+#include "init_atfork.h"
 
 #include <util/stream/output.h>
 #include <util/stream/mem.h>
@@ -14,6 +15,11 @@
 #include <util/system/execpath.h>
 #include <util/system/datetime.h>
 #include <util/system/hostname.h>
+#include <util/system/getpid.h>
+#include <util/system/mem_info.h>
+#include <util/system/rusage.h>
+#include <util/system/user.h>
+#include <util/system/cpu_id.h>
 #include <util/system/unaligned_mem.h>
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>
@@ -32,10 +38,12 @@ namespace {
                 TBufferOutput buf(*this);
                 TZLibCompress out(&buf);
 
+                Save(&out, GetPID());
                 Save(&out, GetCycleCount());
                 Save(&out, MicroSeconds());
                 Save(&out, TThread::CurrentThreadId());
                 Save(&out, NSystemInfo::CachedNumberOfCpus());
+                Save(&out, NSystemInfo::TotalMemorySize());
                 Save(&out, HostName());
 
                 try {
@@ -45,12 +53,35 @@ namespace {
                 }
 
                 Save(&out, (size_t)Data());
+                Save(&out, (size_t)&buf);
 
-                double la[3];
+                {
+                    double la[3];
 
-                NSystemInfo::LoadAverage(la, Y_ARRAY_SIZE(la));
+                    NSystemInfo::LoadAverage(la, Y_ARRAY_SIZE(la));
 
-                out.Write(la, sizeof(la));
+                    out.Write(la, sizeof(la));
+                }
+
+                {
+                    auto mi = NMemInfo::GetMemInfo();
+
+                    out.Write(&mi, sizeof(mi));
+                }
+
+                {
+                    auto ru = TRusage::Get();
+
+                    out.Write(&ru, sizeof(ru));
+                }
+
+                Save(&out, GetUsername());
+
+                {
+                    ui32 store[12];
+
+                    out << TStringBuf(CpuBrand(store));
+                }
             }
 
             {
@@ -143,8 +174,7 @@ namespace {
         THolder<TEntropyPoolStream> EP;
         TSeedStream SS;
 
-        inline TDefaultTraits()
-        {
+        inline TDefaultTraits() {
             Reset();
         }
 
@@ -161,7 +191,11 @@ namespace {
         }
 
         static inline TDefaultTraits& Instance() {
-            return *SingletonWithPriority<TDefaultTraits, 0>();
+            auto res = SingletonWithPriority<TDefaultTraits, 0>();
+
+            RNGInitAtForkHandlers();
+
+            return *res;
         }
     };
 

@@ -10,7 +10,7 @@
 
 TVector<ui64> CreateOrderByKey(const TVector<ui64>& key);
 
-template<typename IndexType>
+template <typename IndexType>
 TVector<IndexType> InvertPermutation(const TVector<IndexType>& permutation) {
     TVector<IndexType> result(permutation.size());
     for (ui64 i = 0; i < permutation.size(); ++i) {
@@ -19,7 +19,7 @@ TVector<IndexType> InvertPermutation(const TVector<IndexType>& permutation) {
     return result;
 }
 
-template<typename TDataType, typename TRandGen>
+template <typename TDataType, typename TRandGen>
 void Shuffle(const TVector<TGroupId>& queryId, TRandGen& rand, TVector<TDataType>* indices) {
     if (queryId.empty()) {
         Shuffle(indices->begin(), indices->end(), rand);

@@ -1,59 +1,61 @@
+
+
 LIBRARY()
 
 NO_WERROR()
 
-
-
 SRCS(
-    cuda_base.cpp
     cache.cpp
+    cuda_base.cpp
+    cuda_buffer.cpp
+    cuda_buffer_helpers/buffer_resharding.cpp
     cuda_events_provider.cpp
     cuda_kernel_buffer.cpp
     cuda_manager.cpp
     cuda_profiler.cpp
-    cuda_buffer.cpp
     device_id.cpp
     device_provider.cpp
     devices_list.cpp
-    gpu_single_worker.cpp
-    inter_device_stream_section.cpp
-    mapping.cpp
-    memory_copy_performance.cpp
-    single_device.cpp
-    stream_section_tasks_launcher.cpp
-    GLOBAL task.cpp
-    worker_state.cpp
-    hwloc_wrapper.cpp
-    cuda_buffer_helpers/buffer_resharding.cpp
-    GLOBAL cuda_buffer_helpers/reduce_scatter.cpp
     future/local_promise_future.cpp
     future/mpi_promise_future.cpp
     future/promise_factory.cpp
-    kernel/arch.cu
-    kernel/kernel.cu
-    kernel/reduce.cu
-    memory_pool/stack_like_memory_pool.cpp
-    mpi/mpi_manager.cpp
-    serialization/task_factory.cpp
-    tasks_impl/cpu_func.cpp
+    fwd.cpp
+    GLOBAL cuda_buffer_helpers/reduce_scatter.cpp
+    GLOBAL task.cpp
     GLOBAL tasks_impl/enable_peers.cpp
     GLOBAL tasks_impl/host_tasks.cpp
     GLOBAL tasks_impl/kernel_task.cpp
     GLOBAL tasks_impl/memory_allocation.cpp
+    GLOBAL tasks_impl/memory_copy_tasks.cpp
     GLOBAL tasks_impl/memory_state_func.cpp
     GLOBAL tasks_impl/request_stream_task.cpp
-    GLOBAL tasks_impl/memory_copy_tasks.cpp
+    gpu_single_worker.cpp
+    hwloc_wrapper.cpp
+    inter_device_stream_section.cpp
+    kernel/arch.cu
+    kernel/kernel.cu
+    kernel/reduce.cu
+    mapping.cpp
+    memory_copy_performance.cpp
+    memory_pool/stack_like_memory_pool.cpp
+    mpi/mpi_manager.cpp
+    serialization/task_factory.cpp
+    single_device.cpp
+    stream_section_tasks_launcher.cpp
+    tasks_impl/cpu_func.cpp
     tasks_impl/stream_section_task.cpp
     tasks_queue/mpi_task_queue.cpp
     tasks_queue/single_host_task_queue.cpp
+    worker_state.cpp
 )
 
 PEERDIR(
-    library/threading/local_executor
-    library/threading/future
-    catboost/libs/logging
     catboost/libs/helpers
+    catboost/libs/logging
     library/blockcodecs
+    library/threading/future
+    library/threading/local_executor
+    library/threading/name_guard
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

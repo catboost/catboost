@@ -80,6 +80,10 @@ namespace NPrivate {
                 return TIterator(Value - b);
             }
 
+            constexpr bool operator<(const TIterator& b) const noexcept {
+                return Value < b.Value;
+            }
+
         private:
             T Value;
         };

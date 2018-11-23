@@ -28,7 +28,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
 
     public:
         TResponseDelayer()
-            : E_(Event::rAuto)
+            : E_(TSystemEvent::rAuto)
             , Shutdown_(false)
         {
         }
@@ -89,7 +89,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
         TAutoPtr<IThreadPool::IThread> Thr_;
         TMutex M_;
         TIntrusiveList<TTmResponse> R_;
-        Event E_;
+        TSystemEvent E_;
         TAtomicBool Shutdown_;
     };
 

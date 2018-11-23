@@ -76,6 +76,11 @@ public:
         return (yssize_t)this->size();
     }
 
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
+        return TBase::empty();
+    }
+
     inline explicit operator bool() const noexcept {
         return !this->empty();
     }

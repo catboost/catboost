@@ -2,6 +2,7 @@
 
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
+#include <catboost/libs/pairs/util.h>
 
 
 namespace NCatboostCuda {
@@ -110,7 +111,8 @@ namespace NCatboostCuda {
 
     TCpuPoolBasedDataProviderBuilder::TCpuPoolBasedDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
                                                                        bool hasQueries, const TPool& pool, bool isTest,
-                                                                       TDataProvider& dst)
+                                                                       const NCatboostOptions::TLossDescription& lossFunctionDescription,
+                                                                       ui64 seed, TDataProvider& dst)
             : FeaturesManager(featureManager)
               , DataProvider(dst)
               , Pool(pool)
@@ -131,6 +133,23 @@ namespace NCatboostCuda {
             for (ui32 i = 0; i < DataProvider.QueryIds.size(); ++i) {
                 DataProvider.QueryIds[i] = pool.Docs.QueryId[i];
             }
+        }
+
+        if (IsPairLogit(lossFunctionDescription.GetLossFunction()) && DataProvider.GetPairs().empty()) {
+            CB_ENSURE(
+                    !DataProvider.GetTargets().empty(),
+                    "Pool labels are not provided. Cannot generate pairs."
+            );
+
+            CATBOOST_WARNING_LOG << "No pairs provided for learn dataset. "
+                                 << "Trying to generate pairs using dataset labels." << Endl;
+
+            const auto& pairs = GeneratePairLogitPairs(
+                    DataProvider.QueryIds,
+                    DataProvider.Targets,
+                    NCatboostOptions::GetMaxPairCount(lossFunctionDescription),
+                    seed);
+            DataProvider.FillQueryPairs(pairs);
         }
 
         DataProvider.Baseline.resize(pool.Docs.Baseline.size());

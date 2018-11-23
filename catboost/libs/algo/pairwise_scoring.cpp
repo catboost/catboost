@@ -41,7 +41,7 @@ void TPairwiseStats::Add(const TPairwiseStats& rhs) {
 }
 
 
-template<typename TBucketIndexType>
+template <typename TBucketIndexType>
 TVector<TVector<double>> ComputeDerSums(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
@@ -79,7 +79,7 @@ TVector<TVector<double>> ComputeDerSums<int>(
     NCB::TIndexRange<int> docIndexRange
 );
 
-template<typename TBucketIndexType>
+template <typename TBucketIndexType>
 TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     const TFlatPairsInfo& pairs,
     int leafCount,

@@ -19,7 +19,7 @@ double _Py_force_double(double x)
    gcc/x86 */
 
 unsigned short _Py_get_387controlword(void) {
-    unsigned short cw;
+    unsigned short cw = 0;
     __asm__ __volatile__ ("fnstcw %0" : "=m" (cw));
     return cw;
 }

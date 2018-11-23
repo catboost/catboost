@@ -1,3 +1,3 @@
 __all__ = ["common"]
 
-import common
+from . import common

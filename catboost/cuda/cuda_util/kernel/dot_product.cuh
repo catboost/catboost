@@ -18,9 +18,9 @@ namespace NKernel {
     };
 
 
-    template<typename T>
+    template <typename T>
     void DotProduct(const T *x, const T *y, TDotProductContext<T>& context, TCudaStream stream);
 
-    template<typename T>
+    template <typename T>
     void WeightedDotProduct(const T *x, const T *weights, const T *y, TDotProductContext<T>& context, TCudaStream stream);
 }

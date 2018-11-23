@@ -1,6 +1,8 @@
 #pragma once
 
-#include <library/json/json_reader.h>
+namespace NJson {
+    class TJsonValue;
+}
 
 struct TCustomMetricDescriptor;
 struct TCustomObjectiveDescriptor;

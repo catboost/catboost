@@ -279,16 +279,17 @@ void RubyFlatCodeGen::LOCATE_TRANS()
 		"	_keys = " << vCS() << " << 1\n"
 		"	_inds = " << IO() << "[" << vCS() << "]\n"
 		"	_slen = " << SP() << "[" << vCS() << "]\n"
+		"	_wide = " << GET_WIDE_KEY() << "\n"
 		"	_trans = if (   _slen > 0 && \n"
-		"			" << K() << "[_keys] <= " << GET_WIDE_KEY() << " && \n"
-		"			" << GET_WIDE_KEY() << " <= " << K() << "[_keys + 1] \n"
+		"			" << K() << "[_keys] <= _wide && \n"
+		"			" << "_wide <= " << K() << "[_keys + 1] \n"
 		"		    ) then\n"
-		"			" << I() << "[ _inds + " << GET_WIDE_KEY() << " - " << K() << "[_keys] ] \n"
+		"			" << I() << "[ _inds + _wide - " << K() << "[_keys] ] \n"
 		"		 else \n"
 		"			" << I() << "[ _inds + _slen ]\n"
 		"		 end\n"
 		"";
-	
+
 }
 
 std::ostream &RubyFlatCodeGen::COND_INDEX_OFFSET()
@@ -308,16 +309,17 @@ std::ostream &RubyFlatCodeGen::COND_INDEX_OFFSET()
 
 void RubyFlatCodeGen::COND_TRANSLATE()
 {
-	out << 
+	out <<
 		"	_widec = " << GET_KEY() << "\n"
 		"	_keys = " << vCS() << " << 1\n"
 		"	_conds = " << CO() << "[" << vCS() << "]\n"
 		"	_slen = " << CSP() << "[" << vCS() << "]\n"
-		"	_cond = if ( _slen > 0 && \n" 
-		"		     " << CK() << "[_keys] <= " << GET_WIDE_KEY() << " &&\n" 
-		"		     " << GET_WIDE_KEY() << " <= " << CK() << "[_keys + 1]\n"
+		"	_wide = " << GET_WIDE_KEY() << "\n"
+		"	_cond = if ( _slen > 0 && \n"
+		"		     " << CK() << "[_keys] <= _wide &&\n"
+		"		     " << "_wide <= " << CK() << "[_keys + 1]\n"
 		"		   ) then \n"
-		"			" << C() << "[ _conds + " << GET_WIDE_KEY() << " - " << CK() << "[_keys]" << " ]\n"
+		"			" << C() << "[ _conds + _wide - " << CK() << "[_keys]" << " ]\n"
 		"		else\n"
 		"		       0\n"
 		"		end\n";

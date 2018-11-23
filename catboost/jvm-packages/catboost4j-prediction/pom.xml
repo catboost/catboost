@@ -6,15 +6,47 @@
 
     <groupId>ai.catboost</groupId>
     <artifactId>catboost-prediction</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2.4-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>CatBoost model applier</name>
+    <description>Java module to apply CatBoost models</description>
+    <url>https://catboost.ai</url>
 
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <organization>
+        <name>CatBoost dev team</name>
+        <url>https://catboost.ai</url>
+    </organization>
+
+    <scm>
+        <connection>scm:git:git:/github.com/catboost/catboost.git</connection>
+        <developerConnection>scm:git:ssh://github.com/catboost/catboost.git</developerConnection>
+        <url>https://github.com/catboost/catboost</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>CatBoost dev team</name>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <plugins>
@@ -35,6 +67,9 @@
                                 <argument>src/native/build_for_maven.py</argument>
                                 <argument>--build</argument>
                                 <argument>release</argument>
+                                <argument>--no-src-links</argument>
+                                <argument>-DOS_SDK=local</argument>
+                                <argument>-DHAVE_CUDA=no</argument>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
@@ -48,33 +83,77 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>utf-8</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.3</version>
                 <configuration>
-                    <show>protected</show>
-                    <nohelp>true</nohelp>
+                    <encoding>
+                        utf-8
+                    </encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
                     <encoding>utf-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
@@ -84,6 +163,24 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>1.7.25</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

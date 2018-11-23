@@ -10,7 +10,7 @@ TCgiParameters::TCgiParameters(std::initializer_list<std::pair<TString, TString>
     }
 }
 
-const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) const {
+const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) const noexcept {
     const auto it = Find(name, numOfValue);
 
     return end() == it ? Default<TString>() : it->second;
@@ -203,7 +203,7 @@ TString TCgiParameters::QuotedPrint(const char* safe) const {
     return res;
 }
 
-TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const {
+TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it, --pos) {
@@ -215,7 +215,7 @@ TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_
     return end();
 }
 
-bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const {
+bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it) {
@@ -247,7 +247,7 @@ TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
     }
 }
 
-const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const {
+const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it, --pos) {
@@ -259,7 +259,7 @@ const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const {
     return Default<TStringBuf>();
 }
 
-bool TQuickCgiParam::Has(const TStringBuf name, const TStringBuf value) const {
+bool TQuickCgiParam::Has(const TStringBuf name, const TStringBuf value) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it) {

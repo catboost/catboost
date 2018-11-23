@@ -1,14 +1,15 @@
 #pragma once
 
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/quantized_pool/pool.h>
-#include <catboost/libs/quantized_pool/serialization.h>
-#include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 
-#include <util/generic/hash_set.h>
-#include <util/generic/xrange.h>
-#include <util/system/byteorder.h>
-#include <util/system/unaligned_mem.h>
+#include <util/generic/hash.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
+#include <util/stream/output.h>
+#include <util/system/types.h>
 
 
 namespace NCB {
@@ -17,7 +18,12 @@ namespace NCB {
     public:
         virtual void OutputColumnByType(IOutputStream* outstream, ui64 docId, EColumn columnType) = 0;
         virtual void OutputColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 columnId) = 0;
+        virtual void UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& /*columnsMetaInfo*/) {}
         virtual ~IPoolColumnsPrinter() = default;
+        bool HasDocIdColumn = false;
+    private:
+        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+        THashMap<EColumn, ui32> FromColumnTypeToColumnId; // Only for DSV pools
     };
 
     class TDSVPoolColumnsPrinter : public IPoolColumnsPrinter {
@@ -25,10 +31,11 @@ namespace NCB {
         TDSVPoolColumnsPrinter(
             const TPathWithScheme& testSetPath,
             const TDsvFormatOptions& format,
-            const TVector<TColumn>& columnTypes
+            const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
         );
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) override;
+        void UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo) override;
 
     private:
         const TString& GetCell(ui64 docId, ui32 colId);
@@ -52,6 +59,7 @@ namespace NCB {
             ui32 CurrentChunkIndex = 0;
             ui32 CurrentOffset = 0;
             ui64 CurrentDocId = 0;
+            TString CurrentToken = "";
         };
 
         const TString GetStringColumnToken(ui64 docId, EColumn columnType);

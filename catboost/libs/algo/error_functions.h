@@ -1,6 +1,6 @@
 #pragma once
 
-#include "approx_util.h"
+#include "approx_updater_helpers.h"
 
 #include "hessian.h"
 
@@ -22,7 +22,7 @@
 #include <util/system/yassert.h>
 #include <util/string/iterator.h>
 
-template<typename TChild, bool StoreExpApproxParam>
+template <typename TChild, bool StoreExpApproxParam>
 class IDerCalcer {
 public:
     static constexpr bool StoreExpApprox = StoreExpApproxParam;
@@ -148,7 +148,7 @@ private:
         return static_cast<const TChild*>(this)->CalcDer3(approx, target);
     }
 
-    template<bool CalcThirdDer>
+    template <bool CalcThirdDer>
     void CalcDers(double approx, float target, TDers* ders) const {
         ders->Der1 = CalcDer(approx, target);
         ders->Der2 = CalcDer2(approx, target);
@@ -179,7 +179,7 @@ public:
         return -p * (1 - p) * (1 - 2 * p);
     }
 
-    template<bool CalcThirdDer>
+    template <bool CalcThirdDer>
     void CalcDers(double approxExp, float target, TDers* ders) const {
         const double p = approxExp / (1 + approxExp);
         ders->Der1 = target - p;
@@ -371,7 +371,7 @@ public:
         return -approxExp;
     }
 
-    template<bool CalcThirdDer>
+    template <bool CalcThirdDer>
     void CalcDers(double approxExp, float target, TDers* ders) const {
         ders->Der1 = target - approxExp;
         ders->Der2 = -approxExp;
@@ -689,7 +689,7 @@ public:
         NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
             int begin = queriesInfo[queryIndex].Begin;
             int end = queriesInfo[queryIndex].End;
-            CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, ders);
+            CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, *ders);
         });
     }
 
@@ -706,63 +706,11 @@ private:
         int start,
         int offset,
         int count,
-        const TVector<double>& approxes,
-        const TVector<float>& targets,
-        const TVector<float>& weights,
-        TVector<TDers>* ders
-    ) const {
-        double maxApprox = -std::numeric_limits<double>::max();
-        double sumExpApprox = 0;
-        double sumWeightedTargets = 0;
-        for (int dim = offset; dim < offset + count; ++dim) {
-            if (weights.empty() || weights[start + dim] > 0) {
-                maxApprox = std::max(maxApprox, approxes[start + dim]);
-                if (targets[start + dim] > 0) {
-                    if (!weights.empty()) {
-                        sumWeightedTargets += weights[start + dim] * targets[start + dim];
-                    } else {
-                        sumWeightedTargets += targets[start + dim];
-                    }
-                }
-            }
-        }
-        if (sumWeightedTargets > 0) {
-            for (int dim = offset; dim < offset + count; ++dim) {
-                if (weights.empty() || weights[start + dim] > 0) {
-                    double expApprox = exp(approxes[start + dim] - maxApprox);
-                    if (!weights.empty()) {
-                        expApprox *= weights[start + dim];
-                    }
-                    (*ders)[dim].Der1 = expApprox;
-                    sumExpApprox += expApprox;
-                } else {
-                    (*ders)[dim].Der1 = 0.0;
-                }
-            }
-            for (int dim = offset; dim < offset + count; ++dim) {
-                if (weights.empty() || weights[start + dim] > 0) {
-                    const double p = (*ders)[dim].Der1 / sumExpApprox;
-                    (*ders)[dim].Der2 = sumWeightedTargets * (p * (p - 1.0) - LambdaReg);
-                    (*ders)[dim].Der1 = -sumWeightedTargets * p;
-                    if (targets[start + dim] > 0) {
-                        if (!weights.empty()) {
-                            (*ders)[dim].Der1 += weights[start + dim] * targets[start + dim];
-                        } else {
-                            (*ders)[dim].Der1 += targets[start + dim];
-                        }
-                    }
-                } else {
-                    (*ders)[dim].Der2 = 0.0;
-                    (*ders)[dim].Der1 = 0.0;
-                }
-            }
-        } else {
-            for (int dim = offset; dim < offset + count; ++dim) {
-                (*ders)[dim].Der2 = 0.0;
-                (*ders)[dim].Der1 = 0.0;
-            }
-        }
-    }
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        TConstArrayRef<float> weights,
+        TArrayRef<TDers> ders
+    ) const;
 };
 
 class TCustomError : public IDerCalcer<TCustomError, /*StoreExpApproxParam*/ false> {

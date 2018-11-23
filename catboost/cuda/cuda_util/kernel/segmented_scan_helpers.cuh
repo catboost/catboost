@@ -33,7 +33,7 @@ namespace NKernel
 
     //output iterator for segmented scan + scatter with mask routine
     //class based on cache-modified-output iterator from cub
-    template<cub::CacheStoreModifier MODIFIER,
+    template <cub::CacheStoreModifier MODIFIER,
              typename TValueType,
              typename TOffsetType = ptrdiff_t,
              bool Inclusive = false>
@@ -91,7 +91,7 @@ namespace NKernel
     public:
 
         /// Constructor
-        template<class TQualifiedValueType>
+        template <class TQualifiedValueType>
         __host__ __device__ __forceinline__ TNonNegativeSegmentedScanOutputIterator(TQualifiedValueType* ptr,
                                                                                     const ui32* __restrict index,
                                                                                     const ui32* __restrict end
@@ -122,7 +122,7 @@ namespace NKernel
         }
 
         /// Addition
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type operator+(TDistance n) const
         {
             self_type retval(Ptr, Index + n, End);
@@ -130,21 +130,21 @@ namespace NKernel
         }
 
         /// Addition assignment
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type& operator+=(TDistance n) {
             Index += n;
             return *this;
         }
 
         /// Subtraction
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type operator-(TDistance n) const {
             self_type retval(Ptr, Index - n, End);
             return retval;
         }
 
         /// Subtraction assignment
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type& operator-=(TDistance n) {
             Index -= n;
             return *this;
@@ -157,7 +157,7 @@ namespace NKernel
         }
 
         /// Array subscript
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ reference operator[](TDistance n) const {
             return TReference(Ptr, Index + n, End);
         }
@@ -176,7 +176,7 @@ namespace NKernel
 
     //output iterator for segmented scan + scatter with mask routine
     //class based on cache-modified-output iterator from cub
-    template<typename T,
+    template <typename T,
              bool Inclusive = false,
              typename TOffsetType = ptrdiff_t>
     class TSegmentedScanOutputIterator
@@ -226,7 +226,7 @@ namespace NKernel
     public:
 
         /// Constructor
-        template<class TQualifiedValueType>
+        template <class TQualifiedValueType>
         __host__ __device__ __forceinline__ TSegmentedScanOutputIterator(TQualifiedValueType* ptr,
                                                                          TQualifiedValueType* end)
                 : Ptr(const_cast<typename cub::RemoveQualifiers<TQualifiedValueType>::Type*>(ptr))
@@ -254,7 +254,7 @@ namespace NKernel
         }
 
         /// Addition
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type operator+(TDistance n) const
         {
             self_type retval(Ptr + n, End);
@@ -262,21 +262,21 @@ namespace NKernel
         }
 
         /// Addition assignment
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type& operator+=(TDistance n) {
             Ptr += n;
             return *this;
         }
 
         /// Subtraction
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type operator-(TDistance n) const {
             self_type retval(Ptr - n, End);
             return retval;
         }
 
         /// Subtraction assignment
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ self_type& operator-=(TDistance n) {
             Ptr -= n;
             return *this;
@@ -289,7 +289,7 @@ namespace NKernel
         }
 
         /// Array subscript
-        template<typename TDistance>
+        template <typename TDistance>
         __host__ __device__ __forceinline__ reference operator[](TDistance n) const {
             return TReference(Ptr + n, End);
         }

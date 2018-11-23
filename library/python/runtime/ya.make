@@ -1,4 +1,4 @@
-LIBRARY()
+PY_LIBRARY()
 
 
 
@@ -14,7 +14,6 @@ CFLAGS(
 
 PY_SRCS(
     entry_points.py
-    import_test.py
 
     TOP_LEVEL
     __res.pyx
