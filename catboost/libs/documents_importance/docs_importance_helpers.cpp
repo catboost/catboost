@@ -8,6 +8,8 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
 #include <util/generic/ymath.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
 #include <numeric>
 
@@ -23,14 +25,27 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(c
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     UpdateFinalFirstDerivatives(leafIndices, pool);
-    TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
 
-    localExecutor.ExecRange([&] (int docId) {
-        // The derivative of leaf values with respect to train doc weight.
-        TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
-        UpdateLeavesDerivatives(docId, &leafDerivatives);
-        GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
-    }, NPar::TLocalExecutor::TExecRangeParams(0, DocCount), NPar::TLocalExecutor::WAIT_COMPLETE);
+    TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
+    const size_t docBlockSize = CB_THREAD_LIMIT * (DocCount / 1000);
+    TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", 1);
+    TProfileInfo processDocumentsProfile(DocCount);
+
+    for (size_t start = 0; start < DocCount; start += docBlockSize) {
+        size_t end = Min(start + docBlockSize, static_cast<size_t>(DocCount));
+        processDocumentsProfile.StartIterationBlock();
+
+        localExecutor.ExecRange([&] (int docId) {
+            // The derivative of leaf values with respect to train doc weight.
+            TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
+            UpdateLeavesDerivatives(docId, &leafDerivatives);
+            GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
+        }, NPar::TLocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
+
+        processDocumentsProfile.FinishIterationBlock(end - start);
+        auto profileResults = processDocumentsProfile.GetProfileResults();
+        documentsLogger.Log(profileResults);
+        }
     return documentImportances;
 }
 
