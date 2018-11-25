@@ -21,6 +21,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/train_lib
+    catboost/libs/options
 )
 
 IF (HAVE_CUDA)

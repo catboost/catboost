@@ -1260,6 +1260,33 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 }
 
 
+catboost.cv <- function(pool, params = list(),
+                        fold_count = 3,
+                        inverted = FALSE,
+                        partition_random_seed = 0,
+                        shuffle = TRUE,
+                        stratified = FALSE,
+                        early_stopping_rounds = NULL) {
+
+    if (class(pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (length(params) == 0)
+        message("Training catboost with default parameters! See help(catboost.train).")
+
+    if (!is.null(early_stopping_rounds)) {
+        params$od_type <- "Iter"
+        params$od_pval <- NULL
+        params$od_wait <- early_stopping_rounds
+    }
+
+    json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
+    message("I am gonna call CatBoostCV_R")
+    result <- .Call("CatBoostCV_R", json_params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified)
+
+    return(result)
+}
+
+
 #' Load the model
 #'
 #' Load the model from a file.
