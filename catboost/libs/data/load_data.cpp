@@ -1,16 +1,21 @@
 #include "load_data.h"
 #include "doc_pool_data_provider.h"
 
-#include <catboost/libs/column_description/column.h>
-#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/column_description/cd_parser.h>
+#include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/loader.h> // for IsNanValue. TODO(akhropov): to be removed after MLTOOLS-140
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/stream/labeled.h>
 #include <util/stream/output.h>
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 
 namespace NCB {
 
@@ -92,6 +97,10 @@ namespace NCB {
         }
 
         void AddTarget(ui32 localIdx, float value) override {
+            if (Y_UNLIKELY(!IsSafeTarget(value))) {
+                WriteUnsafeTargetWarningOnce(localIdx, value);
+            }
+
             Pool->Docs.Target[Cursor + localIdx] = value;
         }
 
@@ -160,9 +169,20 @@ namespace NCB {
                 for (const auto& part : HashMapParts) {
                     Pool->CatFeaturesHashToString.insert(part.CatFeatureHashes.begin(), part.CatFeatureHashes.end());
                 }
-                MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->Docs.GetDocCount() << " " << FeatureCount << Endl;
+                CATBOOST_INFO_LOG << "Doc info sizes: " << Pool->Docs.GetDocCount() << " " << FeatureCount << Endl;
             } else {
-                MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
+                CATBOOST_ERROR_LOG << "No doc info loaded" << Endl;
+            }
+        }
+
+    private:
+        void WriteUnsafeTargetWarningOnce(ui32 localIdx, float value) {
+            if (Y_UNLIKELY(AtomicCas(&UnsafeTargetWarningWritten, true, false))) {
+                const auto rowIndex = Cursor + localIdx;
+                CATBOOST_WARNING_LOG
+                    << "Got unsafe target "
+                    << LabeledOutput(value)
+                    << " at " << LabeledOutput(rowIndex) << '\n';
             }
         }
 
@@ -170,8 +190,10 @@ namespace NCB {
         struct THashPart {
             THashMap<int, TString> CatFeatureHashes;
         };
-        TPool* Pool;
         static constexpr const int NotSet = -1;
+
+        TAtomic UnsafeTargetWarningWritten = false;
+        TPool* Pool;
         ui32 Cursor = NotSet;
         ui32 NextCursor = 0;
         ui32 FeatureCount = 0;
@@ -246,6 +268,10 @@ namespace NCB {
         }
 
         void AddTarget(ui32 localIdx, float value) override {
+            if (Y_UNLIKELY(!IsSafeTarget(value))) {
+                WriteUnsafeTargetWarningOnce(localIdx, value);
+            }
+
             Pool->Docs.Target[Cursor + localIdx] = value;
         }
 
@@ -312,9 +338,9 @@ namespace NCB {
 
         void Finish() override {
             if (Pool->QuantizedFeatures.GetDocCount() != 0) {
-                MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->QuantizedFeatures.GetDocCount() << " " << FeatureCount << Endl;
+                CATBOOST_INFO_LOG << "Doc info sizes: " << Pool->QuantizedFeatures.GetDocCount() << " " << FeatureCount << Endl;
             } else {
-                MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
+                CATBOOST_ERROR_LOG << "No doc info loaded" << Endl;
             }
         }
 
@@ -345,8 +371,21 @@ namespace NCB {
             Pool->Docs.Timestamp.resize(docCount);
         }
 
-        TPool* Pool;
+        void WriteUnsafeTargetWarningOnce(ui32 localIdx, float value) {
+            if (Y_UNLIKELY(AtomicCas(&UnsafeTargetWarningWritten, true, false))) {
+                const auto rowIndex = Cursor + localIdx;
+                CATBOOST_WARNING_LOG
+                    << "Got unsafe target "
+                    << LabeledOutput(value)
+                    << " at " << LabeledOutput(rowIndex) << '\n';
+            }
+        }
+
+    private:
         static constexpr const int NotSet = -1;
+
+        TAtomic UnsafeTargetWarningWritten = false;
+        TPool* Pool;
         ui32 Cursor = NotSet;
         ui32 NextCursor = 0;
         ui32 FeatureCount = 0;
@@ -415,8 +454,18 @@ namespace NCB {
                   "Cannot postprocess labels without MakeClassNames target policy.");
         THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
         TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
-        Sort(uniqueLabels);
-        CB_ENSURE(LabelToClass.empty(), "PostrpocessLabels: label-to-class map must be empty before label converting.");
+        // Kind of heuristic for proper ordering class names if they all are numeric
+        if (AllOf(uniqueLabels, [](const TString& label) -> bool {
+            float tmp;
+            return TryFromString<float>(label, tmp);
+        })) {
+            Sort(uniqueLabels, [](const TString& label1, const TString& label2) {
+                return FromString<float>(label1) < FromString<float>(label2);
+            });
+        } else {
+            Sort(uniqueLabels);
+        }
+        CB_ENSURE(LabelToClass.empty(), "PostprocessLabels: label-to-class map must be empty before label converting.");
         for (const auto& label: uniqueLabels) {
             ProcessLabel(label);
         }
@@ -454,6 +503,25 @@ namespace NCB {
                                  classNames,
                                  nullptr
         );
+    }
+
+    TTargetConverter MakeTargetConverter(NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+        ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
+        const bool isMulticlass = IsMultiClass(lossFunction, catBoostOptions.MetricOptions);
+
+        auto& classNames = catBoostOptions.DataProcessingOptions->ClassNames.Get();
+        int classesCount = catBoostOptions.DataProcessingOptions->ClassesCount.Get();
+
+        EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
+
+        if (!classNames.empty()) {
+            targetPolicy = EConvertTargetPolicy::UseClassNames;
+        } else {
+            if (isMulticlass && classesCount == 0) {
+                targetPolicy = EConvertTargetPolicy::MakeClassNames;
+            }
+        }
+        return NCB::TTargetConverter(targetPolicy, classNames, &classNames);
     }
 
     THolder<IPoolBuilder> InitBuilder(
@@ -563,11 +631,7 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor,
         IPoolBuilder* poolBuilder
     ) {
-        if (verbose) {
-            SetVerboseLogingMode();
-        } else {
-            SetSilentLogingMode();
-        }
+        TSetLoggingVerboseOrSilent inThisScope(verbose);
 
         auto docPoolDataProvider = GetProcessor<IDocPoolDataProvider>(
             poolPath, // for choosing processor
@@ -590,8 +654,6 @@ namespace NCB {
         );
 
         docPoolDataProvider->Do(poolBuilder);
-
-        SetVerboseLogingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
     }
 
     void ReadPool(

@@ -3735,10 +3735,8 @@ public:
             }
             else
             {
-                size_t off = __right_->size();
-                if (off > 0 && __size_ > 0)
-                    off += 2;
-                const_cast<long&>(__cached_size_) = __left_->size() + off;
+                const_cast<long&>(__cached_size_) = (
+                    (__size_ ? 2 : 0) + __left_->size() + __right_->size());
             }
         }
         return __cached_size_;

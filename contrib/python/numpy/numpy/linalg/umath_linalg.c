@@ -409,7 +409,7 @@ set_fp_invalid_or_clear(int error_occurred)
  *****************************************************************************
  */
 
-#define UMATH_LINALG_MODULE_NAME "numpy.linalg._umath_linalg"
+#define UMATH_LINALG_MODULE_NAME "_umath_linalg"
 
 typedef union {
     fortran_complex f;
@@ -6534,7 +6534,7 @@ PyObject *PyInit__umath_linalg(void)
 #else
 #define RETVAL
 PyMODINIT_FUNC
-init5numpy6linalg13_umath_linalg(void)
+init_umath_linalg(void)
 #endif
 {
     PyObject *m;

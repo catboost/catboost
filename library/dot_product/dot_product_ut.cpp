@@ -105,6 +105,53 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
+    Y_UNIT_TEST(TestCombinedDotProductf) {
+        TVector<float> a(100);
+        FillWithRandomFloats(~a, 179, 100);
+        TVector<float> b(100);
+        FillWithRandomFloats(~b, 239, 100);
+
+        auto simple3WayProduct = [](const float* l, const float* r, ui32 length) -> TTriWayDotProduct<float> {
+            return {
+                SimpleDotProduct<float, float>(l, l, length),
+                SimpleDotProduct<float, float>(l, r, length),
+                SimpleDotProduct<float, float>(r, r, length)
+            };
+        };
+        auto cosine = [](const auto p) {
+            return p.LR / sqrt(p.LL * p.RR);
+        };
+
+        for (ui32 i = 0; i < 30; ++i) {
+            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+                const TString testCaseExpl = TStringBuilder() << "i = " << i << "; length = " << length;
+                {
+                    const float c1 = cosine(TriWayDotProduct(~a + i, ~b + i, length));
+                    const float c2 = cosine(simple3WayProduct(~a + i, ~b + i, length));
+                    UNIT_ASSERT_DOUBLES_EQUAL_C(c1, c2, EPSILON, testCaseExpl);
+                }
+                {
+                    // Left
+                    auto cpl = TriWayDotProduct(~a + i, ~b + i, length, ETriWayDotProductComputeMask::Left);
+                    auto cnl = simple3WayProduct(~a + i, ~b + i, length);
+                    UNIT_ASSERT_DOUBLES_EQUAL(cpl.RR, 1.0, EPSILON);
+                    cpl.RR = 1;
+                    cnl.RR = 1;
+                    UNIT_ASSERT_DOUBLES_EQUAL_C(cosine(cpl), cosine(cnl), EPSILON, testCaseExpl);
+                }
+                {
+                    // Right
+                    auto cpr = TriWayDotProduct(~a + i, ~b + i, length, ETriWayDotProductComputeMask::Right);
+                    auto cnr = simple3WayProduct(~a + i, ~b + i, length);
+                    UNIT_ASSERT_DOUBLES_EQUAL(cpr.LL, 1.0, EPSILON);
+                    cpr.LL = 1;
+                    cnr.LL = 1;
+                    UNIT_ASSERT_DOUBLES_EQUAL_C(cosine(cpr), cosine(cnr), EPSILON, testCaseExpl);
+                }
+            }
+        }
+    }
+
     Y_UNIT_TEST(TestDotProductZeroLength) {
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i32*>(nullptr), nullptr, 0), 0);

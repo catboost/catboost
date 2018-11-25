@@ -5,12 +5,20 @@
 
 namespace NKernel {
 
+    struct TPartStatsContext : public IKernelContext {
+      ui64 TempVarsCount = 0;
+      TDevicePointer<double> PartResults;
+    };
+
+    ui32 GetTempVarsCount(ui32 statCount, ui32 partCount);
+
     void UpdatePartitionsPropsForSplit(const TDataPartition* parts,
                                        const ui32* leftPartIds,
                                        const ui32* rightPartIds,
                                        ui32 partCount,
                                        const float* source,
                                        ui32 statCount, ui64 statLineSize,
+                                       ui32 tempVarsCount, double* partResults,
                                        double* statSums,
                                        TCudaStream stream);
 
@@ -19,6 +27,7 @@ namespace NKernel {
                                const ui32* partIds, ui32 partCount,
                                const float* source,
                                ui32 statCount, ui64 statLineSize,
+                               ui32 tempVarsCount, double* partResults,
                                double* statSums,
                                TCudaStream stream);
 
@@ -26,6 +35,7 @@ namespace NKernel {
                                          const float* source,
                                          ui32 statCount,
                                          ui64 statLineSize,
+                                         ui32 tempVarsCount, double* partResults,
                                          double* statSums,
                                          TCudaStream stream
     );

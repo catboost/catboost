@@ -380,7 +380,7 @@ void RemoveDirWithContents(TString dirName) {
 
     TDirIterator dir(dirName);
 
-    for (TDirIterator::TIterator it = dir.Begin(); it != dir.End(); ++it) {
+    for (TDirIterator::TIterator it = dir.begin(); it != dir.end(); ++it) {
         switch (it->fts_info) {
             case FTS_F:
             case FTS_DEFAULT:

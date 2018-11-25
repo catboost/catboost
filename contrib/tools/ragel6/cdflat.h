@@ -105,4 +105,14 @@ struct DFlatCodeGen
 		FsmCodeGen(out), FlatCodeGen(out), DCodeGen(out) {}
 };
 
+/*
+ * D2FlatCodeGen
+ */
+struct D2FlatCodeGen
+	: public FlatCodeGen, public D2CodeGen
+{
+	D2FlatCodeGen( ostream &out ) : 
+		FsmCodeGen(out), FlatCodeGen(out), D2CodeGen(out) {}
+};
+
 #endif

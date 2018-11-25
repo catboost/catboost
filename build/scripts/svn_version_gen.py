@@ -214,13 +214,31 @@ def get_git_scm_data(info):
     return scm_data
 
 
-def get_arc_dict(fpath):
+def get_arc_info_cmd(arc_root, python_cmd=[sys.executable]):
+    ya_path = os.path.join(arc_root, 'ya')
+    arc_cmd = python_cmd + [ya_path, '-v', '--no-report', 'tool', 'arc', '--work-tree', arc_root, 'info', '--json']
+    return arc_cmd
+
+
+def get_arc_dict(arc_root, python_cmd=[sys.executable]):
     info = {}
+    result = system_command_call(get_arc_info_cmd(arc_root, python_cmd=python_cmd))
+    if result:
+        arc_info = json.loads(result)
+        info['branch'] = arc_info.get('branch', '').encode('utf8')
+        info['hash'] = arc_info.get('hash', '').encode('utf8')
+        info['author'] = arc_info.get('author', '').encode('utf8')
+        info['date'] = arc_info.get('date', '').encode('utf8')
+        info['summary'] = arc_info.get('summary', '').encode('utf8')
     return info
 
 
 def get_arc_scm_data(info):
     scm_data = "Arc info:\n"
+    scm_data += indent + "Branch: " + info.get('branch', '') + "\n"
+    scm_data += indent + "Commit: " + info.get('hash', '') + "\n"
+    scm_data += indent + "Author: " + info.get('author', '') + "\n"
+    scm_data += indent + "Summary: " + info.get('summary', '') + "\n"
     return scm_data
 
 
@@ -334,7 +352,7 @@ def main(header, footer, line):
         else:
             scm_data = "Hg info:\n" + indent + "no hg info\n"
     elif is_arc(arc_root):
-        rev_dict = get_arc_dict(arc_root)
+        rev_dict = get_arc_dict(arc_root, python_cmd=python_cmd)
         if rev_dict:
             rev_dict['vcs'] = 'arc'
             scm_data = get_arc_scm_data(rev_dict)

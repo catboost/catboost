@@ -179,7 +179,7 @@ int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstan
     return EINPROGRESS;
 }
 
-TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) {
+TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept {
     DBGOUT(PCORO(this) << " do read");
 
     while (true) {
@@ -203,7 +203,7 @@ TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) 
     }
 }
 
-TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) {
+TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
     DBGOUT(PCORO(this) << " do writev");
 
     size_t written = 0;
@@ -233,7 +233,7 @@ TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadli
     return TContIOStatus::Success(written);
 }
 
-TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline) {
+TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline) noexcept {
     DBGOUT(PCORO(this) << " do write");
 
     size_t written = 0;
@@ -263,7 +263,7 @@ TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant dea
     return TContIOStatus::Success(written);
 }
 
-int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline) {
+int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline) noexcept {
     DBGOUT(PCORO(this) << " do connect");
 
     if (connect(s, name, namelen)) {
@@ -298,7 +298,7 @@ int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TI
     return 0;
 }
 
-int TCont::AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline) {
+int TCont::AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline) noexcept {
     DBGOUT(PCORO(this) << " do accept");
 
     SOCKET ret;
@@ -348,7 +348,7 @@ ssize_t TCont::DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept {
     return writev(fd, (const iovec*)vec->Parts(), Min(IOV_MAX, (int)vec->Count()));
 }
 
-int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine) {
+int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine) noexcept {
     DBGOUT(PCORO(this) << " do connect");
 
     TSocketHolder res(Socket(ai));
@@ -366,7 +366,7 @@ int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLin
     return ret;
 }
 
-int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine) {
+int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine) noexcept {
     int ret = EHOSTUNREACH;
 
     for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
@@ -447,7 +447,7 @@ void TContPollEventHolder::ScheduleIoWait(TContExecutor* executor) {
     }
 }
 
-TFdEvent* TContPollEventHolder::TriggeredEvent() {
+TFdEvent* TContPollEventHolder::TriggeredEvent() noexcept {
     TFdEvent* ret = nullptr;
     int status = EINPROGRESS;
 
@@ -472,7 +472,7 @@ TFdEvent* TContPollEventHolder::TriggeredEvent() {
     return ret;
 }
 
-void TInterruptibleEvent::Interrupt() {
+void TInterruptibleEvent::Interrupt() noexcept {
     if (!Interrupted_) {
         Interrupted_ = true;
         if (!Cont_->Scheduled()) {

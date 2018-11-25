@@ -3,6 +3,7 @@
 RECURSE(
     algo
     algo/ut
+    app_helpers
     data
     data/ut
     data_new
@@ -20,6 +21,7 @@ RECURSE(
     index_range
     init
     labels
+    lapack
     loggers
     logging
     metrics

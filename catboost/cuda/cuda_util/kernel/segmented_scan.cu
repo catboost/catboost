@@ -6,7 +6,7 @@
 namespace NKernel
 {
 
-    template<class T>
+    template <class T>
     __global__ void ZeroSegmentStartsImpl(const ui32* flags, ui32 flagMask, ui32 size, T* output) {
         const ui32 tid = blockIdx.x * blockDim.x + threadIdx.x;
         if (tid < size) {
@@ -17,7 +17,7 @@ namespace NKernel
         }
     }
 
-    template<typename T>
+    template <typename T>
     cudaError_t SegmentedScanCub(const T* input, const ui32* flags, ui32 flagMask,
                                  T* output,
                                  ui32 size, bool inclusive,

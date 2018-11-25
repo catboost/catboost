@@ -40,7 +40,7 @@ namespace NCatboostCuda {
         TVector<bool> IsOneHot;
         TMap<ui32, ui32> InverseFeatures;
 
-        template<class TFeaturesBinarizationDescription>
+        template <class TFeaturesBinarizationDescription>
         TCpuGrid(const TFeaturesBinarizationDescription& info,
                  const TVector<ui32>& features)
                 : FeatureIds(features) {
@@ -84,7 +84,7 @@ namespace NCatboostCuda {
 
     //block of compressed features for one policy
     //what features we have and hot to access one
-    template<class TFeaturesMapping,
+    template <class TFeaturesMapping,
             class TSamplesMapping>
     struct TGpuFeaturesBlockDescription {
         TCpuGrid Grid;
@@ -127,7 +127,7 @@ namespace NCatboostCuda {
     extern template
     struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;
 
-    template<class TPoolLayout>
+    template <class TPoolLayout>
     struct TCudaFeaturesLayoutHelper;
 
     //cuda-manager has 1 active device (mainly for child managers) and we use it

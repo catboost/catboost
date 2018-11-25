@@ -121,7 +121,23 @@ class TIoSystemError: public TSystemError, public TIoException {
 class TFileError: public TIoSystemError {
 };
 
-struct TBadCastException: public virtual yexception {
+/**
+ * TBadArgumentException should be thrown when an argument supplied to some function (or constructor)
+ * is invalid or incorrect.
+ *
+ * \note
+ * A special case when such argument is given to a function which performs type casting
+ * (e.g. integer from string) is covered by the TBadCastException class which is derived from
+ * TBadArgumentException.
+ */
+struct TBadArgumentException: public virtual yexception {
+};
+
+/**
+ * TBadCastException should be thrown to indicate the failure of some type casting procedure
+ * (e.g. reading an integer parameter from string).
+ */
+struct TBadCastException: public virtual TBadArgumentException {
 };
 
 #define ythrow throw __LOCATION__ +
@@ -134,7 +150,7 @@ namespace NPrivate {
         TStringBuf Message;
     };
 
-    Y_NO_RETURN void ThrowYException(const TSimpleExceptionMessage& sm);
+    [[noreturn]] void ThrowYException(const TSimpleExceptionMessage& sm);
 }
 
 void fputs(const std::exception& e, FILE* f = stderr);
@@ -142,9 +158,9 @@ void fputs(const std::exception& e, FILE* f = stderr);
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
 
-Y_NO_RETURN void ThrowBadAlloc();
-Y_NO_RETURN void ThrowLengthError(const char* descr);
-Y_NO_RETURN void ThrowRangeError(const char* descr);
+[[noreturn]] void ThrowBadAlloc();
+[[noreturn]] void ThrowLengthError(const char* descr);
+[[noreturn]] void ThrowRangeError(const char* descr);
 
 #define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
     do {                                         \

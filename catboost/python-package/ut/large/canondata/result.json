@@ -1,278 +1,368 @@
 {
-    "run_python3_tests.test[3.5-test_class_weights]": [
+    "run_python3_tests.test[3.5-test_allow_writing_files_and_used_ram_limit[CPU-1024]]": [
         {
-            "checksum": "e849454e6e684a9fde25306271274cd4",
-            "uri": "file://run_python3_tests.test_3.5-test_class_weights_/model.bin"
+            "checksum": "422a40b44029169bdd3e3749f89ad5a1",
+            "uri": "file://run_python3_tests.test_3.5-test_allow_writing_files_and_used_ram_limit_CPU-1024__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_classification_ctr]": [
+    "run_python3_tests.test[3.5-test_allow_writing_files_and_used_ram_limit[CPU-2Gb]]": [
         {
-            "checksum": "d0e3d20a2ef4b05480b61b1911fde494",
-            "uri": "file://run_python3_tests.test_3.5-test_classification_ctr_/model.bin"
+            "checksum": "fb809116244260f12b343761fc9387b2",
+            "uri": "file://run_python3_tests.test_3.5-test_allow_writing_files_and_used_ram_limit_CPU-2Gb__/predictions.npy"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_class_weights[CPU]]": [
+        {
+            "checksum": "13cfdc81cc2051800896e60be969bb36",
+            "uri": "file://run_python3_tests.test_3.5-test_class_weights_CPU__/model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_classification_ctr[CPU]]": [
+        {
+            "checksum": "0faa36d8ce546029ede96bf8cdbd08c4",
+            "uri": "file://run_python3_tests.test_3.5-test_classification_ctr_CPU__/model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_convert_model_to_json[CPU-adult]]": [
+        {
+            "checksum": "31d64877344a6fcec002122017cb54f9",
+            "uri": "file://run_python3_tests.test_3.5-test_convert_model_to_json_CPU-adult__/converted_model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_convert_model_to_json[CPU-higgs]]": [
+        {
+            "checksum": "501d13b48a271595f7ea94d6958cd6f7",
+            "uri": "file://run_python3_tests.test_3.5-test_convert_model_to_json_CPU-higgs__/converted_model.bin"
         }
     ],
     "run_python3_tests.test[3.5-test_copy_model]": [
         {
-            "checksum": "563db41d523e32488382c276abff02ed",
+            "checksum": "a8696345a43365aba76169a6bd52c80c",
             "uri": "file://run_python3_tests.test_3.5-test_copy_model_/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_coreml_import_export]": [
+    "run_python3_tests.test[3.5-test_coreml_cbm_import_export[CPU]]": [
         {
-            "checksum": "f194b8879c70881e59f3fb54ce1ca5bf",
-            "uri": "file://run_python3_tests.test_3.5-test_coreml_import_export_/model.mlmodel"
+            "checksum": "8fa50aeed4d86ecb19e4869ed45a4422",
+            "uri": "file://run_python3_tests.test_3.5-test_coreml_cbm_import_export_CPU__/model.mlmodel"
         }
     ],
-    "run_python3_tests.test[3.5-test_cpp_export_no_cat_features]": [
+    "run_python3_tests.test[3.5-test_coreml_import_export[CPU]]": [
         {
-            "checksum": "d92b8c3204b7b1fe061e8efd73b840cf",
-            "uri": "file://run_python3_tests.test_3.5-test_cpp_export_no_cat_features_/model.cpp"
+            "checksum": "8fa50aeed4d86ecb19e4869ed45a4422",
+            "uri": "file://run_python3_tests.test_3.5-test_coreml_import_export_CPU__/model.mlmodel"
         }
     ],
-    "run_python3_tests.test[3.5-test_cpp_export_with_cat_features]": [
+    "run_python3_tests.test[3.5-test_cpp_export_no_cat_features[CPU]]": [
         {
-            "checksum": "db57bacb19220d47dab2a1db1c7f71a0",
-            "uri": "file://run_python3_tests.test_3.5-test_cpp_export_with_cat_features_/model.cpp"
+            "checksum": "1ed87dc84068f53aa9ca675ef3f2862c",
+            "uri": "file://run_python3_tests.test_3.5-test_cpp_export_no_cat_features_CPU__/model.cpp"
         }
     ],
-    "run_python3_tests.test[3.5-test_cv]": [
+    "run_python3_tests.test[3.5-test_cpp_export_with_cat_features[CPU]]": [
         {
-            "checksum": "a8246915116cdb2b2cb94f017ca1d678",
-            "uri": "file://run_python3_tests.test_3.5-test_cv_/catboost_training.json"
+            "checksum": "861d1ea0496322bac0dd1f3f1f51778f",
+            "uri": "file://run_python3_tests.test_3.5-test_cpp_export_with_cat_features_CPU__/model.cpp"
         }
     ],
-    "run_python3_tests.test[3.5-test_cv_logging]": [
+    "run_python3_tests.test[3.5-test_cv[CPU]]": [
         {
-            "checksum": "3a4f48d47b3cb586e0e5be05949d9256",
-            "uri": "file://run_python3_tests.test_3.5-test_cv_logging_/catboost_training.json"
+            "checksum": "c6179063cb4862d8468018a617ad2ce2",
+            "uri": "file://run_python3_tests.test_3.5-test_cv_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_cv_pairs]": [
+    "run_python3_tests.test[3.5-test_cv_logging[CPU]]": [
         {
-            "checksum": "1d7ce8e53ac070af8ff41fe71c9c10a2",
-            "uri": "file://run_python3_tests.test_3.5-test_cv_pairs_/catboost_training.json"
+            "checksum": "3c795270bfa023f42f719b8ea76cd459",
+            "uri": "file://run_python3_tests.test_3.5-test_cv_logging_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_cv_query]": [
+    "run_python3_tests.test[3.5-test_cv_pairs[CPU]]": [
         {
-            "checksum": "8f71fd6122387159f25b484a544ea2be",
-            "uri": "file://run_python3_tests.test_3.5-test_cv_query_/catboost_training.json"
+            "checksum": "b56ebb6ab564c800cf949c0509088929",
+            "uri": "file://run_python3_tests.test_3.5-test_cv_pairs_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_cv_with_not_binarized_target]": [
+    "run_python3_tests.test[3.5-test_cv_query[CPU]]": [
         {
-            "checksum": "33fc057cdeb1f425b6f27aef06e6a93d",
-            "uri": "file://run_python3_tests.test_3.5-test_cv_with_not_binarized_target_/catboost_training.json"
+            "checksum": "66896674f7a55402ccc835bd5fb6f0ec",
+            "uri": "file://run_python3_tests.test_3.5-test_cv_query_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_eval_set]": [
+    "run_python3_tests.test[3.5-test_cv_with_not_binarized_target[CPU]]": [
         {
-            "checksum": "105bde403023eb4531875916734a215c",
-            "uri": "file://run_python3_tests.test_3.5-test_eval_set_/catboost_training.json"
+            "checksum": "3c795270bfa023f42f719b8ea76cd459",
+            "uri": "file://run_python3_tests.test_3.5-test_cv_with_not_binarized_target_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_feature_importance]": [
+    "run_python3_tests.test[3.5-test_early_stopping_rounds[CPU]]": [
         {
-            "checksum": "053a21d7cf4b347e6eb8add353859ef2",
-            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_/feature_importance.npy"
+            "checksum": "c4c53ab9054b0fd6c45c07ee19d65efd",
+            "uri": "file://run_python3_tests.test_3.5-test_early_stopping_rounds_CPU__/catboost_training.json"
+        },
+        {
+            "checksum": "3a483b1dd209f7d52190aa0f619f5c88",
+            "uri": "file://run_python3_tests.test_3.5-test_early_stopping_rounds_CPU__/json_log_train.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_feature_importance_explicit]": [
+    "run_python3_tests.test[3.5-test_eval_set[CPU]]": [
         {
-            "checksum": "053a21d7cf4b347e6eb8add353859ef2",
-            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_explicit_/feature_importance.npy"
+            "checksum": "bdaa286c1a43a8892e1e5ac50092ad24",
+            "uri": "file://run_python3_tests.test_3.5-test_eval_set_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_feature_importance_oldparams]": [
+    "run_python3_tests.test[3.5-test_export_to_python_no_cat_features[CPU-2]]": [
         {
-            "checksum": "053a21d7cf4b347e6eb8add353859ef2",
-            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_oldparams_/feature_importance.npy"
+            "checksum": "d7f762f8a08c01e3576d9ef83b63548a",
+            "uri": "file://run_python3_tests.test_3.5-test_export_to_python_no_cat_features_CPU-2__/model.py"
         }
     ],
-    "run_python3_tests.test[3.5-test_feature_importance_prettified]": [
+    "run_python3_tests.test[3.5-test_export_to_python_no_cat_features[CPU-40]]": [
         {
-            "checksum": "bb4a0265b8c7be4fde68aa6e3c7be0a2",
-            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_prettified_/feature_importance.txt"
+            "checksum": "f3018c05ff18a7ec201c5a7a29659158",
+            "uri": "file://run_python3_tests.test_3.5-test_export_to_python_no_cat_features_CPU-40__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_export_to_python_with_cat_features[CPU-2]]": [
+        {
+            "checksum": "3189735de17aafeb03df5d98002c9ba9",
+            "uri": "file://run_python3_tests.test_3.5-test_export_to_python_with_cat_features_CPU-2__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_export_to_python_with_cat_features[CPU-40]]": [
+        {
+            "checksum": "cab5c155c26d99f8f1a05890a75b7c48",
+            "uri": "file://run_python3_tests.test_3.5-test_export_to_python_with_cat_features_CPU-40__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_export_to_python_with_cat_features_from_pandas[CPU]]": [
+        {
+            "checksum": "0de607e3ee2e2b41dd6f8cc23c7d110f",
+            "uri": "file://run_python3_tests.test_3.5-test_export_to_python_with_cat_features_from_pandas_CPU__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_feature_importance[CPU]]": [
+        {
+            "checksum": "ff882cc955e063ad51385cf6d3b900a2",
+            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_CPU__/feature_importance.npy"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_feature_importance_explicit[CPU]]": [
+        {
+            "checksum": "ff882cc955e063ad51385cf6d3b900a2",
+            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_explicit_CPU__/feature_importance.npy"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_feature_importance_prettified[CPU]]": [
+        {
+            "checksum": "b4ea6f4eb9cc4d16abfb14767122b645",
+            "uri": "file://run_python3_tests.test_3.5-test_feature_importance_prettified_CPU__/feature_importance.txt"
         }
     ],
     "run_python3_tests.test[3.5-test_feature_names_from_model]": [
         {
-            "checksum": "5b2ec0dc9869bfbb63f762f2abda5fcb",
+            "checksum": "188bb6582ea6a5645edad17cb9a6ba21",
             "uri": "file://run_python3_tests.test_3.5-test_feature_names_from_model_/feature_names"
         }
     ],
-    "run_python3_tests.test[3.5-test_fit_data]": [
+    "run_python3_tests.test[3.5-test_fit_data[CPU]]": [
         {
-            "checksum": "75d61bbae3cc841022167335e15ee080",
-            "uri": "file://run_python3_tests.test_3.5-test_fit_data_/model.bin"
+            "checksum": "d3995f2c85f71024d0b28c7fdfee3dc5",
+            "uri": "file://run_python3_tests.test_3.5-test_fit_data_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_full_history]": [
+    "run_python3_tests.test[3.5-test_full_history[CPU]]": [
         {
-            "checksum": "aefc56750113b257eb1b9268a6bc2789",
-            "uri": "file://run_python3_tests.test_3.5-test_full_history_/model.bin"
+            "checksum": "519a507e2e894b82338d31380504993a",
+            "uri": "file://run_python3_tests.test_3.5-test_full_history_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_ignored_features]": [
+    "run_python3_tests.test[3.5-test_get_evals_result_without_eval_set]": [
         {
-            "checksum": "8775c8169bb92dc50794377728ec3d97",
-            "uri": "file://run_python3_tests.test_3.5-test_ignored_features_/model.bin"
+            "checksum": "8a80554c91d9fca8acb82f023de02f11",
+            "uri": "file://run_python3_tests.test_3.5-test_get_evals_result_without_eval_set_/evals.txt"
         }
     ],
-    "run_python3_tests.test[3.5-test_interaction_feature_importance]": [
+    "run_python3_tests.test[3.5-test_get_metric_evals[CPU]]": [
         {
-            "checksum": "10a4d72b2a92eec1ee455114bad5d2ce",
-            "uri": "file://run_python3_tests.test_3.5-test_interaction_feature_importance_/feature_importance.npy"
+            "checksum": "de4e4fa7c40a463d8a0755b782c9852b",
+            "uri": "file://run_python3_tests.test_3.5-test_get_metric_evals_CPU__/evals.txt"
         }
     ],
-    "run_python3_tests.test[3.5-test_interaction_feature_importance_oldparams]": [
+    "run_python3_tests.test[3.5-test_ignored_features[CPU]]": [
         {
-            "checksum": "10a4d72b2a92eec1ee455114bad5d2ce",
-            "uri": "file://run_python3_tests.test_3.5-test_interaction_feature_importance_oldparams_/feature_importance.npy"
+            "checksum": "f61139d2e62cdd12560fbc3feb6030a5",
+            "uri": "file://run_python3_tests.test_3.5-test_ignored_features_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_learning_rate_auto_set]": [
+    "run_python3_tests.test[3.5-test_interaction_feature_importance[CPU]]": [
         {
-            "checksum": "21c1d28fc03615787d433d002961adc7",
-            "uri": "file://run_python3_tests.test_3.5-test_learning_rate_auto_set_/catboost_training.json"
+            "checksum": "5adf2127f19c4dc14138b1d25e86274a",
+            "uri": "file://run_python3_tests.test_3.5-test_interaction_feature_importance_CPU__/feature_importance.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_learning_rate_auto_set_in_cv]": [
+    "run_python3_tests.test[3.5-test_learning_rate_auto_set[CPU]]": [
         {
-            "checksum": "4c242eb24f087bbd00443bdd0dc349d1",
-            "uri": "file://run_python3_tests.test_3.5-test_learning_rate_auto_set_in_cv_/catboost_training.json"
+            "checksum": "a7322d8974e15f429026264a1589a4a2",
+            "uri": "file://run_python3_tests.test_3.5-test_learning_rate_auto_set_CPU__/catboost_training.json"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_learning_rate_auto_set_in_cv[CPU]]": [
+        {
+            "checksum": "140653f2d38092614374336e527caff0",
+            "uri": "file://run_python3_tests.test_3.5-test_learning_rate_auto_set_in_cv_CPU__/catboost_training.json"
         }
     ],
     "run_python3_tests.test[3.5-test_metadata]": [
         {
-            "checksum": "8266e53b69c8ed3b32aacf624aaccf5c",
+            "checksum": "72b405c4c7dfd272f065c44385242c55",
             "uri": "file://run_python3_tests.test_3.5-test_metadata_/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_multiclass]": [
+    "run_python3_tests.test[3.5-test_multiclass[CPU]]": [
         {
-            "checksum": "e3fa488ab479242d477f18e05a940211",
-            "uri": "file://run_python3_tests.test_3.5-test_multiclass_/predictions.npy"
+            "checksum": "5bbea0c80bb7d80289bb3e5baf1218c3",
+            "uri": "file://run_python3_tests.test_3.5-test_multiclass_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_non_ones_weight]": [
+    "run_python3_tests.test[3.5-test_multiclass_classes_count_missed_classes[CPU]]": [
         {
-            "checksum": "68cb7b0188f201c3e37f9dd6d2a0d914",
-            "uri": "file://run_python3_tests.test_3.5-test_non_ones_weight_/model.bin"
+            "checksum": "9ded1ce37b6b4a70c216e81892689c0a",
+            "uri": "file://run_python3_tests.test_3.5-test_multiclass_classes_count_missed_classes_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_ntree_limit]": [
+    "run_python3_tests.test[3.5-test_non_ones_weight[CPU]]": [
         {
-            "checksum": "9dd8e869648e31fe81c4b2db3f669180",
-            "uri": "file://run_python3_tests.test_3.5-test_ntree_limit_/predictions.npy"
+            "checksum": "409ee1541f9d8d5e012d82068475faf5",
+            "uri": "file://run_python3_tests.test_3.5-test_non_ones_weight_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_object_importances]": [
+    "run_python3_tests.test[3.5-test_ntree_limit[CPU]]": [
         {
-            "checksum": "003195bca52293e15a33434d5caf3e2f",
-            "uri": "file://run_python3_tests.test_3.5-test_object_importances_/object_importances.txt"
+            "checksum": "9ef79b188c49cc7adf4f93bdc9ff13b4",
+            "uri": "file://run_python3_tests.test_3.5-test_ntree_limit_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_od]": [
+    "run_python3_tests.test[3.5-test_object_importances[CPU]]": [
         {
-            "checksum": "2bde365d54011cacf8a7f90c45ef1923",
-            "uri": "file://run_python3_tests.test_3.5-test_od_/model.bin"
+            "checksum": "f4da62b956330ed38615782d75564f8b",
+            "uri": "file://run_python3_tests.test_3.5-test_object_importances_CPU__/object_importances.txt"
         }
     ],
-    "run_python3_tests.test[3.5-test_ones_weight]": [
+    "run_python3_tests.test[3.5-test_od[CPU]]": [
         {
-            "checksum": "a13d384fbc6d885c1ade639a013ca63c",
-            "uri": "file://run_python3_tests.test_3.5-test_ones_weight_/model.bin"
+            "checksum": "01a5df182cdf7a0e5fbed754484f759a",
+            "uri": "file://run_python3_tests.test_3.5-test_od_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_predict_class]": [
+    "run_python3_tests.test[3.5-test_ones_weight[CPU]]": [
         {
-            "checksum": "bda840f7cbabdb36fb9949ccf01a3ae9",
-            "uri": "file://run_python3_tests.test_3.5-test_predict_class_/predictions.npy"
+            "checksum": "1819dcc888bc938334b7696250f96163",
+            "uri": "file://run_python3_tests.test_3.5-test_ones_weight_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_predict_class_proba]": [
+    "run_python3_tests.test[3.5-test_pairs_generation[CPU]]": [
         {
-            "checksum": "85229663ad5824a0743c6bbdc7e3d506",
-            "uri": "file://run_python3_tests.test_3.5-test_predict_class_proba_/predictions.npy"
+            "checksum": "1643bc125ee1d535e90487230553fb88",
+            "uri": "file://run_python3_tests.test_3.5-test_pairs_generation_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_predict_class_raw]": [
+    "run_python3_tests.test[3.5-test_pairs_generation_with_max_pairs[CPU]]": [
         {
-            "checksum": "bda840f7cbabdb36fb9949ccf01a3ae9",
-            "uri": "file://run_python3_tests.test_3.5-test_predict_class_raw_/predictions.npy"
+            "checksum": "a98e1e52ce529e7dac3bd3f192cb8638",
+            "uri": "file://run_python3_tests.test_3.5-test_pairs_generation_with_max_pairs_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_predict_regress]": [
+    "run_python3_tests.test[3.5-test_predict_class[CPU]]": [
         {
-            "checksum": "4a629e2cfba35ae4f43246eeaa4b8a14",
-            "uri": "file://run_python3_tests.test_3.5-test_predict_regress_/model.bin"
+            "checksum": "c4bb7c114d8791f2f33440352a6463d6",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_class_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_predict_sklearn_class]": [
+    "run_python3_tests.test[3.5-test_predict_class_proba[CPU]]": [
         {
-            "checksum": "fce2f00738e7627373f70133bd600cca",
-            "uri": "file://run_python3_tests.test_3.5-test_predict_sklearn_class_/model.bin"
+            "checksum": "87df2683a7ce8498adbec127ceeae71b",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_class_proba_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_predict_sklearn_regress]": [
+    "run_python3_tests.test[3.5-test_predict_class_raw[CPU]]": [
         {
-            "checksum": "02225bd5895c03ea860c1d961c28164a",
-            "uri": "file://run_python3_tests.test_3.5-test_predict_sklearn_regress_/model.bin"
+            "checksum": "7bc2d7f93b27904006b1ee1ce05e151f",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_class_raw_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_priors]": [
+    "run_python3_tests.test[3.5-test_predict_regress[CPU]]": [
         {
-            "checksum": "f5296300eeee92b4d37e783f6298b1d0",
-            "uri": "file://run_python3_tests.test_3.5-test_priors_/model.bin"
+            "checksum": "f62a9ac10d08493c6cc4ad0656dc90cd",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_regress_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_python_export_no_cat_features]": [
+    "run_python3_tests.test[3.5-test_predict_sklearn_class[CPU]]": [
         {
-            "checksum": "3a482e7bbf50723d26a13d3eb5d6a5d9",
-            "uri": "file://run_python3_tests.test_3.5-test_python_export_no_cat_features_/model.py"
+            "checksum": "7c6e2e894af0e5bfe35702175150309a",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_sklearn_class_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_python_export_with_cat_features]": [
+    "run_python3_tests.test[3.5-test_predict_sklearn_regress[CPU]]": [
         {
-            "checksum": "2f6b96d301c2a6282981a7cc6ab2f630",
-            "uri": "file://run_python3_tests.test_3.5-test_python_export_with_cat_features_/model.py"
+            "checksum": "e2acaac1d9441f1fbfc2047f3d64e4c1",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_sklearn_regress_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_regression_ctr]": [
+    "run_python3_tests.test[3.5-test_priors[CPU]]": [
         {
-            "checksum": "f74106d1ba381dafa1f252e0b0df96cf",
-            "uri": "file://run_python3_tests.test_3.5-test_regression_ctr_/model.bin"
+            "checksum": "4ada38d4f6d639524f8ba294fccc171b",
+            "uri": "file://run_python3_tests.test_3.5-test_priors_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_shap]": [
+    "run_python3_tests.test[3.5-test_regression_ctr[CPU]]": [
         {
-            "checksum": "e406c25902fb8ea905ad07fcdf6339df",
-            "uri": "file://run_python3_tests.test_3.5-test_shap_/feature_importance.txt"
+            "checksum": "36f864260fd3264b6439606e0bdaecc0",
+            "uri": "file://run_python3_tests.test_3.5-test_regression_ctr_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.5-test_shap_complex_ctr]": [
+    "run_python3_tests.test[3.5-test_roc]": [
         {
-            "checksum": "68f2a5226f24f5a463d93d8489bd2570",
-            "uri": "file://run_python3_tests.test_3.5-test_shap_complex_ctr_/feature_importance.txt"
+            "checksum": "8fce6d2c03d6d24add92484dca86d879",
+            "uri": "file://run_python3_tests.test_3.5-test_roc_/out_cv"
+        },
+        {
+            "checksum": "785dbddc0093c1559adb44276505c439",
+            "uri": "file://run_python3_tests.test_3.5-test_roc_/out_model"
+        },
+        {
+            "checksum": "a3075038eb147def55efb2730d2af5b6",
+            "uri": "file://run_python3_tests.test_3.5-test_roc_/bounds"
         }
     ],
-    "run_python3_tests.test[3.5-test_shap_feature_importance]": [
+    "run_python3_tests.test[3.5-test_shap[CPU]]": [
         {
-            "checksum": "8fa846710ea10cae4e0b3a91d78368e4",
-            "uri": "file://run_python3_tests.test_3.5-test_shap_feature_importance_/feature_importance.npy"
+            "checksum": "3d509fa43ba7cabcd20d4a28a3998cc1",
+            "uri": "file://run_python3_tests.test_3.5-test_shap_CPU__/feature_importance.txt"
         }
     ],
-    "run_python3_tests.test[3.5-test_shap_feature_importance_oldparams]": [
+    "run_python3_tests.test[3.5-test_shap_complex_ctr[CPU]]": [
         {
-            "checksum": "8fa846710ea10cae4e0b3a91d78368e4",
-            "uri": "file://run_python3_tests.test_3.5-test_shap_feature_importance_oldparams_/feature_importance.npy"
+            "checksum": "e5d4bb8b37ba2d75adcd4ac11b44e51d",
+            "uri": "file://run_python3_tests.test_3.5-test_shap_complex_ctr_CPU__/feature_importance.txt"
         }
     ],
-    "run_python3_tests.test[3.5-test_staged_predict]": [
+    "run_python3_tests.test[3.5-test_shap_feature_importance[CPU]]": [
         {
-            "checksum": "6b4a919eacd105705968db786f580a41",
-            "uri": "file://run_python3_tests.test_3.5-test_staged_predict_/predictions.npy"
+            "checksum": "6ad24566a1ad1433563455d05bd1ee82",
+            "uri": "file://run_python3_tests.test_3.5-test_shap_feature_importance_CPU__/feature_importance.npy"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_shap_multiclass[CPU]]": [
+        {
+            "checksum": "c3120f7d1a2ea462d149e36cc2aa8ee6",
+            "uri": "file://run_python3_tests.test_3.5-test_shap_multiclass_CPU__/feature_importance.txt"
+        }
+    ],
+    "run_python3_tests.test[3.5-test_staged_predict[CPU]]": [
+        {
+            "checksum": "9eeb3f6e6025a5352219318dac5e07be",
+            "uri": "file://run_python3_tests.test_3.5-test_staged_predict_CPU__/predictions.npy"
         }
     ],
     "run_python3_tests.test[3.5-test_util_eval_metric[Logloss]]": [
@@ -299,304 +389,394 @@
             "uri": "file://run_python3_tests.test_3.5-test_util_eval_metric_multiclass_MultiClass__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.5-test_verbose_int[5]]": [
+    "run_python3_tests.test[3.5-test_verbose_int[CPU-5]]": [
         {
-            "checksum": "e0ca17f01e1ba213045543507d5b9d9b",
-            "uri": "file://run_python3_tests.test_3.5-test_verbose_int_5__/catboost_training.json"
+            "checksum": "ef4d1451d8a32dddfae82dc78e67f34f",
+            "uri": "file://run_python3_tests.test_3.5-test_verbose_int_CPU-5__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_verbose_int[False]]": [
+    "run_python3_tests.test[3.5-test_verbose_int[CPU-False]]": [
         {
-            "checksum": "49a4ed890b42b7cba162b39b6d857b85",
-            "uri": "file://run_python3_tests.test_3.5-test_verbose_int_False__/catboost_training.json"
+            "checksum": "ef4d1451d8a32dddfae82dc78e67f34f",
+            "uri": "file://run_python3_tests.test_3.5-test_verbose_int_CPU-False__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_verbose_int[True]]": [
+    "run_python3_tests.test[3.5-test_verbose_int[CPU-True]]": [
         {
-            "checksum": "7ca0ff15c655a4f3d5ced4e41d0224e3",
-            "uri": "file://run_python3_tests.test_3.5-test_verbose_int_True__/catboost_training.json"
+            "checksum": "ef4d1451d8a32dddfae82dc78e67f34f",
+            "uri": "file://run_python3_tests.test_3.5-test_verbose_int_CPU-True__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.5-test_zero_baseline]": [
+    "run_python3_tests.test[3.5-test_zero_baseline[CPU]]": [
         {
-            "checksum": "d040e6f16b19c33006f8985cce392cbb",
-            "uri": "file://run_python3_tests.test_3.5-test_zero_baseline_/model.bin"
+            "checksum": "919388cb3bfcf202edacd1240d414a22",
+            "uri": "file://run_python3_tests.test_3.5-test_zero_baseline_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_class_weights]": [
+    "run_python3_tests.test[3.6-test_allow_writing_files_and_used_ram_limit[CPU-1024]]": [
         {
-            "checksum": "e849454e6e684a9fde25306271274cd4",
-            "uri": "file://run_python3_tests.test_3.6-test_class_weights_/model.bin"
+            "checksum": "422a40b44029169bdd3e3749f89ad5a1",
+            "uri": "file://run_python3_tests.test_3.6-test_allow_writing_files_and_used_ram_limit_CPU-1024__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_classification_ctr]": [
+    "run_python3_tests.test[3.6-test_allow_writing_files_and_used_ram_limit[CPU-2Gb]]": [
         {
-            "checksum": "9a4df5d30004688052fefcf629c0368d",
-            "uri": "file://run_python3_tests.test_3.6-test_classification_ctr_/model.bin"
+            "checksum": "fb809116244260f12b343761fc9387b2",
+            "uri": "file://run_python3_tests.test_3.6-test_allow_writing_files_and_used_ram_limit_CPU-2Gb__/predictions.npy"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_class_weights[CPU]]": [
+        {
+            "checksum": "28b84819e98c1d449312a9f0c80f7545",
+            "uri": "file://run_python3_tests.test_3.6-test_class_weights_CPU__/model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_classification_ctr[CPU]]": [
+        {
+            "checksum": "9d37874db78f0f33fae27f6202054c84",
+            "uri": "file://run_python3_tests.test_3.6-test_classification_ctr_CPU__/model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_convert_model_to_json[CPU-adult]]": [
+        {
+            "checksum": "ba60900ecab535f0a686ee66d6cd475c",
+            "uri": "file://run_python3_tests.test_3.6-test_convert_model_to_json_CPU-adult__/converted_model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_convert_model_to_json[CPU-higgs]]": [
+        {
+            "checksum": "95e06e7e5a7e3738a69e24657d1b1b1f",
+            "uri": "file://run_python3_tests.test_3.6-test_convert_model_to_json_CPU-higgs__/converted_model.bin"
         }
     ],
     "run_python3_tests.test[3.6-test_copy_model]": [
         {
-            "checksum": "563db41d523e32488382c276abff02ed",
+            "checksum": "5434a873b0d6ea51ef74afa50cefe030",
             "uri": "file://run_python3_tests.test_3.6-test_copy_model_/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_coreml_import_export]": [
+    "run_python3_tests.test[3.6-test_coreml_cbm_import_export[CPU]]": [
         {
-            "checksum": "f194b8879c70881e59f3fb54ce1ca5bf",
-            "uri": "file://run_python3_tests.test_3.6-test_coreml_import_export_/model.mlmodel"
+            "checksum": "8fa50aeed4d86ecb19e4869ed45a4422",
+            "uri": "file://run_python3_tests.test_3.6-test_coreml_cbm_import_export_CPU__/model.mlmodel"
         }
     ],
-    "run_python3_tests.test[3.6-test_cpp_export_no_cat_features]": [
+    "run_python3_tests.test[3.6-test_coreml_import_export[CPU]]": [
         {
-            "checksum": "d92b8c3204b7b1fe061e8efd73b840cf",
-            "uri": "file://run_python3_tests.test_3.6-test_cpp_export_no_cat_features_/model.cpp"
+            "checksum": "8fa50aeed4d86ecb19e4869ed45a4422",
+            "uri": "file://run_python3_tests.test_3.6-test_coreml_import_export_CPU__/model.mlmodel"
         }
     ],
-    "run_python3_tests.test[3.6-test_cpp_export_with_cat_features]": [
+    "run_python3_tests.test[3.6-test_cpp_export_no_cat_features[CPU]]": [
         {
-            "checksum": "db57bacb19220d47dab2a1db1c7f71a0",
-            "uri": "file://run_python3_tests.test_3.6-test_cpp_export_with_cat_features_/model.cpp"
+            "checksum": "1ed87dc84068f53aa9ca675ef3f2862c",
+            "uri": "file://run_python3_tests.test_3.6-test_cpp_export_no_cat_features_CPU__/model.cpp"
         }
     ],
-    "run_python3_tests.test[3.6-test_cv]": [
+    "run_python3_tests.test[3.6-test_cpp_export_with_cat_features[CPU]]": [
         {
-            "checksum": "66bd193ba424fad87453986026cdbc05",
-            "uri": "file://run_python3_tests.test_3.6-test_cv_/catboost_training.json"
+            "checksum": "861d1ea0496322bac0dd1f3f1f51778f",
+            "uri": "file://run_python3_tests.test_3.6-test_cpp_export_with_cat_features_CPU__/model.cpp"
         }
     ],
-    "run_python3_tests.test[3.6-test_cv_logging]": [
+    "run_python3_tests.test[3.6-test_cv[CPU]]": [
         {
-            "checksum": "66bd193ba424fad87453986026cdbc05",
-            "uri": "file://run_python3_tests.test_3.6-test_cv_logging_/catboost_training.json"
+            "checksum": "c6179063cb4862d8468018a617ad2ce2",
+            "uri": "file://run_python3_tests.test_3.6-test_cv_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_cv_pairs]": [
+    "run_python3_tests.test[3.6-test_cv_logging[CPU]]": [
         {
-            "checksum": "7fb94504a8f8558439b288ee8d4682e1",
-            "uri": "file://run_python3_tests.test_3.6-test_cv_pairs_/catboost_training.json"
+            "checksum": "3c795270bfa023f42f719b8ea76cd459",
+            "uri": "file://run_python3_tests.test_3.6-test_cv_logging_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_cv_query]": [
+    "run_python3_tests.test[3.6-test_cv_pairs[CPU]]": [
         {
-            "checksum": "2cb01b344c551c2814bd18fcaef50fa1",
-            "uri": "file://run_python3_tests.test_3.6-test_cv_query_/catboost_training.json"
+            "checksum": "b56ebb6ab564c800cf949c0509088929",
+            "uri": "file://run_python3_tests.test_3.6-test_cv_pairs_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_cv_with_not_binarized_target]": [
+    "run_python3_tests.test[3.6-test_cv_query[CPU]]": [
         {
-            "checksum": "66bd193ba424fad87453986026cdbc05",
-            "uri": "file://run_python3_tests.test_3.6-test_cv_with_not_binarized_target_/catboost_training.json"
+            "checksum": "66896674f7a55402ccc835bd5fb6f0ec",
+            "uri": "file://run_python3_tests.test_3.6-test_cv_query_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_eval_set]": [
+    "run_python3_tests.test[3.6-test_cv_with_not_binarized_target[CPU]]": [
         {
-            "checksum": "c612de0f74b41f99dd12445a8943da33",
-            "uri": "file://run_python3_tests.test_3.6-test_eval_set_/catboost_training.json"
+            "checksum": "3c795270bfa023f42f719b8ea76cd459",
+            "uri": "file://run_python3_tests.test_3.6-test_cv_with_not_binarized_target_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_feature_importance]": [
+    "run_python3_tests.test[3.6-test_early_stopping_rounds[CPU]]": [
         {
-            "checksum": "053a21d7cf4b347e6eb8add353859ef2",
-            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_/feature_importance.npy"
+            "checksum": "c4c53ab9054b0fd6c45c07ee19d65efd",
+            "uri": "file://run_python3_tests.test_3.6-test_early_stopping_rounds_CPU__/catboost_training.json"
+        },
+        {
+            "checksum": "3a483b1dd209f7d52190aa0f619f5c88",
+            "uri": "file://run_python3_tests.test_3.6-test_early_stopping_rounds_CPU__/json_log_train.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_feature_importance_explicit]": [
+    "run_python3_tests.test[3.6-test_eval_set[CPU]]": [
         {
-            "checksum": "053a21d7cf4b347e6eb8add353859ef2",
-            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_explicit_/feature_importance.npy"
+            "checksum": "bdaa286c1a43a8892e1e5ac50092ad24",
+            "uri": "file://run_python3_tests.test_3.6-test_eval_set_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_feature_importance_oldparams]": [
+    "run_python3_tests.test[3.6-test_export_to_python_no_cat_features[CPU-2]]": [
         {
-            "checksum": "053a21d7cf4b347e6eb8add353859ef2",
-            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_oldparams_/feature_importance.npy"
+            "checksum": "d7f762f8a08c01e3576d9ef83b63548a",
+            "uri": "file://run_python3_tests.test_3.6-test_export_to_python_no_cat_features_CPU-2__/model.py"
         }
     ],
-    "run_python3_tests.test[3.6-test_feature_importance_prettified]": [
+    "run_python3_tests.test[3.6-test_export_to_python_no_cat_features[CPU-40]]": [
         {
-            "checksum": "bb4a0265b8c7be4fde68aa6e3c7be0a2",
-            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_prettified_/feature_importance.txt"
+            "checksum": "f3018c05ff18a7ec201c5a7a29659158",
+            "uri": "file://run_python3_tests.test_3.6-test_export_to_python_no_cat_features_CPU-40__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_export_to_python_with_cat_features[CPU-2]]": [
+        {
+            "checksum": "3189735de17aafeb03df5d98002c9ba9",
+            "uri": "file://run_python3_tests.test_3.6-test_export_to_python_with_cat_features_CPU-2__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_export_to_python_with_cat_features[CPU-40]]": [
+        {
+            "checksum": "cab5c155c26d99f8f1a05890a75b7c48",
+            "uri": "file://run_python3_tests.test_3.6-test_export_to_python_with_cat_features_CPU-40__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_export_to_python_with_cat_features_from_pandas[CPU]]": [
+        {
+            "checksum": "0de607e3ee2e2b41dd6f8cc23c7d110f",
+            "uri": "file://run_python3_tests.test_3.6-test_export_to_python_with_cat_features_from_pandas_CPU__/model.py"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_feature_importance[CPU]]": [
+        {
+            "checksum": "ff882cc955e063ad51385cf6d3b900a2",
+            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_CPU__/feature_importance.npy"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_feature_importance_explicit[CPU]]": [
+        {
+            "checksum": "ff882cc955e063ad51385cf6d3b900a2",
+            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_explicit_CPU__/feature_importance.npy"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_feature_importance_prettified[CPU]]": [
+        {
+            "checksum": "b4ea6f4eb9cc4d16abfb14767122b645",
+            "uri": "file://run_python3_tests.test_3.6-test_feature_importance_prettified_CPU__/feature_importance.txt"
         }
     ],
     "run_python3_tests.test[3.6-test_feature_names_from_model]": [
         {
-            "checksum": "5b2ec0dc9869bfbb63f762f2abda5fcb",
+            "checksum": "188bb6582ea6a5645edad17cb9a6ba21",
             "uri": "file://run_python3_tests.test_3.6-test_feature_names_from_model_/feature_names"
         }
     ],
-    "run_python3_tests.test[3.6-test_fit_data]": [
+    "run_python3_tests.test[3.6-test_fit_data[CPU]]": [
         {
-            "checksum": "4e03dc35eb4fe4833f2ed9f7705aea15",
-            "uri": "file://run_python3_tests.test_3.6-test_fit_data_/model.bin"
+            "checksum": "d3995f2c85f71024d0b28c7fdfee3dc5",
+            "uri": "file://run_python3_tests.test_3.6-test_fit_data_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_full_history]": [
+    "run_python3_tests.test[3.6-test_full_history[CPU]]": [
         {
-            "checksum": "8fac686f17bfe4d739d87d22af5f4dcb",
-            "uri": "file://run_python3_tests.test_3.6-test_full_history_/model.bin"
+            "checksum": "614c3143b1f8c27c5935f2e67adae9d1",
+            "uri": "file://run_python3_tests.test_3.6-test_full_history_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_ignored_features]": [
+    "run_python3_tests.test[3.6-test_get_evals_result_without_eval_set]": [
         {
-            "checksum": "f927a3cc25955961b1e8696c44cde9c1",
-            "uri": "file://run_python3_tests.test_3.6-test_ignored_features_/model.bin"
+            "checksum": "8a80554c91d9fca8acb82f023de02f11",
+            "uri": "file://run_python3_tests.test_3.6-test_get_evals_result_without_eval_set_/evals.txt"
         }
     ],
-    "run_python3_tests.test[3.6-test_interaction_feature_importance]": [
+    "run_python3_tests.test[3.6-test_get_metric_evals[CPU]]": [
         {
-            "checksum": "10a4d72b2a92eec1ee455114bad5d2ce",
-            "uri": "file://run_python3_tests.test_3.6-test_interaction_feature_importance_/feature_importance.npy"
+            "checksum": "de4e4fa7c40a463d8a0755b782c9852b",
+            "uri": "file://run_python3_tests.test_3.6-test_get_metric_evals_CPU__/evals.txt"
         }
     ],
-    "run_python3_tests.test[3.6-test_interaction_feature_importance_oldparams]": [
+    "run_python3_tests.test[3.6-test_ignored_features[CPU]]": [
         {
-            "checksum": "10a4d72b2a92eec1ee455114bad5d2ce",
-            "uri": "file://run_python3_tests.test_3.6-test_interaction_feature_importance_oldparams_/feature_importance.npy"
+            "checksum": "07b4ac874835b45c5d80f8da289a23ae",
+            "uri": "file://run_python3_tests.test_3.6-test_ignored_features_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_learning_rate_auto_set]": [
+    "run_python3_tests.test[3.6-test_interaction_feature_importance[CPU]]": [
         {
-            "checksum": "8fd40aa31117b8404369678c75a60976",
-            "uri": "file://run_python3_tests.test_3.6-test_learning_rate_auto_set_/catboost_training.json"
+            "checksum": "5adf2127f19c4dc14138b1d25e86274a",
+            "uri": "file://run_python3_tests.test_3.6-test_interaction_feature_importance_CPU__/feature_importance.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_learning_rate_auto_set_in_cv]": [
+    "run_python3_tests.test[3.6-test_learning_rate_auto_set[CPU]]": [
         {
-            "checksum": "0ba17c698081834070aae7a46cf611cc",
-            "uri": "file://run_python3_tests.test_3.6-test_learning_rate_auto_set_in_cv_/catboost_training.json"
+            "checksum": "a7322d8974e15f429026264a1589a4a2",
+            "uri": "file://run_python3_tests.test_3.6-test_learning_rate_auto_set_CPU__/catboost_training.json"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_learning_rate_auto_set_in_cv[CPU]]": [
+        {
+            "checksum": "140653f2d38092614374336e527caff0",
+            "uri": "file://run_python3_tests.test_3.6-test_learning_rate_auto_set_in_cv_CPU__/catboost_training.json"
         }
     ],
     "run_python3_tests.test[3.6-test_metadata]": [
         {
-            "checksum": "04f6c4f22e9282a28e28f3b6f541b128",
+            "checksum": "0b4b37db0d49a20826da54e9aa3e172a",
             "uri": "file://run_python3_tests.test_3.6-test_metadata_/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_multiclass]": [
+    "run_python3_tests.test[3.6-test_multiclass[CPU]]": [
         {
-            "checksum": "e3fa488ab479242d477f18e05a940211",
-            "uri": "file://run_python3_tests.test_3.6-test_multiclass_/predictions.npy"
+            "checksum": "5bbea0c80bb7d80289bb3e5baf1218c3",
+            "uri": "file://run_python3_tests.test_3.6-test_multiclass_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_non_ones_weight]": [
+    "run_python3_tests.test[3.6-test_multiclass_classes_count_missed_classes[CPU]]": [
         {
-            "checksum": "a712ee53c510000cb411b286c0aeef2e",
-            "uri": "file://run_python3_tests.test_3.6-test_non_ones_weight_/model.bin"
+            "checksum": "9ded1ce37b6b4a70c216e81892689c0a",
+            "uri": "file://run_python3_tests.test_3.6-test_multiclass_classes_count_missed_classes_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_ntree_limit]": [
+    "run_python3_tests.test[3.6-test_non_ones_weight[CPU]]": [
         {
-            "checksum": "9dd8e869648e31fe81c4b2db3f669180",
-            "uri": "file://run_python3_tests.test_3.6-test_ntree_limit_/predictions.npy"
+            "checksum": "49f3b7c7e3b4b627be9c31f2dd78fb69",
+            "uri": "file://run_python3_tests.test_3.6-test_non_ones_weight_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_object_importances]": [
+    "run_python3_tests.test[3.6-test_ntree_limit[CPU]]": [
         {
-            "checksum": "003195bca52293e15a33434d5caf3e2f",
-            "uri": "file://run_python3_tests.test_3.6-test_object_importances_/object_importances.txt"
+            "checksum": "9ef79b188c49cc7adf4f93bdc9ff13b4",
+            "uri": "file://run_python3_tests.test_3.6-test_ntree_limit_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_od]": [
+    "run_python3_tests.test[3.6-test_object_importances[CPU]]": [
         {
-            "checksum": "088a7d9660a0407bf2bf0062cf3cffe6",
-            "uri": "file://run_python3_tests.test_3.6-test_od_/model.bin"
+            "checksum": "f4da62b956330ed38615782d75564f8b",
+            "uri": "file://run_python3_tests.test_3.6-test_object_importances_CPU__/object_importances.txt"
         }
     ],
-    "run_python3_tests.test[3.6-test_ones_weight]": [
+    "run_python3_tests.test[3.6-test_od[CPU]]": [
         {
-            "checksum": "87b5d209f93e1499bba5974c87dec31f",
-            "uri": "file://run_python3_tests.test_3.6-test_ones_weight_/model.bin"
+            "checksum": "b5f0e344a0bf84f493ee2106c5a31a9d",
+            "uri": "file://run_python3_tests.test_3.6-test_od_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_predict_class]": [
+    "run_python3_tests.test[3.6-test_ones_weight[CPU]]": [
         {
-            "checksum": "bda840f7cbabdb36fb9949ccf01a3ae9",
-            "uri": "file://run_python3_tests.test_3.6-test_predict_class_/predictions.npy"
+            "checksum": "d7e9f725e86dedd6698a9d230393308d",
+            "uri": "file://run_python3_tests.test_3.6-test_ones_weight_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_predict_class_proba]": [
+    "run_python3_tests.test[3.6-test_pairs_generation[CPU]]": [
         {
-            "checksum": "85229663ad5824a0743c6bbdc7e3d506",
-            "uri": "file://run_python3_tests.test_3.6-test_predict_class_proba_/predictions.npy"
+            "checksum": "1643bc125ee1d535e90487230553fb88",
+            "uri": "file://run_python3_tests.test_3.6-test_pairs_generation_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_predict_class_raw]": [
+    "run_python3_tests.test[3.6-test_pairs_generation_with_max_pairs[CPU]]": [
         {
-            "checksum": "bda840f7cbabdb36fb9949ccf01a3ae9",
-            "uri": "file://run_python3_tests.test_3.6-test_predict_class_raw_/predictions.npy"
+            "checksum": "a98e1e52ce529e7dac3bd3f192cb8638",
+            "uri": "file://run_python3_tests.test_3.6-test_pairs_generation_with_max_pairs_CPU__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_predict_regress]": [
+    "run_python3_tests.test[3.6-test_predict_class[CPU]]": [
         {
-            "checksum": "4a629e2cfba35ae4f43246eeaa4b8a14",
-            "uri": "file://run_python3_tests.test_3.6-test_predict_regress_/model.bin"
+            "checksum": "c4bb7c114d8791f2f33440352a6463d6",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_class_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_predict_sklearn_class]": [
+    "run_python3_tests.test[3.6-test_predict_class_proba[CPU]]": [
         {
-            "checksum": "0e2e5ed860f74da3eeb8fbb315f66fd8",
-            "uri": "file://run_python3_tests.test_3.6-test_predict_sklearn_class_/model.bin"
+            "checksum": "87df2683a7ce8498adbec127ceeae71b",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_class_proba_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_predict_sklearn_regress]": [
+    "run_python3_tests.test[3.6-test_predict_class_raw[CPU]]": [
         {
-            "checksum": "02225bd5895c03ea860c1d961c28164a",
-            "uri": "file://run_python3_tests.test_3.6-test_predict_sklearn_regress_/model.bin"
+            "checksum": "7bc2d7f93b27904006b1ee1ce05e151f",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_class_raw_CPU__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_priors]": [
+    "run_python3_tests.test[3.6-test_predict_regress[CPU]]": [
         {
-            "checksum": "18309a7bfc8af265ebd6925b31076e45",
-            "uri": "file://run_python3_tests.test_3.6-test_priors_/model.bin"
+            "checksum": "47cccf19d585390d85ead346439ab09d",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_regress_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_python_export_no_cat_features]": [
+    "run_python3_tests.test[3.6-test_predict_sklearn_class[CPU]]": [
         {
-            "checksum": "3a482e7bbf50723d26a13d3eb5d6a5d9",
-            "uri": "file://run_python3_tests.test_3.6-test_python_export_no_cat_features_/model.py"
+            "checksum": "7e6f0b649f89c56da64eb62bd260e56a",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_sklearn_class_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_python_export_with_cat_features]": [
+    "run_python3_tests.test[3.6-test_predict_sklearn_regress[CPU]]": [
         {
-            "checksum": "2f6b96d301c2a6282981a7cc6ab2f630",
-            "uri": "file://run_python3_tests.test_3.6-test_python_export_with_cat_features_/model.py"
+            "checksum": "cdeafb795ca9a42bc0462fc5f6541c73",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_sklearn_regress_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_regression_ctr]": [
+    "run_python3_tests.test[3.6-test_priors[CPU]]": [
         {
-            "checksum": "0a189a9ecbeb64403a741059988883dd",
-            "uri": "file://run_python3_tests.test_3.6-test_regression_ctr_/model.bin"
+            "checksum": "ede150ef0d72f4bd4f99e61bb328bf30",
+            "uri": "file://run_python3_tests.test_3.6-test_priors_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_shap]": [
+    "run_python3_tests.test[3.6-test_regression_ctr[CPU]]": [
         {
-            "checksum": "e406c25902fb8ea905ad07fcdf6339df",
-            "uri": "file://run_python3_tests.test_3.6-test_shap_/feature_importance.txt"
+            "checksum": "ace57293c931955a038b407e74c3dead",
+            "uri": "file://run_python3_tests.test_3.6-test_regression_ctr_CPU__/model.bin"
         }
     ],
-    "run_python3_tests.test[3.6-test_shap_complex_ctr]": [
+    "run_python3_tests.test[3.6-test_roc]": [
         {
-            "checksum": "68f2a5226f24f5a463d93d8489bd2570",
-            "uri": "file://run_python3_tests.test_3.6-test_shap_complex_ctr_/feature_importance.txt"
+            "checksum": "8fce6d2c03d6d24add92484dca86d879",
+            "uri": "file://run_python3_tests.test_3.6-test_roc_/out_cv"
+        },
+        {
+            "checksum": "785dbddc0093c1559adb44276505c439",
+            "uri": "file://run_python3_tests.test_3.6-test_roc_/out_model"
+        },
+        {
+            "checksum": "a3075038eb147def55efb2730d2af5b6",
+            "uri": "file://run_python3_tests.test_3.6-test_roc_/bounds"
         }
     ],
-    "run_python3_tests.test[3.6-test_shap_feature_importance]": [
+    "run_python3_tests.test[3.6-test_shap[CPU]]": [
         {
-            "checksum": "8fa846710ea10cae4e0b3a91d78368e4",
-            "uri": "file://run_python3_tests.test_3.6-test_shap_feature_importance_/feature_importance.npy"
+            "checksum": "3d509fa43ba7cabcd20d4a28a3998cc1",
+            "uri": "file://run_python3_tests.test_3.6-test_shap_CPU__/feature_importance.txt"
         }
     ],
-    "run_python3_tests.test[3.6-test_shap_feature_importance_oldparams]": [
+    "run_python3_tests.test[3.6-test_shap_complex_ctr[CPU]]": [
         {
-            "checksum": "8fa846710ea10cae4e0b3a91d78368e4",
-            "uri": "file://run_python3_tests.test_3.6-test_shap_feature_importance_oldparams_/feature_importance.npy"
+            "checksum": "e5d4bb8b37ba2d75adcd4ac11b44e51d",
+            "uri": "file://run_python3_tests.test_3.6-test_shap_complex_ctr_CPU__/feature_importance.txt"
         }
     ],
-    "run_python3_tests.test[3.6-test_staged_predict]": [
+    "run_python3_tests.test[3.6-test_shap_feature_importance[CPU]]": [
         {
-            "checksum": "6b4a919eacd105705968db786f580a41",
-            "uri": "file://run_python3_tests.test_3.6-test_staged_predict_/predictions.npy"
+            "checksum": "6ad24566a1ad1433563455d05bd1ee82",
+            "uri": "file://run_python3_tests.test_3.6-test_shap_feature_importance_CPU__/feature_importance.npy"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_shap_multiclass[CPU]]": [
+        {
+            "checksum": "c3120f7d1a2ea462d149e36cc2aa8ee6",
+            "uri": "file://run_python3_tests.test_3.6-test_shap_multiclass_CPU__/feature_importance.txt"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_staged_predict[CPU]]": [
+        {
+            "checksum": "9eeb3f6e6025a5352219318dac5e07be",
+            "uri": "file://run_python3_tests.test_3.6-test_staged_predict_CPU__/predictions.npy"
         }
     ],
     "run_python3_tests.test[3.6-test_util_eval_metric[Logloss]]": [
@@ -623,28 +803,28 @@
             "uri": "file://run_python3_tests.test_3.6-test_util_eval_metric_multiclass_MultiClass__/predictions.npy"
         }
     ],
-    "run_python3_tests.test[3.6-test_verbose_int[5]]": [
+    "run_python3_tests.test[3.6-test_verbose_int[CPU-5]]": [
         {
-            "checksum": "1debb69d965ccc061f9ae8c916446dad",
-            "uri": "file://run_python3_tests.test_3.6-test_verbose_int_5__/catboost_training.json"
+            "checksum": "ef4d1451d8a32dddfae82dc78e67f34f",
+            "uri": "file://run_python3_tests.test_3.6-test_verbose_int_CPU-5__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_verbose_int[False]]": [
+    "run_python3_tests.test[3.6-test_verbose_int[CPU-False]]": [
         {
-            "checksum": "1debb69d965ccc061f9ae8c916446dad",
-            "uri": "file://run_python3_tests.test_3.6-test_verbose_int_False__/catboost_training.json"
+            "checksum": "ef4d1451d8a32dddfae82dc78e67f34f",
+            "uri": "file://run_python3_tests.test_3.6-test_verbose_int_CPU-False__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_verbose_int[True]]": [
+    "run_python3_tests.test[3.6-test_verbose_int[CPU-True]]": [
         {
-            "checksum": "1debb69d965ccc061f9ae8c916446dad",
-            "uri": "file://run_python3_tests.test_3.6-test_verbose_int_True__/catboost_training.json"
+            "checksum": "ef4d1451d8a32dddfae82dc78e67f34f",
+            "uri": "file://run_python3_tests.test_3.6-test_verbose_int_CPU-True__/catboost_training.json"
         }
     ],
-    "run_python3_tests.test[3.6-test_zero_baseline]": [
+    "run_python3_tests.test[3.6-test_zero_baseline[CPU]]": [
         {
-            "checksum": "87b5d209f93e1499bba5974c87dec31f",
-            "uri": "file://run_python3_tests.test_3.6-test_zero_baseline_/model.bin"
+            "checksum": "6b8a5e7f0fd526f8089960c0090676fd",
+            "uri": "file://run_python3_tests.test_3.6-test_zero_baseline_CPU__/model.bin"
         }
     ]
 }

@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{965E6429-AE78-1C06-E2DA-1B781FCDB7AA}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>pycontrib-python-py</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>pycontrib-python-py</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\py\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\965E6429-AE78-1C06-E2DA-1B781FCDB7AA\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_a54978d3ba814723452571040c.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_5d97255633a89ed8bb355ba220.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py/join_5d97255633a89ed8bb355ba220.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/py/join_5d97255633a89ed8bb355ba220.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/py/join_5d97255633a89ed8bb355ba220.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/py/join_5d97255633a89ed8bb355ba220.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/join_5d97255633a89ed8bb355ba220.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_5d97255633a89ed8bb355ba220.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_5d97255633a89ed8bb355ba220.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\killproc.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_7bbf71977122459f74e63b7ba4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/killproc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_5caa3559ec3c4c61450e8ced2a.rodata" "$(SolutionDir)../contrib/python/py/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_52406f694bac12252dcc290b0f.rodata" "-" "contrib/python/py/py/_std.py" "_7141ed08a81328a2b8135fe76f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_std.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_b5eebd99af6114fab2fffbf8ef.rodata" "$(SolutionDir)../contrib/python/py/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e872304926ab71d69ece09ffc8.rodata" "-" "contrib/python/py/py/_xmlgen.py" "_830e1007901396a5bffc675ab2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_xmlgen.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_608eff6ef2c219c269a3033b2a.rodata" "$(SolutionDir)../contrib/python/py/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_babc13bed7a23d90c78ba307d1.rodata" "-" "contrib/python/py/py/test.py" "_499d832cffec4e38f6ef3aa09f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/test.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_0ff122129a160fbac6cbadac40.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_7bbf71977122459f74e63b7ba4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/killproc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_5caa3559ec3c4c61450e8ced2a.rodata" "$(SolutionDir)../contrib/python/py/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_52406f694bac12252dcc290b0f.rodata" "-" "contrib/python/py/py/_std.py" "_7141ed08a81328a2b8135fe76f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_std.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_b5eebd99af6114fab2fffbf8ef.rodata" "$(SolutionDir)../contrib/python/py/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e872304926ab71d69ece09ffc8.rodata" "-" "contrib/python/py/py/_xmlgen.py" "_830e1007901396a5bffc675ab2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_xmlgen.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_608eff6ef2c219c269a3033b2a.rodata" "$(SolutionDir)../contrib/python/py/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_babc13bed7a23d90c78ba307d1.rodata" "-" "contrib/python/py/py/test.py" "_499d832cffec4e38f6ef3aa09f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/test.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_0ff122129a160fbac6cbadac40.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/_7bbf71977122459f74e63b7ba4.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\killproc.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_std.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_std.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_xmlgen.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_xmlgen.py.yapyc;$(SolutionDir)..\contrib\python\py\py\test.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_7bbf71977122459f74e63b7ba4.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_5caa3559ec3c4c61450e8ced2a.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_52406f694bac12252dcc290b0f.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_b5eebd99af6114fab2fffbf8ef.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e872304926ab71d69ece09ffc8.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_608eff6ef2c219c269a3033b2a.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_babc13bed7a23d90c78ba307d1.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_0ff122129a160fbac6cbadac40.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/0e6510b3d5501f144c8ec3035b.cpp" "_d401caf7e56d6b78ba7b44bf9b=/py_modules/py._code.source" "_d06d548f7b9de4d84c9e7fa913=resfs/src//py_modules/py._code.source" "_078d2b51b1600cc5d4ced8ab63=/py_code/py._code.source" "_a17dedd218e8852d1b2e75c7c0=/py_modules/py._error" "_0cefac5c4445c24093e8dbbaf0=resfs/src//py_modules/py._error" "_a4887a848d551d21d11e1e864e=/py_code/py._error" "_2bd05566d5364c2c688eea4a93=/py_modules/py._iniconfig" "_b4c2c224102bbf646c7c950054=resfs/src//py_modules/py._iniconfig" "_8d0bb07f584ff4f6edc78a65bf=/py_code/py._iniconfig" "_e47089533339d14e8b924bd383=/py_modules/py._io.__init__" "_1c4675da1eff4cc57685f8b14d=resfs/src//py_modules/py._io.__init__" "_8e43ce09d9cb88af25226d64a5=/py_code/py._io.__init__" "_b4357e3d533ad6cfe4eb814531=/py_modules/py._io.capture" "_92c63b2feabf845f8939661856=resfs/src//py_modules/py._io.capture" "_a33b0fc113b09be715bfa928be=/py_code/py._io.capture" "_845060cb40ffb11a6ef798ff64=/py_modules/py._io.saferepr" "_6d0aa6ba14d148bd7ef222dbd9=resfs/src//py_modules/py._io.saferepr" "_e6af566be6ee459b8a4200023d=/py_code/py._io.saferepr" "_44db23f3b2d44592101197143e=/py_modules/py._io.terminalwriter" "_68fffd1b738e1f00f30d02eecc=resfs/src//py_modules/py._io.terminalwriter" "_bc008dcdb39d62a6c184914d73=/py_code/py._io.terminalwriter" "_5ab08c2df14f11ddf9bdb5c3a1=/py_modules/py._log.__init__" "_3ff98636408112a7470284925f=resfs/src//py_modules/py._log.__init__" "_64f6627447ad2662f24bcd995d=/py_code/py._log.__init__" "_0cb9f4fe4011b35f721445709f=/py_modules/py._log.log" "_01f30f284600fe5642b320e5e9=resfs/src//py_modules/py._log.log" "_475cc23aa62632807187cd40ce=/py_code/py._log.log" "_200063254da09af86ceeca8112=/py_modules/py._log.warning" "_ac78ecbde05a4fb48481ae4351=resfs/src//py_modules/py._log.warning" "_c8b11391a54b41962fb9ad8c28=/py_code/py._log.warning"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/568fb56087c2e1e186039b1286.cpp" "_44166cac21f34b3758900ad62a=/py_modules/py._path.__init__" "_d85c4668fc2dc50978f6b27e6e=resfs/src//py_modules/py._path.__init__" "_615b6998839d4f1e95900e44ac=/py_code/py._path.__init__" "_086925cab70fcf209dfabecc86=/py_modules/py._path.cacheutil" "_0e7135fafdb77d3be085a6feda=resfs/src//py_modules/py._path.cacheutil" "_d0a01d57f99e86adfd369d51ec=/py_code/py._path.cacheutil" "_291766d3b9c5093b96646dfe8d=/py_modules/py._path.common" "_6ab94f157091b11f04599eca51=resfs/src//py_modules/py._path.common" "_d6e119281001376272ad73edc8=/py_code/py._path.common" "_178f88c8160c63069c21882b40=/py_modules/py._path.local" "_209c4fed130c1cfe37fd289cf3=resfs/src//py_modules/py._path.local" "_044bbe3836b5db3867a6afcc7d=/py_code/py._path.local" "_36473ce9fc48f122d075a136fd=/py_modules/py._path.svnurl" "_38d3de8e07ff23da0e4b9163a2=resfs/src//py_modules/py._path.svnurl" "_9ada0ec131d4d85efb69b7eebd=/py_code/py._path.svnurl" "_38210d58bb8dbd870c65005d8f=/py_modules/py._path.svnwc" "_076638ff96ed3863088a914c4b=resfs/src//py_modules/py._path.svnwc" "_e8e7616b6abebaac695ba6c440=/py_code/py._path.svnwc" "_e70afcf85fab3d63f4fe9904a3=/py_modules/py._process.__init__" "_8496c01918d2e108baaf5b2209=resfs/src//py_modules/py._process.__init__" "_7bcf22bbc71c3880728b5ea26e=/py_code/py._process.__init__" "_288856df8237fd6d3344716e6a=/py_modules/py._process.cmdexec" "_d13b6794cef0bfbca8e80ffeb6=resfs/src//py_modules/py._process.cmdexec" "_11f8e546721b4801740ed4452c=/py_code/py._process.cmdexec" "_dd99fa99263d14f8193dbf1c07=/py_modules/py._process.forkedfunc" "_4888a9960de4f829f72da1114f=resfs/src//py_modules/py._process.forkedfunc" "_261c676a7c4f399dcb74d91f8f=/py_code/py._process.forkedfunc" "_e21944cdd1bb4c7925ef1643e9=/py_modules/py._process.killproc" "_93965efc006e8928a74992bdce=resfs/src//py_modules/py._process.killproc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/7bbf71977122459f74e63b7ba4.cpp" "_5caa3559ec3c4c61450e8ced2a=/py_code/py._process.killproc" "_52406f694bac12252dcc290b0f=/py_modules/py._std" "_7141ed08a81328a2b8135fe76f=resfs/src//py_modules/py._std" "_b5eebd99af6114fab2fffbf8ef=/py_code/py._std" "_e872304926ab71d69ece09ffc8=/py_modules/py._xmlgen" "_830e1007901396a5bffc675ab2=resfs/src//py_modules/py._xmlgen" "_608eff6ef2c219c269a3033b2a=/py_code/py._xmlgen" "_babc13bed7a23d90c78ba307d1=/py_modules/py.test" "_499d832cffec4e38f6ef3aa09f=resfs/src//py_modules/py.test" "_0ff122129a160fbac6cbadac40=/py_code/py.test"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/da1b5557f58c52cfae7dd542d5.cpp" "_999c1edece8743b1947eec4ef4=/py_modules/py.__init__" "_39288a2b94d5922ad9529da777=resfs/src//py_modules/py.__init__" "_38f019f8478f4b4c1995e1874e=/py_code/py.__init__" "_e4063a2a87d744cfceb8ad17e2=/py_modules/py.__metainfo" "_c013e11c93efa8fcef28a3d065=resfs/src//py_modules/py.__metainfo" "_23e571374303c9a2cae7097bc6=/py_code/py.__metainfo" "_d0fcc4f34d950cacf24c8eba5c=/py_modules/py._apipkg" "_51d32d41bf353279ebb20bf36c=resfs/src//py_modules/py._apipkg" "_0fa4c9ea5e4ade2109676f82aa=/py_code/py._apipkg" "_bb0ecda54e66e2abb953a3382c=/py_modules/py._builtin" "_5404025d21634ff17b4f65c656=resfs/src//py_modules/py._builtin" "_9fcba4c85d5f6e7857f3840a09=/py_code/py._builtin" "_024d58684b5473b05c16d46afc=/py_modules/py._code.__init__" "_a285e3af47d6252fa942020799=resfs/src//py_modules/py._code.__init__" "_bec2b7d5c05ba725a97439373d=/py_code/py._code.__init__" "_b2eb283e73507e9729e2dca1de=/py_modules/py._code._assertionnew" "_bb008f1125fbacc825aa272b63=resfs/src//py_modules/py._code._assertionnew" "_0439fd8124a724b1a8cad8602c=/py_code/py._code._assertionnew" "_5c64bbfa1a9fdd91b8328dd844=/py_modules/py._code._assertionold" "_bd236bc50fb0d95cc6ccf29001=resfs/src//py_modules/py._code._assertionold" "_990c0f3b86f7261c434be2d462=/py_code/py._code._assertionold" "_0cb8875db094a83c98b308c338=/py_modules/py._code._py2traceback" "_759c9b7f05eb3b938e78aa4961=resfs/src//py_modules/py._code._py2traceback" "_3b15069aaf883b9decdc154563=/py_code/py._code._py2traceback" "_c1bad11f6f4c854bba45fe2b88=/py_modules/py._code.assertion" "_55202db51a06800ea9e8bd98fb=resfs/src//py_modules/py._code.assertion" "_da44b3799c3739a72210d9d804=/py_code/py._code.assertion" "_e7e5b2810f028e28e563bd207c=/py_modules/py._code.code" "_777ebf6c4d827651214ff5e90e=resfs/src//py_modules/py._code.code" "_9729b97f987af3fed9a90c6fcf=/py_code/py._code.code"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/0e6510b3d5501f144c8ec3035b.cpp" "_d401caf7e56d6b78ba7b44bf9b=/py_modules/py._code.source" "_d06d548f7b9de4d84c9e7fa913=resfs/src//py_modules/py._code.source" "_078d2b51b1600cc5d4ced8ab63=/py_code/py._code.source" "_a17dedd218e8852d1b2e75c7c0=/py_modules/py._error" "_0cefac5c4445c24093e8dbbaf0=resfs/src//py_modules/py._error" "_a4887a848d551d21d11e1e864e=/py_code/py._error" "_2bd05566d5364c2c688eea4a93=/py_modules/py._iniconfig" "_b4c2c224102bbf646c7c950054=resfs/src//py_modules/py._iniconfig" "_8d0bb07f584ff4f6edc78a65bf=/py_code/py._iniconfig" "_e47089533339d14e8b924bd383=/py_modules/py._io.__init__" "_1c4675da1eff4cc57685f8b14d=resfs/src//py_modules/py._io.__init__" "_8e43ce09d9cb88af25226d64a5=/py_code/py._io.__init__" "_b4357e3d533ad6cfe4eb814531=/py_modules/py._io.capture" "_92c63b2feabf845f8939661856=resfs/src//py_modules/py._io.capture" "_a33b0fc113b09be715bfa928be=/py_code/py._io.capture" "_845060cb40ffb11a6ef798ff64=/py_modules/py._io.saferepr" "_6d0aa6ba14d148bd7ef222dbd9=resfs/src//py_modules/py._io.saferepr" "_e6af566be6ee459b8a4200023d=/py_code/py._io.saferepr" "_44db23f3b2d44592101197143e=/py_modules/py._io.terminalwriter" "_68fffd1b738e1f00f30d02eecc=resfs/src//py_modules/py._io.terminalwriter" "_bc008dcdb39d62a6c184914d73=/py_code/py._io.terminalwriter" "_5ab08c2df14f11ddf9bdb5c3a1=/py_modules/py._log.__init__" "_3ff98636408112a7470284925f=resfs/src//py_modules/py._log.__init__" "_64f6627447ad2662f24bcd995d=/py_code/py._log.__init__" "_0cb9f4fe4011b35f721445709f=/py_modules/py._log.log" "_01f30f284600fe5642b320e5e9=resfs/src//py_modules/py._log.log" "_475cc23aa62632807187cd40ce=/py_code/py._log.log" "_200063254da09af86ceeca8112=/py_modules/py._log.warning" "_ac78ecbde05a4fb48481ae4351=resfs/src//py_modules/py._log.warning" "_c8b11391a54b41962fb9ad8c28=/py_code/py._log.warning"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/568fb56087c2e1e186039b1286.cpp" "_44166cac21f34b3758900ad62a=/py_modules/py._path.__init__" "_d85c4668fc2dc50978f6b27e6e=resfs/src//py_modules/py._path.__init__" "_615b6998839d4f1e95900e44ac=/py_code/py._path.__init__" "_086925cab70fcf209dfabecc86=/py_modules/py._path.cacheutil" "_0e7135fafdb77d3be085a6feda=resfs/src//py_modules/py._path.cacheutil" "_d0a01d57f99e86adfd369d51ec=/py_code/py._path.cacheutil" "_291766d3b9c5093b96646dfe8d=/py_modules/py._path.common" "_6ab94f157091b11f04599eca51=resfs/src//py_modules/py._path.common" "_d6e119281001376272ad73edc8=/py_code/py._path.common" "_178f88c8160c63069c21882b40=/py_modules/py._path.local" "_209c4fed130c1cfe37fd289cf3=resfs/src//py_modules/py._path.local" "_044bbe3836b5db3867a6afcc7d=/py_code/py._path.local" "_36473ce9fc48f122d075a136fd=/py_modules/py._path.svnurl" "_38d3de8e07ff23da0e4b9163a2=resfs/src//py_modules/py._path.svnurl" "_9ada0ec131d4d85efb69b7eebd=/py_code/py._path.svnurl" "_38210d58bb8dbd870c65005d8f=/py_modules/py._path.svnwc" "_076638ff96ed3863088a914c4b=resfs/src//py_modules/py._path.svnwc" "_e8e7616b6abebaac695ba6c440=/py_code/py._path.svnwc" "_e70afcf85fab3d63f4fe9904a3=/py_modules/py._process.__init__" "_8496c01918d2e108baaf5b2209=resfs/src//py_modules/py._process.__init__" "_7bcf22bbc71c3880728b5ea26e=/py_code/py._process.__init__" "_288856df8237fd6d3344716e6a=/py_modules/py._process.cmdexec" "_d13b6794cef0bfbca8e80ffeb6=resfs/src//py_modules/py._process.cmdexec" "_11f8e546721b4801740ed4452c=/py_code/py._process.cmdexec" "_dd99fa99263d14f8193dbf1c07=/py_modules/py._process.forkedfunc" "_4888a9960de4f829f72da1114f=resfs/src//py_modules/py._process.forkedfunc" "_261c676a7c4f399dcb74d91f8f=/py_code/py._process.forkedfunc" "_e21944cdd1bb4c7925ef1643e9=/py_modules/py._process.killproc" "_93965efc006e8928a74992bdce=resfs/src//py_modules/py._process.killproc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/7bbf71977122459f74e63b7ba4.cpp" "_5caa3559ec3c4c61450e8ced2a=/py_code/py._process.killproc" "_52406f694bac12252dcc290b0f=/py_modules/py._std" "_7141ed08a81328a2b8135fe76f=resfs/src//py_modules/py._std" "_b5eebd99af6114fab2fffbf8ef=/py_code/py._std" "_e872304926ab71d69ece09ffc8=/py_modules/py._xmlgen" "_830e1007901396a5bffc675ab2=resfs/src//py_modules/py._xmlgen" "_608eff6ef2c219c269a3033b2a=/py_code/py._xmlgen" "_babc13bed7a23d90c78ba307d1=/py_modules/py.test" "_499d832cffec4e38f6ef3aa09f=resfs/src//py_modules/py.test" "_0ff122129a160fbac6cbadac40=/py_code/py.test"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/da1b5557f58c52cfae7dd542d5.cpp" "_999c1edece8743b1947eec4ef4=/py_modules/py.__init__" "_39288a2b94d5922ad9529da777=resfs/src//py_modules/py.__init__" "_38f019f8478f4b4c1995e1874e=/py_code/py.__init__" "_e4063a2a87d744cfceb8ad17e2=/py_modules/py.__metainfo" "_c013e11c93efa8fcef28a3d065=resfs/src//py_modules/py.__metainfo" "_23e571374303c9a2cae7097bc6=/py_code/py.__metainfo" "_d0fcc4f34d950cacf24c8eba5c=/py_modules/py._apipkg" "_51d32d41bf353279ebb20bf36c=resfs/src//py_modules/py._apipkg" "_0fa4c9ea5e4ade2109676f82aa=/py_code/py._apipkg" "_bb0ecda54e66e2abb953a3382c=/py_modules/py._builtin" "_5404025d21634ff17b4f65c656=resfs/src//py_modules/py._builtin" "_9fcba4c85d5f6e7857f3840a09=/py_code/py._builtin" "_024d58684b5473b05c16d46afc=/py_modules/py._code.__init__" "_a285e3af47d6252fa942020799=resfs/src//py_modules/py._code.__init__" "_bec2b7d5c05ba725a97439373d=/py_code/py._code.__init__" "_b2eb283e73507e9729e2dca1de=/py_modules/py._code._assertionnew" "_bb008f1125fbacc825aa272b63=resfs/src//py_modules/py._code._assertionnew" "_0439fd8124a724b1a8cad8602c=/py_code/py._code._assertionnew" "_5c64bbfa1a9fdd91b8328dd844=/py_modules/py._code._assertionold" "_bd236bc50fb0d95cc6ccf29001=resfs/src//py_modules/py._code._assertionold" "_990c0f3b86f7261c434be2d462=/py_code/py._code._assertionold" "_0cb8875db094a83c98b308c338=/py_modules/py._code._py2traceback" "_759c9b7f05eb3b938e78aa4961=resfs/src//py_modules/py._code._py2traceback" "_3b15069aaf883b9decdc154563=/py_code/py._code._py2traceback" "_c1bad11f6f4c854bba45fe2b88=/py_modules/py._code.assertion" "_55202db51a06800ea9e8bd98fb=resfs/src//py_modules/py._code.assertion" "_da44b3799c3739a72210d9d804=/py_code/py._code.assertion" "_e7e5b2810f028e28e563bd207c=/py_modules/py._code.code" "_777ebf6c4d827651214ff5e90e=resfs/src//py_modules/py._code.code" "_9729b97f987af3fed9a90c6fcf=/py_code/py._code.code"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/0e6510b3d5501f144c8ec3035b.cpp	$B/contrib/python/py/568fb56087c2e1e186039b1286.cpp	$B/contrib/python/py/7bbf71977122459f74e63b7ba4.cpp	$B/contrib/python/py/da1b5557f58c52cfae7dd542d5.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\0e6510b3d5501f144c8ec3035b.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\568fb56087c2e1e186039b1286.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\7bbf71977122459f74e63b7ba4.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\da1b5557f58c52cfae7dd542d5.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/py/join_5d97255633a89ed8bb355ba220.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_da1b5557f58c52cfae7dd542d5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_0e6510b3d5501f144c8ec3035b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_568fb56087c2e1e186039b1286.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_7bbf71977122459f74e63b7ba4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/py/join_5d97255633a89ed8bb355ba220.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_da1b5557f58c52cfae7dd542d5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_0e6510b3d5501f144c8ec3035b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_568fb56087c2e1e186039b1286.yasm" "$(SolutionDir)$(Configuration)/contrib/python/py/_7bbf71977122459f74e63b7ba4.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/join_5d97255633a89ed8bb355ba220.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\py\_da1b5557f58c52cfae7dd542d5.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_0e6510b3d5501f144c8ec3035b.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_568fb56087c2e1e186039b1286.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_7bbf71977122459f74e63b7ba4.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_5d97255633a89ed8bb355ba220.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_a54978d3ba814723452571040c.cpp" "contrib/python/py/da1b5557f58c52cfae7dd542d5.cpp" "contrib/python/py/0e6510b3d5501f144c8ec3035b.cpp" "contrib/python/py/568fb56087c2e1e186039b1286.cpp" "contrib/python/py/7bbf71977122459f74e63b7ba4.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_a54978d3ba814723452571040c.cpp" "contrib/python/py/da1b5557f58c52cfae7dd542d5.cpp" "contrib/python/py/0e6510b3d5501f144c8ec3035b.cpp" "contrib/python/py/568fb56087c2e1e186039b1286.cpp" "contrib/python/py/7bbf71977122459f74e63b7ba4.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/join_a54978d3ba814723452571040c.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\py\da1b5557f58c52cfae7dd542d5.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\0e6510b3d5501f144c8ec3035b.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\568fb56087c2e1e186039b1286.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\7bbf71977122459f74e63b7ba4.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_a54978d3ba814723452571040c.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/__init__.py-" "$(SolutionDir)../contrib/python/py/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/__metainfo.py-" "$(SolutionDir)../contrib/python/py/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__metainfo.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_apipkg.py-" "$(SolutionDir)../contrib/python/py/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_apipkg.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_builtin.py-" "$(SolutionDir)../contrib/python/py/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_builtin.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/_assertionnew.py-" "$(SolutionDir)../contrib/python/py/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionnew.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/_assertionold.py-" "$(SolutionDir)../contrib/python/py/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionold.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/py/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_py2traceback.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/assertion.py-" "$(SolutionDir)../contrib/python/py/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/assertion.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/code.py-" "$(SolutionDir)../contrib/python/py/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/code.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/source.py-" "$(SolutionDir)../contrib/python/py/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/source.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_error.py-" "$(SolutionDir)../contrib/python/py/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_error.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_iniconfig.py-" "$(SolutionDir)../contrib/python/py/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_iniconfig.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/capture.py-" "$(SolutionDir)../contrib/python/py/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/capture.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/saferepr.py-" "$(SolutionDir)../contrib/python/py/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/saferepr.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/terminalwriter.py-" "$(SolutionDir)../contrib/python/py/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/terminalwriter.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_log/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_log/log.py-" "$(SolutionDir)../contrib/python/py/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/log.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_log/warning.py-" "$(SolutionDir)../contrib/python/py/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/warning.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/cacheutil.py-" "$(SolutionDir)../contrib/python/py/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/cacheutil.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/common.py-" "$(SolutionDir)../contrib/python/py/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/common.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/local.py-" "$(SolutionDir)../contrib/python/py/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/local.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/svnurl.py-" "$(SolutionDir)../contrib/python/py/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnurl.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/svnwc.py-" "$(SolutionDir)../contrib/python/py/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnwc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/cmdexec.py-" "$(SolutionDir)../contrib/python/py/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/cmdexec.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/forkedfunc.py-" "$(SolutionDir)../contrib/python/py/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/forkedfunc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/killproc.py-" "$(SolutionDir)../contrib/python/py/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/killproc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_std.py-" "$(SolutionDir)../contrib/python/py/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_std.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_xmlgen.py-" "$(SolutionDir)../contrib/python/py/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_xmlgen.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/test.py-" "$(SolutionDir)../contrib/python/py/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/test.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/__init__.py-" "$(SolutionDir)../contrib/python/py/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/__metainfo.py-" "$(SolutionDir)../contrib/python/py/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__metainfo.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_apipkg.py-" "$(SolutionDir)../contrib/python/py/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_apipkg.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_builtin.py-" "$(SolutionDir)../contrib/python/py/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_builtin.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/_assertionnew.py-" "$(SolutionDir)../contrib/python/py/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionnew.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/_assertionold.py-" "$(SolutionDir)../contrib/python/py/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionold.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/py/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_py2traceback.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/assertion.py-" "$(SolutionDir)../contrib/python/py/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/assertion.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/code.py-" "$(SolutionDir)../contrib/python/py/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/code.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_code/source.py-" "$(SolutionDir)../contrib/python/py/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/source.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_error.py-" "$(SolutionDir)../contrib/python/py/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_error.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_iniconfig.py-" "$(SolutionDir)../contrib/python/py/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_iniconfig.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/capture.py-" "$(SolutionDir)../contrib/python/py/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/capture.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/saferepr.py-" "$(SolutionDir)../contrib/python/py/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/saferepr.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_io/terminalwriter.py-" "$(SolutionDir)../contrib/python/py/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/terminalwriter.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_log/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_log/log.py-" "$(SolutionDir)../contrib/python/py/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/log.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_log/warning.py-" "$(SolutionDir)../contrib/python/py/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/warning.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/cacheutil.py-" "$(SolutionDir)../contrib/python/py/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/cacheutil.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/common.py-" "$(SolutionDir)../contrib/python/py/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/common.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/local.py-" "$(SolutionDir)../contrib/python/py/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/local.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/svnurl.py-" "$(SolutionDir)../contrib/python/py/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnurl.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_path/svnwc.py-" "$(SolutionDir)../contrib/python/py/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnwc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/__init__.py-" "$(SolutionDir)../contrib/python/py/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/cmdexec.py-" "$(SolutionDir)../contrib/python/py/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/cmdexec.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/forkedfunc.py-" "$(SolutionDir)../contrib/python/py/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/forkedfunc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_process/killproc.py-" "$(SolutionDir)../contrib/python/py/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/killproc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_std.py-" "$(SolutionDir)../contrib/python/py/py/_std.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_std.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/_xmlgen.py-" "$(SolutionDir)../contrib/python/py/py/_xmlgen.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_xmlgen.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/py/py/test.py-" "$(SolutionDir)../contrib/python/py/py/test.py" "$(SolutionDir)$(Configuration)/contrib/python/py/py/test.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/py/__init__.py.yapyc	$B/contrib/python/py/py/__metainfo.py.yapyc	$B/contrib/python/py/py/_apipkg.py.yapyc	$B/contrib/python/py/py/_builtin.py.yapyc	$B/contrib/python/py/py/_code/__init__.py.yapyc	$B/contrib/python/py/py/_code/_assertionnew.py.yapyc	$B/contrib/python/py/py/_code/_assertionold.py.yapyc	$B/contrib/python/py/py/_code/_py2traceback.py.yapyc	$B/contrib/python/py/py/_code/assertion.py.yapyc	$B/contrib/python/py/py/_code/code.py.yapyc	$B/contrib/python/py/py/_code/source.py.yapyc	$B/contrib/python/py/py/_error.py.yapyc	$B/contrib/python/py/py/_iniconfig.py.yapyc	$B/contrib/python/py/py/_io/__init__.py.yapyc	$B/contrib/python/py/py/_io/capture.py.yapyc	$B/contrib/python/py/py/_io/saferepr.py.yapyc	$B/contrib/python/py/py/_io/terminalwriter.py.yapyc	$B/contrib/python/py/py/_log/__init__.py.yapyc	$B/contrib/python/py/py/_log/log.py.yapyc	$B/contrib/python/py/py/_log/warning.py.yapyc	$B/contrib/python/py/py/_path/__init__.py.yapyc	$B/contrib/python/py/py/_path/cacheutil.py.yapyc	$B/contrib/python/py/py/_path/common.py.yapyc	$B/contrib/python/py/py/_path/local.py.yapyc	$B/contrib/python/py/py/_path/svnurl.py.yapyc	$B/contrib/python/py/py/_path/svnwc.py.yapyc	$B/contrib/python/py/py/_process/__init__.py.yapyc	$B/contrib/python/py/py/_process/cmdexec.py.yapyc	$B/contrib/python/py/py/_process/forkedfunc.py.yapyc	$B/contrib/python/py/py/_process/killproc.py.yapyc	$B/contrib/python/py/py/_std.py.yapyc	$B/contrib/python/py/py/_xmlgen.py.yapyc	$B/contrib/python/py/py/test.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\py\py\__init__.py;$(SolutionDir)..\contrib\python\py\py\__metainfo.py;$(SolutionDir)..\contrib\python\py\py\_apipkg.py;$(SolutionDir)..\contrib\python\py\py\_builtin.py;$(SolutionDir)..\contrib\python\py\py\_code\__init__.py;$(SolutionDir)..\contrib\python\py\py\_code\_assertionnew.py;$(SolutionDir)..\contrib\python\py\py\_code\_assertionold.py;$(SolutionDir)..\contrib\python\py\py\_code\_py2traceback.py;$(SolutionDir)..\contrib\python\py\py\_code\assertion.py;$(SolutionDir)..\contrib\python\py\py\_code\code.py;$(SolutionDir)..\contrib\python\py\py\_code\source.py;$(SolutionDir)..\contrib\python\py\py\_error.py;$(SolutionDir)..\contrib\python\py\py\_iniconfig.py;$(SolutionDir)..\contrib\python\py\py\_io\__init__.py;$(SolutionDir)..\contrib\python\py\py\_io\capture.py;$(SolutionDir)..\contrib\python\py\py\_io\saferepr.py;$(SolutionDir)..\contrib\python\py\py\_io\terminalwriter.py;$(SolutionDir)..\contrib\python\py\py\_log\__init__.py;$(SolutionDir)..\contrib\python\py\py\_log\log.py;$(SolutionDir)..\contrib\python\py\py\_log\warning.py;$(SolutionDir)..\contrib\python\py\py\_path\__init__.py;$(SolutionDir)..\contrib\python\py\py\_path\cacheutil.py;$(SolutionDir)..\contrib\python\py\py\_path\common.py;$(SolutionDir)..\contrib\python\py\py\_path\local.py;$(SolutionDir)..\contrib\python\py\py\_path\svnurl.py;$(SolutionDir)..\contrib\python\py\py\_path\svnwc.py;$(SolutionDir)..\contrib\python\py\py\_process\__init__.py;$(SolutionDir)..\contrib\python\py\py\_process\cmdexec.py;$(SolutionDir)..\contrib\python\py\py\_process\forkedfunc.py;$(SolutionDir)..\contrib\python\py\py\_process\killproc.py;$(SolutionDir)..\contrib\python\py\py\_std.py;$(SolutionDir)..\contrib\python\py\py\_xmlgen.py;$(SolutionDir)..\contrib\python\py\py\test.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\py\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\__metainfo.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_apipkg.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_builtin.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\_assertionnew.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\_assertionold.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\_py2traceback.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\assertion.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\code.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\source.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_error.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_iniconfig.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\capture.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\saferepr.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\terminalwriter.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_log\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_log\log.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_log\warning.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\cacheutil.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\common.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\local.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\svnurl.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\svnwc.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\cmdexec.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\forkedfunc.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\killproc.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_std.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\_xmlgen.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\py\py\test.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\py\py\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_da1b5557f58c52cfae7dd542d5.yasm" "$(SolutionDir)../contrib/python/py/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_999c1edece8743b1947eec4ef4.rodata" "-" "contrib/python/py/py/__init__.py" "_39288a2b94d5922ad9529da777.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_38f019f8478f4b4c1995e1874e.rodata" "$(SolutionDir)../contrib/python/py/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e4063a2a87d744cfceb8ad17e2.rodata" "-" "contrib/python/py/py/__metainfo.py" "_c013e11c93efa8fcef28a3d065.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__metainfo.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_23e571374303c9a2cae7097bc6.rodata" "$(SolutionDir)../contrib/python/py/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_d0fcc4f34d950cacf24c8eba5c.rodata" "-" "contrib/python/py/py/_apipkg.py" "_51d32d41bf353279ebb20bf36c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_apipkg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_0fa4c9ea5e4ade2109676f82aa.rodata" "$(SolutionDir)../contrib/python/py/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_bb0ecda54e66e2abb953a3382c.rodata" "-" "contrib/python/py/py/_builtin.py" "_5404025d21634ff17b4f65c656.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_builtin.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_9fcba4c85d5f6e7857f3840a09.rodata" "$(SolutionDir)../contrib/python/py/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_024d58684b5473b05c16d46afc.rodata" "-" "contrib/python/py/py/_code/__init__.py" "_a285e3af47d6252fa942020799.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_bec2b7d5c05ba725a97439373d.rodata" "$(SolutionDir)../contrib/python/py/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_b2eb283e73507e9729e2dca1de.rodata" "-" "contrib/python/py/py/_code/_assertionnew.py" "_bb008f1125fbacc825aa272b63.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionnew.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_0439fd8124a724b1a8cad8602c.rodata" "$(SolutionDir)../contrib/python/py/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_5c64bbfa1a9fdd91b8328dd844.rodata" "-" "contrib/python/py/py/_code/_assertionold.py" "_bd236bc50fb0d95cc6ccf29001.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionold.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_990c0f3b86f7261c434be2d462.rodata" "$(SolutionDir)../contrib/python/py/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_0cb8875db094a83c98b308c338.rodata" "-" "contrib/python/py/py/_code/_py2traceback.py" "_759c9b7f05eb3b938e78aa4961.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_py2traceback.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_3b15069aaf883b9decdc154563.rodata" "$(SolutionDir)../contrib/python/py/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_c1bad11f6f4c854bba45fe2b88.rodata" "-" "contrib/python/py/py/_code/assertion.py" "_55202db51a06800ea9e8bd98fb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/assertion.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_da44b3799c3739a72210d9d804.rodata" "$(SolutionDir)../contrib/python/py/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e7e5b2810f028e28e563bd207c.rodata" "-" "contrib/python/py/py/_code/code.py" "_777ebf6c4d827651214ff5e90e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/code.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_9729b97f987af3fed9a90c6fcf.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_da1b5557f58c52cfae7dd542d5.yasm" "$(SolutionDir)../contrib/python/py/py/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_999c1edece8743b1947eec4ef4.rodata" "-" "contrib/python/py/py/__init__.py" "_39288a2b94d5922ad9529da777.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_38f019f8478f4b4c1995e1874e.rodata" "$(SolutionDir)../contrib/python/py/py/__metainfo.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e4063a2a87d744cfceb8ad17e2.rodata" "-" "contrib/python/py/py/__metainfo.py" "_c013e11c93efa8fcef28a3d065.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/__metainfo.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_23e571374303c9a2cae7097bc6.rodata" "$(SolutionDir)../contrib/python/py/py/_apipkg.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_d0fcc4f34d950cacf24c8eba5c.rodata" "-" "contrib/python/py/py/_apipkg.py" "_51d32d41bf353279ebb20bf36c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_apipkg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_0fa4c9ea5e4ade2109676f82aa.rodata" "$(SolutionDir)../contrib/python/py/py/_builtin.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_bb0ecda54e66e2abb953a3382c.rodata" "-" "contrib/python/py/py/_builtin.py" "_5404025d21634ff17b4f65c656.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_builtin.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_9fcba4c85d5f6e7857f3840a09.rodata" "$(SolutionDir)../contrib/python/py/py/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_024d58684b5473b05c16d46afc.rodata" "-" "contrib/python/py/py/_code/__init__.py" "_a285e3af47d6252fa942020799.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_bec2b7d5c05ba725a97439373d.rodata" "$(SolutionDir)../contrib/python/py/py/_code/_assertionnew.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_b2eb283e73507e9729e2dca1de.rodata" "-" "contrib/python/py/py/_code/_assertionnew.py" "_bb008f1125fbacc825aa272b63.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionnew.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_0439fd8124a724b1a8cad8602c.rodata" "$(SolutionDir)../contrib/python/py/py/_code/_assertionold.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_5c64bbfa1a9fdd91b8328dd844.rodata" "-" "contrib/python/py/py/_code/_assertionold.py" "_bd236bc50fb0d95cc6ccf29001.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_assertionold.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_990c0f3b86f7261c434be2d462.rodata" "$(SolutionDir)../contrib/python/py/py/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_0cb8875db094a83c98b308c338.rodata" "-" "contrib/python/py/py/_code/_py2traceback.py" "_759c9b7f05eb3b938e78aa4961.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/_py2traceback.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_3b15069aaf883b9decdc154563.rodata" "$(SolutionDir)../contrib/python/py/py/_code/assertion.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_c1bad11f6f4c854bba45fe2b88.rodata" "-" "contrib/python/py/py/_code/assertion.py" "_55202db51a06800ea9e8bd98fb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/assertion.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_da44b3799c3739a72210d9d804.rodata" "$(SolutionDir)../contrib/python/py/py/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e7e5b2810f028e28e563bd207c.rodata" "-" "contrib/python/py/py/_code/code.py" "_777ebf6c4d827651214ff5e90e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/code.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_9729b97f987af3fed9a90c6fcf.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/_da1b5557f58c52cfae7dd542d5.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\py\py\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\__init__.py.yapyc;$(SolutionDir)..\contrib\python\py\py\__metainfo.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\__metainfo.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_apipkg.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_apipkg.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_builtin.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_builtin.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_code\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\__init__.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_code\_assertionnew.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\_assertionnew.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_code\_assertionold.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\_assertionold.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_code\_py2traceback.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\_py2traceback.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_code\assertion.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\assertion.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_code\code.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\code.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_da1b5557f58c52cfae7dd542d5.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_999c1edece8743b1947eec4ef4.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_38f019f8478f4b4c1995e1874e.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e4063a2a87d744cfceb8ad17e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_23e571374303c9a2cae7097bc6.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_d0fcc4f34d950cacf24c8eba5c.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_0fa4c9ea5e4ade2109676f82aa.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_bb0ecda54e66e2abb953a3382c.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_9fcba4c85d5f6e7857f3840a09.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_024d58684b5473b05c16d46afc.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_bec2b7d5c05ba725a97439373d.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_b2eb283e73507e9729e2dca1de.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_0439fd8124a724b1a8cad8602c.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_5c64bbfa1a9fdd91b8328dd844.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_990c0f3b86f7261c434be2d462.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_0cb8875db094a83c98b308c338.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_3b15069aaf883b9decdc154563.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_c1bad11f6f4c854bba45fe2b88.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_da44b3799c3739a72210d9d804.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e7e5b2810f028e28e563bd207c.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_9729b97f987af3fed9a90c6fcf.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\py\py\_code\source.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_0e6510b3d5501f144c8ec3035b.yasm" "$(SolutionDir)../contrib/python/py/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_d401caf7e56d6b78ba7b44bf9b.rodata" "-" "contrib/python/py/py/_code/source.py" "_d06d548f7b9de4d84c9e7fa913.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/source.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_078d2b51b1600cc5d4ced8ab63.rodata" "$(SolutionDir)../contrib/python/py/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_a17dedd218e8852d1b2e75c7c0.rodata" "-" "contrib/python/py/py/_error.py" "_0cefac5c4445c24093e8dbbaf0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_error.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_a4887a848d551d21d11e1e864e.rodata" "$(SolutionDir)../contrib/python/py/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_2bd05566d5364c2c688eea4a93.rodata" "-" "contrib/python/py/py/_iniconfig.py" "_b4c2c224102bbf646c7c950054.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_iniconfig.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_8d0bb07f584ff4f6edc78a65bf.rodata" "$(SolutionDir)../contrib/python/py/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e47089533339d14e8b924bd383.rodata" "-" "contrib/python/py/py/_io/__init__.py" "_1c4675da1eff4cc57685f8b14d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_8e43ce09d9cb88af25226d64a5.rodata" "$(SolutionDir)../contrib/python/py/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_b4357e3d533ad6cfe4eb814531.rodata" "-" "contrib/python/py/py/_io/capture.py" "_92c63b2feabf845f8939661856.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/capture.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_a33b0fc113b09be715bfa928be.rodata" "$(SolutionDir)../contrib/python/py/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_845060cb40ffb11a6ef798ff64.rodata" "-" "contrib/python/py/py/_io/saferepr.py" "_6d0aa6ba14d148bd7ef222dbd9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/saferepr.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_e6af566be6ee459b8a4200023d.rodata" "$(SolutionDir)../contrib/python/py/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_44db23f3b2d44592101197143e.rodata" "-" "contrib/python/py/py/_io/terminalwriter.py" "_68fffd1b738e1f00f30d02eecc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/terminalwriter.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_bc008dcdb39d62a6c184914d73.rodata" "$(SolutionDir)../contrib/python/py/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_5ab08c2df14f11ddf9bdb5c3a1.rodata" "-" "contrib/python/py/py/_log/__init__.py" "_3ff98636408112a7470284925f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_64f6627447ad2662f24bcd995d.rodata" "$(SolutionDir)../contrib/python/py/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_0cb9f4fe4011b35f721445709f.rodata" "-" "contrib/python/py/py/_log/log.py" "_01f30f284600fe5642b320e5e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/log.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_475cc23aa62632807187cd40ce.rodata" "$(SolutionDir)../contrib/python/py/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_200063254da09af86ceeca8112.rodata" "-" "contrib/python/py/py/_log/warning.py" "_ac78ecbde05a4fb48481ae4351.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/warning.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_c8b11391a54b41962fb9ad8c28.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_0e6510b3d5501f144c8ec3035b.yasm" "$(SolutionDir)../contrib/python/py/py/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_d401caf7e56d6b78ba7b44bf9b.rodata" "-" "contrib/python/py/py/_code/source.py" "_d06d548f7b9de4d84c9e7fa913.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_code/source.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_078d2b51b1600cc5d4ced8ab63.rodata" "$(SolutionDir)../contrib/python/py/py/_error.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_a17dedd218e8852d1b2e75c7c0.rodata" "-" "contrib/python/py/py/_error.py" "_0cefac5c4445c24093e8dbbaf0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_error.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_a4887a848d551d21d11e1e864e.rodata" "$(SolutionDir)../contrib/python/py/py/_iniconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_2bd05566d5364c2c688eea4a93.rodata" "-" "contrib/python/py/py/_iniconfig.py" "_b4c2c224102bbf646c7c950054.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_iniconfig.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_8d0bb07f584ff4f6edc78a65bf.rodata" "$(SolutionDir)../contrib/python/py/py/_io/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e47089533339d14e8b924bd383.rodata" "-" "contrib/python/py/py/_io/__init__.py" "_1c4675da1eff4cc57685f8b14d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_8e43ce09d9cb88af25226d64a5.rodata" "$(SolutionDir)../contrib/python/py/py/_io/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_b4357e3d533ad6cfe4eb814531.rodata" "-" "contrib/python/py/py/_io/capture.py" "_92c63b2feabf845f8939661856.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/capture.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_a33b0fc113b09be715bfa928be.rodata" "$(SolutionDir)../contrib/python/py/py/_io/saferepr.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_845060cb40ffb11a6ef798ff64.rodata" "-" "contrib/python/py/py/_io/saferepr.py" "_6d0aa6ba14d148bd7ef222dbd9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/saferepr.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_e6af566be6ee459b8a4200023d.rodata" "$(SolutionDir)../contrib/python/py/py/_io/terminalwriter.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_44db23f3b2d44592101197143e.rodata" "-" "contrib/python/py/py/_io/terminalwriter.py" "_68fffd1b738e1f00f30d02eecc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_io/terminalwriter.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_bc008dcdb39d62a6c184914d73.rodata" "$(SolutionDir)../contrib/python/py/py/_log/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_5ab08c2df14f11ddf9bdb5c3a1.rodata" "-" "contrib/python/py/py/_log/__init__.py" "_3ff98636408112a7470284925f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_64f6627447ad2662f24bcd995d.rodata" "$(SolutionDir)../contrib/python/py/py/_log/log.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_0cb9f4fe4011b35f721445709f.rodata" "-" "contrib/python/py/py/_log/log.py" "_01f30f284600fe5642b320e5e9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/log.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_475cc23aa62632807187cd40ce.rodata" "$(SolutionDir)../contrib/python/py/py/_log/warning.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_200063254da09af86ceeca8112.rodata" "-" "contrib/python/py/py/_log/warning.py" "_ac78ecbde05a4fb48481ae4351.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_log/warning.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_c8b11391a54b41962fb9ad8c28.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/_0e6510b3d5501f144c8ec3035b.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\py\py\_code\source.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\source.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_error.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_error.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_iniconfig.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_iniconfig.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_io\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\__init__.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_io\capture.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\capture.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_io\saferepr.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\saferepr.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_io\terminalwriter.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_io\terminalwriter.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_log\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_log\__init__.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_log\log.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_log\log.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_log\warning.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_log\warning.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_0e6510b3d5501f144c8ec3035b.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_d401caf7e56d6b78ba7b44bf9b.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_078d2b51b1600cc5d4ced8ab63.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_a17dedd218e8852d1b2e75c7c0.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_a4887a848d551d21d11e1e864e.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_2bd05566d5364c2c688eea4a93.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_8d0bb07f584ff4f6edc78a65bf.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e47089533339d14e8b924bd383.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_8e43ce09d9cb88af25226d64a5.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_b4357e3d533ad6cfe4eb814531.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_a33b0fc113b09be715bfa928be.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_845060cb40ffb11a6ef798ff64.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e6af566be6ee459b8a4200023d.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_44db23f3b2d44592101197143e.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_bc008dcdb39d62a6c184914d73.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_5ab08c2df14f11ddf9bdb5c3a1.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_64f6627447ad2662f24bcd995d.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_0cb9f4fe4011b35f721445709f.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_475cc23aa62632807187cd40ce.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_200063254da09af86ceeca8112.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_c8b11391a54b41962fb9ad8c28.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\py\py\_path\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_568fb56087c2e1e186039b1286.yasm" "$(SolutionDir)../contrib/python/py/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_44166cac21f34b3758900ad62a.rodata" "-" "contrib/python/py/py/_path/__init__.py" "_d85c4668fc2dc50978f6b27e6e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_615b6998839d4f1e95900e44ac.rodata" "$(SolutionDir)../contrib/python/py/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_086925cab70fcf209dfabecc86.rodata" "-" "contrib/python/py/py/_path/cacheutil.py" "_0e7135fafdb77d3be085a6feda.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/cacheutil.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_d0a01d57f99e86adfd369d51ec.rodata" "$(SolutionDir)../contrib/python/py/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_291766d3b9c5093b96646dfe8d.rodata" "-" "contrib/python/py/py/_path/common.py" "_6ab94f157091b11f04599eca51.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_d6e119281001376272ad73edc8.rodata" "$(SolutionDir)../contrib/python/py/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_178f88c8160c63069c21882b40.rodata" "-" "contrib/python/py/py/_path/local.py" "_209c4fed130c1cfe37fd289cf3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/local.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_044bbe3836b5db3867a6afcc7d.rodata" "$(SolutionDir)../contrib/python/py/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_36473ce9fc48f122d075a136fd.rodata" "-" "contrib/python/py/py/_path/svnurl.py" "_38d3de8e07ff23da0e4b9163a2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnurl.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_9ada0ec131d4d85efb69b7eebd.rodata" "$(SolutionDir)../contrib/python/py/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_38210d58bb8dbd870c65005d8f.rodata" "-" "contrib/python/py/py/_path/svnwc.py" "_076638ff96ed3863088a914c4b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnwc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_e8e7616b6abebaac695ba6c440.rodata" "$(SolutionDir)../contrib/python/py/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e70afcf85fab3d63f4fe9904a3.rodata" "-" "contrib/python/py/py/_process/__init__.py" "_8496c01918d2e108baaf5b2209.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_7bcf22bbc71c3880728b5ea26e.rodata" "$(SolutionDir)../contrib/python/py/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_288856df8237fd6d3344716e6a.rodata" "-" "contrib/python/py/py/_process/cmdexec.py" "_d13b6794cef0bfbca8e80ffeb6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/cmdexec.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_11f8e546721b4801740ed4452c.rodata" "$(SolutionDir)../contrib/python/py/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_dd99fa99263d14f8193dbf1c07.rodata" "-" "contrib/python/py/py/_process/forkedfunc.py" "_4888a9960de4f829f72da1114f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/forkedfunc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_261c676a7c4f399dcb74d91f8f.rodata" "$(SolutionDir)../contrib/python/py/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e21944cdd1bb4c7925ef1643e9.rodata" "-" "contrib/python/py/py/_process/killproc.py" "_93965efc006e8928a74992bdce.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\py
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/py/_568fb56087c2e1e186039b1286.yasm" "$(SolutionDir)../contrib/python/py/py/_path/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_44166cac21f34b3758900ad62a.rodata" "-" "contrib/python/py/py/_path/__init__.py" "_d85c4668fc2dc50978f6b27e6e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_615b6998839d4f1e95900e44ac.rodata" "$(SolutionDir)../contrib/python/py/py/_path/cacheutil.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_086925cab70fcf209dfabecc86.rodata" "-" "contrib/python/py/py/_path/cacheutil.py" "_0e7135fafdb77d3be085a6feda.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/cacheutil.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_d0a01d57f99e86adfd369d51ec.rodata" "$(SolutionDir)../contrib/python/py/py/_path/common.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_291766d3b9c5093b96646dfe8d.rodata" "-" "contrib/python/py/py/_path/common.py" "_6ab94f157091b11f04599eca51.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/common.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_d6e119281001376272ad73edc8.rodata" "$(SolutionDir)../contrib/python/py/py/_path/local.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_178f88c8160c63069c21882b40.rodata" "-" "contrib/python/py/py/_path/local.py" "_209c4fed130c1cfe37fd289cf3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/local.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_044bbe3836b5db3867a6afcc7d.rodata" "$(SolutionDir)../contrib/python/py/py/_path/svnurl.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_36473ce9fc48f122d075a136fd.rodata" "-" "contrib/python/py/py/_path/svnurl.py" "_38d3de8e07ff23da0e4b9163a2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnurl.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_9ada0ec131d4d85efb69b7eebd.rodata" "$(SolutionDir)../contrib/python/py/py/_path/svnwc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_38210d58bb8dbd870c65005d8f.rodata" "-" "contrib/python/py/py/_path/svnwc.py" "_076638ff96ed3863088a914c4b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_path/svnwc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_e8e7616b6abebaac695ba6c440.rodata" "$(SolutionDir)../contrib/python/py/py/_process/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e70afcf85fab3d63f4fe9904a3.rodata" "-" "contrib/python/py/py/_process/__init__.py" "_8496c01918d2e108baaf5b2209.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_7bcf22bbc71c3880728b5ea26e.rodata" "$(SolutionDir)../contrib/python/py/py/_process/cmdexec.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_288856df8237fd6d3344716e6a.rodata" "-" "contrib/python/py/py/_process/cmdexec.py" "_d13b6794cef0bfbca8e80ffeb6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/cmdexec.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_11f8e546721b4801740ed4452c.rodata" "$(SolutionDir)../contrib/python/py/py/_process/forkedfunc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_dd99fa99263d14f8193dbf1c07.rodata" "-" "contrib/python/py/py/_process/forkedfunc.py" "_4888a9960de4f829f72da1114f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/py/py/_process/forkedfunc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/py/_261c676a7c4f399dcb74d91f8f.rodata" "$(SolutionDir)../contrib/python/py/py/_process/killproc.py" "$(SolutionDir)$(Configuration)/contrib/python/py/_e21944cdd1bb4c7925ef1643e9.rodata" "-" "contrib/python/py/py/_process/killproc.py" "_93965efc006e8928a74992bdce.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/py/_568fb56087c2e1e186039b1286.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\py\py\_path\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\__init__.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_path\cacheutil.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\cacheutil.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_path\common.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\common.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_path\local.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\local.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_path\svnurl.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\svnurl.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_path\svnwc.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_path\svnwc.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_process\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\__init__.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_process\cmdexec.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\cmdexec.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_process\forkedfunc.py;$(SolutionDir)$(Configuration)\contrib\python\py\py\_process\forkedfunc.py.yapyc;$(SolutionDir)..\contrib\python\py\py\_process\killproc.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_568fb56087c2e1e186039b1286.yasm;$(SolutionDir)$(Configuration)\contrib\python\py\_44166cac21f34b3758900ad62a.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_615b6998839d4f1e95900e44ac.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_086925cab70fcf209dfabecc86.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_d0a01d57f99e86adfd369d51ec.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_291766d3b9c5093b96646dfe8d.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_d6e119281001376272ad73edc8.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_178f88c8160c63069c21882b40.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_044bbe3836b5db3867a6afcc7d.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_36473ce9fc48f122d075a136fd.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_9ada0ec131d4d85efb69b7eebd.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_38210d58bb8dbd870c65005d8f.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e8e7616b6abebaac695ba6c440.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e70afcf85fab3d63f4fe9904a3.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_7bcf22bbc71c3880728b5ea26e.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_288856df8237fd6d3344716e6a.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_11f8e546721b4801740ed4452c.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_dd99fa99263d14f8193dbf1c07.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_261c676a7c4f399dcb74d91f8f.rodata;$(SolutionDir)$(Configuration)\contrib\python\py\_e21944cdd1bb4c7925ef1643e9.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
+      <Project>{32E78DFF-5451-B440-4B35-E627E82B514E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>{1B7E96CA-22DB-5D08-EC22-214B2D56032B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
+      <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>{95B1672E-65CB-6C0E-8AEB-4971392AB876}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>{6048E29B-4487-B4DB-ADA1-4CAAE7C1607F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>{1230701B-DB69-9B51-E24F-A059CB0400B3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
+      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

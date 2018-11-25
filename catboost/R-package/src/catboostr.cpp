@@ -3,8 +3,10 @@
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
+#include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
@@ -50,14 +52,14 @@ class TRPackageInitializer {
     }
 };
 
-template<typename T>
+template <typename T>
 void _Finalizer(SEXP ext) {
     if (R_ExternalPtrAddr(ext) == NULL) return;
     delete reinterpret_cast<T>(R_ExternalPtrAddr(ext)); // delete allocated memory
     R_ClearExternalPtr(ext);
 }
 
-template<typename T>
+template <typename T>
 static TVector<T> GetVectorFromSEXP(SEXP arg) {
     TVector<T> result(length(arg));
     for (size_t i = 0; i < result.size(); ++i) {
@@ -263,13 +265,18 @@ SEXP CatBoostPoolNumCol_R(SEXP poolParam) {
     return result;
 }
 
-SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+SEXP CatBoostGetNumTrees_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = ScalarInteger(static_cast<int>(model->ObliviousTrees.GetTreeCount()));
     R_API_END();
     return result;
+}
+
+// TODO(dbakshee): remove this backward compatibility gag in v0.11
+SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+    return CatBoostGetNumTrees_R(modelParam);
 }
 
 SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
@@ -440,7 +447,15 @@ SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountPar
 SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeCountEndParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    model->ObliviousTrees.Truncate(asInteger(treeCountStartParam), asInteger(treeCountEndParam));
+    model->Truncate(asInteger(treeCountStartParam), asInteger(treeCountEndParam));
+    R_API_END();
+    return ScalarLogical(1);
+}
+
+SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    model->ObliviousTrees.DropUnusedFeatures();
     R_API_END();
     return ScalarLogical(1);
 }
@@ -489,19 +504,19 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         setAttrib(result, R_DimSymbol, resultDim);
     } else {
         TVector<TVector<double>> fstr = GetFeatureImportances(fstrType, *model, pool, threadCount, verbose);
-        size_t numDocs = fstr.size();
-        size_t numValues = numDocs > 0 ? fstr[0].size() : 0;
-        size_t resultSize = numDocs * numValues;
+        size_t numRows = fstr.size();
+        size_t numCols = numRows > 0 ? fstr[0].size() : 0;
+        size_t resultSize = numRows * numCols;
         result = PROTECT(allocVector(REALSXP, resultSize));
         size_t r = 0;
-        for (size_t j = 0; j < numValues; ++j) {
-            for (size_t i = 0; i < numDocs; ++i) {
+        for (size_t j = 0; j < numCols; ++j) {
+            for (size_t i = 0; i < numRows; ++i) {
                 REAL(result)[r++] = fstr[i][j];
             }
         }
         PROTECT(resultDim = allocVector(INTSXP, 2));
-        INTEGER(resultDim)[0] = numDocs;
-        INTEGER(resultDim)[1] = numValues;
+        INTEGER(resultDim)[0] = numRows;
+        INTEGER(resultDim)[1] = numCols;
         setAttrib(result, R_DimSymbol, resultDim);
     }
 

@@ -1,12 +1,5 @@
 #include "model_converter.h"
 
-#include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
-#include <catboost/cuda/models/oblivious_model.h>
-#include <catboost/cuda/models/additive_model.h>
-#include <catboost/cuda/data/cat_feature_perfect_hash.h>
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/model/target_classifier.h>
 #include <catboost/libs/algo/projection.h>
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/model/model_build_helper.h>

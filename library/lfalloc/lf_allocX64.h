@@ -1247,6 +1247,13 @@ extern "C" bool SetProfileCurrentThread(bool newVal) {
     return prevVal;
 }
 
+static volatile bool ProfileAllThreads;
+extern "C" bool SetProfileAllThreads(bool newVal) {
+    bool prevVal = ProfileAllThreads;
+    ProfileAllThreads = newVal;
+    return prevVal;
+}
+
 static volatile bool AllocationSamplingEnabled;
 extern "C" bool SetAllocationSamplingEnabled(bool newVal) {
     bool prevVal = AllocationSamplingEnabled;
@@ -1290,7 +1297,7 @@ PERTHREAD bool InAllocationCallback;
 static const int DBG_ALLOC_INVALID_COOKIE = -1;
 static inline int SampleAllocation(TAllocHeader* p, int sizeIdx) {
     int cookie = DBG_ALLOC_INVALID_COOKIE;
-    if (AllocationSamplingEnabled && ProfileCurrentThread && !InAllocationCallback) {
+    if (AllocationSamplingEnabled && (ProfileCurrentThread || ProfileAllThreads) && !InAllocationCallback) {
         if (p->Size > AllocationSampleMaxSize || ++AllocationsCount % AllocationSampleRate == 0) {
             if (AllocationCallback) {
                 InAllocationCallback = true;
@@ -1764,6 +1771,7 @@ static const char* LFAlloc_GetParam(const char* param) {
 #if defined(LFALLOC_DBG)
         {"SetThreadAllocTag", (const char*)&SetThreadAllocTag},
         {"SetProfileCurrentThread", (const char*)&SetProfileCurrentThread},
+        {"SetProfileAllThreads", (const char*)&SetProfileAllThreads},
         {"SetAllocationSamplingEnabled", (const char*)&SetAllocationSamplingEnabled},
         {"SetAllocationSampleRate", (const char*)&SetAllocationSampleRate},
         {"SetAllocationSampleMaxSize", (const char*)&SetAllocationSampleMaxSize},

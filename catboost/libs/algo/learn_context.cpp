@@ -1,20 +1,20 @@
+#include "calc_score_cache.h"
 #include "learn_context.h"
 #include "error_functions.h"
 
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/defaults_helper.h>
 
 #include <library/digest/crc32c/crc32c.h>
 #include <library/digest/md5/md5.h>
 
-#include <util/generic/guid.h>
 #include <util/folder/path.h>
-#include <util/system/fs.h>
+#include <util/generic/guid.h>
 #include <util/stream/file.h>
-
-
-
+#include <util/stream/labeled.h>
+#include <util/system/fs.h>
 
 TLearnContext::~TLearnContext() {
     if (Params.SystemOptions->IsMaster()) {
@@ -31,15 +31,6 @@ void TLearnContext::OutputMeta() {
     );
 
     CreateMetaFile(Files, OutputOptions, GetConstPointers(losses), Params.BoostingOptions->IterationCount);
-}
-
-static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
-    for (int i = 0; i < allFeatures.CatFeaturesRemapped.ysize(); ++i) {
-        if (!allFeatures.IsOneHot[i] && !allFeatures.CatFeaturesRemapped[i].empty()) {
-            return false;
-        }
-    }
-    return true;
 }
 
 template <typename T>
@@ -59,19 +50,35 @@ static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
     return checkSum;
 }
 
+static bool IsPermutationNeeded(bool hasTime, bool hasCtrs, bool isOrderedBoosting, bool isAveragingFold) {
+    if (hasTime) {
+        return false;
+    }
+    if (hasCtrs) {
+        return true;
+    }
+    return isOrderedBoosting && !isAveragingFold;
+}
+
+static int CountLearningFolds(int permutationCount, bool isPermutationNeededForLearning) {
+    return isPermutationNeededForLearning ? Max<ui32>(1, permutationCount - 1) : 1;
+}
+
 void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
+    LearnProgress.EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
     LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
     for (const TDataset* testData : testDataPtrs) {
         LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData->AllFeatures);
     }
 
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
-    int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
-    const bool noCtrs = IsCategoricalFeaturesEmpty(learnData.AllFeatures);
-    if (Params.BoostingOptions->BoostingType == EBoostingType::Plain && noCtrs) {
-        foldCount = 1;
-    }
-    LearnProgress.Folds.reserve(foldCount);
+    const bool hasCtrs = !IsCategoricalFeaturesEmpty(learnData.AllFeatures);
+    const bool hasTime = Params.DataProcessingOptions->HasTimeFlag;
+    const bool isOrderedBoosting = !IsPlainMode(Params.BoostingOptions->BoostingType);
+    const bool isLearnFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ false);
+    const int learningFoldCount = CountLearningFolds(Params.BoostingOptions->PermutationCount, isLearnFoldPermuted);
+
+    LearnProgress.Folds.reserve(learningFoldCount);
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
 
     CtrsHelper.InitCtrHelper(Params.CatFeatureParams,
@@ -87,14 +94,14 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
     if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
         foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnData.GetSampleCount());
     }
-    if (IsPlainMode(Params.BoostingOptions->BoostingType) && noCtrs) {
+    if (!isLearnFoldPermuted) {
         foldPermutationBlockSize = learnData.GetSampleCount();
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params.LossFunctionDescription->GetLossFunction());
     const bool hasPairwiseWeights = IsPairwiseError(Params.LossFunctionDescription->GetLossFunction());
 
     if (IsPlainMode(Params.BoostingOptions->BoostingType)) {
-        for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
+        for (int foldIdx = 0; foldIdx < learningFoldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 TFold::BuildPlainFold(
                     learnData,
@@ -109,7 +116,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
             );
         }
     } else {
-        for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
+        for (int foldIdx = 0; foldIdx < learningFoldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 TFold::BuildDynamicFold(
                     learnData,
@@ -126,10 +133,11 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
         }
     }
 
+    const bool isAverageFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ true);
     LearnProgress.AveragingFold = TFold::BuildPlainFold(
         learnData,
         CtrsHelper.GetTargetClassifiers(),
-        !(Params.DataProcessingOptions->HasTimeFlag),
+        isAverageFoldPermuted,
         /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
         LearnProgress.ApproxDimension,
         storeExpApproxes,
@@ -155,6 +163,9 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
             LearnProgress.TestApprox[testIdx] = testData->Baseline;
         }
     }
+
+    const ui32 maxBodyTailCount = Max(1, GetMaxBodyTailCount(LearnProgress.Folds));
+    UseTreeLevelCachingFlag = NeedToUseTreeLevelCaching(Params, maxBodyTailCount, LearnProgress.ApproxDimension);
 }
 
 void TLearnContext::SaveProgress() {
@@ -173,24 +184,37 @@ bool TLearnContext::TryLoadProgress() {
     try {
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
         {
-            TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
+            // use progress copy to avoid partial deserialization of corrupted progress file
+            TLearnProgress learnProgressRestored = LearnProgress;
             TProfileInfoData ProfileRestored;
-            ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
+
+            // fail here does nothing with real LearnProgress
+            ::LoadMany(in, Rand, learnProgressRestored, ProfileRestored);
+
             const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
-                LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
+                learnProgressRestored.SerializedTrainParams,
+                LearnProgress.SerializedTrainParams);
+            CATBOOST_DEBUG_LOG
+                << LabeledOutput(learnProgressRestored.SerializedTrainParams) << ' '
+                << LabeledOutput(LearnProgress.SerializedTrainParams) << Endl;
             CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
-            const bool poolCompatible = (LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
-            CB_ENSURE(poolCompatible, "Current pool differs from the original pool");
-            LearnProgress = std::move(LearnProgressRestored);
+
+            const bool poolCompatible = (learnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
+            CB_ENSURE(
+                poolCompatible,
+                "Current pool differs from the original pool "
+                LabeledOutput(learnProgressRestored.PoolCheckSum, LearnProgress.PoolCheckSum));
+
+            LearnProgress = std::move(learnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
-            MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
+            CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size() << " trees" << Endl;
         });
         return true;
     } catch(const TCatboostException&) {
         throw;
     } catch (...) {
-        MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "
+        CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "
                             << CurrentExceptionMessage() << Endl;
         return false;
     }
@@ -198,37 +222,46 @@ bool TLearnContext::TryLoadProgress() {
 
 void TLearnProgress::Save(IOutputStream* s) const {
     ::Save(s, SerializedTrainParams);
-    ui64 foldCount = Folds.size();
-    ::Save(s, foldCount);
-    for (ui64 i = 0; i < foldCount; ++i) {
-        Folds[i].SaveApproxes(s);
+    ::Save(s, EnableSaveLoadApprox);
+    if (EnableSaveLoadApprox) {
+        ui64 foldCount = Folds.size();
+        ::Save(s, foldCount);
+        for (ui64 i = 0; i < foldCount; ++i) {
+            Folds[i].SaveApproxes(s);
+        }
+        AveragingFold.SaveApproxes(s);
+        ::SaveMany(s, AvrgApprox);
     }
-    AveragingFold.SaveApproxes(s);
     ::SaveMany(s,
-               AvrgApprox,
-               TestApprox,
-               BestTestApprox,
-               CatFeatures,
-               FloatFeatures,
-               ApproxDimension,
-               TreeStruct,
-               TreeStats,
-               LeafValues,
-               MetricsAndTimeHistory,
-               UsedCtrSplits,
-               PoolCheckSum);
+        TestApprox,
+        BestTestApprox,
+        CatFeatures,
+        FloatFeatures,
+        ApproxDimension,
+        TreeStruct,
+        TreeStats,
+        LeafValues,
+        MetricsAndTimeHistory,
+        UsedCtrSplits,
+        PoolCheckSum);
 }
 
 void TLearnProgress::Load(IInputStream* s) {
     ::Load(s, SerializedTrainParams);
-    ui64 foldCount;
-    ::Load(s, foldCount);
-    CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
-    for (ui64 i = 0; i < foldCount; ++i) {
-        Folds[i].LoadApproxes(s);
+    bool enableSaveLoadApprox;
+    ::Load(s, enableSaveLoadApprox);
+    CB_ENSURE(enableSaveLoadApprox == EnableSaveLoadApprox, "Cannot load progress from file");
+    if (EnableSaveLoadApprox) {
+        ui64 foldCount;
+        ::Load(s, foldCount);
+        CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
+        for (ui64 i = 0; i < foldCount; ++i) {
+            Folds[i].LoadApproxes(s);
+        }
+        AveragingFold.LoadApproxes(s);
+        ::Load(s, AvrgApprox);
     }
-    AveragingFold.LoadApproxes(s);
-    ::LoadMany(s, AvrgApprox,
+    ::LoadMany(s,
                TestApprox,
                BestTestApprox,
                CatFeatures,
@@ -242,3 +275,19 @@ void TLearnProgress::Load(IInputStream* s) {
                PoolCheckSum);
 }
 
+bool TLearnContext::UseTreeLevelCaching() const {
+    return UseTreeLevelCachingFlag;
+}
+
+bool NeedToUseTreeLevelCaching(
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui32 maxBodyTailCount,
+    ui32 approxDimension) {
+
+    const ui32 maxLeafCount = 1 << params.ObliviousTreeOptions->MaxDepth;
+    // TODO(nikitxskv): Pairwise scoring doesn't use statistics from previous tree level. Need to fix it.
+    return (
+        IsSamplingPerTree(params.ObliviousTreeOptions) &&
+        !IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction()) &&
+        maxLeafCount * approxDimension * maxBodyTailCount < 64 * 1 * 10);
+}

@@ -57,5 +57,7 @@ namespace NCB {
         TIntrusivePtr<IResourceHolder> ResourceHolder;
     };
 
+    template <class T>
+    using TMaybeOwningConstArrayHolder = TMaybeOwningArrayHolder<const T>;
 }
 

@@ -60,6 +60,7 @@ namespace NLastGetopt {
 
         TString Title;              // title of the help string
         TString CustomCmdLineDescr; // user defined help string
+        TString CustomUsage;        // user defined usage string
 
     public:
         /**
@@ -306,12 +307,21 @@ namespace NLastGetopt {
         size_t IndexOf(const TOpt* opt) const;
 
         /**
-    * Replase help string with given
+    * Replace help string with given
     *
     * @param decr        new help string
     */
         void SetCmdLineDescr(const TString& descr) {
             CustomCmdLineDescr = descr;
+        }
+
+        /**
+    * Replace usage string with given
+    *
+    * @param usage        new usage string
+    */
+        void SetCustomUsage(const TString& usage) {
+            CustomUsage = usage;
         }
 
         /**

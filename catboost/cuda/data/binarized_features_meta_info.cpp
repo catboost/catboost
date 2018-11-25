@@ -19,15 +19,17 @@ namespace NCatboostCuda {
         borders.reserve(2000);
 
         TString line;
-        while (readLineFunc(&line)) {
+        for (size_t lineNumber = 0; readLineFunc(&line); lineNumber++) {
             TVector<TString> tokens;
             try {
                 Split(line, "\t", tokens);
             } catch (const yexception& e) {
-                MATRIXNET_ERROR_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
+                CATBOOST_ERROR_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
                 ythrow TCatboostException() << "Can't parse borders info";
             }
-            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3, "Each line should have two or three columns. " << line);
+            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                "Incorrect file with borders. Each line should have two or three columns. " <<
+                "Invalid line number #" << lineNumber << ": " << line);
 
             const int featureId = FromString<int>(tokens[0]);
             const float featureBorder = FromString<float>(tokens[1]);

@@ -108,7 +108,7 @@ namespace NKernel {
 
     //reduce histograms in leaf
     //we need this only for non-binary features
-    template<int BLOCK_SIZE, int HIST_COUNT>
+    template <int BLOCK_SIZE, int HIST_COUNT>
     __global__ void ScanHistogramsImpl(const TCFeature* feature,
                                        const int featureCount,
                                        const int histLineSize,

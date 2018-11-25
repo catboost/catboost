@@ -1,7 +1,9 @@
 #pragma once
 
+#include "cast.h"
 #include "split.h"
 
+#include <util/generic/algorithm.h>
 #include <util/generic/iterator.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/store_policy.h>
@@ -12,45 +14,69 @@
 // Provides convenient way to split strings.
 // Check iterator_ut.cpp to get examples of usage.
 
-namespace NStringSplitterContainerConsumer {
+namespace NPrivate {
     Y_HAS_MEMBER(push_back, PushBack);
+    Y_HAS_MEMBER(insert, Insert);
 
-    template <class Container, class StrBuf>
-    struct TContainerPushBackConsumer {
-        using T = typename Container::value_type;
+    template <class Container>
+    struct TContainerConsumer {
+        using value_type = typename Container::value_type;
 
-        TContainerPushBackConsumer(Container* cont)
-            : Cont(cont)
+        TContainerConsumer(Container* c)
+            : C_(c)
         {
         }
 
-        inline void operator()(const StrBuf& token) {
-            Cont->push_back(T(token));
+        template<class Char>
+        void operator()(TGenericStringBuf<Char> e) const {
+            this->operator()(C_, e);
         }
 
-        Container* Cont;
+    private:
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->push_back(value_type(e))) {
+            return c->push_back(value_type(e));
+        }
+
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(value_type(e))) {
+            return c->insert(value_type(e));
+        }
+
+        Container* C_;
     };
 
-    template <class Container, class StrBuf>
-    struct TContainerInsertConsumer {
-        using T = typename Container::value_type;
+    template <class Container>
+    struct TContainerConvertingConsumer {
+        using value_type = typename Container::value_type;
 
-        TContainerInsertConsumer(Container* cont)
-            : Cont(cont)
+        TContainerConvertingConsumer(Container* c)
+            : C_(c)
         {
         }
 
-        inline void operator()(const StrBuf& token) {
-            Cont->insert(T(token));
+        template <class Char>
+        void operator()(TGenericStringBuf<Char> e) const {
+            this->operator()(C_, e);
         }
 
-        Container* Cont;
+    private:
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->push_back(FromString<value_type>(e))) {
+            return c->push_back(FromString<value_type>(e));
+        }
+
+        template<class OtherContainer, class Char>
+        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(FromString<value_type>(e))) {
+            return c->insert(FromString<value_type>(e));
+        }
+
+        Container* C_;
     };
 }
 
 template <class It>
-struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
-    using TRetVal = decltype(std::declval<It>().Next());
+struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<It>> {
     using TStrBuf = decltype(std::declval<It>().Next()->Token());
 
     template <typename... Args>
@@ -66,6 +92,13 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
         }
     }
 
+    template<class Container, class = std::enable_if_t<::NPrivate::THasInsert<Container>::value || ::NPrivate::THasPushBack<Container>::value>>
+    operator Container() {
+        Container result;
+        AddTo(&result);
+        return result;
+    }
+
     template <class S>
     inline TVector<S> ToList() {
         TVector<S> result;
@@ -78,25 +111,37 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     template <class Container>
     inline void Collect(Container* c) {
         Y_ASSERT(c);
-        using namespace NStringSplitterContainerConsumer;
-        using TConsumer = std::conditional_t<THasPushBack<Container>::value, TContainerPushBackConsumer<Container, TStrBuf>, TContainerInsertConsumer<Container, TStrBuf>>;
-        TConsumer consumer(c);
-        this->Consume(consumer);
+        c->clear();
+        AddTo(c);
     }
 
-    template <typename... TArgs>
-    inline void CollectInto(TArgs*... args) {
+    template <class Container>
+    inline void AddTo(Container* c) {
+        Y_ASSERT(c);
+        ::NPrivate::TContainerConsumer<Container> consumer(c);
+        Consume(consumer);
+    }
+
+    template <class Container>
+    inline void ParseInto(Container* c) {
+        Y_ASSERT(c);
+        ::NPrivate::TContainerConvertingConsumer<Container> consumer(c);
+        Consume(consumer);
+    }
+
+    template <typename... Args>
+    inline void CollectInto(Args*... args) {
         size_t filled = 0;
         auto it = this->begin();
-        auto dummy = {
-            (
-                it != this->end() ? (
-                                        ++filled,
-                                        *args = ::FromString<TArgs>(it->Token()),
-                                        ++it,
-                                        0)
-                                  : 0)...};
-        Y_UNUSED(dummy);
+
+        ApplyToMany([&](auto&& arg) {
+            if (it != this->end()) {
+                ++filled;
+                *arg = ::FromString<std::remove_reference_t<decltype(*arg)>>(it->Token());
+                ++it;
+            }
+        }, args...);
+
         Y_ENSURE(filled == sizeof...(args) && it == this->end());
     }
 
@@ -201,6 +246,10 @@ class TStringSplitter {
         {
         }
 
+        operator TStrBuf() const noexcept {
+            return Token();
+        }
+
         inline It TokenStart() const noexcept {
             return TokS;
         }
@@ -213,6 +262,7 @@ class TStringSplitter {
             return B;
         }
 
+        Y_PURE_FUNCTION
         inline bool Empty() const noexcept {
             return TokenStart() == TokenDelim();
         }
@@ -324,8 +374,7 @@ class TStringSplitter {
     };
 
     struct TTake {
-        TTake() {
-        }
+        TTake() = default;
 
         TTake(size_t count)
             : Count(count)
@@ -377,7 +426,7 @@ public:
 
     //does not own TDelim
     template <class TDelim>
-    inline TIt<TPtrPolicy<TDelim>> Split(const TDelim& d) const noexcept {
+    inline TIt<TPtrPolicy<const TDelim>> Split(const TDelim& d) const noexcept {
         return {this, &d};
     }
 

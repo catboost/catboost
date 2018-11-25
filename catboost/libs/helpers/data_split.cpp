@@ -3,6 +3,8 @@
 
 #include <catboost/libs/logging/logging.h>
 
+#include <util/generic/array_ref.h>
+
 TVector<std::pair<ui32, ui32>> Split(ui32 docCount, ui32 partCount) {
     TVector<std::pair<ui32, ui32>> result(partCount);
     for (ui32 part = 0; part < partCount; ++part) {
@@ -60,7 +62,7 @@ TVector<TVector<ui32>> StratifiedSplit(const TVector<float>& target, ui32 partCo
         }
     }
     if (minLen < partCount) {
-        MATRIXNET_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than parts count=" << partCount << Endl;
+        CATBOOST_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than parts count=" << partCount << Endl;
     }
     TVector<TVector<ui32>> result(partCount);
     for (const auto& part : splittedByTarget) {

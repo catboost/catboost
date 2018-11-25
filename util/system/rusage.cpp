@@ -63,7 +63,12 @@ void TRusage::Fill() {
         ythrow TSystemError() << "rusage failed";
     }
 
+#if defined(_darwin_)
+    // see https://lists.apple.com/archives/darwin-kernel/2009/Mar/msg00005.html
+    Rss = ru.ru_maxrss;
+#else
     Rss = ru.ru_maxrss * 1024LL;
+#endif
     MajorPageFaults = ru.ru_majflt;
     Utime = ru.ru_utime;
     Stime = ru.ru_stime;

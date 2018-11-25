@@ -3,7 +3,6 @@
 import os
 import re
 import time
-import types
 import signal
 import shutil
 import logging
@@ -11,10 +10,17 @@ import tempfile
 import subprocess
 import errno
 
-import cores
-import runtime
-import path
-import environment
+import six
+
+try:
+    # yatest.common should try to be hermetic, otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work.
+    import library.python.cores as cores
+except ImportError:
+    cores = None
+
+from . import runtime
+from . import path
+from . import environment
 
 
 MAX_OUT_LEN = 1000 * 1000  # 1 mb
@@ -33,13 +39,13 @@ def truncate(s, size):
 
 
 def get_command_name(command):
-    return os.path.basename(command.split()[0] if isinstance(command, types.StringTypes) else command[0])
+    return os.path.basename(command.split()[0] if isinstance(command, six.string_types) else command[0])
 
 
 class ExecutionError(Exception):
 
     def __init__(self, execution_result):
-        if not isinstance(execution_result.command, basestring):
+        if not isinstance(execution_result.command, six.string_types):
             command = " ".join(str(arg) for arg in execution_result.command)
         else:
             command = execution_result.command
@@ -47,8 +53,12 @@ class ExecutionError(Exception):
             command=command,
             code=execution_result.exit_code,
             err=_format_error(execution_result.std_err))
-        if execution_result.backtrace:
-            message += "Backtrace:\n[[rst]]{}[[bad]]\n".format(cores.colorize_backtrace(execution_result._backtrace))
+        if cores:
+            if execution_result.backtrace:
+                message += "Backtrace:\n[[rst]]{}[[bad]]\n".format(cores.colorize_backtrace(execution_result._backtrace))
+        else:
+            message += "Backtrace is not available: module cores isn't available"
+
         super(ExecutionError, self).__init__(message)
         self.execution_result = execution_result
 
@@ -177,7 +187,7 @@ class _Execution(object):
         yatest_logger.debug("Command (pid %s) rc: %s", self._process.pid, self.exit_code)
         yatest_logger.debug("Command (pid %s) elapsed time (sec): %s", self._process.pid, self.elapsed)
         if self._metrics:
-            for key, value in self._metrics.iteritems():
+            for key, value in six.iteritems(self._metrics):
                 yatest_logger.debug("Command (pid %s) %s: %s", self._process.pid, key, value)
         yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(self._std_out, MAX_OUT_LEN))
         yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
@@ -206,11 +216,11 @@ class _Execution(object):
             if os.path.exists(runtime.gdb_path()):
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
                 bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid))
-                with open(bt_filename, "w") as afile:
+                with open(bt_filename, "wb") as afile:
                     afile.write(self._backtrace)
                 # generate pretty html version of backtrace aka Tri Korochki
                 pbt_filename = bt_filename + ".html"
-                cores.backtrace_to_html(bt_filename, pbt_filename)
+                backtrace_to_html(bt_filename, pbt_filename)
 
             if store_cores:
                 runtime._register_core(os.path.basename(self.command[0]), self.command[0], core_path, bt_filename, pbt_filename)
@@ -218,13 +228,16 @@ class _Execution(object):
                 runtime._register_core(os.path.basename(self.command[0]), None, None, bt_filename, pbt_filename)
 
     def wait(self, check_exit_code=True, timeout=None, on_timeout=None):
-
         def _wait():
             finished = None
             try:
                 if hasattr(os, "wait4"):
                     try:
-                        pid, sts, rusage = subprocess._eintr_retry_call(os.wait4, self._process.pid, 0)
+                        if hasattr(subprocess, "_eintr_retry_call"):
+                            pid, sts, rusage = subprocess._eintr_retry_call(os.wait4, self._process.pid, 0)
+                        else:
+                            # PEP 475
+                            pid, sts, rusage = os.wait4(self._process.pid, 0)
                         finished = time.time()
                         self._process._handle_exitstatus(sts)
                         for field in [
@@ -303,10 +316,13 @@ class _Execution(object):
         Verify there is no coredump from this binary. If there is then report backtrace.
         """
         if self.exit_code < 0 and self._collect_cores:
-            try:
-                self._recover_core()
-            except Exception:
-                yatest_logger.exception("Exception while recovering core")
+            if cores:
+                try:
+                    self._recover_core()
+                except Exception:
+                    yatest_logger.exception("Exception while recovering core")
+            else:
+                yatest_logger.warning("Core dump file recovering is skipped: module cores isn't available")
 
     def verify_sanitize_errors(self):
         """
@@ -376,9 +392,9 @@ def execute(
             # No stream is supplied: open new temp file
             return _get_command_output_file(command, default_name), False
 
-        if isinstance(stream, basestring):
+        if isinstance(stream, six.string_types):
             # User filename is supplied: open file for writing
-            return open(stream, 'w+'), False
+            return open(stream, 'wb+'), False
 
         # Open file or PIPE sentinel is supplied
         is_pipe = stream == subprocess.PIPE
@@ -432,7 +448,7 @@ def _get_command_output_file(cmd, ext):
             raise ImportError("not in test")
         file_name = path.get_unique_file_path(yatest.common.output_path(), file_name)
         yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(file_name))
-        return open(file_name, "w+")
+        return open(file_name, "wb+")
     except ImportError:
         return tempfile.NamedTemporaryFile(delete=False, suffix=file_name)
 
@@ -469,7 +485,7 @@ def py_execute(
     :param process_progress_listener=object that is polled while execution is in progress
     :return: Execution object
     """
-    if isinstance(command, types.StringTypes):
+    if isinstance(command, six.string_types):
         command = [command]
     command = [runtime.python_path()] + command
     if shell:
@@ -529,11 +545,18 @@ def _nix_get_proc_children(pid):
         return []
 
 
+def _get_binname(pid):
+    try:
+        return os.path.basename(os.readlink('/proc/{}/exe'.format(pid)))
+    except Exception as e:
+        return "error({})".format(e)
+
+
 def _nix_kill_process_tree(pid, target_pid_signal=None):
     """
     Kills the process tree.
     """
-    yatest_logger.debug("Killing process tree for pid {pid}".format(pid=pid))
+    yatest_logger.debug("Killing process tree for pid {} (bin:'{}')".format(pid, _get_binname(pid)))
 
     def try_to_send_signal(pid, sig):
         try:
@@ -586,3 +609,12 @@ def check_glibc_version(binary_path):
                 pass
             else:
                 assert not l
+
+
+def backtrace_to_html(bt_filename, output):
+    with open(output, "wb") as afile:
+        res = execute([runtime.python_path(), runtime.source_path("devtools/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
+    if res.exit_code != 0:
+        with open(output, "ab") as afile:
+            afile.write("\n")
+            afile.write(res.std_err)

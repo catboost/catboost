@@ -9,6 +9,7 @@ linux/atm.h
 linux/dn.h
 linux/ethtool.h
 linux/falloc.h
+linux/genetlink.h
 linux/if.h
 linux/if_ether.h
 linux/if_tun.h
@@ -23,6 +24,7 @@ linux/pci_regs.h
 linux/pkt_cls.h
 linux/pkt_sched.h
 linux/smb.h
+linux/taskstats.h
 linux/tc_act/tc_gact.h
 linux/tc_act/tc_mirred.h
 linux/tc_act/tc_skbedit.h
@@ -1194,10 +1196,6 @@ tupleobject.h
 unicodeobject.h
 weakrefobject.h
 #endif
-#if defined(_INTEL_)
-mkl.h
-mkl_lapacke.h
-#endif
 #if defined(_darwin_)
 AEObjects.h
 AEPackObject.h
@@ -1247,10 +1245,15 @@ sys/proc_info.h
 sys/statfs.h
 CoreFoundation/CoreFoundation.h
 CoreFoundation/CFRunLoop.h
+IOKit/ps/IOPSKeys.h
+IOKit/ps/IOPowerSources.h 
+IOKit/ps/IOPowerSources.h
 IOKit/IOKitLib.h
 IOKit/storage/IOBlockStorageDriver.h
 IOKit/storage/IOMedia.h
 IOKit/IOBSD.h
+IOKit/ps/IOPowerSources.h
+IOKit/ps/IOPSKeys.h
 IOKit/kext/KextManager.h
 System/pthread_machdep.h
 util.h

@@ -1,16 +1,20 @@
 #pragma once
 
-#include "apply.h"
-#include "approx_calcer.h"
-
-#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/loggers/logger.h>
 
-#include <util/string/builder.h>
-#include <util/generic/guid.h>
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
+#include <util/stream/input.h>
 #include <util/system/fs.h>
+#include <util/system/types.h>
+
 
 class TMetricsPlotCalcer {
 public:
@@ -110,8 +114,9 @@ private:
     void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst, int dstStartDoc = 0);
 
     void EnsureCorrectParams() {
-        CB_ENSURE(First < Last, "First iteration should be less, than last");
-        CB_ENSURE(Step <= (Last - First), "Step should be less, then plot size");
+        CB_ENSURE(First < Last, "First iteration should be less than last");
+        CB_ENSURE(Step <= (Last - First), "Step should be less than plot size");
+        CB_ENSURE(Step > 0, "Step should be more than zero");
     }
 
     template <class TWriter>

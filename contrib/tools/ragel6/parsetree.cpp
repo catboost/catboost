@@ -583,8 +583,6 @@ Join::Join( const InputLoc &loc, Expression *expr )
 
 /* Construct with a location and the first expression. */
 Join::Join( Expression *expr )
-:
-	loc(loc)
 {
 	exprList.append( expr );
 }

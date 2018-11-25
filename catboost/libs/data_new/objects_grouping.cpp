@@ -20,7 +20,8 @@ void NCB::CheckIsConsecutive(TConstArrayRef<TGroupBounds> groups) {
 
 TObjectsGroupingSubset NCB::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
-    TArraySubsetIndexing<ui32>&& groupsSubset
+    TArraySubsetIndexing<ui32>&& groupsSubset,
+    EObjectsOrder groupSubsetOrder
 ) {
     using TSubsetVariantType = typename TArraySubsetIndexing<ui32>::TBase;
 
@@ -28,7 +29,8 @@ TObjectsGroupingSubset NCB::GetSubset(
         return TObjectsGroupingSubset(
             (groupsSubset.Index() == TSubsetVariantType::template TagOf<TFullSubset<ui32>>()) ?
                 objectsGrouping : MakeIntrusive<TObjectsGrouping>(groupsSubset.Size()),
-            std::move(groupsSubset)
+            std::move(groupsSubset),
+            groupSubsetOrder
         );
     } else {
         THolder<TArraySubsetIndexing<ui32>> objectsSubset;
@@ -42,9 +44,11 @@ TObjectsGroupingSubset NCB::GetSubset(
                 return TObjectsGroupingSubset(
                     objectsGrouping,
                     std::move(groupsSubset),
+                    groupSubsetOrder,
                     MakeHolder<TArraySubsetIndexing<ui32>>(
                         TFullSubset<ui32>(objectsGrouping->GetObjectCount())
-                    )
+                    ),
+                    groupSubsetOrder
                 );
             case TSubsetVariantType::template TagOf<TRangesSubset<ui32>>(): {
                     const auto& groupsSubsetBlocks =
@@ -116,7 +120,70 @@ TObjectsGroupingSubset NCB::GetSubset(
         return TObjectsGroupingSubset(
             MakeIntrusive<TObjectsGrouping>(std::move(subsetGroupBounds), true),
             std::move(groupsSubset),
-            std::move(objectsSubset)
+            groupSubsetOrder,
+            std::move(objectsSubset),
+            groupSubsetOrder
         );
+    }
+}
+
+
+TObjectsGroupingSubset NCB::GetGroupingSubsetFromObjectsSubset(
+    TObjectsGroupingPtr objectsGrouping,
+    TArraySubsetIndexing<ui32>&& objectsSubset,
+    EObjectsOrder subsetOrder
+) {
+    if (objectsGrouping->IsTrivial()) {
+        return GetSubset(objectsGrouping, std::move(objectsSubset), subsetOrder);
+    } else {
+        auto nontrivialSrcGroups = objectsGrouping->GetNonTrivialGroups();
+
+        TIndexedSubset<ui32> groupsSubset;
+        ui32 subsetCurrentGroupOffset = 0;
+
+        constexpr TStringBuf INVARIANT_MESSAGE = AsStringBuf(
+            " subset groups invariant (if group is present in the subset all it's member objects"
+            " must present and be in the same order within a group). This constraint might be"
+            " relaxed in the future.");
+
+        objectsSubset.ForEach(
+            [&](ui32 idx, ui32 srcIdx) {
+                if (groupsSubset.empty()) {
+                    groupsSubset.push_back(objectsGrouping->GetGroupIdxForObject(srcIdx));
+                    subsetCurrentGroupOffset = 1;
+                } else {
+                    const auto& lastGroup = nontrivialSrcGroups[groupsSubset.back()];
+                    if (subsetCurrentGroupOffset == lastGroup.GetSize()) {
+                        if (subsetOrder == EObjectsOrder::Ordered) {
+                            CB_ENSURE(
+                                srcIdx >= lastGroup.End,
+                                "subset's object #" << idx << " (source index #" << srcIdx << ") violates"
+                                " ordered subset invariant"
+                            );
+                        }
+
+                        // new group must be started
+                        groupsSubset.push_back(objectsGrouping->GetGroupIdxForObject(srcIdx));
+                        subsetCurrentGroupOffset = 1;
+                    } else {
+                        CB_ENSURE(
+                            srcIdx == (lastGroup.Begin + subsetCurrentGroupOffset),
+                            "subset's object #" << idx << " (source index #" << srcIdx << ") violates"
+                            << INVARIANT_MESSAGE
+                        );
+                        ++subsetCurrentGroupOffset;
+                    }
+                }
+            }
+        );
+        if (!groupsSubset.empty()) {
+            ui32 srcGroupSize = nontrivialSrcGroups[groupsSubset.back()].GetSize();
+            CB_ENSURE(
+                srcGroupSize == subsetCurrentGroupOffset,
+                "Subset's last group size (" << subsetCurrentGroupOffset << ") is less than "
+                "corresponding source group size (" << srcGroupSize << "). It violates" << INVARIANT_MESSAGE
+            );
+        }
+        return GetSubset(objectsGrouping, TArraySubsetIndexing<ui32>(std::move(groupsSubset)), subsetOrder);
     }
 }

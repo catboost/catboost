@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     apply.cpp
     approx_calcer_querywise.cpp
+    approx_updater_helpers.cpp
     calc_score_cache.cpp
     ctr_helper.cpp
     cv_data_partition.cpp
@@ -45,7 +46,6 @@ SRCS(
     yetirank_helpers.cpp
     pairwise_leaves_calculation.cpp
     pairwise_scoring.cpp
-    model_stats.cpp
     roc_curve.cpp
 )
 
@@ -57,10 +57,12 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/index_range
     catboost/libs/labels
+    catboost/libs/lapack
     catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
+    catboost/libs/options
     catboost/libs/overfitting_detector
     library/binsaver
     library/containers/2d_array
@@ -72,7 +74,10 @@ PEERDIR(
     library/fast_log
     library/grid_creator
     library/json
+    library/malloc/api
     library/object_factory
+    library/par
+    library/svnversion
     library/threading/local_executor
 )
 

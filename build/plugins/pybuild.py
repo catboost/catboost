@@ -1,6 +1,6 @@
 import os
 import ymake
-from _common import stripext, rootrel_arc_src, listid, resolve_to_ymake_path
+from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks
 from pyx import PyxParser
 
 
@@ -21,6 +21,8 @@ def to_build_root(path, unit):
 def pb2_arg(path, mod, unit):
     return '{}_pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
+def proto_arg(path, mod, unit):
+    return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
 
 def pb_cc_arg(path, unit):
     return '{}.pb.cc'.format(stripext(to_build_root(path, unit)))
@@ -35,10 +37,11 @@ def ev_cc_arg(path, unit):
 def pb2_grpc_arg(path, mod, unit):
     return '{}_pb2_grpc.py={}_pb2_grpc'.format(stripext(to_build_root(path, unit)), mod)
 
-
 def ev_arg(path, mod, unit):
     return '{}_ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
+def gly_arg(path, mod, unit):
+    return '{}.py={}'.format(stripext(to_build_root(path, unit)), mod)
 
 def mangle(name):
     if '.' not in name:
@@ -83,6 +86,8 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
             if not os.path.exists(normpath(source_root, incfile)):
                 ymake.report_configure_error("'{}' includes missing file: {} ({})".format(path, incfile, abs_path))
 
+def has_pyx(args):
+    return any(arg.endswith('.pyx') for arg in args)
 
 def get_srcdir(path, unit):
     return rootrel_arc_src(path, unit)[:-len(path)].rstrip('/')
@@ -113,7 +118,7 @@ def py_program(unit):
 
 def py3_program(unit):
     unit.onpeerdir(['library/python/runtime_py3/main'])
-    #unit.onadd_check_py_imports()
+    unit.onadd_check_py_imports()
 
 
 def onpy_srcs(unit, *args):
@@ -136,7 +141,9 @@ def onpy_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
-    unit.onuse_python([])
+
+    if '/contrib/tools/python/src/Lib' not in unit.path():
+        unit.onpeerdir(['contrib/libs/python'])
 
     if '/library/python/runtime' not in unit.path():
         unit.onpeerdir(['library/python/runtime'])
@@ -169,6 +176,16 @@ def onpy_srcs(unit, *args):
     protos = []
     evs = []
     swigs = []
+    glys = []
+
+    dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
+    dump_output = None
+    if dump_dir:
+        import thread
+        pid = os.getpid()
+        tid = thread.get_ident()
+        dump_name = '{}-{}.dump'.format(pid, tid)
+        dump_output = open(os.path.join(dump_dir, dump_name), 'a')
 
     args = iter(args)
     for arg in args:
@@ -189,6 +206,10 @@ def onpy_srcs(unit, *args):
             pass
         # Sources.
         else:
+            main_mod = arg == 'MAIN'
+            if main_mod:
+                arg = next(args)
+
             if '=' in arg:
                 path, mod = arg.split('=', 1)
             else:
@@ -198,9 +219,18 @@ def onpy_srcs(unit, *args):
                 else:
                     if arg.startswith('../'):
                         ymake.report_configure_error('PY_SRCS item starts with "../": {!r}'.format(arg))
+                    if arg.startswith('/'):
+                        ymake.report_configure_error('PY_SRCS item starts with "/": {!r}'.format(arg))
+                        continue
                     mod = ns + stripext(arg).replace('/', '.')
 
+            if main_mod:
+                unit.onpy_main(mod)
+
             pathmod = (path, mod)
+
+            if dump_output is not None:
+                dump_output.write('{path}\t{module}\n'.format(path=rootrel_arc_src(path, unit), module=mod))
 
             if path.endswith('.py'):
                 pys.append(pathmod)
@@ -212,8 +242,13 @@ def onpy_srcs(unit, *args):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
                 swigs.append(path)  # ignore mod, use last (and only) ns
+            elif path.endswith('.gly'):
+                glys.append(pathmod)
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
+
+    if dump_output is not None:
+        dump_output.close()
 
     if pyxs:
         files2res = set()
@@ -243,7 +278,7 @@ def onpy_srcs(unit, *args):
                 cython([
                     path,
                     '--module-name', mod,
-                    '--init-name', 'init' + mangle(mod),
+                    '--init-suffix', mangle(mod),
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
@@ -265,12 +300,14 @@ def onpy_srcs(unit, *args):
 
         for path, mod in pys:
             root_rel_path = rootrel_arc_src(path, unit)
-            unit.onpy_compile_bytecode([root_rel_path + '-', path])
+            src = unit.resolve_arc_path(path) or path
+            dst = tobuilddir(src) + '.yapyc'
+            unit.onpy_compile_bytecode([root_rel_path + '-', src])
             key = '/py_modules/' + mod
             res += [
                 path, key,
                 '-', 'resfs/src/{}={}'.format(key, root_rel_path),
-                path + '.yapyc', '/py_code/' + mod,
+                dst, '/py_code/' + mod,
             ]
 
         unit.onresource(res)
@@ -298,10 +335,15 @@ def onpy_srcs(unit, *args):
             pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
             if grpc:
                 pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
-            if is_program:
-                unit.onjoin_srcs(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
-            else:
-                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+
+        if unit.get('GLYCINE_FLAG') == 'yes':
+            unit.ongenerate_py_glys(proto_paths)
+            unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in protos])
 
 
     if evs:
@@ -315,10 +357,11 @@ def onpy_srcs(unit, *args):
             unit.onsrcs([path for path, mod in evs])
 
             pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
-            if is_program:
-                unit.onjoin_srcs(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
-            else:
-                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
     if swigs:
         unit.onsrcs(swigs)
@@ -329,18 +372,26 @@ def onpy_srcs(unit, *args):
         arg = '{}={}'.format(path, ns + project.replace('/', '.'))
         unit.onpy_srcs([arg])
 
+    if glys:
+        gly_paths = [path for path, mod in glys]
+        unit.ongenerate_py_glys(gly_paths)
+        unit.onpy_srcs([proto_arg(path, mod, unit) for path, mod in glys])
+        unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in glys])
+
 
 def onpy3_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
+
     if '/contrib/tools/python3/src/Lib' not in unit.path():
-        unit.onuse_python3([])
+        unit.onpeerdir(['contrib/libs/python'])
 
         if '/library/python/runtime_py3' not in unit.path():
             unit.onpeerdir(['library/python/runtime_py3'])
 
-    if unit.get('MODULE_TYPE') == 'PROGRAM':
+    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
+    if is_program:
         py3_program(unit)
 
     py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
@@ -349,6 +400,7 @@ def onpy3_srcs(unit, *args):
     else:
         ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
 
+    optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
 
     cython_directives = []
@@ -359,6 +411,8 @@ def onpy3_srcs(unit, *args):
     pyxs_cpp = []
     pyxs = pyxs_cpp
     pys = []
+    protos = []
+    evs = []
 
     args = iter(args)
     for arg in args:
@@ -378,7 +432,15 @@ def onpy3_srcs(unit, *args):
         elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
             pass
         # Sources.
+        elif arg == '__main__.py' or arg.endswith('/__main__.py'):
+            unit.onfix_python_main([arg, '__real_main__.py'])
+            unit.onpy3_srcs(['TOP_LEVEL', '__real_main__.py'])
+            unit.onpy3_main(['__real_main__:real_main_func'])
         else:
+            main_mod = arg == 'MAIN'
+            if main_mod:
+                arg = next(args)
+
             if '=' in arg:
                 path, mod = arg.split('=', 1)
             else:
@@ -388,7 +450,13 @@ def onpy3_srcs(unit, *args):
                 else:
                     if arg.startswith('../'):
                         ymake.report_configure_error('PY3_SRCS item starts with "../": {!r}'.format(arg))
+                    if arg.startswith('/'):
+                        ymake.report_configure_error('PY3_SRCS item starts with "/": {!r}'.format(arg))
+                        continue
                     mod = ns + stripext(arg).replace('/', '.')
+
+            if main_mod:
+                unit.onpy3_main(mod)
 
             pathmod = (path, mod)
 
@@ -396,6 +464,10 @@ def onpy3_srcs(unit, *args):
                 pys.append(pathmod)
             elif path.endswith('.pyx'):
                 pyxs.append(pathmod)
+            elif path.endswith('.proto'):
+                protos.append(pathmod)
+            elif path.endswith('.ev'):
+                evs.append(pathmod)
             else:
                 ymake.report_configure_error('in PY3_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -427,7 +499,7 @@ def onpy3_srcs(unit, *args):
                 cython([
                     path,
                     '--module-name', mod,
-                    '--init-name', 'PyInit_' + mangle(mod),
+                    '--init-suffix', mangle(mod),
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
@@ -448,20 +520,75 @@ def onpy3_srcs(unit, *args):
             dest = 'py/' + mod.replace('.', '/') + '.py'
             res += [
                 'DEST', dest, path,
-                'DEST', dest + '.yapyc', path + '.yapyc'
+                'DEST', dest + '.yapyc3', path + '.yapyc3'
             ]
 
         unit.onresource_files(res)
         #add_python_lint_checks(unit, [path for path, mod in pys])
 
+    if protos:
+        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
-def ontest_srcs(unit, *args):
+        grpc = unit.get('GRPC_FLAG') == 'yes'
+
+        if grpc:
+            unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
+
+        proto_paths = [path for path, mod in protos]
+        unit.ongenerate_py_protos(proto_paths)
+        unit.onpy3_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
+
+        if grpc:
+            unit.onpy3_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
+
+        if optimize_proto:
+            unit.onsrcs(proto_paths)
+
+            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
+            if grpc:
+                pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+
+    if evs:
+        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+
+        unit.ongenerate_py_evs([path for path, mod in evs])
+        unit.onpy3_srcs([ev_arg(path, mod, unit) for path, mod in evs])
+
+        if optimize_proto:
+            unit.onsrcs([path for path, mod in evs])
+
+            pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+
+
+def _check_test_srcs(*args):
     used = set(args) & {"NAMESPACE", "TOP_LEVEL", "__main__.py"}
     if used:
         param = list(used)[0]
         ymake.report_configure_error('in TEST_SRCS: you cannot use {} here - it would broke testing machinery'.format(param))
+
+
+def ontest_srcs(unit, *args):
+    _check_test_srcs(*args)
     if unit.get('PYTEST_BIN') != 'no':
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
+
+
+def on_test3_srcs(unit, *args):
+    _check_test_srcs(*args)
+    if unit.get('PY3TEST_BIN') != 'no':
+        unit.onpy3_srcs(["NAMESPACE", "__tests__"] + list(args))
 
 
 def onpy_register(unit, *args):

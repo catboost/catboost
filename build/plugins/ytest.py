@@ -62,7 +62,7 @@ def validate_test(kw, is_fuzz_test):
 
     if valid_kw.get('SCRIPT-REL-PATH') == 'boost.test':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("mail", "maps", "metrika", "devtools")):
+        if not project_path.startswith(("contrib", "mail", "maps", "metrika", "devtools")):
             errors.append("BOOSTTEST is not allowed here")
             has_fatal_error = True
     elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
@@ -478,6 +478,7 @@ def onadd_check(unit, *args):
 def onadd_check_py_imports(unit, *args):
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE').strip() == "":
         return
+    unit.onpeerdir(['library/python/testing/import_test'])
     check_type = "py.imports"
     test_dir = unit.resolve(os.path.join(unit.path()))
 
@@ -673,6 +674,7 @@ def onjava_test_deps(unit, *args):
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TAG': '',
         'SIZE': 'SMALL',
+        'IGNORE_CLASSPATH_CLASH': ' '.join(get_values_list(unit, 'JAVA_IGNORE_CLASSPATH_CLASH_VALUE')),
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
@@ -795,15 +797,17 @@ def onsetup_run_python(unit):
 
 
 def get_canonical_test_resources(test_dir, unit_path):
+    canon_data_dir = os.path.join(test_dir, CANON_DATA_DIR_NAME)
+
     try:
-        _, dirs, files = next(os.walk(test_dir))
+        _, dirs, files = next(os.walk(canon_data_dir))
     except StopIteration:
         # path doesn't exist
         return []
 
     if CANON_RESULT_FILE_NAME in files:
-        return _get_canonical_data_resources_v2(os.path.join(test_dir, CANON_RESULT_FILE_NAME), unit_path)
-    return _get_canonical_data_resources_v1(test_dir, dirs, unit_path)
+        return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
+    return _get_canonical_data_resources_v1(canon_data_dir, dirs, unit_path)
 
 
 def _load_canonical_file(filename, unit_path):

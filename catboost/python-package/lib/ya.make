@@ -7,14 +7,18 @@ SRCDIR(catboost/python-package/catboost)
 PEERDIR(
     catboost/libs/algo
     catboost/libs/train_lib
+    catboost/libs/cat_feature
     catboost/libs/data
+    catboost/libs/data_new
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda
     catboost/libs/documents_importance
+    catboost/libs/eval_result
     catboost/libs/helpers
     catboost/libs/init
+    catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model

@@ -49,41 +49,6 @@
 #endif
 
 /**
- * @def Y_NO_RETURN
- *
- * Macro to use before a function declaration/definition to designate
- * it as not returning normally.
- */
-#if !defined(Y_NO_RETURN)
-#if defined(_MSC_VER)
-#define Y_NO_RETURN __declspec(noreturn)
-#elif defined(__GNUC__)
-#define Y_NO_RETURN __attribute__((__noreturn__))
-#else
-#define Y_NO_RETURN
-#endif
-#endif
-
-/**
- * @def Y_NO_RETURN_WITH_VALUE
- *
- * Same as `Y_NO_RETURN`, but to be used when a function is declared as actually
- * returning a value, e.g.:
- *
- * @code
- * Y_NO_RETURN_WITH_VALUE int Fail();
- * @endcode
- *
- * This macro is needed to work around a warning that is emitted by MSVS for
- * such functions.
- */
-#if defined(_MSC_VER)
-#define Y_NO_RETURN_WITH_VALUE
-#else
-#define Y_NO_RETURN_WITH_VALUE Y_NO_RETURN
-#endif
-
-/**
  * @def Y_DECLARE_UNUSED
  *
  * Macro is needed to silence compiler warning about unused entities (e.g. function or argument).
@@ -268,7 +233,10 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
 #define Y_ASSUME(condition) Y_UNUSED(condition)
 #endif
 
-Y_HIDDEN Y_NO_RETURN void _YandexAbort();
+#ifdef __cplusplus
+[[noreturn]]
+#endif
+Y_HIDDEN void _YandexAbort();
 
 /**
  * @def Y_UNREACHABLE
@@ -540,7 +508,17 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #endif
 
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_CONST_FUNCTION __attribute__((const))
+/**
+ * @def Y_CONST_FUNCTION
+   methods and functions, marked with this method are promised to:
+     1. do not have side effects
+     2. this method do not read global memory
+   NOTE: this attribute can't be set for methods that depend on data, pointed by this
+   this allow compilers to do hard optimization of that functions
+   NOTE: in common case this attribute can't be set if method have pointer-arguments
+   NOTE: as result there no any reason to discard result of such method
+*/
+#define Y_CONST_FUNCTION [[gnu::const]]
 #endif
 
 #if !defined(Y_CONST_FUNCTION)
@@ -548,7 +526,15 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #endif
 
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PURE_FUNCTION __attribute__((pure))
+/**
+ * @def Y_PURE_FUNCTION
+   methods and functions, marked with this method are promised to:
+     1. do not have side effects
+     2. result will be the same if no global memory changed
+   this allow compilers to do hard optimization of that functions
+   NOTE: as result there no any reason to discard result of such method
+*/
+#define Y_PURE_FUNCTION [[gnu::pure]]
 #endif
 
 #if !defined(Y_PURE_FUNCTION)

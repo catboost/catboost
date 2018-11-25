@@ -2,6 +2,7 @@
 
 #include <catboost/libs/algo/calc_score_cache.h>
 #include <catboost/libs/algo/fold.h>
+#include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/online_predictor.h>
 #include <catboost/libs/algo/pairwise_scoring.h>
 #include <catboost/libs/algo/score_bin.h>
@@ -28,7 +29,7 @@ struct TUnusedInitializedParam {
     char Zero = 0;
 };
 
-template<typename TData>
+template <typename TData>
 struct TEnvelope : public IObjectBase {
     OBJECT_NOCOPY_METHODS(TEnvelope);
 public:
@@ -40,6 +41,11 @@ public:
     TData Data;
     SAVELOAD(Data);
 };
+
+template <typename TData>
+TEnvelope<TData> MakeEnvelope(const TData& data) {
+    return TEnvelope<TData>(data);
+}
 
 using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & approxDim][leaf][bucket]
 using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
@@ -96,12 +102,12 @@ struct TLocalTensorSearchData {
     THolder<TRestorableFastRng64> Rand;
 
     // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
-    TFold PlainFold;
+    TLearnProgress Progress;
     int Depth;
     TVector<TIndexType> Indices;
 
     bool StoreExpApprox;
-    TVector<TVector<double>> LeafValues;
+    bool UseTreeLevelCaching;
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
     TMultiSums MultiBuckets;

@@ -1,58 +1,88 @@
+#include "dcg.h"
 #include "doc_comparator.h"
 #include "sample.h"
-#include <util/generic/ymath.h>
+
+#include <library/containers/stack_vector/stack_vec.h>
+#include <library/dot_product/dot_product.h>
+
 #include <util/generic/algorithm.h>
-#include <util/generic/maybe.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
+#include <util/generic/vector.h>
+#include <util/generic/ymath.h>
 
 using NMetrics::TSample;
 
-namespace {
-double CalcDCGSorted(TConstArrayRef<TSample> samples, TMaybe<double> expDecay) {
-    double result = 0;
-    double decay = 1;
-    for (size_t i = 0; i < samples.size(); ++i) {
-        Y_ASSERT(samples[i].Weight == 1);
-        if (expDecay.Defined()) {
-            if (i > 0) {
-                decay *= *expDecay;
-            }
-        } else {
-            decay = 1 / Log2(2 + i);
-        }
-        double value = samples[i].Target;
+template <typename F>
+static TStackVec<double> GetSortedTargets(const TConstArrayRef<TSample> samples, F&& cmp) {
+    TStackVec<ui32> indices;
+    indices.yresize(samples.size());
+    Iota(indices.begin(), indices.end(), static_cast<ui32>(0));
 
-        result += decay * value;
-    }
-    return result;
-}
-}
-
-double CalcDCG(TConstArrayRef<TSample> samplesRef, TMaybe<double> expDecay = Nothing()) {
-    TVector<TSample> samples(samplesRef.begin(), samplesRef.end());
-    Sort(samples.begin(), samples.end(), [](const TSample& left, const TSample& right) {
-        return CompareDocs(left.Prediction, right.Target, right.Prediction, left.Target);
+    Sort(indices, [samples, cmp](const auto lhs, const auto rhs) {
+        return cmp(samples[lhs], samples[rhs]);
     });
-    auto optimisticDCG = CalcDCGSorted(samples, expDecay);
-    Sort(samples.begin(), samples.end(), [](const TSample& left, const TSample& right) {
+
+    Y_ASSERT(samples.size() == indices.size());
+    TStackVec<double> targets;
+    targets.yresize(samples.size());
+    for (size_t i = 0; i < samples.size(); ++i) {
+        targets[i] = samples[indices[i]].Target;
+    }
+
+    return targets;
+}
+
+static double CalcDcgSorted(
+    const TConstArrayRef<double> sortedTargets,
+    const ENdcgMetricType type,
+    const TMaybe<double> expDecay)
+{
+    const auto size = sortedTargets.size();
+
+    TStackVec<double> decay;
+    decay.yresize(size);
+    decay.front() = 1.;
+    if (expDecay.Defined()) {
+        const auto expDecayBase = *expDecay;
+        for (size_t i = 1; i < size; ++i) {
+            decay[i] = decay[i - 1] * expDecayBase;
+        }
+    } else {
+        for (size_t i = 1; i < size; ++i) {
+            decay[i] = 1. / Log2(static_cast<double>(i + 2));
+        }
+    }
+
+    TStackVec<double> modifiedTargetsHolder;
+    TConstArrayRef<double> modifiedTargets = sortedTargets;
+    if (ENdcgMetricType::Exp == type) {
+        modifiedTargetsHolder.yresize(size);
+        for (size_t i = 0; i < size; ++i) {
+            modifiedTargetsHolder[i] = pow(2, sortedTargets[i]) - 1.;
+        }
+        modifiedTargets = modifiedTargetsHolder;
+    }
+
+    return DotProduct(modifiedTargets.data(), decay.data(), size);
+}
+
+double CalcDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay) {
+    const auto sortedTargets = GetSortedTargets(samples,  [](const auto& left, const auto& right) {
         return CompareDocs(left.Prediction, left.Target, right.Prediction, right.Target);
     });
-    auto pessimisticDCG = CalcDCGSorted(samples, expDecay);
-    return (optimisticDCG + pessimisticDCG) / 2;
+    return CalcDcgSorted(sortedTargets, type, expDecay);
 }
 
-double CalcIDCG(TConstArrayRef<TSample> samplesRef, TMaybe<double> expDecay = Nothing()) {
-    TVector<TSample> samples(samplesRef.begin(), samplesRef.end());
-
-    Sort(samples.begin(), samples.end(), [](const TSample& left, const TSample& right) {
+double CalcIDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay) {
+    const auto sortedTargets = GetSortedTargets(samples, [](const auto& left, const auto& right) {
         return left.Target > right.Target;
     });
-    return CalcDCGSorted(samples, expDecay);
+    return CalcDcgSorted(sortedTargets, type, expDecay);
 }
 
-
-double CalcNDCG(TConstArrayRef<TSample> samples) {
-    double dcg = CalcDCG(samples);
-    double idcg = CalcIDCG(samples);
+double CalcNdcg(TConstArrayRef<TSample> samples, ENdcgMetricType type) {
+    double dcg = CalcDcg(samples, type);
+    double idcg = CalcIDcg(samples, type);
     return idcg > 0 ? dcg / idcg : 0;
 }

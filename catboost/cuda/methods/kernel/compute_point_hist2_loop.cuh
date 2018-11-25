@@ -9,7 +9,7 @@ namespace NKernel {
 
 
 
-    template<int STRIPE_SIZE, int OUTER_UNROLL, int N, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
+    template <int STRIPE_SIZE, int OUTER_UNROLL, int N, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
     __forceinline__ __device__ void ComputeHistogram(const ui32* __restrict__ indices, int offset, int dsSize,
                                                      const float* __restrict__ target, const float* __restrict__ weight,
                                                      const ui32* __restrict__ cindex, float* __restrict__ result) {
@@ -130,7 +130,7 @@ namespace NKernel {
     }
 
 
-    template<int STRIPE_SIZE, int OUTER_UNROLL, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
+    template <int STRIPE_SIZE, int OUTER_UNROLL, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
     __forceinline__ __device__ void ComputeHistogram2(
             const ui32* __restrict__ indices,
             int offset, int dsSize,
@@ -242,7 +242,7 @@ namespace NKernel {
 
 
 
-    template<int STRIPE_SIZE, int OUTER_UNROLL, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
+    template <int STRIPE_SIZE, int OUTER_UNROLL, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
     __forceinline__ __device__ void ComputeHistogram4(
             const ui32* __restrict__ indices,
             int offset, int dsSize,

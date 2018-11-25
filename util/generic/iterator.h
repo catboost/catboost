@@ -5,51 +5,74 @@
 
 namespace NStlIterator {
     template <class T>
-    struct TRefFromPtr;
-
-    template <class T>
-    struct TRefFromPtr<T*> {
-        using TResult = T&;
-    };
-
-    template <class T>
-    struct TTraits {
-        using TPtr = typename T::TPtr;
-        using TRef = typename TRefFromPtr<TPtr>::TResult;
-
-        static inline TPtr Ptr(const T& p) noexcept {
-            return T::Ptr(p);
+    class TProxy {
+    public:
+        TProxy() = default;
+        TProxy(T&& value) : Value_(std::move(value)) {
         }
-    };
 
-    template <class T>
-    struct TTraits<T*> {
-        using TPtr = T*;
-        using TRef = T&;
-
-        static inline TPtr Ptr(TPtr p) noexcept {
-            return p;
+        const T* operator->() const noexcept {
+            return &Value_;
         }
-    };
-}
 
+        const T& operator*() const noexcept {
+            return Value_;
+        }
+
+        bool operator==(const TProxy& rhs) const {
+            return Value_ == rhs.Value_;
+        }
+
+    private:
+        T Value_;
+    };
+} // namespace NStlIterator
+
+/**
+ * Range adaptor that turns a derived class with a Java-style iteration
+ * interface into an STL range.
+ *
+ * Derived class is expected to define:
+ * \code
+ * TSomething* Next();
+ * \endcode
+ *
+ * `Next()` returning `nullptr` signals end of range. Note that you can also use
+ * pointer-like types instead of actual pointers (e.g. `TAtomicSharedPtr`).
+ *
+ * Since iteration state is stored inside the derived class, the resulting range
+ * is an input range (works for single pass algorithms only). Technically speaking,
+ * if you're returning a non-const pointer from `Next`, it can also work as an output range.
+ *
+ * Example usage:
+ * \code
+ * class TSquaresGenerator: public TInputRangeAdaptor<TSquaresGenerator> {
+ * public:
+ *     const double* Next() {
+ *         Current_ = State_ * State_;
+ *         State_ += 1.0;
+ *         // Never return nullptr => we have infinite range!
+ *         return &Current_;
+ *     }
+ *
+ * private:
+ *     double State_ = 0.0;
+ *     double Current_ = 0.0;
+ * }
+ * \endcode
+ */
 template <class TSlave>
-class TStlIterator {
+class TInputRangeAdaptor {
 public:
     class TIterator {
     public:
         static constexpr bool IsNoexceptNext = noexcept(std::declval<TSlave>().Next());
 
-        using TRetVal = typename TSlave::TRetVal;
-        using TValueTraits = NStlIterator::TTraits<TRetVal>;
-        using TPtr = typename TValueTraits::TPtr;
-        using TRef = typename TValueTraits::TRef;
-
         using difference_type = std::ptrdiff_t;
-        using value_type = TRetVal;
-        using pointer = TPtr;
-        using reference = TRef;
-        using iterator_category = std::forward_iterator_tag;
+        using pointer = decltype(std::declval<TSlave>().Next());
+        using reference = decltype(*std::declval<TSlave>().Next());
+        using value_type = std::remove_cv_t<std::remove_reference_t<reference>>;
+        using iterator_category = std::input_iterator_tag;
 
         inline TIterator() noexcept
             : Slave_(nullptr)
@@ -63,10 +86,6 @@ public:
         {
         }
 
-        const TRetVal& Value() const noexcept {
-            return Cur_;
-        }
-
         inline bool operator==(const TIterator& it) const noexcept {
             return Cur_ == it.Cur_;
         }
@@ -75,12 +94,12 @@ public:
             return !(*this == it);
         }
 
-        inline TPtr operator->() const noexcept {
-            return TValueTraits::Ptr(Cur_);
+        inline pointer operator->() const noexcept {
+            return Cur_;
         }
 
-        inline TRef operator*() const noexcept {
-            return *TValueTraits::Ptr(Cur_);
+        inline reference operator*() const noexcept {
+            return *Cur_;
         }
 
         inline TIterator& operator++() noexcept(IsNoexceptNext) {
@@ -91,25 +110,19 @@ public:
 
     private:
         TSlave* Slave_;
-        TRetVal Cur_;
+        pointer Cur_;
     };
 
 public:
-    inline TIterator Begin() const noexcept(TIterator::IsNoexceptNext) {
+    using const_iterator = TIterator;
+    using iterator = const_iterator;
+
+    inline iterator begin() const noexcept(TIterator::IsNoexceptNext) {
         return TIterator(const_cast<TSlave*>(static_cast<const TSlave*>(this)));
     }
 
-    inline TIterator End() const noexcept {
+    inline iterator end() const noexcept {
         return TIterator();
-    }
-
-    //compat
-    inline TIterator begin() const noexcept(TIterator::IsNoexceptNext) {
-        return this->Begin();
-    }
-
-    inline TIterator end() const noexcept {
-        return this->End();
     }
 };
 

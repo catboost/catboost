@@ -3,9 +3,16 @@
 #include "enums.h"
 #include "tree_statistics.h"
 
-#include <catboost/libs/model/model.h>
 #include <catboost/libs/data/pool.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/model/model.h>
+#include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/json_helper.h>
+
+#include <util/generic/ptr.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
+
 
 /*
  * This is the implementation of the LeafInfluence algorithm from the following paper:

@@ -4,7 +4,7 @@
 
 #include <cstdlib>
 
-extern Y_NO_RETURN void ThrowBadAlloc();
+[[noreturn]] extern void ThrowBadAlloc();
 
 inline void* y_allocate(size_t n) {
     void* r = malloc(n);

@@ -256,12 +256,12 @@ void GenerateEnum(
     // Initialization data
     defineConstArray("    ", "TNameBufs::TBase::TEnumStringPair", "NAMES_INITIALIZATION_PAIRS", nameInitializerPairs);
     defineConstArray("    ", "TNameBufs::TBase::TEnumStringPair", "VALUES_INITIALIZATION_PAIRS", valueInitializerPairs);
-    defineConstArray("    ", "TStringBuf", "CPP_NAMES_INITIALIZATION_PAIRS", cppNamesInitializer);
+    defineConstArray("    ", "TStringBuf", "CPP_NAMES_INITIALIZATION_ARRAY", cppNamesInitializer);
 
     out << "    static constexpr const TNameBufs::TInitializationData ENUM_INITIALIZATION_DATA{\n";
     out << "        NAMES_INITIALIZATION_PAIRS,\n";
     out << "        VALUES_INITIALIZATION_PAIRS,\n";
-    out << "        CPP_NAMES_INITIALIZATION_PAIRS,\n";
+    out << "        CPP_NAMES_INITIALIZATION_ARRAY,\n";
     out << "        " << WrapStringBuf(outerScopeStr) << ",\n";
     out << "        " << WrapStringBuf(name) << "\n";
     out << "    };\n\n";

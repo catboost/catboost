@@ -1,29 +1,40 @@
 #include "cross_validation.h"
-#include "train_model.h"
-#include "preprocess.h"
 
-#include <catboost/libs/algo/train.h>
+#include "preprocess.h"
+#include "train_model.h"
+
+#include <catboost/libs/algo/calc_score_cache.h>
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/quantization.h>
 #include <catboost/libs/algo/roc_curve.h>
-#include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/algo/train.h>
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/helpers/data_split.h>
-#include <catboost/libs/helpers/query_info_helper.h>
-#include <catboost/libs/helpers/element_range.h>
-#include <catboost/libs/helpers/binarize_target.h>
-#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/overfitting_detector/error_tracker.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/model/features.h>
+#include <catboost/libs/options/defaults_helper.h>
+#include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
 
-#include <library/threading/local_executor/local_executor.h>
-
+#include <util/generic/algorithm.h>
 #include <util/generic/scope.h>
-#include <util/random/shuffle.h>
+#include <util/generic/ymath.h>
 
-#include <limits>
 #include <cmath>
+#include <numeric>
+
 
 static TVector<TVector<ui32>> GetSplittedDocs(const TVector<std::pair<ui32, ui32>>& startEnd) {
     TVector<TVector<ui32>> result(startEnd.size());
@@ -99,14 +110,9 @@ static void PrepareFolds(
     TVector<TDataset>* testFolds
 ) {
     bool hasQuery = !pool.Docs.QueryId.empty();
-    if (hasQuery) {
-        CB_ENSURE(!cvParams.Stratified, "Stratified cross validation is not supported for datasets with query id.");
-    }
-
     TVector<TVector<ui32>> docsInTest;
     TVector<std::pair<ui32, ui32>> testDocsStartEndIndices;
     if (cvParams.Stratified) {
-        CB_ENSURE(!IsQuerywiseError(lossDescription.GetLossFunction()), "Stratified CV isn't supported for querywise errors");
         docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
     } else {
         testDocsStartEndIndices = hasQuery
@@ -149,8 +155,12 @@ static void PrepareFolds(
         Preprocess(lossDescription, classWeights, labelConverter, learnData);
         Preprocess(lossDescription, classWeights, labelConverter, testData);
 
+
+        // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
+        THashSet<int> catFeatures = ToSigned(contexts[foldIdx]->CatFeatures);
+
         PrepareAllFeaturesLearn(
-            contexts[foldIdx]->CatFeatures,
+            catFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
             Nothing(),
             contexts[foldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
@@ -164,7 +174,7 @@ static void PrepareFolds(
         );
 
         PrepareAllFeaturesTest(
-            contexts[foldIdx]->CatFeatures,
+            catFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
             learnData.AllFeatures,
             /*allowNansOnlyInTest=*/true,
@@ -242,11 +252,10 @@ void CrossValidate(
 
     const int oneFoldSize = pool.Docs.GetDocCount() / cvParams.FoldCount;
     const int cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
-    SetDataDependantDefaults(
+    SetDataDependentDefaults(
         cvTrainSize,
         /*testPoolSize=*/pool.Docs.GetDocCount() - cvTrainSize,
         /*hasTestLabels=*/true,
-        !pool.IsTrivialWeights(),
         &outputFileOptions.UseBestModel,
         &params
     );
@@ -257,7 +266,8 @@ void CrossValidate(
             evalMetricDescriptor,
             outputFileOptions,
             featureCount,
-            pool.CatFeatures,
+            // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
+            ToUnsigned(pool.CatFeatures),
             pool.FeatureId,
             "fold_" + ToString(idx) + "_"
         ));
@@ -268,13 +278,9 @@ void CrossValidate(
     // without fields duplication.
     auto& ctx = contexts.front();
 
-    SetLogingLevel(ctx->Params.LoggingLevel);
+    TSetLogging inThisScope(ctx->Params.LoggingLevel);
 
-    Y_DEFER {
-        SetSilentLogingMode();
-    };
-
-    if (IsMultiClassError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+    if (IsMultiClassMetric(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         for (const auto& context : contexts) {
             int classesCount = GetClassesCount(
                     context->Params.DataProcessingOptions->ClassesCount,
@@ -306,6 +312,7 @@ void CrossValidate(
     }
     if (hasQuerywiseMetric) {
         CB_ENSURE(pool.Docs.QueryId.size() == pool.Docs.Target.size(), "Query ids not provided for querywise metric.");
+        CB_ENSURE(!cvParams.Stratified, "Stratified split is incompatible with groupwise metrics");
     }
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
@@ -339,11 +346,11 @@ void CrossValidate(
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
         TLearnContext& ctx = *contexts[foldIdx];
         const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx.Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
-        if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
+        if (ctx.UseTreeLevelCaching()) {
             ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
             ctx.PrevTreeLevelStats.Create(
                 ctx.LearnProgress.Folds,
-                CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), learnFolds[foldIdx].AllFeatures.OneHotValues),
+                CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), learnFolds[foldIdx].AllFeatures),
                 static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth)
             );
         }
@@ -437,15 +444,16 @@ void CrossValidate(
                 continue;
             }
             const auto& metric = metrics[metricIdx];
+            const TString& metricDescription = metric->GetDescription();
             TVector<double> trainFoldsMetric;
             TVector<double> testFoldsMetric;
             for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-                trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricIdx]);
+                trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().at(metricDescription));
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + learnToken,
                     TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == errorTrackerMetricIdx)
                 );
-                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0][metricIdx]);
+                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0].at(metricDescription));
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + testToken,
                     TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == errorTrackerMetricIdx)
@@ -478,7 +486,7 @@ void CrossValidate(
         oneIterLogger.OutputProfile(profile.GetProfileResults());
 
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
+            CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
@@ -500,6 +508,6 @@ void CrossValidate(
         }
         TVector<TPool> pools(1, pool);
         TRocCurve rocCurve(allApproxes, pools, &ctx->LocalExecutor);
-        rocCurve.Output(ctx->OutputOptions.GetRocOutputPath());
+        rocCurve.OutputRocCurve(ctx->OutputOptions.GetRocOutputPath());
     }
 }

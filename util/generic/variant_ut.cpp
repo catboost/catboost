@@ -68,15 +68,13 @@ namespace {
     class TNonCopyable1
        : private TNonCopyable {
     public:
-        TNonCopyable1() {
-        }
+        TNonCopyable1() = default;
     };
 
     class TNonCopyable2
        : private TNonCopyable {
     public:
-        TNonCopyable2() {
-        }
+        TNonCopyable2() = default;
     };
 
     struct TThrowOnAny {

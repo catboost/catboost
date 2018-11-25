@@ -145,28 +145,28 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
             auto& stats = GetMemoryCopyPerformance<EPtrType::CudaDevice, EPtrType::CudaDevice>();
 
             ui64 devCount = GetCudaManager().GetDeviceCount();
-            MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(stats.Bandwidth(dev, secondDev)) << "\t";
+                    CATBOOST_INFO_LOG << BandwidthMbPerSec(stats.Bandwidth(dev, secondDev)) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
 
-            MATRIXNET_INFO_LOG << "Bandwitdh " << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << stats.Bandwidth(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << stats.Bandwidth(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
-            MATRIXNET_INFO_LOG << "Latency " << Endl;
+            CATBOOST_INFO_LOG << "Latency " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
-                MATRIXNET_INFO_LOG << "Dev #" << dev << "\t";
+                CATBOOST_INFO_LOG << "Dev #" << dev << "\t";
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << stats.Latency(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << stats.Latency(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
         }
     }
@@ -190,7 +190,7 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
             val += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count() * 1.0 / 1000;
         }
         val /= 10000;
-        MATRIXNET_INFO_LOG << "Latency 0-1 " << val << Endl;
+        CATBOOST_INFO_LOG << "Latency 0-1 " << val << Endl;
     }
 
     Y_UNIT_TEST(BandwidthAndLatencyDeviceHost) {
@@ -198,27 +198,27 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
         {
             auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaDevice, EPtrType::CudaHost>();
             ui64 devCount = GetCudaManager().GetDeviceCount();
-            MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
+                    CATBOOST_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
 
-            MATRIXNET_INFO_LOG << "Bandwitdh " << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
-            MATRIXNET_INFO_LOG << "Latency " << Endl;
+            CATBOOST_INFO_LOG << "Latency " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
         }
     }
@@ -228,27 +228,27 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
         {
             auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaHost, EPtrType::CudaHost>();
             ui64 devCount = GetCudaManager().GetDeviceCount();
-            MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
+                    CATBOOST_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
 
-            MATRIXNET_INFO_LOG << "Bandwitdh " << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
-            MATRIXNET_INFO_LOG << "Latency " << Endl;
+            CATBOOST_INFO_LOG << "Latency " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
         }
     }
@@ -258,27 +258,27 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
         {
             auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaHost, EPtrType::CudaDevice>();
             ui64 devCount = GetCudaManager().GetDeviceCount();
-            MATRIXNET_INFO_LOG << "Bandwitdh MB/s" << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh MB/s" << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
+                    CATBOOST_INFO_LOG << BandwidthMbPerSec(latencyAndBandwidth.Bandwidth(dev, secondDev)) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
 
-            MATRIXNET_INFO_LOG << "Bandwitdh " << Endl;
+            CATBOOST_INFO_LOG << "Bandwitdh " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << latencyAndBandwidth.Bandwidth(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
-            MATRIXNET_INFO_LOG << "Latency " << Endl;
+            CATBOOST_INFO_LOG << "Latency " << Endl;
             for (ui64 dev = 0; dev < devCount; ++dev) {
                 for (ui64 secondDev = 0; secondDev < devCount; ++secondDev) {
-                    MATRIXNET_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
+                    CATBOOST_INFO_LOG << latencyAndBandwidth.Latency(dev, secondDev) << "\t";
                 }
-                MATRIXNET_INFO_LOG << Endl;
+                CATBOOST_INFO_LOG << Endl;
             }
         }
     }
@@ -301,7 +301,7 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
                 auto elapsed = std::chrono::high_resolution_clock::now() - start;
                 val += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count() * 1.0 / 1000;
             }
-            MATRIXNET_INFO_LOG << "Latency 0-1 " << val / 100000 << Endl;
+            CATBOOST_INFO_LOG << "Latency 0-1 " << val / 100000 << Endl;
         }
     }
 

@@ -1,14 +1,21 @@
 #pragma once
 
 #include "target_func.h"
+
 #include "non_diag_target_der.h"
 #include "oracle_type.h"
+
+#include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_lib/mapping.h>
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/bootstrap_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/metrics/pfound.h>
-#include <catboost/cuda/gpu_data/dataset_base.h>
-#include <catboost/cuda/gpu_data/bootstrap.h>
-#include <catboost/cuda/methods/helpers.h>
+
+#include <util/generic/map.h>
+#include <util/generic/string.h>
+
 
 namespace NCatboostCuda {
     template <class TSamplesMapping>

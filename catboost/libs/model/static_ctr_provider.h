@@ -36,9 +36,18 @@ public:
     bool IsSerializable() const override {
         return true;
     }
+
     void AddCtrCalcerData(TCtrValueTable&& valueTable) override {
         auto ctrBase = valueTable.ModelCtrBase;
         CtrData.LearnCtrs[ctrBase] = std::move(valueTable);
+    }
+
+    void DropUnusedTables(TConstArrayRef<TModelCtrBase> usedModelCtrBase) override {
+        TCtrData ctrData;
+        for (auto& base: usedModelCtrBase) {
+            ctrData.LearnCtrs[base] = std::move(CtrData.LearnCtrs[base]);
+        }
+        DoSwap(CtrData, ctrData);
     }
 
     void Save(IOutputStream* out) const override {
@@ -57,13 +66,11 @@ public:
         return FloatFeatureIndexes;
     }
 
-    const THashMap<int, int>& GetCatFeatureIndex() const {
-        return CatFeatureIndex;
-    }
-
     const THashMap<TOneHotSplit, TBinFeatureIndexValue>& GetOneHotFeatureIndexes() const {
         return OneHotFeatureIndexes;
     }
+
+    virtual TIntrusivePtr<ICtrProvider> Clone() const override;
 
     ~TStaticCtrProvider() override {}
     TCtrData CtrData;
@@ -100,20 +107,24 @@ public:
         const TConstArrayRef<int>& ,
         size_t,
         TArrayRef<float>) override {
-        ythrow yexception() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& ,
         const TVector<TOneHotFeature>& ,
         const TVector<TCatFeature>& ) override {
-        ythrow yexception() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
     bool IsSerializable() const override {
         return true;
     }
     void AddCtrCalcerData(TCtrValueTable&& ) override {
-        ythrow yexception() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+    }
+
+    void DropUnusedTables(TConstArrayRef<TModelCtrBase>) override {
+        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void Save(IOutputStream* out) const override {
@@ -122,7 +133,7 @@ public:
     }
 
     void Load(IInputStream*) override {
-        ythrow yexception() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     TString ModelPartIdentifier() const override {
@@ -135,3 +146,4 @@ private:
     TCtrParallelGenerator CtrParallelGenerator;
 };
 
+TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<const TStaticCtrProvider*>& providers, ECtrTableMergePolicy mergePolicy);

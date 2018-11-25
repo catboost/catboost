@@ -8,7 +8,7 @@ using namespace CoreML::Specification;
 
 void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsembleParameters* ensemble) {
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
-    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty(), "model with only float features supported");
+    CB_ENSURE(!model.HasCategoricalFeatures(), "model with only float features supported");
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     size_t currentSplitIndex = 0;
     auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();

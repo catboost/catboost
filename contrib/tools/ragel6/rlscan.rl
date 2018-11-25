@@ -1,5 +1,6 @@
 /*
  *  Copyright 2006-2007 Adrian Thurston <thurston@complang.org>
+ *  Copyright 2011 Josef Goettgens
  */
 
 /*  This file is part of Ragel.
@@ -547,17 +548,18 @@ bool isAbsolutePath( const char *path )
 #endif
 }
 
-inline void resolvePath(const char* rel, const char* abs, char res[]) {
-    strcpy(res, abs);
-    char* p = strrchr(res, '/');
-    *p = 0;
-    while (*rel == '.' && *(rel + 1) == '.' && *(rel + 2) == '/') {
-        rel += 3;
-        p = strrchr(res, '/');
-        *p = 0;
-    }
-    strcat(res, "/");
-    strcat(res, rel);
+inline char* resolvePath(const char* rel, const char* abs) {
+    const size_t l1 = strlen(rel);
+    const size_t l2 = strlen(abs);
+    char* ret = new char[l1 + l2 + 1];
+
+    const char* p = strrchr(abs, '/') + 1;
+    const size_t l3 = p - abs;
+
+    memcpy(ret, abs, l3);
+    strcpy(ret + l3, rel);
+
+    return ret;
 }
 
 char **Scanner::makeIncludePathChecks( const char *thisFileName, 
@@ -583,13 +585,7 @@ char **Scanner::makeIncludePathChecks( const char *thisFileName,
 		if ( lastSlash == 0 )
 			checks[nextCheck++] = data;
 		else {
-			long givenPathLen = (lastSlash - thisFileName) + 1;
-			long checklen = givenPathLen + length;
-            long abslen = strlen(thisFileName);
-            checklen = abslen > checklen ? abslen : checklen;
-            char *check = new char[checklen+1];
-            resolvePath(data, thisFileName, check);
-			checks[nextCheck++] = check;
+			checks[nextCheck++] = resolvePath(data, thisFileName);
 		}
 
 		/* Search from the include paths given on the command line. */
@@ -620,6 +616,16 @@ ifstream *Scanner::tryOpenInclude( char **pathChecks, long &found )
 			found = check - pathChecks;
 			return inFile;
 		}
+
+		/* 
+		 * 03/26/2011 jg:
+		 * Don't rely on sloppy runtime behaviour: reset the state of the stream explicitly.
+		 * If inFile->open() fails, which happens when include dirs are tested, the fail bit
+		 * is set by the runtime library. Currently the VS runtime library opens new files,
+		 * but when it comes to reading it refuses to work.
+		 */
+		inFile->clear();
+
 		check += 1;
 	}
 

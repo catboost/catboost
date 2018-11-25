@@ -34,7 +34,7 @@ namespace {
     };
 
 
-    template<class T>
+    template <class T>
     class TDataRefOptionalHolder {
     public:
         TDataRefOptionalHolder() = default;
@@ -90,17 +90,17 @@ inline static const TOnlineCTR& GetCtr(
 
 // Helper function for calculating index of leaf for each document given a new split.
 // Calculates indices when a permutation is given.
-template<typename TBucketIndexType, typename TFullIndexType>
+template <typename TBucketIndexType, typename TFullIndexType>
 inline static void SetSingleIndex(
     const TCalcScoreFold& fold,
     const TStatsIndexer& indexer,
     const TVector<TBucketIndexType>& bucketIndex,
-    const size_t* docPermutation,
+    const ui32* docPermutation,
+    const int permBlockSize,
     NCB::TIndexRange<int> docIndexRange, // aligned by permutation blocks in docPermutation
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
     const int docCount = fold.GetDocCount();
-    const int permBlockSize = fold.PermutationBlockSize;
     const TIndexType* indices = GetDataPtr(fold.Indices);
 
     if (docPermutation == nullptr || permBlockSize == fold.GetDocCount()) {
@@ -135,7 +135,7 @@ inline static void SetSingleIndex(
 
 
 // Calculate index of leaf for each document given a new split.
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void BuildSingleIndex(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
@@ -147,33 +147,36 @@ inline static void BuildSingleIndex(
 ) {
     if (split.Type == ESplitType::OnlineCtr) {
         const TCtr& ctr = split.Ctr;
-        const size_t* docSubset = GetDataPtr(fold.IndexInFold);
+        const ui32* docSubset = GetDataPtr(fold.IndexInFold);
         SetSingleIndex(
             fold,
             indexer,
             GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx],
             docSubset,
+            fold.CtrDataPermutationBlockSize,
             docIndexRange,
             singleIdx
         );
     } else if (split.Type == ESplitType::FloatFeature) {
-        const size_t* learnPermutation = GetDataPtr(fold.LearnPermutation);
+        const ui32* learnPermutation = GetDataPtr(fold.LearnPermutation);
         SetSingleIndex(
             fold,
             indexer,
             af.FloatHistograms[split.FeatureIdx],
             learnPermutation,
+            fold.NonCtrDataPermutationBlockSize,
             docIndexRange,
             singleIdx
         );
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-        const size_t* learnPermutation = GetDataPtr(fold.LearnPermutation);
+        const ui32* learnPermutation = GetDataPtr(fold.LearnPermutation);
         SetSingleIndex(
             fold,
             indexer,
             af.CatFeaturesRemapped[split.FeatureIdx],
             learnPermutation,
+            fold.NonCtrDataPermutationBlockSize,
             docIndexRange,
             singleIdx
         );
@@ -182,7 +185,7 @@ inline static void BuildSingleIndex(
 
 
 // Update bootstraped sums on docIndexRange in a bucket
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void UpdateWeighted(
     const TVector<TFullIndexType>& singleIdx,
     const double* weightedDer,
@@ -199,7 +202,7 @@ inline static void UpdateWeighted(
 
 
 // Update not bootstraped sums on docIndexRange in a bucket
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void UpdateDeltaCount(
     const TVector<TFullIndexType>& singleIdx,
     const double* derivatives,
@@ -223,7 +226,7 @@ inline static void UpdateDeltaCount(
 }
 
 
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void CalcStatsKernel(
     bool isCaching,
     const TVector<TFullIndexType>& singleIdx,
@@ -307,7 +310,7 @@ inline static void FixUpStats(
 }
 
 
-template<typename TFullIndexType, typename TIsCaching>
+template <typename TFullIndexType, typename TIsCaching>
 static void CalcStatsImpl(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
@@ -394,7 +397,7 @@ static void CalcStatsImpl(
 }
 
 
-template<typename TFullIndexType, typename TIsCaching>
+template <typename TFullIndexType, typename TIsCaching>
 static void CalcStatsImpl(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
@@ -514,7 +517,7 @@ inline static double CountD2(double avrg, const TBucketStats& leafStats) {
 /* This function calculates resulting sums for each split given statistics that are calculated for each bucket
  * of the histogram.
  */
-template<typename TIsPlainMode>
+template <typename TIsPlainMode>
 inline static void UpdateScoreBin(
     const TBucketStats* stats,
     int leafCount,
@@ -686,6 +689,7 @@ void CalcStatsAndScores(
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
+    bool useTreeLevelCaching,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d,
@@ -786,7 +790,7 @@ void CalcStatsAndScores(
 
         const auto& treeOptions = fitParams.ObliviousTreeOptions.Get();
 
-        if (!IsSamplingPerTree(treeOptions)) {
+        if (!useTreeLevelCaching) {
             splitStatsCount = indexer.CalcSize(depth);
             const int statsCount =
                 fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;

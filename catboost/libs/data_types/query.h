@@ -25,6 +25,13 @@ struct TQueryInfo : public TGroupBounds {
     {
     }
 
+    bool operator==(const TQueryInfo& rhs) const {
+        if (!((TGroupBounds)(*this) == (TGroupBounds)rhs)) {
+            return false;
+        }
+        return (Weight == rhs.Weight) && (SubgroupId == rhs.SubgroupId) && (Competitors == rhs.Competitors);
+    }
+
     float Weight;
     TVector<ui32> SubgroupId; // can be empty if there's no subgroup data
     TVector<TVector<TCompetitor>> Competitors;

@@ -8,6 +8,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
+#include <util/generic/ymath.h>
 #include <util/string/vector.h>
 
 struct TPoolColumnsMetaInfo {
@@ -54,6 +55,10 @@ struct TPoolMetaInfo {
 namespace NCB {
     class IPoolBuilder {
     public:
+        virtual bool IsSafeTarget(float value) const noexcept {
+            return Abs(value) < 1e6f;
+        }
+
         virtual void Start(const TPoolMetaInfo& poolMetaInfo,
                            int docCount,
                            const TVector<int>& catFeatureIds) = 0;

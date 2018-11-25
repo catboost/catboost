@@ -102,6 +102,9 @@ namespace NCatboostCuda {
     }
 
     void TDataProviderBuilder::Finish() {
+        auto startTimeBuilder = Now();
+
+
         CB_ENSURE(!IsDone, "Error: can't finish more than once");
         DataProvider.Features.reserve(FeatureBlobs.size());
 
@@ -197,7 +200,7 @@ namespace NCatboostCuda {
                 const TVector<float>& borders = Borders.at(featureId);
                 const ENanMode nanMode = NanModes.at(featureId);
                 if (borders.ysize() == 0) {
-                    MATRIXNET_DEBUG_LOG << "Float Feature #" << featureId << " is empty" << Endl;
+                    CATBOOST_DEBUG_LOG << "Float Feature #" << featureId << " is empty" << Endl;
                     return;
                 }
 
@@ -247,7 +250,7 @@ namespace NCatboostCuda {
                     borders = NCB::BuildBorders(floatValues, floatFeature->GetId(), config);
                 }
                 if (borders.ysize() == 0) {
-                    MATRIXNET_DEBUG_LOG << "Float Feature #" << featureId << " is empty" << Endl;
+                    CATBOOST_DEBUG_LOG << "Float Feature #" << featureId << " is empty" << Endl;
                     return;
                 }
 
@@ -276,7 +279,7 @@ namespace NCatboostCuda {
         for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId) {
             if (FeatureTypes[featureId] == EFeatureValuesType::Categorical) {
                 if (featureColumns[featureId] == nullptr && (!IsTest)) {
-                    MATRIXNET_DEBUG_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
+                    CATBOOST_DEBUG_LOG << "Cat Feature #" << featureId << " is empty" << Endl;
                 }
             } else if (featureColumns[featureId] != nullptr) {
                 if (!FeaturesManager.HasFloatFeatureBordersForDataProviderFeature(featureId)) {
@@ -306,8 +309,12 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Error: input target is constant and there are no pairs. No way you could learn on such dataset");
         }
         if (isConstTarget) {
-            MATRIXNET_WARNING_LOG << "Labels column is constant. You could learn only pairClassification (if you provided pairs) on such dataset" << Endl;
+            CATBOOST_WARNING_LOG << "Labels column is constant. You could learn only pairClassification (if you provided pairs) on such dataset" << Endl;
         }
+
+        const TString dataProviderName = IsTest ? "test" : "learn";
+        CATBOOST_DEBUG_LOG << "Build " << dataProviderName << " dataProvider time " << (Now() - startTimeBuilder).SecondsFloat() << Endl;
+
         IsDone = true;
     }
 

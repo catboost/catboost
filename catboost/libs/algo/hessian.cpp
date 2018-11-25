@@ -1,6 +1,7 @@
 #include "hessian.h"
 
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/lapack/linear_system.h>
 
 
 void SolveNewtonEquation(const THessianInfo& hessian,

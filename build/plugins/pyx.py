@@ -134,7 +134,7 @@ class PyxParser(object):
 
     def induced_deps(self):
         return {
-            'cpp': ['$S/contrib/tools/python/src/Include/Python.h'] + self._induced
+            'cpp': ['$S/contrib/libs/python/Include/Python.h'] + self._induced
         }
 
 

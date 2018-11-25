@@ -10,8 +10,8 @@ SRCS(
 PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
+    catboost/libs/metrics
     catboost/libs/options
-    library/logger/global
     library/statistics
 )
 

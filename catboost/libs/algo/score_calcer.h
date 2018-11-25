@@ -30,6 +30,7 @@ void CalcStatsAndScores(
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
+    bool useTreeLevelCaching,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d, // can be nullptr (and if PairwiseScoring must be), if so - don't return this data

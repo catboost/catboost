@@ -46,7 +46,7 @@ public:
         }
 
     private:
-        Y_NO_RETURN static void FailStackOverflow();
+        [[noreturn]] static void FailStackOverflow();
 
         inline ui32& MagicNumberLocation() noexcept {
 #if STACK_GROW_DOWN == 1

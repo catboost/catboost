@@ -213,6 +213,24 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
+        Y_UNIT_TEST(ShouldWaitAllVectorWithValueType) {
+            TPromise<int> promise1 = NewPromise<int>();
+            TPromise<int> promise2 = NewPromise<int>();
+
+            TVector<TFuture<int>> promises;
+            promises.push_back(promise1);
+            promises.push_back(promise2);
+
+            TFuture<void> future = WaitAll(promises);
+            UNIT_ASSERT(!future.HasValue());
+
+            promise1.SetValue(0);
+            UNIT_ASSERT(!future.HasValue());
+
+            promise2.SetValue(0);
+            UNIT_ASSERT(future.HasValue());
+        }
+
         Y_UNIT_TEST(ShouldWaitAllList) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
@@ -253,6 +271,25 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
 
             promise2.SetValue();
+            UNIT_ASSERT(future.HasValue());
+        }
+
+
+        Y_UNIT_TEST(ShouldWaitAnyVectorWithValueType) {
+            TPromise<int> promise1 = NewPromise<int>();
+            TPromise<int> promise2 = NewPromise<int>();
+
+            TVector<TFuture<int>> promises;
+            promises.push_back(promise1);
+            promises.push_back(promise2);
+
+            TFuture<void> future = WaitAny(promises);
+            UNIT_ASSERT(!future.HasValue());
+
+            promise1.SetValue(0);
+            UNIT_ASSERT(future.HasValue());
+
+            promise2.SetValue(0);
             UNIT_ASSERT(future.HasValue());
         }
 

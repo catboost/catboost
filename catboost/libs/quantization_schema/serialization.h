@@ -13,7 +13,7 @@ namespace NCB {
 }
 
 namespace NCB {
-    enum class EQuantizationsSchemaSerializationFormat : ui8 {
+    enum class EQuantizationSchemaSerializationFormat : ui8 {
         Unknown = 0,
         Protobuf = 1,
 
@@ -24,21 +24,21 @@ namespace NCB {
     };
 
     TPoolQuantizationSchema LoadQuantizationSchema(
-        EQuantizationsSchemaSerializationFormat format,
+        EQuantizationSchemaSerializationFormat format,
         TStringBuf path);
 
     TPoolQuantizationSchema LoadQuantizationSchema(
-        EQuantizationsSchemaSerializationFormat format,
+        EQuantizationSchemaSerializationFormat format,
         IInputStream* input);
 
     void SaveQuantizationSchema(
         const TPoolQuantizationSchema& schema,
-        EQuantizationsSchemaSerializationFormat format,
+        EQuantizationSchemaSerializationFormat format,
         TStringBuf path);
 
     void SaveQuantizationSchema(
         const TPoolQuantizationSchema& schema,
-        EQuantizationsSchemaSerializationFormat format,
+        EQuantizationSchemaSerializationFormat format,
         IOutputStream* output);
 
     TPoolQuantizationSchema QuantizationSchemaFromProto(

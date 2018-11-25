@@ -1,6 +1,6 @@
 
 
-PROGRAM()
+PY_PROGRAM()
 
 PEERDIR(
     contrib/python/numpy

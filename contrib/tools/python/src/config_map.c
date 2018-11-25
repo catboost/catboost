@@ -57,6 +57,7 @@
 
 #ifdef _DARWIN_
 {"_multiprocessing", init_multiprocessing},
+{"_scproxy", init_scproxy},
 #endif
 
 #ifdef _CYGWIN_

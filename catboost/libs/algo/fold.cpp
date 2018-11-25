@@ -1,5 +1,6 @@
 #include "fold.h"
 #include "helpers.h"
+#include "approx_updater_helpers.h"
 
 #include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data_types/groupid.h>
@@ -27,7 +28,7 @@ static void InitFromBaseline(
     const int beginIdx,
     const int endIdx,
     const TVector<TVector<double>>& baseline,
-    const TVector<size_t>& learnPermutation,
+    const TVector<ui32>& learnPermutation,
     bool storeExpApproxes,
     TVector<TVector<double>>* approx
 ) {
@@ -97,7 +98,7 @@ TFold TFold::BuildDynamicFold(
     ff.AssignTarget(learnData.Target, targetClassifiers);
     ff.SetWeights(learnData.Weights, learnSampleCount);
 
-    TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    TVector<ui32> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     TVector<ui32> queryIndices;
     if (!learnData.QueryId.empty()) {
@@ -190,7 +191,7 @@ TFold TFold::BuildPlainFold(
     ff.AssignTarget(learnData.Target, targetClassifiers);
     ff.SetWeights(learnData.Weights, learnSampleCount);
 
-    TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    TVector<ui32> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
     if (shuffle) {
         TVector<TGroupId> groupIds;

@@ -187,7 +187,7 @@ namespace NCB {
             return NCB::TSimpleIndexRangesGenerator<TSize>(
                 NCB::TIndexRange<TSize>(parallelizableUnitsCount),
                 std::max(
-                    (TSize)std::llrint(
+                    (TSize)std::llround(
                         double(parallelizableUnitsCount)
                         / double(Size())
                         * double(approximateBlockSize)
@@ -580,6 +580,12 @@ namespace NCB {
     }
 
 
+    template <class TSize = size_t>
+    bool IndicesEqual(const TArraySubsetIndexing<TSize>& lhs, TConstArrayRef<TSize> rhs) {
+        return !lhs.Find([rhs](TSize idx, TSize srcIdx) { return rhs[idx] != srcIdx; });
+    }
+
+
     // TArrayLike must have O(1) random-access operator[].
     template <class TArrayLike, class TSize = size_t>
     class TArraySubset {
@@ -689,32 +695,53 @@ namespace NCB {
     };
 
 
+    template <class T, class TArrayLike, class TSize=size_t>
+    bool Equal(TConstArrayRef<T> lhs, const TArraySubset<TArrayLike, TSize>& rhs) {
+        if (lhs.size() != rhs.Size()) {
+            return false;
+        }
+
+        return !rhs.Find([&](TSize idx, T element) { return element != lhs[idx]; });
+    }
+
     template <class TDst, class TSrcArrayLike, class TSize=size_t>
     inline TVector<TDst> GetSubset(
         const TSrcArrayLike& srcArrayLike,
-        const TArraySubsetIndexing<TSize>& subsetIndexing
+        const TArraySubsetIndexing<TSize>& subsetIndexing,
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         TVector<TDst> dst;
         dst.yresize(subsetIndexing.Size());
 
         TArraySubset<const TSrcArrayLike, TSize> arraySubset(&srcArrayLike, &subsetIndexing);
-        arraySubset.ForEach(
-            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; }
-        );
+        if (localExecutor.Defined()) {
+            arraySubset.ParallelForEach(
+                [&dst](TSize idx, TDst srcElement) { dst[idx] = srcElement; },
+                *localExecutor,
+                approximateBlockSize
+            );
+        } else {
+            arraySubset.ForEach(
+                [&dst](TSize idx, TDst srcElement) { dst[idx] = srcElement; }
+            );
+        }
 
         return dst;
     }
 
-    // useful for optionally empty data
-    template<class T, class TSize=size_t>
-    inline TVector<T> GetSubsetOfMaybeEmpty(
-        TConstArrayRef<T> src,
-        const TArraySubsetIndexing<TSize>& subsetIndexing
+
+    template <class T, class TMaybePolicy, class TSize=size_t>
+    inline TMaybe<TVector<T>, TMaybePolicy> GetSubsetOfMaybeEmpty(
+        TMaybe<TConstArrayRef<T>, TMaybePolicy> src,
+        const TArraySubsetIndexing<TSize>& subsetIndexing,
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
-        if (src.empty()) {
-            return TVector<T>();
+        if (!src) {
+            return Nothing();
         } else {
-            return GetSubset<T>(src, subsetIndexing);
+            return GetSubset<T>(*src, subsetIndexing, localExecutor, approximateBlockSize);
         }
     }
 
@@ -725,21 +752,5 @@ namespace NCB {
     template <class T, class TSize=size_t>
     using TConstMaybeOwningArraySubset = TArraySubset<const TMaybeOwningArrayHolder<T>, TSize>;
 
-
-    template <class TDst, class TSrcArrayLike, class TSize=size_t>
-    inline TMaybeOwningArrayHolder<TDst> ParallelExtractValues(
-        const TArraySubset<TSrcArrayLike, TSize>& arraySubset,
-        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing()
-    ) {
-        TVector<TDst> dst;
-        dst.yresize(arraySubset.Size());
-
-        arraySubset.ParallelForEach(
-            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; },
-            localExecutor.Defined() ? *localExecutor : &NPar::LocalExecutor()
-        );
-
-        return TMaybeOwningArrayHolder<TDst>::CreateOwning(std::move(dst));
-    }
 }
 

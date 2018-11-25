@@ -95,8 +95,6 @@ protected:
 	string keysType;
 	string signedKeysType;
 	string transType;
-	string actsType;
-	string nactsType;
 };
 
 #endif

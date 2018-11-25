@@ -2,6 +2,7 @@
 #include "ders_helpers.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/options/json_helper.h>
 
 // ITreeStatisticsEvaluator
 

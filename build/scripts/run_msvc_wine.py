@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import subprocess
 import signal
 import time
@@ -198,7 +199,8 @@ def is_good_file(p):
     if os.path.getsize(p) < 300:
         return False
 
-    if p.endswith('asm.obj'):
+    asm_pattern = re.compile('asm(\.\w+)?\.obj$')
+    if asm_pattern.search(p):
         pass
     elif p.endswith('.obj'):
         with open(p, 'rb') as f:

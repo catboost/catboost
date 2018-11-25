@@ -16,13 +16,13 @@ struct TEventResetType {
  * Use TAutoEvent, TManualEvent for the direct replacement.
  * Use TManualEvent to prevent SEGFAULT (http://nga.at.yandex-team.ru/5772).
  */
-class Event: public TEventResetType {
+class TSystemEvent: public TEventResetType {
 public:
-    Event(ResetMode rmode = rManual);
-    Event(const Event& other) noexcept;
-    Event& operator=(const Event& other) noexcept;
+    TSystemEvent(ResetMode rmode = rManual);
+    TSystemEvent(const TSystemEvent& other) noexcept;
+    TSystemEvent& operator=(const TSystemEvent& other) noexcept;
 
-    ~Event();
+    ~TSystemEvent();
 
     void Reset() noexcept;
     void Signal() noexcept;
@@ -62,10 +62,10 @@ private:
     TIntrusivePtr<TEvImpl> EvImpl_;
 };
 
-class TAutoEvent: public Event {
+class TAutoEvent: public TSystemEvent {
 public:
     TAutoEvent()
-        : Event(Event::rAuto)
+        : TSystemEvent(TSystemEvent::rAuto)
     {
     }
 
@@ -86,37 +86,37 @@ public:
     }
 
     void Reset() noexcept {
-        Event(Ev).Reset();
+        TSystemEvent{Ev}.Reset();
     }
 
     void Signal() noexcept {
-        Event(Ev).Signal();
+        TSystemEvent{Ev}.Signal();
     }
 
     /** return true if signaled, false if timed out. */
     bool WaitD(TInstant deadLine) noexcept {
-        return Event(Ev).WaitD(deadLine);
+        return TSystemEvent{Ev}.WaitD(deadLine);
     }
 
     /** return true if signaled, false if timed out. */
     inline bool WaitT(TDuration timeOut) noexcept {
-        return Event(Ev).WaitT(timeOut);
+        return TSystemEvent{Ev}.WaitT(timeOut);
     }
 
     /** Wait infinite time */
     inline void WaitI() noexcept {
-        Event(Ev).WaitI();
+        TSystemEvent{Ev}.WaitI();
     }
 
     /** return true if signaled, false if timed out. */
     inline bool Wait(ui32 timer) noexcept {
-        return Event(Ev).Wait(timer);
+        return TSystemEvent{Ev}.Wait(timer);
     }
 
     inline bool Wait() noexcept {
-        return Event(Ev).Wait();
+        return TSystemEvent{Ev}.Wait();
     }
 
 private:
-    Event Ev;
+    TSystemEvent Ev;
 };

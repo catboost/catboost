@@ -1,9 +1,14 @@
+#include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_lib/mapping.h>
+#include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/libs/helpers/cpu_random.h>
+
 #include <library/unittest/registar.h>
+
 #include <iostream>
-#include <catboost/cuda/cuda_util/dot_product.h>
-#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+
 using namespace std;
 using namespace NCudaLib;
 

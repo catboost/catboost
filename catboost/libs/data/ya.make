@@ -11,6 +11,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/data_new
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/cat_feature
@@ -23,7 +24,6 @@ PEERDIR(
     catboost/libs/quantized_pool
     library/binsaver
     library/object_factory
-    library/threading/future
     library/threading/local_executor
 )
 

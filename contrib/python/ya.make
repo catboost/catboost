@@ -15,7 +15,6 @@ RECURSE(
     pytest
     pytz
     pytz/tests
-    PyYAML
     setuptools
     six
     subprocess32

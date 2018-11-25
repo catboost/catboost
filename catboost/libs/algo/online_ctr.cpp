@@ -378,18 +378,23 @@ void ComputeOnlineCTRs(const TDataset& learnData,
         topSize = Max<ui64>();
     }
     auto leafCount = ComputeReindexHash(topSize, rehashHashTlsVal.GetPtr(), hashArr.begin(), hashArr.begin() + learnSampleCount);
+    dst->CounterUniqueValuesCount = dst->UniqueValuesCount = leafCount;
+
     for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < testDataPtrs.size(); ++testIdx) {
         const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
         leafCount = UpdateReindexHash(rehashHashTlsVal.GetPtr(), hashArr.begin() + docOffset, hashArr.begin() + docOffset + testSampleCount);
         docOffset += testSampleCount;
     }
-    dst->FeatureValueCount = leafCount;
 
     TVector<int> counterCTRTotal;
     int counterCTRDenominator = 0;
     if (AnyOf(ctrInfo.begin(), ctrInfo.begin() + dst->Feature.ysize(), [] (const auto& info) { return info.Type == ECtrType::Counter; })) {
         counterCTRTotal.resize(leafCount);
-        const int sampleCount = ctx->Params.CatFeatureParams->CounterCalcMethod == ECounterCalc::Full ? hashArr.ysize() : learnSampleCount;
+        int sampleCount = learnSampleCount;
+        if (ctx->Params.CatFeatureParams->CounterCalcMethod == ECounterCalc::Full) {
+            dst->CounterUniqueValuesCount = leafCount;
+            sampleCount = hashArr.ysize();
+        }
         CountOnlineCTRTotal(hashArr, sampleCount, &counterCTRTotal);
         counterCTRDenominator = *MaxElement(counterCTRTotal.begin(), counterCTRTotal.end());
     }
@@ -642,12 +647,12 @@ void CalcFinalCtrsAndSaveToModel(
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
 ) {
-    MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
+    CATBOOST_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
 
     ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
 
     if (cpuRamUsage > cpuRamLimit) {
-        MATRIXNET_WARNING_LOG << "CatBoost is using more CPU RAM ("
+        CATBOOST_WARNING_LOG << "CatBoost is using more CPU RAM ("
             << HumanReadableSize(cpuRamUsage, SF_BYTES)
             << ") than the limit (" << HumanReadableSize(cpuRamLimit, SF_BYTES) << ")\n";
     }
@@ -673,7 +678,7 @@ void CalcFinalCtrsAndSaveToModel(
                 &resTable
             );
             resTable.ModelCtrBase = ctr;
-            MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
+            CATBOOST_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
                                 << BuildDescription(layout, ctr.Projection) << Endl;
             return resTable;
         };
@@ -702,6 +707,6 @@ void CalcFinalCtrsAndSaveToModel(
         finalCtrExecutor.ExecTasks();
     }
 
-    MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
+    CATBOOST_DEBUG_LOG << "CTR calculation finished" << Endl;
 }
 

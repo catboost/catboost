@@ -1,6 +1,6 @@
 #include "train_templ.h"
 
-template<>
+template <>
 TLqError BuildError<TLqError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
     double q = NCatboostOptions::GetLqParam(params.LossFunctionDescription);
     return {q, IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction())};

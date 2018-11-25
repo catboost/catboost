@@ -164,7 +164,7 @@ namespace NCatboostCuda {
             }
 
             void PrintInfo() const {
-                MATRIXNET_INFO_LOG << "Compressed DataSet " << Description.Name << " with features #" << ActiveFeatureIds.size() << " features" << Endl;
+                CATBOOST_INFO_LOG << "Compressed DataSet " << Description.Name << " with features #" << ActiveFeatureIds.size() << " features" << Endl;
 
                 for (const auto& entry : PolicyBlocks) {
                     EFeaturesGroupingPolicy policy = entry.first;
@@ -173,7 +173,7 @@ namespace NCatboostCuda {
                     for (auto dev : featuresMapping.NonEmptyDevices()) {
                         const ui32 featuresAtDevice = featuresMapping.DeviceSlice(dev).Size();
                         const ui32 docsAtDevice = block.Samples.DeviceSlice(dev).Size();
-                        MATRIXNET_INFO_LOG << "Grid policy " << policy << Endl << "Memory usage for " << featuresAtDevice << " features, " << docsAtDevice << " documents at #"
+                        CATBOOST_INFO_LOG << "Grid policy " << policy << Endl << "Memory usage for " << featuresAtDevice << " features, " << docsAtDevice << " documents at #"
                                            << dev << ": " << block.CIndexSizes.At(dev) * sizeof(ui32) * 1.0 / 1024 / 1024 << " MB" << Endl;
                     }
                 }

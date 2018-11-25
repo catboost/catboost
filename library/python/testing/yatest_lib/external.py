@@ -5,6 +5,9 @@ import copy
 import logging
 
 from . import tools
+from datetime import date, datetime
+
+import six
 
 logger = logging.getLogger(__name__)
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
@@ -52,12 +55,14 @@ def serialize(value):
     def _serialize(val, _):
         if val is None:
             return val
-        if isinstance(val, basestring):
+        if isinstance(val, six.string_types) or isinstance(val, bytes):
             return tools.to_utf8(val)
-        if type(val) in [int, float, bool, long]:
+        if isinstance(val, six.integer_types) or type(val) in [float, bool]:
             return val
         if is_external(val):
             return dict(val)
+        if isinstance(val, (date, datetime)):
+            return repr(val)
         raise ValueError("Cannot serialize value '{}' of type {}".format(val, type(val)))
     return apply(_serialize, value)
 

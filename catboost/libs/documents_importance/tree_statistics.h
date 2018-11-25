@@ -1,10 +1,11 @@
 #pragma once
 
-#include "enums.h"
-
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/pool.h>
-#include <catboost/libs/options/catboost_options.h>
+
+#include <util/generic/vector.h>
+#include <util/system/types.h>
+
 
 struct TTreeStatistics {
     TTreeStatistics() = default;

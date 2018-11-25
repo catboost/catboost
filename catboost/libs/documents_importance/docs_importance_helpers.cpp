@@ -3,6 +3,15 @@
 
 #include <catboost/libs/algo/index_calcer.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
+#include <util/generic/ymath.h>
+
+#include <numeric>
+
+
 TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(const TPool& pool) {
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(ThreadCount - 1);

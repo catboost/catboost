@@ -1,17 +1,21 @@
 #include "modes.h"
-#include "cmd_line.h"
-#include "bind_options.h"
-#include "proceed_pool_in_blocks.h"
 
-#include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/app_helpers/proceed_pool_in_blocks.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/model/model.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
-#include <util/system/fs.h>
-#include <util/string/iterator.h>
+#include <library/getopt/small/last_getopt_opts.h>
+
 #include <util/folder/tempdir.h>
+#include <util/string/iterator.h>
+#include <util/system/compiler.h>
+
 
 struct TModeEvalMetricsParams {
     ui32 Step = 1;
@@ -56,7 +60,7 @@ static void PreprocessTarget(const TLabelConverter& labelConverter, TVector<floa
 }
 
 static void ReadDatasetParts(
-    const TAnalyticalModeCommonParams& params,
+    const NCB::TAnalyticalModeCommonParams& params,
     int blockSize,
     const TLabelConverter& labelConverter,
     NPar::TLocalExecutor* executor,
@@ -74,16 +78,17 @@ static TVector<THolder<IMetric>> CreateMetrics(
     int approxDim) {
 
     TVector<TString> metricsDescription;
-    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
+    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',').SkipEmpty()) {
         metricsDescription.emplace_back(metricDescription.Token());
     }
+    CB_ENSURE(!metricsDescription.empty(), "No metric in metrics description " << plotParams.MetricsDescription);
 
     auto metrics = CreateMetricsFromDescription(metricsDescription, approxDim);
     return metrics;
 }
 
 int mode_eval_metrics(int argc, const char* argv[]) {
-    TAnalyticalModeCommonParams params;
+    NCB::TAnalyticalModeCommonParams params;
     TModeEvalMetricsParams plotParams;
     bool verbose = false;
 
@@ -110,16 +115,12 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         NLastGetopt::TOptsParseResult parseResult(&parser, argc, argv);
         Y_UNUSED(parseResult);
     }
-    if (verbose) {
-        SetVerboseLogingMode();
-    } else {
-        SetSilentLogingMode();
-    }
+    TSetLoggingVerboseOrSilent inThisScope(verbose);
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
-    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || params.DsvPoolFormatParams.CdFilePath.Inited(),
+    CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.DsvPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");
-    params.ClassNames = ReadClassNames(model.ModelInfo.at("params"));
+    params.ClassNames = GetModelClassNames(model);
 
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.ObliviousTrees.TreeSizes.size();
@@ -175,6 +176,6 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         }
         plotCalcer.ComputeNonAdditiveMetrics(datasetParts);
     }
-    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, true /*saveMetrics*/, saveStats).ClearTempFiles();
+    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath.Path, true /*saveMetrics*/, saveStats).ClearTempFiles();
     return 0;
 }

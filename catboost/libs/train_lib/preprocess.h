@@ -1,11 +1,23 @@
 #pragma once
 
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/helpers/binarize_target.h>
-#include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/data/dataset.h>
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/data_processing_options.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/output_file_options.h>
 
+#include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/stream/fwd.h>
+
+#include <functional>
+
+
+namespace NJson {
+    class TJsonValue;
+}
+
 
 /// Preprocess targets and weights of the `data` as required by loss.
 void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,

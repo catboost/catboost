@@ -1,13 +1,15 @@
 #pragma once
 
-#include <catboost/libs/options/cross_validation_params.h>
-#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
-#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/cross_validation_params.h>
+
+#include <library/json/json_value.h>
 
 #include <util/generic/maybe.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
 
-#include <library/json/json_reader.h>
 
 struct TCVIterationResults {
     double AverageTrain;

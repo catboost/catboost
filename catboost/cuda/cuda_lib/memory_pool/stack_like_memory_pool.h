@@ -200,7 +200,7 @@ namespace NCudaLib {
 
             const ui64 defragmentedMemory = (temp - (startPtr + writeOffset));
             GetDefaultStream().Synchronize();
-            MATRIXNET_DEBUG_LOG << "Defragment " << defragmentedMemory * 1.0 / 1024 / 1024 << " memory"
+            CATBOOST_DEBUG_LOG << "Defragment " << defragmentedMemory * 1.0 / 1024 / 1024 << " memory"
                                << " in " << (Now() - startTime).SecondsFloat() << " seconds " << Endl;
             LastBlock->Size += defragmentedMemory;
             LastBlock->Ptr = startPtr + writeOffset;
@@ -321,9 +321,9 @@ namespace NCudaLib {
                 return;
             }
 
-            MATRIXNET_DEBUG_LOG << "Starting memory defragmentation" << Endl;
-            MATRIXNET_DEBUG_LOG << "Fragmented memory " << memoryToDefragment * 1.0 / 1024 / 1024 << Endl;
-            MATRIXNET_DEBUG_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
+            CATBOOST_DEBUG_LOG << "Starting memory defragmentation" << Endl;
+            CATBOOST_DEBUG_LOG << "Fragmented memory " << memoryToDefragment * 1.0 / 1024 / 1024 << Endl;
+            CATBOOST_DEBUG_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
 
             if ((memoryToDefragment > LastBlock->Size) && (LastBlock->Size < MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) {
                 ythrow TOutOfMemoryError() << "Error: We don't have enough memory for defragmentation";

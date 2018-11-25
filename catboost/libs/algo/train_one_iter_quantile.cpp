@@ -1,6 +1,6 @@
 #include "train_templ.h"
 
-template<>
+template <>
 TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
     auto lossParams = params.LossFunctionDescription->GetLossParams();
     if (lossParams.empty()) {

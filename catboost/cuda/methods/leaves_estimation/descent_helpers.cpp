@@ -1,9 +1,13 @@
 #include "descent_helpers.h"
+
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <util/generic/algorithm.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/lapack/linear_system.h>
+
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/algorithm.h>
 
 namespace NCatboostCuda {
 
@@ -145,7 +149,7 @@ namespace NCatboostCuda {
         {
             const auto& pointInfo = estimator.GetCurrentPoint();
             double gradNorm = pointInfo.GradientNorm();
-            MATRIXNET_DEBUG_LOG << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
+            CATBOOST_DEBUG_LOG << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
         }
 
         TPointWithFuncInfo nextPointWithFuncInfo = estimator.GetCurrentPoint();
@@ -177,7 +181,7 @@ namespace NCatboostCuda {
                     Oracle.WriteSecondDerivatives(&nextPointWithFuncInfo.Hessian);
                     double gradNorm = nextPointWithFuncInfo.GradientNorm();
 
-                    MATRIXNET_DEBUG_LOG
+                    CATBOOST_DEBUG_LOG
                     << "Next point gradient norm: " << gradNorm << " Func value: " << nextPointWithFuncInfo.Value
                     << " Moved with step: " << step << Endl;
                     estimator.NextPoint(nextPointWithFuncInfo);

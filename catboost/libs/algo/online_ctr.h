@@ -1,11 +1,10 @@
 #pragma once
 
-#include <catboost/libs/data_new/features_layout.h>
 #include "projection.h"
 #include "target_classifier.h"
 
 #include <catboost/libs/data/dataset.h>
-
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/online_ctr.h>
@@ -23,7 +22,19 @@ const int SIMPLE_CLASSES_COUNT = 2;
 
 struct TOnlineCTR {
     TVector<TArray2D<TVector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
-    size_t FeatureValueCount = 0;
+    size_t UniqueValuesCount = 0;
+    size_t CounterUniqueValuesCount = 0; // Counter ctrs could have more values than other types when  counter_calc_method == Full
+
+    size_t GetMaxUniqueValueCount() const {
+        return Max(UniqueValuesCount, CounterUniqueValuesCount);
+    }
+    size_t GetUniqueValueCountForType(ECtrType type) const {
+        if (ECtrType::Counter == type) {
+            return CounterUniqueValuesCount;
+        } else {
+            return UniqueValuesCount;
+        }
+    }
 };
 
 using TOnlineCTRHash = THashMap<TProjection, TOnlineCTR>;
@@ -52,7 +63,7 @@ struct TDatasetDataForFinalCtrs {
     const TDataset* LearnData = nullptr;
     const TDatasetPtrs* TestDataPtrs = nullptr;
 
-    TMaybe<const TVector<size_t>*> LearnPermutation;
+    TMaybe<const TVector<ui32>*> LearnPermutation;
 
     // permuted according to LearnPermutation if it is defined
     const TVector<float>* Targets = nullptr;

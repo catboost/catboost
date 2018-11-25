@@ -3,6 +3,7 @@
 #include <catboost/libs/column_description/column.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 
 THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool& pool) {
     TVector<size_t> columnIndices;
@@ -84,6 +85,25 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditiona
     return metaInfo;
 }
 
+NCB::TDataMetaInfo GetDataMetaInfo(
+    const NCB::TQuantizedPool& pool,
+    bool hasAdditionalGroupWeight,
+    bool hasPairs
+) {
+    const size_t columnsCount = pool.ColumnIndexToLocalIndex.size();
+    NCB::TDataColumnsMetaInfo dataColumnsMetaInfo;
+    dataColumnsMetaInfo.Columns.resize(columnsCount);
+
+    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        dataColumnsMetaInfo.Columns[columnIndex].Type = pool.ColumnTypes[localIndex];
+        dataColumnsMetaInfo.Columns[columnIndex].Id = pool.ColumnNames[localIndex];
+    }
+
+    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasPairs);
+    metaInfo.Validate();
+    return metaInfo;
+}
+
 TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
     const auto columnIndexToFeatureIndex = GetColumnIndexToFlatIndexMap(pool);
 
@@ -103,9 +123,9 @@ TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
     return categoricalIds;
 }
 
-TVector<int> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
+TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
     const auto columnIndexToFeatureIndex = GetColumnIndexToFlatIndexMap(pool);
-    TVector<int> indices;
+    TVector<ui32> indices;
     for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
         const auto columnType = pool.ColumnTypes[localIndex];
         if (columnType != EColumn::Num && columnType != EColumn::Categ) {
@@ -114,17 +134,17 @@ TVector<int> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
 
         const auto featureIndex = columnIndexToFeatureIndex.at(columnIndex);
         if (IsIn(pool.IgnoredColumnIndices, columnIndex)) {
-            indices.push_back(static_cast<int>(featureIndex));
+            indices.push_back(SafeIntegerCast<ui32>(featureIndex));
             continue;
         }
 
         const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
         if (it == pool.QuantizationSchema.GetFeatureIndexToSchema().end()) {
             // categorical features are not quantized right now
-            indices.push_back(featureIndex);
+            indices.push_back(SafeIntegerCast<ui32>(featureIndex));
             continue;
         } else if (it->second.GetBorders().empty()) {
-            indices.push_back(featureIndex);
+            indices.push_back(SafeIntegerCast<ui32>(featureIndex));
             continue;
         }
     }

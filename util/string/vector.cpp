@@ -6,7 +6,7 @@
 
 template <class TConsumer, class TDelim, typename TChr>
 static inline void DoSplit3(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
-    SplitImpl(str.Start, str.Start + str.Length, d, c);
+    SplitString(str.Start, str.Start + str.Length, d, c);
 }
 
 template <class TConsumer, class TDelim, typename TChr>
@@ -74,48 +74,20 @@ static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar
     }
 }
 
-void SplitStringImpl(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
     return SplitStringImplT<char>(res, TFixedString<char>(ptr), delim, maxFields, options);
 }
 
-void SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
     return SplitStringImplT<char>(res, TFixedString<char>(ptr, len), delim, maxFields, options);
 }
 
-void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
     return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr), delimiter, maxFields, options);
 }
 
-void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
     return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr, len), delimiter, maxFields, options);
-}
-
-template <class T>
-void SplitStringBySetImpl(TVector<T>* res, const typename T::char_type* ptr, const typename T::char_type* delimiters, size_t maxFields, int options) {
-    TSetDelimiter<const typename T::char_type> d(delimiters);
-    DoSplit0(res, TFixedString<typename T::char_type>(ptr), d, maxFields, options);
-}
-
-template <class T>
-void SplitStringBySetImpl(TVector<T>* res, const typename T::char_type* ptr, size_t len, const typename T::char_type* delimiters, size_t maxFields, int options) {
-    TSetDelimiter<const typename T::char_type> d(delimiters);
-    DoSplit0(res, TFixedString<typename T::char_type>(ptr, len), d, maxFields, options);
-}
-
-void SplitStringBySet(TVector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields, int options) {
-    SplitStringBySetImpl<TString>(res, ptr, delimiters, maxFields, options);
-}
-
-void SplitStringBySet(TVector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields, int options) {
-    SplitStringBySetImpl<TString>(res, ptr, len, delimiters, maxFields, options);
-}
-
-void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields, int options) {
-    SplitStringBySetImpl<TUtf16String>(res, ptr, delimiters, maxFields, options);
-}
-
-void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields, int options) {
-    SplitStringBySetImpl<TUtf16String>(res, ptr, len, delimiters, maxFields, options);
 }
 
 TUtf16String JoinStrings(const TVector<TUtf16String>& v, const TWtringBuf delim) {
@@ -127,20 +99,4 @@ TUtf16String JoinStrings(const TVector<TUtf16String>& v, size_t index, size_t co
     const size_t l = f + Min(count, +v - f);
 
     return JoinStrings(v.begin() + f, v.begin() + l, delim);
-}
-
-size_t SplitString(char* str, char delim, char* tokens[], size_t maxCount) {
-    if (!str)
-        return 0;
-
-    size_t i = 0;
-    while (i < maxCount) {
-        tokens[i++] = str;
-        str = strchr(str, delim);
-        if (!str)
-            break;
-        *str++ = 0;
-    }
-
-    return i;
 }

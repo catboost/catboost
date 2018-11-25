@@ -7,6 +7,8 @@ import sys
 import ast
 
 import py
+
+import pytest  # noqa
 from _pytest.assertion import util
 from _pytest.assertion.util import BuiltinAssertionError
 
@@ -248,13 +250,13 @@ class DebugInterpreter(ast.NodeVisitor):
             keyword_source = "%s=%%s" % (keyword.arg)
             arguments.append(keyword_source % (arg_name,))
             arg_explanations.append(keyword_source % (arg_explanation,))
-        if call.starargs:
+        if getattr(call, 'starargs', None):
             arg_explanation, arg_result = self.visit(call.starargs)
             arg_name = "__exprinfo_star"
             ns[arg_name] = arg_result
             arguments.append("*%s" % (arg_name,))
             arg_explanations.append("*%s" % (arg_explanation,))
-        if call.kwargs:
+        if getattr(call, 'kwargs', None):
             arg_explanation, arg_result = self.visit(call.kwargs)
             arg_name = "__exprinfo_kwds"
             ns[arg_name] = arg_result

@@ -19,10 +19,12 @@
 
 #include <library/threading/local_executor/fwd.h>
 
-#include <util/stream/file.h>
-#include <util/system/spinlock.h>
-#include <util/system/sem.h>
 #include <util/random/shuffle.h>
+#include <util/stream/file.h>
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
+#include <util/system/sem.h>
+#include <util/system/spinlock.h>
 
 namespace NCB {
     struct TPathWithScheme;
@@ -148,6 +150,10 @@ namespace NCatboostCuda {
         }
 
         void AddTarget(ui32 localIdx, float value) override {
+            if (Y_UNLIKELY(!IsSafeTarget(value))) {
+                WriteUnsafeTargetWarningOnce(localIdx, value);
+            }
+
             DataProvider.Targets[GetLineIdx(localIdx)] = value;
         }
 
@@ -206,7 +212,10 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Not supported for regular pools");
         }
 
-        void SetTarget(const TVector<float>& /*target*/) override {}
+        void SetTarget(const TVector<float>& target) override {
+            CB_ENSURE(target.size() == DataProvider.Targets.size(), "Error: target size should be equal to line count");
+            DataProvider.Targets = target;
+        }
 
         int GetDocCount() const override {
             return DataProvider.Targets.size();
@@ -255,6 +264,16 @@ namespace NCatboostCuda {
         void WriteBinarizedFeatureToBlobImpl(ui32 localIdx, ui32 featureId, ui8 feature);
         void WriteFloatOrCatFeatureToBlobImpl(ui32 localIdx, ui32 featureId, float feautre);
 
+        void WriteUnsafeTargetWarningOnce(ui32 localIdx, float value) {
+            if (Y_UNLIKELY(AtomicCas(&UnsafeTargetWarningWritten, true, false))) {
+                const auto rowIndex = Cursor + localIdx;
+                CATBOOST_WARNING_LOG
+                    << "Got unsafe target "
+                    << LabeledOutput(value)
+                    << " at " << LabeledOutput(rowIndex) << '\n';
+            }
+        }
+
     private:
         inline ui32 GetLineIdx(ui32 localIdx) {
             return Cursor + localIdx;
@@ -264,6 +283,8 @@ namespace NCatboostCuda {
             return FeatureNames.size() ? FeatureNames[featureId] : "";
         }
 
+    private:
+        TAtomic UnsafeTargetWarningWritten = false;
         TBinarizedFeaturesManager& FeaturesManager;
         TDataProvider& DataProvider;
         bool IsTest;

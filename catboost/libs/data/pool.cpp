@@ -56,7 +56,7 @@ THolder<TPool> SlicePool(const TPool& pool, const TVector<size_t>& rowIndices) {
     return slicedPool;
 }
 
-template<typename TDataType>
+template <typename TDataType>
 static inline void ApplyPermutation(const TVector<ui64>& permutation, TVector<TDataType>* elements) {
     const ui64 elementCount = elements->size();
     if (elementCount == 0) {

@@ -3,13 +3,14 @@
 #include <library/binsaver/bin_saver.h>
 #include <library/netliba/v12/udp_address.h>
 
-#include <util/system/hostname.h>
 #include <util/generic/guid.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
-#include <util/generic/ptr.h>
 #include <util/string/builder.h>
-#include <util/generic/maybe.h>
+#include <util/system/hostname.h>
+#include <util/system/spinlock.h>
 
 #include <functional>
 
@@ -25,6 +26,7 @@ namespace NPar {
         TNetworkAddress(const TString& address, TPortNum port)
             : Address(address)
             , Port(port)
+            , CachedNehAddr(TStringBuilder() << "tcp2://" << Address << ":" << Port << "/matrixnet")
         {
         }
 
@@ -37,29 +39,30 @@ namespace NPar {
         }
 
         const TString& GetNehAddr() const {
-            if (!CachedNehAddr) {
-                CachedNehAddr = TStringBuilder() << "tcp2://" << Address << ":" << Port << "/matrixnet";
-            }
             return CachedNehAddr;
         }
 
         const NNetliba_v12::TUdpAddress& GetNetlibaAddr() const {
-            if (NetlibaAddr.Empty()) {
-                NetlibaAddr = NNetliba_v12::CreateAddress(Address, Port);
+            with_lock (NetlibaAddrLock) {
+                if (NetlibaAddr.Empty()) {
+                    NetlibaAddr = NNetliba_v12::CreateAddress(Address, Port);
+                }
+                return NetlibaAddr.GetRef();
             }
-            return NetlibaAddr.GetRef();
         }
 
         size_t Hash() const {
             return Address.hash() ^ IntHash(Port);
         }
 
-        SAVELOAD(Address, Port);
+        SAVELOAD(Address, Port, CachedNehAddr);
 
     private:
         TString Address;
         TPortNum Port;
-        mutable TString CachedNehAddr;
+        TString CachedNehAddr;
+
+        mutable TAdaptiveLock NetlibaAddrLock;
         mutable TMaybe<NNetliba_v12::TUdpAddress> NetlibaAddr;
     };
 
@@ -82,44 +85,28 @@ namespace NPar {
 
     class IRequester: public TThrRefBase {
     public:
-        using ProcessQueryCancelCallback = std::function<void(const TGUID& canceledReqId)>;
-        using ProcessQueryCallback = std::function<void(TAutoPtr<TNetworkRequest>& networkRequest)>;
-        using ProcessReplyCallback = std::function<void(TAutoPtr<TNetworkResponse> response)>;
+        using TProcessQueryCancelCallback = std::function<void(const TGUID& canceledReqId)>;
+        using TProcessQueryCallback = std::function<void(TAutoPtr<TNetworkRequest>& networkRequest)>;
+        using TProcessReplyCallback = std::function<void(TAutoPtr<TNetworkResponse> response)>;
 
         virtual TAutoPtr<TNetworkResponse> Request(const TNetworkAddress& address, const TString& url, TVector<char>* data) = 0;   // send and wait for reply
         virtual void SendRequest(const TGUID& reqId, const TNetworkAddress& address, const TString& url, TVector<char>* data) = 0; // async send
         virtual void CancelRequest(const TGUID& reqId) = 0;                                                                        //cancel request from requester side
         virtual void SendResponse(const TGUID& reqId, TVector<char>* data) = 0;
         virtual int GetListenPort() const = 0;
-        void SetQueryCancelCallback(ProcessQueryCancelCallback func) {
-            QueryCancelCallback = func;
-        }
-        void SetQueryCallback(ProcessQueryCallback func) {
-            QueryCallback = func;
-        }
-        void SetReplyCallback(ProcessReplyCallback func) {
-            ReplyCallback = func;
-        }
         virtual ~IRequester() = default;
 
         TString GetHostAndPort() {
-            if (!hostAndPort) {
-                TNetworkAddress myAddress(HostName(), GetListenPort());
-                hostAndPort = myAddress.GetNehAddr();
-            }
-            return hostAndPort;
+            TNetworkAddress myAddress(HostName(), GetListenPort());
+            return myAddress.GetNehAddr();
         }
-
-    protected:
-        ProcessQueryCancelCallback QueryCancelCallback;
-        ProcessQueryCallback QueryCallback;
-        ProcessReplyCallback ReplyCallback;
-
-    private:
-        TString hostAndPort;
     };
 
-    TIntrusivePtr<IRequester> CreateRequester(int listenPort);
+    TIntrusivePtr<IRequester> CreateRequester(
+        int listenPort,
+        IRequester::TProcessQueryCancelCallback queryCancelCallback,
+        IRequester::TProcessQueryCallback queryCallback,
+        IRequester::TProcessReplyCallback replyCallback);
 }
 
 template <>

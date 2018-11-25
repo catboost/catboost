@@ -8,9 +8,11 @@
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/random/fast.h>
 
-#include <library/threading/local_executor/local_executor.h>
+
 
 void BuildCvPools(
     int foldIdx,
@@ -97,6 +99,6 @@ void BuildCvPools(
         learnPool->Docs.Swap(testPool->Docs);
         learnPool->Pairs.swap(testPool->Pairs);
     }
-    MATRIXNET_INFO_LOG << "Learn docs: " << learnPool->Docs.GetDocCount()
+    CATBOOST_INFO_LOG << "Learn docs: " << learnPool->Docs.GetDocCount()
         << ", test docs: " << testPool->Docs.GetDocCount() << Endl;
 }

@@ -135,22 +135,14 @@ public:
     }
 
     TDenseHash(const TDenseHash&) = default;
-
-    TDenseHash(TDenseHash&& init) {
-        Swap(init);
-    }
+    TDenseHash(TDenseHash&&) = default;
 
     TDenseHash& operator=(const TDenseHash& rhs) {
-        EmptyMarker = rhs.EmptyMarker;
-        NumFilled = rhs.EmptyMarker;
-        BucketMask = rhs.BucketMask;
-        GrowThreshold = rhs.GrowThreshold;
-        Buckets.clear();
-        for (const auto& b : rhs.Buckets) {
-            Buckets.emplace_back(b.first, b.second);
-        }
-        return *this;
+        TDenseHash tmp{ rhs };
+        return *this = std::move(tmp);
     }
+
+    TDenseHash& operator=(TDenseHash&&) = default;
 
     friend bool operator==(const TDenseHash& lhs, const TDenseHash& rhs) {
         return lhs.Size() == rhs.Size() &&
@@ -279,6 +271,22 @@ public:
             key,
             [&](size_type idx) { return const_iterator(this, idx); },
             [&](size_type) { return end(); });
+    }
+
+    template <class K>
+    const TValue& at(const K& key) const {
+        return ProcessKey<const TValue&>(
+            key,
+            [&](size_type idx) -> const TValue& { return Buckets[idx].second; },
+            [&](size_type) -> const TValue& { throw std::out_of_range("TDenseHash: missing key"); });
+    }
+
+    template <class K>
+    TValue& at(const K& key) {
+        return ProcessKey<TValue&>(
+            key,
+            [&](size_type idx) -> TValue& { return Buckets[idx].second; },
+            [&](size_type) -> TValue& { throw std::out_of_range("TDenseHash: missing key"); });
     }
 
     bool Grow(size_type to = 0, bool force = false) {

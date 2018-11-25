@@ -203,7 +203,7 @@ public:
 #ifdef _freebsd_
     TFastFreeBsdEvent HasJob;
 #else
-    Event HasJob;
+    TSystemEvent HasJob;
 #endif
 
     TAtomic ThreadCount{0};

@@ -105,7 +105,7 @@ namespace NNetliba {
         int CurrentOffset;
         TMutex CacheLock;
         TThread WorkThread;
-        Event HasStarted;
+        TSystemEvent HasStarted;
         bool KeepRunning;
 
         struct TJobItem {
@@ -125,7 +125,7 @@ namespace NNetliba {
         };
 
         TLockFreeQueue<TJobItem*> Requests;
-        Event HasWork;
+        TSystemEvent HasWork;
 
         static void* ThreadFunc(void* param);
 

@@ -14,7 +14,28 @@ fi
 python ya make -r -DOS_SDK=local $CUDA_ARG -o . catboost/app
 strip catboost/app/catboost
 
-cd catboost/python-package
+echo "Starting R package build"
+cd catboost/R-package
+mkdir -pv catboost
+
+cp DESCRIPTION catboost
+cp NAMESPACE catboost
+cp README.md catboost
+
+cp -r R catboost
+
+cp -r inst catboost
+cp -r man catboost
+cp -r tests catboost
+
+python ../../ya make -r -T src -DOS_SDK=local $CUDA_ARG
+
+mkdir -p catboost/inst/libs
+cp $(readlink src/libcatboostr.so) catboost/inst/libs
+
+tar -cvzf catboost-R-$(uname).tgz catboost
+
+cd ../python-package
 
 PY27=2.7.14
 pyenv install -s $PY27
@@ -35,24 +56,3 @@ PY37=3.7.0
 pyenv install -s $PY37
 pyenv shell $PY37
 python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
-
-echo "Starting R package build"
-cd ../R-package
-mkdir -pv catboost
-
-cp DESCRIPTION catboost
-cp NAMESPACE catboost
-cp README.md catboost
-
-cp -r R catboost
-
-cp -r inst catboost
-cp -r man catboost
-cp -r tests catboost
-
-../../ya make -r -T src -DOS_SDK=local $CUDA_ARG
-
-mkdir -p catboost/inst/libs
-cp $(readlink src/libcatboostr.so) catboost/inst/libs
-
-tar -cvzf catboost-R-$(uname).tgz catboost

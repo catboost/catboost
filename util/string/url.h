@@ -2,28 +2,38 @@
 
 #include <util/generic/fwd.h>
 
-size_t GetHttpPrefixSize(const char* url, bool ignorehttps = false);
-size_t GetHttpPrefixSize(const wchar16* url, bool ignorehttps = false);
+Y_PURE_FUNCTION
+size_t GetHttpPrefixSize(const char* url, bool ignorehttps = false) noexcept;
+Y_PURE_FUNCTION
+size_t GetHttpPrefixSize(const wchar16* url, bool ignorehttps = false) noexcept;
 
-size_t GetHttpPrefixSize(const TStringBuf url, bool ignorehttps = false);
-size_t GetHttpPrefixSize(const TWtringBuf url, bool ignorehttps = false);
+Y_PURE_FUNCTION
+size_t GetHttpPrefixSize(const TStringBuf url, bool ignorehttps = false) noexcept;
+
+Y_PURE_FUNCTION
+size_t GetHttpPrefixSize(const TWtringBuf url, bool ignorehttps = false) noexcept;
 
 /** BEWARE of TStringBuf! You can not use operator ~ or c_str() like in TString
     !!!!!!!!!!!! */
+Y_PURE_FUNCTION
+size_t GetSchemePrefixSize(const TStringBuf url) noexcept;
 
-size_t GetSchemePrefixSize(const TStringBuf url);
-
-TStringBuf GetSchemePrefix(const TStringBuf url);
+Y_PURE_FUNCTION
+TStringBuf GetSchemePrefix(const TStringBuf url) noexcept;
 
 //! removes protocol prefixes 'http://' and 'https://' from given URL
 //! @note if URL has no prefix or some other prefix the function does nothing
 //! @param url    URL from which the prefix should be removed
 //! @param ignorehttps if true, leaves https://
 //! @return a new URL without protocol prefix
-TStringBuf CutHttpPrefix(const TStringBuf url, bool ignorehttps = false);
-TWtringBuf CutHttpPrefix(const TWtringBuf url, bool ignorehttps = false);
+Y_PURE_FUNCTION
+TStringBuf CutHttpPrefix(const TStringBuf url, bool ignorehttps = false) noexcept;
 
-TStringBuf CutSchemePrefix(const TStringBuf url);
+Y_PURE_FUNCTION
+TWtringBuf CutHttpPrefix(const TWtringBuf url, bool ignorehttps = false) noexcept;
+
+Y_PURE_FUNCTION
+TStringBuf CutSchemePrefix(const TStringBuf url) noexcept;
 
 //! adds specified scheme prefix if URL has no scheme
 //! @note if URL has scheme prefix already the function returns unchanged URL
@@ -32,9 +42,14 @@ TString AddSchemePrefix(const TString& url, const TStringBuf scheme);
 //! Same as `AddSchemePrefix(url, "http")`.
 TString AddSchemePrefix(const TString& url);
 
-TStringBuf GetHost(const TStringBuf url);
-TStringBuf GetHostAndPort(const TStringBuf url);
-TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp = true, bool trimDefaultPort = true);
+Y_PURE_FUNCTION
+TStringBuf GetHost(const TStringBuf url) noexcept;
+
+Y_PURE_FUNCTION
+TStringBuf GetHostAndPort(const TStringBuf url) noexcept;
+
+Y_PURE_FUNCTION
+TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp = true, bool trimDefaultPort = true) noexcept;
 
 /**
  * Splits URL to host and path
@@ -77,20 +92,31 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
  */
 void GetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& host, ui16& port);
 
-TStringBuf GetPathAndQuery(const TStringBuf url, bool trimFragment = true);
+Y_PURE_FUNCTION
+TStringBuf GetPathAndQuery(const TStringBuf url, bool trimFragment = true) noexcept;
 /**
  * Extracts host from url and cuts http(https) protocol prefix and port if any.
  * @param[in] url   any URL
  * @return          host without port and http(https) prefix.
  */
-TStringBuf GetOnlyHost(const TStringBuf url);
-TStringBuf GetParentDomain(const TStringBuf host, size_t level); // ("www.ya.ru", 2) -> "ya.ru"
-TStringBuf GetZone(const TStringBuf host);
-TStringBuf CutWWWPrefix(const TStringBuf url);
-TStringBuf GetDomain(const TStringBuf host); // should not be used
+Y_PURE_FUNCTION
+TStringBuf GetOnlyHost(const TStringBuf url) noexcept;
+
+Y_PURE_FUNCTION
+TStringBuf GetParentDomain(const TStringBuf host, size_t level) noexcept; // ("www.ya.ru", 2) -> "ya.ru"
+
+Y_PURE_FUNCTION
+TStringBuf GetZone(const TStringBuf host) noexcept;
+
+Y_PURE_FUNCTION
+TStringBuf CutWWWPrefix(const TStringBuf url) noexcept;
+
+Y_PURE_FUNCTION
+TStringBuf GetDomain(const TStringBuf host) noexcept; // should not be used
 
 size_t NormalizeUrlName(char* dest, const TStringBuf source, size_t dest_size);
 size_t NormalizeHostName(char* dest, const TStringBuf source, size_t dest_size, ui16 defport = 80);
 
-TStringBuf RemoveFinalSlash(TStringBuf str);
+Y_PURE_FUNCTION
+TStringBuf RemoveFinalSlash(TStringBuf str) noexcept;
 

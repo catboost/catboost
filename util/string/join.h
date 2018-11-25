@@ -132,6 +132,40 @@ TString JoinSeq(const TStringBuf delim, const TContainer& data) {
     return JoinRange(delim, data.begin(), data.end());
 }
 
+/** \brief Functor for streaming iterative objects from TIter e to TIter b, separated with delim.
+ *         Difference from JoinSeq, JoinRange, Join is the lack of TString object - all depends on operator<< for the type and
+ *         realization of IOutputStream
+ */
+template<class TIter>
+struct TRangeJoiner{
+    friend constexpr IOutputStream& operator<<(IOutputStream& stream, const TRangeJoiner<TIter>& rangeJoiner) {
+        if(rangeJoiner.e != rangeJoiner.b) {
+            stream << *rangeJoiner.b;
+
+            for(auto it = std::next(rangeJoiner.b); it != rangeJoiner.e; ++it)
+                stream << rangeJoiner.delim << *it;
+        }
+        return stream;
+    }
+
+    constexpr TRangeJoiner(TStringBuf delim, TIter b, TIter e) : delim(delim), b(std::forward<TIter>(b)), e(std::forward<TIter>(e)) {}
+private:
+    const TStringBuf delim;
+    const TIter b, e;
+};
+
+template<class TIter> constexpr auto MakeRangeJoiner(TStringBuf delim, TIter b, TIter e) {
+    return TRangeJoiner<TIter>(delim, std::forward<TIter>(b), std::forward<TIter>(e));
+}
+
+template<class TContainer> constexpr auto MakeRangeJoiner(TStringBuf delim, const TContainer& data) {
+    return MakeRangeJoiner(delim, std::cbegin(data), std::cend(data));
+}
+
+template<class TVal> constexpr auto MakeRangeJoiner(TStringBuf delim, const std::initializer_list<TVal>& data) {
+    return MakeRangeJoiner(delim, std::cbegin(data), std::cend(data));
+}
+
 /* We force (std::initializer_list<TStringBuf>) input type for (TString) and (const char*) types because:
  * # When (std::initializer_list<TString>) is used, TString objects are copied into the initializer_list object.
  *   Storing TStringBufs instead is faster, even with COW-enabled strings.

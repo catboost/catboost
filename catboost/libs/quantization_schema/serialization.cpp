@@ -8,14 +8,18 @@
 
 #include <util/generic/algorithm.h>
 #include <util/generic/hash.h>
+#include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
+#include <util/stream/labeled.h>
+#include <util/string/escape.h>
 #include <util/string/iterator.h>
 #include <util/string/split.h>
-#include <util/generic/maybe.h>
+
+#include <contrib/libs/protobuf/messagext.h>
 
 #include <utility>
 
@@ -41,17 +45,17 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
 
         size_t index;
         if (!TryFromString(columns[0], index)) {
-            ythrow TCatboostException() << "failed to parse feature index at line " << lineIndex;
+            ythrow TCatboostException() << "failed to parse feature index; " << LabeledOutput(lineIndex, EscapeC(columns[0]));
         }
 
         float border;
         if (!TryFromString(columns[1], border)) {
-            ythrow TCatboostException() << "failed to parse border value at line " << lineIndex;
+            ythrow TCatboostException() << "failed to parse border value; " << LabeledOutput(lineIndex, EscapeC(columns[1]));
         }
 
         ENanMode nanMode = ENanMode::Forbidden;
-        if (columns.size() >= 3 && !TryFromString(columns[2], border)) {
-            ythrow TCatboostException() << "failed to parse NaN mode value at line " << lineIndex;
+        if (columns.size() >= 3 && !TryFromString(columns[2], nanMode)) {
+            ythrow TCatboostException() << "failed to parse NaN mode value; " << LabeledOutput(lineIndex, EscapeC(columns[2]));
         }
 
         const auto localIndex = remapping.emplace(index, remapping.size()).first->second;
@@ -112,15 +116,15 @@ static NCB::TPoolQuantizationSchema LoadInProtobufFormat(IInputStream* const inp
 }
 
 NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     IInputStream* const input) {
 
     switch (format) {
-        case EQuantizationsSchemaSerializationFormat::Protobuf:
+        case EQuantizationSchemaSerializationFormat::Protobuf:
             return ::LoadInProtobufFormat(input);
-        case EQuantizationsSchemaSerializationFormat::Matrixnet:
+        case EQuantizationSchemaSerializationFormat::Matrixnet:
             return ::LoadInMatrixnetFormat(input);
-        case EQuantizationsSchemaSerializationFormat::Unknown:
+        case EQuantizationSchemaSerializationFormat::Unknown:
             break;
     }
 
@@ -128,7 +132,7 @@ NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
 }
 
 NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     const TStringBuf path) {
 
     TFileInput input{TString(path)};  // {} because of the most vexing parse
@@ -160,22 +164,23 @@ void SaveInProtobufFormat(
 
     const auto proto = NCB::QuantizationSchemaToProto(schema);
 
-    // TODO(yazevnul): use deterministic serialization
-    const auto serialized = proto.SerializeToOstream(output);
-    CB_ENSURE(serialized, "failed to safe quantization schema to stream");
+    google::protobuf::io::TCopyingOutputStreamAdaptor outputAdaptor(output);
+    google::protobuf::io::CodedOutputStream coder(&outputAdaptor);
+    coder.SetSerializationDeterministic(true);
+    CB_ENSURE(proto.SerializeToCodedStream(&coder), "failed to save quantization schema to stream");
 }
 
 void NCB::SaveQuantizationSchema(
     const TPoolQuantizationSchema& schema,
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     IOutputStream* const output) {
 
     switch (format) {
-        case EQuantizationsSchemaSerializationFormat::Protobuf:
+        case EQuantizationSchemaSerializationFormat::Protobuf:
             return ::SaveInProtobufFormat(schema, output);
-        case EQuantizationsSchemaSerializationFormat::Matrixnet:
+        case EQuantizationSchemaSerializationFormat::Matrixnet:
             return ::SaveInMatrixnetFormat(schema, output);
-        case EQuantizationsSchemaSerializationFormat::Unknown:
+        case EQuantizationSchemaSerializationFormat::Unknown:
             break;
     }
 
@@ -184,7 +189,7 @@ void NCB::SaveQuantizationSchema(
 
 void NCB::SaveQuantizationSchema(
     const TPoolQuantizationSchema& schema,
-    const EQuantizationsSchemaSerializationFormat format,
+    const EQuantizationSchemaSerializationFormat format,
     const TStringBuf path) {
 
     TFileOutput output{TString(path)};  // {} because of the most vexing parse

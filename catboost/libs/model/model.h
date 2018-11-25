@@ -51,6 +51,10 @@ struct TObliviousTrees {
      * This structure stores model metadata. Should be kept up to date
      */
     struct TMetaData {
+        size_t UsedFloatFeaturesCount = 0;
+        size_t UsedCatFeaturesCount = 0;
+        size_t MinimalSufficientFloatFeaturesVectorSize = 0;
+        size_t MinimalSufficientCatFeaturesVectorSize = 0;
         /**
          * List of all TModelCTR used in model
          */
@@ -95,7 +99,14 @@ struct TObliviousTrees {
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
     TVector<double> LeafValues;
 
-    //! Leaf weights layout: [treeIndex][leafId]
+    /**
+     * Leaf Weights are sums of weights or group weights of samples from the learn dataset that go to that leaf.
+     * This information can be absent (this vector will be empty) in some models:
+     *   - Loaded from CoreML format
+     *   - Old models trained on GPU (trained with catboost version < 0.9.x)
+     *
+     *  layout: [treeIndex][leafId]
+     */
     TVector<TVector<double>> LeafWeights;
 
     //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
@@ -207,7 +218,13 @@ struct TObliviousTrees {
      * @param begin
      * @param end
      */
-    void Truncate(size_t begin, size_t end);
+    void TruncateTrees(size_t begin, size_t end);
+
+    /**
+     * Drop unused float and categorical features from model
+     */
+     void DropUnusedFeatures();
+
     /**
      * Internal usage only. Updates metadata UsedModelCtrs and BinFeatures vectors to contain all features currently used in model.
      * Should be called after any modifications.
@@ -218,7 +235,7 @@ struct TObliviousTrees {
      * @return
      */
     const TVector<TModelCtr>& GetUsedModelCtrs() const {
-        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->UsedModelCtrs;
     }
     /**
@@ -226,22 +243,22 @@ struct TObliviousTrees {
      * @return
      */
     const TVector<TModelSplit>& GetBinFeatures() const {
-        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->BinFeatures;
     }
 
     const TVector<TRepackedBin>& GetRepackedBins() const {
-        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->RepackedBins;
     }
 
     const TVector<size_t>& GetFirstLeafOffsets() const {
-        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->TreeFirstLeafOffsets;
     }
 
     const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
-        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return &LeafValues[MetaData->TreeFirstLeafOffsets[treeIdx]];
     }
 
@@ -261,16 +278,36 @@ struct TObliviousTrees {
         if (FloatFeatures.empty()) {
             return 0;
         } else {
-            return static_cast<size_t>(FloatFeatures.back().FeatureIndex + 1);
+            return static_cast<size_t>(FloatFeatures.back().FeatureIndex) + 1;
         }
+    }
+
+    size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->MinimalSufficientFloatFeaturesVectorSize;
+    }
+
+    size_t GetUsedFloatFeaturesCount() const {
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->UsedFloatFeaturesCount;
     }
 
     size_t GetNumCatFeatures() const {
         if (CatFeatures.empty()) {
             return 0;
         } else {
-            return static_cast<size_t>(CatFeatures.back().FeatureIndex + 1);
+            return static_cast<size_t>(CatFeatures.back().FeatureIndex) + 1;
         }
+    }
+
+    size_t GetMinimalSufficientCatFeaturesVectorSize() const {
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->MinimalSufficientCatFeaturesVectorSize;
+    }
+
+    size_t GetUsedCatFeaturesCount() const {
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->UsedCatFeaturesCount;
     }
 
     size_t GetBinaryFeaturesFullCount() const {
@@ -278,12 +315,15 @@ struct TObliviousTrees {
     }
 
     ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
-        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        CB_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->EffectiveBinFeaturesBucketCount;
     }
 
     size_t GetFlatFeatureVectorExpectedSize() const {
-        return GetNumFloatFeatures() + GetNumCatFeatures();
+        return (size_t)Max(
+            CatFeatures.empty() ? 0 : CatFeatures.back().FlatFeatureIndex + 1,
+            FloatFeatures.empty() ? 0 : FloatFeatures.back().FlatFeatureIndex + 1
+        );
     }
 private:
     mutable TMaybe<TMetaData> MetaData;
@@ -312,7 +352,7 @@ struct TFullModel {
      * Check whether model contains categorical features in OneHot conditions and/or CTR feature combinations
      */
     bool HasCategoricalFeatures() const {
-        return !ObliviousTrees.CatFeatures.empty();
+        return GetUsedCatFeaturesCount() != 0;
     }
 
     size_t GetTreeCount() const {
@@ -320,14 +360,53 @@ struct TFullModel {
     }
 
     /**
-     * @return Minimal float features vector length for this model
+     * Truncate trees to contain only trees from [begin; end) interval.
+     * @param begin
+     * @param end
+     */
+    void Truncate(size_t begin, size_t end) {
+        ObliviousTrees.TruncateTrees(begin, end);
+        if (CtrProvider) {
+            CtrProvider->DropUnusedTables(ObliviousTrees.GetUsedModelCtrBases());
+        }
+        UpdateDynamicData();
+    }
+
+    /**
+     * @return Minimal float features vector length sufficient for this model
+     */
+    size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
+        return ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize();
+    }
+    /**
+     * @return Number of float features that are really used in trees
+     */
+    size_t GetUsedFloatFeaturesCount() const {
+        return ObliviousTrees.GetUsedFloatFeaturesCount();
+    }
+
+    /**
+     * @return Expected float features vector length for this model
      */
     size_t GetNumFloatFeatures() const {
         return ObliviousTrees.GetNumFloatFeatures();
     }
 
     /**
-     * @return Minimal categorical features vector length for this model
+     * @return Expected categorical features vector length for this model
+     */
+    size_t GetMinimalSufficientCatFeaturesVectorSize() const {
+        return ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize();
+    }
+    /**
+    * @return Number of float features that are really used in trees
+    */
+    size_t GetUsedCatFeaturesCount() const {
+        return ObliviousTrees.GetUsedCatFeaturesCount();
+    }
+
+    /**
+     * @return Expected categorical features vector length for this model
      */
     size_t GetNumCatFeatures() const {
         return ObliviousTrees.GetNumCatFeatures();
@@ -486,7 +565,7 @@ struct TFullModel {
     }
 
     /**
-     * Evaluate raw fomula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
+     * Evaluate raw formula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
      * @param floatFeatures
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param treeStart
@@ -500,7 +579,7 @@ struct TFullModel {
               TArrayRef<double> results) const;
 
     /**
-     * Evaluate raw fomula predictions for objects. Uses all model trees.
+     * Evaluate raw formula predictions for objects. Uses all model trees.
      * @param floatFeatures
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param results indexation is [objectIndex * ApproxDimension + classId]
@@ -519,7 +598,10 @@ struct TFullModel {
      */
     TFullModel CopyTreeRange(size_t begin, size_t end) const {
         TFullModel result = *this;
-        result.ObliviousTrees.Truncate(begin, end);
+        if (CtrProvider) {
+            result.CtrProvider = CtrProvider->Clone();
+        }
+        result.Truncate(begin, end);
         return result;
     }
 
@@ -582,3 +664,11 @@ TFullModel DeserializeModel(TMemoryInput serializedModel);
 TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
+
+TVector<TString> GetModelClassNames(const TFullModel& model);
+
+TFullModel SumModels(
+    const TVector<const TFullModel*> modelVector,
+    const TVector<double>& weights,
+    ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage
+);

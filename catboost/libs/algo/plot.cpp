@@ -1,14 +1,26 @@
 #include "plot.h"
 
-#include <catboost/libs/metrics/metric.h>
+#include "apply.h"
+
 #include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/model/model_pool_compatibility.h>
 
-#include <library/threading/local_executor/local_executor.h>
-
+#include <util/folder/path.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/guid.h>
+#include <util/generic/utility.h>
 #include <util/generic/xrange.h>
+#include <util/stream/fwd.h>
+#include <util/string/builder.h>
+#include <util/system/file.h>
+#include <util/system/yassert.h>
+#include <util/ysaveload.h>
+
+#include <cmath>
 
 
 TMetricsPlotCalcer::TMetricsPlotCalcer(
@@ -135,7 +147,6 @@ TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
 }
 
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForAdditiveMetrics(const TPool& pool, bool isProcessBoundaryGroups) {
-    CheckModelAndPoolCompatibility(Model, pool);
     ProceedDataSet(pool, 0, Iterations.ysize(), isProcessBoundaryGroups, /*isAdditiveMetrics=*/true);
     return *this;
 }
@@ -148,7 +159,6 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::FinishProceedDataSetForAdditiveMetrics()
 }
 
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(const TPool& pool) {
-    CheckModelAndPoolCompatibility(Model, pool);
     if (ProcessedIterationsCount == 0) {
         const ui32 newPoolSize = NonAdditiveMetricsData.Target.size() + pool.Docs.Target.size();
         NonAdditiveMetricsData.Target.reserve(newPoolSize);
@@ -251,7 +261,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
         tmpPool = ProcessBoundaryGroups(rawPool);
     }
     const TPool& pool = isProcessBoundaryGroups ? tmpPool : rawPool;
-    TModelCalcerOnPool modelCalcerOnPool(Model, pool, Executor);
+    TModelCalcerOnPool modelCalcerOnPool(Model, pool, &Executor);
     TVector<TQueryInfo> queriesInfo;
     const TVector<float>& groupWeight = pool.MetaInfo.HasGroupWeight ? pool.Docs.Weight : TVector<float>();
     UpdateQueriesInfo(pool.Docs.QueryId, groupWeight, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
@@ -333,9 +343,6 @@ static TVector<int> GetStartDocIdx(const TVector<TPool>& poolParts) {
 }
 
 void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& datasetParts) {
-    for (const auto& pool : datasetParts) {
-        CheckModelAndPoolCompatibility(Model, pool);
-    }
     TVector<float> allTargets = BuildTargets(datasetParts);
     TVector<float> allWeights = BuildWeights(datasetParts);
 
@@ -350,7 +357,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& dataset
     int begin = 0;
     TVector<TModelCalcerOnPool> modelCalcers;
     for (const auto& pool : datasetParts) {
-        modelCalcers.emplace_back(Model, pool, Executor);
+        modelCalcers.emplace_back(Model, pool, &Executor);
     }
 
     auto startDocIdx = GetStartDocIdx(datasetParts);
@@ -382,7 +389,7 @@ TString TMetricsPlotCalcer::GetApproxFileName(ui32 plotLineIndex) {
         TString name = TStringBuilder() << CreateGuidAsString() << "_approx_" << plotLineIndex << ".tmp";
         auto path = JoinFsPaths(TmpDir, name);
         if (NFs::Exists(path)) {
-            MATRIXNET_INFO_LOG << "Path already exists " << path << ". Will overwrite file" << Endl;
+            CATBOOST_INFO_LOG << "Path already exists " << path << ". Will overwrite file" << Endl;
             NFs::Remove(path);
         }
         NonAdditiveMetricsData.ApproxFiles[plotLineIndex] = path;
@@ -432,7 +439,7 @@ TMetricsPlotCalcer CreateMetricCalcer(
     const TString& tmpDir,
     const TVector<THolder<IMetric>>& metrics
 ) {
-    if (ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function")) {
+    if (model.ModelInfo.has("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function")) {
         CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
     }
 

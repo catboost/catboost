@@ -130,7 +130,10 @@ namespace {
         out << requestType;
         out << ' ';
         if (isAbsoluteUri) {
-            out << loc.Scheme << AsStringBuf("://") << loc.Host << ':' << loc.Port;
+            out << loc.Scheme << AsStringBuf("://") << loc.Host;
+            if (loc.Port) {
+                out << ':' << loc.Port;
+            }
         }
         out << '/' << loc.Service;
 
@@ -223,27 +226,3 @@ namespace NNeh {
     }
 }
 
-template <>
-void Out<ERequestType>(IOutputStream& out, ERequestType requestType) {
-    switch (requestType) {
-        case ERequestType::Any:
-            out << AsStringBuf("*");
-            return;
-        case ERequestType::Post:
-            out << AsStringBuf("POST");
-            return;
-        case ERequestType::Get:
-            out << AsStringBuf("GET");
-            return;
-        case ERequestType::Put:
-            out << AsStringBuf("PUT");
-            return;
-        case ERequestType::Delete:
-            out << AsStringBuf("DELETE");
-            return;
-        case ERequestType::Patch:
-            out << AsStringBuf("PATCH");
-            return;
-    }
-    Y_ASSERT(false);
-}

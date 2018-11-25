@@ -11,7 +11,7 @@ namespace NKernel {
     /* this routine gathers cindex in a way, that access in compute histograms could be sequential   */
     /* gathered index is groupCount * indicesCount size, because we should not copy target buffers as this
      * could affect memory usage with big number of stats */
-    template<int N, int Unroll>
+    template <int N, int Unroll>
     __global__ void GatherCompressedIndexImpl(const TFeatureInBlock* features,
                                               int featuresPerInt,
                                               int groupCount,

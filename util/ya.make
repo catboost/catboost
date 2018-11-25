@@ -183,6 +183,7 @@ JOIN_SRCS(
     random/mersenne.cpp
     random/normal.cpp
     random/shuffle.cpp
+    random/init_atfork.cpp
 )
 
 JOIN_SRCS(

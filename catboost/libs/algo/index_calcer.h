@@ -1,8 +1,14 @@
 #pragma once
 
 #include "fold.h"
-#include "learn_context.h"
 #include "split.h"
+
+#include <catboost/libs/data/dataset.h>
+#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data/quantized_features.h>
+#include <catboost/libs/options/restrictions.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 

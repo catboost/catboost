@@ -1,5 +1,7 @@
 #include "iterator.h"
 
+#include <util/charset/wide.h>
+
 #include <library/unittest/registar.h>
 
 template <typename I, typename C>
@@ -182,6 +184,22 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
+    Y_UNIT_TEST(TestStringSplitterCollectClears) {
+        TVector<TString> v;
+        StringSplitter("1 2 3").Split(' ').Collect(&v);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 3);
+        StringSplitter("4 5").Split(' ').Collect(&v);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 2);
+    }
+
+    Y_UNIT_TEST(TestStringSplitterAddToDoesntClear) {
+        TVector<TString> v;
+        StringSplitter("1 2 3").Split(' ').AddTo(&v);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 3);
+        StringSplitter("4 5").Split(' ').AddTo(&v);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), 5);
+    }
+
     Y_UNIT_TEST(TestSplitStringInto) {
         int a = -1;
         TStringBuf s;
@@ -224,5 +242,73 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
+    }
+
+    Y_UNIT_TEST(TestAssigment) {
+        TVector<TString> expected0 = { "1", "2", "3", "4" };
+        TVector<TString> actual0 = StringSplitter("1 2 3 4").Split(' ');
+        UNIT_ASSERT_VALUES_EQUAL(expected0, actual0);
+
+        TSet<TString> expected1 = { "11", "22", "33", "44" };
+        TSet<TString> actual1 = StringSplitter("11 22 33 44").Split(' ');
+        UNIT_ASSERT_VALUES_EQUAL(expected1, actual1);
+
+        TSet<TString> expected2 = { "11", "aa" };
+        auto actual2 = static_cast<TSet<TString>>(StringSplitter("11 aa 11 11 aa").Split(' '));
+        UNIT_ASSERT_VALUES_EQUAL(expected2, actual2);
+
+        TVector<TString> expected3 = { "dd", "bb" };
+        auto actual3 = TVector<TString>(StringSplitter("dd\tbb").Split('\t'));
+        UNIT_ASSERT_VALUES_EQUAL(expected3, actual3);
+    }
+
+    Y_UNIT_TEST(TestRangeBasedFor) {
+        TVector<TString> actual0 = { "11", "22", "33", "44" };
+        size_t num = 0;
+        for (TStringBuf elem : StringSplitter("11 22 33 44").Split(' ')) {
+            UNIT_ASSERT_VALUES_EQUAL(elem, actual0[num++]);
+        }
+
+        TVector<TString> actual1 = { "another", "one,", "and", "another", "one" };
+        num = 0;
+        for (TStringBuf elem : StringSplitter(AsStringBuf("another one, and \n\n     another    one")).SplitBySet(" \n").SkipEmpty()) {
+            UNIT_ASSERT_VALUES_EQUAL(elem, actual1[num++]);
+        }
+
+        TVector<TUtf16String> actual2 = { UTF8ToWide(u8"привет,"), UTF8ToWide(u8"как"), UTF8ToWide(u8"дела") };
+        num = 0;
+        for (TWtringBuf elem : StringSplitter(UTF8ToWide(u8"привет, как дела")).Split(wchar16(' '))) {
+            UNIT_ASSERT_VALUES_EQUAL(elem, actual2[num++]);
+        }
+
+        TVector<TString> copy(4);
+        auto v = StringSplitter("11 22 33 44").Split(' ');
+        Copy(v.begin(), v.end(), copy.begin());
+        UNIT_ASSERT_VALUES_EQUAL(actual0, copy);
+    }
+
+    Y_UNIT_TEST(TestParseInto) {
+        TVector<int> actual0 = { 1, 2, 3, 4 };
+        TVector<int> answer0;
+
+        StringSplitter("1 2 3 4").Split(' ').ParseInto(&answer0);
+        UNIT_ASSERT_VALUES_EQUAL(actual0, answer0);
+
+
+        TVector<int> actual1 = { 42, 1, 2, 3, 4 };
+        TVector<int> answer1 = { 42 };
+        StringSplitter("1 2 3 4").Split(' ').ParseInto(&answer1);
+        UNIT_ASSERT_VALUES_EQUAL(actual1, answer1);
+
+        answer1.clear();
+        UNIT_ASSERT_EXCEPTION(StringSplitter("1 2    3 4").Split(' ').ParseInto(&answer1), yexception);
+
+        answer1 = { 42 };
+        StringSplitter("   1    2     3 4").Split(' ').SkipEmpty().ParseInto(&answer1);
+        UNIT_ASSERT_VALUES_EQUAL(actual1, answer1);
+
+        answer1.clear();
+        StringSplitter("  \n 1    2  \n\n\n   3 4\n ").SplitBySet(" \n").SkipEmpty().ParseInto(&answer1);
+        UNIT_ASSERT_VALUES_EQUAL(actual0, answer1);
     }
 }

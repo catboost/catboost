@@ -1,9 +1,13 @@
 #pragma once
 
+#include "fwd.h"
 #include "cuda_manager.h"
 #include "cuda_kernel_buffer.h"
 #include "slice.h"
+
 #include <catboost/libs/helpers/exception.h>
+
+#include <util/stream/labeled.h>
 
 namespace NCudaLib {
     template <class TImpl>
@@ -207,7 +211,7 @@ namespace NCudaLib {
             , Slices(std::move(slices))
         {
             for (ui32 i = 1; i < Slices.size(); ++i) {
-                CB_ENSURE(Slices[i].Left == Slices[i - 1].Right);
+                CB_ENSURE(Slices[i].Left == Slices[i - 1].Right, LabeledOutput(i, Slices[i].Left, Slices[i - 1].Right));
             }
         }
 

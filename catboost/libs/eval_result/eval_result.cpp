@@ -1,10 +1,14 @@
 #include "eval_result.h"
-#include "pool_printer.h"
-#include "column_printer.h"
 
+#include "eval_helpers.h"
+
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/hash_set.h>
+#include <util/stream/fwd.h>
+#include <util/string/builder.h>
+#include <util/string/cast.h>
 
 
 const TString BaselinePrefix = "Baseline#";
@@ -121,7 +125,21 @@ namespace NCB {
         CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
     }
 
-
+    TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
+        const TPathWithScheme& testSetPath,
+        const TDsvFormatOptions& testSetFormat,
+        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
+    ) {
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
+        if (testSetPath.Inited()) {
+            if (testSetPath.Scheme == "quantized") {
+                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
+            } else if (testSetPath.Scheme == "dsv" || testSetPath.Scheme == "yt-dsv") {
+                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
+            }
+        }
+        return poolColumnsPrinter;
+    }
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
@@ -131,9 +149,8 @@ namespace NCB {
         const TPool& pool,
         bool isPartOfFullTestSet,
         IOutputStream* outputStream,
-        const TPathWithScheme& testSetPath,
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
         std::pair<int, int> testFileWhichOf,
-        const TDsvFormatOptions& testSetFormat,
         bool writeHeader,
         ui64 docIdOffset,
         TMaybe<std::pair<size_t, size_t>> evalParameters) {
@@ -143,23 +160,6 @@ namespace NCB {
         TVector<TString> convertedTarget = ConvertTargetToExternalName(pool.Docs.Target, visibleLabelsHelper);
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
-
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
-
-        // lazy init
-        auto getPoolColumnsPrinter = [&]() -> TIntrusivePtr<IPoolColumnsPrinter> {
-            /* there's a special case when poolColumnsPrinter can be empty:
-              when we need only header output
-            */
-            if (testSetPath.Inited() && !poolColumnsPrinter) {
-                if (testSetPath.Scheme == "quantized") {
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-                } else if (testSetPath.Scheme == "dsv" || testSetPath.Scheme == "yt-dsv") {
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo));
-                }
-            }
-            return poolColumnsPrinter;
-        };
 
         for (const auto& columnName : outputColumns) {
             EPredictionType type;
@@ -181,7 +181,7 @@ namespace NCB {
                     }
                     columnPrinter.push_back(
                         (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
-                            getPoolColumnsPrinter(),
+                            poolColumnsPrinter,
                             docIdOffset,
                             columnName)
                     );
@@ -200,8 +200,9 @@ namespace NCB {
 
                     columnPrinter.push_back(
                         (THolder<IColumnPrinter>)MakeHolder<TColumnPrinter>(
-                            getPoolColumnsPrinter(),
+                            poolColumnsPrinter,
                             outputType,
+                            docIdOffset,
                             columnName)
                     );
                     continue;
@@ -228,8 +229,9 @@ namespace NCB {
 
                 columnPrinter.push_back(
                     MakeHolder<TNumColumnPrinter>(
-                        getPoolColumnsPrinter(),
-                        FromString<int>(columnName.substr(1))
+                        poolColumnsPrinter,
+                        FromString<int>(columnName.substr(1)),
+                        docIdOffset
                     )
                 );
             } else {
@@ -290,6 +292,12 @@ namespace NCB {
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(threadCount - 1);
+
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
+            testSetPath,
+            testSetFormat,
+            pool.MetaInfo.ColumnsInfo);
+
         OutputEvalResultToFile(
             evalResult,
             &executor,
@@ -298,9 +306,8 @@ namespace NCB {
             pool,
             isPartOfFullTestSet,
             outputStream,
-            testSetPath,
+            poolColumnsPrinter,
             testFileWhichOf,
-            testSetFormat,
             writeHeader,
             docIdOffset);
     }
@@ -319,27 +326,15 @@ namespace NCB {
         executor.RunAdditionalThreads(threadCount - 1);
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
+            testSetPath,
+            testSetFormat,
+            poolMetaInfo.ColumnsInfo);
 
         TExternalLabelsHelper visibleLabelsHelper;
         if (approxes.ysize() > 1) {
             visibleLabelsHelper.Initialize(serializedMulticlassLabelParams);
         }
-
-        // lazy init
-        auto getPoolColumnsPrinter = [&]() -> TIntrusivePtr<IPoolColumnsPrinter> {
-            /* there's a special case when poolColumnsPrinter can be empty:
-              when we need only header output
-            */
-            if (testSetPath.Inited() && !poolColumnsPrinter) {
-                if (testSetPath.Scheme == "quantized") {
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-                } else if (testSetPath.Scheme == "dsv" || testSetPath.Scheme == "yt-dsv") {
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, poolMetaInfo.ColumnsInfo));
-                }
-            }
-            return poolColumnsPrinter;
-        };
 
         for (const auto& columnName : outputColumns) {
             EPredictionType type;
@@ -353,7 +348,7 @@ namespace NCB {
                     case EColumn::DocId:
                         columnPrinter.push_back(
                               (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
-                                  getPoolColumnsPrinter(),
+                                  poolColumnsPrinter,
                                   /*docIdOffset=*/0u,
                                   columnName
                               )
@@ -365,12 +360,13 @@ namespace NCB {
                     case EColumn::SubgroupId:
                         columnPrinter.push_back(
                             (THolder<IColumnPrinter>)MakeHolder<TColumnPrinter>(
-                                getPoolColumnsPrinter(),
+                                poolColumnsPrinter,
                                 outputType,
+                                /*docIdOffset=*/0u,
                                 columnName));
                         break;
                     default:
-                        MATRIXNET_WARNING_LOG << "OutputGpuEvalResultToFile doesnt support " << ToString(outputType) << " column type" << Endl;
+                        CATBOOST_WARNING_LOG << "OutputGpuEvalResultToFile doesnt support " << ToString(outputType) << " column type" << Endl;
                 }
             }
         }

@@ -25,8 +25,7 @@ namespace NJson {
 
     class IScanCallback {
     public:
-        virtual ~IScanCallback() {
-        }
+        virtual ~IScanCallback() = default;
 
         virtual bool Do(const TString& path, TJsonValue* parent, TJsonValue& value) = 0;
     };

@@ -16,7 +16,7 @@ namespace NKernel {
 
 
     //TODO(noxoomo): multiple docs per thread to reduce sync overhead
-    template<int BlockSize, bool IsSingleClassBlock>
+    template <int BlockSize, bool IsSingleClassBlock>
     __forceinline__ __device__ void QueryCrossEntropySingleBlockImpl(const float alpha,
                                                                      const float* targets,
                                                                      const float* weights,
@@ -228,7 +228,7 @@ namespace NKernel {
     }
 
 
-    template<int BlockSize>
+    template <int BlockSize>
     __global__ void  QueryCrossEntropyImpl(volatile int* qidCursor,
                                            const int qCount,
                                            const float alpha,
@@ -397,7 +397,7 @@ namespace NKernel {
     }
 
 
-    template<int BlockSize, int ThreadsPerQuery>
+    template <int BlockSize, int ThreadsPerQuery>
     __global__ void MakePairsQueryLogitImpl(const ui32* queryOffsets,
                                             const ui32* matrixOffsets,
                                             const bool* isSingleClassQuery,
@@ -458,7 +458,7 @@ namespace NKernel {
 
 
 
-    template<int BlockSize, int ThreadsPerQuery>
+    template <int BlockSize, int ThreadsPerQuery>
     __global__ void MakeIsSingleClassFlagsImpl(const int* queryOffsets, int queryCount,
                                                const ui32* loadIndices, const float* targets,
                                                bool* isSingleClassQuery) {

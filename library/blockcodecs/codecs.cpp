@@ -23,6 +23,7 @@
 #include <util/system/unaligned_mem.h>
 #include <util/generic/hash.h>
 #include <util/generic/cast.h>
+#include <util/generic/deque.h>
 #include <util/generic/buffer.h>
 #include <util/generic/region.h>
 #include <util/generic/singleton.h>
@@ -470,7 +471,7 @@ namespace {
             Registry[Tmp.back()] = Registry[to];
         }
 
-        TVector<TString> Tmp;
+        TDeque<TString> Tmp;
         TNullCodec Null;
         TSnappyCodec Snappy;
         TVector<TCodecPtr> Codecs;

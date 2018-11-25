@@ -135,8 +135,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
     struct TVectorNoCopy : std::vector<int> {
     public:
-        TVectorNoCopy() {
-        }
+        TVectorNoCopy() = default;
 
     private:
         TVectorNoCopy(const TVectorNoCopy&);

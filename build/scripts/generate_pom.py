@@ -4,6 +4,7 @@ import argparse
 import os
 import json
 import base64
+import re
 
 
 DEFAULT_YANDEX_GROUP_ID = 'ru.yandex'
@@ -32,6 +33,15 @@ MAVEN_SUREFIRE_VERSION = '2.12.2'
 
 def target_from_contrib(target_path):
     return target_path.startswith('contrib')
+
+
+def split_artifacts(s):
+    m = re.match('^([^:]*:[^:]*:[^:]*:[^:]*)(.*)$', s)
+    if not m or not m.groups():
+        return []
+    if not m.groups()[1].startswith('::'):
+        return [m.groups()[0]]
+    return [m.groups()[0]] + m.groups()[1].split('::')[1:]
 
 
 def build_pom_and_export_to_maven(**kwargs):
@@ -203,7 +213,7 @@ def build_pom_and_export_to_maven(**kwargs):
         dependencies = et.SubElement(project, 'dependencies')
         for target_dependency in target_dependencies + test_target_dependencies:
             dependency = et.SubElement(dependencies, 'dependency')
-            dependency_info = target_dependency.rsplit('::', 2)
+            dependency_info = split_artifacts(target_dependency)
 
             group_id, artifact_id, version, classifier = dependency_info[0].split(':')
 

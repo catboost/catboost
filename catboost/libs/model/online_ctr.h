@@ -310,5 +310,9 @@ struct TCtrMeanHistory {
         Sum += target;
         ++Count;
     }
+    void Add(const TCtrMeanHistory& target) {
+        Sum += target.Sum;
+        Count += target.Count;
+    }
     Y_SAVELOAD_DEFINE(Sum, Count);
 };

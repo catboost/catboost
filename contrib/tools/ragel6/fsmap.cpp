@@ -827,7 +827,6 @@ bool FsmAp::hasOutData( StateAp *state )
  * Setting Conditions.
  */
 
-
 void logNewExpansion( Expansion *exp );
 void logCondSpace( CondSpace *condSpace );
 

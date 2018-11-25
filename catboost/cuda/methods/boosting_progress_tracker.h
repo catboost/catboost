@@ -64,6 +64,10 @@ namespace NCatboostCuda {
 
         void MaybeSaveSnapshot(std::function<void(IOutputStream*)> saver);
 
+        const TMetricsAndTimeLeftHistory& GetMetricsAndTimeLeftHistory() const {
+            return this->History;
+        }
+
     private:
         void OnFirstCall();
 

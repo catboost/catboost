@@ -5,6 +5,7 @@
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/pool_builder/pool_builder.h>
@@ -46,6 +47,8 @@ namespace NCB {
     };
 
     TTargetConverter MakeTargetConverter(const TVector<TString>& classNames);
+
+    TTargetConverter MakeTargetConverter(NCatboostOptions::TCatBoostOptions& catBoostOptions);
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited

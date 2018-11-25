@@ -27,13 +27,12 @@
 #define Y_BEGIN_JNI_API_CALL() \
     try {
 
-#define Y_END_JNI_API_CALL()                                    \
-    } catch (const std::exception& exc) {                       \
-        Singleton<TErrorMessageHolder>()->Message = exc.what(); \
-        return 1;                                               \
-    }                                                           \
-                                                                \
-    return 0;
+#define Y_END_JNI_API_CALL()                   \
+    } catch (const std::exception& exc) {      \
+        return jenv->NewStringUTF(exc.what()); \
+    }                                          \
+                                               \
+    return nullptr;
 
 // `int` and `jint` may be different types, e.g. on windows `jint` is a typedef for `long` and `int`
 // and `long` are different types, but what we really care about is `int` and `jint` binary
@@ -46,10 +45,6 @@ static_assert(std::is_same<jfloat, float>::value, "jfloat and float are not the 
 static_assert(std::is_same<jdouble, double>::value, "jdouble and double are no the same type");
 
 namespace {
-    struct TErrorMessageHolder {
-        TString Message;
-    };
-
     using TFullModelPtr = TFullModel*;
     using TConstFullModelPtr = const TFullModel*;
 }
@@ -66,18 +61,7 @@ static jlong ToHandle(const void* ptr) {
     return reinterpret_cast<jlong>(ptr);
 }
 
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostGetLastError
-  (JNIEnv* jenv, jclass) {
-
-    jstring jmessage = nullptr;
-    if (const auto* const message = Singleton<TErrorMessageHolder>()->Message.c_str()) {
-        jmessage = jenv->NewStringUTF(message);
-    }
-
-    return jmessage;
-}
-
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeature
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeature
   (JNIEnv* jenv, jclass, jstring jcatFeature, jintArray jhash) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -86,6 +70,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeature
 
     const auto catFeatureSize = jenv->GetStringUTFLength(jcatFeature);
     const auto* const catFeature = jenv->GetStringUTFChars(jcatFeature, nullptr);
+    CB_ENSURE(catFeature, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jcatFeature, catFeature) {
         jenv->ReleaseStringUTFChars(jcatFeature, catFeature);
     };
@@ -102,14 +87,19 @@ static void HashCatFeatures(
     const size_t jcatFeaturesSize,
     const TArrayRef<int> hashes) {
 
-    Y_ASSERT(hashes.size() == jcatFeaturesSize);
+    Y_ASSERT(hashes.size() <= jcatFeaturesSize);
 
     for (size_t i = 0; i < hashes.size(); ++i) {
         // NOTE: instead of C-style cast `dynamic_cast` should be used, but compiler complains that
         // `_jobject` is not a polymorphic type
         const auto jcatFeature = (jstring)jenv->GetObjectArrayElement(jcatFeatures, i);
+        CB_ENSURE(jenv->IsSameObject(jcatFeature, NULL) == JNI_FALSE, "got null array element");
+        Y_SCOPE_EXIT(jenv, jcatFeature) {
+            jenv->DeleteLocalRef(jcatFeature);
+        };
         const auto catFeatureSize = jenv->GetStringUTFLength(jcatFeature);
         const auto* const catFeature = jenv->GetStringUTFChars(jcatFeature, nullptr);
+        CB_ENSURE(catFeature, "OutOfMemoryError");
         Y_SCOPE_EXIT(jenv, jcatFeature, catFeature) {
             jenv->ReleaseStringUTFChars(jcatFeature, catFeature);
         };
@@ -118,7 +108,7 @@ static void HashCatFeatures(
     }
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatures
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatures
   (JNIEnv* jenv, jclass, jobjectArray jcatFeatures, jintArray jhashes) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -140,8 +130,8 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatures
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
-  (JNIEnv*, jclass, jlong jhandle) {
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
+  (JNIEnv* jenv, jclass, jlong jhandle) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToFullModelPtr(jhandle);
@@ -151,12 +141,13 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFile
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFile
   (JNIEnv* jenv, jclass, jstring jmodelPath, jlongArray jhandles) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto modelPathSize = jenv->GetStringUTFLength(jmodelPath);
     const auto* const modelPath = jenv->GetStringUTFChars(jmodelPath, nullptr);
+    CB_ENSURE(modelPath, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jmodelPath, modelPath) {
         jenv->ReleaseStringUTFChars(jmodelPath, modelPath);
     };
@@ -175,11 +166,12 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFil
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArray
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArray
   (JNIEnv* jenv, jclass, jbyteArray jdata, jlongArray jhandles) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const data = jenv->GetByteArrayElements(jdata, nullptr);
+    CB_ENSURE(data, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jdata, data) {
         jenv->ReleaseByteArrayElements(jdata, const_cast<jbyte*>(data), 0);
     };
@@ -196,7 +188,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArr
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredictionDimension
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredictionDimension
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jpredictionDimension) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -209,33 +201,33 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredicti
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetNumericFeatureCount
-  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jnumericFeatureCount) {
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedNumericFeatureCount
+  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jusedNumericFeatureCount) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint numericFeatureCount = model->GetNumFloatFeatures();
-    jenv->SetIntArrayRegion(jnumericFeatureCount, 0, 1, &numericFeatureCount);
+    const jint usedNumericFeatureCount = model->GetUsedFloatFeaturesCount();
+    jenv->SetIntArrayRegion(jusedNumericFeatureCount, 0, 1, &usedNumericFeatureCount);
 
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCategoricalFeatureCount
-  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jcatFeatureCount) {
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedCategoricalFeatureCount
+  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jusedCatFeatureCount) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint catFeatureCount = model->GetNumCatFeatures();
-    jenv->SetIntArrayRegion(jcatFeatureCount, 0, 1, &catFeatureCount);
+    const jint usedCatFeatureCount = model->GetUsedCatFeaturesCount();
+    jenv->SetIntArrayRegion(jusedCatFeatureCount, 0, 1, &usedCatFeatureCount);
 
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jtreeCount) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -248,39 +240,47 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCoun
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3Ljava_lang_String_2_3D
+static size_t GetArraySize(JNIEnv* const jenv, const jarray array) {
+    if (jenv->IsSameObject(array, NULL) == JNI_TRUE) {
+        return 0;
+    }
+
+    return jenv->GetArrayLength(array);
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3Ljava_lang_String_2_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jfloatArray jnumericFeatures, jobjectArray jcatFeatures, jdoubleArray jprediction) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
     const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
+    const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
+    const size_t minCatFeatureCount = model->GetNumCatFeatures();
+    const size_t numericFeatureCount = GetArraySize(jenv, jnumericFeatures);
+    const size_t catFeatureCount = GetArraySize(jenv, jcatFeatures);
+
+    CB_ENSURE(
+        numericFeatureCount >= minNumericFeatureCount,
+        LabeledOutput(numericFeatureCount, minNumericFeatureCount));
+
+    CB_ENSURE(
+        catFeatureCount >= minCatFeatureCount,
+        LabeledOutput(catFeatureCount, minCatFeatureCount));
 
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
     CB_ENSURE(
         predictionSize >= modelPredictionSize,
         "`prediction` array is too small" LabeledOutput(predictionSize, modelPredictionSize));
 
-    const bool hasNumericFeatures = !jenv->IsSameObject(jnumericFeatures, NULL);
-    const bool hasCatFeatures = !jenv->IsSameObject(jcatFeatures, NULL);
-
-    CB_ENSURE(
-        hasNumericFeatures || hasCatFeatures,
-        "either numeric or categoric features must be provided: "
-        LabeledOutput(hasNumericFeatures, hasCatFeatures));
-
-    const size_t numericFeatureCount = hasNumericFeatures
-        ? jenv->GetArrayLength(jnumericFeatures)
-        : 0;
-    const size_t catFeatureCount = hasCatFeatures
-        ? jenv->GetArrayLength(jcatFeatures)
-        : 0;
-
-    const TConstArrayRef<float> numericFeatures = hasNumericFeatures
-        ? MakeArrayRef(
-            jenv->GetFloatArrayElements(jnumericFeatures, nullptr),
-            numericFeatureCount)
-        : TConstArrayRef<float>();
+    TConstArrayRef<float> numericFeatures;
+    if (numericFeatureCount) {
+        jfloat* numericFeaturesRaw = jenv->GetFloatArrayElements(jnumericFeatures, nullptr);
+        CB_ENSURE(numericFeaturesRaw, "OutOfMemoryError");
+        numericFeatures = MakeArrayRef(
+            numericFeaturesRaw,
+            numericFeatureCount);
+    }
     Y_SCOPE_EXIT(jenv, jnumericFeatures, numericFeatures) {
         if (numericFeatures) {
             jenv->ReleaseFloatArrayElements(
@@ -291,7 +291,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
     };
 
     TVector<int> catFeatures;
-    if (hasCatFeatures) {
+    if (catFeatureCount) {
         catFeatures.yresize(catFeatureCount);
         HashCatFeatures(jenv, jcatFeatures, catFeatureCount, catFeatures);
     }
@@ -305,44 +305,53 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
     Y_END_JNI_API_CALL();
 }
 
-static size_t GetMatrixSecondDimension(JNIEnv* const jenv, const jobjectArray jmatrix) {
-    const auto row = (jobjectArray)jenv->GetObjectArrayElement(jmatrix, 0);
-    const size_t size = jenv->GetArrayLength(row);
-    return size;
+static size_t GetMatrixColumnCount(JNIEnv* const jenv, const jobjectArray matrix) {
+    if (jenv->IsSameObject(matrix, NULL) == JNI_TRUE) {
+        return 0;
+    }
+
+    const auto rowCount = jenv->GetArrayLength(matrix);
+    if (rowCount <= 0) {
+        return 0;
+    }
+
+    const auto firstRow = (jobjectArray)jenv->GetObjectArrayElement(matrix, 0);
+    if (jenv->IsSameObject(firstRow, NULL) == JNI_TRUE) {
+        return 0;
+    }
+
+    return jenv->GetArrayLength(firstRow);
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jobjectArray jcatFeaturesMatrix, jdoubleArray jpredictions) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
     const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
-
-    const bool hasNumericFeatures = !jenv->IsSameObject(jnumericFeaturesMatrix, NULL);
-    const bool hasCatFeatures = !jenv->IsSameObject(jcatFeaturesMatrix, NULL);
+    const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
+    const size_t minCatFeatureCount = model->GetNumCatFeatures();
+    const size_t numericFeatureCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
+    const size_t catFeatureCount = GetMatrixColumnCount(jenv, jcatFeaturesMatrix);
 
     CB_ENSURE(
-        hasNumericFeatures || hasCatFeatures,
-        "either numeric or categoric features must be provided: "
-        LabeledOutput(hasNumericFeatures, hasCatFeatures));
+        numericFeatureCount >= minNumericFeatureCount,
+        LabeledOutput(numericFeatureCount, minNumericFeatureCount));
 
-    const size_t numericFeatureMatrixFirstDimension = hasNumericFeatures
+    CB_ENSURE(
+        catFeatureCount >= minCatFeatureCount,
+        LabeledOutput(catFeatureCount, minCatFeatureCount));
+
+    if (numericFeatureCount && catFeatureCount) {
+        const auto numericRows = jenv->GetArrayLength(jnumericFeaturesMatrix);
+        const auto catRows = jenv->GetArrayLength(jcatFeaturesMatrix);
+        CB_ENSURE(numericRows == catRows, LabeledOutput(numericRows, catRows));
+    }
+
+    const size_t documentCount = numericFeatureCount
         ? jenv->GetArrayLength(jnumericFeaturesMatrix)
-        : 0;
-    const size_t catFeatureMatrixFirstDimension = hasCatFeatures
-        ? jenv->GetArrayLength(jcatFeaturesMatrix)
-        : 0;
-
-    CB_ENSURE(
-        !(hasNumericFeatures && hasCatFeatures) ||
-        numericFeatureMatrixFirstDimension == catFeatureMatrixFirstDimension,
-        "numeric features array size doesn't match cat features array size: "
-        LabeledOutput(numericFeatureMatrixFirstDimension, catFeatureMatrixFirstDimension));
-
-    const auto documentCount = hasNumericFeatures
-        ? numericFeatureMatrixFirstDimension
-        : catFeatureMatrixFirstDimension;
+        : jenv->GetArrayLength(jcatFeaturesMatrix);
 
     if (documentCount == 0) {
         return 0;
@@ -354,27 +363,10 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
         "`prediction` size is not sufficient, must be at least document count * prediction dimension: "
         LabeledOutput(predictionsSize, documentCount * modelPredictionSize));
 
-    const size_t numericFeatureCount = hasNumericFeatures
-        ? GetMatrixSecondDimension(jenv, jnumericFeaturesMatrix)
-        : 0;
-    const size_t catFeatureCount = hasCatFeatures
-        ? GetMatrixSecondDimension(jenv, jcatFeaturesMatrix)
-        : 0;
-
     TVector<jfloatArray> numericFeatureMatrixRowObjects;
     TVector<TConstArrayRef<float>> numericFeatureMatrixRows;
     TVector<int> catFeatureMatrixRowwise;
     TVector<TConstArrayRef<int>> catFeatureMatrixRows;
-
-    if (hasNumericFeatures) {
-        numericFeatureMatrixRowObjects.reserve(documentCount);
-        numericFeatureMatrixRows.reserve(documentCount);
-    }
-
-    if (hasCatFeatures) {
-        catFeatureMatrixRowwise.reserve(documentCount * numericFeatureCount);
-        catFeatureMatrixRows.reserve(documentCount);
-    }
 
     Y_SCOPE_EXIT(jenv, &numericFeatureMatrixRowObjects, &numericFeatureMatrixRows) {
         const auto size = numericFeatureMatrixRows.size();
@@ -386,28 +378,41 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
         }
     };
 
-    if (hasNumericFeatures) {
+    if (numericFeatureCount) {
+        numericFeatureMatrixRowObjects.reserve(documentCount);
+        numericFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
-            numericFeatureMatrixRowObjects.push_back((jfloatArray)jenv->GetObjectArrayElement(
-                jnumericFeaturesMatrix, i));
-            const size_t rowSize = jenv->GetArrayLength(numericFeatureMatrixRowObjects.back());
+            const auto row = (jfloatArray)jenv->GetObjectArrayElement(
+                jnumericFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
+            const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
-                numericFeatureCount == rowSize,
+                numericFeatureCount <= rowSize,
                 "numeric feature count doesn't match for row " << i << ": "
                 LabeledOutput(numericFeatureCount, rowSize));
+            numericFeatureMatrixRowObjects.push_back(row);
             numericFeatureMatrixRows.push_back(MakeArrayRef(
-                jenv->GetFloatArrayElements(numericFeatureMatrixRowObjects.back(), nullptr),
+                jenv->GetFloatArrayElements(row, nullptr),
                 numericFeatureCount));
         }
     }
 
-    if (hasCatFeatures) {
+    if (catFeatureCount) {
+        catFeatureMatrixRowwise.yresize(documentCount * catFeatureCount);
+        catFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jobjectArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
-                catFeatureCount == rowSize,
+                catFeatureCount <= rowSize,
                 "cat feature count doesn't match for row " << i << ": "
                 LabeledOutput(catFeatureCount, rowSize));
             const auto hashes = MakeArrayRef(
@@ -427,39 +432,39 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3I_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3I_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jfloatArray jnumericFeatures, jintArray jcatFeatures, jdoubleArray jprediction) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
     const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
+    const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
+    const size_t minCatFeatureCount = model->GetNumCatFeatures();
+    const size_t numericFeatureCount = GetArraySize(jenv, jnumericFeatures);
+    const size_t catFeatureCount = GetArraySize(jenv, jcatFeatures);
+
+    CB_ENSURE(
+        numericFeatureCount >= minNumericFeatureCount,
+        LabeledOutput(numericFeatureCount, minNumericFeatureCount));
+
+    CB_ENSURE(
+        catFeatureCount >= minCatFeatureCount,
+        LabeledOutput(catFeatureCount, minCatFeatureCount));
 
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
     CB_ENSURE(
         predictionSize >= modelPredictionSize,
         "`prediction` array is too small" LabeledOutput(predictionSize, modelPredictionSize));
 
-    const bool hasNumericFeatures = !jenv->IsSameObject(jnumericFeatures, NULL);
-    const bool hasCatFeatures = !jenv->IsSameObject(jcatFeatures, NULL);
-
-    CB_ENSURE(
-        hasNumericFeatures || hasCatFeatures,
-        "either numeric or categoric feature hashes must be provided;"
-        LabeledOutput(hasNumericFeatures, hasCatFeatures));
-
-    const size_t numericFeatureCount = hasNumericFeatures
-        ? jenv->GetArrayLength(jnumericFeatures)
-        : 0;
-    const size_t catFeaturesCount = hasCatFeatures
-        ? jenv->GetArrayLength(jcatFeatures)
-        : 0;
-
-    const TConstArrayRef<float> numericFeatures = hasNumericFeatures
-        ? MakeArrayRef(
-            jenv->GetFloatArrayElements(jnumericFeatures, nullptr),
-            numericFeatureCount)
-        : TConstArrayRef<float>();
+    TConstArrayRef<float> numericFeatures;
+    if (numericFeatureCount) {
+        jfloat* numericFeaturesRaw = jenv->GetFloatArrayElements(jnumericFeatures, nullptr);
+        CB_ENSURE(numericFeaturesRaw, "OutOfMemoryError");
+        numericFeatures = MakeArrayRef(
+            numericFeaturesRaw,
+            numericFeatureCount);
+    }
     Y_SCOPE_EXIT(jenv, jnumericFeatures, numericFeatures) {
         if (numericFeatures) {
             jenv->ReleaseFloatArrayElements(
@@ -468,11 +473,15 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
                 0);
         }
     };
-    const TConstArrayRef<int> catFeatures = hasCatFeatures
-        ? MakeArrayRef(
-            reinterpret_cast<const int*>(jenv->GetIntArrayElements(jcatFeatures, nullptr)),
-            catFeaturesCount)
-        : TConstArrayRef<int>();
+
+    TConstArrayRef<int> catFeatures;
+    if (catFeatureCount) {
+        const int* catFeaturesRaw = reinterpret_cast<const int*>(jenv->GetIntArrayElements(jcatFeatures, nullptr));
+        CB_ENSURE(catFeaturesRaw, "OutOfMemoryError");
+        catFeatures = MakeArrayRef(
+            catFeaturesRaw,
+            catFeatureCount);
+    }
     Y_SCOPE_EXIT(jenv, jcatFeatures, catFeatures) {
         if (catFeatures) {
             jenv->ReleaseIntArrayElements(
@@ -491,41 +500,38 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jobjectArray jcatFeaturesMatrix, jdoubleArray jpredictions) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
     const size_t modelPredictionSize = model->ObliviousTrees.ApproxDimension;
-
-    const bool hasNumericFeatures = !jenv->IsSameObject(jnumericFeaturesMatrix, NULL);
-    const bool hasCatFeatures = !jenv->IsSameObject(jcatFeaturesMatrix, NULL);
+    const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
+    const size_t minCatFeatureCount = model->GetNumCatFeatures();
+    const size_t numericFeatureCount = GetMatrixColumnCount(jenv, jnumericFeaturesMatrix);
+    const size_t catFeatureCount = GetMatrixColumnCount(jenv, jcatFeaturesMatrix);
 
     CB_ENSURE(
-        hasNumericFeatures || hasCatFeatures,
-        "either numeric or categoric feature hashes must be provided: "
-        LabeledOutput(hasNumericFeatures, hasCatFeatures));
+        numericFeatureCount >= minNumericFeatureCount,
+        LabeledOutput(numericFeatureCount, minNumericFeatureCount));
 
-    const size_t numericFeatureMatrixFirstDimension = hasNumericFeatures
+    CB_ENSURE(
+        catFeatureCount >= minCatFeatureCount,
+        LabeledOutput(catFeatureCount, minCatFeatureCount));
+
+    if (numericFeatureCount && catFeatureCount) {
+        const auto numericRows = jenv->GetArrayLength(jnumericFeaturesMatrix);
+        const auto catRows = jenv->GetArrayLength(jcatFeaturesMatrix);
+        CB_ENSURE(numericRows == catRows, LabeledOutput(numericRows, catRows));
+    }
+
+    const size_t documentCount = numericFeatureCount
         ? jenv->GetArrayLength(jnumericFeaturesMatrix)
-        : 0;
-    const size_t catFeaturesMatrixFirstDimension = hasCatFeatures
-        ? jenv->GetArrayLength(jcatFeaturesMatrix)
-        : 0;
-
-    CB_ENSURE(
-        !(hasNumericFeatures && hasCatFeatures) ||
-        numericFeatureMatrixFirstDimension == catFeaturesMatrixFirstDimension,
-        "numeric features array size doesn't match cat features array size: "
-        LabeledOutput(numericFeatureMatrixFirstDimension, catFeaturesMatrixFirstDimension));
-
-    const auto documentCount = hasNumericFeatures
-        ? numericFeatureMatrixFirstDimension
-        : catFeaturesMatrixFirstDimension;
+        : jenv->GetArrayLength(jcatFeaturesMatrix);
 
     if (documentCount == 0) {
-        return 0;
+        return nullptr;
     }
 
     const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
@@ -534,27 +540,10 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
         "`prediction` size is insufficient, must be at least document count * model prediction dimension: "
         LabeledOutput(predictionsSize, documentCount * modelPredictionSize));
 
-    const size_t numericFeatureCount = hasNumericFeatures
-        ? GetMatrixSecondDimension(jenv, jnumericFeaturesMatrix)
-        : 0;
-    const size_t catFeatureCount = hasCatFeatures
-        ? GetMatrixSecondDimension(jenv, jcatFeaturesMatrix)
-        : 0;
-
     TVector<jfloatArray> numericFeatureMatrixRowObjects;
     TVector<TConstArrayRef<float>> numericFeatureMatrixRows;
     TVector<jintArray> catFeatureMatrixRowObjects;
     TVector<TConstArrayRef<int>> catFeatureMatrixRows;
-
-    if (hasNumericFeatures) {
-        numericFeatureMatrixRowObjects.reserve(documentCount);
-        numericFeatureMatrixRows.reserve(documentCount);
-    }
-
-    if (hasCatFeatures) {
-        catFeatureMatrixRowObjects.reserve(documentCount);
-        catFeatureMatrixRows.reserve(documentCount);
-    }
 
     Y_SCOPE_EXIT(jenv, &numericFeatureMatrixRowObjects, &numericFeatureMatrixRows) {
         const auto size = numericFeatureMatrixRows.size();
@@ -566,17 +555,23 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
         }
     };
 
-    if (hasNumericFeatures) {
+    if (numericFeatureCount) {
+        numericFeatureMatrixRowObjects.reserve(documentCount);
+        numericFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
-            numericFeatureMatrixRowObjects.push_back((jfloatArray)jenv->GetObjectArrayElement(
-                jnumericFeaturesMatrix, i));
-            const size_t rowSize = jenv->GetArrayLength(numericFeatureMatrixRowObjects.back());
+            const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
+            const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
-                numericFeatureCount == rowSize,
+                numericFeatureCount <= rowSize,
                 "numeric feature count doesn't match for row " << i << ": "
                 LabeledOutput(numericFeatureCount, rowSize));
+            numericFeatureMatrixRowObjects.push_back(row);
             numericFeatureMatrixRows.push_back(MakeArrayRef(
-                jenv->GetFloatArrayElements(numericFeatureMatrixRowObjects.back(), nullptr),
+                jenv->GetFloatArrayElements(row, nullptr),
                 numericFeatureCount));
         }
     }
@@ -591,18 +586,25 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
         }
     };
 
-    if (hasCatFeatures) {
+    if (catFeatureCount) {
+        catFeatureMatrixRowObjects.reserve(documentCount);
+        catFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
-            const auto row = (jobjectArray)jenv->GetObjectArrayElement(
+            const auto row = (jintArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
-                catFeatureCount == rowSize,
+                catFeatureCount <= rowSize,
                 "cat feature count doesn't match for row " << i << ": "
                 LabeledOutput(catFeatureCount, rowSize));
+            catFeatureMatrixRowObjects.push_back(row);
             catFeatureMatrixRows.push_back(MakeArrayRef(
-                reinterpret_cast<const int*>(jenv->GetIntArrayElements(catFeatureMatrixRowObjects.back(), nullptr)),
-                numericFeatureCount));
+                reinterpret_cast<const int*>(jenv->GetIntArrayElements(row, nullptr)),
+                catFeatureCount));
         }
     }
 

@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    pair.cpp
 )
 
 PEERDIR(

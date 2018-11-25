@@ -28,11 +28,11 @@ public:
         Y_VERIFY(WaitList.empty(), "");
     }
 
-    // TODO: potentially unsafe, but currently I can't add "virtual" to Event methods
-    operator Event&() {
+    // TODO: potentially unsafe, but currently I can't add "virtual" to TSystemEvent methods
+    operator TSystemEvent&() {
         return MyEvent;
     }
-    operator const Event&() const {
+    operator const TSystemEvent&() const {
         return MyEvent;
     }
 
@@ -54,7 +54,7 @@ public:
         MyEvent.Signal(); // TODO: do we actually need to be locked here?
     }
 
-    // same as in Event
+    // same as in TSystemEvent
     inline bool WaitT(TDuration timeOut) noexcept {
         return WaitD(timeOut.ToDeadLine());
     }
@@ -70,19 +70,19 @@ public:
     }
 
 private:
-    Event MyEvent;
+    TSystemEvent MyEvent;
     TMutex WaitListLock;
-    TList<Event*> WaitList;
+    TList<TSystemEvent*> WaitList;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 inline int WaitForAnyEvent(TMuxEvent** array, const int size, const TDuration timeout = TDuration::Max()) {
-    TVector<TList<Event*>::iterator> listIters;
+    TVector<TList<TSystemEvent*>::iterator> listIters;
     listIters.reserve(size);
 
     int result = -1;
-    Event e;
+    TSystemEvent e;
 
     for (int i = 0; i != size; ++i) {
         TMuxEvent& me = *array[i];

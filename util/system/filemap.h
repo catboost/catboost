@@ -14,6 +14,11 @@
 #include <new>
 #include <cstdio>
 
+namespace NPrivate {
+    // NB: use TFileMap::Precharge() and TFileMappedArray::Prechage()
+    void Precharge(const void* data, size_t dataSize, size_t offset, size_t size);
+}
+
 struct TMemoryMapCommon {
     struct TMapResult {
         inline size_t MappedSize() const noexcept {
@@ -240,9 +245,12 @@ public:
         return *Dummy_;
     }
     /// for STL compatibility only, Empty() usage is recommended
+    Y_PURE_FUNCTION
     bool empty() const noexcept {
         return Empty();
     }
+
+    Y_PURE_FUNCTION
     bool Empty() const noexcept {
         return 0 == Size_;
     }

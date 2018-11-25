@@ -1,10 +1,12 @@
+
+
 LIBRARY()
-
-
 
 LICENSE(BSD-3-Clause)
 
-# no SRCS - include only library
+NO_UTIL()
+
+# no SRCS - header only library
 # usage: #include <contrib/libs/cub/cub/cub.cuh>
 
 END()

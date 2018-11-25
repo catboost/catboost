@@ -14,16 +14,20 @@ struct TWithRefCount: public TBase, public TRefCounted<TWithRefCount<TBase, TCou
 
 template <class T>
 struct TPtrPolicy {
-    inline TPtrPolicy(const T* t)
+    inline TPtrPolicy(T* t)
         : T_(t)
     {
+    }
+
+    inline T* Ptr() noexcept {
+        return T_;
     }
 
     inline const T* Ptr() const noexcept {
         return T_;
     }
 
-    const T* T_;
+    T* T_;
 };
 
 template <class T>
@@ -64,6 +68,60 @@ struct TRefPolicy {
     }
 
     TIntrusivePtr<THelper> T_;
+};
+
+
+/**
+ * Storage class that can be handy for implementing proxies / adaptors
+ * that can accept both lvalues and rvalues.
+ * In the latter case it's often required to extend the lifetime
+ * of the passed rvalue, and the only option is to store it in your proxy / adaptor.
+ *
+ * Example usage:
+ * \code
+ * template<class T>
+ * struct TProxy {
+ *    TAutoEmbedOrPtrPolicy<T> Value_;
+ *    // Your proxy code...
+ * };
+ *
+ * template<class T>
+ * TProxy<T> MakeProxy(T&& value) {
+ *     // Rvalues are automagically moved-from, and stored inside the proxy.
+ *     return {value};
+ * }
+ * \endcode
+ *
+ * Look at `Reversed` in `adaptor.h` for real example.
+ */
+template <class TRefOrObject, bool IsReference = std::is_reference<TRefOrObject>::value>
+struct TAutoEmbedOrPtrPolicy;
+
+template <class TReference>
+struct TAutoEmbedOrPtrPolicy<TReference, true> : TPtrPolicy<typename std::remove_reference<TReference>::type> {
+    using TObject = typename std::remove_reference<TReference>::type;
+    using TObjectStorage = TObject*;
+
+    TAutoEmbedOrPtrPolicy(TReference& reference)
+        : TPtrPolicy<TObject>(&reference)
+    {
+    }
+};
+
+template <class TObject_>
+struct TAutoEmbedOrPtrPolicy<TObject_, false> : TEmbedPolicy<TObject_> {
+    using TObject = TObject_;
+    using TObjectStorage = TObject;
+
+    TAutoEmbedOrPtrPolicy(TObject& object)
+        : TEmbedPolicy<TObject>(std::move(object))
+    {
+    }
+
+    TAutoEmbedOrPtrPolicy(TObject&& object)
+        : TEmbedPolicy<TObject>(std::move(object))
+    {
+    }
 };
 
 template <class T>

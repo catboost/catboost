@@ -11,8 +11,7 @@ using TCharFixedString = TFixedString<char>;
 namespace {
     class THeadersExistence {
     public:
-        THeadersExistence() {
-        }
+        THeadersExistence() = default;
 
         THeadersExistence(const THttpHeaders& headers) {
             for (THttpHeaders::TConstIterator it = headers.Begin();

@@ -1,32 +1,39 @@
 #include "train.h"
 
-#include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
+#include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
+#include <catboost/cuda/ctrs/prior_estimator.h>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_lib/devices_provider.h>
+#include <catboost/cuda/data/load_data.h>
+#include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
+
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/defaults_helper.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/train_lib/preprocess.h>
-#include <catboost/cuda/ctrs/prior_estimator.h>
-#include <catboost/cuda/models/additive_model.h>
-#include <catboost/cuda/models/oblivious_model.h>
-
-#include <catboost/cuda/data/load_data.h>
-#include <catboost/cuda/data/cat_feature_perfect_hash.h>
-#include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
-#include <catboost/cuda/cuda_lib/devices_provider.h>
-#include <catboost/cuda/cuda_lib/memory_copy_performance.h>
-#include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
-#include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
-#include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <catboost/cuda/cuda_util/gpu_random.h>
 
 #include <library/json/json_prettifier.h>
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
 
-#include <util/system/info.h>
+#include <util/folder/path.h>
 #include <util/generic/scope.h>
+#include <util/system/compiler.h>
+#include <util/system/guard.h>
+#include <util/system/info.h>
+#include <util/system/spinlock.h>
+#include <util/system/yassert.h>
+
 
 class TGPUModelTrainer: public IModelTrainer {
 public:
@@ -37,13 +44,15 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TClearablePoolPtrs& pools,
         TFullModel* model,
-        const TVector<TEvalResult*>& evalResultPtrs) const override {
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override
+    {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
         CB_ENSURE(pools.Test.size() <= 1, "Multiple eval sets not supported for GPU");
         Y_VERIFY(evalResultPtrs.size() == pools.Test.size());
 
-        NCatboostCuda::TrainModel(params, outputOptions, *pools.Learn, pools.Test.size() ? *pools.Test[0] : TPool(), model);
+        NCatboostCuda::TrainModel(params, outputOptions, *pools.Learn, pools.Test.size() ? *pools.Test[0] : TPool(), model, metricsAndTimeHistory);
         if (evalResultPtrs.size()) {
             evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
         }
@@ -110,7 +119,7 @@ namespace NCatboostCuda {
         //don't make several permutations in matrixnet-like mode if we don't have ctrs
         if (!HasCtrs(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
             if (options.BoostingOptions->PermutationCount > 1) {
-                MATRIXNET_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
+                CATBOOST_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
             }
             options.BoostingOptions->PermutationCount = 1;
         } else {
@@ -200,7 +209,7 @@ namespace NCatboostCuda {
                         TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(binarizedTarget.data(),
                                                                                                        values.data(), values.size(), catFeatureValues.GetUniqueValues());
 
-                        MATRIXNET_INFO_LOG << "Estimate borders-ctr prior for feature #" << catFeature << ": " << prior.Alpha << " / " << prior.Beta << Endl;
+                        CATBOOST_INFO_LOG << "Estimate borders-ctr prior for feature #" << catFeature << ": " << prior.Alpha << " / " << prior.Beta << Endl;
                         currentFeatureDescription[i].Priors = {{(float)prior.Alpha, (float)(prior.Alpha + prior.Beta)}};
                     } else {
                         CB_ENSURE(currentFeatureDescription[i].PriorEstimation == EPriorEstimation::No, "Error: auto prior estimation is not available for ctr type " << currentFeatureDescription[i].Type);
@@ -234,9 +243,6 @@ namespace NCatboostCuda {
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
-
-        // TODO(nikitxskv): Remove it when the l2 normalization will be added.
-        UpdateLeavesEstimation(!dataProvider.IsTrivialWeights(), &catBoostOptions);
     }
 
     static inline bool NeedShuffle(const ui64 catFeatureCount, const ui64 docCount, const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
@@ -262,7 +268,8 @@ namespace NCatboostCuda {
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                      const TDataProvider& dataProvider,
                                      const TDataProvider* testProvider,
-                                     TBinarizedFeaturesManager& featuresManager) {
+                                     TBinarizedFeaturesManager& featuresManager,
+                                     TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         if (trainCatBoostOptions.IsProfile) {
@@ -278,7 +285,7 @@ namespace NCatboostCuda {
 
         if (TGpuTrainerFactory::Has(lossFunction)) {
             THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(lossFunction);
-            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random);
+            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random, metricsAndTimeHistory);
         } else {
             ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
         }
@@ -312,8 +319,9 @@ namespace NCatboostCuda {
                           const NCatboostOptions::TOutputFilesOptions& outputOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
-                          TBinarizedFeaturesManager& featuresManager) {
-        SetLogingLevel(trainCatBoostOptions.LoggingLevel);
+                          TBinarizedFeaturesManager& featuresManager,
+                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+        TSetLogging inThisScope(trainCatBoostOptions.LoggingLevel);
         CreateDirIfNotExist(outputOptions.GetTrainDir());
         auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
         auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
@@ -323,7 +331,7 @@ namespace NCatboostCuda {
         if (workingThreads < trainCatBoostOptions.SystemOptions->NumThreads) {
             NPar::LocalExecutor().RunAdditionalThreads(trainCatBoostOptions.SystemOptions->NumThreads - workingThreads);
         }
-        return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager);
+        return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager, metricsAndTimeHistory);
     }
 
 
@@ -332,14 +340,16 @@ namespace NCatboostCuda {
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     TPool& learnPool,
                     const TPool& testPool,
-                    TFullModel* model) {
-        TString outputModelPath = outputOptions.CreateResultModelFullPath();
+                    TFullModel* model,
+                    TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+        const TString outputModelPath = NCatboostOptions::AddExtension(EModelType::CatboostBinary,
+                                                                       outputOptions.CreateResultModelFullPath(),
+                                                                       outputOptions.AddFileFormatExtension());
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
         NJson::TJsonValue updatedParams = params;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
         catBoostOptions.Load(updatedParams);
-        MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
-        SetLogingLevel(catBoostOptions.LoggingLevel);
+        TSetLogging inThisScope(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
         if (testPool.Docs.GetDocCount()) {
@@ -404,13 +414,20 @@ namespace NCatboostCuda {
 
         TSimpleSharedPtr<TClassificationTargetHelper> targetHelper;
 
-        if (IsClassificationLoss(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
+        if (IsClassificationObjective(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
             targetHelper = new TClassificationTargetHelper(catBoostOptions);
         }
 
         {
             CB_ENSURE(learnPool.Docs.GetDocCount(), "Error: empty learn pool");
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, learnPool, false, dataProvider);
+            TCpuPoolBasedDataProviderBuilder builder(
+                    featuresManager,
+                    hasQueries,
+                    learnPool,
+                    false,
+                    catBoostOptions.LossFunctionDescription,
+                    catBoostOptions.RandomSeed,
+                    dataProvider);
 
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
                 .SetTargetHelper(targetHelper)
@@ -418,7 +435,15 @@ namespace NCatboostCuda {
         }
 
         if (testData != nullptr) {
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, testPool, true, *testData);
+            TCpuPoolBasedDataProviderBuilder builder(
+                    featuresManager,
+                    hasQueries,
+                    testPool,
+                    true,
+                    catBoostOptions.LossFunctionDescription,
+                    catBoostOptions.RandomSeed,
+                    *testData);
+
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
                 .SetTargetHelper(targetHelper)
                 .Finish(numThreads);
@@ -431,13 +456,13 @@ namespace NCatboostCuda {
                                  outputOptionsFinal,
                                  featuresManager);
 
-        auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
+        auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager, metricsAndTimeHistory);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 
         NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
             numThreads,
             outputOptions.GetFinalCtrComputationMode(),
-            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit),
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
             /*ctrLeafCountLimit*/ Max<ui64>(),
             /*storeAllSimpleCtrs*/ false,
             catBoostOptions.CatFeatureParams
@@ -452,7 +477,13 @@ namespace NCatboostCuda {
 
         if (model == nullptr) {
             CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
-            coreModelToFullModelConverter.Do(outputModelPath);
+            coreModelToFullModelConverter.Do(
+                    outputModelPath,
+                    outputOptions.GetModelFormats(),
+                    outputOptions.AddFileFormatExtension(),
+                    &learnPool.FeatureId,
+                    &learnPool.CatFeaturesHashToString
+            );
         } else {
             coreModelToFullModelConverter.Do(model, true);
         }
@@ -464,11 +495,11 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedOptions = jsonOptions;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedOptions);
         auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
-        MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
+        CB_ENSURE(poolLoadOptions.CvParams.FoldCount == 0, "Cross validation on GPU is not implemented");
 
-        SetLogingLevel(catBoostOptions.LoggingLevel);
-        const auto resultModelPath = outputOptions.CreateResultModelFullPath();
-        TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
+        TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+        const bool verboseReadPool = catBoostOptions.LoggingLevel == ELoggingLevel::Debug;
+        TString coreModelPath = TStringBuilder() << outputOptions.CreateResultModelFullPath() << ".core";
 
         const int numThreads = catBoostOptions.SystemOptions->NumThreads;
         if (NPar::LocalExecutor().GetThreadCount() < numThreads) {
@@ -482,11 +513,11 @@ namespace NCatboostCuda {
             // TODO(yazevnul): quantized pool do not support categorical features yet
             ctrComputationMode = EFinalCtrComputationMode::Skip;
         }
+        TDataProvider dataProvider;
         {
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                       catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
 
-            TDataProvider dataProvider;
             THolder<TDataProvider> testProvider;
 
             TBinarizedFloatFeaturesMetaInfo binarizedFloatFeaturesInfo;
@@ -515,16 +546,15 @@ namespace NCatboostCuda {
 
 
                 TSimpleSharedPtr<TClassificationTargetHelper> targetHelper;
-                if (IsClassificationLoss(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
+                if (IsClassificationObjective(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
                     targetHelper = new TClassificationTargetHelper(catBoostOptions);
                     dataProviderBuilder.SetTargetHelper(targetHelper);
                 }
 
-                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(
-                    catBoostOptions.DataProcessingOptions->ClassNames.Get());
 
                 {
-                    MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
+                    NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
+                    CATBOOST_DEBUG_LOG << "Loading features..." << Endl;
                     auto start = Now();
                     NCatboostCuda::ReadPool(
                         poolLoadOptions.LearnSetPath,
@@ -532,11 +562,11 @@ namespace NCatboostCuda {
                         poolLoadOptions.GroupWeightsFilePath,
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
-                        true,
+                        verboseReadPool,
                         &targetConverter,
                         &NPar::LocalExecutor(),
                         &dataProviderBuilder);
-                    MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
+                    CATBOOST_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
                 const auto& lossFunctionDescription = catBoostOptions.LossFunctionDescription.Get();
                 if (IsPairLogit(lossFunctionDescription.GetLossFunction()) && dataProvider.GetPairs().empty()) {
@@ -545,7 +575,7 @@ namespace NCatboostCuda {
                             "Pool labels are not provided. Cannot generate pairs."
                     );
 
-                    MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
+                    CATBOOST_WARNING_LOG << "No pairs provided for learn dataset. "
                                           << "Trying to generate pairs using dataset labels." << Endl;
                     dataProviderBuilder.GeneratePairs(lossFunctionDescription);
                 }
@@ -555,8 +585,9 @@ namespace NCatboostCuda {
                 }
 
                 if (poolLoadOptions.TestSetPaths.size() > 0) {
+                    NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
                     CB_ENSURE(poolLoadOptions.TestSetPaths.size() == 1, "Multiple eval sets not supported for GPU");
-                    MATRIXNET_DEBUG_LOG << "Loading test..." << Endl;
+                    CATBOOST_DEBUG_LOG << "Loading test..." << Endl;
                     testProvider.Reset(new TDataProvider());
                     TDataProviderBuilder testBuilder(featuresManager,
                                                      *testProvider,
@@ -576,7 +607,7 @@ namespace NCatboostCuda {
                         poolLoadOptions.TestGroupWeightsFilePath,
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
-                        true,
+                        verboseReadPool,
                         &targetConverter,
                         &NPar::LocalExecutor(),
                         &testBuilder);
@@ -586,7 +617,7 @@ namespace NCatboostCuda {
                                 "Pool labels are not provided. Cannot generate pairs."
                         );
 
-                        MATRIXNET_WARNING_LOG << "No pairs provided for test dataset. "
+                        CATBOOST_WARNING_LOG << "No pairs provided for test dataset. "
                                               << "Trying to generate pairs using dataset labels." << Endl;
                         testBuilder.GeneratePairs(lossFunctionDescription);
                     }
@@ -598,8 +629,8 @@ namespace NCatboostCuda {
             SetDataDependentDefaults(dataProvider, testProvider, catBoostOptions, outputOptionsFinal, featuresManager);
 
             {
-                auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager);
-                if (coreModel.GetNumCatFeatures() == 0) {
+                auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager, nullptr);
+                if (coreModel.GetUsedCatFeaturesCount() == 0) {
                     ctrComputationMode = EFinalCtrComputationMode::Skip;
                 }
                 TOFStream modelOutput(coreModelPath);
@@ -607,11 +638,10 @@ namespace NCatboostCuda {
             }
             targetClassifiers = CreateTargetClassifiers(featuresManager);
         }
-
         NCB::TCoreModelToFullModelConverter(
             numThreads,
             ctrComputationMode,
-            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit),
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
             /*ctrLeafCountLimit*/ Max<ui64>(),
             /*storeAllSimpleCtrs*/ false,
             catBoostOptions.CatFeatureParams
@@ -622,8 +652,13 @@ namespace NCatboostCuda {
             catBoostOptions.DataProcessingOptions->ClassNames,
             targetClassifiers
         ).Do(
-            resultModelPath
+            outputOptions.CreateResultModelFullPath(),
+            outputOptions.GetModelFormats(),
+            outputOptions.AddFileFormatExtension(),
+            &dataProvider.GetFeatureNames()
         );
+        auto modelFormat = outputOptions.GetModelFormats()[0];
+        const auto resultModelPath = NCatboostOptions::AddExtension(modelFormat, outputOptions.CreateResultModelFullPath(), outputOptions.AddFileFormatExtension());
 
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
         const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();

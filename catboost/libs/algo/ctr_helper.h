@@ -1,8 +1,9 @@
 #pragma once
 
-#include <catboost/libs/data_new/features_layout.h>
 #include "target_classifier.h"
 #include "projection.h"
+
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/metrics/metric.h>
 

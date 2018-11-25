@@ -1,8 +1,10 @@
 
 
-LIBRARY()
+PY_LIBRARY()
 
 PY_SRCS(
+    code_generator.py
+    gobuild.py
     fortran.py
     flatc.py
     pyx.py

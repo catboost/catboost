@@ -80,6 +80,8 @@ namespace NThreading {
         TIntrusivePtr<TFutureState> State;
 
     public:
+        using value_type = T;
+
         TFuture();
         TFuture(const TFuture<T>& other);
         TFuture(const TIntrusivePtr<TFutureState>& state);
@@ -123,6 +125,8 @@ namespace NThreading {
         TIntrusivePtr<TFutureState> State;
 
     public:
+        using value_type = void;
+
         TFuture();
         TFuture(const TFuture<void>& other);
         TFuture(const TIntrusivePtr<TFutureState>& state);
@@ -151,6 +155,9 @@ namespace NThreading {
         template <typename R>
         TFuture<R> Return(const R& value) const;
 
+        TFuture<void> IgnoreResult() const {
+            return *this;
+        }
     private:
         void EnsureInitialized() const;
     };

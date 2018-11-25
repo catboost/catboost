@@ -40,7 +40,7 @@ namespace NYT {
 
                 while (!(TBase::IsFinished() && TBase::IsEmpty())) {
                     if (TBase::template SkipSpaceAndGetChar<true>() != EndSymbol) {
-                        ythrow TYsonException() << Sprintf("Stray '%c' found", *TBase::Begin());
+                        ythrow TYsonException() << "Stray '" << (*TBase::Begin()) << "' found";
                     } else if (!TBase::IsEmpty()) {
                         TBase::Advance(1);
                     }
@@ -163,7 +163,7 @@ namespace NYT {
                                 Consumer->OnDoubleScalar(TBase::template ReadNanOrInf<AllowFinish>());
                             }
                         } else {
-                            ythrow TYsonException() << Sprintf("Unexpected '%c' while parsing node", ch);
+                            ythrow TYsonException() << "Unexpected '" << ch << "' while parsing node";
                         }
                     }
                 }
@@ -195,7 +195,7 @@ namespace NYT {
                             TBase::ReadUnquotedString(&value);
                             Consumer->OnKeyedItem(value);
                         } else {
-                            ythrow TYsonException() << Sprintf("Unexpected '%c' while parsing key", ch);
+                            ythrow TYsonException() << "Unexpected '" << ch << "' while parsing key";
                         }
                     }
                 }
@@ -210,7 +210,7 @@ namespace NYT {
                     if (ch == KeyValueSeparatorSymbol) {
                         TBase::Advance(1);
                     } else {
-                        ythrow TYsonException() << Sprintf("Expected '%c' but '%c' found", KeyValueSeparatorSymbol, ch);
+                        ythrow TYsonException() << "Expected '" << KeyValueSeparatorSymbol << "' but '" << ch << "' found";
                     }
                     ParseNode<AllowFinish>();
                     ch = TBase::template SkipSpaceAndGetChar<AllowFinish>();
@@ -218,8 +218,8 @@ namespace NYT {
                         TBase::Advance(1);
                         ch = TBase::template SkipSpaceAndGetChar<AllowFinish>();
                     } else if (ch != endSymbol) {
-                        ythrow TYsonException() << Sprintf("Expected '%c' or '%c' but '%c' found",
-                                                           KeyedItemSeparatorSymbol, endSymbol, ch);
+                        ythrow TYsonException() << "Expected '" << KeyedItemSeparatorSymbol
+                                                << "' or '" << endSymbol << "' but '" << ch << "' found";
                     }
                 }
             }
@@ -246,8 +246,8 @@ namespace NYT {
                     TBase::Advance(1);
                     return true;
                 } else if (ch != endSymbol) {
-                    ythrow TYsonException() << Sprintf("Expected '%c' or '%c' but '%c' found",
-                                                       ListItemSeparatorSymbol, endSymbol, ch);
+                    ythrow TYsonException() << "Expected '" << ListItemSeparatorSymbol
+                                            << "' or '" << endSymbol << "' but '" << ch << "' found";
                 }
                 return false;
             }
@@ -273,7 +273,7 @@ namespace NYT {
                         value = FromString<double>(valueBuffer);
                     } catch (yexception& e) {
                         // This exception is wrapped in parser.
-                        ythrow TYsonException() << Sprintf("Failed to parse double literal '%s'", ~TString(valueBuffer)) << e;
+                        ythrow TYsonException() << "Failed to parse double literal '" << valueBuffer << "'" << e;
                     }
                     Consumer->OnDoubleScalar(value);
                 } else if (numericResult == ENumericResult::Int64) {
@@ -282,7 +282,7 @@ namespace NYT {
                         value = FromString<i64>(valueBuffer);
                     } catch (yexception& e) {
                         // This exception is wrapped in parser.
-                        ythrow TYsonException() << Sprintf("Failed to parse int64 literal '%s'", ~TString(valueBuffer)) << e;
+                        ythrow TYsonException() << "Failed to parse int64 literal '" << valueBuffer << "'" << e;
                     }
                     Consumer->OnInt64Scalar(value);
                 } else if (numericResult == ENumericResult::Uint64) {
@@ -291,7 +291,7 @@ namespace NYT {
                         value = FromString<ui64>(valueBuffer.SubStr(0, valueBuffer.size() - 1));
                     } catch (yexception& e) {
                         // This exception is wrapped in parser.
-                        ythrow TYsonException() << Sprintf("Failed to parse uint64 literal '%s'", ~TString(valueBuffer)) << e;
+                        ythrow TYsonException() << "Failed to parse uint64 literal '" << valueBuffer << "'" << e;
                     }
                     Consumer->OnUint64Scalar(value);
                 }

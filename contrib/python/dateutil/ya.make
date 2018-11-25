@@ -1,4 +1,4 @@
-LIBRARY(dateutil)
+PY23_LIBRARY(dateutil)
 
 LICENSE(
     BSD

@@ -8,6 +8,7 @@ from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import Sequence, defaultdict
+import functools
 
 import numpy as np
 cimport numpy as np
@@ -24,12 +25,13 @@ from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
+from util.generic.hash cimport THashMap
+from util.generic.maybe cimport TMaybe
+from util.generic.ptr cimport THolder
 from util.generic.string cimport TString
 from util.generic.vector cimport TVector
-from util.generic.maybe cimport TMaybe
-from util.generic.hash cimport THashMap
 from util.system.types cimport ui8, ui32, ui64
-from util.generic.ptr cimport THolder
+from util.string.cast cimport StrToD, TryFromString
 
 
 class _NumpyAwareEncoder(JSONEncoder):
@@ -70,6 +72,7 @@ cdef extern from "util/generic/strbuf.h":
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
     cdef void RestoreOriginalLogger()
+    cdef void ResetTraceBackend(const TString&)
 
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
@@ -165,6 +168,12 @@ cdef extern from "catboost/libs/algo/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
 
+
+cdef extern from "catboost/libs/model/ctr_provider.h":
+    cdef cppclass ECtrTableMergePolicy:
+        pass
+
+
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TCatFeature:
         int FeatureIndex
@@ -183,7 +192,7 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
-        void Truncate(size_t begin, size_t end) except +ProcessException
+        void DropUnusedFeatures() except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -191,15 +200,10 @@ cdef extern from "catboost/libs/model/model.h":
         THashMap[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
+        void Truncate(size_t begin, size_t end) except +ProcessException
 
     cdef cppclass EModelType:
         pass
-
-    cdef EModelType EModelType_Catboost "EModelType::CatboostBinary"
-    cdef EModelType EModelType_CoreML "EModelType::AppleCoreML"
-    cdef EModelType EModelType_CPP "EModelType::CPP"
-    cdef EModelType EModelType_Python "EModelType::Python"
-    cdef EModelType EModelType_JSON "EModelType::json"
 
     cdef void ExportModel(
         const TFullModel& model,
@@ -216,6 +220,11 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+
+ctypedef const TFullModel* TFullModel_const_ptr
+
+cdef extern from "catboost/libs/model/model.h":
+    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], TVector[double], ECtrTableMergePolicy) nogil except +ProcessException
 
 cdef extern from "catboost/libs/data/pool.h":
     cdef cppclass TDocumentStorage:
@@ -295,7 +304,8 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
 cdef extern from "catboost/libs/options/enum_helpers.h":
-    cdef bool_t IsClassificationLoss(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
@@ -352,6 +362,14 @@ cdef extern from "catboost/libs/options/check_train_options.h":
 cdef extern from "catboost/libs/options/json_helper.h":
     cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
 
+cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
+    cdef cppclass TMetricsAndTimeLeftHistory:
+        TVector[THashMap[TString, double]] LearnMetricsHistory
+        TVector[TVector[THashMap[TString, double]]] TestMetricsHistory
+        TMaybe[size_t] BestIteration
+        THashMap[TString, double] LearnBestError
+        TVector[THashMap[TString, double]] TestBestError
+
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
         const TJsonValue& params,
@@ -360,7 +378,8 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TClearablePoolPtrs& clearablePoolPtrs,
         const TString& outputModelPath,
         TFullModel* model,
-        const TVector[TEvalResult*]& testApproxes
+        const TVector[TEvalResult*]& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
@@ -511,12 +530,9 @@ cdef extern from "catboost/libs/helpers/wx_test.h":
         double PValue
     cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
 
-cdef extern from "util/string/cast.h":
-    cdef double StrToD(const char* b, char** se)
-
 cdef float _FLOAT_NAN = float('nan')
 
-cdef extern from "catboost/libs/data/doc_pool_data_provider.h" namespace "NCB":
+cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB":
     int IsNanValue(const TStringBuf& s)
 
 cdef inline float _FloatOrNanFromString(char* s) except *:
@@ -743,21 +759,12 @@ cdef class PyPredictionType:
         else:
             self.predictionType = EPredictionType_RawFormulaVal
 
-cdef class PyModelType:
-    cdef EModelType modelType
-    def __init__(self, model_type):
-        if model_type == 'coreml':
-            self.modelType = EModelType_CoreML
-        elif model_type == 'cpp':
-            self.modelType = EModelType_CPP
-        elif model_type == 'python':
-            self.modelType = EModelType_Python
-        elif model_type == 'json':
-            self.modelType = EModelType_JSON
-        elif model_type == 'cbm' or model_type == 'catboost':
-            self.modelType = EModelType_Catboost
-        else:
-            raise CatboostError("Unknown model type {}.".format(model_type))
+cdef EModelType string_to_model_type(model_type_str) except *:
+    cdef EModelType model_type
+    if not TryFromString[EModelType](to_binary_str(model_type_str), model_type):
+        raise CatboostError("Unknown model type {}.".format(model_type_str))
+    return model_type
+
 
 cdef class _PreprocessParams:
     cdef TJsonValue tree
@@ -773,6 +780,9 @@ cdef class _PreprocessParams:
         devices = params.get('devices')
         if devices is not None and isinstance(devices, list):
             params['devices'] = ':'.join(map(str, devices))
+
+        params['verbose'] = int(params['verbose']) if 'verbose' in params else (
+            params['metric_period'] if 'metric_period' in params else 1)
 
         params_to_json = params
 
@@ -804,12 +814,12 @@ cdef class _PreprocessParams:
         self.tree = ReadTJsonValue(TString(<const char*>dumps_params))
 
 cdef to_binary_str(string):
-    if PY3:
+    if PY3 and hasattr(string, 'encode'):
         return string.encode()
     return string
 
 cdef to_native_str(binary):
-    if PY3:
+    if PY3 and hasattr(binary, 'decode'):
         return binary.decode()
     return binary
 
@@ -825,7 +835,7 @@ cdef inline object get_id_object_bytes_string_representation(
         Internal CatboostError is typically catched up the calling stack to provide more detailed error
         description.
     """
-    if not isinstance(id_object, string_types):
+    if not isinstance(id_object, string_types + (bytes,)):
         if isnan(id_object) or int(id_object) != id_object:
             raise CatboostError("bad object for id: {}".format(id_object))
         id_object = str(int(id_object))
@@ -1415,6 +1425,7 @@ cdef class _PoolBase:
 cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
+    cdef TMetricsAndTimeLeftHistory __metrics_history
 
     def __cinit__(self):
         self.__model = new TFullModel()
@@ -1463,7 +1474,8 @@ cdef class _CatBoost:
                     clearablePoolPtrs,
                     TString(<const char*>""),
                     self.__model,
-                    self.__test_evals
+                    self.__test_evals,
+                    &self.__metrics_history
                 )
             finally:
                 ResetPythonInterruptHandler()
@@ -1489,6 +1501,37 @@ cdef class _CatBoost:
                 test_eval.append([value for value in dereference(self.__test_evals[test_no]).GetRawValuesRef()[0][i]])
             test_evals.append(test_eval)
         return test_evals
+
+    cpdef _get_metrics_evals(self):
+        metrics_evals = defaultdict(functools.partial(defaultdict, list))
+        num_iterations = self.__metrics_history.LearnMetricsHistory.size()
+        for iter in range(num_iterations):
+            for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
+                metrics_evals["learn"][to_native_str(metric)].append(value)
+            if not self.__metrics_history.TestMetricsHistory.empty():
+                num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
+                for test in range(num_tests):
+                    for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
+                        metrics_evals["validation_" + str(test)][to_native_str(metric)].append(value)
+        return {k: dict(v) for k, v in iteritems(metrics_evals)}
+
+    cpdef _get_best_score(self):
+        if self.__metrics_history.LearnBestError.empty():
+            return {}
+        best_scores = {}
+        best_scores["learn"] = {}
+        for metric, best_error in self.__metrics_history.LearnBestError:
+            best_scores["learn"][to_native_str(metric)] = best_error
+        for testIdx in range(self.__metrics_history.TestBestError.size()):
+            best_scores["validation_" + str(testIdx)] = {}
+            for metric, best_error in self.__metrics_history.TestBestError[testIdx]:
+                best_scores["validation_" + str(testIdx)][to_native_str(metric)] = best_error
+        return best_scores
+
+    cpdef _get_best_iteration(self):
+        if self.__metrics_history.BestIteration.Defined():
+            return self.__metrics_history.BestIteration.GetRef()
+        return None
 
     cpdef _has_leaf_weights_in_model(self):
         return not self.__model.ObliviousTrees.LeafWeights.empty()
@@ -1569,11 +1612,12 @@ cdef class _CatBoost:
             dereference(self.__model),
             pool.__pool if pool else NULL,
         )
+        native_feature_ids = [to_native_str(s) for s in feature_ids]
 
         cdef TVector[TVector[double]] fstr
         cdef TVector[TVector[TVector[double]]] fstr_multi
 
-        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+        if fstr_type_name == b'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             fstr_multi = GetFeatureImportancesMulti(
                 TString(<const char*>fstr_type_name),
                 dereference(self.__model),
@@ -1585,7 +1629,7 @@ cdef class _CatBoost:
                        [
                            [value for value in fstr_multi[i][j]] for j in range(fstr_multi[i].size())
                        ] for i in range(fstr_multi.size())
-                   ], feature_ids
+                   ], native_feature_ids
         else:
             fstr = GetFeatureImportances(
                 TString(<const char*>fstr_type_name),
@@ -1594,7 +1638,7 @@ cdef class _CatBoost:
                 thread_count,
                 verbose
             )
-            return [[value for value in fstr[i]] for i in range(fstr.size())], feature_ids
+            return [[value for value in fstr[i]] for i in range(fstr.size())], native_feature_ids
 
     cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count):
         ostr_type = to_binary_str(ostr_type)
@@ -1619,17 +1663,20 @@ cdef class _CatBoost:
         return indices, scores
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
-        self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
+        self.__model.Truncate(ntree_start, ntree_end)
+
+    cpdef _base_drop_unused_features(self):
+        self.__model.ObliviousTrees.DropUnusedFeatures()
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         model_file = to_binary_str(model_file)
-        cdef EModelType modelType = PyModelType(format).modelType
+        cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(TString(<const char*>model_file), modelType)
         self.__model.Swap(tmp_model)
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
-        cdef EModelType modelType = PyModelType(format).modelType
+        cdef EModelType modelType = string_to_model_type(format)
         export_parameters = to_binary_str(export_parameters)
         output_file = to_binary_str(output_file)
         ExportModel(
@@ -1671,7 +1718,7 @@ cdef class _CatBoost:
 
     def _get_random_seed(self):
         if not self.__model.ModelInfo.has("params"):
-            return {}
+            return 0
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
@@ -1695,7 +1742,20 @@ cdef class _CatBoost:
         return _MetadataHashProxy(self)
 
     def _get_feature_names(self):
-        return GetModelUsedFeaturesNames(dereference(self.__model))
+        return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
+
+    cpdef _sum_models(self, models, weights, ctr_merge_policy):
+        cdef TVector[TFullModel_const_ptr] models_vector
+        cdef TVector[double] weights_vector
+        cdef ECtrTableMergePolicy merge_policy
+        if not TryFromString[ECtrTableMergePolicy](to_binary_str(ctr_merge_policy), merge_policy):
+            raise CatboostError("Unknown ctr table merge policy {}".format(ctr_merge_policy))
+        assert(len(models) == len(weights))
+        for model_id in range(len(models)):
+            models_vector.push_back((<_CatBoost>models[model_id]).__model)
+            weights_vector.push_back(weights[model_id])
+        cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, merge_policy)
+        self.__model.Swap(tmp_model)
 
 
 cdef class _MetadataHashProxy:
@@ -1905,6 +1965,7 @@ def _metric_description_or_str_to_str(metric_description):
         key = metric_description
     return key
 
+
 class EvalMetricsResult:
 
     def __init__(self, plots, metrics_description):
@@ -1978,6 +2039,7 @@ cdef class _MetricCalcerBase:
     def __deepcopy__(self):
         raise CatboostError('Can\'t deepcopy _MetricCalcerBase object')
 
+
 cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, thread_count):
     if (len(label_param) != len(approx_param[0])):
         raise CatboostError('Label and approx should have same sizes.')
@@ -2021,6 +2083,7 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     return EvalMetricsForUtils(label, approx, TString(<const char*> metric), weight, group_id, thread_count)
 
+
 cpdef _get_roc_curve(model, pools_list, thread_count):
     thread_count = UpdateThreadCount(thread_count)
     cdef TVector[TPool] pools
@@ -2033,6 +2096,7 @@ cpdef _get_roc_curve(model, pools_list, thread_count):
     fpr = np.array([point.FalsePositiveRate for point in curve])
     thresholds = np.array([point.Boundary for point in curve])
     return fpr, tpr, thresholds
+
 
 cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     if FPR is not None and FNR is not None:
@@ -2060,16 +2124,20 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
         return rocCurve.SelectDecisionBoundaryByFalseNegativeRate(FNR)
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
+
 log_cout = None
 log_cerr = None
+
 
 cdef void _CoutLogPrinter(const char* str, size_t len) except * with gil:
     cdef bytes bytes_str = str[:len]
     log_cout.write(to_native_str(bytes_str))
 
+
 cdef void _CerrLogPrinter(const char* str, size_t len) except * with gil:
     cdef bytes bytes_str = str[:len]
     log_cerr.write(to_native_str(bytes_str))
+
 
 cpdef _set_logger(cout, cerr):
     global log_cout
@@ -2078,14 +2146,18 @@ cpdef _set_logger(cout, cerr):
     log_cerr = cerr
     SetCustomLoggingFunction(&_CoutLogPrinter, &_CerrLogPrinter)
 
+
 cpdef _reset_logger():
     RestoreOriginalLogger()
+
 
 cpdef _configure_malloc():
     ConfigureMalloc()
 
+
 cpdef _library_init():
     LibraryInit()
+
 
 cpdef compute_wx_test(baseline, test):
     cdef TVector[double] baselineVec
@@ -2097,9 +2169,16 @@ cpdef compute_wx_test(baseline, test):
     result=WxTest(baselineVec, testVec)
     return {"pvalue" : result.PValue, "wplus":result.WPlus, "wminus":result.WMinus}
 
-cpdef is_classification_loss(loss_name):
+
+cpdef is_classification_objective(loss_name):
     loss_name = to_binary_str(loss_name)
-    return IsClassificationLoss(TString(<const char*> loss_name))
+    return IsClassificationObjective(TString(<const char*> loss_name))
+
+
+cpdef is_regression_objective(loss_name):
+    loss_name = to_binary_str(loss_name)
+    return IsRegressionObjective(TString(<const char*> loss_name))
+
 
 cpdef _check_train_params(dict params):
     params_to_check = params.copy()
@@ -2112,5 +2191,11 @@ cpdef _check_train_params(dict params):
         prep_params.customObjectiveDescriptor.Get(),
         prep_params.customMetricDescriptor.Get())
 
+
 cpdef _get_gpu_device_count():
     return GetGpuDeviceCount()
+
+
+cpdef _reset_trace_backend(file):
+    filename_binary_str = to_binary_str(file)
+    ResetTraceBackend(TString(<const char*>(filename_binary_str)))

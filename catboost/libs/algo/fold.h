@@ -3,7 +3,6 @@
 #include "target_classifier.h"
 
 #include "online_ctr.h"
-#include "approx_util.h"
 #include "projection.h"
 
 #include <catboost/libs/data_types/pair.h>
@@ -22,7 +21,6 @@ struct TRestorableFastRng64;
 
 struct TFold {
     struct TBodyTail {
-
         TBodyTail(int bodyQueryFinish,
                   int tailQueryFinish,
                   int bodyFinish,
@@ -34,12 +32,13 @@ struct TFold {
             , TailFinish(tailFinish)
             , BodySumWeight(bodySumWeight) {
         }
-        TVector<TVector<double>> Approx;
-        TVector<TVector<double>> WeightedDerivatives;
+
+        TVector<TVector<double>> Approx;  // [dim][]
+        TVector<TVector<double>> WeightedDerivatives;  // [dim][]
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
-        TVector<TVector<double>> SampleWeightedDerivatives;
-        TVector<float> PairwiseWeights;
-        TVector<float> SamplePairwiseWeights;
+        TVector<TVector<double>> SampleWeightedDerivatives;  // [dim][]
+        TVector<float> PairwiseWeights;  // [dim][]
+        TVector<float> SamplePairwiseWeights;  // [dim][]
 
         int GetBodyDocCount() const { return BodyFinish; }
 
@@ -51,7 +50,7 @@ struct TFold {
     };
 
     TVector<TQueryInfo> LearnQueriesInfo;
-    TVector<size_t> LearnPermutation; // index in original array
+    TVector<ui32> LearnPermutation; // index in original array
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;
     TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.

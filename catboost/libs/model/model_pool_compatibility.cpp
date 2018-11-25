@@ -6,11 +6,70 @@ static inline TString GetFeatureName(const TString& featureId, int featureIndex)
     return featureId == "" ? ToString(featureIndex) : featureId;
 }
 
-void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool) {
-    const int poolFeaturesCount = pool.Docs.GetEffectiveFactorCount();
+bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, const THashSet<int>& poolCatFeatureFlatIndexes, THashMap<int, int>* columnIndexesReorderMap) {
+    columnIndexesReorderMap->clear();
+    THashSet<TString> modelFeatureIdSet;
+    for (const TCatFeature& feature : model.ObliviousTrees.CatFeatures) {
+        if (!feature.UsedInModel) {
+            continue;
+        }
+        modelFeatureIdSet.insert(feature.FeatureId);
+    }
+    for (const TFloatFeature& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
+        modelFeatureIdSet.insert(floatFeature.FeatureId);
+    }
+    size_t featureNameIntersection = 0;
+    THashMap<TString, int> poolFeatureNamesMap;
+    for (int i = 0; i < pool.FeatureId.ysize(); ++i) {
+        featureNameIntersection += modelFeatureIdSet.has(pool.FeatureId[i]);
+        poolFeatureNamesMap[pool.FeatureId[i]] = i;
+    }
+    // if we have unique feature names for all features in model and in pool we can fill column index reordering map if needed
+    if (modelFeatureIdSet.size() != model.GetUsedCatFeaturesCount() + model.GetUsedFloatFeaturesCount() ||
+        poolFeatureNamesMap.ysize() != pool.GetFactorCount() ||
+        featureNameIntersection != modelFeatureIdSet.size()
+        ) {
+        return false;
+    }
+    bool needRemapping = false;
+    for (const TCatFeature& feature : model.ObliviousTrees.CatFeatures) {
+        if (!feature.UsedInModel) {
+            continue;
+        }
+        const auto poolFlatFeatureIndex = poolFeatureNamesMap.at(feature.FeatureId);
+        CB_ENSURE(poolCatFeatureFlatIndexes.has(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is categorical in model but marked as numerical in dataset");
+        (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = poolFlatFeatureIndex;
+        needRemapping |= (poolFlatFeatureIndex != feature.FlatFeatureIndex);
+    }
+    for (const TFloatFeature& feature : model.ObliviousTrees.FloatFeatures) {
+        if (!feature.UsedInModel()) {
+            continue;
+        }
+        const auto poolFlatFeatureIndex = poolFeatureNamesMap.at(feature.FeatureId);
+        CB_ENSURE(!poolCatFeatureFlatIndexes.has(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is numerical in model but marked as categorical in dataset");
+        (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = poolFlatFeatureIndex;
+        needRemapping |= (poolFlatFeatureIndex != feature.FlatFeatureIndex);
+    }
+    if (!needRemapping) {
+        columnIndexesReorderMap->clear();
+    }
+    return true;
+}
+
+void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool, THashMap<int, int>* columnIndexesReorderMap) {
     THashSet<int> poolCatFeatures(pool.CatFeatures.begin(), pool.CatFeatures.end());
+    if (CheckColumnRemappingPossible(model, pool, poolCatFeatures, columnIndexesReorderMap)) {
+        return;
+    }
+    const int poolFeaturesCount = pool.Docs.GetEffectiveFactorCount();
 
     for (const TCatFeature& catFeature : model.ObliviousTrees.CatFeatures) {
+        if (!catFeature.UsedInModel) {
+            continue;
+        }
         TString featureModelName = GetFeatureName(catFeature.FeatureId, catFeature.FlatFeatureIndex);
         CB_ENSURE(
             catFeature.FlatFeatureIndex < poolFeaturesCount,
@@ -42,6 +101,9 @@ void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool) 
     }
 
     for (const TFloatFeature& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
         TString featureModelName = GetFeatureName(floatFeature.FeatureId, floatFeature.FlatFeatureIndex);
         CB_ENSURE(
             floatFeature.FlatFeatureIndex < poolFeaturesCount,

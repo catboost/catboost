@@ -21,6 +21,24 @@ public:
 };
 
 Y_UNIT_TEST_SUITE(TMaybeTest) {
+    Y_UNIT_TEST(TestStatic) {
+        using T1 = TMaybe<int>;
+        static_assert(std::is_trivially_copy_constructible<T1>::value, "");
+        static_assert(std::is_trivially_destructible<T1>::value, "");
+
+        using T2 = TMaybe<TString*>;
+        static_assert(std::is_trivially_copy_constructible<T2>::value, "");
+        static_assert(std::is_trivially_destructible<T2>::value, "");
+
+        using T3 = TMaybe<TMaybe<double>>;
+        static_assert(std::is_trivially_copy_constructible<T3>::value, "");
+        static_assert(std::is_trivially_destructible<T3>::value, "");
+
+        using T4 = TMaybe<TString>;
+        static_assert(!std::is_trivially_copy_constructible<T4>::value, "");
+        static_assert(!std::is_trivially_destructible<T4>::value, "");
+    }
+
     Y_UNIT_TEST(TestWarning) {
         TMaybe<size_t> x;
         TStringStream ss;
@@ -118,6 +136,9 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m5 == TMaybe<int>());
         UNIT_ASSERT(m5 == Nothing());
         UNIT_ASSERT(m5 != TMaybe<int>(5));
+
+        m5 = {};
+        UNIT_ASSERT(m5.Empty());
     }
 
     Y_UNIT_TEST(TestInPlace) {
@@ -936,5 +957,35 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(testStructMaybe.Defined());
         UNIT_ASSERT_EQUAL(testStructMaybe.GetRef().From_, TestStruct::FromValue);
         UNIT_ASSERT_EQUAL(testStructMaybe.GetRef().Value_, 23);
+    }
+
+    Y_UNIT_TEST(TestMaybeConvertion) {
+        struct TSrc {};
+        struct TDst {
+            bool FromMaybeConstructorApplied;
+
+            explicit TDst(TSrc)
+                : FromMaybeConstructorApplied(false) {}
+
+            explicit TDst(TMaybe<TSrc>)
+                : FromMaybeConstructorApplied(true) {}
+
+            TDst& operator=(TSrc) {
+                FromMaybeConstructorApplied = false;
+                return *this;
+            }
+            TDst& operator=(TMaybe<TSrc>) {
+                FromMaybeConstructorApplied = true;
+                return *this;
+            }
+        };
+
+        auto m = TMaybe<TDst>(TMaybe<TSrc>());
+        UNIT_ASSERT(m.Defined());
+        UNIT_ASSERT(m->FromMaybeConstructorApplied);
+
+        m = TMaybe<TSrc>();
+        UNIT_ASSERT(m.Defined());
+        UNIT_ASSERT(m->FromMaybeConstructorApplied);
     }
 }

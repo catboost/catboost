@@ -51,8 +51,8 @@ namespace NCatboostCuda {
                                                &target);
 
         Y_VERIFY(target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice());
-        MATRIXNET_DEBUG_LOG << "Pairs count " << target.PairDer2OrWeights.GetObjectsSlice().Size() << Endl;
-        MATRIXNET_DEBUG_LOG << "Doc count " << target.Docs.GetObjectsSlice().Size() << Endl;
+        CATBOOST_DEBUG_LOG << "Pairs count " << target.PairDer2OrWeights.GetObjectsSlice().Size() << Endl;
+        CATBOOST_DEBUG_LOG << "Doc count " << target.Docs.GetObjectsSlice().Size() << Endl;
         return target;
     }
 

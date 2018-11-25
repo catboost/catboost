@@ -127,6 +127,24 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                 UNIT_ASSERT(!IsIn(indicesIterated, false)); // each index was visited
             }
         }
+
+        // test Equal
+        UNIT_ASSERT(Equal<int>(expectedSubset, arraySubset));
+
+        UNIT_ASSERT(!Equal(TConstArrayRef<int>(), arraySubset));
+
+        {
+            TVector<int> modifiedExpectedSubset = expectedSubset;
+            ++modifiedExpectedSubset.back();
+
+            UNIT_ASSERT(!Equal<int>(modifiedExpectedSubset, arraySubset));
+        }
+        {
+            TVector<int> modifiedExpectedSubset = expectedSubset;
+            modifiedExpectedSubset.push_back(11);
+
+            UNIT_ASSERT(!Equal<int>(modifiedExpectedSubset, arraySubset));
+        }
     }
 
     enum class EIterationType {
@@ -135,7 +153,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         External
     };
 
-    template<class F>
+    template <class F>
     void TestMutable(
         const TVector<int>& array,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
@@ -187,21 +205,42 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
     void TestGetSubset(
         const TVector<int>& v,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
-        const TVector<int>& expectedVSubset
+        const TVector<int>& expectedVSubset,
+        TMaybe<NPar::TLocalExecutor*> localExecutor
     ) {
         {
-            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing, localExecutor);
             UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
         }
         {
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(v, arraySubsetIndexing);
-            UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
+            TMaybe<TVector<int>> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                MakeMaybe((TConstArrayRef<int>)v),
+                arraySubsetIndexing,
+                localExecutor
+            );
+            UNIT_ASSERT(vSubset);
+            UNIT_ASSERT_EQUAL(*vSubset, expectedVSubset);
         }
         {
-            TVector<int> vEmpty;
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(vEmpty, arraySubsetIndexing);
-            UNIT_ASSERT_VALUES_EQUAL(vSubset, vEmpty);
+            TMaybe<TVector<int>> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                TMaybe<TConstArrayRef<int>>(),
+                arraySubsetIndexing,
+                localExecutor
+            );
+            UNIT_ASSERT_EQUAL(vSubset, Nothing());
         }
+    }
+
+    void TestGetSubset(
+        const TVector<int>& v,
+        const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
+        const TVector<int>& expectedVSubset
+    ) {
+        TestGetSubset(v, arraySubsetIndexing, expectedVSubset, Nothing());
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(3);
+        TestGetSubset(v, arraySubsetIndexing, expectedVSubset, &localExecutor);
     }
 
     Y_UNIT_TEST(TestFullSubset) {
@@ -227,7 +266,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 15; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 0; }));
 
-        TestGetSubset(v, arraySubsetIndexing, v);
+        TestGetSubset(v, arraySubsetIndexing, v, Nothing());
     }
 
     Y_UNIT_TEST(TestRangesSubset) {

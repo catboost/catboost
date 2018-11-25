@@ -219,7 +219,7 @@ namespace NCatboostCuda {
                                                                    testDataSetId);
                     ctrsWriter.Write(permutationDependent);
                 }
-                MATRIXNET_INFO_LOG << "Ctr computation for permutation #" << permutationId << " is finished" << Endl;
+                CATBOOST_INFO_LOG << "Ctr computation for permutation #" << permutationId << " is finished" << Endl;
             }
         }
         compressedIndexBuilder.Finish();

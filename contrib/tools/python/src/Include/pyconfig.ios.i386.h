@@ -328,7 +328,7 @@ export CONFIG_SITE="config.site"
 #define HAVE_GETC_UNLOCKED 1
 
 /* Define to 1 if you have the `getentropy' function. */
-#define HAVE_GETENTROPY 1
+// #define HAVE_GETENTROPY 1
 
 /* Define to 1 if you have the `getgroups' function. */
 #define HAVE_GETGROUPS 1

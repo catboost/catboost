@@ -14,6 +14,14 @@
         ++x;                                                            \
     } while (0)
 
+#define GETSBXC                                                         \
+    do {                                                                \
+        c *= 16;                                                        \
+        c += (x[0] >= 'A' ? ((x[0] & 0xdf) - 'A') + 10 : (x[0] - '0')); \
+        x.Skip(1);                                                      \
+    } while (0)
+
+
 namespace {
     class TFromHexZeroTerm {
     public:
@@ -32,8 +40,8 @@ namespace {
                 return '%';
             ui8 c = 0;
 
-            GETXC;
-            GETXC;
+            GETSBXC;
+            GETSBXC;
             return c;
         }
     };
@@ -230,7 +238,7 @@ TString CGIUnescapeRet(const TStringBuf from) {
 char* UrlUnescape(char* to, TStringBuf from) {
     while (!from.Empty()) {
         char ch = from[0];
-        ++from;
+        from.Skip(1);
         if ('%' == ch && 2 <= from.length())
             ch = TFromHexZeroTerm::x2c(from);
         *to++ = ch;

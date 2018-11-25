@@ -1,6 +1,12 @@
 #include "query_cross_entropy.h"
 #include "query_cross_entropy_kernels.h"
 
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_util/algorithm.h>
+#include <catboost/cuda/cuda_util/bootstrap.h>
+#include <catboost/cuda/cuda_util/helpers.h>
+
+
 namespace NCatboostCuda {
     TAdditiveStatistic TQueryCrossEntropy<NCudaLib::TStripeMapping>::ComputeStats(
             const TQueryCrossEntropy<NCudaLib::TStripeMapping>::TConstVec& point, double alpha) const {

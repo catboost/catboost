@@ -1,6 +1,8 @@
 #include "helpers.h"
 
+#include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/malloc/api/malloc.h>
@@ -11,7 +13,9 @@
 
 void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures) {
     auto& docStorage = pool.Docs;
-    const THashSet<int>& categFeatures = ctx->CatFeatures;
+
+    // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
+    const THashSet<int>& categFeatures = ToSigned(ctx->CatFeatures);
     const auto& floatFeatureBorderOptions = ctx->Params.DataProcessingOptions->FloatFeaturesBinarization.Get();
     const int borderCount = floatFeatureBorderOptions.BorderCount;
     const ENanMode nanMode = floatFeatureBorderOptions.NanMode;
@@ -44,11 +48,11 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, samplesToBuildBorders, borderType);
     const size_t bytesGenerateBorders = sizeof(float) * samplesToBuildBorders;
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
-    const size_t usedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit);
+    const size_t usedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit.Get());
     const i64 availableMemory = (i64)usedRamLimit - bytesUsed;
     const size_t threadCount = availableMemory > 0 ? Min(reasonCount, (ui64)availableMemory / bytesRequiredPerThread) : 1;
     if (!(usedRamLimit >= bytesUsed)) {
-        MATRIXNET_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
+        CATBOOST_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
     }
     TAtomic taskFailedBecauseOfNans = 0;
     THashSet<int> ignoredFeatureIndexes(ctx->Params.DataProcessingOptions->IgnoredFeatures->begin(), ctx->Params.DataProcessingOptions->IgnoredFeatures->end());
@@ -105,13 +109,13 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         calcOneFeatureBorder(nReason);
     }
 
-    MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
+    CATBOOST_INFO_LOG << "Borders for float features generated" << Endl;
 }
 
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
     if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
-        MATRIXNET_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
+        CATBOOST_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
     }
 #endif
 }
@@ -125,20 +129,26 @@ void CalcErrors(
     TLearnContext* ctx
 ) {
     if (learnData.GetSampleCount() > 0) {
-        TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
-        const auto& data = learnData;
         ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
-        for (int i = 0; i < errors.ysize(); ++i) {
-            const TMap<TString, TString> hints = errors[i]->GetHints();
-            if (calcAllMetrics && !skipMetricOnTrain[i]) {
-                ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().push_back(EvalErrors(
-                    ctx->LearnProgress.AvrgApprox,
-                    data.Target,
-                    data.Weights,
-                    data.QueryInfo,
-                    errors[i],
-                    &ctx->LocalExecutor
-                ));
+        if (calcAllMetrics) {
+            if (ctx->Params.SystemOptions->IsSingleHost()) {
+                TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
+                const auto& data = learnData;
+                for (int i = 0; i < errors.ysize(); ++i) {
+                    if (!skipMetricOnTrain[i]) {
+                        const auto& additiveStats = EvalErrors(
+                            ctx->LearnProgress.AvrgApprox,
+                            data.Target,
+                            data.Weights,
+                            data.QueryInfo,
+                            errors[i],
+                            &ctx->LocalExecutor
+                        );
+                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*errors[i].Get(), errors[i]->GetFinalError(additiveStats));
+                    }
+                }
+            } else {
+                MapCalcErrors(ctx);
             }
         }
     }
@@ -147,9 +157,7 @@ void CalcErrors(
 
     if (GetSampleCount(testDataPtrs) > 0) {
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
-        auto& testMetricErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
         for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-            testMetricErrors.emplace_back();
             if (testDataPtrs[testIdx] == nullptr || testDataPtrs[testIdx]->GetSampleCount() == 0) {
                 continue;
             }
@@ -161,14 +169,19 @@ void CalcErrors(
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
                 if (calcAllMetrics || i == errorTrackerMetricIdx) {
-                    testMetricErrors.back().push_back(EvalErrors(
+                    const auto& additiveStats = EvalErrors(
                         testApprox,
                         data.Target,
                         data.Weights,
                         data.QueryInfo,
                         errors[i],
                         &ctx->LocalExecutor
-                    ));
+                    );
+                    bool updateBestIteration = (i == 0) && (testIdx == testDataPtrs.size() - 1);
+                    ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(testIdx,
+                                                                          *errors[i].Get(),
+                                                                          errors[i]->GetFinalError(additiveStats),
+                                                                          updateBestIteration);
                 }
             }
         }

@@ -1,86 +1,83 @@
 package ai.catboost;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 class CatBoostJNIImpl {
-    private static final Logger logger = LoggerFactory.getLogger(CatBoostJNIImpl.class);
-
-    static {
-        try {
-            NativeLibLoader.initCatBoost();
-        } catch (Exception ex) {
-            logger.error("Failed to load native library", ex);
-            throw new RuntimeException(ex);
+    final static void checkCall(@Nullable String message) throws CatBoostError {
+        if (message != null) {
+            throw new CatBoostError(message);
         }
     }
 
-    static void checkCall(int ret) throws CatBoostException {
-        if (ret != 0) {
-            throw new CatBoostException(catBoostGetLastError());
-        }
-    }
-
-    final static native String catBoostGetLastError();
-
-    final static native int catBoostHashCatFeature(
+    @Nullable
+    final static native String catBoostHashCatFeature(
             @NotNull String catFeature,
             @NotNull int[] hash);
 
-    final static native int catBoostHashCatFeatures(
+    @Nullable
+    final static native String catBoostHashCatFeatures(
             @NotNull String[] catFeatures,
             @NotNull int[] hashes);
 
-    final static native int catBoostLoadModelFromFile(
+    @Nullable
+    final static native String catBoostLoadModelFromFile(
             @NotNull String fname,
             @NotNull long[] handle);
 
-    final static native int catBoostLoadModelFromArray(
+    @Nullable
+    final static native String catBoostLoadModelFromArray(
             @NotNull byte[] data,
             @NotNull long[] handle);
 
-    final static native int catBoostFreeModel(long handle);
+    @Nullable
+    final static native String catBoostFreeModel(long handle);
 
-    final static native int catBoostModelGetPredictionDimension(
+    @Nullable
+    final static native String catBoostModelGetPredictionDimension(
             long handle,
             @NotNull int[] classesCount);
 
-    final static native int catBoostModelGetNumericFeatureCount(
+    @Nullable
+    final static native String catBoostModelGetUsedNumericFeatureCount(
             long handle,
             @NotNull int[] numericFeatureCount);
 
-    final static native int catBoostModelGetCategoricalFeatureCount(
+    @Nullable
+    final static native String catBoostModelGetUsedCategoricalFeatureCount(
             long handle,
             @NotNull int[] catFeatureCount);
 
-    final static native int catBoostModelGetTreeCount(
+    @Nullable
+    final static native String catBoostModelGetTreeCount(
             long handle,
             @NotNull int[] treeCount);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable String[] catFeatures,
-            @NotNull double[] result);
+            @NotNull double[] predictions);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable int[] catFeatureHashes,
-            @NotNull double[] result);
+            @NotNull double[] predictions);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable String[][] catFeatures,
-            @NotNull double[] results);
+            @NotNull double[] predictions);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable int[][] catFeatureHashes,
-            @NotNull double[] results);
+            @NotNull double[] predictions);
 }

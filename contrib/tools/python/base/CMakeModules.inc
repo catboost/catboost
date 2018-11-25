@@ -122,6 +122,12 @@ IF(DARWIN OR OS_CYGWIN OR OS_IOS)
     )
 ENDIF(DARWIN OR OS_CYGWIN OR OS_IOS)
 
+IF (OS_DARWIN)
+    SRCS(
+        Mac/Modules/_scproxy.c
+    )
+ENDIF()
+
 IF (UNIX)
     ADDINCL(${PYTHON_SRC_DIR}/Modules/expat)
     SRCS(Modules/_elementtree.c

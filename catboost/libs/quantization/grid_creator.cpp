@@ -1,5 +1,7 @@
 #include "grid_creator.h"
 
+#include <util/generic/vector.h>
+
 namespace NCB {
 
     namespace {

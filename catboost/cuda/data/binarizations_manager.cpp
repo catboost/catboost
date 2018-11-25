@@ -1,7 +1,10 @@
 #include "binarizations_manager.h"
 
-#include <catboost/libs/ctr_description/ctr_type.h>
 #include <catboost/libs/options/restrictions.h>
+
+#include <util/generic/algorithm.h>
+#include <util/system/compiler.h>
+
 
 namespace NCatboostCuda {
     ENanMode TBinarizedFeaturesManager::ComputeNanMode(const float* values, ui32 size) const {

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "async_row_processor.h"
-
 #include "load_data.h"
 
+#include <catboost/libs/data_new/async_row_processor.h>
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -209,6 +208,4 @@ namespace NCB {
         TVector<int> CatFeatures;
     };
 
-
-    bool IsNanValue(const TStringBuf& s);
 }

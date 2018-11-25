@@ -1,11 +1,10 @@
-import json
 import os
 import pytest
 import re
-import shutil
 import tempfile
 import yatest.common
 import yatest.yt
+from common_helpers import *  # noqa
 
 
 def get_catboost_binary_path():
@@ -61,6 +60,11 @@ def get_cuda_setup_error():
     return None
 
 
+def run_nvidia_smi():
+    import subprocess
+    subprocess.call(['/usr/bin/nvidia-smi'])
+
+
 def execute(*args, **kwargs):
     input_data = kwargs.pop('input_data', None)
     output_data = kwargs.pop('output_data', None)
@@ -74,12 +78,24 @@ def execute(*args, **kwargs):
             pytest.xfail(reason=cuda_setup_error)
         return yatest.yt.execute(
             *args,
-            task_spec={'gpu_limit': 1},
-            operation_spec={'pool_trees': ['gpu']},
+            task_spec={
+                # temporary layers
+                'layer_paths': [
+                    '//home/codecoverage/nvidia-396.tar.gz',
+                    '//porto_layers/ubuntu-xenial-base.tar.xz',
+                ],
+                'gpu_limit': 1
+            },
+            operation_spec={
+                'pool_trees': ['gpu_geforce_1080ti'],
+                'scheduling_tag_filter': 'porto',
+            },
             input_data=input_data,
             output_data=output_data,
             # required for quantized-marked input filenames
             data_mine_strategy=yatest.yt.process.replace_mine_strategy,
+            # required for debug purposes
+            init_func=run_nvidia_smi,
             **kwargs
         )
     return yatest.common.execute(*args, **kwargs)
@@ -118,7 +134,7 @@ def execute_catboost_fit(task_type, params, devices='0', input_data=None, output
 
 
 # cd_path should be None for yt-search-proto pools
-def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=None, has_header=False):
+def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=None, has_header=False, args=None):
     calc_cmd = (
         get_catboost_binary_path(),
         'calc',
@@ -133,6 +149,9 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
         calc_cmd += ('--output-columns', ','.join(output_columns))
     if has_header:
         calc_cmd += ('--has-header',)
+    if args:
+        calc_cmd += tuple(args.strip().split())
+
     execute(calc_cmd)
 
 
@@ -149,40 +168,3 @@ def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
 
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
-
-
-def remove_time_from_json(filename):
-    with open(filename) as f:
-        log = json.load(f)
-    iterations = log['iterations']
-    for i, iter_info in enumerate(iterations):
-        del iter_info['remaining_time']
-        del iter_info['passed_time']
-    with open(filename, 'w') as f:
-        json.dump(log, f)
-    return filename
-
-
-# rewinds dst_stream to the start of the captured output so you can read it
-class DelayedTee(object):
-
-    def __init__(self, src_stream, dst_stream):
-        self.src_stream = src_stream
-        self.dst_stream = dst_stream
-
-    def __enter__(self):
-        self.src_stream.flush()
-        self._old_src_stream = os.dup(self.src_stream.fileno())
-        self._old_dst_stream_pos = self.dst_stream.tell()
-        os.dup2(self.dst_stream.fileno(), self.src_stream.fileno())
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.src_stream.flush()
-        os.dup2(self._old_src_stream, self.src_stream.fileno())
-        self.dst_stream.seek(self._old_dst_stream_pos)
-        shutil.copyfileobj(self.dst_stream, self.src_stream)
-        self.dst_stream.seek(self._old_dst_stream_pos)
-
-
-binary_path = yatest.common.binary_path
-test_output_path = yatest.common.test_output_path

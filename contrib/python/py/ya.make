@@ -1,4 +1,4 @@
-LIBRARY(py)
+PY23_LIBRARY()
 
 VERSION(1.4.30)
 

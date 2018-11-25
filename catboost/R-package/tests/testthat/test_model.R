@@ -209,7 +209,7 @@ test_that("model: save/load by R", {
   cd_path <- system.file("extdata", "adult.cd", package="catboost")
   train_pool <- catboost.load_pool(train_path, column_description=cd_path)
   test_pool <- catboost.load_pool(test_path, column_description=cd_path)
-  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss', random_seed=0)
+  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss')
 
   model <- catboost.train(train_pool, params = fit_params)
   prediction <- catboost.predict(model, test_pool)
@@ -228,7 +228,7 @@ test_that("model: saveRDS/readRDS by R", {
   cd_path <- system.file("extdata", "adult.cd", package="catboost")
   train_pool <- catboost.load_pool(train_path, column_description=cd_path)
   test_pool <- catboost.load_pool(test_path, column_description=cd_path)
-  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss', random_seed=0)
+  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss')
 
   model <- catboost.train(train_pool, params = fit_params)
   prediction <- catboost.predict(model, test_pool)

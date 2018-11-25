@@ -1,0 +1,149 @@
+#include <Python.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+
+static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
+
+#ifdef _MSC_VER
+extern char** environ;
+
+void unsetenv(const char* name) {
+    const int n = strlen(name);
+    const char** dst = environ;
+    for (const char** src = environ; *src; src++)
+        if (strncmp(*src, name, n) || (*src)[n] != '=')
+            *dst++ = *src;
+    *dst = NULL;
+}
+#endif
+
+int main(int argc, char** argv) {
+    int i, sts = 1;
+    char* oldloc = NULL;
+    wchar_t** argv_copy = NULL;
+    /* We need a second copies, as Python might modify the first one. */
+    wchar_t** argv_copy2 = NULL;
+    char* entry_point_copy = NULL;
+
+    if (argc > 0) {
+        argv_copy = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
+        argv_copy2 = PyMem_RawMalloc(sizeof(wchar_t*) * argc);
+        if (!argv_copy || !argv_copy2) {
+            fprintf(stderr, "out of memory\n");
+            goto error;
+        }
+    }
+
+    oldloc = _PyMem_RawStrdup(setlocale(LC_ALL, NULL));
+    if (!oldloc) {
+        fprintf(stderr, "out of memory\n");
+        goto error;
+    }
+
+    setlocale(LC_ALL, "");
+    for (i = 0; i < argc; i++) {
+        argv_copy[i] = Py_DecodeLocale(argv[i], NULL);
+        argv_copy2[i] = argv_copy[i];
+        if (!argv_copy[i]) {
+            fprintf(stderr, "Unable to decode the command line argument #%i\n",
+                    i + 1);
+            argc = i;
+            goto error;
+        }
+    }
+    setlocale(LC_ALL, oldloc);
+    PyMem_RawFree(oldloc);
+    oldloc = NULL;
+
+    const char* entry_point = getenv(env_entry_point);
+    if (entry_point && !strcmp(entry_point, ":main")) {
+        unsetenv(env_entry_point);
+        return Py_Main(argc, argv_copy);
+    }
+
+    if (argc >= 1)
+        Py_SetProgramName(argv_copy[0]);
+    Py_Initialize();
+
+    PySys_SetArgv(argc, argv_copy);
+
+    PyObject* py_main = NULL;
+
+    if (entry_point == NULL) {
+        PyObject* res = PyImport_ImportModule("__res");
+        if (res == NULL) {
+            PyErr_Clear();
+        } else {
+            py_main = PyObject_CallMethod(res, "find", "y", "PY_MAIN");
+
+            if (py_main == NULL) {
+                PyErr_Clear();
+            } else {
+                if (PyBytes_Check(py_main)) {
+                    entry_point = PyBytes_AsString(py_main);
+                }
+            }
+
+            Py_DECREF(res);
+        }
+    }
+
+    if (entry_point == NULL) {
+        fprintf(stderr, "No entry point, did you forget PY3_MAIN?\n");
+        goto error;
+    }
+
+    entry_point_copy = strdup(entry_point);
+    Py_XDECREF(py_main);
+    if (!entry_point_copy) {
+        fprintf(stderr, "out of memory\n");
+        goto error;
+    }
+
+    const char* module_name = entry_point_copy;
+    const char* func_name = NULL;
+
+    char *colon = strchr(entry_point_copy, ':');
+    if (colon != NULL) {
+        colon[0] = '\0';
+        func_name = colon + 1;
+    }
+
+    PyObject* module = PyImport_ImportModule(module_name);
+
+    if (module == NULL) {
+        PyErr_Print();
+    } else {
+        if (func_name) {
+            PyObject* value = PyObject_CallMethod(module, func_name, NULL);
+
+            if (value == NULL) {
+                PyErr_Print();
+            } else {
+                Py_DECREF(value);
+                sts = 0;
+            }
+        } else {
+            sts = 0;
+        }
+
+        Py_DECREF(module);
+    }
+
+    if (Py_FinalizeEx() < 0) {
+        sts = 120;
+    }
+
+error:
+    free(entry_point_copy);
+    PyMem_RawFree(argv_copy);
+    if (argv_copy2) {
+        for (i = 0; i < argc; i++)
+            PyMem_RawFree(argv_copy2[i]);
+        PyMem_RawFree(argv_copy2);
+    }
+    PyMem_RawFree(oldloc);
+    return sts;
+}

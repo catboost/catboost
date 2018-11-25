@@ -544,11 +544,6 @@ extern "C" {
  * Python/pystrtod.c for an example of their use.
  */
 
-/*
- * Disable macros below because they escape our memory sanitizer blacklist.
- * See DEVTOOLS-2248.
- */
-#ifdef _msan_enabled_
 /* get and set x87 control word for gcc/x86 */
 #ifdef HAVE_GCC_ASM_FOR_X87
 #define HAVE_PY_SET_53BIT_PRECISION 1
@@ -565,7 +560,6 @@ extern "C" {
 #define _Py_SET_53BIT_PRECISION_END                             \
     if (new_387controlword != old_387controlword)               \
         _Py_set_387controlword(old_387controlword)
-#endif
 #endif
 
 /* get and set x87 control word for VisualStudio/x86 */
@@ -697,11 +691,6 @@ extern int fclose(FILE *);
 /* From Modules/posixmodule.c */
 extern int fdatasync(int);
 #endif /* 0 */
-
-#ifdef __IOS__
-extern int getentropy();
-extern int getpagesize();
-#endif
 
 /* On 4.4BSD-descendants, ctype functions serves the whole range of
  * wchar_t character set rather than single byte code points only.

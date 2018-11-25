@@ -21,6 +21,7 @@
 #include <util/system/error.h>
 #include <util/system/mutex.h>
 #include <util/system/spinlock.h>
+#include <util/system/yassert.h>
 #include <util/thread/pool.h>
 
 #if defined(_unix_)
@@ -852,7 +853,7 @@ namespace {
                 SuggestPurgeCache();
 
                 if (ExceedHardLimit()) {
-                    Y_VERIFY(false && "neh::http2 output connections limit reached");
+                    Y_FAIL("neh::http2 output connections limit reached");
                     //ythrow yexception() << "neh::http2 output connections limit reached";
                 }
             }
@@ -1298,6 +1299,14 @@ namespace {
 
             const THttpHeaders& Headers() const override {
                 return P_->Headers();
+            }
+
+            TStringBuf Body() const override {
+                return P_->DecodedContent();
+            }
+
+            TStringBuf Cgi() const override {
+                return H_.Cgi;
             }
 
             TStringBuf RequestId() override {

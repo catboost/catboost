@@ -50,6 +50,8 @@ Y_UNIT_TEST_SUITE(THttpTest) {
                 }
                 Output().Finish();
 
+                Parent_->LastRequestSentSize_ = Output().SentSize();
+
                 return true;
             }
 
@@ -67,8 +69,13 @@ Y_UNIT_TEST_SUITE(THttpTest) {
             return new TRequest(this);
         }
 
+        size_t LastRequestSentSize() const {
+            return LastRequestSentSize_;
+        }
+
     private:
         TString Res_;
+        size_t LastRequestSentSize_ = 0;
     };
 
     Y_UNIT_TEST(TestCodings1) {
@@ -607,5 +614,49 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         out.Finish();
         TString result = outBuf.Str();
         UNIT_ASSERT(!result.Contains(AsStringBuf("0\r\n")))
+    }
+
+    size_t DoTestHttpOutputSize(const TString& res, bool enableCompession) {
+        TTestHttpServer serverImpl(res);
+        TPortManager pm;
+
+        const ui16 port = pm.GetPort();
+        THttpServer server(&serverImpl,
+                           THttpServer::TOptions(port)
+                                .EnableKeepAlive(true)
+                                .EnableCompression(enableCompession));
+        UNIT_ASSERT(server.Start());
+
+        TNetworkAddress addr("localhost", port);
+        TSocket s(addr);
+
+        {
+            TSocketOutput so(s);
+            THttpOutput out(&so);
+            out << "GET / HTTP/1.1\r\n"
+                   "Host: www.yandex.ru\r\n"
+                   "Connection: Keep-Alive\r\n"
+                   "Accept-Encoding: gzip\r\n"
+                   "\r\n";
+            out.Finish();
+        }
+
+        TSocketInput si(s);
+        THttpInput input(&si);
+
+        unsigned httpCode = ParseHttpRetCode(input.FirstLine());
+        UNIT_ASSERT_VALUES_EQUAL(httpCode, 200u);
+
+        UNIT_ASSERT_VALUES_EQUAL(res, input.ReadAll());
+
+        server.Stop();
+
+        return serverImpl.LastRequestSentSize();
+    }
+
+    Y_UNIT_TEST(TestHttpOutputSize) {
+        TString res = "qqqqqq";
+        UNIT_ASSERT_VALUES_EQUAL(res.size(), DoTestHttpOutputSize(res, false));
+        UNIT_ASSERT_VALUES_UNEQUAL(res.size(), DoTestHttpOutputSize(res, true));
     }
 } // THttpTest suite

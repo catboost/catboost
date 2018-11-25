@@ -197,7 +197,7 @@ namespace NKernel
     }
 
 
-    template<int BlockSize>
+    template <int BlockSize>
     __global__ void ScanHistogramsImpl(const TBinarizedFeature* features, int featureCount,
                                        const ui32* histIds,
                                        const int binFeatureCount,

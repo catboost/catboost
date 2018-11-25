@@ -123,7 +123,7 @@
         "ignored_features" : [ ],
         "class_weights" : [ ],
         "float_features_binarization" : {
-            "border_count" : 128,
+            "border_count" : 254,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         }
@@ -153,7 +153,6 @@
         "training_options_file" : "training_options.json",
         "train_dir" : "catboost_info",
         "thread_count" : 4,
-        "random_seed" : 0,
         "iterations" : 5
     },
     "random_seed" : 0,

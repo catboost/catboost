@@ -10,17 +10,18 @@
 
 #include <util/generic/ptr.h>
 #include <util/memory/pool.h>
+#include <util/system/info.h>
 #include <util/system/atomic.h>
 #include <util/system/spinlock.h>
 
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
-template<typename TData, typename TAlloc>
+template <typename TData, typename TAlloc>
 static inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
 
-template<typename TData, typename TAlloc>
+template <typename TData, typename TAlloc>
 static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
@@ -64,13 +65,16 @@ struct TBucketStats {
 
 static_assert(std::is_pod<TBucketStats>::value, "TBucketStats must be pod to avoid memory initialization in yresize");
 
-inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TVector<TVector<int>>& oneHotValues) {
+inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TAllFeatures& allFeatures) {
     int nonCtrBucketCount = 0;
     for (int splitCount : splitCounts) {
         nonCtrBucketCount += splitCount + 1;
     }
-    for (const auto& oneHotValue : oneHotValues) {
-        nonCtrBucketCount += oneHotValue.ysize() + 1;
+    Y_ASSERT(allFeatures.OneHotValues.size() == allFeatures.IsOneHot.size());
+    for (auto i : xrange(allFeatures.OneHotValues.size())) {
+        if (allFeatures.IsOneHot[i]) {
+            nonCtrBucketCount += allFeatures.OneHotValues[i].ysize() + 1;
+        }
     }
     return nonCtrBucketCount;
 }
@@ -81,7 +85,9 @@ struct TBucketStatsCache {
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
         InitialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * ApproxDimension * MaxBodyTailCount;
-        Y_ASSERT(InitialSize > 0);
+        if (InitialSize == 0) {
+            InitialSize = NSystemInfo::GetPageSize();
+        }
         MemoryPool = new TMemoryPool(InitialSize);
     }
     TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty);
@@ -99,7 +105,7 @@ private:
 };
 
 struct TCalcScoreFold {
-    template<typename TDataType>
+    template <typename TDataType>
     class TUnsizedVector : public TVector<TDataType> {
         size_t size() = delete;
         int ysize() = delete;
@@ -128,11 +134,11 @@ struct TCalcScoreFold {
                 clippedSlice.Size = Min(Max(newSize - Offset, 0), Size);
                 return clippedSlice;
             }
-            template<typename TData>
+            template <typename TData>
             inline TArrayRef<const TData> GetConstRef(const TVector<TData>& data) const {
                 return MakeArrayRef(GetDataPtr(data, Offset), Size);
             }
-            template<typename TData>
+            template <typename TData>
             inline TArrayRef<TData> GetRef(TVector<TData>& data) const {
                 const TSlice clippedSlice = Clip(data.ysize());
                 return MakeArrayRef(GetDataPtr(data, clippedSlice.Offset), clippedSlice.Size);
@@ -156,14 +162,16 @@ struct TCalcScoreFold {
         );
     };
     TUnsizedVector<TIndexType> Indices;
-    TUnsizedVector<size_t> LearnPermutation;
-    TUnsizedVector<size_t> IndexInFold;
+    TUnsizedVector<ui32> LearnPermutation;
+    TUnsizedVector<ui32> IndexInFold;
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
     TVector<TQueryInfo> LearnQueriesInfo;
     TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
-    int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    int NonCtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    int CtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
+
 
     void Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
@@ -186,7 +194,7 @@ private:
         }
     }
     using TSlice = TVectorSlicing::TSlice;
-    template<typename TFoldType>
+    template <typename TFoldType>
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     void SetSampledControl(int docCount, TRestorableFastRng64* rand);
@@ -201,8 +209,7 @@ private:
         TVector<TQueryInfo>* dstQueriesInfo
     );
 
-    int GetCalcStatsObjBlockSize() const;
-    void SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize);
+    void SetPermutationBlockSizeAndCalcStatsRanges(int nonCtrDataPermutationBlockSize, int ctrDataPermutationBlockSize);
 
     TUnsizedVector<bool> Control;
     int DocCount;

@@ -1,10 +1,13 @@
+
+
 PYTEST()
 
-
-
-FORK_TESTS()
+SIZE(MEDIUM)
+REQUIREMENTS(network:full)
 
 FORK_SUBTESTS()
+
+NO_CHECK_IMPORTS(widget.ipythonwidget)
 
 PEERDIR(
     contrib/python/pandas
@@ -20,12 +23,6 @@ TEST_SRCS(
     test_whl.py
 )
 
-REQUIREMENTS(network:full)
-
-NO_CHECK_IMPORTS(widget.ipythonwidget)
-
-SIZE(MEDIUM)
-
 DATA(
     arcadia/catboost/pytest/data
     arcadia/catboost/python-package
@@ -36,7 +33,5 @@ DEPENDS(
     catboost/python-package/catboost/no_cuda
     catboost/python-package/ut/medium/python_binary
 )
-
-ALLOCATOR(LF)
 
 END()

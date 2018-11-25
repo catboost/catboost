@@ -1,12 +1,18 @@
 #include "cat_feature_options.h"
-#include <util/string/cast.h>
+#include "json_helper.h"
+#include "restrictions.h"
+
 #include <util/charset/utf8.h>
+#include <util/generic/maybe.h>
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
 
-struct TCtrParam {
-    TString Name;
-    TString Value;
-};
+namespace {
+    struct TCtrParam {
+        TString Name;
+        TString Value;
+    };
+}
 
 template <>
 inline TCtrParam FromString<TCtrParam>(const TStringBuf& paramBuf) {
@@ -17,7 +23,7 @@ inline TCtrParam FromString<TCtrParam>(const TStringBuf& paramBuf) {
     return param;
 }
 
-inline TVector<float> ParsePriors(const TString& priors) {
+static TVector<float> ParsePriors(const TStringBuf priors) {
     TVector<float> result;
     for (const auto& t : StringSplitter(priors).Split('/')) {
         const auto entry = FromString<float>(t.Token());
@@ -26,67 +32,247 @@ inline TVector<float> ParsePriors(const TString& priors) {
     return result;
 }
 
-namespace NCatboostOptions {
-    NJson::TJsonValue ParseCtrDescription(const TString& description) {
-        TStringBuf ctrStringDescription = description;
+NJson::TJsonValue NCatboostOptions::ParseCtrDescription(TStringBuf ctrStringDescription) {
+    ECtrType type;
+    GetNext<ECtrType>(ctrStringDescription, ':', type);
 
-        ECtrType type;
-        GetNext<ECtrType>(ctrStringDescription, ':', type);
+    TSet<TString> seenParams;
+    TMaybe<TCtrParam> param;
+    GetNext<TCtrParam>(ctrStringDescription, ':', param);
+    NJson::TJsonValue ctrJson;
+    ctrJson["ctr_type"] = ToString(type);
 
-        TSet<TString> seenParams;
-        TMaybe<TCtrParam> param;
+    TVector<NJson::TJsonValue> priors;
+    while (param.Defined()) {
+        auto name = ToLowerUTF8(param->Name);
+        if (name == "targetbordertype") {
+            CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
+            CB_ENSURE(type != ECtrType::Counter && type != ECtrType::FeatureFreq, "Target borders options are unsupported for counter ctr");
+            ctrJson["target_borders"]["border_type"] = param->Value;
+        } else if (name == "targetbordercount") {
+            CB_ENSURE(type != ECtrType::Counter && type != ECtrType::FeatureFreq, "Target borders options are unsupported for counter ctr");
+            CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
+            ctrJson["target_borders"]["border_count"] = FromString<ui32>(param->Value);
+        } else if (name == "ctrbordertype") {
+            CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
+            ctrJson["ctr_borders"]["border_type"] = param->Value;
+        } else if (name == "ctrbordercount") {
+            CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
+            ctrJson["ctr_borders"]["border_count"] = FromString<ui32>(param->Value);
+        } else if (name == "prior") {
+            auto priorParams = ParsePriors(param->Value);
+            NJson::TJsonValue jsonPrior(NJson::JSON_ARRAY);
+            for (const auto& entry : priorParams) {
+                jsonPrior.AppendValue(entry);
+            }
+            priors.push_back(jsonPrior);
+        } else if (name == "priorestimation") {
+            CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
+            ctrJson["prior_estimation"] = param->Value;
+        } else {
+            ythrow TCatboostException() << "Unknown ctr param name: " << param->Name;
+        }
+        seenParams.insert(name);
         GetNext<TCtrParam>(ctrStringDescription, ':', param);
-        NJson::TJsonValue ctrJson;
-        ctrJson["ctr_type"] = ToString<ECtrType>(type);
-
-        TVector<NJson::TJsonValue> priors;
-        while (param.Defined()) {
-            auto name = ToLowerUTF8(param->Name);
-            if (name == "targetbordertype") {
-                CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-                CB_ENSURE(type != ECtrType::Counter && type != ECtrType::FeatureFreq, "Target borders options are unsupported for counter ctr");
-                ctrJson["target_borders"]["border_type"] = param->Value;
-            } else if (name == "targetbordercount") {
-                CB_ENSURE(type != ECtrType::Counter && type != ECtrType::FeatureFreq, "Target borders options are unsupported for counter ctr");
-                CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-                ctrJson["target_borders"]["border_count"] = FromString<ui32>(param->Value);
-            } else if (name == "ctrbordertype") {
-                CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-                ctrJson["ctr_borders"]["border_type"] = param->Value;
-            } else if (name == "ctrbordercount") {
-                CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-                ctrJson["ctr_borders"]["border_count"] = FromString<ui32>(param->Value);
-            } else if (name == "prior") {
-                auto priorParams = ParsePriors(param->Value);
-                NJson::TJsonValue jsonPrior(NJson::JSON_ARRAY);
-                for (const auto& entry : priorParams) {
-                    jsonPrior.AppendValue(entry);
-                }
-                priors.push_back(jsonPrior);
-            } else if (name == "priorestimation") {
-                CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-                ctrJson["prior_estimation"] = param->Value;
-            } else {
-                ythrow TCatboostException() << "Unknown ctr param name: " << param->Name;
-            }
-            seenParams.insert(name);
-            GetNext<TCtrParam>(ctrStringDescription, ':', param);
-        }
-        if (priors.size()) {
-            for (const auto& prior : priors) {
-                ctrJson["priors"].AppendValue(prior);
-            }
-        }
-        return ctrJson;
     }
-
-    std::pair<ui32, NJson::TJsonValue> ParsePerFeatureCtrDescription(const TString& description) {
-        TStringBuf ctrStringDescription = description;
-        ui32 featureId;
-        GetNext<ui32>(ctrStringDescription, ':', featureId);
-        std::pair<ui32, NJson::TJsonValue> perFeatureCtr;
-        perFeatureCtr.first = featureId;
-        perFeatureCtr.second = ParseCtrDescriptions(TString(ctrStringDescription));
-        return perFeatureCtr;
+    if (priors.size()) {
+        for (const auto& prior : priors) {
+            ctrJson["priors"].AppendValue(prior);
+        }
     }
+    return ctrJson;
+}
+
+NJson::TJsonValue
+NCatboostOptions::ParseCtrDescriptions(const TStringBuf description) {
+    NJson::TJsonValue ctrs(NJson::JSON_ARRAY);
+    for (const auto oneCtrConfig : StringSplitter(description).Split(',').SkipEmpty()) {
+        ctrs.AppendValue(ParseCtrDescription(oneCtrConfig.Token()));
+    }
+    CB_ENSURE(!ctrs.GetArray().empty(), "Empty ctr description " << description);
+    return ctrs;
+}
+
+std::pair<ui32, NJson::TJsonValue>
+NCatboostOptions::ParsePerFeatureCtrDescription(TStringBuf ctrStringDescription) {
+    ui32 featureId;
+    GetNext<ui32>(ctrStringDescription, ':', featureId);
+    std::pair<ui32, NJson::TJsonValue> perFeatureCtr;
+    perFeatureCtr.first = featureId;
+    perFeatureCtr.second = ParseCtrDescriptions(ctrStringDescription);
+    return perFeatureCtr;
+}
+
+NJson::TJsonValue NCatboostOptions::ParsePerFeatureCtrs(const TStringBuf description) {
+    NJson::TJsonValue perFeaturesCtrsMap(NJson::JSON_MAP);
+
+    for (const auto& onePerFeatureCtrConfig : StringSplitter(description).Split(';')) {
+        auto perFeatureCtr = ParsePerFeatureCtrDescription(onePerFeatureCtrConfig.Token());
+        perFeaturesCtrsMap[ToString(perFeatureCtr.first)] = perFeatureCtr.second;
+    }
+    return perFeaturesCtrsMap;
+}
+
+TVector<NCatboostOptions::TPrior> NCatboostOptions::GetDefaultPriors(const ECtrType ctrType) {
+    switch (ctrType) {
+        case ECtrType::Borders:
+        case ECtrType::Buckets:
+        case ECtrType::BinarizedTargetMeanValue: {
+            return {{0, 1},
+                    {0.5, 1},
+                    {1, 1}};
+        }
+        case ECtrType::FeatureFreq:
+        case ECtrType::Counter: {
+            return {{0.0, 1}};
+        }
+        case ECtrType::FloatTargetMeanValue: {
+            return {{0, 1}};
+        }
+        default: {
+            ythrow TCatboostException() << "Unknown ctr type " << ctrType;
+        }
+    }
+}
+
+NCatboostOptions::TCtrDescription::TCtrDescription(
+    const ECtrType type,
+    TVector<TPrior> priors,
+    TBinarizationOptions ctrBinarization,
+    TBinarizationOptions targetBinarization)
+    : Type("ctr_type", type)
+    , Priors("priors", std::move(priors))
+    , CtrBinarization("ctr_borders", std::move(ctrBinarization))
+    , TargetBinarization("target_borders", std::move(targetBinarization))
+    , PriorEstimation("prior_estimation", EPriorEstimation::No)
+{
+    DisableRedundantFields();
+}
+
+NCatboostOptions::TCtrDescription::TCtrDescription(
+    const ECtrType type,
+    TVector<TPrior> priors,
+    TBinarizationOptions ctrBinarization)
+    : TCtrDescription(
+        type,
+        std::move(priors),
+        std::move(ctrBinarization),
+        TBinarizationOptions(EBorderSelectionType::MinEntropy, 1)) {
+}
+
+NCatboostOptions::TCtrDescription::TCtrDescription(const ECtrType type, TVector<TPrior> priors)
+    : TCtrDescription(
+        type,
+        std::move(priors),
+        TBinarizationOptions(EBorderSelectionType::Uniform, 15)) {
+}
+
+NCatboostOptions::TCtrDescription::TCtrDescription(const ECtrType type)
+    : TCtrDescription(type, {}) {
+}
+NCatboostOptions::TCtrDescription::TCtrDescription()
+    : TCtrDescription(ECtrType::Borders, {}) {
+}
+
+void NCatboostOptions::TCtrDescription::SetPriors(const TVector<TPrior>& priors) {
+    return Priors.Set(priors);
+}
+
+bool NCatboostOptions::TCtrDescription::ArePriorsSet() const {
+    return Priors.IsSet();
+}
+
+
+void NCatboostOptions::TCtrDescription::Load(const NJson::TJsonValue& options) {
+    CheckedLoad(options, &Type, &Priors, &CtrBinarization, &TargetBinarization, &PriorEstimation);
+    DisableRedundantFields();
+}
+
+void NCatboostOptions::TCtrDescription::Save(NJson::TJsonValue* options) const {
+    SaveFields(options, Type, Priors, CtrBinarization, TargetBinarization, PriorEstimation);
+}
+
+bool NCatboostOptions::TCtrDescription::operator==(const TCtrDescription& rhs) const {
+    return std::tie(Type, Priors, CtrBinarization, TargetBinarization, PriorEstimation) ==
+        std::tie(rhs.Type, rhs.Priors, rhs.CtrBinarization, rhs.TargetBinarization, rhs.PriorEstimation);
+}
+
+bool NCatboostOptions::TCtrDescription::operator!=(const TCtrDescription& rhs) const {
+    return !(rhs == *this);
+}
+
+const TVector<NCatboostOptions::TPrior>& NCatboostOptions::TCtrDescription::GetPriors() const {
+    return Priors.Get();
+}
+
+const NCatboostOptions::TBinarizationOptions& NCatboostOptions::TCtrDescription::GetCtrBinarization() const {
+    return CtrBinarization.Get();
+}
+
+void NCatboostOptions::TCtrDescription::DisableRedundantFields() {
+    const ECtrType ctrType = Type;
+    if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+        TargetBinarization.SetDisabledFlag(true);
+    } else {
+        TargetBinarization->DisableNanModeOption();
+    }
+    CtrBinarization->DisableNanModeOption();
+}
+
+NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
+    : SimpleCtrs("simple_ctrs", TVector<TCtrDescription>())
+    , CombinationCtrs("combinations_ctrs", TVector<TCtrDescription>())
+    , PerFeatureCtrs("per_feature_ctrs", TMap<ui32, TVector<TCtrDescription>>())
+    , MaxTensorComplexity("max_ctr_complexity", 4)
+    , OneHotMaxSize("one_hot_max_size", 2)
+    , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
+    , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
+    , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
+    , TargetBorders("target_borders", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1), taskType)
+{
+    TargetBorders.GetUnchecked().DisableNanModeOption();
+}
+
+void NCatboostOptions::TCatFeatureParams::Load(const NJson::TJsonValue& options) {
+    CheckedLoad(options,
+            &SimpleCtrs, &CombinationCtrs, &PerFeatureCtrs, &MaxTensorComplexity, &OneHotMaxSize, &CounterCalcMethod,
+            &StoreAllSimpleCtrs, &CtrLeafCountLimit, &TargetBorders);
+    Validate();
+}
+
+void NCatboostOptions::TCatFeatureParams::Save(NJson::TJsonValue* options) const {
+    SaveFields(options,
+            SimpleCtrs, CombinationCtrs, PerFeatureCtrs, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
+            StoreAllSimpleCtrs, CtrLeafCountLimit, TargetBorders);
+}
+
+bool NCatboostOptions::TCatFeatureParams::operator==(const TCatFeatureParams& rhs) const {
+    return std::tie(SimpleCtrs, CombinationCtrs, PerFeatureCtrs, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
+            StoreAllSimpleCtrs, CtrLeafCountLimit, TargetBorders) ==
+        std::tie(rhs.SimpleCtrs, rhs.CombinationCtrs, rhs.PerFeatureCtrs, rhs.MaxTensorComplexity, rhs.OneHotMaxSize,
+                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit, rhs.TargetBorders);
+}
+
+bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rhs) const {
+    return !(rhs == *this);
+}
+
+void NCatboostOptions::TCatFeatureParams::Validate() const {
+    CB_ENSURE(OneHotMaxSize.Get() <= GetMaxBinCount(),
+            "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
+    const ui32 ctrComplexityLimit = GetMaxTreeDepth();
+    CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
+            "Error: max ctr complexity should be less then " << ctrComplexityLimit);
+    if (!CtrLeafCountLimit.IsUnimplementedForCurrentTask()) {
+        CB_ENSURE(CtrLeafCountLimit.Get() > 0,
+                "Error: ctr_leaf_count_limit must be positive");
+    }
+}
+
+void NCatboostOptions::TCatFeatureParams::AddSimpleCtrDescription(const TCtrDescription& description) {
+    SimpleCtrs->push_back(description);
+}
+
+void NCatboostOptions::TCatFeatureParams::AddTreeCtrDescription(const TCtrDescription& description) {
+    CombinationCtrs->push_back(description);
 }

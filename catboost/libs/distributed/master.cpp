@@ -9,7 +9,7 @@
 
 using namespace NCatboostDistributed;
 
-template<typename TData>
+template <typename TData>
 static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pair<ui32, ui32>& part) {
     const size_t columnSize = column.size();
     if ((size_t)part.first >= columnSize) {
@@ -19,7 +19,7 @@ static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pai
     return TVector<TData>(columnBegin + part.first, columnBegin + Min((size_t)part.second, columnSize));
 }
 
-template<typename TData>
+template <typename TData>
 static TVector<TVector<TData>> GetWorkerPart(const TVector<TVector<TData>>& masterTable, const std::pair<ui32, ui32>& part) {
     TVector<TVector<TData>> workerPart;
     workerPart.reserve(masterTable.ysize());
@@ -109,6 +109,13 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
     NJson::TJsonValue jsonParams;
     ctx->Params.Save(&jsonParams);
+    const auto& metricOptions = ctx->Params.MetricOptions;
+    if (metricOptions->EvalMetric.NotSet()) { // workaround for NotSet + Save + Load = DefaultValue
+        if (ctx->Params.LossFunctionDescription->GetLossFunction() != metricOptions->EvalMetric->GetLossFunction()) { // skip only if default metric differs from loss function
+            const auto& evalMetric = metricOptions->EvalMetric;
+            jsonParams[metricOptions.GetName()][evalMetric.GetName()][evalMetric->LossParams.GetName()].InsertValue("hints", "skip_train~true");
+        }
+    }
     const TString stringParams = ToString(jsonParams);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
         ctx->SharedTrainData->SetContextData(workerIdx,
@@ -127,6 +134,14 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     ApplyMapper<TPlainFoldBuilder>(workerCount, ctx->SharedTrainData);
 }
 
+void MapRestoreApproxFromTreeStruct(TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+    ApplyMapper<TApproxReconstructor>(
+        ctx->RootEnvironment->GetSlaveCount(),
+        ctx->SharedTrainData,
+        MakeEnvelope(std::make_pair(ctx->LearnProgress.TreeStruct, ctx->LearnProgress.LeafValues)));
+}
+
 void MapTensorSearchStart(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     ApplyMapper<TTensorSearchStarter>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
@@ -137,11 +152,11 @@ void MapBootstrap(TLearnContext* ctx) {
     ApplyMapper<TBootstrapMaker>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
 }
 
-template<typename TScoreCalcMapper, typename TGetScore>
+template <typename TScoreCalcMapper, typename TGetScore>
 void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<typename TScoreCalcMapper::TOutput> allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateList>(*candidateList));
+    auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(workerCount, ctx->SharedTrainData, MakeEnvelope(*candidateList));
     const int candidateCount = candidateList->ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
     // set best split for each candidate
@@ -195,7 +210,7 @@ void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, T
     MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidateList, ctx);
 }
 
-template<typename TBinCalcMapper, typename TScoreCalcMapper>
+template <typename TBinCalcMapper, typename TScoreCalcMapper>
 void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     NPar::TJobDescription job;
@@ -224,7 +239,7 @@ void MapRemoteCalcScore(double scoreStDev, int /*depth*/, TCandidateList* candid
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateInfo>(bestSplitCandidate));
+    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, MakeEnvelope(bestSplitCandidate));
 }
 
 int MapGetRedundantSplitIdx(TLearnContext* ctx) {
@@ -237,4 +252,35 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
         }
     }
     return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0].Data);
+}
+
+void MapCalcErrors(TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+    const size_t workerCount = ctx->RootEnvironment->GetSlaveCount();
+    auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData); // poll workers
+    Y_ASSERT(additiveStatsFromAllWorkers.size() == workerCount);
+
+    auto& additiveStats = additiveStatsFromAllWorkers[0];
+    for (size_t workerIdx : xrange<size_t>(1, workerCount)) {
+        const auto& workerAdditiveStats = additiveStatsFromAllWorkers[workerIdx];
+        for (auto& [description, stats] : additiveStats) {
+            Y_ASSERT(workerAdditiveStats.has(description));
+            stats.Add(workerAdditiveStats.at(description));
+        }
+    }
+
+    const auto metrics = CreateMetrics(
+        ctx->Params.LossFunctionDescription,
+        ctx->Params.MetricOptions,
+        ctx->EvalMetricDescriptor,
+        ctx->LearnProgress.ApproxDimension
+    );
+    const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
+    Y_VERIFY(Accumulate(skipMetricOnTrain.begin(), skipMetricOnTrain.end(), 0) + additiveStats.size() == metrics.size());
+    for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
+        if (!skipMetricOnTrain[metricIdx] && metrics[metricIdx]->IsAdditiveMetric()) {
+            const auto description = metrics[metricIdx]->GetDescription();
+            ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*metrics[metricIdx].Get(), metrics[metricIdx]->GetFinalError(additiveStats[description]));
+        }
+    }
 }

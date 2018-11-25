@@ -124,7 +124,7 @@ namespace NLastGetopt {
         if (opt->GetHasArg() == NO_ARGUMENT) {
             return Commit(opt, nullptr, pos, p);
         }
-        return Commit(opt, arg + p, pos + 1, 0);
+        return Commit(opt, arg.SubStr(p), pos + 1, 0);
     }
 
     bool TOptsParser::ParseShortOptArg(size_t pos) {

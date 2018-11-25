@@ -1,10 +1,20 @@
 #include "preprocess.h"
 
-#include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/loggers/catboost_logger_helpers.h>
-#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/helpers/binarize_target.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/enum_helpers.h>
+
+#include <library/json/json_reader.h>
+
+#include <util/generic/algorithm.h>
+#include <util/string/cast.h>
+#include <util/system/fs.h>
+
 
 static int CountGroups(const TVector<TGroupId>& queryIds) {
     if (queryIds.empty()) {
@@ -70,7 +80,7 @@ void CheckTrainTarget(const TVector<float>& target, ELossFunction lossFunction, 
 
 static void CheckTrainBaseline(ELossFunction lossFunction, const TVector<TVector<double>>& trainBaseline) {
     if (trainBaseline.ysize() > 1) {
-        CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+        CB_ENSURE(IsMultiClassMetric(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
     }
 }
 
@@ -89,7 +99,7 @@ static void CheckTestBaseline(
         CB_ENSURE(trainHasBaseline, "Baseline for train is not provided");
     }
     if (trainBaseline.ysize() > 1) {
-        CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+        CB_ENSURE(IsMultiClassMetric(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
     }
     if (testDocs != 0) {
         CB_ENSURE(trainBaseline.ysize() == testBaseline.ysize(), "Baseline dimension differ: train " << trainBaseline.ysize() << " vs test " << testBaseline.ysize());
@@ -114,7 +124,7 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
         }
     }
 
-    if (IsMultiClassError(lossDescription.GetLossFunction())) {
+    if (IsMultiClassMetric(lossDescription.GetLossFunction())) {
         PrepareTargetCompressed(labelConverter, &data.Target);
     }
 }
@@ -134,7 +144,7 @@ void CheckLearnConsistency(
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
         if (weightBounds.Min != weightBounds.Max && !learnData.HasGroupWeight) {
-            MATRIXNET_WARNING_LOG << "Pairwise losses don't support document weights. They will be ignored in optimization. If a custom metric is specified then they will be used for custom metric calculation." << Endl;
+            CATBOOST_WARNING_LOG << "Pairwise losses don't support document weights. They will be ignored in optimization. If a custom metric is specified then they will be used for custom metric calculation." << Endl;
         }
     }
 
@@ -197,7 +207,7 @@ void UpdateUndefinedRandomSeed(ETaskType taskType,
         } catch (const TCatboostException&) {
             throw;
         } catch (...) {
-            MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
+            CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
                     " Exception: " << CurrentExceptionMessage() << Endl;
             return;
         }

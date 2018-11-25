@@ -857,17 +857,22 @@ Default value:
 }
 }
 \examples{
-fit_params <- list(iterations = 100,
+train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
+cd_path <- system.file("extdata", "adult.cd", package = "catboost")
+train_pool <- catboost.load_pool(train_pool_path, column_description = cd_path)
+test_pool <- catboost.load_pool(test_pool_path, column_description = cd_path)
+fit_params <- list(
+    iterations = 100,
     thread_count = 10,
     loss_function = 'Logloss',
-    ignored_features = c(4,9),
+    ignored_features = c(4, 9),
     border_count = 32,
     depth = 5,
     learning_rate = 0.03,
     l2_leaf_reg = 3.5,
-    border = 0.5,
     train_dir = 'train_dir')
-model <- catboost.train(pool, test_pool, fit_params)
+model <- catboost.train(train_pool, test_pool, fit_params)
 }
 \seealso{
 \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-train-docpage/}

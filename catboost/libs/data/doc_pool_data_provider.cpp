@@ -1,6 +1,7 @@
 #include "doc_pool_data_provider.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
+#include <catboost/libs/data_new/loader.h> // for IsNanValue. TODO(akhropov): to be removed after MLTOOLS-140
 #include <catboost/libs/data_util/exists_checker.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/quantization_schema/schema.h>
@@ -19,6 +20,8 @@
 #include <util/string/split.h>
 #include <util/system/types.h>
 
+#include <utility>
+
 
 namespace NCB {
 
@@ -27,22 +30,46 @@ namespace NCB {
 
         TVector<TPair> pairs;
         TString line;
-        while (reader->ReadLine(&line)) {
-            TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
+        for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
+            TVector<TString> tokens = StringSplitter(line).Split('\t');
             if (tokens.empty()) {
                 continue;
             }
-            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
-                "Each line should have two or three columns. Invalid line number " << line);
-            ui64 winnerId = FromString<int>(tokens[0]);
-            ui64 loserId = FromString<int>(tokens[1]);
-            float weight = 1;
-            if (tokens.ysize() == 3) {
-                weight = FromString<float>(tokens[2]);
+            try {
+                CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                    "Each line should have two or three columns. This line has " << tokens.size()
+                );
+                TPair pair;
+
+                size_t tokenIdx = 0;
+                auto parseIdFunc = [&](TStringBuf description, ui32* id) {
+                    CB_ENSURE(
+                        TryFromString(tokens[tokenIdx], *id),
+                        "Invalid " << description << " index: cannot parse as nonnegative index ("
+                        << tokens[tokenIdx] << ')'
+                    );
+                    CB_ENSURE(
+                        *id < docCount,
+                        "Invalid " << description << " index (" << *id << "): not less than number of samples"
+                        " (" << docCount << ')'
+                    );
+                    ++tokenIdx;
+                };
+                parseIdFunc(AsStringBuf("Winner"), &pair.WinnerId);
+                parseIdFunc(AsStringBuf("Loser"), &pair.LoserId);
+
+                pair.Weight = 1.0f;
+                if (tokens.ysize() == 3) {
+                    CB_ENSURE(
+                        TryFromString(tokens[2], pair.Weight),
+                        "Invalid weight: cannot parse as float (" << tokens[2] << ')'
+                    );
+                }
+                pairs.push_back(std::move(pair));
+            } catch (const TCatboostException& e) {
+                throw TCatboostException() << "Incorrect file with pairs. Invalid line number #" << lineNumber
+                    << ": " << e.what();
             }
-            CB_ENSURE(winnerId >= 0 && winnerId < docCount, "Invalid winner index " << winnerId);
-            CB_ENSURE(loserId >= 0 && loserId < docCount, "Invalid loser index " << loserId);
-            pairs.emplace_back(winnerId, loserId, weight);
         }
 
         return pairs;
@@ -53,27 +80,37 @@ namespace NCB {
         TConstArrayRef<TGroupId> groupIds,
         ui64 docCount
     ) {
-        CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond with object count.");
+        CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond to object count.");
         TVector<float> groupWeights;
         groupWeights.reserve(docCount);
         ui64 groupIdCursor = 0;
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
         TString line;
-        while (reader->ReadLine(&line)) {
-            TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
-            CB_ENSURE(tokens.ysize() == 2,
-                "Each line in group weights file should have two columns. Invalid line number " << line);
+        for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
+            try {
+                TVector<TString> tokens = StringSplitter(line).Split('\t');
+                CB_ENSURE(tokens.size() == 2,
+                    "Each line should have two columns. This line has " << tokens.size()
+                );
+                const TGroupId groupId = CalcGroupIdFor(tokens[0]);
+                float groupWeight = 1.0f;
+                CB_ENSURE(
+                    TryFromString(tokens[1], groupWeight),
+                    "Invalid group weight: cannot parse as float (" << tokens[1] << ')'
+                );
 
-            const TGroupId groupId = CalcGroupIdFor(tokens[0]);
-            const float groupWeight = FromString<float>(tokens[1]);
-            ui64 groupSize = 0;
-            CB_ENSURE(groupId == groupIds[groupIdCursor],
-                "GroupId from the file with group weights do not match GroupId from the dataset.");
-            while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
-                ++groupSize;
-                ++groupIdCursor;
+                ui64 groupSize = 0;
+                CB_ENSURE(groupId == groupIds[groupIdCursor],
+                    "GroupId from the file with group weights does not match GroupId from the dataset.");
+                while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
+                    ++groupSize;
+                    ++groupIdCursor;
+                }
+                groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
+            } catch (const TCatboostException& e) {
+                throw TCatboostException() << "Incorrect file with group weights. Invalid line number #"
+                    << lineNumber << ": " << e.what();
             }
-            groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
         }
         CB_ENSURE(groupWeights.size() == docCount,
             "Group weights file should have as many weights as the objects in the dataset.");
@@ -107,11 +144,6 @@ namespace NCB {
             poolBuilder->SetGroupWeights(groupWeights);
         }
     }
-
-    bool IsNanValue(const TStringBuf& s) {
-        return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
-    }
-
 
     TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolPullDataProviderArgs&& args)
         : TCBDsvDataProvider(
@@ -190,109 +222,124 @@ namespace NCB {
             features.yresize(PoolMetaInfo.FeatureCount);
 
             int tokenCount = 0;
-            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter).ToList<TStringBuf>();
+            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
             EConvertTargetPolicy targetPolicy = TargetConverter->GetTargetPolicy();
-            for (const auto& token : tokens) {
-                switch (columnsDescription[tokenCount].Type) {
-                    case EColumn::Categ: {
-                        if (!FeatureIgnored[featureId]) {
-                            if (IsNanValue(token)) {
-                                features[featureId] = poolBuilder->GetCatFeatureValue("nan");
-                            } else {
-                                features[featureId] = poolBuilder->GetCatFeatureValue(token);
-                            }
-                        }
-                        ++featureId;
-                        break;
-                    }
-                    case EColumn::Num: {
-                        if (!FeatureIgnored[featureId]) {
-                            float val;
-                            if (!TryFromString<float>(token, val)) {
-                                if (IsNanValue(token)) {
-                                    val = std::numeric_limits<float>::quiet_NaN();
-                                } else if (token.length() == 0) {
-                                    val = std::numeric_limits<float>::quiet_NaN();
-                                } else {
-                                    CB_ENSURE(false, "Factor " << featureId << " (column " << tokenCount + 1 << ") is declared `Num`," <<
-                                        " but has value '" << token << "' in row "
-                                        << AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1
-                                        << " that cannot be parsed as float. Try correcting column description file.");
+            try {
+                for (const auto& token : tokens) {
+                    try {
+                        switch (columnsDescription[tokenCount].Type) {
+                            case EColumn::Categ: {
+                                if (!FeatureIgnored[featureId]) {
+                                    if (IsNanValue(token)) {
+                                        features[featureId] = poolBuilder->GetCatFeatureValue("nan");
+                                    } else {
+                                        features[featureId] = poolBuilder->GetCatFeatureValue(token);
+                                    }
                                 }
-                            }
-                            features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
-                        }
-                        ++featureId;
-                        break;
-                    }
-                    case EColumn::Label: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Label");
-                        switch (targetPolicy) {
-                            case EConvertTargetPolicy::MakeClassNames: {
-                                poolBuilder->AddLabel(lineIdx, token);
+                                ++featureId;
                                 break;
                             }
-                            case EConvertTargetPolicy::UseClassNames:
-                            case EConvertTargetPolicy::CastFloat: {
-                                poolBuilder->AddTarget(
-                                    lineIdx,
-                                    TargetConverter->ConvertLabel(token)
-                                );
+                            case EColumn::Num: {
+                                if (!FeatureIgnored[featureId]) {
+                                    float val;
+                                    if (!TryFromString<float>(token, val)) {
+                                        if (IsNanValue(token)) {
+                                            val = std::numeric_limits<float>::quiet_NaN();
+                                        } else if (token.length() == 0) {
+                                            val = std::numeric_limits<float>::quiet_NaN();
+                                        } else {
+                                            CB_ENSURE(
+                                                false,
+                                                "Factor " << featureId << " cannot be parsed as float."
+                                                " Try correcting column description file."
+                                            );
+                                        }
+                                    }
+                                    features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::Label: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Label");
+                                switch (targetPolicy) {
+                                    case EConvertTargetPolicy::MakeClassNames: {
+                                        poolBuilder->AddLabel(lineIdx, token);
+                                        break;
+                                    }
+                                    case EConvertTargetPolicy::UseClassNames:
+                                    case EConvertTargetPolicy::CastFloat: {
+                                        poolBuilder->AddTarget(
+                                            lineIdx,
+                                            TargetConverter->ConvertLabel(token)
+                                        );
+                                        break;
+                                    }
+                                    default: {
+                                        CB_ENSURE(false, "Unsupported convert target policy "
+                                                         << ToString<EConvertTargetPolicy>(targetPolicy));
+                                    }
+                                }
+                                break;
+                            }
+                            case EColumn::Weight: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for weight");
+                                poolBuilder->AddWeight(lineIdx, FromString<float>(token));
+                                break;
+                            }
+                            case EColumn::Auxiliary: {
+                                break;
+                            }
+                            case EColumn::GroupId: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
+                                poolBuilder->AddQueryId(lineIdx, CalcGroupIdFor(token));
+                                break;
+                            }
+                            case EColumn::GroupWeight: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
+                                poolBuilder->AddWeight(lineIdx, FromString<float>(token));
+                                break;
+                            }
+                            case EColumn::SubgroupId: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
+                                poolBuilder->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
+                                break;
+                            }
+                            case EColumn::Baseline: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
+                                poolBuilder->AddBaseline(lineIdx, baselineIdx, FromString<double>(token));
+                                ++baselineIdx;
+                                break;
+                            }
+                            case EColumn::DocId: {
+                                break;
+                            }
+                            case EColumn::Timestamp: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
+                                poolBuilder->AddTimestamp(lineIdx, FromString<ui64>(token));
                                 break;
                             }
                             default: {
-                                CB_ENSURE(false, "Unsupported convert target policy "
-                                                 << ToString<EConvertTargetPolicy>(targetPolicy));
+                                CB_ENSURE(false, "wrong column type");
                             }
                         }
-                        break;
+                    } catch (yexception& e) {
+                        throw TCatboostException() << "Column " << tokenCount << " (type "
+                            << columnsDescription[tokenCount].Type << ", value = \"" << token
+                            << "\"): " << e.what();
                     }
-                    case EColumn::Weight: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for weight");
-                        poolBuilder->AddWeight(lineIdx, FromString<float>(token));
-                        break;
-                    }
-                    case EColumn::Auxiliary: {
-                        break;
-                    }
-                    case EColumn::GroupId: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
-                        poolBuilder->AddQueryId(lineIdx, CalcGroupIdFor(token));
-                        break;
-                    }
-                    case EColumn::GroupWeight: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
-                        poolBuilder->AddWeight(lineIdx, FromString<float>(token));
-                        break;
-                    }
-                    case EColumn::SubgroupId: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
-                        poolBuilder->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
-                        break;
-                    }
-                    case EColumn::Baseline: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
-                        poolBuilder->AddBaseline(lineIdx, baselineIdx, FromString<double>(token));
-                        ++baselineIdx;
-                        break;
-                    }
-                    case EColumn::DocId: {
-                        break;
-                    }
-                    case EColumn::Timestamp: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
-                        poolBuilder->AddTimestamp(lineIdx, FromString<ui64>(token));
-                        break;
-                    }
-                    default: {
-                        CB_ENSURE(false, "wrong column type");
-                    }
+                    ++tokenCount;
                 }
-                ++tokenCount;
+                poolBuilder->AddAllFloatFeatures(lineIdx, features);
+                CB_ENSURE(
+                    tokenCount == columnsDescription.ysize(),
+                    "wrong columns number: expected " << columnsDescription.ysize()
+                    << ", found " << tokenCount
+                );
+            } catch (yexception& e) {
+                throw TCatboostException() << "Error in dsv data. Line " <<
+                    AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": " << e.what();
             }
-            poolBuilder->AddAllFloatFeatures(lineIdx, features);
-            CB_ENSURE(tokenCount == columnsDescription.ysize(), "wrong columns number in pool line " <<
-                      AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": expected " << columnsDescription.ysize() << ", found " << tokenCount);
         };
 
         AsyncRowProcessor.ProcessBlock(parseBlock);
@@ -341,6 +388,10 @@ namespace NCB {
                 const auto columnType = QuantizedPool.ColumnTypes[localIndex];
 
                 if (QuantizedPool.Chunks[localIndex].empty()) {
+                    continue;
+                }
+                // skip DocId columns presented in old pools
+                if (columnType == EColumn::DocId) {
                     continue;
                 }
 

@@ -314,7 +314,7 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC PyInit_umath(void)
 #else
 #define RETVAL
-PyMODINIT_FUNC init5numpy4core5umath(void)
+PyMODINIT_FUNC initumath(void)
 #endif
 {
     PyObject *m, *d, *s, *s2, *c_api;
@@ -327,7 +327,7 @@ PyMODINIT_FUNC init5numpy4core5umath(void)
 #if defined(NPY_PY3K)
     m = PyModule_Create(&moduledef);
 #else
-    m = Py_InitModule("numpy.core.umath", methods);
+    m = Py_InitModule("umath", methods);
 #endif
     if (!m) {
         return RETVAL;

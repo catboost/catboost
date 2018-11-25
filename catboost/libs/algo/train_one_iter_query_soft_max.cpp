@@ -1,6 +1,6 @@
 #include "train_templ.h"
 
-template<>
+template <>
 TQuerySoftMaxError BuildError<TQuerySoftMaxError>(
     const NCatboostOptions::TCatBoostOptions& params,
     const TMaybe<TCustomObjectiveDescriptor>&

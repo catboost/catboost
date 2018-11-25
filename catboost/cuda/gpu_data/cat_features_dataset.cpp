@@ -16,20 +16,20 @@ namespace NCatboostCuda {
 
     void TCompressedCatFeatureDataSetBuilder::Finish() {
         CB_ENSURE(!BuildDone, "Error: build could be done only once");
-        MATRIXNET_INFO_LOG << "Build catFeatures compressed dataset "
+        CATBOOST_INFO_LOG << "Build catFeatures compressed dataset "
                            << "for "
                            << DataSet.GetFeatureCount() << " features and " << DataSet.GetDocCount() << " documents"
                            << Endl;
 
         for (ui32 dev = 0; dev < DevCount; ++dev) {
-            MATRIXNET_INFO_LOG
+            CATBOOST_INFO_LOG
                 << "Memory usage at #" << dev << ": " << sizeof(ui64) * MemoryUsage[dev] * 1.0 / 1024 / 1024 << "MB"
                 << Endl;
         }
         BuildDone = true;
     }
 
-    template<EPtrType PtrType>
+    template <EPtrType PtrType>
     TCompressedCatFeatureDataSetBuilder& TCompressedCatFeatureDataSetBuilder::AddImpl(ui32 featureId,
                                                                                       TVector<typename TCompressedCatFeatureDataSet::TCompressedCatFeatureVec<PtrType>>* dst) {
         const ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);

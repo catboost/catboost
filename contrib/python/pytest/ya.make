@@ -1,4 +1,4 @@
-LIBRARY()
+PY23_LIBRARY()
 
 LICENSE(
     MIT
@@ -11,6 +11,7 @@ VERSION(3.0.7)
 PEERDIR(
     contrib/python/py
     contrib/python/setuptools
+    contrib/python/six
 )
 
 PY_SRCS(

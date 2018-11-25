@@ -265,7 +265,7 @@ void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtrac
     for (size_t i = 0; i < backtraceSize; ++i) {
         TResolvedSymbol rs = ResolveSymbol(backtrace[i], tmpBuf, sizeof(tmpBuf));
 
-        *out << rs.Name << "+" << ((ptrdiff_t)backtrace[i] - (ptrdiff_t)rs.NearestSymbol) << " (" << Hex((ptrdiff_t)backtrace[i], HF_ADDX) << ')' << Endl;
+        *out << rs.Name << "+" << ((ptrdiff_t)backtrace[i] - (ptrdiff_t)rs.NearestSymbol) << " (" << Hex((ptrdiff_t)backtrace[i], HF_ADDX) << ')' << '\n';
     }
 }
 

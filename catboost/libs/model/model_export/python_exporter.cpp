@@ -52,7 +52,7 @@ namespace NCatboost {
             out << indent << "transposed_cat_feature_indexes = [";
             TSequenceCommaSeparator commaInnerWithSpace(proj.CatFeatures.size(), AddSpaceAfterComma);
             for (const auto feature : proj.CatFeatures) {
-                out << ctrProvider->GetCatFeatureIndex().at(feature) << commaInnerWithSpace;
+                out << feature << commaInnerWithSpace;
             }
             out << "]," << '\n';
             out << indent++ << "binarized_indexes = [";
@@ -154,27 +154,24 @@ namespace NCatboost {
         Out << indent << "float_features_index = [\n";
         TStringBuilder str;
         for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
-            str << feature.FeatureIndex << ", ";
+            if (feature.UsedInModel()) {
+                str << feature.FeatureIndex << ", ";
+            }
         }
         str.pop_back();
         Out << ++indent << str << "\n";
         Out << --indent << "]\n";
-        int max_index = -1;
-        for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
-            max_index = Max(max_index, feature.FeatureIndex);
-        }
-        Out << indent << "float_feature_count = " << max_index + 1 << '\n';
-        max_index = -1;
-        for (const auto& feature: model.ObliviousTrees.CatFeatures) {
-            max_index = Max(max_index, feature.FeatureIndex);
-        }
-        Out << indent << "cat_feature_count = " << max_index + 1 << '\n';
+        Out << indent << "float_feature_count = " << model.ObliviousTrees.GetNumFloatFeatures() << '\n';
+        Out << indent << "cat_feature_count = " << model.ObliviousTrees.GetNumCatFeatures() << '\n';
         Out << indent << "binary_feature_count = " << model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() << '\n';
         Out << indent << "tree_count = " << model.ObliviousTrees.TreeSizes.size() << '\n';
 
         Out << indent++ << "float_feature_borders = [" << '\n';
         comma.ResetCount(model.ObliviousTrees.FloatFeatures.size());
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+            if (!floatFeature.UsedInModel()) {
+                continue;
+            }
             Out << indent << "["
                 << OutputArrayInitializer([&floatFeature](size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 8); }, floatFeature.Borders.size())
                 << "]" << comma << '\n';

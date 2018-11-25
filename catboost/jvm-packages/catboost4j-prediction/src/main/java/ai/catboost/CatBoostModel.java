@@ -1,8 +1,5 @@
 package ai.catboost;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
@@ -13,48 +10,46 @@ import java.io.InputStream;
  * CatBoost model, supports basic model application.
  */
 public class CatBoostModel implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(CatBoostModel.class);
-
     // handle to native C++ model
     private long handle = 0;
     private int predictionDimension = 0;
     private int treeCount = 0;
-    private int numericFeatureCount = 0;
-    private int categoricFeatureCount = 0;
+    private int usedNumericFeatureCount = 0;
+    private int usedCategoricFeatureCount = 0;
 
     /**
      * Load CatBoost model from file modelPath.
      *
      * @param modelPath Path to the model.
      * @return          CatBoost model.
-     * @throws CatBoostException
+     * @throws CatBoostError When failed to load model.
      */
     @NotNull
-    public static CatBoostModel loadModel(@NotNull String modelPath) throws CatBoostException {
+    public static CatBoostModel loadModel(final @NotNull String modelPath) throws CatBoostError {
         final long[] handles = new long[1];
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
-        final int[] numericFeatureCount = new int[1];
-        final int[] catFeatureCount = new int[1];
+        final int[] usedNumericFeatureCount = new int[1];
+        final int[] usedCatFeatureCount = new int[1];
 
         final CatBoostModel model = new CatBoostModel();
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(modelPath, handles));
+        NativeLib.handle().catBoostLoadModelFromFile(modelPath, handles);
         model.handle = handles[0];
 
         try {
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetPredictionDimension(model.handle, predictionDimension));
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(model.handle, treeCount));
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount));
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount));
-        } catch (CatBoostException e) {
+            NativeLib.handle().catBoostModelGetPredictionDimension(model.handle, predictionDimension);
+            NativeLib.handle().catBoostModelGetTreeCount(model.handle, treeCount);
+            NativeLib.handle().catBoostModelGetUsedNumericFeatureCount(model.handle, usedNumericFeatureCount);
+            NativeLib.handle().catBoostModelGetUsedCategoricalFeatureCount(model.handle, usedCatFeatureCount);
+        } catch (CatBoostError e) {
             model.close();
             throw e;
         }
 
         model.predictionDimension = predictionDimension[0];
         model.treeCount = treeCount[0];
-        model.numericFeatureCount = numericFeatureCount[0];
-        model.categoricFeatureCount = catFeatureCount[0];
+        model.usedNumericFeatureCount = usedNumericFeatureCount[0];
+        model.usedCategoricFeatureCount = usedCatFeatureCount[0];
 
         return model;
     }
@@ -64,16 +59,16 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param in Input stream containing model.
      * @return   CatBoost model.
-     * @throws CatBoostException
-     * @throws IOException
+     * @throws CatBoostError When failed to load model.
+     * @throws IOException When failed to read model from file.
      */
     @NotNull
-    public static CatBoostModel loadModel(InputStream in) throws CatBoostException, IOException {
+    public static CatBoostModel loadModel(final InputStream in) throws CatBoostError, IOException {
         final long[] handles = new long[1];
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
-        final int[] numericFeatureCount = new int[1];
-        final int[] catFeatureCount = new int[1];
+        final int[] usedNumericFeatureCount = new int[1];
+        final int[] usedCatFeatureCount = new int[1];
         final byte[] copyBuffer = new byte[4 * 1024];
 
         int bytesRead;
@@ -84,23 +79,23 @@ public class CatBoostModel implements AutoCloseable {
         }
 
         final CatBoostModel model = new CatBoostModel();
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(out.toByteArray(), handles));
+        NativeLib.handle().catBoostLoadModelFromArray(out.toByteArray(), handles);
         model.handle = handles[0];
 
         try {
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetPredictionDimension(model.handle, predictionDimension));
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(model.handle, treeCount));
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount));
-            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount));
-        } catch (CatBoostException e) {
+            NativeLib.handle().catBoostModelGetPredictionDimension(model.handle, predictionDimension);
+            NativeLib.handle().catBoostModelGetTreeCount(model.handle, treeCount);
+            NativeLib.handle().catBoostModelGetUsedNumericFeatureCount(model.handle, usedNumericFeatureCount);
+            NativeLib.handle().catBoostModelGetUsedCategoricalFeatureCount(model.handle, usedCatFeatureCount);
+        } catch (CatBoostError e) {
             model.close();
             throw e;
         }
 
         model.predictionDimension = predictionDimension[0];
         model.treeCount = treeCount[0];
-        model.numericFeatureCount = numericFeatureCount[0];
-        model.categoricFeatureCount = catFeatureCount[0];
+        model.usedNumericFeatureCount = usedNumericFeatureCount[0];
+        model.usedCategoricFeatureCount = usedCatFeatureCount[0];
 
         return model;
     }
@@ -110,11 +105,11 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param catFeature String representation of categorical feature.
      * @return           Hash for categorical feature.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
-    static int hashCategoricalFeature(@NotNull String catFeature) throws CatBoostException {
+    static int hashCategoricalFeature(final @NotNull String catFeature) throws CatBoostError {
         int hash[] = new int[1];
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostHashCatFeature(catFeature, hash));
+        NativeLib.handle().catBoostHashCatFeature(catFeature, hash);
         return hash[0];
     }
 
@@ -126,12 +121,12 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param catFeatures Array of categorical features.
      * @param hashes      Array of hashes of categorical features.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     static void hashCategoricalFeatures(
-            @NotNull String[] catFeatures,
-            @NotNull int[] hashes) throws CatBoostException {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostHashCatFeatures(catFeatures, hashes));
+            final @NotNull String[] catFeatures,
+            final @NotNull int[] hashes) throws CatBoostError {
+        NativeLib.handle().catBoostHashCatFeatures(catFeatures, hashes);
     }
 
     /**
@@ -139,10 +134,10 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param catFeatures Array of categorical features.
      * @return            Array of hashes of categorical features.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
-    static int[] hashCategoricalFeatures(@NotNull String[] catFeatures) throws CatBoostException {
+    static int[] hashCategoricalFeatures(final @NotNull String[] catFeatures) throws CatBoostError {
         final int[] hashes = new int[catFeatures.length];
         hashCategoricalFeatures(catFeatures, hashes);
         return hashes;
@@ -165,15 +160,15 @@ public class CatBoostModel implements AutoCloseable {
     /**
      * @return Number of numeric features used by the model.
      */
-    public int getNumericFeatureCount() {
-        return numericFeatureCount;
+    public int getUsedNumericFeatureCount() {
+        return usedNumericFeatureCount;
     }
 
     /**
      * @return Number of categorical features used by the model.
      */
-    public int getCategoricFeatureCount() {
-        return categoricFeatureCount;
+    public int getUsedCategoricFeatureCount() {
+        return usedCategoricFeatureCount;
     }
 
     /**
@@ -182,17 +177,17 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
      * @param prediction      Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            @Nullable float[] numericFeatures,
-            @Nullable String[] catFeatures,
-            @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        NativeLib.handle().catBoostModelPredict(
                 handle,
                 numericFeatures,
                 catFeatures,
-                prediction.getRawData()));
+                prediction.getRawData());
     }
 
     /**
@@ -202,12 +197,12 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
      * @return                Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[] numericFeatures,
-            @Nullable String[] catFeatures) throws CatBoostException {
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatures, prediction);
         return prediction;
@@ -220,17 +215,17 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @param prediction       Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            @Nullable float[] numericFeatures,
-            @Nullable int[] catFeatureHashes,
-            @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        NativeLib.handle().catBoostModelPredict(
                 handle,
                 numericFeatures,
                 catFeatureHashes,
-                prediction.getRawData()));
+                prediction.getRawData());
     }
 
     /**
@@ -240,12 +235,12 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @return                 Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[] numericFeatures,
-            @Nullable int[] catFeatureHashes) throws CatBoostException {
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatureHashes, prediction);
         return prediction;
@@ -257,17 +252,17 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features matrix.
      * @param catFeatures     Categoric features matrix.
      * @param prediction      Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable String[][] catFeatures,
-            @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        NativeLib.handle().catBoostModelPredict(
                 handle,
                 numericFeatures,
                 catFeatures,
-                prediction.getRawData()));
+                prediction.getRawData());
     }
 
     /**
@@ -277,14 +272,14 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
      * @return                Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable String[][] catFeatures) throws CatBoostException {
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures) throws CatBoostError {
         if (numericFeatures == null && catFeatures == null) {
-            throw new CatBoostException("both arguments are null");
+            throw new CatBoostError("both arguments are null");
         }
 
         final CatBoostPredictions prediction = new CatBoostPredictions(
@@ -301,17 +296,17 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @param prediction       Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable int[][] catFeatureHashes,
-            @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        NativeLib.handle().catBoostModelPredict(
             handle,
             numericFeatures,
             catFeatureHashes,
-            prediction.getRawData()));
+            prediction.getRawData());
     }
 
     /**
@@ -321,14 +316,14 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @return                 Model predictions.
-     * @throws CatBoostException
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable int[][] catFeatureHashes) throws CatBoostException {
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes) throws CatBoostError {
         if (numericFeatures == null && catFeatureHashes == null) {
-            throw new CatBoostException("both arguments are null");
+            throw new CatBoostError("both arguments are null");
         }
 
         final CatBoostPredictions prediction = new CatBoostPredictions(
@@ -347,15 +342,15 @@ public class CatBoostModel implements AutoCloseable {
         }
     }
 
-    private synchronized void dispose() {
+    private synchronized void dispose() throws CatBoostError {
         if (handle != 0) {
-            CatBoostJNIImpl.catBoostFreeModel(handle);
+            NativeLib.handle().catBoostFreeModel(handle);
             handle = 0;
         }
     }
 
     @Override
-    public void close() {
+    public void close() throws CatBoostError {
         dispose();
     }
 }

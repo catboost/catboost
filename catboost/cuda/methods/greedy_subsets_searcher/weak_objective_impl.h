@@ -39,7 +39,7 @@ namespace NCatboostCuda {
                     &sampledWeights,
                     &sampledIndices);
 
-            MATRIXNET_DEBUG_LOG << "Sampled docs count " << sampledIndices.GetObjectsSlice().Size() << Endl;
+            CATBOOST_DEBUG_LOG << "Sampled docs count " << sampledIndices.GetObjectsSlice().Size() << Endl;
 
             Target.StochasticDer(std::move(sampledWeights),
                                  std::move(sampledIndices),
