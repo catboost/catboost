@@ -373,6 +373,8 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     size_t metricCount = cvResults.size();
     result = PROTECT(allocVector(VECSXP, metricCount * 4));
+    SEXP columnNames = PROTECT(allocVector(STRSXP, metricCount * 4));
+
     for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
         TString metricName = cvResults[metricIdx].Metric;
 
@@ -390,14 +392,21 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
             REAL(row_train_std)[i] = cvResults[metricIdx].StdDevTrain[i];
         }
 
-        setAttrib(result, mkString(("test-" + metricName + "-mean").c_str()), row_test_mean);
-        setAttrib(result, mkString(("test-" + metricName + "-std").c_str()), row_test_std);
-        setAttrib(result, mkString(("train-" + metricName + "-mean").c_str()), row_train_mean);
-        setAttrib(result, mkString(("train-" + metricName + "-std").c_str()), row_train_std);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 0, row_test_mean);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 1, row_test_std);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 2, row_train_mean);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 3, row_train_std);
+
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 1, mkChar(("test-" + metricName + "-std").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 2, mkChar(("train-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 3, mkChar(("train-" + metricName + "-std").c_str()));
     }
+
+    setAttrib(result, R_NamesSymbol, columnNames);
     
     R_API_END();
-    UNPROTECT(1);
+    UNPROTECT(2);
     return result;
 }
 
