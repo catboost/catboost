@@ -1,5 +1,3 @@
-NEED_CHECK()
-
 RECURSE(
     benchmark
     cython

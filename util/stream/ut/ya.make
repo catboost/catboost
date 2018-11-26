@@ -2,8 +2,6 @@ UNITTEST_FOR(util)
 
 
 
-NEED_CHECK()
-
 SRCS(
     stream/aligned_ut.cpp
     stream/buffer_ut.cpp

@@ -2,8 +2,6 @@ UNITTEST()
 
 
 
-NEED_CHECK()
-
 SRCDIR(util/draft)
 
 PEERDIR(
