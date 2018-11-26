@@ -25,7 +25,7 @@ def on_go_process_srcs(unit):
         GO module (GO_LIBRARY, GO_PROGRAM)
     """
 
-    go_files = get_appended_values(unit, 'GO_FILES_VALUE')
+    go_files = get_appended_values(unit, 'GO_SRCS_VALUE')
 
     proto_files = filter(lambda x: x.endswith('.proto'), go_files)
     if len(proto_files) > 0:
@@ -39,7 +39,7 @@ def on_go_process_srcs(unit):
         for f in c_files + s_files:
             unit.onsrc([f] + cgo_flags)
 
-    cgo_files = get_appended_values(unit, 'CGO_FILES_VALUE')
+    cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
     if len(cgo_files) > 0:
         unit.onpeerdir(cxxsupp_path)
         import_path = rootrel_arc_src(unit.path(), unit)
