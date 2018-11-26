@@ -5,7 +5,7 @@ LIBRARY()
 IF (MUSL)
     # TODO
     NO_COMPILER_WARNINGS()
-ENDIF ()
+ENDIF()
 
 PEERDIR(
     library/threading/chunk_queue
@@ -18,5 +18,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

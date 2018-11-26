@@ -13,5 +13,3 @@ RECURSE(
     name_guard
     name_guard/ut
 )
-
-NEED_CHECK()

@@ -10,9 +10,9 @@ PEERDIR(
 )
 
 IF (MUSL)
-   PEERDIR(
-       library/python/pythonapi
-   )
+    PEERDIR(
+        library/python/pythonapi
+    )
 ENDIF()
 
 USE_PYTHON3()
@@ -22,5 +22,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

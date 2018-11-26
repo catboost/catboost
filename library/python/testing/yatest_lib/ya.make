@@ -3,7 +3,8 @@
 PY23_LIBRARY()
 
 PY_SRCS(
-    NAMESPACE yatest_lib
+    NAMESPACE
+    yatest_lib
     external.py
     tools.py
 )
@@ -13,5 +14,3 @@ PEERDIR(
 )
 
 END()
-
-NEED_CHECK()

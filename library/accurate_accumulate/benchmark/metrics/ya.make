@@ -10,14 +10,8 @@ TAG(
     ya:fat
 )
 
-TEST_SRCS(
-    main.py
-)
+TEST_SRCS(main.py)
 
-DEPENDS(
-    library/accurate_accumulate/benchmark
-)
+DEPENDS(library/accurate_accumulate/benchmark)
 
 END()
-
-NEED_CHECK()
