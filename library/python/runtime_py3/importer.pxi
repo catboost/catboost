@@ -240,15 +240,22 @@ class ResourceImporter(object):
 
         sys.modules[mod_name] = mod
 
-        if fix_name:
-            mod.__name__ = fix_name
-            self._source_name = dict(source_name, **{fix_name: mod_name})
+        try:
+            if fix_name:
+                mod.__name__ = fix_name
+                self._source_name = dict(source_name, **{fix_name: mod_name})
 
-        exec code in mod.__dict__
+            exec code in mod.__dict__
 
-        if fix_name:
-            mod.__name__ = mod_name
-            self._source_name = source_name
+            if fix_name:
+                mod.__name__ = mod_name
+                self._source_name = source_name
+        except Exception:
+            try:
+                del sys.modules[mod_name]
+            except KeyError:
+                pass
+            raise
 
         # Some hacky modules (e.g. pygments.lexers) replace themselves in
         # `sys.modules` with proxies.
