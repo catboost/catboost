@@ -1417,7 +1417,9 @@
 /* #undef WITH_NEXT_FRAMEWORK */
 
 /* Define if you want to compile in Python-specific mallocs */
+#ifndef address_sanitizer_enabled
 #define WITH_PYMALLOC 1
+#endif
 
 /* Define if you want to compile in rudimentary thread support */
 #define WITH_THREAD 1
