@@ -33,6 +33,7 @@ linux/vhost.h
 linux/virtio_ids.h
 linux/virtio_net.h
 linux/virtio_ring.h
+linux/vm_sockets.h
 linux/quota.h
 linux/dqblk_xfs.h
 linux/securebits.h
