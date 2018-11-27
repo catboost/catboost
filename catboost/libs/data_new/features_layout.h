@@ -189,6 +189,12 @@ namespace NCB {
     };
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
+
+    void CheckCompatibleForApply(
+        const TFeaturesLayout& learnFeaturesLayout,
+        const TFeaturesLayout& applyFeaturesLayout,
+        const TString& applyDataName
+    );
 }
 
 

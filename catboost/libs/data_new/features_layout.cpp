@@ -119,3 +119,54 @@ TVector<TString> TFeaturesLayout::GetExternalFeatureIds() const {
     }
     return result;
 }
+
+
+void NCB::CheckCompatibleForApply(
+    const TFeaturesLayout& learnFeaturesLayout,
+    const TFeaturesLayout& applyFeaturesLayout,
+    const TString& applyDataName
+) {
+    auto learnFeaturesMetaInfo = learnFeaturesLayout.GetExternalFeaturesMetaInfo();
+    auto applyFeaturesMetaInfo = applyFeaturesLayout.GetExternalFeaturesMetaInfo();
+
+    auto featuresIntersectionSize = Min(learnFeaturesMetaInfo.size(), applyFeaturesMetaInfo.size());
+
+    size_t i = 0;
+    for (; i < featuresIntersectionSize; ++i) {
+        const auto& learnFeatureMetaInfo = learnFeaturesMetaInfo[i];
+        const auto& applyFeatureMetaInfo = applyFeaturesMetaInfo[i];
+
+        if (!learnFeatureMetaInfo.IsAvailable || learnFeatureMetaInfo.IsIgnored) {
+            continue;
+        }
+
+        CB_ENSURE(
+            applyFeatureMetaInfo.IsAvailable,
+            "Feature #" << i
+            << " is used in training data, but not available in " << applyDataName
+        );
+        CB_ENSURE(
+            !applyFeatureMetaInfo.IsIgnored,
+            "Feature #" << i
+            << " is used in training data, but is ignored in " << applyDataName
+        );
+        CB_ENSURE(
+            learnFeatureMetaInfo.Type == applyFeatureMetaInfo.Type,
+            "Feature #" << i << " has type " << learnFeatureMetaInfo.Type << " in training data, but "
+            << applyFeatureMetaInfo.Type << " type in " << applyDataName
+        );
+        CB_ENSURE(
+            !learnFeatureMetaInfo.Name || !applyFeatureMetaInfo.Name ||
+            (learnFeatureMetaInfo.Name == applyFeatureMetaInfo.Name),
+            "Feature #" << i << " has name " << learnFeatureMetaInfo.Type << " in training data, but "
+            << applyFeatureMetaInfo.Type << " name in " << applyDataName
+        );
+    }
+    for (; i < learnFeaturesMetaInfo.size(); ++i) {
+        CB_ENSURE(
+            !learnFeaturesMetaInfo[i].IsAvailable || learnFeaturesMetaInfo[i].IsIgnored,
+            "Feature #" << i
+            << " is used in training data, but not available in " << applyDataName
+        );
+    }
+}
