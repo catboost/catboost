@@ -1,7 +1,7 @@
 context("test_caret_parameter_tuning.R")
 
-load_adult_pool <- function() {
-  pool_path = system.file("extdata", "adult_train.1000", package="catboost")
+load_adult_pool <- function(name) {
+  pool_path = system.file("extdata", paste('adult_', name, '.1000', sep=''), package="catboost")
 
   column_description_vector = rep('numeric', 15)
   cat_features <- c(3, 5, 7, 8, 9, 10, 11, 15) # same as extdata/adult.cd
@@ -24,29 +24,33 @@ load_adult_pool <- function() {
 }
 
 test_that("test caret train and parameter tuning on adult pool", {
-  data <- load_adult_pool()
-  X <- data$X
-  y <- data$y
+  data_train <- load_adult_pool('train')
+  X_train <- data_train$X
+  y_train <- data_train$y
 
-  test_path <- system.file("extdata", "adult_test.1000", package="catboost")
-  cd_path <- system.file("extdata", "adult.cd", package="catboost")
-  test_pool <- catboost.load_pool(test_path, column_description = cd_path)
+  data_test <- load_adult_pool('test')
+  test_pool <- catboost.load_pool(data_test$X, data_test$y)
 
-  fit_control <- caret::trainControl(method="cv",
-                                     number=5,
-                                     classProbs=TRUE)
+  fit_control <- caret::trainControl(method="cv", number=5, classProbs=TRUE)
 
-  grid <- expand.grid(depth=4,
-                      learning_rate=0.1,
-                      iterations=10,
-                      l2_leaf_reg=1e-3,
-                      rsm=0.95,
-                      border_count=64)
+  grid <- expand.grid(
+    depth=4,
+    learning_rate=0.1,
+    iterations=10,
+    l2_leaf_reg=1e-3,
+    rsm=0.95,
+    border_count=64
+  )
 
-  report <- caret::train(X, as.factor(make.names(y)),
-                         method=catboost::catboost.caret, preProc=NULL,
-                         tuneGrid=grid, trControl=fit_control,
-                         test_pool=test_pool)
+  report <- caret::train(
+    X_train,
+    as.factor(make.names(y_train)),
+    method=catboost::catboost.caret,
+    preProc=NULL,
+    tuneGrid=grid,
+    trControl=fit_control,
+    test_pool=test_pool
+  )
 
   expect_true(report$results$Accuracy > 0.75)
 })
