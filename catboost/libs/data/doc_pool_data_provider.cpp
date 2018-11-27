@@ -241,21 +241,13 @@ namespace NCB {
                             }
                             case EColumn::Num: {
                                 if (!FeatureIgnored[featureId]) {
-                                    float val;
-                                    if (!TryFromString<float>(token, val)) {
-                                        if (IsNanValue(token)) {
-                                            val = std::numeric_limits<float>::quiet_NaN();
-                                        } else if (token.length() == 0) {
-                                            val = std::numeric_limits<float>::quiet_NaN();
-                                        } else {
-                                            CB_ENSURE(
-                                                false,
-                                                "Factor " << featureId << " cannot be parsed as float."
-                                                " Try correcting column description file."
-                                            );
-                                        }
+                                    if (!TryParseFloatFeatureValue(token, &features[featureId])) {
+                                        CB_ENSURE(
+                                            false,
+                                            "Factor " << featureId << " cannot be parsed as float."
+                                            " Try correcting column description file."
+                                        );
                                     }
-                                    features[featureId] = val == 0.0f ? 0.0f : val; // remove negative zeros
                                 }
                                 ++featureId;
                                 break;
@@ -477,6 +469,22 @@ namespace NCB {
         TDocDataProviderObjectFactory::TRegistrator<TCBDsvDataProvider> CBDsvDataProviderReg("dsv");
 
         TDocDataProviderObjectFactory::TRegistrator<TCBQuantizedDataProvider> CBQuantizedDataProviderReg("quantized");
+    }
+
+    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value) {
+        if (!TryFromString<float>(stringValue, *value)) {
+            if (IsNanValue(stringValue)) {
+                *value = std::numeric_limits<float>::quiet_NaN();
+            } else if (stringValue.length() == 0) {
+                *value = std::numeric_limits<float>::quiet_NaN();
+            } else {
+                return false;
+            }
+        }
+        if (*value == 0.0f) {
+            *value = 0.0f; // remove negative zeros
+        }
+        return true;
     }
 }
 

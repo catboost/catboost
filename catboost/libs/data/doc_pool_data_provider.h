@@ -208,4 +208,5 @@ namespace NCB {
         TVector<int> CatFeatures;
     };
 
+    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
 }
