@@ -70,7 +70,6 @@ extern.h
 reentrant.h
 #if defined(__FreeBSD__)
 Block.h
-FlexLexer.h
 _ctype.h
 a.out.h
 alias.h
