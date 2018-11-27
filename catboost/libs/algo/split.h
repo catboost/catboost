@@ -90,7 +90,8 @@ struct THash<TSplitCandidate> {
     }
 };
 
-class TLearnContext;
+struct TLearnProgress;
+class TCtrHelper;
 class TDataset;
 
 // TODO(kirillovs): this structure has doppelganger (TBinarySplit) in cuda code, merge them later
@@ -109,7 +110,7 @@ struct TSplit : public TSplitCandidate {
     inline void Load(IInputStream* s) {
         ::LoadMany(s, static_cast<TSplitCandidate&>(*this), BinBorder);
     }
-    TModelSplit GetModelSplit(const TLearnContext& ctx, const TDataset& learnData) const;
+    TModelSplit GetModelSplit(const TLearnProgress& learnProgress, const TCtrHelper& ctrHelper, const TDataset& learnData) const;
 
     static inline float EmulateUi8Rounding(int value) {
         return value + 0.999999f;

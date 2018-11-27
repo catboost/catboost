@@ -5,12 +5,12 @@ const size_t TSplitCandidate::FloatFeatureBaseHash = 12321;
 const size_t TSplitCandidate::CtrBaseHash = 89321;
 const size_t TSplitCandidate::OneHotFeatureBaseHash = 517931;
 
-TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx, const TDataset& learnData) const   {
+TModelSplit TSplit::GetModelSplit(const TLearnProgress& learnProgress, const TCtrHelper& ctrHelper, const TDataset& learnData) const   {
     TModelSplit split;
     split.Type = Type;
     if (Type == ESplitType::FloatFeature) {
         split.FloatFeature.FloatFeature = FeatureIdx;
-        split.FloatFeature.Split = ctx.LearnProgress.FloatFeatures[FeatureIdx].Borders[BinBorder];
+        split.FloatFeature.Split = learnProgress.FloatFeatures[FeatureIdx].Borders[BinBorder];
     } else if (Type == ESplitType::OneHotFeature) {
         split.OneHotFeature.CatFeatureIdx = FeatureIdx;
         split.OneHotFeature.Value = learnData.AllFeatures.OneHotValues[FeatureIdx][BinBorder];
@@ -22,14 +22,13 @@ TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx, const TDataset& lear
         for (auto binFeature : Ctr.Projection.BinFeatures) {
             auto& ref = featureCombination.BinFeatures.emplace_back();
             ref.FloatFeature = binFeature.FloatFeature;
-            ref.Split = ctx.LearnProgress.FloatFeatures[binFeature.FloatFeature].Borders[binFeature.SplitIdx];
+            ref.Split = learnProgress.FloatFeatures[binFeature.FloatFeature].Borders[binFeature.SplitIdx];
         }
         for (auto oheFeature : Ctr.Projection.OneHotFeatures) {
             auto& ref = featureCombination.OneHotFeatures.emplace_back();
             ref.CatFeatureIdx = oheFeature.CatFeatureIdx;
             ref.Value = learnData.AllFeatures.OneHotValues[oheFeature.CatFeatureIdx][oheFeature.Value];
         }
-        auto& ctrHelper = ctx.CtrsHelper;
         const auto ctrIdx = Ctr.CtrIdx;
         const auto& ctrInfo =  ctrHelper.GetCtrInfo(Ctr.Projection)[ctrIdx];
         const TVector<float>& priors =  ctrInfo.Priors;
