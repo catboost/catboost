@@ -5642,3 +5642,55 @@ def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_wei
 
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('pool', ['higgs'])
+def test_convert_snapshot_to_model(pool):
+    output_model_path = yatest.common.test_output_path('model')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    snapshot_path = yatest.common.test_output_path('snapshot')
+    output_converted_model_path = yatest.common.test_output_path('model.converted')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '-f', data_file(pool, 'train_small'),
+        '-t', data_file(pool, 'test_small'),
+        '--column-description', data_file(pool, 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '--eval-file', output_eval_path,
+        '-m', output_model_path,
+        '--model-format', 'CatboostBinary',
+        '--snapshot-file', snapshot_path
+    )
+    yatest.common.execute(cmd)
+    convert_cmd = (
+        CATBOOST_PATH,
+        'snapshot-to-model',
+        '-s', snapshot_path,
+        '-m', output_converted_model_path
+    )
+    yatest.common.execute(convert_cmd)
+    formula_predict_path_origin = yatest.common.test_output_path('predict_test_origin.eval')
+    formula_predict_path_converted = yatest.common.test_output_path('predict_test_converted.eval')
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file(pool, 'test_small'),
+        '--column-description', data_file(pool, 'train.cd'),
+        '-m', output_model_path + '.bin',
+        '--output-path', formula_predict_path_origin
+    )
+    yatest.common.execute(calc_cmd)
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file(pool, 'test_small'),
+        '--column-description', data_file(pool, 'train.cd'),
+        '-m', output_converted_model_path,
+        '--output-path', formula_predict_path_converted
+    )
+    yatest.common.execute(calc_cmd)
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path_origin))
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path_converted))
