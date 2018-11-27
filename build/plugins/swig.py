@@ -5,7 +5,7 @@ import _import_wrapper as iw
 import _common as common
 
 
-_SWIG_LIB_PATH = 'contrib/libs/swig/swig-2.0.9/Lib'
+_SWIG_LIB_PATH = 'contrib/libs/swig/Lib'
 
 _PREDEFINED_INCLUDES = [
     os.path.join(_SWIG_LIB_PATH, 'python', 'python.swg'),
