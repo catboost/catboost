@@ -2342,6 +2342,7 @@ class CatBoostRegressor(CatBoost):
         'LogLinQuantile:alpha=value'
         'Poisson'
         'MAPE'
+        'Lq:q=value'
     """
     def __init__(
         self,
@@ -2610,7 +2611,7 @@ class CatBoostRegressor(CatBoost):
     def _check_is_regressor_loss(self, loss_function):
         if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE or custom objective object".format(loss_function))
+                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,

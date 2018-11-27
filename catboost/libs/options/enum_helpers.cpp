@@ -147,7 +147,8 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::Poisson ||
             lossFunction == ELossFunction::Quantile ||
             lossFunction == ELossFunction::RMSE ||
-            lossFunction == ELossFunction::LogLinQuantile
+            lossFunction == ELossFunction::LogLinQuantile ||
+            lossFunction == ELossFunction::Lq
     );
 }
 
