@@ -98,6 +98,8 @@ SYM(sched_setaffinity)
 SYM(inotify_init)
 SYM(inotify_add_watch)
 SYM(inotify_rm_watch)
+SYM(setns)
+SYM(unshare)
 #endif
 #if defined(_darwin_)
 SYM(sysctlbyname)
