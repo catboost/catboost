@@ -370,6 +370,7 @@ def onpy_srcs(unit, *args):
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
         if unit.get('GLYCINE_FLAG') == 'yes':
+            unit.onpeerdir(['glycine/gen/runtime'])
             unit.ongenerate_py_glys(proto_paths)
             unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in protos])
 
