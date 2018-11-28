@@ -9,7 +9,6 @@ PEERDIR(
 )
 
 SRCS(
-    bitutils_ut.cpp
     date_ut.cpp
     datetime_ut.cpp
     holder_vector_ut.cpp
