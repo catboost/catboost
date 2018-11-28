@@ -187,7 +187,6 @@ def onpy_srcs(unit, *args):
     protos = []
     evs = []
     swigs = []
-    glys = []
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -260,8 +259,6 @@ def onpy_srcs(unit, *args):
                     ymake.report_configure_error('SWIG is not yet supported for Python 3: https://st.yandex-team.ru/DEVTOOLS-4863')
                 else:
                     swigs.append(path)  # ignore mod, use last (and only) ns
-            elif path.endswith('.gly'):
-                glys.append(pathmod)
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -402,12 +399,6 @@ def onpy_srcs(unit, *args):
         path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(unit.path()[3:], project)
         arg = '{}={}'.format(path, ns + project.replace('/', '.'))
         unit.onpy_srcs([arg])
-
-    if glys:
-        gly_paths = [path for path, mod in glys]
-        unit.ongenerate_py_glys(gly_paths)
-        unit.onpy_srcs([proto_arg(path, mod, unit) for path, mod in glys])
-        unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in glys])
 
 
 def _check_test_srcs(*args):
