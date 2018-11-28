@@ -19,6 +19,55 @@ void unsetenv(const char* name) {
 }
 #endif
 
+static int RunModule(const char *modname)
+{
+    PyObject *module, *runpy, *runmodule, *runargs, *result;
+    runpy = PyImport_ImportModule("runpy");
+    if (runpy == NULL) {
+        fprintf(stderr, "Could not import runpy module\n");
+        PyErr_Print();
+        return -1;
+    }
+    runmodule = PyObject_GetAttrString(runpy, "_run_module_as_main");
+    if (runmodule == NULL) {
+        fprintf(stderr, "Could not access runpy._run_module_as_main\n");
+        PyErr_Print();
+        Py_DECREF(runpy);
+        return -1;
+    }
+    module = PyUnicode_FromString(modname);
+    if (module == NULL) {
+        fprintf(stderr, "Could not convert module name to unicode\n");
+        PyErr_Print();
+        Py_DECREF(runpy);
+        Py_DECREF(runmodule);
+        return -1;
+    }
+    runargs = Py_BuildValue("(Oi)", module, 0);
+    if (runargs == NULL) {
+        fprintf(stderr,
+            "Could not create arguments for runpy._run_module_as_main\n");
+        PyErr_Print();
+        Py_DECREF(runpy);
+        Py_DECREF(runmodule);
+        Py_DECREF(module);
+        return -1;
+    }
+    result = PyObject_Call(runmodule, runargs, NULL);
+    if (result == NULL) {
+        PyErr_Print();
+    }
+    Py_DECREF(runpy);
+    Py_DECREF(runmodule);
+    Py_DECREF(module);
+    Py_DECREF(runargs);
+    if (result == NULL) {
+        return -1;
+    }
+    Py_DECREF(result);
+    return 0;
+}
+
 int main(int argc, char** argv) {
     int i, sts = 1;
     char* oldloc = NULL;
@@ -111,12 +160,14 @@ int main(int argc, char** argv) {
         func_name = colon + 1;
     }
 
-    PyObject* module = PyImport_ImportModule(module_name);
-
-    if (module == NULL) {
-        PyErr_Print();
+    if (!func_name) {
+        sts = RunModule(module_name);
     } else {
-        if (func_name) {
+        PyObject* module = PyImport_ImportModule(module_name);
+
+        if (module == NULL) {
+            PyErr_Print();
+        } else {
             PyObject* value = PyObject_CallMethod(module, func_name, NULL);
 
             if (value == NULL) {
@@ -125,11 +176,9 @@ int main(int argc, char** argv) {
                 Py_DECREF(value);
                 sts = 0;
             }
-        } else {
-            sts = 0;
-        }
 
-        Py_DECREF(module);
+            Py_DECREF(module);
+        }
     }
 
     if (Py_FinalizeEx() < 0) {

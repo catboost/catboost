@@ -215,11 +215,6 @@ def onpy_srcs(unit, *args):
         # Unsupported but legal PROTO_LIBRARY arguments.
         elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
             pass
-        # XXX https://st.yandex-team.ru/DEVTOOLS-4841
-        elif py3 and (arg == '__main__.py' or arg.endswith('/__main__.py')):
-            unit.onfix_python_main([arg, '__real_main__.py'])
-            unit.onpy_srcs(['TOP_LEVEL', '__real_main__.py'])
-            unit.onpy_main(['__real_main__:real_main_func'])
         # Sources.
         else:
             main_mod = arg == 'MAIN'
@@ -227,10 +222,12 @@ def onpy_srcs(unit, *args):
                 arg = next(args)
 
             if '=' in arg:
+                main_py = False
                 path, mod = arg.split('=', 1)
             else:
                 path = arg
-                if arg == '__main__.py' or arg.endswith('/__main__.py'):
+                main_py = (path == '__main__.py' or path.endswith('/__main__.py'))
+                if not py3 and main_py:
                     mod = '__main__'
                 else:
                     if arg.startswith('../'):
@@ -241,7 +238,9 @@ def onpy_srcs(unit, *args):
                     mod = ns + stripext(arg).replace('/', '.')
 
             if main_mod:
-                unit.onpy_main(mod)
+                py_main(unit, mod + ":main")
+            elif py3 and main_py:
+                py_main(unit, mod)
 
             pathmod = (path, mod)
 
@@ -455,6 +454,11 @@ def onpy_register(unit, *args):
             py_register(unit, name, py3)
 
 
+def py_main(unit, arg):
+    py_program(unit, is_py3(unit))
+    unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
+
+
 def onpy_main(unit, arg):
     """
         @usage: PY_MAIN(pkg.mod[:func])
@@ -466,5 +470,4 @@ def onpy_main(unit, arg):
     if ':' not in arg:
         arg += ':main'
 
-    py_program(unit, is_py3(unit))
-    unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
+    py_main(unit, arg)
