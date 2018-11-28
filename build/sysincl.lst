@@ -921,6 +921,7 @@ PdhMsg.h
 perflib.h
 persist.h
 powerbase.h
+PowrProf.h
 processenv.h
 processthreadsapi.h
 processtopologyapi.h
