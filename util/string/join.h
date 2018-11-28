@@ -132,14 +132,14 @@ TString JoinSeq(const TStringBuf delim, const TContainer& data) {
     return JoinRange(delim, data.begin(), data.end());
 }
 
-/** \brief Functor for streaming iterative objects from TIter e to TIter b, separated with delim.
+/** \brief Functor for streaming iterative objects from TIterB e to TIterE b, separated with delim.
  *         Difference from JoinSeq, JoinRange, Join is the lack of TString object - all depends on operator<< for the type and
  *         realization of IOutputStream
  */
-template<class TIter>
+template<class TIterB, class TIterE>
 struct TRangeJoiner{
-    friend constexpr IOutputStream& operator<<(IOutputStream& stream, const TRangeJoiner<TIter>& rangeJoiner) {
-        if(rangeJoiner.e != rangeJoiner.b) {
+    friend constexpr IOutputStream& operator<<(IOutputStream& stream, const TRangeJoiner<TIterB, TIterE>& rangeJoiner) {
+        if(rangeJoiner.b != rangeJoiner.e) {
             stream << *rangeJoiner.b;
 
             for(auto it = std::next(rangeJoiner.b); it != rangeJoiner.e; ++it)
@@ -148,14 +148,15 @@ struct TRangeJoiner{
         return stream;
     }
 
-    constexpr TRangeJoiner(TStringBuf delim, TIter b, TIter e) : delim(delim), b(std::forward<TIter>(b)), e(std::forward<TIter>(e)) {}
+    constexpr TRangeJoiner(TStringBuf delim, TIterB && b, TIterE && e) : delim(delim), b(std::forward<TIterB>(b)), e(std::forward<TIterE>(e)) {}
 private:
     const TStringBuf delim;
-    const TIter b, e;
+    const TIterB b;
+    const TIterE e;
 };
 
-template<class TIter> constexpr auto MakeRangeJoiner(TStringBuf delim, TIter b, TIter e) {
-    return TRangeJoiner<TIter>(delim, std::forward<TIter>(b), std::forward<TIter>(e));
+template<class TIterB, class TIterE = TIterB> constexpr auto MakeRangeJoiner(TStringBuf delim, TIterB && b, TIterE && e) {
+    return TRangeJoiner<TIterB, TIterE>(delim, std::forward<TIterB>(b), std::forward<TIterE>(e));
 }
 
 template<class TContainer> constexpr auto MakeRangeJoiner(TStringBuf delim, const TContainer& data) {
