@@ -617,6 +617,35 @@ public:
         return npos;
     }
 
+    inline size_t find_last_not_of(TCharType c, size_t pos = npos) const noexcept {
+        return find_last_not_of(&c, pos, 1);
+    }
+
+    inline size_t find_last_not_of(const TFixedString set, size_t pos = npos) const noexcept {
+        return find_last_not_of(set.Start, pos, set.Length);
+    }
+
+    inline size_t find_last_not_of(const TCharType* set, size_t pos, size_t n) const noexcept {
+        ssize_t startpos = pos >= size() ? static_cast<ssize_t>(size()) - 1 : static_cast<ssize_t>(pos);
+
+        for (ssize_t i = startpos; i >= 0; --i) {
+            const TCharType c = Ptr()[i];
+
+            bool found = true;
+            for (const TCharType* p = set; p < set + n; ++p) {
+                if (TTraits::Equal(c, *p)) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return static_cast<size_t>(i);
+            }
+        }
+
+        return npos;
+    }
+
     inline size_t copy(TCharType* pc, size_t n, size_t pos) const {
         if (pos > Len()) {
             ThrowRangeError("TStringBase::copy");
