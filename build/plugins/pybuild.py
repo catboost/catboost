@@ -420,13 +420,7 @@ def _check_test_srcs(*args):
 
 def ontest_srcs(unit, *args):
     _check_test_srcs(*args)
-    if unit.get('PYTEST_BIN') != 'no':
-        unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
-
-
-def on_test3_srcs(unit, *args):
-    _check_test_srcs(*args)
-    if unit.get('PY3TEST_BIN') != 'no':
+    if unit.get('PY3TEST_BIN' if is_py3(unit) else 'PYTEST_BIN') != 'no':
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
 
 
