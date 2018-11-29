@@ -1319,17 +1319,17 @@ TMetricHolder TNdcgMetric::EvalSingleThread(
     int queryEndIndex
 ) const {
     TMetricHolder error(2);
+    TVector<NMetrics::TSample> samples;
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
-        int queryBegin = queriesInfo[queryIndex].Begin;
-        int queryEnd = queriesInfo[queryIndex].End;
-        int querySize = queryEnd - queryBegin;
-        const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
-        size_t sampleSize = (TopSize < 0 || querySize < TopSize) ? querySize : static_cast<size_t>(TopSize);
-
-        TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryBegin + sampleSize);
-        TVector<double> targetCopy(target.data() + queryBegin, target.data() + queryBegin + sampleSize);
-        TVector<NMetrics::TSample> samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
-        error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType);
+        const auto queryBegin = queriesInfo[queryIndex].Begin;
+        const auto queryEnd = queriesInfo[queryIndex].End;
+        const auto querySize = queryEnd - queryBegin;
+        const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.f;
+        NMetrics::TSample::FromVectors(
+            MakeArrayRef(target.data() + queryBegin, querySize),
+            MakeArrayRef(approx.front().data() + queryBegin, querySize),
+            &samples);
+        error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType, TopSize);
         error.Stats[1] += queryWeight;
     }
     return error;
