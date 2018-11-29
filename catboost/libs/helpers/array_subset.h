@@ -78,6 +78,10 @@ namespace NCB {
         bool operator ==(const TRangesSubset& lhs) const {
             return (Size == lhs.Size) && (Blocks == lhs.Blocks);
         }
+
+        bool operator !=(const TRangesSubset& lhs) const {
+            return !(*this == lhs);
+        }
     };
 
     template <class TSize>
@@ -94,6 +98,10 @@ namespace NCB {
 
         bool operator ==(const TFullSubset& lhs) const {
             return Size == lhs.Size;
+        }
+
+        bool operator !=(const TFullSubset& lhs) const {
+            return !(*this == lhs);
         }
     };
 
@@ -117,8 +125,8 @@ namespace NCB {
             : TBase(std::move(subset))
         {}
 
-        bool operator ==(const TArraySubsetIndexing& lhs) const {
-            return TBase::operator ==((const TBase&)lhs);
+        friend bool operator ==(const TArraySubsetIndexing& a, const TArraySubsetIndexing& b) {
+            return static_cast<const TBase&>(a) == static_cast<const TBase&>(b);
         }
 
         TSize Size() const {
