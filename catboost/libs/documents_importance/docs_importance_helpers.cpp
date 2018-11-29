@@ -23,11 +23,11 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(c
     localExecutor.ExecRange([&] (int treeId) {
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures, treeId);
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
-
     UpdateFinalFirstDerivatives(leafIndices, pool);
 
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
-    const size_t docBlockSize = CB_THREAD_LIMIT * (DocCount / 1000);
+    const ui32 docDivider = 1000;
+    size_t docBlockSize = DocCount < docDivider ? CB_THREAD_LIMIT : CB_THREAD_LIMIT * (CeilDiv(DocCount, docDivider));
     TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", 1);
     TProfileInfo processDocumentsProfile(DocCount);
 
