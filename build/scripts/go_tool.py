@@ -12,6 +12,10 @@ contrib_go_prefix = 'vendor/'
 vendor_prefix = 'vendor/'
 
 
+def copy_args(args):
+    return copy.copy(args)
+
+
 def get_import_path(module_path):
     assert len(module_path) > 0
     import_path = module_path.replace('\\', '/')
@@ -92,7 +96,7 @@ def do_compile_asm(args):
 
 def do_link_lib(args):
     if len(args.asm_srcs) > 0:
-        asmargs = copy.deepcopy(args)
+        asmargs = copy_args(args)
         asmargs.asmhdr = os.path.join(asmargs.output_root, 'go_asm.h')
         do_compile_go(asmargs)
         for src in asmargs.asm_srcs:
@@ -109,7 +113,7 @@ def do_link_lib(args):
 
 
 def do_link_exe(args):
-    compile_args = copy.deepcopy(args)
+    compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
     do_link_lib(compile_args)
     cmd = [args.go_link, '-o', args.output]
@@ -192,14 +196,14 @@ def do_link_test(args):
 
     test_import_path, _ = get_import_path(args.test_import_path)
 
-    test_lib_args = copy.deepcopy(args)
+    test_lib_args = copy_args(args)
     test_lib_args.output = os.path.join(args.output_root, 'test.a')
     test_lib_args.module_path = test_import_path
     do_link_lib(test_lib_args)
     xtest_lib_args = None
 
     if args.xtest_srcs:
-        xtest_lib_args = copy.deepcopy(args)
+        xtest_lib_args = copy_args(args)
         xtest_lib_args.srcs = xtest_lib_args.xtest_srcs
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
@@ -212,7 +216,7 @@ def do_link_test(args):
     test_main_name = os.path.join(args.output_root, '_test_main.go')
     with open(test_main_name, "w") as f:
         f.write(test_main_content)
-    test_args = copy.deepcopy(args)
+    test_args = copy_args(args)
     test_args.srcs = [test_main_name]
     classify_srcs(test_args.srcs, test_args)
     test_args.module_map[test_import_path] = test_lib_args.output
