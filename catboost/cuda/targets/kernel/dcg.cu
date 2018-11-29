@@ -396,6 +396,8 @@ void RemoveGroupMean(
     } else {
         Y_RUN_KERNEL(32);
     }
+
+#undef Y_RUN_KERNEL
 }
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
