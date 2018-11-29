@@ -12,6 +12,7 @@ def test():
     model = CatBoostClassifier(iterations=5)
     model.fit(X, y, cat_features=categorical_features_indices)
     preds = model.predict(X)
+    pred_single = model.predict(X[0])
 
 if __name__ == '__main__':
     test()

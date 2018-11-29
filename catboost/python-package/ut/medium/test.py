@@ -2903,6 +2903,8 @@ def test_set_cat_features_in_init():
     label = np.random.randint(2, size=20)
     train_pool = Pool(data, label, cat_features=[1, 2])
     test_pool = Pool(data, label, cat_features=[1, 2])
+    #for single tests
+    test_single = np.random.randint(10, size=(1, 20))
 
     params = {
         'logging_level': 'Silent',
@@ -2954,6 +2956,7 @@ def test_set_cat_features_in_init():
     model1.fit(X=data, y=label)
     model2.fit(X=data, y=label)
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
+    assert model1.predict(test_single) == model2.predict(test_single)
     assert(model2.get_cat_feature_indices() == [1, 2])
 
     model1 = CatBoost(params_with_cat_features)
@@ -2962,6 +2965,7 @@ def test_set_cat_features_in_init():
     model1.fit(X=data, y=label)
     model2.fit(X=data, y=label)
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
+    assert model1.predict(test_single) == model2.predict(test_single)
     assert(model2.get_cat_feature_indices() == [1, 2])
 
     model1 = CatBoost(params_with_cat_features)
