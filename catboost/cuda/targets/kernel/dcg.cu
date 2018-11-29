@@ -1,6 +1,8 @@
 #include "dcg.cuh"
 
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
+#include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
+#include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
 #include <util/generic/va_args.h>
 #include <util/system/types.h>
@@ -9,31 +11,31 @@
 
 namespace NKernel {
 
-// MakeDcgDecay
+// MakeDcgDecays
 
 template <typename I, typename T>
-__global__ void MakeDcgDecayImpl(const I* const offsets, T* const decay, const ui64 size) {
+__global__ void MakeDcgDecaysImpl(const I* const offsets, T* const decays, const ui64 size) {
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        decay[i] = static_cast<T>(1) / log2(static_cast<T>(i - offsets[i] + 2));
+        decays[i] = static_cast<T>(1) / log2(static_cast<T>(i - __ldg(offsets + i) + 2));
         i += gridDim.x * blockDim.x;
     }
 }
 
 template <typename I, typename T>
-void MakeDcgDecay(const I* offsets, T* decay, ui64 size, TCudaStream stream) {
+void MakeDcgDecays(const I* offsets, T* decays, ui64 size, TCudaStream stream) {
     const ui32 blockSize = 512;
     const ui64 numBlocks = Min(
         (size + blockSize - 1) / blockSize,
         (ui64)TArchProps::MaxBlockCount());
-    MakeDcgDecayImpl<<<numBlocks, blockSize, 0, stream>>>(offsets, decay, size);
+    MakeDcgDecaysImpl<<<numBlocks, blockSize, 0, stream>>>(offsets, decays, size);
 }
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
 #define Y_CATBOOST_CUDA_F_IMPL(I, T) \
-    template void MakeDcgDecay<I, T>(const I* offsets, T* decay, ui64 size, TCudaStream stream);
+    template void MakeDcgDecays<I, T>(const I* offsets, T* decays, ui64 size, TCudaStream stream);
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
@@ -42,34 +44,34 @@ Y_MAP_ARGS(
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
-// MakeDcgExponentialDecay
+// MakeDcgExponentialDecays
 
 template <typename I, typename T>
-__global__ void MakeDcgExponentialDecayImpl(
-    const I* const offsets, T* const decay, const ui64 size,
+__global__ void MakeDcgExponentialDecaysImpl(
+    const I* const offsets, T* const decays, const ui64 size,
     const T base)
 {
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        decay[i] = pow(base, i - offsets[i]);
+        decays[i] = pow(base, i - __ldg(offsets + i));
         i += gridDim.x * blockDim.x;
     }
 }
 
 template <typename I, typename T>
-void MakeDcgExponentialDecay(const I* offsets, T* decay, ui64 size, T base, TCudaStream stream) {
+void MakeDcgExponentialDecays(const I* offsets, T* decays, ui64 size, T base, TCudaStream stream) {
     const ui32 blockSize = 512;
     const ui64 numBlocks = Min(
         (size + blockSize - 1) / blockSize,
         (ui64)TArchProps::MaxBlockCount());
-    MakeDcgExponentialDecayImpl<<<numBlocks, blockSize, 0, stream>>>(offsets, decay, size, base);
+    MakeDcgExponentialDecaysImpl<<<numBlocks, blockSize, 0, stream>>>(offsets, decays, size, base);
 }
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
 #define Y_CATBOOST_CUDA_F_IMPL(I, T) \
-    template void MakeDcgExponentialDecay<I, T>(const I* offsets, T* decay, ui64 size, T base, TCudaStream stream);
+    template void MakeDcgExponentialDecays<I, T>(const I* offsets, T* decays, ui64 size, T base, TCudaStream stream);
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
@@ -89,7 +91,8 @@ __global__ void FuseUi32AndFloatIntoUi64Impl(
 {
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        const ui32 casted = *reinterpret_cast<const ui32*>(&floats[i]);
+        const float original = __ldg(floats + i);
+        const ui32 casted = *reinterpret_cast<const ui32*>(&original);
         const ui32 mask = -i32(casted >> 31) | (i32(1) << 31);
         ui64 value = static_cast<ui64>(ui32s[i]) << 32;
         value |= negateFloats ? static_cast<ui32>(~(casted ^ mask)) : static_cast<ui32>(casted ^ mask);
@@ -113,45 +116,6 @@ void FuseUi32AndFloatIntoUi64(
     FuseUi32AndFloatIntoUi64Impl<<<numBlocks, blockSize, 0, stream>>>(ui32s, floats, size, fused, negateFloats);
 }
 
-// GetBits
-
-template <typename T, typename U>
-__global__ void GetBitsImpl(
-    const T* src,
-    U* dst,
-    const ui64 size,
-    const ui32 bitsOffset,
-    const ui32 bitsCount)
-{
-    ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
-    while (i < size) {
-        dst[i] = (src[i] << (sizeof(T) - bitsOffset + bitsCount)) >> (sizeof(T) + bitsCount);
-        i += gridDim.x * blockDim.x;
-    }
-}
-
-template <typename T, typename U>
-void GetBits(const T* src, U* dst, ui64 size, ui32 bitsOffset, ui32 bitsCount, TCudaStream stream) {
-    const ui32 blockSize = 512;
-    const ui64 numBlocks = Min(
-        (size + blockSize - 1) / blockSize,
-        (ui64)TArchProps::MaxBlockCount());
-    GetBitsImpl<<<numBlocks, blockSize, 0, stream>>>(src, dst, size, bitsOffset, bitsCount);
-}
-
-#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
-    Y_CATBOOST_CUDA_F_IMPL x
-
-#define Y_CATBOOST_CUDA_F_IMPL(T, U) \
-    template void GetBits<T, U>(const T* src, U* dst, ui64 size, ui32 bitsOffset, ui32 bitsCount, TCudaStream stream);
-
-Y_MAP_ARGS(
-    Y_CATBOOST_CUDA_F_IMPL_PROXY,
-    (ui64, ui32));
-
-#undef Y_CATBOOST_CUDA_F_IMPL
-#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
-
 // FuseUi32AndTwoFloatsIntoUi64
 
 __global__ void FuseUi32AndTwoFloatsIntoUi64Impl(
@@ -163,17 +127,22 @@ __global__ void FuseUi32AndTwoFloatsIntoUi64Impl(
     bool negateFloats1,
     bool negateFloats2)
 {
+    // uses __float2half_rz (round-towards-zero) because:
+    // - this should be the fastest one (it simply drops unused bits)
+    // - this was the only one available float16 rounding mode on CPU (see library/float16) at the
+    //   moment
+
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        ui64 value = static_cast<ui64>(ui32s[i]) << 32;
+        ui64 value = static_cast<ui64>(__ldg(ui32s + i)) << 32;
         {
-            const auto half = __float2half_rz(floats1[i]);
+            const auto half = __float2half_rz(__ldg(floats1 + i));
             const auto casted = *reinterpret_cast<const ui16*>(&half);
             const ui16 mask = -i16(casted >> 15) | (i16(1) << 15);
             value |= static_cast<ui64>(negateFloats1 ? static_cast<ui16>(~(casted ^ mask)) : static_cast<ui16>(casted ^ mask)) << 16;
         }
         {
-            const auto half = __float2half_rz(floats2[i]);
+            const auto half = __float2half_rz(__ldg(floats2 + i));
             const auto casted = *reinterpret_cast<const ui16*>(&half);
             const ui16 mask = -i16(casted >> 15) | (i16(1) << 15);
             value |= static_cast<ui64>(negateFloats2 ? static_cast<ui16>(~(casted ^ mask)) : static_cast<ui16>(casted ^ mask));
@@ -199,5 +168,247 @@ void FuseUi32AndTwoFloatsIntoUi64(
         (ui64)TArchProps::MaxBlockCount());
     FuseUi32AndTwoFloatsIntoUi64Impl<<<numBlocks, blockSize, 0, stream>>>(ui32s, floats1, floats2, size, fused, negateFloats1, negateFloats2);
 }
+
+// MakeElementwiseOffsets
+
+template <ui32 LogicalWarpSize, typename T>
+__global__ void MakeElementwiseOffsetsImpl(
+    const T* sizes,
+    const T* offsets,
+    ui64 size,
+    T* elementwiseOffsets)
+{
+    ui64 i = blockIdx.x * (blockDim.x / LogicalWarpSize) + (threadIdx.x / LogicalWarpSize);
+    while (i < size) {
+        const ui32 groupSize = __ldg(sizes + i);
+        const ui32 groupOffset = __ldg(offsets + i);
+        for (ui32 j = threadIdx.x & (LogicalWarpSize - 1); j < groupSize; j += LogicalWarpSize) {
+            elementwiseOffsets[groupOffset + j] = groupOffset;
+        }
+
+        i += gridDim.x * (blockDim.x / LogicalWarpSize);
+    }
+}
+
+static ui64 GetBlockCount(ui32 logicalWarpSize, ui32 blockSize, ui64 objectCount) {
+    return Min<ui64>(
+        (logicalWarpSize * objectCount + blockSize - 1) / blockSize,
+        TArchProps::MaxBlockCount());
+}
+
+template <typename T>
+void MakeElementwiseOffsets(
+    const T* sizes,
+    const T* offsets,
+    ui64 size,
+    T* elementwiseOffsets,
+    ui64 elementwiseOffsetsSize,
+    TCudaStream stream)
+{
+    const ui32 blockSize = 512;
+    const auto avgElementsPerGroup = elementwiseOffsetsSize / size;
+
+#define Y_RUN_KERNEL(LOGICAL_KERNEL_SIZE)                                        \
+        const ui32 logicalWarpSize = LOGICAL_KERNEL_SIZE;                        \
+        const auto blockCount = GetBlockCount(logicalWarpSize, blockSize, size); \
+        MakeElementwiseOffsetsImpl<logicalWarpSize><<<blockCount, blockSize, 0, stream>>>(sizes, offsets, size, elementwiseOffsets);
+
+    if (avgElementsPerGroup <= 2) {
+        Y_RUN_KERNEL(2);
+    } else if (avgElementsPerGroup <= 4) {
+        Y_RUN_KERNEL(4);
+    } else if (avgElementsPerGroup <= 8) {
+        Y_RUN_KERNEL(8);
+    } else if (avgElementsPerGroup <= 16) {
+        Y_RUN_KERNEL(16);
+    } else {
+        Y_RUN_KERNEL(32);
+    }
+
+#undef Y_RUN_KERNEL
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(T) \
+    template void MakeElementwiseOffsets<T>(const T* sizes, const T* offsets, ui64 size, T* elementwiseOffsets, ui64 elementwiseOffsetsSize, TCudaStream stream);
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL,
+    ui32);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+
+// MakeEndOfGroupMarkers
+
+template <typename T>
+__global__ void MakeEndOfGroupMarkersImpl(
+    const T* sizes,
+    const T* offsets,
+    ui64 size,
+    T* endOfGroupMarkers,
+    ui64 endOfGroupMarkersSize)
+{
+    ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < size) {
+        if (i == 0) {
+            endOfGroupMarkers[0] = 1;
+        }
+
+        const auto offset = __ldg(offsets + i) + __ldg(sizes + i);
+        if (offset < endOfGroupMarkersSize) {
+            endOfGroupMarkers[offset] = 1;
+        }
+
+        i += gridDim.x * blockDim.x;
+    }
+}
+
+template <typename T>
+void MakeEndOfGroupMarkers(
+    const T* sizes,
+    const T* offsets,
+    ui64 size,
+    T* endOfGroupMarkers,
+    ui64 endOfGroupMarkersSize,
+    TCudaStream stream)
+{
+    const ui32 blockSize = 512;
+    const ui64 numBlocks = Min(
+        (size + blockSize - 1) / blockSize,
+        (ui64)TArchProps::MaxBlockCount());
+    MakeEndOfGroupMarkersImpl<<<numBlocks, blockSize, 0, stream>>>(sizes, offsets, size, endOfGroupMarkers, endOfGroupMarkersSize);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(T) \
+    template void MakeEndOfGroupMarkers<T>(const T* sizes, const T* offsets, ui64 size, T* endOfGroupMarkers, ui64 endOfGroupMarkersSize, TCudaStream stream);
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL,
+    ui32);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+
+// GatherBySizeAndOffset
+
+template <typename T, typename I>
+__global__ void GatherBySizeAndOffsetImpl(
+    const T* src,
+    const I* sizes,
+    const I* offsets,
+    ui64 size,
+    T* dst)
+{
+    ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
+    while (i < size) {
+        dst[i] = __ldg(src + __ldg(sizes + i) + __ldg(offsets + i) - 1);
+        i += gridDim.x * blockDim.x;
+    }
+}
+
+template <typename T, typename I>
+void GatherBySizeAndOffset(
+    const T* src,
+    const I* sizes,
+    const I* offsets,
+    ui64 size,
+    T* dst,
+    TCudaStream stream)
+{
+    const ui32 blockSize = 512;
+    const ui64 numBlocks = Min(
+        (size + blockSize - 1) / blockSize,
+        (ui64)TArchProps::MaxBlockCount());
+    GatherBySizeAndOffsetImpl<<<numBlocks, blockSize, 0, stream>>>(src, sizes, offsets, size, dst);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
+    Y_CATBOOST_CUDA_F_IMPL x
+
+#define Y_CATBOOST_CUDA_F_IMPL(T, I) \
+    template void GatherBySizeAndOffset<T, I>(const T* src, const I* sizes, const I* offsets, ui64 size, T* dst, TCudaStream stream);
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL_PROXY,
+    (float, ui32));
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
+
+// RemoveGroupMean
+
+template <ui32 BlockSize, ui32 LogicalWarpSize, typename T, typename I>
+__global__ void RemoveGroupMeanImpl(
+    const T* values,
+    const I* sizes,
+    const I* offsets,
+    ui64 size,
+    T* normalized)
+{
+    const ui32 groupsPerBlock = BlockSize / LogicalWarpSize;
+    const ui32 localGroupIdx = threadIdx.x / LogicalWarpSize;
+    const ui32 groupIdx = blockIdx.x * groupsPerBlock + localGroupIdx;
+
+    const ui32 groupOffset = groupIdx < size ? __ldg(offsets + groupIdx) : 0;
+    const ui32 groupSize = groupIdx < size ? __ldg(sizes + groupIdx) : 0;
+    values += groupOffset;
+    normalized += groupOffset;
+
+    const ui32 localThreadIdx = threadIdx.x & (LogicalWarpSize - 1);
+
+    T localMean = 0;
+    for (ui32 i = localThreadIdx; i < groupSize; i += LogicalWarpSize) {
+        localMean += __ldg(values + i) / groupSize;
+    }
+
+    T mean = ShuffleReduce<T>(localThreadIdx, localMean, LogicalWarpSize);
+    mean = __shfl_sync(0xFFFFFF, mean, 0, LogicalWarpSize);
+
+    for (ui32 i = localThreadIdx; i < groupSize; i += LogicalWarpSize) {
+        normalized[i] = __ldg(values + i) - mean;
+    }
+}
+
+template <typename T, typename I>
+void RemoveGroupMean(
+    const T* values,
+    ui64 valuesSize,
+    const I* sizes,
+    const I* offsets,
+    ui64 size,
+    T* normalized,
+    TCudaStream stream)
+{
+    const ui32 blockSize = 512;
+    const auto avgElementsPerGroup = valuesSize / size;
+
+#define Y_RUN_KERNEL(LOGICAL_KERNEL_SIZE)                                        \
+        const ui32 logicalWarpSize = LOGICAL_KERNEL_SIZE;                        \
+        const auto blockCount = GetBlockCount(logicalWarpSize, blockSize, size); \
+        RemoveGroupMeanImpl<blockSize, logicalWarpSize><<<blockCount, blockSize, 0, stream>>>(values, sizes, offsets, size, normalized);
+
+    if (avgElementsPerGroup <= 2) {
+        Y_RUN_KERNEL(2);
+    } else if (avgElementsPerGroup <= 4) {
+        Y_RUN_KERNEL(4);
+    } else if (avgElementsPerGroup <= 8) {
+        Y_RUN_KERNEL(8);
+    } else if (avgElementsPerGroup <= 16) {
+        Y_RUN_KERNEL(16);
+    } else {
+        Y_RUN_KERNEL(32);
+    }
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
+    Y_CATBOOST_CUDA_F_IMPL x
+
+#define Y_CATBOOST_CUDA_F_IMPL(T, I) \
+    template void RemoveGroupMean<T, I>(const T* values, ui64 valuesSize, const I* sizes, const I* offsets, ui64 size, T* normalized, TCudaStream stream);
+
+Y_MAP_ARGS(
+    Y_CATBOOST_CUDA_F_IMPL_PROXY,
+    (float, ui32));
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
 }

@@ -475,6 +475,7 @@ namespace {
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TMirrorMapping, ui32),
+    (float, TMirrorMapping, const ui32),
     (const float, TMirrorMapping, ui32),
     (const float, TMirrorMapping, const ui32),
     (int, TMirrorMapping, ui32),
@@ -489,6 +490,7 @@ Y_MAP_ARGS(
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TSingleMapping, ui32),
+    (float, TSingleMapping, const ui32),
     (const float, TSingleMapping, ui32),
     (const float, TSingleMapping, const ui32),
     (int, TSingleMapping, ui32),
@@ -503,6 +505,7 @@ Y_MAP_ARGS(
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TStripeMapping, ui32),
+    (float, TStripeMapping, const ui32),
     (const float, TStripeMapping, ui32),
     (const float, TStripeMapping, const ui32),
     (int, TStripeMapping, ui32),
