@@ -1260,6 +1260,18 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 }
 
 
+#' Cross-validate model.
+#'
+#' @param pool Data to cross-validatte
+#' @param params Parameters for catboost.train
+#' @param fold_count Folds count.
+#' @param inverted Train on the test fold and evaluate the model on the training folds.
+#' @param partition_random_seed The random seed used for splittng pool into folds.
+#' @param shuffle Shuffle the dataset objects before splitting into folds.
+#' @param stratified Perform stratified sampling.
+#' @param early_stopping_rounds Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+#' @param pool The dataset used for cross-validation.
+#' @export
 catboost.cv <- function(pool, params = list(),
                         fold_count = 3,
                         inverted = FALSE,
@@ -1283,7 +1295,7 @@ catboost.cv <- function(pool, params = list(),
     message("I am gonna call CatBoostCV_R 2")
     result <- .Call("CatBoostCV_R", json_params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified)
 
-    return(result)
+    return(data.frame(result))
 }
 
 
