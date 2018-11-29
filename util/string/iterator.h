@@ -483,12 +483,12 @@ static inline TStringSplitter<It> StringSplitter(It begin, size_t len) {
     return {begin, begin + len};
 }
 
-template <class Str>
+template <class Str, std::enable_if_t<!std::is_pointer<std::remove_cv_t<std::remove_reference_t<Str>>>::value, int> = 0>
 static inline auto StringSplitter(Str& s) {
     return TStringSplitter<decltype(std::cbegin(s))>(std::cbegin(s), std::cend(s));
 }
 
-template <class Str>
+template <class Str, std::enable_if_t<!std::is_pointer<std::remove_cv_t<std::remove_reference_t<Str>>>::value, int> = 0>
 static inline auto StringSplitter(Str&& s) {
     using TRes = TStringSplitter<decltype(std::cbegin(s)), TCopyOwnerPolicy<std::remove_cv_t<std::remove_reference_t<Str>>>>;
     return TRes(std::move(s));
