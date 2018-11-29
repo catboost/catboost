@@ -314,7 +314,7 @@ namespace NCatboost {
                 ordered_keys.insert(key_value.first);
             }
             for (const auto& key_value: ordered_keys) {
-                Out << indent << "{\"" << catFeaturesHashToString->at(key_value) << "\", "  << key_value << "},\n";
+                Out << indent << "{" << catFeaturesHashToString->at(key_value).Quote() << ", "  << key_value << "},\n";
             }
         }
         Out << --indent << "};" << '\n';
