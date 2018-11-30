@@ -22,7 +22,9 @@ namespace NIsInHelper {
     template <class C, class T, bool isAssoc>
     struct TIsInTraits {
         static bool IsIn(const C& c, const T& e) {
-            return ::IsIn(c.begin(), c.end(), e);
+            using std::begin;
+            using std::end;
+            return ::IsIn(begin(c), end(c), e);
         }
     };
 
