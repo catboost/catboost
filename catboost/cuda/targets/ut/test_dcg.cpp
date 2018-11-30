@@ -356,7 +356,7 @@ static float CalculateIdcg(
             docs[j].Target = targets[offset + j];
         }
 
-        perQueryMetrics[i] = weights[i] * CalcIDcg(docs, type, doubleDecay, topSize);
+        perQueryMetrics[i] = weights[offset] * CalcIDcg(docs, type, doubleDecay, topSize);
     }
 
     return FastAccumulate(perQueryMetrics);
@@ -386,7 +386,7 @@ static float CalculateDcg(
             docs[j].Prediction = approxes[offset + j];
         }
 
-        perQueryMetrics[i] = weights[i] * CalcDcg(docs, type, doubleDecay, topSize);
+        perQueryMetrics[i] = weights[offset] * CalcDcg(docs, type, doubleDecay, topSize);
     }
 
     return FastAccumulate(perQueryMetrics);
@@ -410,7 +410,7 @@ static float CalculateNdcg(
             docs[j].Prediction = approxes[offset + j];
         }
 
-        perQueryMetrics[i] = weights[i] * CalcNdcg(docs, type, topSize);
+        perQueryMetrics[i] = weights[offset] * CalcNdcg(docs, type, topSize);
     }
 
     return FastAccumulate(perQueryMetrics);
@@ -800,15 +800,18 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         }
         TVector<float> weights;
         weights.yresize(size);
-        for (auto& weight : weights) {
-            weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            const auto weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+            for (ui32 j = 0; j < sizes[i]; ++j) {
+                weights[offsets[i] + j] = weight;
+            }
         }
 
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
         auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceWeights = TStripeBuffer<float>::Create(sizesMapping);
+        auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
 
         deviceSizes.Write(sizes);
@@ -900,15 +903,18 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         }
         TVector<float> weights;
         weights.yresize(size);
-        for (auto& weight : weights) {
-            weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            const auto weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+            for (ui32 j = 0; j < sizes[i]; ++j) {
+                weights[offsets[i] + j] = weight;
+            }
         }
 
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
         auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceWeights = TStripeBuffer<float>::Create(sizesMapping);
+        auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceApproxes = TStripeBuffer<float>::Create(elementsMapping);
 
@@ -1103,15 +1109,18 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         }
         TVector<float> weights;
         weights.yresize(size);
-        for (auto& weight : weights) {
-            weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            const auto weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+            for (ui32 j = 0; j < sizes[i]; ++j) {
+                weights[offsets[i] + j] = weight;
+            }
         }
 
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
         auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceWeights = TStripeBuffer<float>::Create(sizesMapping);
+        auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceApproxes = TStripeBuffer<float>::Create(elementsMapping);
 

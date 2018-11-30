@@ -120,6 +120,7 @@ static TVector<float> CalculateNdcgImpl(
     }
     MultiplyVector(tmpFloats1, 1.f / queryCount, stream);
     MultiplyVector(tmpFloats1, decays, stream);
+    MultiplyVector(tmpFloats1, weights, stream);
     SegmentedScanVector(tmpFloats1, endOfGroupMarkers, dcgCumSum, true, 1, stream);
 
     // Calculate IDCG per-query metric values
@@ -149,8 +150,7 @@ static TVector<float> CalculateNdcgImpl(
         GatherBySizeAndOffset(tmpFloats2, sizes, offsets, idcgs, topSize, stream);
         // DCG / IDCG
         DivideVector(dcgs, idcgs, stream);
-        const TCudaBuffer<float, TMapping>* dummy = nullptr;
-        const auto weightedNdcgSum = DotProduct(dcgs, weights, dummy, stream);
+        const auto weightedNdcgSum = ReduceToHost(dcgs, EOperatorType::Sum, stream);
         weightedNdcgSums.push_back(weightedNdcgSum);
     }
 
@@ -233,6 +233,7 @@ static TVector<float> CalculateIdcgImpl(
         Gather(tmpFloats2, targets, indices, stream);
     }
     MultiplyVector(tmpFloats2, 1.f / queryCount, stream);
+    MultiplyVector(tmpFloats2, weights, stream);
     MultiplyVector(tmpFloats2, tmpFloats1, stream);
 
     FillBuffer(tmpUi32s, ui32(0), stream);
@@ -243,8 +244,7 @@ static TVector<float> CalculateIdcgImpl(
     weightedIdcgSums.reserve(topSizes.size());
     for (const auto topSize : topSizes) {
         GatherBySizeAndOffset(tmpFloats1, sizes, offsets, idcgs, topSize, stream);
-        const TCudaBuffer<float, TMapping>* dummy = nullptr;
-        const auto weightedIdcgSum = DotProduct(idcgs, weights, dummy, stream);
+        const auto weightedIdcgSum = ReduceToHost(idcgs, EOperatorType::Sum, stream);
         weightedIdcgSums.push_back(weightedIdcgSum * queryCount);
     }
 
@@ -337,6 +337,7 @@ static TVector<float> CalculateDcgImpl(
         Gather(tmpFloats2, targets, indices, stream);
     }
     MultiplyVector(tmpFloats2, 1.f / queryCount, stream);
+    MultiplyVector(tmpFloats2, weights, stream);
     MultiplyVector(tmpFloats2, tmpFloats1, stream);
 
     FillBuffer(tmpUi32s, ui32(0), stream);
@@ -347,8 +348,7 @@ static TVector<float> CalculateDcgImpl(
     weightedDcgSums.reserve(topSizes.size());
     for (const auto topSize : topSizes) {
         GatherBySizeAndOffset(tmpFloats1, sizes, offsets, dcgs, topSize, stream);
-        const TCudaBuffer<float, TMapping>* dummy = nullptr;
-        const auto weightedDcgSum = DotProduct(dcgs, weights, dummy, stream);
+        const auto weightedDcgSum = ReduceToHost(dcgs, EOperatorType::Sum, stream);
         weightedDcgSums.push_back(weightedDcgSum * queryCount);
     }
 

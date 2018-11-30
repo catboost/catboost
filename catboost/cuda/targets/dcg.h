@@ -13,7 +13,8 @@ namespace NCatboostCuda {
     // @param sizes             Array of per-query document counts.
     // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
     //                          e.g. they are given within a device).
-    // @param weights           Per-query weights (if you have no weights initialize it with ones).
+    // @param weights           Per-document weights (weight for each document withing query is
+    //                          identical; if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
     // @param approxes          Predicted document relevance (e.g. from a trained model)
     // @param type              How to treat relevances, if type is `Exp` relevance will be
@@ -39,7 +40,8 @@ namespace NCatboostCuda {
     // @param sizes             Array of per-query document counts.
     // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
     //                          e.g. they are given within a device).
-    // @param weights           Per-query weights (if you have no weights initialize it with ones).
+    // @param weights           Per-document weights (weight for each document withing query is
+    //                          identical; if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
     // @param type              How to treat relevances, if type is `Exp` relevance will be
     //                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
@@ -67,7 +69,8 @@ namespace NCatboostCuda {
     // @param sizes             Array of per-query document counts.
     // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
     //                          e.g. they are given within a device).
-    // @param weights           Per-query weights (if you have no weights initialize it with ones).
+    // @param weights           Per-document weights (weight for each document withing query is
+    //                          identical; if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
     // @param approxes          Predicted document relevance (e.g. from a trained model)
     // @param type              How to treat relevances, if type is `Exp` relevance will be

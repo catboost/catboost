@@ -229,6 +229,7 @@ Y_MAP_ARGS(
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TMirrorMapping),
+    (const float, TMirrorMapping),
     (int, TMirrorMapping),
     (ui32, TMirrorMapping),
     (double, TMirrorMapping),
@@ -236,6 +237,7 @@ Y_MAP_ARGS(
     (uint2, TMirrorMapping),
     (ui16, TMirrorMapping),
     (float, TSingleMapping),
+    (const float, TSingleMapping),
     (int, TSingleMapping),
     (ui32, TSingleMapping),
     (double, TSingleMapping),
@@ -243,6 +245,7 @@ Y_MAP_ARGS(
     (uint2, TSingleMapping),
     (ui16, TSingleMapping),
     (float, TStripeMapping),
+    (const float, TStripeMapping),
     (int, TStripeMapping),
     (ui32, TStripeMapping),
     (double, TStripeMapping),
