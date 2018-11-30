@@ -21,7 +21,7 @@ namespace NKernel {
     void MakeEndOfGroupMarkers(const T* sizes, const T* offsets, ui64 size, T* endOfGroupMarkers, ui64 endOfGroupMarkersSize, TCudaStream stream);
 
     template <typename T, typename I>
-    void GatherBySizeAndOffset(const T* src, const I* sizes, const I* offsets, ui64 size, T* dst, TCudaStream stream);
+    void GatherBySizeAndOffset(const T* src, const I* sizes, const I* offsets, ui64 size, I maxSize, T* dst, TCudaStream stream);
 
     template <typename T, typename I>
     void RemoveGroupMean(const T* values, ui64 valuesSize, const I* sizes, const I* offsets, ui64 size, T* normalized, TCudaStream stream);

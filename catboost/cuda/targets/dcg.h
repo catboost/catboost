@@ -2,7 +2,10 @@
 
 #include <catboost/cuda/cuda_lib/fwd.h>
 #include <catboost/libs/options/enums.h>
+
+#include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
+#include <util/generic/utility.h>
 
 namespace NCatboostCuda {
     // Calculate sum of per-query NDCGs.
@@ -10,22 +13,25 @@ namespace NCatboostCuda {
     // @param sizes             Array of per-query document counts.
     // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
     //                          e.g. they are given within a device).
+    // @param weights           Per-query weights (if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
     // @param approxes          Predicted document relevance (e.g. from a trained model)
     // @param type              How to treat relevances, if type is `Exp` relevance will be
     //                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
     //                          keps as-is.
     //
-    // @return                  Sum of per-query NDCGs
+    // @return                  Weighted sums of per-query NDCGs
     //
     // NOTE: sum(sizes) == len(targets)
     template <typename TMapping>
-    float CalculateNdcg(
+    TVector<float> CalculateNdcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& offsets,
+        const NCudaLib::TCudaBuffer<const float, TMapping>& weights,
         const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
         const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
         ENdcgMetricType type = ENdcgMetricType::Base,
+        TConstArrayRef<ui32> topSizes = {},
         ui32 stream = 0);
 
     // Calculate sum of per-query IDCGs.
@@ -33,6 +39,7 @@ namespace NCatboostCuda {
     // @param sizes             Array of per-query document counts.
     // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
     //                          e.g. they are given within a device).
+    // @param weights           Per-query weights (if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
     // @param type              How to treat relevances, if type is `Exp` relevance will be
     //                          exponentiated ($$2^relevance - 1$$), otherwise relevance will be
@@ -40,16 +47,18 @@ namespace NCatboostCuda {
     // @param exponentialDecay  If defined instead of a classic decay ($$1/log2(position + 1)$$)
     //                          will use exponential decay ($$exponentialDecay^(position-1)$$).
     //
-    // @return                  Sum of per-query IDCGs
+    // @return                  Weighted sums of per-query IDCGs
     //
     // NOTE: sum(sizes) == len(targets)
     template <typename TMapping>
-    float CalculateIdcg(
+    TVector<float> CalculateIdcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& offsets,
+        const NCudaLib::TCudaBuffer<const float, TMapping>& weights,
         const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
         ENdcgMetricType type = ENdcgMetricType::Base,
         TMaybe<float> exponentialDecay = Nothing(),
+        TConstArrayRef<ui32> topSizes = {},
         ui32 stream = 0);
 
 
@@ -58,6 +67,7 @@ namespace NCatboostCuda {
     // @param sizes             Array of per-query document counts.
     // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
     //                          e.g. they are given within a device).
+    // @param weights           Per-query weights (if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
     // @param approxes          Predicted document relevance (e.g. from a trained model)
     // @param type              How to treat relevances, if type is `Exp` relevance will be
@@ -66,17 +76,19 @@ namespace NCatboostCuda {
     // @param exponentialDecay  If defined instead of a classic decay ($$1/log2(position + 1)$$)
     //                          will use exponential decay ($$exponentialDecay^(position-1)$$).
     //
-    // @return                  Sum of per-query DCGs
+    // @return                  Weighted sums of per-query DCGs
     //
     // NOTE: sum(sizes) == len(targets)
     template <typename TMapping>
-    float CalculateDcg(
+    TVector<float> CalculateDcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& offsets,
+        const NCudaLib::TCudaBuffer<const float, TMapping>& weights,
         const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
         const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
         ENdcgMetricType type = ENdcgMetricType::Base,
         TMaybe<float> exponentialDecay = Nothing(),
+        TConstArrayRef<ui32> topSizes = {},
         ui32 stream = 0);
 
     namespace NDetail {
@@ -144,7 +156,7 @@ namespace NCatboostCuda {
         // Equal to:
         //
         // for (size_t i = 0; i < sizes.size(); ++i) {
-        //     dst[i] = src[offsets[i] + sizes[i] - 1];
+        //     dst[i] = src[offsets[i] + min(sizes[i], maxSize) - 1];
         // }
         template <typename T, typename I, typename TMapping>
         void GatherBySizeAndOffset(
@@ -152,6 +164,7 @@ namespace NCatboostCuda {
             const NCudaLib::TCudaBuffer<I, TMapping>& sizes,
             const NCudaLib::TCudaBuffer<I, TMapping>& offsets,
             NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
+            std::remove_const_t<I> maxSize = Max<std::remove_const_t<I>>(),
             ui32 stream = 0);
 
         // Equal to:
@@ -175,4 +188,3 @@ namespace NCatboostCuda {
             ui32 stream = 0);
     }
 }
-

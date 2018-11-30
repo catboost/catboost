@@ -295,11 +295,12 @@ __global__ void GatherBySizeAndOffsetImpl(
     const I* sizes,
     const I* offsets,
     ui64 size,
+    I maxSize,
     T* dst)
 {
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
     while (i < size) {
-        dst[i] = __ldg(src + __ldg(sizes + i) + __ldg(offsets + i) - 1);
+        dst[i] = __ldg(src + __ldg(offsets + i) + min(__ldg(sizes + i), maxSize)- 1);
         i += gridDim.x * blockDim.x;
     }
 }
@@ -310,6 +311,7 @@ void GatherBySizeAndOffset(
     const I* sizes,
     const I* offsets,
     ui64 size,
+    I maxSize,
     T* dst,
     TCudaStream stream)
 {
@@ -317,14 +319,14 @@ void GatherBySizeAndOffset(
     const ui64 numBlocks = Min(
         (size + blockSize - 1) / blockSize,
         (ui64)TArchProps::MaxBlockCount());
-    GatherBySizeAndOffsetImpl<<<numBlocks, blockSize, 0, stream>>>(src, sizes, offsets, size, dst);
+    GatherBySizeAndOffsetImpl<<<numBlocks, blockSize, 0, stream>>>(src, sizes, offsets, size, maxSize, dst);
 }
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
 #define Y_CATBOOST_CUDA_F_IMPL(T, I) \
-    template void GatherBySizeAndOffset<T, I>(const T* src, const I* sizes, const I* offsets, ui64 size, T* dst, TCudaStream stream);
+    template void GatherBySizeAndOffset<T, I>(const T* src, const I* sizes, const I* offsets, ui64 size, I maxSize, T* dst, TCudaStream stream);
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,

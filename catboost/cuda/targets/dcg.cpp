@@ -13,6 +13,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/stream/labeled.h>
+#include <util/generic/utility.h>
 
 #include <type_traits>
 
@@ -34,28 +35,37 @@ using NKernelHost::TCudaStream;
 using NKernelHost::TKernelBase;
 using NKernelHost::TStatelessKernel;
 
+static const ui32 DEFAULT_TOP_SIZES[] = {Max<ui32>()};
+
 // CalculateNdcg
 
 template <typename TMapping>
-static float CalculateNdcgImpl(
+static TVector<float> CalculateNdcgImpl(
     const TCudaBuffer<const ui32, TMapping>& sizes,
     const TCudaBuffer<const ui32, TMapping>& offsets,
+    const TCudaBuffer<const float, TMapping>& weights,
     const TCudaBuffer<const float, TMapping>& targets,
     const TCudaBuffer<const float, TMapping>& approxes,
     const ENdcgMetricType type,
-    ui32 stream)
+    TConstArrayRef<ui32> topSizes,
+    const ui32 stream)
 {
+    if (topSizes.empty()) {
+        topSizes = DEFAULT_TOP_SIZES;
+    }
+
     const auto mapping = targets.GetMapping();
-    const auto size = mapping.GetObjectsSlice().Size();
+    const auto queryCount = sizes.GetMapping().GetObjectsSlice().Size();
     auto tmpFloats1 = TCudaBuffer<float, TMapping>::Create(mapping);
     auto tmpFloats2 = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto dcgCumSum = TCudaBuffer<float, TMapping>::Create(mapping);
     auto elementwiseOffsets = TCudaBuffer<ui32, TMapping>::Create(mapping);
     auto endOfGroupMarkers = TCudaBuffer<ui32, TMapping>::Create(mapping);
     auto decays = TCudaBuffer<float, TMapping>::Create(mapping);
     auto fused = TCudaBuffer<ui64, TMapping>::Create(mapping);
     auto indices = TCudaBuffer<ui32, TMapping>::Create(mapping);
-    auto dcg = TCudaBuffer<float, TMapping>::Create(sizes.GetMapping());
-    auto idcg = TCudaBuffer<float, TMapping>::Create(sizes.GetMapping());
+    auto dcgs = TCudaBuffer<float, TMapping>::Create(sizes.GetMapping());
+    auto idcgs = TCudaBuffer<float, TMapping>::Create(sizes.GetMapping());
     TCudaBuffer<float, TMapping> expTargets;
     if (ENdcgMetricType::Exp == type) {
         expTargets = TCudaBuffer<float, TMapping>::Create(mapping);
@@ -108,10 +118,9 @@ static float CalculateNdcgImpl(
     } else {
         Gather(tmpFloats1, targets, indices, stream);
     }
-    MultiplyVector(tmpFloats1, 1.f / size, stream);
+    MultiplyVector(tmpFloats1, 1.f / queryCount, stream);
     MultiplyVector(tmpFloats1, decays, stream);
-    SegmentedScanVector(tmpFloats1, endOfGroupMarkers, tmpFloats2, true, 1, stream);
-    GatherBySizeAndOffset(tmpFloats2, sizes, offsets, dcg, stream);
+    SegmentedScanVector(tmpFloats1, endOfGroupMarkers, dcgCumSum, true, 1, stream);
 
     // Calculate IDCG per-query metric values
 
@@ -129,28 +138,37 @@ static float CalculateNdcgImpl(
     } else {
         Gather(tmpFloats1, targets, indices, stream);
     }
-    MultiplyVector(tmpFloats1, 1.f / size, stream);
+    MultiplyVector(tmpFloats1, 1.f / queryCount, stream);
     MultiplyVector(tmpFloats1, decays, stream);
     SegmentedScanVector(tmpFloats1, endOfGroupMarkers, tmpFloats2, true, 1, stream);
-    GatherBySizeAndOffset(tmpFloats2, sizes, offsets, idcg, stream);
 
-    // DCG / IDCG
-    DivideVector(dcg, idcg, stream);
+    TVector<float> weightedNdcgSums;
+    weightedNdcgSums.reserve(topSizes.size());
+    for (const auto topSize : topSizes) {
+        GatherBySizeAndOffset(dcgCumSum, sizes, offsets, dcgs, topSize, stream);
+        GatherBySizeAndOffset(tmpFloats2, sizes, offsets, idcgs, topSize, stream);
+        // DCG / IDCG
+        DivideVector(dcgs, idcgs, stream);
+        const TCudaBuffer<float, TMapping>* dummy = nullptr;
+        const auto weightedNdcgSum = DotProduct(dcgs, weights, dummy, stream);
+        weightedNdcgSums.push_back(weightedNdcgSum);
+    }
 
-    return ReduceToHost(dcg, EOperatorType::Sum, stream);
+    return weightedNdcgSums;
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                             \
-    template <>                                                                      \
-    float NCatboostCuda::CalculateNdcg<TMapping>(                                    \
-        const TCudaBuffer<const ui32, TMapping>& sizes,                              \
-        const TCudaBuffer<const ui32, TMapping>& offsets,                            \
-        const TCudaBuffer<const float, TMapping>& targets,                           \
-        const TCudaBuffer<const float, TMapping>& approxes,                          \
-        ENdcgMetricType type,                                                        \
-        ui32 stream)                                                                 \
-    {                                                                                \
-        return ::CalculateNdcgImpl(sizes, offsets, targets, approxes, type, stream); \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                                \
+    template <>                                                                                         \
+    TVector<float> NCatboostCuda::CalculateNdcg<TMapping>(                                              \
+        const TCudaBuffer<const ui32, TMapping>& sizes,                                                 \
+        const TCudaBuffer<const ui32, TMapping>& offsets,                                               \
+        const TCudaBuffer<const float, TMapping>& weights,                                              \
+        const TCudaBuffer<const float, TMapping>& targets,                                              \
+        const TCudaBuffer<const float, TMapping>& approxes,                                             \
+        ENdcgMetricType type,                                                                           \
+        TConstArrayRef<ui32> topSizes,                                                                  \
+        ui32 stream) {                                                                                  \
+        return ::CalculateNdcgImpl(sizes, offsets, weights, targets, approxes, type, topSizes, stream); \
     }
 
 Y_MAP_ARGS(
@@ -164,65 +182,87 @@ Y_MAP_ARGS(
 // CalculateIDcg
 
 template <typename TMapping>
-static float CalculateIdcgImpl(
+static TVector<float> CalculateIdcgImpl(
     const TCudaBuffer<const ui32, TMapping>& sizes,
     const TCudaBuffer<const ui32, TMapping>& offsets,
+    const TCudaBuffer<const float, TMapping>& weights,
     const TCudaBuffer<const float, TMapping>& targets,
     const ENdcgMetricType type,
     const TMaybe<float> exponentialDecay,
-    ui32 stream)
+    TConstArrayRef<ui32> topSizes,
+    const ui32 stream)
 {
+    if (topSizes.empty()) {
+        topSizes = DEFAULT_TOP_SIZES;
+    }
+
     const auto mapping = targets.GetMapping();
-    const auto size = mapping.GetObjectsSlice().Size();
-    auto reorderedTargets = TCudaBuffer<float, TMapping>::Create(mapping);
-    auto elementwiseOffsets = TCudaBuffer<ui32, TMapping>::Create(mapping);
-    auto decays = TCudaBuffer<float, TMapping>::Create(mapping);
+    const auto queryCount = sizes.GetMapping().GetObjectsSlice().Size();
+    auto tmpFloats1 = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto tmpFloats2 = TCudaBuffer<float, TMapping>::Create(mapping);
+    auto tmpUi32s = TCudaBuffer<ui32, TMapping>::Create(mapping);
     auto fused = TCudaBuffer<ui64, TMapping>::Create(mapping);
     auto indices = TCudaBuffer<ui32, TMapping>::Create(mapping);
+    auto idcgs = TCudaBuffer<float, TMapping>::CopyMapping(sizes);
     TCudaBuffer<float, TMapping> expTargets;
     if (ENdcgMetricType::Exp == type) {
         expTargets = TCudaBuffer<float, TMapping>::Create(mapping);
     }
 
-    MakeElementwiseOffsets(sizes, offsets, elementwiseOffsets);
+    MakeElementwiseOffsets(sizes, offsets, tmpUi32s);
 
     if (exponentialDecay.Defined()) {
-        MakeDcgExponentialDecays(elementwiseOffsets, *exponentialDecay, decays, stream);
+        MakeDcgExponentialDecays(tmpUi32s, *exponentialDecay, tmpFloats1, stream);
     } else {
-        MakeDcgDecays(elementwiseOffsets, decays, stream);
+        MakeDcgDecays(tmpUi32s, tmpFloats1, stream);
     }
 
     // here we rely on the fact that `biasedOffsets` are sorted in ascending order
     // and since we only want to sort by `targets `while keeping groups at the same place as they
     // were we will negate `targets` (bitwise) thus within a group they will be sorted in descending
     // order.
-    FuseUi32AndFloatIntoUi64(elementwiseOffsets, targets, fused, true, stream);
+    FuseUi32AndFloatIntoUi64(tmpUi32s, targets, fused, true, stream);
     MakeSequence(indices, stream);
     RadixSort(fused, indices, false, stream);
 
     if (ENdcgMetricType::Exp == type) {
         PowVector(targets, 2.f, expTargets, stream);
         AddVector(expTargets, -1.f, stream);
-        Gather(reorderedTargets, expTargets, indices, stream);
+        Gather(tmpFloats2, expTargets, indices, stream);
     } else {
-        Gather(reorderedTargets, targets, indices, stream);
+        Gather(tmpFloats2, targets, indices, stream);
     }
-    MultiplyVector(reorderedTargets, 1.f / size, stream);
+    MultiplyVector(tmpFloats2, 1.f / queryCount, stream);
+    MultiplyVector(tmpFloats2, tmpFloats1, stream);
 
-    const TCudaBuffer<float, TMapping>* weights = nullptr;
-    return DotProduct(decays, reorderedTargets, weights, stream) * size;
+    FillBuffer(tmpUi32s, ui32(0), stream);
+    MakeEndOfGroupMarkers(sizes, offsets, tmpUi32s, stream);
+    SegmentedScanVector(tmpFloats2, tmpUi32s, tmpFloats1, true, 1, stream);
+
+    TVector<float> weightedIdcgSums;
+    weightedIdcgSums.reserve(topSizes.size());
+    for (const auto topSize : topSizes) {
+        GatherBySizeAndOffset(tmpFloats1, sizes, offsets, idcgs, topSize, stream);
+        const TCudaBuffer<float, TMapping>* dummy = nullptr;
+        const auto weightedIdcgSum = DotProduct(idcgs, weights, dummy, stream);
+        weightedIdcgSums.push_back(weightedIdcgSum * queryCount);
+    }
+
+    return weightedIdcgSums;
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                     \
-    template <>                                                                              \
-    float NCatboostCuda::CalculateIdcg<TMapping>(                                            \
-        const TCudaBuffer<const ui32, TMapping>& sizes,                                      \
-        const TCudaBuffer<const ui32, TMapping>& offsets,                                    \
-        const TCudaBuffer<const float, TMapping>& targets,                                   \
-        ENdcgMetricType type,                                                                \
-        TMaybe<float> exponentialDecay,                                                      \
-        ui32 stream) {                                                                       \
-        return ::CalculateIdcgImpl(sizes, offsets, targets, type, exponentialDecay, stream); \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                                        \
+    template <>                                                                                                 \
+    TVector<float> NCatboostCuda::CalculateIdcg<TMapping>(                                                      \
+        const TCudaBuffer<const ui32, TMapping>& sizes,                                                         \
+        const TCudaBuffer<const ui32, TMapping>& offsets,                                                       \
+        const TCudaBuffer<const float, TMapping>& weights,                                                      \
+        const TCudaBuffer<const float, TMapping>& targets,                                                      \
+        ENdcgMetricType type,                                                                                   \
+        TMaybe<float> exponentialDecay,                                                                         \
+        TConstArrayRef<ui32> topSizes,                                                                          \
+        ui32 stream) {                                                                                          \
+        return ::CalculateIdcgImpl(sizes, offsets, weights, targets, type, exponentialDecay, topSizes, stream); \
     }
 
 Y_MAP_ARGS(
@@ -235,22 +275,29 @@ Y_MAP_ARGS(
 
 // CalculateDcg
 template <typename TMapping>
-static float CalculateDcgImpl(
+static TVector<float> CalculateDcgImpl(
     const TCudaBuffer<const ui32, TMapping>& sizes,
     const TCudaBuffer<const ui32, TMapping>& offsets,
+    const TCudaBuffer<const float, TMapping>& weights,
     const TCudaBuffer<const float, TMapping>& targets,
     const TCudaBuffer<const float, TMapping>& approxes,
     const ENdcgMetricType type,
     const TMaybe<float> exponentialDecay,
-    ui32 stream)
+    TConstArrayRef<ui32> topSizes,
+    const ui32 stream)
 {
+    if (topSizes.empty()) {
+        topSizes = DEFAULT_TOP_SIZES;
+    }
+
     const auto mapping = targets.GetMapping();
-    const auto size = mapping.GetObjectsSlice().Size();
+    const auto queryCount = sizes.GetMapping().GetObjectsSlice().Size();
     auto tmpFloats1 = TCudaBuffer<float, TMapping>::Create(mapping);
     auto tmpFloats2 = TCudaBuffer<float, TMapping>::Create(mapping);
-    auto elementwiseOffsets = TCudaBuffer<ui32, TMapping>::Create(mapping);
+    auto tmpUi32s = TCudaBuffer<ui32, TMapping>::Create(mapping);
     auto fused = TCudaBuffer<ui64, TMapping>::Create(mapping);
     auto indices = TCudaBuffer<ui32, TMapping>::Create(mapping);
+    auto dcgs = TCudaBuffer<float, TMapping>::CopyMapping(sizes);
     TCudaBuffer<float, TMapping> expTargets;
     if (ENdcgMetricType::Exp == type) {
         expTargets = TCudaBuffer<float, TMapping>::Create(mapping);
@@ -260,7 +307,7 @@ static float CalculateDcgImpl(
     // FuseUi32AndTwoFloatsIntoUi64)
     RemoveGroupMean(approxes, sizes, offsets, tmpFloats1, stream);
     RemoveGroupMean(targets, sizes, offsets, tmpFloats2, stream);
-    MakeElementwiseOffsets(sizes, offsets, elementwiseOffsets);
+    MakeElementwiseOffsets(sizes, offsets, tmpUi32s);
 
     // we want to sort them using following predicate (based on `CompareDocs`):
     // bool Cmp(lhsOffset, lhsApprox, lhsTarget, rhsOffset, rhsApprox, rhsTarget) {
@@ -272,14 +319,14 @@ static float CalculateDcgImpl(
     //     }
     //     return lhsOffset < rhsOffset;
     // }
-    FuseUi32AndTwoFloatsIntoUi64(elementwiseOffsets, tmpFloats1, tmpFloats2, fused, true, false, stream);
+    FuseUi32AndTwoFloatsIntoUi64(tmpUi32s, tmpFloats1, tmpFloats2, fused, true, false, stream);
     MakeSequence(indices, stream);
     RadixSort(fused, indices, false, stream);
 
     if (exponentialDecay.Defined()) {
-        MakeDcgExponentialDecays(elementwiseOffsets, *exponentialDecay, tmpFloats1, stream);
+        MakeDcgExponentialDecays(tmpUi32s, *exponentialDecay, tmpFloats1, stream);
     } else {
-        MakeDcgDecays(elementwiseOffsets, tmpFloats1, stream);
+        MakeDcgDecays(tmpUi32s, tmpFloats1, stream);
     }
 
     if (ENdcgMetricType::Exp == type) {
@@ -289,23 +336,38 @@ static float CalculateDcgImpl(
     } else {
         Gather(tmpFloats2, targets, indices, stream);
     }
-    MultiplyVector(tmpFloats2, 1.f / size, stream);
+    MultiplyVector(tmpFloats2, 1.f / queryCount, stream);
+    MultiplyVector(tmpFloats2, tmpFloats1, stream);
 
-    const TCudaBuffer<float, TMapping>* weights = nullptr;
-    return DotProduct(tmpFloats1, tmpFloats2, weights, stream) * size;
+    FillBuffer(tmpUi32s, ui32(0), stream);
+    MakeEndOfGroupMarkers(sizes, offsets, tmpUi32s, stream);
+    SegmentedScanVector(tmpFloats2, tmpUi32s, tmpFloats1, true, 1, stream);
+
+    TVector<float> weightedDcgSums;
+    weightedDcgSums.reserve(topSizes.size());
+    for (const auto topSize : topSizes) {
+        GatherBySizeAndOffset(tmpFloats1, sizes, offsets, dcgs, topSize, stream);
+        const TCudaBuffer<float, TMapping>* dummy = nullptr;
+        const auto weightedDcgSum = DotProduct(dcgs, weights, dummy, stream);
+        weightedDcgSums.push_back(weightedDcgSum * queryCount);
+    }
+
+    return weightedDcgSums;
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                              \
-    template <>                                                                                       \
-    float NCatboostCuda::CalculateDcg<TMapping>(                                                      \
-        const TCudaBuffer<const ui32, TMapping>& sizes,                                               \
-        const TCudaBuffer<const ui32, TMapping>& offsets,                                             \
-        const TCudaBuffer<const float, TMapping>& targets,                                            \
-        const TCudaBuffer<const float, TMapping>& approxes,                                           \
-        ENdcgMetricType type,                                                                         \
-        TMaybe<float> exponentialDecay,                                                               \
-        ui32 stream) {                                                                                \
-        return ::CalculateDcgImpl(sizes, offsets, targets, approxes, type, exponentialDecay, stream); \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                                                 \
+    template <>                                                                                                          \
+    TVector<float> NCatboostCuda::CalculateDcg<TMapping>(                                                                \
+        const TCudaBuffer<const ui32, TMapping>& sizes,                                                                  \
+        const TCudaBuffer<const ui32, TMapping>& offsets,                                                                \
+        const TCudaBuffer<const float, TMapping>& weights,                                                               \
+        const TCudaBuffer<const float, TMapping>& targets,                                                               \
+        const TCudaBuffer<const float, TMapping>& approxes,                                                              \
+        ENdcgMetricType type,                                                                                            \
+        TMaybe<float> exponentialDecay,                                                                                  \
+        TConstArrayRef<ui32> topSizes,                                                                                   \
+        ui32 stream) {                                                                                                   \
+        return ::CalculateDcgImpl(sizes, offsets, weights, targets, approxes, type, exponentialDecay, topSizes, stream); \
     }
 
 Y_MAP_ARGS(
@@ -760,6 +822,7 @@ namespace {
         TCudaBufferPtr<const I> Sizes_;
         TCudaBufferPtr<const I> Offsets_;
         TCudaBufferPtr<T> Dst_;
+        I MaxSize_ = 0;
 
     public:
         Y_SAVELOAD_DEFINE(Src_, Sizes_, Offsets_, Dst_);
@@ -769,18 +832,20 @@ namespace {
             TCudaBufferPtr<const T> src,
             TCudaBufferPtr<const I> sizes,
             TCudaBufferPtr<const I> offsets,
-            TCudaBufferPtr<T> dst)
+            TCudaBufferPtr<T> dst,
+            I maxSize)
             : Src_(src)
             , Sizes_(sizes)
             , Offsets_(offsets)
             , Dst_(dst)
+            , MaxSize_(maxSize)
         {
             Y_ASSERT(Sizes_.Size() == Offsets_.Size());
             Y_ASSERT(Sizes_.Size() == Dst_.Size());
         }
 
         void Run(const TCudaStream& stream) const {
-            NKernel::GatherBySizeAndOffset(Src_.Get(), Sizes_.Get(), Offsets_.Get(), Sizes_.Size(), Dst_.Get(), stream);
+            NKernel::GatherBySizeAndOffset(Src_.Get(), Sizes_.Get(), Offsets_.Get(), Sizes_.Size(), MaxSize_, Dst_.Get(), stream);
         }
     };
 }
@@ -791,25 +856,28 @@ static void GatherBySizeAndOffsetImpl(
     const TCudaBuffer<I, TMapping>& sizes,
     const TCudaBuffer<I, TMapping>& offsets,
     TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
+    std::remove_const_t<I> maxSize,
     ui32 stream)
 {
     using TKernel = TGatherBySizeAndOffset<std::remove_const_t<T>, std::remove_const_t<I>>;
-    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, sizes, offsets, dst);
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, sizes, offsets, dst, maxSize);
 }
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, I, TMapping)                          \
-    template <>                                                         \
-    void NCatboostCuda::NDetail::GatherBySizeAndOffset<T, I, TMapping>( \
-        const TCudaBuffer<T, TMapping>& src,                            \
-        const TCudaBuffer<I, TMapping>& sizes,                          \
-        const TCudaBuffer<I, TMapping>& offsets,                        \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,             \
-        ui32 stream) {                                                  \
-        ::GatherBySizeAndOffsetImpl(src, sizes, offsets, dst, stream);  \
+#define Y_CATBOOST_CUDA_F_IMPL(T, I, TMapping)                                  \
+    template <>                                                                 \
+    void NCatboostCuda::NDetail::GatherBySizeAndOffset<T, I, TMapping>(         \
+        const TCudaBuffer<T, TMapping>& src,                                    \
+        const TCudaBuffer<I, TMapping>& sizes,                                  \
+        const TCudaBuffer<I, TMapping>& offsets,                                \
+        TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,                     \
+        std::remove_const_t<I> maxSize,                                         \
+        ui32 stream) {                                                          \
+        ::GatherBySizeAndOffsetImpl(src, sizes, offsets, dst, maxSize, stream); \
     }
+
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
