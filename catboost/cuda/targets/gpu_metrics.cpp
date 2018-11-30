@@ -1,8 +1,11 @@
 #include "gpu_metrics.h"
-#include "kernel.h"
-#include "query_cross_entropy_kernels.h"
-#include "multiclass_kernels.h"
+
 #include "auc.h"
+#include "dcg.h"
+#include "kernel.h"
+#include "multiclass_kernels.h"
+#include "query_cross_entropy_kernels.h"
+
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
@@ -414,13 +417,37 @@ namespace NCatboostCuda {
                     double sum = ReadReduce(value)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalPairsWeight);
                 }
+                case ELossFunction::NDCG: {
+                    const auto& params = GetMetricDescription().GetLossParams();
+
+                    auto type = ENdcgMetricType::Base;
+                    if (const auto it = params.find("type"); it != params.end()) {
+                        type = FromString<ENdcgMetricType>(it->second);
+                    }
+
+                    auto top = Max<ui32>();
+                    if (const auto it = params.find("top"); it != params.end()) {
+                        top = FromString<ui32>(it->second);
+                    }
+
+                    // TODO(yazevnul): we can compute multiple NDCG metrics with different `top`
+                    // parameter (but `type` must be the same) in one function call.
+                    const auto perQueryNdcgSum = CalculateNdcg(
+                        samplesGrouping.GetSizes(),
+                        samplesGrouping.GetBiasedOffsets(),
+                        weights,
+                        target,
+                        cursor,
+                        type,
+                        {top}).front();
+                    const auto weightsSum = ReduceToHost(weights);
+                    return MakeSimpleAdditiveStatistic(perQueryNdcgSum, weightsSum);
+                }
                 default: {
-                    CB_ENSURE(false, "Unsupported on GPU pointwise metric " << metricType);
+                    CB_ENSURE(false, "Unsupported on GPU querywise metric " << metricType);
                 }
             }
         }
-
-    private:
     };
 
     TMetricHolder TCpuFallbackMetric::Eval(const TVector<TVector<double>>& approx,
@@ -559,6 +586,7 @@ namespace NCatboostCuda {
                 }
                 break;
             }
+            case ELossFunction::NDCG:
             case ELossFunction::QueryRMSE:
             case ELossFunction::QuerySoftMax:
             case ELossFunction::PairLogit:

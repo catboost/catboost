@@ -32,7 +32,7 @@ void SegmentedReduceVector(
     ui32 streamId = 0);
 
 template <typename T, class TMapping>
-T ReduceToHost(
+std::remove_const_t<T> ReduceToHost(
     const NCudaLib::TCudaBuffer<T, TMapping>& input,
     EOperatorType type = EOperatorType::Sum,
     ui32 streamId = 0);

@@ -96,19 +96,19 @@ Y_MAP_ARGS(
 // ReduceToHost
 
 template <typename T, class TMapping>
-static T ReduceToHostImpl(
+static std::remove_const_t<T> ReduceToHostImpl(
     const TCudaBuffer<T, TMapping>& input,
     EOperatorType type,
     ui32 streamId)
 {
-    using TKernel = TReduceKernel<T>;
+    using TKernel = TReduceKernel<std::remove_const_t<T>>;
 
     auto tmpMapping = input.GetMapping().Transform([&](const TSlice&) { return 1; });
-    using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaDevice>;
+    using TResultBuffer = NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping, NCudaLib::EPtrType::CudaDevice>;
     TResultBuffer tmp;
     tmp.Reset(tmpMapping);
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, tmp, type);
-    TVector<T> result;
+    TVector<std::remove_const_t<T>> result;
 
     NCudaLib::TCudaBufferReader<TResultBuffer>(tmp)
         .SetFactorSlice(TSlice(0, 1))
@@ -124,23 +124,26 @@ static T ReduceToHostImpl(
 
 #define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)             \
     template <>                                         \
-    T ReduceToHost<T, TMapping>(                       \
+    std::remove_const_t<T> ReduceToHost<T, TMapping>(   \
         const TCudaBuffer<T, TMapping>& input,          \
         EOperatorType type,                             \
-        ui32 streamId)                                  \
-    {                                                   \
+        ui32 streamId) {                                \
         return ReduceToHostImpl(input, type, streamId); \
     }
+
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TMirrorMapping),
+    (const float, TMirrorMapping),
     (ui32, TMirrorMapping),
     (int, TMirrorMapping),
     (float, TSingleMapping),
+    (const float, TSingleMapping),
     (ui32, TSingleMapping),
     (int, TSingleMapping),
     (float, TStripeMapping),
+    (const float, TStripeMapping),
     (ui32, TStripeMapping),
     (int, TStripeMapping));
 
