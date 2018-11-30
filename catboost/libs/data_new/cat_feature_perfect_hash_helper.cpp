@@ -63,7 +63,7 @@ namespace NCB {
             }
         );
 
-        if (perfectHashMap.size() > 1) {
+        {
             TWriteGuard guard(QuantizedFeaturesInfo->GetRWMutex());
             auto& uniqValuesCounts = featuresHash.CatFeatureUniqValuesCountsVector[*catFeatureIdx];
             if (!uniqValuesCounts.OnAll) {
