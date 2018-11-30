@@ -374,3 +374,11 @@ bool ToLowerUTF8Impl(const char* beg, size_t n, TString& newString);
 TString ToLowerUTF8(const TString& s);
 TString ToLowerUTF8(TStringBuf s);
 TString ToLowerUTF8(const char* s);
+
+//! returns true, if result is not the same as input, and put it in newString
+//! returns false, if result is unmodified
+bool ToUpperUTF8Impl(const char* beg, size_t n, TString& newString);
+
+TString ToUpperUTF8(const TString& s);
+TString ToUpperUTF8(TStringBuf s);
+TString ToUpperUTF8(const char* s);
