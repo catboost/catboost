@@ -177,3 +177,8 @@ GPU total training time 1000 iterations:
 |  catboost  | 11.057 |   36.658  |  9.271  |  55.601 |  44.971  |         28.014        |  5.763  |         22.156        | 485.825  |
 |  xgboost   | 40.003 |  210.305  |  36.79  | 110.485 | 2661.741 |        1353.212       |  5.764  |        372.541        |  928.99  |
 |  lightgbm  | 60.688 |  123.255  | 115.383 | 166.228 |  686.4   |        1557.471       |  23.109 |        204.634        | 3716.344 |
+
+# Third Party Licenses
+
+This repository contains modified versions of files released by third parties under other licenses.
+See the corresponding notifications in these files for the details.
