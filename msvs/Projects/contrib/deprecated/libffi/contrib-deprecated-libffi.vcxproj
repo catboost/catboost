@@ -135,6 +135,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-win32.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffitarget.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_arm64.h"/>
