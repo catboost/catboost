@@ -103,7 +103,7 @@ namespace {
         ui32 stream)                                                                       \
     {                                                                                      \
         using TKernel = TUpdatePartitionOffsetsKernel;                                     \
-        LaunchKernels<TKernel>(sortedBins.NonEmptyDevices(), stream, sortedBins, offsets); \
+        LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, sortedBins, offsets); \
     }
 
 Y_MAP_ARGS(
