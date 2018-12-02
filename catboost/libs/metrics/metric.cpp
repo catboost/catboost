@@ -2088,20 +2088,20 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* NormalizedGINI */
 
-THolder<TNormalizedGINI> TNormalizedGINI::CreateBinClassMetric(double border) {
-    return new TNormalizedGINI(border);
+THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateBinClassMetric(double border) {
+    return new TNormalizedGINIMetric(border);
 }
 
-THolder<TNormalizedGINI> TNormalizedGINI::CreateMultiClassMetric(int positiveClass) {
+THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateMultiClassMetric(int positiveClass) {
     CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
 
-    auto metric = new TNormalizedGINI();
+    auto metric = new TNormalizedGINIMetric();
     metric->PositiveClass = positiveClass;
     metric->IsMultiClass = true;
     return metric;
 }
 
-TMetricHolder TNormalizedGINI::Eval(
+TMetricHolder TNormalizedGINIMetric::Eval(
         const TVector<TVector<double>>& approx,
         const TVector<float>& target,
         const TVector<float>& weightIn,
@@ -2142,17 +2142,17 @@ TMetricHolder TNormalizedGINI::Eval(
         samplesTargetTarget = NMetrics::TSample::FromVectors(targetCopy, targetCopy, weightCopy);
     }
 
-    double giniTargetApprox = 2. * CalcAUC(&samplesTargetApprox) - 1;
-//    double giniTargetTarget = 2 * CalcAUC(&samplesTargetTarget) - 1;
-    double giniTargetTarget = 1;
+    double giniTargetApprox = 2 * CalcAUC(&samplesTargetApprox) - 1;
+//    double giniTargetApprox = CalcGINI(&samplesTargetApprox);
 
     TMetricHolder error(2);
-    error.Stats[0] = giniTargetApprox / giniTargetTarget;
+//    error.Stats[0] = giniTargetApprox / giniTargetTarget;
+    error.Stats[0] = giniTargetApprox;
     error.Stats[1] = 1.0;
     return error;
 }
 
-TString TNormalizedGINI::GetDescription() const {
+TString TNormalizedGINIMetric::GetDescription() const {
     if (IsMultiClass) {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::NormalizedGINI, UseWeights, positiveClass);
@@ -2161,10 +2161,51 @@ TString TNormalizedGINI::GetDescription() const {
     }
 }
 
-void TNormalizedGINI::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TNormalizedGINIMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+
+/* FairLoss */
+
+TFairLossMetric::TFairLossMetric(double c)
+        : c(c) {
+}
+
+TMetricHolder TFairLossMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric FairLoss supports only single-dimensional data");
+
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TMetricHolder error(2);
+    for (int k = begin; k < end; ++k) {
+        float w = weight.empty() ? 1 : weight[k];
+        float x = Abs(approxVec[k] - target[k]) / c;
+        error.Stats[0] += Sqr(c) * (x - log(x + 1)) * w;
+        error.Stats[1] += w;
+    }
+    return error;
+}
+
+double TFairLossMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[0] / (error.Stats[1] + 1e-38);
+}
+
+TString TFairLossMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::FairLoss, UseWeights);
+}
+
+void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
 
 /* Create */
 
@@ -2234,7 +2275,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             result.emplace_back(new TRMSEMetric());
             break;
         case ELossFunction::Lq:
-            CB_ENSURE(params.has("q"), "Metric " << ELossFunction::Lq << " requirese q as parameter");
+            CB_ENSURE(params.has("q"), "Metric " << ELossFunction::Lq << " requires q as parameter");
             validParams={"q"};
             result.emplace_back(new TLqMetric(FromString<float>(params.at("q"))));
             break;
@@ -2534,13 +2575,19 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         }
         case ELossFunction::NormalizedGINI: {
             if (approxDimension == 1) {
-                result.emplace_back(TNormalizedGINI::CreateBinClassMetric(border));
+                result.emplace_back(TNormalizedGINIMetric::CreateBinClassMetric(border));
                 validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(TNormalizedGINI::CreateMultiClassMetric(i));
+                    result.emplace_back(TNormalizedGINIMetric::CreateMultiClassMetric(i));
                 }
             }
+            break;
+        }
+        case ELossFunction::FairLoss: {
+            CB_ENSURE(params.has("c"), "Metric " << ELossFunction::FairLoss << " requires q as parameter");
+            result.emplace_back(new TFairLossMetric(FromString<float>(params.at("c"))));
+            validParams={"c"};
             break;
         }
         default:

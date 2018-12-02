@@ -11,6 +11,7 @@ SRCS(
     brier_score_ut.cpp
     balanced_accuracy_ut.cpp
     dcg_ut.cpp
+    fairloss_ut.cpp
     hamming_loss_ut.cpp
     hinge_loss_ut.cpp
     kappa_ut.cpp

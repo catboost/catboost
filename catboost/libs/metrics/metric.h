@@ -1078,14 +1078,14 @@ private:
 };
 
 //Normalized GINI metric
-struct TNormalizedGINI: public TNonAdditiveMetric {
-    explicit TNormalizedGINI(double border = GetDefaultClassificationBorder())
+struct TNormalizedGINIMetric: public TNonAdditiveMetric {
+    explicit TNormalizedGINIMetric(double border = GetDefaultClassificationBorder())
             : Border(border) {
         UseWeights.SetDefaultValue(false);
     }
 
-    static THolder<TNormalizedGINI> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
-    static THolder<TNormalizedGINI> CreateMultiClassMetric(int positiveClass);
+    static THolder<TNormalizedGINIMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TNormalizedGINIMetric> CreateMultiClassMetric(int positiveClass);
     virtual TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
@@ -1100,6 +1100,24 @@ private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
     double Border = GetDefaultClassificationBorder();
+};
+
+//FairLoss metric
+struct TFairLossMetric: public TAdditiveMetric<TFairLossMetric> {
+    explicit TFairLossMetric(double c = 2);
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    double c;
 };
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
