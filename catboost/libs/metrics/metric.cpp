@@ -2131,23 +2131,18 @@ TMetricHolder TNormalizedGINIMetric::Eval(
         });
     }
 
-    TVector<NMetrics::TSample> samplesTargetApprox;
-    TVector<NMetrics::TSample> samplesTargetTarget;
+    TVector<NMetrics::TSample> samples;
     if (weight.empty()) {
-        samplesTargetApprox = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
-        samplesTargetTarget = NMetrics::TSample::FromVectors(targetCopy, targetCopy);
+        samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
     } else {
         TVector<double> weightCopy(weight.begin() + begin, weight.begin() + end);
-        samplesTargetApprox = NMetrics::TSample::FromVectors(targetCopy, approxCopy, weightCopy);
-        samplesTargetTarget = NMetrics::TSample::FromVectors(targetCopy, targetCopy, weightCopy);
+        samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy, weightCopy);
     }
 
-    double giniTargetApprox = 2 * CalcAUC(&samplesTargetApprox) - 1;
-//    double giniTargetApprox = CalcGINI(&samplesTargetApprox);
+    double normalizedGini = 2 * CalcAUC(&samples) - 1;
 
     TMetricHolder error(2);
-//    error.Stats[0] = giniTargetApprox / giniTargetTarget;
-    error.Stats[0] = giniTargetApprox;
+    error.Stats[0] = normalizedGini;
     error.Stats[1] = 1.0;
     return error;
 }
