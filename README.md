@@ -1,5 +1,3 @@
-# Anton Trubakov
-
 <img src=http://storage.mds.yandex.net/get-devtools-opensource/250854/catboost-logo.png width=300/>
 
 [Website](https://catboost.ai) |
