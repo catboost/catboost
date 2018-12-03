@@ -440,8 +440,15 @@ namespace NCatboostCuda {
                         cursor,
                         type,
                         {top}).front();
-                    const auto weightsSum = ReduceToHost(weights);
-                    return MakeSimpleAdditiveStatistic(perQueryNdcgSum, weightsSum);
+                    auto queryWeights = TCudaBuffer<float, TMapping>::CopyMapping(samplesGrouping.GetSizes());
+                    NDetail::GatherBySizeAndOffset(
+                        weights,
+                        samplesGrouping.GetSizes(),
+                        samplesGrouping.GetBiasedOffsets(),
+                        queryWeights,
+                        1);
+                    const auto queryWeightsSum = ReduceToHost(queryWeights);
+                    return MakeSimpleAdditiveStatistic(perQueryNdcgSum, queryWeightsSum);
                 }
                 default: {
                     CB_ENSURE(false, "Unsupported on GPU querywise metric " << metricType);
