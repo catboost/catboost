@@ -236,6 +236,9 @@ def onpy_srcs(unit, *args):
                         continue
                     mod = ns + stripext(arg).replace('/', '.')
 
+            if py3 and mod == '__main__':
+                ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
+
             if main_mod:
                 py_main(unit, mod + ":main")
             elif py3 and main_py:
