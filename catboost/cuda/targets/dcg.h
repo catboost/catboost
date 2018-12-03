@@ -11,8 +11,9 @@ namespace NCatboostCuda {
     // Calculate sum of per-query NDCGs.
     //
     // @param sizes             Array of per-query document counts.
-    // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
-    //                          e.g. they are given within a device).
+    // @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
+    //                          you will need to substruct bias to get offset on device)
+    // @param offsetsBias       Offsets bias on each device.
     // @param weights           Per-document weights (weight for each document withing query is
     //                          identical; if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
@@ -27,7 +28,8 @@ namespace NCatboostCuda {
     template <typename TMapping>
     TVector<float> CalculateNdcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
-        const NCudaLib::TCudaBuffer<const ui32, TMapping>& offsets,
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+        const NCudaLib::TDistributedObject<ui32>& offsetsBias,
         const NCudaLib::TCudaBuffer<const float, TMapping>& weights,
         const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
         const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
@@ -38,8 +40,9 @@ namespace NCatboostCuda {
     // Calculate sum of per-query IDCGs.
     //
     // @param sizes             Array of per-query document counts.
-    // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
-    //                          e.g. they are given within a device).
+    // @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
+    //                          you will need to substruct bias to get offset on device)
+    // @param offsetsBias       Offsets bias on each device.
     // @param weights           Per-document weights (weight for each document withing query is
     //                          identical; if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
@@ -55,7 +58,8 @@ namespace NCatboostCuda {
     template <typename TMapping>
     TVector<float> CalculateIdcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
-        const NCudaLib::TCudaBuffer<const ui32, TMapping>& offsets,
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+        const NCudaLib::TDistributedObject<ui32>& offsetsBias,
         const NCudaLib::TCudaBuffer<const float, TMapping>& weights,
         const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
         ENdcgMetricType type = ENdcgMetricType::Base,
@@ -67,8 +71,9 @@ namespace NCatboostCuda {
     // Calculate sum of per-query DCGs.
     //
     // @param sizes             Array of per-query document counts.
-    // @param offsets           Array of per-query offsets of documents (NOTE: offsets are "biased",
-    //                          e.g. they are given within a device).
+    // @param biasedOffsets     Array of per-query offsets of documents (NOTE: offsets are "biased",
+    //                          you will need to substruct bias to get offset on device)
+    // @param offsetsBias       Offsets bias on each device.
     // @param weights           Per-document weights (weight for each document withing query is
     //                          identical; if you have no weights initialize it with ones).
     // @param targets           Ideal document relevance (e.g. from a dataset)
@@ -85,7 +90,8 @@ namespace NCatboostCuda {
     template <typename TMapping>
     TVector<float> CalculateDcg(
         const NCudaLib::TCudaBuffer<const ui32, TMapping>& sizes,
-        const NCudaLib::TCudaBuffer<const ui32, TMapping>& offsets,
+        const NCudaLib::TCudaBuffer<const ui32, TMapping>& biasedOffsets,
+        const NCudaLib::TDistributedObject<ui32>& offsetsBias,
         const NCudaLib::TCudaBuffer<const float, TMapping>& weights,
         const NCudaLib::TCudaBuffer<const float, TMapping>& targets,
         const NCudaLib::TCudaBuffer<const float, TMapping>& approxes,
@@ -97,13 +103,13 @@ namespace NCatboostCuda {
     namespace NDetail {
         template <typename I, typename T, typename TMapping>
         void MakeDcgDecays(
-            const NCudaLib::TCudaBuffer<I, TMapping>& biasedOffsets,
+            const NCudaLib::TCudaBuffer<I, TMapping>& offsets,
             NCudaLib::TCudaBuffer<T, TMapping>& decays,
             ui32 stream = 0);
 
         template <typename I, typename T, typename TMapping>
         void MakeDcgExponentialDecays(
-            const NCudaLib::TCudaBuffer<I, TMapping>& biasedOffsets,
+            const NCudaLib::TCudaBuffer<I, TMapping>& offsets,
             T base,
             NCudaLib::TCudaBuffer<T, TMapping>& decays,
             ui32 stream = 0);
@@ -126,13 +132,20 @@ namespace NCatboostCuda {
             bool negateFloats2 = false,
             ui32 stream = 0);
 
-        // sizes = [2, 3, 4]
-        // offsets = [0, 2, 5]
-        // elementwiseOffsets = [0, 0, 2, 2, 2, 5, 5, 5, 5]
+        // Equal to:
+        //
+        // for (size_t i = 0; i < sizes.size(); ++i) {
+        //     const auto size = sizes.size();
+        //     const auto offset = biasedOffsets[i] - offsetsBias;
+        //     for (size_t j = 0; j < size; ++j) {
+        //         elementwiseOffsets[offset + j] = offset;
+        //     }
+        // }
         template <typename T, typename TMapping>
         void MakeElementwiseOffsets(
             const NCudaLib::TCudaBuffer<T, TMapping>& sizes,
-            const NCudaLib::TCudaBuffer<T, TMapping>& offsets,
+            const NCudaLib::TCudaBuffer<T, TMapping>& biasedOffsets,
+            const NCudaLib::TDistributedObject<std::remove_const_t<T>>& offsetsBias,
             NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& elementwiseOffsets,
             ui32 stream = 0);
 
@@ -143,7 +156,7 @@ namespace NCatboostCuda {
         //         endOfGroupMarkers[i] = 1;
         //     }
         //
-        //     if (const auto j = offsets[i] + sizes[i]; j < endOfGroupMarkers.size()) {
+        //     if (const auto j = biasedOffsets[i] - offsetsBias + sizes[i]; j < endOfGroupMarkers.size()) {
         //         endOfGroupMarkers[j] = 1;
         //     }
         // }
@@ -152,20 +165,22 @@ namespace NCatboostCuda {
         template <typename T, typename TMapping>
         void MakeEndOfGroupMarkers(
             const NCudaLib::TCudaBuffer<T, TMapping>& sizes,
-            const NCudaLib::TCudaBuffer<T, TMapping>& offsets,
+            const NCudaLib::TCudaBuffer<T, TMapping>& biasedOffsets,
+            const NCudaLib::TDistributedObject<std::remove_const_t<T>>& offsetsBias,
             NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& endOfGroupMarkers,
             ui32 stream = 0);
 
         // Equal to:
         //
         // for (size_t i = 0; i < sizes.size(); ++i) {
-        //     dst[i] = src[offsets[i] + min(sizes[i], maxSize) - 1];
+        //     dst[i] = src[biasedOffsets[i] - offsetsBias + min(sizes[i], maxSize) - 1];
         // }
         template <typename T, typename I, typename TMapping>
         void GatherBySizeAndOffset(
             const NCudaLib::TCudaBuffer<T, TMapping>& src,
             const NCudaLib::TCudaBuffer<I, TMapping>& sizes,
-            const NCudaLib::TCudaBuffer<I, TMapping>& offsets,
+            const NCudaLib::TCudaBuffer<I, TMapping>& biasedOffsets,
+            const NCudaLib::TDistributedObject<std::remove_const_t<I>>& offsetsBias,
             NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
             std::remove_const_t<I> maxSize = Max<std::remove_const_t<I>>(),
             ui32 stream = 0);
@@ -174,19 +189,20 @@ namespace NCatboostCuda {
         //
         // for (size_t i = 0; i < sizes.size(); ++i) {
         //     const auto mean = accumulate(
-        //          values.begin() + offsets[i],
-        //          values.begin() + offsets[i] + sizes[i],
+        //          values.begin() + biasedOffsets[i] - offsetsBias,
+        //          values.begin() + biasedOffsets[i] - offsetsBias + sizes[i],
         //          0) / sizes[i];
         //     for_each(
-        //          values.begin() + offsets[i],
-        //          values.begin() + offsets[i] + sizes[i],
+        //          values.begin() + biasedOffsets[i] - offsetsBias,
+        //          values.begin() + biasedOffsets[i] - offsetsBias + sizes[i],
         //          [mean](auto& value) { value -= mean; });
         // }
         template <typename T, typename I, typename TMapping>
         void RemoveGroupMean(
             const NCudaLib::TCudaBuffer<T, TMapping>& values,
             const NCudaLib::TCudaBuffer<I, TMapping>& sizes,
-            const NCudaLib::TCudaBuffer<I, TMapping>& offsets,
+            const NCudaLib::TCudaBuffer<I, TMapping>& biasedOffsets,
+            const NCudaLib::TDistributedObject<std::remove_const_t<I>>& offsetsBias,
             NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& normalized,
             ui32 stream = 0);
     }

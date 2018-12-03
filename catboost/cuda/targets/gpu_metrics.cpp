@@ -435,6 +435,7 @@ namespace NCatboostCuda {
                     const auto perQueryNdcgSum = CalculateNdcg(
                         samplesGrouping.GetSizes(),
                         samplesGrouping.GetBiasedOffsets(),
+                        samplesGrouping.GetOffsetsBias(),
                         weights,
                         target,
                         cursor,
@@ -445,6 +446,7 @@ namespace NCatboostCuda {
                         weights,
                         samplesGrouping.GetSizes(),
                         samplesGrouping.GetBiasedOffsets(),
+                        samplesGrouping.GetOffsetsBias(),
                         queryWeights,
                         1);
                     const auto queryWeightsSum = ReduceToHost(queryWeights);

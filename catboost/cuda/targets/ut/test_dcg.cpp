@@ -32,6 +32,7 @@ using NCatboostCuda::NDetail::MakeDcgExponentialDecays;
 using NCatboostCuda::NDetail::MakeElementwiseOffsets;
 using NCatboostCuda::NDetail::MakeEndOfGroupMarkers;
 using NCudaLib::GetCudaManager;
+using NCudaLib::TDistributedObject;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
 using NMetrics::TSample;
@@ -73,22 +74,18 @@ static TStripeMapping MakeGroupAwareStripeMappingFromElementwiseOffsets(const TC
     return TStripeMapping(std::move(slices));
 }
 
-static TVector<ui32> MakeDeviceLocalOffsets(
-    const TConstArrayRef<ui32> offsets,
-    const TStripeMapping& mapping)
-{
-    const auto deviceCount = GetCudaManager().GetDeviceCount();
-    TVector<ui32> deviceLocalOffsets;
-    deviceLocalOffsets.yresize(offsets.size());
+static TDistributedObject<ui32> MakeOffsetsBias(
+    const TConstArrayRef<ui32> biasedOffsets,
+    const TStripeMapping& mapping) {
 
+    const auto deviceCount = GetCudaManager().GetDeviceCount();
+    auto offsetsBias = GetCudaManager().CreateDistributedObject<ui32>();
     for (ui64 device = 0; device < deviceCount; ++device) {
         const auto slice = mapping.DeviceSlice(device);
-        for (ui64 i = slice.Left; i < slice.Right; ++i) {
-            deviceLocalOffsets[i] = offsets[i] - offsets[slice.Left];
-        }
+        offsetsBias.Set(device, biasedOffsets[slice.Left]);
     }
 
-    return deviceLocalOffsets;
+    return offsetsBias;
 }
 
 static TVector<ui32> MakeDeviceLocalElementwiseOffsets(
@@ -810,12 +807,13 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
         auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
 
         deviceSizes.Write(sizes);
-        deviceOffsets.Write(MakeDeviceLocalOffsets(offsets, sizesMapping));
+        deviceBiasedOffsets.Write(offsets);
         deviceWeights.Write(weights);
         deviceTargets.Write(targets);
 
@@ -828,7 +826,8 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
             topSize) / sizes.size();
         const auto gpuIdcg = CalculateIdcg(
             deviceSizes.ConstCopyView(),
-            deviceOffsets.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            deviceOffsetsBias,
             deviceWeights.ConstCopyView(),
             deviceTargets.ConstCopyView(),
             type,
@@ -913,13 +912,14 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
         auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceApproxes = TStripeBuffer<float>::Create(elementsMapping);
 
         deviceSizes.Write(sizes);
-        deviceOffsets.Write(MakeDeviceLocalOffsets(offsets, sizesMapping));
+        deviceBiasedOffsets.Write(offsets);
         deviceWeights.Write(weights);
         deviceTargets.Write(targets);
         deviceApproxes.Write(approxes);
@@ -934,7 +934,8 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
             topSize) / sizes.size();
         const auto gpuDcg = CalculateDcg(
             deviceSizes.ConstCopyView(),
-            deviceOffsets.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            deviceOffsetsBias,
             deviceWeights.ConstCopyView(),
             deviceTargets.ConstCopyView(),
             deviceApproxes.ConstCopyView(),
@@ -1001,17 +1002,18 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
             }
         }
 
-        const TSingleMapping sizesMaping(0, sizes.size());
-        auto deviceSizes = TSingleBuffer<ui32>::Create(sizesMaping);
-        auto deviceOffsets = TSingleBuffer<ui32>::Create(sizesMaping);
+        const TSingleMapping sizesMapping(0, sizes.size());
+        auto deviceSizes = TSingleBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TSingleBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = GetCudaManager().CreateDistributedObject<ui32>(0);
         const TSingleMapping endOfGroupMarkersMapping(0, size);
         auto deviceEndOfGroupMarkers = TSingleBuffer<ui32>::Create(endOfGroupMarkersMapping);
 
         deviceSizes.Write(sizes);
-        deviceOffsets.Write(offsets);
+        deviceBiasedOffsets.Write(offsets);
 
         FillBuffer(deviceEndOfGroupMarkers, ui32(0));
-        MakeEndOfGroupMarkers(deviceSizes, deviceOffsets, deviceEndOfGroupMarkers);
+        MakeEndOfGroupMarkers(deviceSizes, deviceBiasedOffsets, deviceOffsetsBias, deviceEndOfGroupMarkers);
 
         TVector<ui32> gpuEndOfGroupMarkers;
         deviceEndOfGroupMarkers.Read(gpuEndOfGroupMarkers);
@@ -1039,13 +1041,14 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
         auto deviceElementwiseOffsets = TStripeBuffer<ui32>::Create(elementsMapping);
 
         deviceSizes.Write(sizes);
-        deviceOffsets.Write(MakeDeviceLocalOffsets(offsets, sizesMapping));
+        deviceBiasedOffsets.Write(offsets);
 
-        MakeElementwiseOffsets(deviceSizes, deviceOffsets, deviceElementwiseOffsets);
+        MakeElementwiseOffsets(deviceSizes, deviceBiasedOffsets, deviceOffsetsBias, deviceElementwiseOffsets);
 
         TVector<ui32> gpuElementwiseOffsets;
         deviceElementwiseOffsets.Read(gpuElementwiseOffsets);
@@ -1119,13 +1122,14 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
         const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
         auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
-        auto deviceOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
         auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
         auto deviceApproxes = TStripeBuffer<float>::Create(elementsMapping);
 
         deviceSizes.Write(sizes);
-        deviceOffsets.Write(MakeDeviceLocalOffsets(offsets, sizesMapping));
+        deviceBiasedOffsets.Write(offsets);
         deviceWeights.Write(weights);
         deviceTargets.Write(targets);
         deviceApproxes.Write(approxes);
@@ -1139,7 +1143,8 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
             topSize) / sizes.size();
         const auto gpuNdcg = CalculateNdcg(
             deviceSizes.ConstCopyView(),
-            deviceOffsets.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            deviceOffsetsBias,
             deviceWeights.ConstCopyView(),
             deviceTargets.ConstCopyView(),
             deviceApproxes.ConstCopyView(),
