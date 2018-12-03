@@ -750,9 +750,9 @@ public:
             for (int i = start; i < start + count; ++i) {
                 updatedApproxes[i - start] = approxes[i] + approxDeltas[i];
             }
-            Descriptor.CalcDersRange(count, updatedApproxes.data(), targets + start, weights + start, ders + start, Descriptor.CustomData);
+            Descriptor.CalcDersRange(count, updatedApproxes.data(), targets + start, weights ? (weights + start) : nullptr, ders + start, Descriptor.CustomData);
         } else {
-            Descriptor.CalcDersRange(count, approxes + start, targets + start, weights + start, ders + start, Descriptor.CustomData);
+            Descriptor.CalcDersRange(count, approxes + start, targets + start, weights ? (weights + start) : nullptr, ders + start, Descriptor.CustomData);
         }
     }
 
