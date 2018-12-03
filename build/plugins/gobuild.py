@@ -6,7 +6,6 @@ go_root = os.path.join('contrib', 'go', '_std', 'src') + os.path.sep
 runtime_cgo_path = os.path.join('runtime', 'cgo')
 runtime_msan_path = os.path.join('runtime', 'msan')
 runtime_race_path = os.path.join('runtime', 'race')
-cxxsupp_path = os.path.join('contrib', 'libs', 'cxxsupp')
 
 
 def get_appended_values(unit, key):
@@ -41,7 +40,6 @@ def on_go_process_srcs(unit):
 
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
     if len(cgo_files) > 0:
-        unit.onpeerdir(cxxsupp_path)
         import_path = rootrel_arc_src(unit.path(), unit)
         if import_path.startswith(go_root):
             import_path = import_path[len(go_root):]
