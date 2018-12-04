@@ -101,6 +101,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\methods\methods.vcxproj">
       <Project>2335A927-8D1F-0395-59E1-489790E4193B</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\bin\ndcg_cpu_vs_gpu\ndcg_cpu_vs_gpu.vcxproj">
+      <Project>4567125C-B899-141F-2EF4-FC5A42F86E96</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\catboost-cuda-targets.vcxproj">
       <Project>1D3CF7E0-080E-0EC6-D27D-211F8567FEC0</Project>
     </ProjectReference>
@@ -545,6 +548,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
+      <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
     </ProjectReference>
@@ -613,6 +619,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\float16\library-float16.vcxproj">
       <Project>1C45FF0F-0120-CA53-5202-C69A88A98E2E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\library-getopt.vcxproj">
+      <Project>1B84398E-CEDA-82B5-EE84-A684324BB064</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>DB9C26F0-E241-89AB-6F12-8CE533A7E012</Project>
