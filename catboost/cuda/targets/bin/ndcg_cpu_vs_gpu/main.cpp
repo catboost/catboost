@@ -422,7 +422,7 @@ static int Main(const TArgs& args) {
         }
     }
 
-    Cout << LabeledOutput(args.DocumentCount, args.MaxDocumentsPerQuery, args.CpuThreadCount) << '\n';
+    Cout << LabeledOutput(args.DocumentCount, data.QueryCount, args.MaxDocumentsPerQuery, args.CpuThreadCount) << '\n';
     for (const auto& [description, value] : gpuIsBetterByDescription) {
         const auto gpuIsBetter = value.first;
         const auto bestTime = value.second[0];
