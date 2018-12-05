@@ -21,17 +21,49 @@ using TVariantSize = ::NVariant::TSize<V>;
 
 constexpr size_t TVARIANT_NPOS = ::NVariant::T_NPOS;
 
-template <class F, class V>
-decltype(auto) Visit(F&& f, V&& v);
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, TVariant<Ts...>& v);
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, const TVariant<Ts...>& v);
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, TVariant<Ts...>&& v);
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v);
+
 
 template <class T, class... Ts>
 constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept;
 
-template <size_t I, class V>
-decltype(auto) Get(V&& v);
 
-template <class T, class V>
-decltype(auto) Get(V&& v);
+template <size_t I, class... Ts>
+decltype(auto) Get(TVariant<Ts...>& v);
+
+template <size_t I, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>& v);
+
+template <size_t I, class... Ts>
+decltype(auto) Get(TVariant<Ts...>&& v);
+
+template <size_t I, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>&& v);
+
+
+template <class T, class... Ts>
+decltype(auto) Get(TVariant<Ts...>& v);
+
+template <class T, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>& v);
+
+template <class T, class... Ts>
+decltype(auto) Get(TVariant<Ts...>&& v);
+
+template <class T, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>&& v);
+
 
 template <size_t I, class... Ts>
 auto* GetIf(TVariant<Ts...>* v) noexcept;
@@ -434,17 +466,41 @@ bool operator>=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
     return a.Index() > b.Index();
 }
 
-template <class F, class V>
-decltype(auto) Visit(F&& f, V&& v) {
-    using FRef = decltype(std::forward<F>(f));
-    using VRef = decltype(std::forward<V>(v));
-    static_assert(::NVariant::CheckReturnTypes<FRef, VRef>(
-                      std::make_index_sequence<::TVariantSize<std::decay_t<V>>::value>{}),
-                  "");
-    using ReturnType = ::NVariant::TReturnType<FRef, VRef>;
-    return ::NVariant::VisitWrapForVoid(
-        std::forward<F>(f), std::forward<V>(v), std::is_void<ReturnType>{});
+
+namespace NVariant {
+    template <class F, class V>
+    decltype(auto) VisitImpl(F&& f, V&& v) {
+        using FRef = decltype(std::forward<F>(f));
+        using VRef = decltype(std::forward<V>(v));
+        static_assert(::NVariant::CheckReturnTypes<FRef, VRef>(
+                          std::make_index_sequence<::TVariantSize<std::decay_t<V>>::value>{}),
+                      "");
+        using ReturnType = ::NVariant::TReturnType<FRef, VRef>;
+        return ::NVariant::VisitWrapForVoid(
+            std::forward<F>(f), std::forward<V>(v), std::is_void<ReturnType>{});
+    }
 }
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, TVariant<Ts...>& v) {
+    return ::NVariant::VisitImpl(std::forward<F>(f), v);
+}
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, const TVariant<Ts...>& v) {
+    return ::NVariant::VisitImpl(std::forward<F>(f), v);
+}
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, TVariant<Ts...>&& v) {
+    return ::NVariant::VisitImpl(std::forward<F>(f), std::move(v));
+}
+
+template <class F, class... Ts>
+decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v) {
+    return ::NVariant::VisitImpl(std::forward<F>(f), std::move(v));
+}
+
 
 template <class T, class... Ts>
 constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept {
@@ -452,16 +508,63 @@ constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept {
     return ::NVariant::TIndexOf<T, Ts...>::value == v.Index();
 }
 
-template <size_t I, class V>
-decltype(auto) Get(V&& v) {
-    Y_ENSURE_EX(v.Index() == I, TWrongVariantError());
-    return ::NVariant::TVariantAccessor::Get<I>(std::forward<V>(v));
+
+namespace NVariant {
+    template <size_t I, class V>
+    decltype(auto) GetImpl(V&& v) {
+        Y_ENSURE_EX(v.Index() == I, TWrongVariantError());
+        return ::NVariant::TVariantAccessor::Get<I>(std::forward<V>(v));
+    }
 }
 
-template <class T, class V>
-decltype(auto) Get(V&& v) {
-    return ::Get< ::NVariant::TAlternativeIndex<T, std::decay_t<V>>::value>(std::forward<V>(v));
+template <size_t I, class... Ts>
+decltype(auto) Get(TVariant<Ts...>& v) {
+    return ::NVariant::GetImpl<I>(v);
 }
+
+template <size_t I, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>& v) {
+    return ::NVariant::GetImpl<I>(v);
+}
+
+template <size_t I, class... Ts>
+decltype(auto) Get(TVariant<Ts...>&& v) {
+    return ::NVariant::GetImpl<I>(std::move(v));
+}
+
+template <size_t I, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>&& v) {
+    return ::NVariant::GetImpl<I>(std::move(v));
+}
+
+
+namespace NVariant {
+    template <class T, class V>
+    decltype(auto) GetImpl(V&& v) {
+        return ::Get< ::NVariant::TAlternativeIndex<T, std::decay_t<V>>::value>(std::forward<V>(v));
+    }
+}
+
+template <class T, class... Ts>
+decltype(auto) Get(TVariant<Ts...>& v) {
+    return ::NVariant::GetImpl<T>(v);
+}
+
+template <class T, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>& v) {
+    return ::NVariant::GetImpl<T>(v);
+}
+
+template <class T, class... Ts>
+decltype(auto) Get(TVariant<Ts...>&& v) {
+    return ::NVariant::GetImpl<T>(std::move(v));
+}
+
+template <class T, class... Ts>
+decltype(auto) Get(const TVariant<Ts...>&& v) {
+    return ::NVariant::GetImpl<T>(std::move(v));
+}
+
 
 template <size_t I, class... Ts>
 auto* GetIf(TVariant<Ts...>* v) noexcept {
