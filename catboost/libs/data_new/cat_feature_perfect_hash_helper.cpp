@@ -53,10 +53,11 @@ namespace NCB {
                         << " has more than " << MAX_UNIQ_CAT_VALUES
                         << " unique values, which is currently unsupported"
                     );
+                    ui32 bin = (ui32)perfectHashMap.size();
                     if (dstBins) {
-                        dstBinsValue[idx] = perfectHashMap.size();
+                        dstBinsValue[idx] = bin;
                     }
-                    perfectHashMap.emplace_hint(it, hashedCatValue, perfectHashMap.size());
+                    perfectHashMap.emplace_hint(it, hashedCatValue, bin);
                 } else if (dstBins) {
                     dstBinsValue[idx] = it->second;
                 }
