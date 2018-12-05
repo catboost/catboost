@@ -16,6 +16,6 @@ TKMPMatcher::TKMPMatcher(const TString& pattern)
 
 void TKMPMatcher::ComputePrefixFunction() {
     ssize_t* pf;
-    ::ComputePrefixFunction(~Pattern, ~Pattern + +Pattern, &pf);
+    ::ComputePrefixFunction(Pattern.data(), Pattern.data() + Pattern.size(), &pf);
     PrefixFunction.Reset(pf);
 }

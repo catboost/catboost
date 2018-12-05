@@ -53,7 +53,7 @@ private:
         (void)flags;
 
         if (!Module) {
-            ythrow yexception() << ~DLLERR();
+            ythrow yexception() << DLLERR().data();
         }
     }
 
@@ -81,7 +81,7 @@ public:
         void* symbol = SymOptional(name);
 
         if (symbol == nullptr) {
-            ythrow yexception() << ~DLLERR();
+            ythrow yexception() << DLLERR().data();
         }
 
         return symbol;
@@ -100,7 +100,7 @@ TDynamicLibrary::TDynamicLibrary() noexcept {
 }
 
 TDynamicLibrary::TDynamicLibrary(const TString& path, int flags) {
-    Open(~path, flags);
+    Open(path.data(), flags);
 }
 
 TDynamicLibrary::~TDynamicLibrary() = default;

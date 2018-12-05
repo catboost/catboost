@@ -555,7 +555,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         sErr.Release();
         sErrNew.Release();
 
-        if (+WorkDir)
+        if (WorkDir.size())
             NFs::SetCurrentWorkingDirectory(WorkDir);
 
         if (CloseAllFdsOnExec) {
@@ -626,12 +626,12 @@ void TShellCommand::TImpl::Run() {
         qargv.push_back(const_cast<char*>("-c"));
         // two args for 'sh -c -- ',
         // one for program name, and one for NULL at the end
-        qargv.push_back(const_cast<char*>(~shellArg));
+        qargv.push_back(const_cast<char*>(shellArg.data()));
     } else {
         qargv.reserve(Arguments.size() + 2);
-        qargv.push_back(const_cast<char*>(~Command));
+        qargv.push_back(const_cast<char*>(Command.data()));
         for (auto& i : Arguments) {
-            qargv.push_back(const_cast<char*>(~i));
+            qargv.push_back(const_cast<char*>(i.data()));
         }
     }
 
@@ -642,7 +642,7 @@ void TShellCommand::TImpl::Run() {
     if (!Environment.empty()) {
         for (auto& env : Environment) {
             envHolder.emplace_back(env.first + '=' + env.second);
-            envp.push_back(const_cast<char*>(~envHolder.back()));
+            envp.push_back(const_cast<char*>(envHolder.back().data()));
         }
         envp.push_back(nullptr);
     }

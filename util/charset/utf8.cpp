@@ -55,19 +55,19 @@ namespace {
         // before each iteration (including the first one) variable 'cNew' contains unwritten symbol
         while (true) {
             size_t cNewLen;
-            Y_ASSERT((writePtr - ~newString) + destSpace == +newString);
+            Y_ASSERT((writePtr - newString.data()) + destSpace == newString.size());
             if (RECODE_EOOUTPUT ==
                 SafeWriteUTF8Char(cNew, cNewLen, (unsigned char*)writePtr, destSpace)) {
-                destSpace += +newString;
-                newString.resize(+newString * 2);
-                writePtr = newString.begin() + (+newString - destSpace);
+                destSpace += newString.size();
+                newString.resize(newString.size() * 2);
+                writePtr = newString.begin() + (newString.size() - destSpace);
                 continue;
             }
             destSpace -= cNewLen;
             writePtr += cNewLen;
             p += cLen;
             if (p == end) {
-                newString.resize(+newString - destSpace);
+                newString.resize(newString.size() - destSpace);
                 return true;
             }
             wchar32 c = 0;
@@ -135,14 +135,14 @@ bool ToLowerUTF8Impl(const char* beg, size_t n, TString& newString) {
 
 TString ToLowerUTF8(const TString& s) {
     TString newString;
-    bool changed = ToLowerUTF8Impl(~s, +s, newString);
+    bool changed = ToLowerUTF8Impl(s.data(), s.size(), newString);
     return changed ? newString : s;
 }
 
 TString ToLowerUTF8(TStringBuf s) {
     TString newString;
-    bool changed = ToLowerUTF8Impl(~s, +s, newString);
-    return changed ? newString : TString(~s, +s);
+    bool changed = ToLowerUTF8Impl(s.data(), s.size(), newString);
+    return changed ? newString : TString(s.data(), s.size());
 }
 
 TString ToLowerUTF8(const char* s) {
@@ -155,14 +155,14 @@ bool ToUpperUTF8Impl(const char* beg, size_t n, TString& newString) {
 
 TString ToUpperUTF8(const TString& s) {
     TString newString;
-    bool changed = ToUpperUTF8Impl(~s, +s, newString);
+    bool changed = ToUpperUTF8Impl(s.data(), s.size(), newString);
     return changed ? newString : s;
 }
 
 TString ToUpperUTF8(TStringBuf s) {
     TString newString;
-    bool changed = ToUpperUTF8Impl(~s, +s, newString);
-    return changed ? newString : TString(~s, +s);
+    bool changed = ToUpperUTF8Impl(s.data(), s.size(), newString);
+    return changed ? newString : TString(s.data(), s.size());
 }
 
 TString ToUpperUTF8(const char* s) {

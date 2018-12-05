@@ -235,7 +235,7 @@ size_t CollapseImpl(TChar* s, size_t n, const TWhitespaceFunc& isWhitespace) {
 template <class TStringType, class TWhitespaceFunc>
 bool CollapseImpl(const TStringType& from, TStringType& to, size_t maxLen, const TWhitespaceFunc& isWhitespace) {
     to = from;
-    maxLen = maxLen ? Min(maxLen, +to) : +to;
+    maxLen = maxLen ? Min(maxLen, to.size()) : to.size();
     for (size_t i = 0; i < maxLen; ++i) {
         if (isWhitespace(to[i]) && (to[i] != ' ' || isWhitespace(to[i + 1]))) {
             size_t tailSize = maxLen - i;

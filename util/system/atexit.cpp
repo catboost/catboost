@@ -60,7 +60,7 @@ namespace {
 
         inline void Register(TAtExitFunc func, void* ctx, size_t priority) {
             with_lock (Lock_) {
-                Store_.push_back({func, ctx, priority, +Store_});
+                Store_.push_back({func, ctx, priority, Store_.size()});
                 Items_.push(&Store_.back());
             }
         }

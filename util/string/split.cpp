@@ -24,5 +24,5 @@ size_t Split(const char* ptr, const char* delim, TVector<TStringBuf>& values) {
 }
 
 size_t Split(const TString& in, const TString& delim, TVector<TString>& res) {
-    return Split(~in, ~delim, res);
+    return Split(in.data(), delim.data(), res);
 }

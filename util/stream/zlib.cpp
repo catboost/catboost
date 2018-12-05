@@ -185,8 +185,8 @@ public:
             ythrow TZLibCompressorError() << "can not init inflate engine";
         }
 
-        if (+p.Dict) {
-            if (deflateSetDictionary(Z(), (const Bytef*)~p.Dict, +p.Dict)) {
+        if (p.Dict.size()) {
+            if (deflateSetDictionary(Z(), (const Bytef*)p.Dict.data(), p.Dict.size())) {
                 ythrow TZLibCompressorError() << "can not set deflate dictionary";
             }
         }

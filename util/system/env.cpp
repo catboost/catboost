@@ -44,7 +44,7 @@ TString GetEnv(const TString& key, const TString& def) {
 
     return TString(buffer.data(), len);
 #else
-    const char* env = getenv(~key);
+    const char* env = getenv(key.data());
     return env ? TString(env) : def;
 #endif
 }
@@ -58,7 +58,7 @@ void SetEnv(const TString& key, const TString& value) {
         errorCode = GetLastError();
     }
 #else
-    isOk = (0 == setenv(~key, ~value, true /*replace*/));
+    isOk = (0 == setenv(key.data(), value.data(), true /*replace*/));
     if (!isOk) {
         errorCode = errno;
     }
