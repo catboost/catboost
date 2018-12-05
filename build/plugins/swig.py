@@ -96,7 +96,7 @@ class Swig(iw.CustomCommand):
 class SwigParser(object):
     def __init__(self, path, unit):
         self._path = path
-        retargeted = os.path.join(unit.path(), os.path.basename(path))
+        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
         with open(path, 'rb') as f:
             includes, induced = SwigParser.parse_includes(f.readlines())
 
