@@ -499,7 +499,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
         TVector<int>::iterator iter = CopyN(data, toCopy, result.begin());
         UNIT_ASSERT_VALUES_EQUAL(iter - result.begin(), toCopy);
-        UNIT_ASSERT_VALUES_EQUAL(+result, 10);
+        UNIT_ASSERT_VALUES_EQUAL(result.size(), 10);
         for (size_t idx = 0; idx < toCopy; ++idx) {
             UNIT_ASSERT_VALUES_EQUAL(data[idx], result[idx]);
         }
@@ -530,7 +530,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         TVector<int> v(vSize, 0);
 
         TVector<int>::iterator iter = CopyIf(data, data + count, v.begin(), [](int x) { return !(x % 3); });
-        UNIT_ASSERT_VALUES_EQUAL(+v, vSize);
+        UNIT_ASSERT_VALUES_EQUAL(v.size(), vSize);
         UNIT_ASSERT_VALUES_EQUAL(iter - v.begin(), 3);
         v.resize(iter - v.begin());
         for (size_t idx = 0; idx < v.size(); ++idx) {

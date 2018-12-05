@@ -1213,14 +1213,14 @@ public:
 
     inline TDerived& append(const TDerived& s) {
         if (&s != This()) {
-            return AppendNoAlias(~s, +s);
+            return AppendNoAlias(s.data(), s.size());
         }
 
-        return append(~s, +s);
+        return append(s.data(), s.size());
     }
 
     inline TDerived& append(const TDerived& s, size_t pos, size_t n) {
-        return append(~s, pos, n, +s);
+        return append(s.data(), pos, n, s.size());
     }
 
     inline TDerived& append(const TCharType* pc) {

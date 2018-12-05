@@ -133,7 +133,7 @@ inline bool GetNumberOfUTF8Chars(const char* text, size_t len, size_t& number) {
 
 inline size_t GetNumberOfUTF8Chars(TStringBuf text) {
     size_t number;
-    if (!GetNumberOfUTF8Chars(~text, +text, number)) {
+    if (!GetNumberOfUTF8Chars(text.data(), text.size(), number)) {
         ythrow yexception() << "GetNumberOfUTF8Chars failed on invalid utf-8 " << TString(text.substr(0, 50)).Quote();
     }
     return number;
@@ -356,7 +356,7 @@ enum EUTF8Detect {
 EUTF8Detect UTF8Detect(const char* s, size_t len);
 
 inline EUTF8Detect UTF8Detect(const TStringBuf input) {
-    return UTF8Detect(~input, +input);
+    return UTF8Detect(input.data(), input.size());
 }
 
 inline bool IsUtf(const char* input, size_t len) {
@@ -364,7 +364,7 @@ inline bool IsUtf(const char* input, size_t len) {
 }
 
 inline bool IsUtf(const TStringBuf input) {
-    return IsUtf(~input, +input);
+    return IsUtf(input.data(), input.size());
 }
 
 //! returns true, if result is not the same as input, and put it in newString

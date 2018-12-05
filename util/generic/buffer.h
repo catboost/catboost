@@ -184,6 +184,18 @@ public:
         return Size();
     }
 
+    inline char* data() noexcept {
+        return Data();
+    }
+
+    inline const char* data() const noexcept {
+        return Data();
+    }
+
+    inline size_t size() const noexcept {
+        return Size();
+    }
+
     inline void Swap(TBuffer& r) noexcept {
         DoSwap(Data_, r.Data_);
         DoSwap(Len_, r.Len_);

@@ -92,12 +92,12 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
         buf.Append('a');
         UNIT_ASSERT_EQUAL(buf.Capacity(), 256);
         TString tmp1 = "abcdef";
-        buf.Append(~tmp1, +tmp1);
+        buf.Append(tmp1.data(), tmp1.size());
         UNIT_ASSERT_EQUAL(buf.Capacity(), 256);
 
         TString tmp2 = "30498290sfokdsflj2308w";
         buf.Resize(1020);
-        buf.Append(~tmp2, +tmp2);
+        buf.Append(tmp2.data(), tmp2.size());
         UNIT_ASSERT_EQUAL(buf.Capacity(), 2048);
     }
 
@@ -105,7 +105,7 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
         TBuffer buf;
 
         TString content = "some text";
-        buf.Append(~content, +content);
+        buf.Append(content.data(), content.size());
         UNIT_ASSERT_EQUAL(buf.Size(), 9);
         UNIT_ASSERT_EQUAL(buf.Capacity(), 16);
 

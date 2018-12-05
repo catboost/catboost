@@ -125,7 +125,7 @@ public:
      * @returns                         Whether the split was actually performed.
      */
     inline bool TrySplit(TdSelf delim, TdSelf& l, TdSelf& r) const noexcept {
-        return TrySplitOn(TBase::find(delim), l, r, +delim);
+        return TrySplitOn(TBase::find(delim), l, r, delim.size());
     }
 
     /**
@@ -140,7 +140,7 @@ public:
      * @returns                         Whether the split was actually performed.
      */
     inline bool TryRSplit(TdSelf delim, TdSelf& l, TdSelf& r) const noexcept {
-        return TrySplitOn(TBase::rfind(delim), l, r, +delim);
+        return TrySplitOn(TBase::rfind(delim), l, r, delim.size());
     }
 
     inline void Split(TChar delim, TdSelf& l, TdSelf& r) const noexcept {

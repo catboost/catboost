@@ -5,7 +5,7 @@
 #include <util/generic/noncopyable.h>
 
 template <class T, class D = TDelete>
-class THolderVector: protected TVector<T*>, public TNonCopyable {
+class THolderVector: public TVector<T*>, public TNonCopyable {
     using TBase = TVector<T*>;
 
 public:

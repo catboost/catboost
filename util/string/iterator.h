@@ -439,7 +439,7 @@ public:
     }
 
     inline TIt<TEmbedPolicy<TStringDelimiter<TCVChar>>> SplitByString(const TStrBuf& str) const noexcept {
-        return {this, ~str, +str};
+        return {this, str.data(), str.size()};
     }
 
     template <class TFunc>
@@ -461,7 +461,7 @@ public:
     }
 
     inline TIt<TEmbedPolicy<TLimitedDelimiter<It, TStringDelimiter<TCVChar>>>> SplitByStringLimited(const TStrBuf& str, size_t limit) const noexcept {
-        return {this, limit, ~str, +str};
+        return {this, limit, str.data(), str.size()};
     }
 
     template <class TFunc>

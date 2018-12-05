@@ -152,12 +152,12 @@ inline T FromString(const TChar* data) {
 
 template <class T>
 inline T FromString(const TStringBuf& s) {
-    return ::FromString<T>(~s, +s);
+    return ::FromString<T>(s.data(), s.size());
 }
 
 template <class T>
 inline T FromString(const TString& s) {
-    return ::FromString<T>(~s, +s);
+    return ::FromString<T>(s.data(), s.size());
 }
 
 template <>
@@ -167,12 +167,12 @@ inline TString FromString<TString>(const TString& s) {
 
 template <class T>
 inline T FromString(const TWtringBuf& s) {
-    return ::FromString<T, typename TWtringBuf::char_type>(~s, +s);
+    return ::FromString<T, typename TWtringBuf::char_type>(s.data(), s.size());
 }
 
 template <class T>
 inline T FromString(const TUtf16String& s) {
-    return ::FromString<T, typename TUtf16String::char_type>(~s, +s);
+    return ::FromString<T, typename TUtf16String::char_type>(s.data(), s.size());
 }
 
 namespace NPrivate {
@@ -207,7 +207,7 @@ inline ::NPrivate::TFromString<TChar> FromString(const TChar* data) {
 
 template <typename T>
 inline ::NPrivate::TFromString<typename T::TChar> FromString(const T& s) {
-    return ::NPrivate::TFromString<typename T::TChar>(~s, +s);
+    return ::NPrivate::TFromString<typename T::TChar>(s.data(), s.size());
 }
 
 // Conversion exception free versions
@@ -242,27 +242,27 @@ inline bool TryFromString(const TChar* data, const size_t len, T& result, const 
 
 template <class T>
 inline bool TryFromString(const TStringBuf& s, T& result) {
-    return TryFromString<T>(~s, +s, result);
+    return TryFromString<T>(s.data(), s.size(), result);
 }
 
 template <class T>
 inline bool TryFromString(const TString& s, T& result) {
-    return TryFromString<T>(~s, +s, result);
+    return TryFromString<T>(s.data(), s.size(), result);
 }
 
 template <class T>
 inline bool TryFromString(const TWtringBuf& s, T& result) {
-    return TryFromString<T>(~s, +s, result);
+    return TryFromString<T>(s.data(), s.size(), result);
 }
 
 template <class T>
 inline bool TryFromString(const TUtf16String& s, T& result) {
-    return TryFromString<T>(~s, +s, result);
+    return TryFromString<T>(s.data(), s.size(), result);
 }
 
 template <class T, class TStringType>
 inline bool TryFromStringWithDefault(const TStringType& s, T& result, const T& def) {
-    return TryFromString<T>(~s, +s, result, def);
+    return TryFromString<T>(s.data(), s.size(), result, def);
 }
 
 template <class T>
@@ -285,7 +285,7 @@ inline T FromString(const TChar* data, const size_t len, const T& def) {
 
 template <class T, class TStringType>
 inline T FromStringWithDefault(const TStringType& s, const T& def) {
-    return FromString<T>(~s, +s, def);
+    return FromString<T>(s.data(), s.size(), def);
 }
 
 template <class T>
@@ -318,7 +318,7 @@ bool TryIntFromString(const TChar* data, size_t len, TInt& result);
 
 template <int base, class TInt, class TStringType>
 inline bool TryIntFromString(const TStringType& s, TInt& result) {
-    return TryIntFromString<base>(~s, +s, result);
+    return TryIntFromString<base>(s.data(), s.size(), result);
 }
 
 template <class TInt, int base, class TChar>
@@ -331,5 +331,5 @@ inline TInt IntFromString(const TChar* str) {
 
 template <class TInt, int base, class Troka>
 inline TInt IntFromString(const Troka& str) {
-    return IntFromString<TInt, base>(~str, +str);
+    return IntFromString<TInt, base>(str.data(), str.size());
 }

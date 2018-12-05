@@ -134,8 +134,8 @@ public:
         s = Data._012345();
         UNIT_ASSERT(s.at(1) == *Data._1());
         UNIT_ASSERT(s[1] == *Data._1());
-        UNIT_ASSERT(s.at(+s) == 0);
-        UNIT_ASSERT(s[+s] == 0);
+        UNIT_ASSERT(s.at(s.size()) == 0);
+        UNIT_ASSERT(s[s.size()] == 0);
     }
 
     void TestRefCount() {
@@ -180,7 +180,7 @@ public:
 
         UNIT_ASSERT(s.find_first_of(TStringType(Data._389())) == 3);
         UNIT_ASSERT(s.find_first_of(Data._389()) == 3);
-        UNIT_ASSERT(s.find_first_of(Data._389(), +s) == TStringType::npos);
+        UNIT_ASSERT(s.find_first_of(Data._389(), s.size()) == TStringType::npos);
         UNIT_ASSERT(s.find_first_not_of(Data._123()) == 0);
         UNIT_ASSERT(s.find_first_of('6') == 6);
         UNIT_ASSERT(s.find_first_of('1', 2) == 8);
@@ -308,11 +308,11 @@ public:
 
     void TestFuncs() {
         TStringType s(Data._0123456());
-        UNIT_ASSERT(s.c_str() == ~s);
+        UNIT_ASSERT(s.c_str() == s.data());
 
         // length()
-        UNIT_ASSERT(s.length() == +s);
-        UNIT_ASSERT(s.length() == traits_type::GetLength(~s));
+        UNIT_ASSERT(s.length() == s.size());
+        UNIT_ASSERT(s.length() == traits_type::GetLength(s.data()));
 
         // is_null()
         TStringType s1(Data.Empty());
@@ -356,10 +356,10 @@ public:
         s2 = s3;
 
         // resize family
-        s2.resize(+s2); // without length change
+        s2.resize(s2.size()); // without length change
         UNIT_ASSERT(s2 == Data.Asdf1234qwer());
 
-        s2.resize(+s2 + 4, *Data.W());
+        s2.resize(s2.size() + 4, *Data.W());
         UNIT_ASSERT(s2 == Data.Asdf1234qwerWWWW());
 
         s2.resize(4);
@@ -650,7 +650,7 @@ public:
     void TestZero() {
         const char data[] = "abc\0def\0";
         TString s(data, sizeof(data));
-        UNIT_ASSERT(+s == sizeof(data));
+        UNIT_ASSERT(s.size() == sizeof(data));
         UNIT_ASSERT(s.StartsWith(s));
         UNIT_ASSERT(s.EndsWith(s));
         UNIT_ASSERT(s.Contains('\0'));
@@ -669,17 +669,17 @@ public:
         UNIT_ASSERT_EQUAL(TString::npos, s.find(TString(nonSubstring, sizeof(nonSubstring))));
 
         TString copy = s;
-        copy.replace(+copy - 1, 1, "z");
+        copy.replace(copy.size() - 1, 1, "z");
         UNIT_ASSERT(s != copy);
-        copy.replace(+copy - 1, 1, "\0", 0, 1, 1);
+        copy.replace(copy.size() - 1, 1, "\0", 0, 1, 1);
         UNIT_ASSERT(s == copy);
 
         TString prefix(data, 5);
         UNIT_ASSERT(s.StartsWith(prefix));
         UNIT_ASSERT(s != prefix);
         UNIT_ASSERT(s > prefix);
-        UNIT_ASSERT(s > ~s);
-        UNIT_ASSERT(s == TString(~s, +s));
+        UNIT_ASSERT(s > s.data());
+        UNIT_ASSERT(s == TString(s.data(), s.size()));
         UNIT_ASSERT(data < s);
 
         s.remove(5);
@@ -1121,13 +1121,13 @@ protected:
 
         str2 = Data.abcdef();
         UNIT_ASSERT(str1.compare(str2) == 0);
-        UNIT_ASSERT(str1.compare(~str2, +str2) == 0);
+        UNIT_ASSERT(str1.compare(str2.data(), str2.size()) == 0);
         str2 = Data.abcde();
         UNIT_ASSERT(str1.compare(str2) > 0);
-        UNIT_ASSERT(str1.compare(~str2, +str2) > 0);
+        UNIT_ASSERT(str1.compare(str2.data(), str2.size()) > 0);
         str2 = Data.abcdefg();
         UNIT_ASSERT(str1.compare(str2) < 0);
-        UNIT_ASSERT(str1.compare(~str2, +str2) < 0);
+        UNIT_ASSERT(str1.compare(str2.data(), str2.size()) < 0);
 
         UNIT_ASSERT(str1.compare(Data.abcdef()) == 0);
         UNIT_ASSERT(str1.compare(Data.abcde()) > 0);
@@ -1921,7 +1921,7 @@ private:
         UNIT_ASSERT(str == TUtf16String::FromAscii("X"));
 
         const TUtf16String hello = TUtf16String::FromAscii("hello");
-        str = ~hello;
+        str = hello.data();
         UNIT_ASSERT(str == hello);
 
         str = hello;
@@ -2104,7 +2104,7 @@ private:
         UNIT_ASSERT(str == TUtf32String::FromAscii("X"));
 
         const TUtf32String hello = TUtf32String::FromAscii("hello");
-        str = ~hello;
+        str = hello.data();
         UNIT_ASSERT(str == hello);
 
         str = hello;

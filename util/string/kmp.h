@@ -42,7 +42,7 @@ public:
 
     bool SubStr(const char* begin, const char* end, const char*& result) const {
         Y_ASSERT(begin <= end);
-        ssize_t m = +Pattern;
+        ssize_t m = Pattern.size();
         ssize_t n = end - begin;
         ssize_t i, j;
         for (i = 0, j = 0; (i < n) && (j < m); ++i, ++j) {

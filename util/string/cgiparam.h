@@ -126,7 +126,7 @@ public:
             return nullptr;
         }
 
-        return ~it->second;
+        return it->second.data();
     }
 };
 

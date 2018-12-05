@@ -173,7 +173,7 @@ public:
         return rv;
     }
     char* Append(const TStringBuf s) {
-        return append(~s, +s);
+        return append(s.data(), s.size());
     }
     void align_4() {
         size_t t = (curseg->freepos + 3) & ~3;
