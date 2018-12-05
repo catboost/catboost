@@ -2731,7 +2731,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
-       fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
+       fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
        save_snapshot=None, snapshot_file=None, snapshot_interval=None):
@@ -2888,6 +2888,13 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     if snapshot_interval is not None:
         params['snapshot_interval'] = snapshot_interval
+
+    if nfold is None and fold_count is None:
+        fold_count = 3
+    elif fold_count is None:
+        fold_count = nfold
+    else:
+        assert nfold is None or nfold == fold_count
 
     with log_fixup(), plot_wrapper(plot, params):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)

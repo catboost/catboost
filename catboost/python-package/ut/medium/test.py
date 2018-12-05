@@ -2462,6 +2462,27 @@ def test_str_eval_metrics_in_eval_features():
     assert first_result.get_results()['MAE'] == second_result.get_results()['MAE']
 
 
+def test_cv_fold_count_alias(task_type):
+    if task_type == 'GPU':
+        pytest.skip('CV on GPU is not implemented')
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results_fold_count = cv(pool=pool, params={
+        "iterations": 5,
+        "learning_rate": 0.03,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC",
+        "task_type": task_type,
+    }, fold_count=4)
+    results_nfold = cv(pool=pool, params={
+        "iterations": 5,
+        "learning_rate": 0.03,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC",
+        "task_type": task_type,
+    }, nfold=4)
+    assert results_fold_count.equals(results_nfold)
+
+
 # check different sizes as well as passing as int as well as str
 @pytest.mark.parametrize('used_ram_limit', ['1024', '2Gb'])
 def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
