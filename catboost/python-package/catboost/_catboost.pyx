@@ -1372,7 +1372,7 @@ cdef class _PoolBase:
         """
         hash_to_string = {}
         for factor_hash, factor_string in self.__pool.CatFeaturesHashToString:
-            hash_to_string[ConvertCatFeatureHashToFloat(factor_hash)] = factor_string
+            hash_to_string[ConvertCatFeatureHashToFloat(factor_hash)] = to_native_str(factor_string)
         return hash_to_string
 
     cpdef get_weight(self):
