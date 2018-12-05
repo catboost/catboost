@@ -69,8 +69,8 @@ inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
     }
 }
 
-template <class T>
-void Assign(TConstArrayRef<T> arrayRef, TVector<T>* v) {
+template <class T1, class T2>
+void Assign(TConstArrayRef<T1> arrayRef, TVector<T2>* v) {
     v->assign(arrayRef.begin(), arrayRef.end());
 }
 
