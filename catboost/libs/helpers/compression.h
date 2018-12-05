@@ -116,11 +116,11 @@ public:
     }
 
     char* GetRawPtr() {
-        return reinterpret_cast<char*>(&((*Storage)[0]));
+        return reinterpret_cast<char*>((*Storage).data());
     }
 
     const char* GetRawPtr() const {
-        return reinterpret_cast<const char*>(&((*Storage)[0]));
+        return reinterpret_cast<const char*>((*Storage).data());
     }
 
 private:
