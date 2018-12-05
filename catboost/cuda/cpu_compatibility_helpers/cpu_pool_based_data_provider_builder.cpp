@@ -37,10 +37,10 @@ namespace NCatboostCuda {
         DataProvider.FeatureNames = Pool.FeatureId;
 
         NPar::ParallelFor(executor, 0, featureCount, [&](int featureId) {
-            if (IgnoreFeatures.has(featureId)) {
+            if (IgnoreFeatures.contains(featureId)) {
                 return;
             }
-            if (DataProvider.CatFeatureIds.has(featureId)) {
+            if (DataProvider.CatFeatureIds.contains(featureId)) {
                 const bool shouldSkip = IsTest && CatFeaturesPerfectHashHelper.GetUniqueValues(featureId) == 0;
 
                 if (!shouldSkip) {
@@ -53,13 +53,13 @@ namespace NCatboostCuda {
         });
 
         for (ui32 featureId = 0; featureId < featureCount; ++featureId) {
-            if (IgnoreFeatures.has(featureId)) {
+            if (IgnoreFeatures.contains(featureId)) {
                 continue;
             }
             TString featureName = !DataProvider.FeatureNames.empty() ? DataProvider.FeatureNames[featureId]
                                                                      : ToString(featureId);
 
-            if (DataProvider.CatFeatureIds.has(featureId)) {
+            if (DataProvider.CatFeatureIds.contains(featureId)) {
                 const ui32 uniqueValues = CatFeaturesPerfectHashHelper.GetUniqueValues(featureId);
                 if (uniqueValues > 1) {
                     DataProvider.Features.push_back(MakeHolder<TExternalCatFeatureValuesHolder>(featureId,
@@ -83,7 +83,7 @@ namespace NCatboostCuda {
 
         if (!IsTest) {
             NPar::ParallelFor(executor, 0, featureCount, [&](int featureId) {
-                if (IgnoreFeatures.has(featureId) || DataProvider.CatFeatureIds.has(featureId)) {
+                if (IgnoreFeatures.contains(featureId) || DataProvider.CatFeatureIds.contains(featureId)) {
                     return;
                 }
 

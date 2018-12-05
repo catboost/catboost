@@ -785,7 +785,7 @@ public:
         : Alpha(0.0)
     {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
-        if (params.has("alpha")) {
+        if (params.contains("alpha")) {
             Alpha = FromString<double>(params.at("alpha"));
         }
     }
@@ -816,7 +816,7 @@ public:
         : Alpha(0.0)
     {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
-        if (params.has("alpha")) {
+        if (params.contains("alpha")) {
             Alpha = FromString<double>(params.at("alpha"));
         }
     }

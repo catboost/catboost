@@ -231,7 +231,7 @@ static void AddTreeCtrs(const TDataset& learnData,
                 continue;
             }
 
-            if (addedProjHash.has(proj)) {
+            if (addedProjHash.contains(proj)) {
                 continue;
             }
 
@@ -245,7 +245,7 @@ static void AddTreeCtrs(const TDataset& learnData,
         THashSet<TSplitCandidate> candidatesToErase;
         for (auto& splitCandidate : statsFromPrevTree->Stats) {
             if (splitCandidate.first.Type == ESplitType::OnlineCtr) {
-                if (!addedProjHash.has(splitCandidate.first.Ctr.Projection)) {
+                if (!addedProjHash.contains(splitCandidate.first.Ctr.Projection)) {
                     candidatesToErase.insert(splitCandidate.first);
                 }
             }
@@ -447,7 +447,7 @@ void GreedyTensorSearch(const TDataset& learnData,
                 ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
 
                 if (candidate.SplitCandidate.Type == ESplitType::OnlineCtr &&
-                    !ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) &&
+                    !ctx->LearnProgress.UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
                     score != MINIMAL_SCORE)
                 {
                     score *= pow(

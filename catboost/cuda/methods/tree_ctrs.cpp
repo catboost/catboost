@@ -33,7 +33,7 @@ THolder<NCatboostCuda::TTreeCtrDataSetBuilder::TCompressedIndex> NCatboostCuda::
 NCatboostCuda::TTreeCtrDataSetBuilder::TConstVec NCatboostCuda::TTreeCtrDataSetBuilder::GetBorders(const NCatboostCuda::TCtr& ctr,
                                                                                                    const NCatboostCuda::TTreeCtrDataSetBuilder::TVec& floatCtr,
                                                                                                    ui32 stream) {
-    CB_ENSURE(TreeCtrDataSet.InverseCtrIndex.has(ctr));
+    CB_ENSURE(TreeCtrDataSet.InverseCtrIndex.contains(ctr));
     const ui32 featureId = TreeCtrDataSet.InverseCtrIndex[ctr];
     const auto& bordersSlice = TreeCtrDataSet.CtrBorderSlices[featureId];
 
@@ -161,7 +161,7 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::AddSplit(const NCatboostCuda::TBinar
         AssignDepthForDataSetsWithoutCompressedIndex(CurrentDepth);
         UpdateUsedPermutations();
         ClearUnusedPermutations();
-        if (UsedPermutations.has(CurrentDepth)) {
+        if (UsedPermutations.contains(CurrentDepth)) {
             CachePermutation(docBins, CurrentDepth);
         }
         //if we don't have enough memory, we don't need to cache first-level permutations

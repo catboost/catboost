@@ -188,10 +188,10 @@ namespace NCatboostCuda {
             bool hasPerFeatureCtr = false;
 
             with_lock (lock) {
-                if (needSimpleCtrsPriorEstimation && !options.PerFeatureCtrs->has(catFeature)) {
+                if (needSimpleCtrsPriorEstimation && !options.PerFeatureCtrs->contains(catFeature)) {
                     options.PerFeatureCtrs.Get()[catFeature] = options.SimpleCtrs;
                 }
-                hasPerFeatureCtr = options.PerFeatureCtrs->has(catFeature);
+                hasPerFeatureCtr = options.PerFeatureCtrs->contains(catFeature);
             }
 
             if (hasPerFeatureCtr) {

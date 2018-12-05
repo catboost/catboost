@@ -39,7 +39,7 @@ namespace NCatboostCuda {
             if (tokens.ysize() == 3) {
                 ENanMode nanMode = FromString<ENanMode>(tokens[2]);
 
-                if (nanModes.has(featureId)) {
+                if (nanModes.contains(featureId)) {
                     CB_ENSURE(nanModes.at(featureId) == nanMode, "NaN mode should be consistent in borders file");
                 } else {
                     nanModes[featureId] = nanMode;

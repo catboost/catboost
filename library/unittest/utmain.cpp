@@ -297,7 +297,7 @@ public:
     }
 
     inline const TString& GetParam(const TString& key, const TString& def) const override {
-        if (!TestParams_.has(key))
+        if (!TestParams_.contains(key))
             return def;
 
         return TestParams_.at(key);

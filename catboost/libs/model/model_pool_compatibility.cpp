@@ -24,7 +24,7 @@ bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, co
     size_t featureNameIntersection = 0;
     THashMap<TString, int> poolFeatureNamesMap;
     for (int i = 0; i < pool.FeatureId.ysize(); ++i) {
-        featureNameIntersection += modelFeatureIdSet.has(pool.FeatureId[i]);
+        featureNameIntersection += modelFeatureIdSet.contains(pool.FeatureId[i]);
         poolFeatureNamesMap[pool.FeatureId[i]] = i;
     }
     // if we have unique feature names for all features in model and in pool we can fill column index reordering map if needed
@@ -40,7 +40,7 @@ bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, co
             continue;
         }
         const auto poolFlatFeatureIndex = poolFeatureNamesMap.at(feature.FeatureId);
-        CB_ENSURE(poolCatFeatureFlatIndexes.has(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is categorical in model but marked as numerical in dataset");
+        CB_ENSURE(poolCatFeatureFlatIndexes.contains(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is categorical in model but marked as numerical in dataset");
         (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = poolFlatFeatureIndex;
         needRemapping |= (poolFlatFeatureIndex != feature.FlatFeatureIndex);
     }
@@ -49,7 +49,7 @@ bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, co
             continue;
         }
         const auto poolFlatFeatureIndex = poolFeatureNamesMap.at(feature.FeatureId);
-        CB_ENSURE(!poolCatFeatureFlatIndexes.has(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is numerical in model but marked as categorical in dataset");
+        CB_ENSURE(!poolCatFeatureFlatIndexes.contains(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is numerical in model but marked as categorical in dataset");
         (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = poolFlatFeatureIndex;
         needRemapping |= (poolFlatFeatureIndex != feature.FlatFeatureIndex);
     }
@@ -95,7 +95,7 @@ void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool, 
             featurePoolName = GetFeatureName("", catFeature.FlatFeatureIndex);
         }
         CB_ENSURE(
-            poolCatFeatures.has(catFeature.FlatFeatureIndex),
+            poolCatFeatures.contains(catFeature.FlatFeatureIndex),
             "Feature " << featurePoolName << " from pool must be categorical."
         );
     }
@@ -129,7 +129,7 @@ void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool, 
             featurePoolName = GetFeatureName("", floatFeature.FlatFeatureIndex);
         }
         CB_ENSURE(
-            !poolCatFeatures.has(floatFeature.FlatFeatureIndex),
+            !poolCatFeatures.contains(floatFeature.FlatFeatureIndex),
             "Feature " << featurePoolName << " from pool must not be categorical."
         );
     }

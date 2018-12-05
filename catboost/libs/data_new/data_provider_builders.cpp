@@ -159,7 +159,7 @@ namespace NCB {
             auto& catFeatureHash = catFeatureHashes[*catFeatureIdx];
 
             THashMap<ui32, TString>::insert_ctx insertCtx;
-            if (!catFeatureHash.has(hashVal, insertCtx)) {
+            if (!catFeatureHash.contains(hashVal, insertCtx)) {
                 catFeatureHash.emplace_direct(insertCtx, hashVal, feature);
             }
             return hashVal;

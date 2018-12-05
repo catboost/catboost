@@ -341,7 +341,7 @@ namespace NLastGetopt {
             const TOpt* opt = (*it).Get();
             if (nullptr == opt)
                 continue;
-            if (OptsSeen_.has(opt))
+            if (OptsSeen_.contains(opt))
                 continue;
 
             if (opt->IsRequired()) {

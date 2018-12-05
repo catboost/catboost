@@ -364,7 +364,7 @@ namespace NCatboostCuda {
         }
 
         for (ui32 i = 0; i < poolMetaInfo.FeatureCount; ++i) {
-            if (!IgnoreFeatures.has(i)) {
+            if (!IgnoreFeatures.contains(i)) {
                 ui32 bytesPerFeature = GetBytesPerFeature(i);
                 FeatureBlobs[i].reserve(docCount * bytesPerFeature);
             }

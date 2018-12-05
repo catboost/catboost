@@ -7,7 +7,7 @@ namespace NCatboostCuda {
         const TCudaBuffer<ui32, TMapping>& indices = binBuilder.GetIndices();
         auto& helper = GetCalcCtrHelper(indices, binBuilder.GetStream());
 
-        CB_ENSURE(CtrConfigs.has(tensor), "Error: unknown feature tensor");
+        CB_ENSURE(CtrConfigs.contains(tensor), "Error: unknown feature tensor");
         const auto& configs = CtrConfigs.at(tensor);
 
         auto grouppedConfigs = CreateEqualUpToPriorAndBinarizationCtrsGroupping(configs);

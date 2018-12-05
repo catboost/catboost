@@ -39,14 +39,14 @@ namespace NCatboostCuda {
                                                              TBuilder&& builder) {
             CB_ENSURE(IsKnown(feature));
             const ui32 featureId = GetFeatureManagerId(feature);
-            if (!Borders.has(featureId)) {
+            if (!Borders.contains(featureId)) {
                 Borders[featureId] = builder(GetFloatFeatureBinarization());
             }
             return Borders[featureId];
         }
 
         bool HasFloatFeatureBorders(const TFloatValuesHolder& feature) const {
-            return Borders.has(GetId(feature));
+            return Borders.contains(GetId(feature));
         }
 
         void SetOrCheckNanMode(const IFeatureValuesHolder& feature,
@@ -59,7 +59,7 @@ namespace NCatboostCuda {
         const TVector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const;
 
         bool HasBorders(ui32 featureId) const {
-            return Borders.has(featureId);
+            return Borders.contains(featureId);
         }
 
         void SetBorders(ui32 featureId, TVector<float> borders) {
@@ -94,7 +94,7 @@ namespace NCatboostCuda {
 
         bool IsCtr(ui32 featureId) const {
             CB_ENSURE(featureId < Cursor);
-            return InverseCtrs.has(featureId);
+            return InverseCtrs.contains(featureId);
         }
 
         bool IsTreeCtr(ui32 featureId) const {
@@ -116,7 +116,7 @@ namespace NCatboostCuda {
         }
 
         ui32 RegisterDataProviderCatFeature(ui32 featureId) {
-            CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.has(featureId));
+            CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.contains(featureId));
             const ui32 id = RequestNewId();
             DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
             FeatureManagerIdToDataProviderId[id] = featureId;
@@ -125,7 +125,7 @@ namespace NCatboostCuda {
         }
 
         ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
-            CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.has(featureId));
+            CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.contains(featureId));
             const ui32 id = RequestNewId();
             DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
             FeatureManagerIdToDataProviderId[id] = featureId;
@@ -134,7 +134,7 @@ namespace NCatboostCuda {
 
         bool HasFloatFeatureBordersForDataProviderFeature(const ui32 dataProviderId) {
             const ui32 featureId = GetFeatureManagerIdForFloatFeature(dataProviderId);
-            return Borders.has(featureId);
+            return Borders.contains(featureId);
         }
 
         ui32 SetFloatFeatureBordersForDataProviderId(ui32 dataProviderId,
@@ -164,7 +164,7 @@ namespace NCatboostCuda {
         }
 
         bool IsKnown(const TCtr& ctr) const {
-            return KnownCtrs.has(ctr);
+            return KnownCtrs.contains(ctr);
         }
 
         ui32 AddCtr(const TCtr& ctr);
@@ -177,7 +177,7 @@ namespace NCatboostCuda {
         }
 
         const TVector<float>& GetBorders(ui32 id) const {
-            CB_ENSURE(Borders.has(id), "Can't find borders for feature #" << id);
+            CB_ENSURE(Borders.contains(id), "Can't find borders for feature #" << id);
             return Borders.at(id);
         }
 
@@ -200,7 +200,7 @@ namespace NCatboostCuda {
         ui32 GetId(const IFeatureValuesHolder& feature) const;
 
         ui32 GetId(const TCtr& ctr) const {
-            CB_ENSURE(KnownCtrs.has(ctr));
+            CB_ENSURE(KnownCtrs.contains(ctr));
             return KnownCtrs[ctr];
         }
 
@@ -268,7 +268,7 @@ namespace NCatboostCuda {
 
         bool HasPerFeatureCtr(ui32 featureId) const {
             ui32 featureIdInPool = GetDataProviderId(featureId);
-            return CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool);
+            return CatFeatureOptions.PerFeatureCtrs->contains(featureIdInPool);
         }
 
         TMap<ECtrType, TSet<NCB::TCtrConfig>> CreateGrouppedPerFeatureCtr(ui32 featureId) const;

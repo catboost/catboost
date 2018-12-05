@@ -20,7 +20,7 @@ namespace NCudaLib {
                 using std::swap;
                 swap(fromDevice, toDevice);
             }
-            const bool notCompute = !(Table.has(fromDevice) && Table[fromDevice].has(toDevice));
+            const bool notCompute = !(Table.contains(fromDevice) && Table[fromDevice].contains(toDevice));
 
             if (Y_UNLIKELY(notCompute)) {
                 Table[fromDevice][toDevice] = calcer();
@@ -131,7 +131,7 @@ namespace NCudaLib {
             auto& manager = GetCudaManager();
             TDeviceId deviceId = manager.GetDeviceId(device);
 
-            if (Y_UNLIKELY(!LatencyTable.has(deviceId))) {
+            if (Y_UNLIKELY(!LatencyTable.contains(deviceId))) {
                 auto oneSampleLatency = [&]() -> double {
                     const ui32 messageSize = 1;
                     return TImpl::ComputeTime(device, messageSize) / messageSize;
@@ -147,7 +147,7 @@ namespace NCudaLib {
             auto& manager = GetCudaManager();
             TDeviceId deviceId = manager.GetDeviceId(device);
 
-            if (Y_UNLIKELY(!BandwidthTable.has(deviceId))) {
+            if (Y_UNLIKELY(!BandwidthTable.contains(deviceId))) {
                 auto oneSampleLatency = [&]() -> double {
                     const ui32 messageSize = TLatencyAndBandwidthStatsHelper::BandwidthDataSize;
                     return TImpl::ComputeTime(device, messageSize) / messageSize;

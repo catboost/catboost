@@ -54,7 +54,7 @@ namespace NCB {
             }
         }
         for (const auto& featureIdxAndValue : rhs) {
-            if (!lhs.has(featureIdxAndValue.first)) {
+            if (!lhs.contains(featureIdxAndValue.first)) {
                 return false;
             }
         }
@@ -84,7 +84,7 @@ namespace NCB {
 
     ENanMode TQuantizedFeaturesInfo::GetOrComputeNanMode(const TFloatValuesHolder& feature)  {
         const auto floatFeatureIdx = GetPerTypeFeatureIdx<EFeatureType::Float>(feature);
-        if (!NanModes.has(*floatFeatureIdx)) {
+        if (!NanModes.contains(*floatFeatureIdx)) {
             NanModes[*floatFeatureIdx] = ComputeNanMode(feature);
         }
         return NanModes.at(*floatFeatureIdx);
@@ -93,7 +93,7 @@ namespace NCB {
     ENanMode TQuantizedFeaturesInfo::GetNanMode(const TFloatFeatureIdx floatFeatureIdx) const  {
         CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
         ENanMode nanMode = ENanMode::Forbidden;
-        if (NanModes.has(*floatFeatureIdx)) {
+        if (NanModes.contains(*floatFeatureIdx)) {
             nanMode = NanModes.at(*floatFeatureIdx);
         }
         return nanMode;

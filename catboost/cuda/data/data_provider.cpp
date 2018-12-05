@@ -25,7 +25,7 @@ namespace NCatboostCuda {
         THashMap<TGroupId, ui32> queryOffsets;
         for (ui32 doc = 0; doc < QueryIds.size(); ++doc) {
             const auto queryId = QueryIds[doc];
-            if (!queryOffsets.has(queryId)) {
+            if (!queryOffsets.contains(queryId)) {
                 queryOffsets[queryId] = doc;
             }
         }
@@ -46,7 +46,7 @@ namespace NCatboostCuda {
         THashMap<TGroupId, ui32> querySizes;
         for (ui32 doc = 0; doc < QueryIds.size(); ++doc) {
             const auto queryId = QueryIds[doc];
-            if (!queryOffsets.has(queryId)) {
+            if (!queryOffsets.contains(queryId)) {
                 queryOffsets[queryId] = doc;
             }
             querySizes[queryId]++;

@@ -12,7 +12,7 @@ inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description
 
     if (NeedTargetClassifier(ctrInfo.Type)) {
         const auto& targetBinarization = description.TargetBinarization.Get();
-        if (!targetClassifiers->has(targetBinarization)) {
+        if (!targetClassifiers->contains(targetBinarization)) {
             ui32 targetClassifierId = targetClassifiers->size();
             (*targetClassifiers)[targetBinarization] = targetClassifierId;
         }
@@ -58,7 +58,7 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
         CB_ENSURE(layout.GetExternalFeatureType(feature) == EFeatureType::Categorical,
                   "Feature " + ToString(feature) + " in per-feature-priors is not categorical");
         int featureIdx = layout.GetInternalFeatureIdx(feature);
-        CB_ENSURE(!PerFeatureCtrs.has(featureIdx), "Error: duplicate per feature ctr descriptions (feature #" << feature << ")");
+        CB_ENSURE(!PerFeatureCtrs.contains(featureIdx), "Error: duplicate per feature ctr descriptions (feature #" << feature << ")");
         for (auto description : descriptions) {
             PerFeatureCtrs[featureIdx].push_back(MakeCtrInfo(description, &targetClassifierIds));
         }

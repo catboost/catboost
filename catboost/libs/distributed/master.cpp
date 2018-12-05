@@ -49,7 +49,7 @@ static ::TDataset GetWorkerPart(const ::TDataset& trainData, const TPartPairMap&
     workerPart.QueryId = GetWorkerPart(trainData.QueryId, part);
     workerPart.SubgroupId = GetWorkerPart(trainData.SubgroupId, part);
     if (!trainData.Pairs.empty()) {
-        Y_ASSERT(partPairMap.has(part));
+        Y_ASSERT(partPairMap.contains(part));
         workerPart.Pairs = partPairMap.at(part);
     }
     workerPart.HasGroupWeight = trainData.HasGroupWeight;
@@ -264,7 +264,7 @@ void MapCalcErrors(TLearnContext* ctx) {
     for (size_t workerIdx : xrange<size_t>(1, workerCount)) {
         const auto& workerAdditiveStats = additiveStatsFromAllWorkers[workerIdx];
         for (auto& [description, stats] : additiveStats) {
-            Y_ASSERT(workerAdditiveStats.has(description));
+            Y_ASSERT(workerAdditiveStats.contains(description));
             stats.Add(workerAdditiveStats.at(description));
         }
     }

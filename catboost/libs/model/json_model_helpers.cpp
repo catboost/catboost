@@ -270,7 +270,7 @@ static TJsonValue GetFeaturesInfoJson(
         }
         for (const auto &catFeature: obliviousTrees.CatFeatures) {
             auto catFeatureJsonValue = ToJson(catFeature);
-            if (oneHotIndexes.has(catFeature.FlatFeatureIndex)) {
+            if (oneHotIndexes.contains(catFeature.FlatFeatureIndex)) {
                 auto &ohFeauture = obliviousTrees.OneHotFeatures[oneHotIndexes[catFeature.FlatFeatureIndex]];
                 catFeatureJsonValue.InsertValue("values", VectorToJson(ohFeauture.Values));
                 if (!ohFeauture.StringValues.empty()) {

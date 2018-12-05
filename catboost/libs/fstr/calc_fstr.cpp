@@ -76,7 +76,7 @@ TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>*
     const auto& modelBinFeatures = model.ObliviousTrees.GetBinFeatures();
     for (auto binSplit : model.ObliviousTrees.TreeSplits) {
         TFeature feature = GetFeature(modelBinFeatures[binSplit]);
-        if (featureToIdx.has(feature)) {
+        if (featureToIdx.contains(feature)) {
             continue;
         }
         int featureIdx = featureToIdx.ysize();

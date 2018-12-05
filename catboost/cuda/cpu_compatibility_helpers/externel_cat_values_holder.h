@@ -31,7 +31,7 @@ namespace NCatboostCuda {
             TVector<ui32> values(GetSize());
             const auto& perfectHash = FeaturesManager.GetCategoricalFeaturesPerfectHash(FeatureManagerFeatureId);
             for (ui32 i = 0; i < values.size(); ++i) {
-                CB_ENSURE(perfectHash.has(HashesPtr[i]),
+                CB_ENSURE(perfectHash.contains(HashesPtr[i]),
                           "Error: hash for feature #" << FeatureManagerFeatureId << " was not found " << HashesPtr[i]);
                 values[i] = perfectHash.at(HashesPtr[i]);
             }

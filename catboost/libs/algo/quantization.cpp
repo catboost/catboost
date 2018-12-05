@@ -228,7 +228,7 @@ namespace {
         {
             TypedFeatureIdx.resize(featureCount);
             for (int featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
-                if (CategFeatures.has(featureIdx)) {
+                if (CategFeatures.contains(featureIdx)) {
                     TypedFeatureIdx[featureIdx] = CatFeatureCount++;
                 } else {
                     TypedFeatureIdx[featureIdx] = FloatFeatureCount++;
@@ -255,7 +255,7 @@ namespace {
         void SetupToIgnoreFeaturesAfter(const TAllFeatures& learnFeatures) {
             IgnoredFeatures.clear();
             for (int featureIdx = 0; featureIdx < FeatureCount; ++featureIdx) {
-                if (CategFeatures.has(featureIdx)) {
+                if (CategFeatures.contains(featureIdx)) {
                     auto catFeatureIdx = TypedFeatureIdx[featureIdx];
                     if (learnFeatures.CatFeaturesRemapped[catFeatureIdx].empty()) {
                         IgnoredFeatures.insert(featureIdx);
@@ -279,13 +279,13 @@ namespace {
             auto binarizeBlockOfFeatures = [&](int blockId) {
                 int lastFeatureIdx = Min((blockId + 1) * BlockSize, FeatureCount);
                 for (int featureIdx = blockId * BlockSize; featureIdx  < lastFeatureIdx; ++featureIdx) {
-                    if (IgnoredFeatures.has(featureIdx)) {
+                    if (IgnoredFeatures.contains(featureIdx)) {
                         if (clearPool) {
                             ClearVector(&docStorage->Factors[featureIdx]);
                         }
                         continue;
                     }
-                    if (CategFeatures.has(featureIdx)) {
+                    if (CategFeatures.contains(featureIdx)) {
                         int catFeatureIdx = TypedFeatureIdx[featureIdx];
                         if (selectedDocIndices.empty()) {
                             TSelectAll selectedDocs(docStorage->GetDocCount());

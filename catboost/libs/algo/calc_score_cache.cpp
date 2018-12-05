@@ -12,7 +12,7 @@ bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fit
 TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitCandidate& split, int splitStatsCount, bool* areStatsDirty) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
-        if (Stats.has(split) && Stats[split] != nullptr) {
+        if (Stats.contains(split) && Stats[split] != nullptr) {
             splitStats = Stats[split].Get();
             Y_ASSERT(splitStats->ysize() >= splitStatsCount);
             *areStatsDirty = false;

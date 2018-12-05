@@ -184,7 +184,7 @@ void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
 
 bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const {
     for (const auto& ctr : neededCtrs) {
-        if (!CtrData.LearnCtrs.has(ctr.Base)) {
+        if (!CtrData.LearnCtrs.contains(ctr.Base)) {
             return false;
         }
     }

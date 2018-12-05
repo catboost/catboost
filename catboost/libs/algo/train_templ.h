@@ -114,11 +114,11 @@ void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, T
                 }
 
                 const auto& proj = split.Ctr.Projection;
-                if (seenProjections.has(proj)) {
+                if (seenProjections.contains(proj)) {
                     continue;
                 }
                 for (auto* foldPtr : allFolds) {
-                    if (!foldPtr->GetCtrs(proj).has(proj) || foldPtr->GetCtr(proj).Feature.empty()) {
+                    if (!foldPtr->GetCtrs(proj).contains(proj) || foldPtr->GetCtr(proj).Feature.empty()) {
                         parallelJobsData.emplace_back(TLocalJobData{ &learnData, testDataPtrs, proj, foldPtr, &foldPtr->GetCtrRef(proj) });
                     }
                 }

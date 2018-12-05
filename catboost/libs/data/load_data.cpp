@@ -56,7 +56,7 @@ namespace NCB {
             int hashPartIdx = LocalExecutor.GetWorkerThreadId();
             CB_ENSURE(hashPartIdx < CB_THREAD_LIMIT, "Internal error: thread ID exceeds CB_THREAD_LIMIT");
             auto& curPart = HashMapParts[hashPartIdx];
-            if (!curPart.CatFeatureHashes.has(hashVal)) {
+            if (!curPart.CatFeatureHashes.contains(hashVal)) {
                 curPart.CatFeatureHashes[hashVal] = feature;
             }
             return ConvertCatFeatureHashToFloat(hashVal);

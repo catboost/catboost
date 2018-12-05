@@ -10,7 +10,7 @@ TVector<TFloatFeature> CreateFloatFeatures(
     TVector<TFloatFeature> floatFeatures(allFeaturesCount - catFeatures.size());
     int floatFeatureIdx = 0;
     for (size_t flatFeatureIdx = 0; flatFeatureIdx < allFeaturesCount; ++flatFeatureIdx) {
-        if (catFeatures.has(flatFeatureIdx)) {
+        if (catFeatures.contains(flatFeatureIdx)) {
             continue;
         }
         auto& floatFeature = floatFeatures[floatFeatureIdx];

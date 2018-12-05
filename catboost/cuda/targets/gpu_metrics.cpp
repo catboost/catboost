@@ -187,7 +187,7 @@ namespace NCatboostCuda {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     if (metricType == ELossFunction::Logloss) {
                         useBorder = true;
-                        if (params.has("border")) {
+                        if (params.contains("border")) {
                             border = FromString<float>(params.at("border"));
                         }
                     }
@@ -221,7 +221,7 @@ namespace NCatboostCuda {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
-                    if (params.has("alpha")) {
+                    if (params.contains("alpha")) {
                         alpha = FromString<float>(params.at("alpha"));
                     }
                     if (metricType == ELossFunction::NumErrors) {
@@ -558,7 +558,7 @@ namespace NCatboostCuda {
             case ELossFunction::HammingLoss: {
                 double border = GetDefaultClassificationBorder();
                 const auto& params = metricDescription.GetLossParams();
-                if (params.has("border")) {
+                if (params.contains("border")) {
                     border = FromString<float>(params.at("border"));
                 }
 
@@ -648,7 +648,7 @@ namespace NCatboostCuda {
         for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                             lossFunctionOption, cpuApproxDim)) {
             const TString& description = metric->GetCpuMetric().GetDescription();
-            if (!usedDescriptions.has(description)) {
+            if (!usedDescriptions.contains(description)) {
                 usedDescriptions.insert(description);
                 metrics.push_back(std::move(metric));
             }
@@ -658,7 +658,7 @@ namespace NCatboostCuda {
             for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                                 description, cpuApproxDim)) {
                 const TString& description = metric->GetCpuMetric().GetDescription();
-                if (!usedDescriptions.has(description)) {
+                if (!usedDescriptions.contains(description)) {
                     usedDescriptions.insert(description);
                     metrics.push_back(std::move(metric));
                 }

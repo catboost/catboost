@@ -51,11 +51,11 @@ namespace NCatboostCuda {
         }
 
         bool HasFeatureId(ui32 featureId) const {
-            return IndicesToLocalIndicesRemap.has(featureId);
+            return IndicesToLocalIndicesRemap.contains(featureId);
         }
 
         const IFeatureValuesHolder& GetFeatureById(ui32 featureId) const {
-            if (!IndicesToLocalIndicesRemap.has(featureId)) {
+            if (!IndicesToLocalIndicesRemap.contains(featureId)) {
                 ythrow TCatboostException() << "No feature with feature id #" << featureId << " is found";
             }
             const ui32 localId = IndicesToLocalIndicesRemap.at(featureId);

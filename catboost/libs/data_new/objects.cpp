@@ -414,7 +414,7 @@ void NCB::TRawObjectsData::Check(
                 catFeaturePtr->GetArrayData().ParallelForEach(
                     [&] (ui32 objectIdx, ui32 hashValue) {
                         CB_ENSURE_INTERNAL(
-                            hashToStringMap.has(hashValue),
+                            hashToStringMap.contains(hashValue),
                             "catFeature #" << catFeatureIdx << ", object #" << objectIdx << ": value "
                             << Hex(hashValue) << " is missing from CatFeaturesHashToString"
                         );

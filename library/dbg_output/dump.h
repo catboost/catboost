@@ -50,7 +50,7 @@ namespace NPrivate {
 
             template <class V>
             inline void Pointer(const V* v) {
-                if (v && !Visited.has((size_t)v)) {
+                if (v && !Visited.contains((size_t)v)) {
                     Visited.insert((size_t)v);
                     *this << DumpRaw("(") << DumpRaw(TypeName(v).data()) << DumpRaw("*)") << Hex((size_t)v) << DumpRaw(" -> ") << *v;
                     Visited.erase((size_t)v);

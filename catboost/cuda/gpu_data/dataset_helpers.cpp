@@ -79,13 +79,13 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
             CB_ENSURE(tensor.GetSplits().size() == 0);
 
             for (auto featureId : tensor.GetCatFeatures()) {
-                if (!featureIdsSet.has(featureId)) {
+                if (!featureIdsSet.contains(featureId)) {
                     hasUnknownFeatures = true;
                     break;
                 }
             }
             for (auto binarySplit : tensor.GetSplits()) {
-                if (!featureIdsSet.has(binarySplit.FeatureId)) {
+                if (!featureIdsSet.contains(binarySplit.FeatureId)) {
                     hasUnknownFeatures = true;
                     break;
                 }

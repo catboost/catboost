@@ -54,7 +54,7 @@ static void ParseEvalResult(const TString& evalResultPath, TVector<double>* appr
     for (ui32 i = 0; i < headerTokens.size(); ++i) {
         columnHeaders[headerTokens[i]] = i;
     }
-    CB_ENSURE(columnHeaders.has("Label") && columnHeaders.has("RawFormulaVal"), "Incorrect EvalResult format.");
+    CB_ENSURE(columnHeaders.contains("Label") && columnHeaders.contains("RawFormulaVal"), "Incorrect EvalResult format.");
     const ui32 approxColumnIndex = columnHeaders.at("RawFormulaVal");
     const ui32 labelColumnIndex = columnHeaders.at("Label");
 

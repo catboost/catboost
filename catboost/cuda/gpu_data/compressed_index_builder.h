@@ -165,7 +165,7 @@ namespace NCatboostCuda {
                                                 << " to store feature");
                     }
                 }
-                CB_ENSURE(!SeenFeatures[dataSetId].has(featureId), "Error: can't write feature twice");
+                CB_ENSURE(!SeenFeatures[dataSetId].contains(featureId), "Error: can't write feature twice");
 
                 TVector<ui8> writeBins(bins.size());
 

@@ -57,7 +57,7 @@ namespace NCB {
                 if (tokens.ysize() == 3) {
                     ENanMode nanMode = FromString<ENanMode>(tokens[2]);
 
-                    if (nanModes.has(floatFeatureIdx)) {
+                    if (nanModes.contains(floatFeatureIdx)) {
                         CB_ENSURE(
                             nanModes.at(floatFeatureIdx) == nanMode,
                             "NaN mode should be consistent in borders file");

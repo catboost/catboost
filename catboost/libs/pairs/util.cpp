@@ -68,7 +68,7 @@ static void GenerateRandomly(
     TSet<std::pair<int, int>> generatedPairs;
     while (int(generatedPairs.size()) < maxPairCount) {
         int firstIdx, secondIdx;
-        if (TryGeneratePair(groupBegin, groupEnd, targetId, rand, &firstIdx, &secondIdx) && !generatedPairs.has(std::make_pair(firstIdx, secondIdx))) {
+        if (TryGeneratePair(groupBegin, groupEnd, targetId, rand, &firstIdx, &secondIdx) && !generatedPairs.contains(std::make_pair(firstIdx, secondIdx))) {
             generatedPairs.insert({firstIdx, secondIdx});
         }
     }

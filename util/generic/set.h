@@ -64,6 +64,11 @@ public:
     inline bool has(const TheKey& key) const {
         return this->find(key) != this->end();
     }
+
+    template <class TheKey>
+    inline bool contains(const TheKey& key) const {
+        return this->find(key) != this->end();
+    }
 };
 
 template <class K, class L, class A>
@@ -118,5 +123,10 @@ public:
 
     inline explicit operator bool() const noexcept {
         return !this->empty();
+    }
+
+    template <class TheKey>
+    inline bool contains(const TheKey& key) const {
+        return this->find(key) != this->end();
     }
 };

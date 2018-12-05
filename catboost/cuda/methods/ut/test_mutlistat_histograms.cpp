@@ -141,7 +141,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                 }
 
                 with_lock(refStatLock){
-                    if (!refStats->has(featureId)) {
+                    if (!refStats->contains(featureId)) {
                         (*refStats)[featureId] = featureHist;
                     } else {
                         auto& dst = (*refStats)[featureId];
@@ -221,7 +221,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
 
                         const float computedOnGpu = resultsGpu[idx];
-                        UNIT_ASSERT(refStats.has(fid));
+                        UNIT_ASSERT(refStats.contains(fid));
                         UNIT_ASSERT(refStats[fid].size() > binId);
                         UNIT_ASSERT(refStats[fid][binId].size() == numStats * numLeaves);
                         const float computedOnCpu = refStats[fid][binId][leaf * numStats + statId];

@@ -38,7 +38,7 @@ public:
     const TVector<TCtrInfo>& GetCtrInfo(const TProjection& projection) const {
         if (projection.IsSingleCatFeature()) {
             const int featureId = projection.CatFeatures[0];
-            if (PerFeatureCtrs.has(featureId)) {
+            if (PerFeatureCtrs.contains(featureId)) {
                 return PerFeatureCtrs.at(featureId);
             } else {
                 return SimpleCtrs;

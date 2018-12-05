@@ -173,7 +173,7 @@ namespace NCB {
             binarizationOptions.BorderSelectionType
         );
 
-        if (borderSet.has(-0.0f)) { // BestSplit might add negative zeros
+        if (borderSet.contains(-0.0f)) { // BestSplit might add negative zeros
             borderSet.erase(-0.0f);
             borderSet.insert(0.0f);
         }

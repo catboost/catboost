@@ -2988,7 +2988,7 @@ THolder<IMetric> MakeUserDefinedPerObjectMetric(const TMap<TString, TString>& pa
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TMap<TString, TString>& params)
         : Alpha(0.0)
 {
-    if (params.has("alpha")) {
+    if (params.contains("alpha")) {
         Alpha = FromString<float>(params.at("alpha"));
     }
     UseWeights.MakeIgnored();
@@ -3046,7 +3046,7 @@ THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& pa
 TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
         : Alpha(0.0)
 {
-    if (params.has("alpha")) {
+    if (params.contains("alpha")) {
         Alpha = FromString<float>(params.at("alpha"));
     }
     UseWeights.MakeIgnored();
@@ -3182,7 +3182,7 @@ static void CheckParameters(
     warning = (validParam.size() == 1 ? "Valid parameter is " : "Valid parameters are ") + warning + ".";
 
     for (const auto& param : inputParams) {
-        CB_ENSURE(validParam.has(param.first),
+        CB_ENSURE(validParam.contains(param.first),
                   metricName + " metric shouldn't have " + param.first + " parameter. " + warning);
     }
 }
@@ -3216,7 +3216,7 @@ int GetParameterTop(const TMap<TString, TString>& params, ELossFunction metric) 
 
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
     double border = GetDefaultClassificationBorder();
-    if (params.has("border")) {
+    if (params.contains("border")) {
         border = FromString<float>(params.at("border"));
     }
 
@@ -3235,7 +3235,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             result.push_back(MakeRMSEMetric());
             break;
         case ELossFunction::Lq:
-            CB_ENSURE(params.has("q"), "Metric " << ELossFunction::Lq << " requirese q as parameter");
+            CB_ENSURE(params.contains("q"), "Metric " << ELossFunction::Lq << " requirese q as parameter");
             validParams={"q"};
             result.push_back(MakeLqMetric(FromString<float>(params.at("q"))));
             break;
@@ -3324,13 +3324,13 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::YetiRank:
             result.push_back(MakePFoundMetric());
             validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.has("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
+            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::YetiRankPairwise:
             result.push_back(MakePFoundMetric());
             validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.has("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
+            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::PFound: {
@@ -3367,7 +3367,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             result.push_back(MakeR2Metric());
             break;
         case ELossFunction::NumErrors: {
-            CB_ENSURE(params.has("greater_then"), "Metric " << ELossFunction::NumErrors << " requirese greater_then as parameter");
+            CB_ENSURE(params.contains("greater_then"), "Metric " << ELossFunction::NumErrors << " requirese greater_then as parameter");
             result.push_back(MakeNumErrorsMetric(FromString<double>(params.at("greater_then"))));
             validParams = {"greater_then"};
             break;
@@ -3553,7 +3553,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         }
     }
 
-    if (params.has("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
+    if (params.contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
         TMap<TString, TString> hints = ParseHintsDescription(params.at("hints"));
         for (const auto& hint : hints) {
             for (THolder<IMetric>& metric : result) {
@@ -3562,7 +3562,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         }
     }
 
-    if (params.has("use_weights")) {
+    if (params.contains("use_weights")) {
         const bool useWeights = FromString<bool>(params.at("use_weights"));
         for (THolder<IMetric>& metric : result) {
             metric->UseWeights = useWeights;
@@ -3623,7 +3623,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     if (lossFunctionOption->GetLossFunction() != ELossFunction::Custom) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
         for (auto& metric : createdMetrics) {
-            if (!usedDescriptions.has(metric->GetDescription())) {
+            if (!usedDescriptions.contains(metric->GetDescription())) {
                 usedDescriptions.insert(metric->GetDescription());
                 errors.push_back(std::move(metric));
             }
@@ -3633,7 +3633,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(description, approxDimension);
         for (auto& metric : createdMetrics) {
-            if (!usedDescriptions.has(metric->GetDescription())) {
+            if (!usedDescriptions.contains(metric->GetDescription())) {
                 usedDescriptions.insert(metric->GetDescription());
                 errors.push_back(std::move(metric));
             }
@@ -3661,7 +3661,7 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics) {
     result.reserve(metrics.size());
     for (const auto& metric : metrics) {
         const TMap<TString, TString>& hints = metric->GetHints();
-        result.push_back(hints.has("skip_train") && hints.at("skip_train") == "true");
+        result.push_back(hints.contains("skip_train") && hints.at("skip_train") == "true");
     }
     return result;
 }

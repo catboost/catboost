@@ -370,7 +370,7 @@ void TConversionTest::TestRecode() {
             UNIT_ASSERT_VALUES_EQUAL(size_t(1), written);
             UNIT_ASSERT_VALUES_EQUAL(rch2, rch);
 
-            if (hash.has(rch)) { // there are some stupid encodings with duplicate characters
+            if (hash.contains(rch)) { // there are some stupid encodings with duplicate characters
                 continue;
             } else {
                 hash.insert(rch);

@@ -51,7 +51,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                 {&testApprox}
             );
             TFullModel otherCallVariant = ReadModel("model_for_test.cbm");
-            UNIT_ASSERT(model.ModelInfo.has("a"));
+            UNIT_ASSERT(model.ModelInfo.contains("a"));
             UNIT_ASSERT_VALUES_EQUAL(model.ModelInfo["a"], "b");
             UNIT_ASSERT_EQUAL(model, otherCallVariant);
         }

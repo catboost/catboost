@@ -69,7 +69,7 @@ namespace NCB {
 
         bool HasNanMode(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return NanModes.has(*floatFeatureIdx);
+            return NanModes.contains(*floatFeatureIdx);
         }
 
         void SetNanMode(const TFloatFeatureIdx floatFeatureIdx, ENanMode nanMode) {
@@ -84,7 +84,7 @@ namespace NCB {
 
         bool HasBorders(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return Borders.has(*floatFeatureIdx);
+            return Borders.contains(*floatFeatureIdx);
         }
 
         void SetBorders(const TFloatFeatureIdx floatFeatureIdx,

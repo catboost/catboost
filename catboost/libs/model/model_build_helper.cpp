@@ -83,7 +83,7 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
     THashMap<TModelSplit, int> binFeatureIndexes;
     for (const auto& split : modelSplitSet) {
         const int binFeatureIdx = binFeatureIndexes.ysize();
-        Y_ASSERT(!binFeatureIndexes.has(split));
+        Y_ASSERT(!binFeatureIndexes.contains(split));
         binFeatureIndexes[split] = binFeatureIdx;
     }
     Y_ASSERT(modelSplitSet.size() == binFeatureIndexes.size());

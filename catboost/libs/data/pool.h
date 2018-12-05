@@ -181,7 +181,7 @@ struct TPool {
         Docs.Factors[factorIdx][docIdx] = ConvertCatFeatureHashToFloat(hashVal);
 
         THashMap<int, TString>::insert_ctx insertCtx;
-        if (!CatFeaturesHashToString.has(hashVal, insertCtx)) {
+        if (!CatFeaturesHashToString.contains(hashVal, insertCtx)) {
             CatFeaturesHashToString.emplace_direct(insertCtx, hashVal, catFeatureString);
         }
     }

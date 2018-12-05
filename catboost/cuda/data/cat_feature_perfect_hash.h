@@ -23,7 +23,7 @@ namespace NCatboostCuda {
             if (!HasHashInRam) {
                 Load();
             }
-            CB_ENSURE(FeaturesPerfectHash.has(featureId), "Features #" << featureId << " hash was not found");
+            CB_ENSURE(FeaturesPerfectHash.contains(featureId), "Features #" << featureId << " hash was not found");
             return FeaturesPerfectHash.at(featureId);
         }
 
@@ -34,7 +34,7 @@ namespace NCatboostCuda {
         }
 
         ui32 GetUniqueValues(const ui32 featureId) const {
-            if (CatFeatureUniqueValues.has(featureId)) {
+            if (CatFeatureUniqueValues.contains(featureId)) {
                 const ui32 uniqueValues = CatFeatureUniqueValues.at(featureId);
                 return uniqueValues > 1 ? uniqueValues : 0;
             } else {
@@ -43,7 +43,7 @@ namespace NCatboostCuda {
         }
 
         bool HasFeature(const ui32 featureId) const {
-            return CatFeatureUniqueValues.has(featureId);
+            return CatFeatureUniqueValues.contains(featureId);
         }
 
         void FreeRam() const {

@@ -96,7 +96,7 @@ void TLabelConverter::ValidateLabels(const TVector<float>& labels) const {
     THashSet<float> missingLabels;
 
     for (const auto& label : labels) {
-        if (!LabelToClass.has(label)) {
+        if (!LabelToClass.contains(label)) {
             if (ClassesCount > 0 && int(label) == label && label >= 0 && label < ClassesCount) {
                 missingLabels.emplace(label);
             } else {

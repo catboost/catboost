@@ -86,7 +86,7 @@ namespace NCatboostCuda {
                 for (ui32 i = 0; i < inverseGids.size(); ++i) {
                     TGroupId gid = inverseGids[i];
                     QueryPairOffsets.push_back(FlatQueryPairs.size());
-                    if (pairs.has(gid)) {
+                    if (pairs.contains(gid)) {
                         ui32 queryOffset = QueryOffsets[i];
 
                         const auto& groupPairs = pairs.at(gid);

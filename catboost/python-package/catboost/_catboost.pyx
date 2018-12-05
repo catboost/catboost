@@ -1701,7 +1701,7 @@ cdef class _CatBoost:
         self.__model.Swap(tmp_model)
 
     cpdef _get_params(self):
-        if not self.__model.ModelInfo.has("params"):
+        if not self.__model.ModelInfo.contains("params"):
             return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
@@ -1717,7 +1717,7 @@ cdef class _CatBoost:
         return self.__model.GetTreeCount()
 
     def _get_random_seed(self):
-        if not self.__model.ModelInfo.has("params"):
+        if not self.__model.ModelInfo.contains("params"):
             return 0
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
@@ -1727,7 +1727,7 @@ cdef class _CatBoost:
         return 0
 
     def _get_learning_rate(self):
-        if not self.__model.ModelInfo.has("params"):
+        if not self.__model.ModelInfo.contains("params"):
             return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
@@ -1767,7 +1767,7 @@ cdef class _MetadataHashProxy:
         if not isinstance(key, string_types):
             raise CatboostError('only string keys allowed')
         key = to_binary_str(key)
-        if not self._catboost.__model.ModelInfo.has(key):
+        if not self._catboost.__model.ModelInfo.contains(key):
             raise KeyError
         return to_native_str(self._catboost.__model.ModelInfo.at(key))
 
@@ -1789,7 +1789,7 @@ cdef class _MetadataHashProxy:
         if not isinstance(key, string_types):
             raise CatboostError('only string keys allowed')
         key = to_binary_str(key)
-        if not self._catboost.__model.ModelInfo.has(key):
+        if not self._catboost.__model.ModelInfo.contains(key):
             raise KeyError
         self._catboost.__model.ModelInfo.erase(TString(<const char*>key))
 

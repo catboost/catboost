@@ -46,7 +46,7 @@ namespace NCatboostCuda {
 
         {
             for (ui32 featureId = 0; featureId < allFeatures.size(); ++featureId) {
-                if (catFeatureIds.has(featureId)) {
+                if (catFeatureIds.contains(featureId)) {
                     CatFeaturesRemap[featureId] = static_cast<ui32>(CatFeaturesRemap.size());
                 } else {
                     if (dataProvider.HasFeatureId(featureId)) {
@@ -87,7 +87,7 @@ namespace NCatboostCuda {
         TVector<TCatFeature> catFeatures;
 
         for (int i = 0; i < featureCount; ++i) {
-            if (catFeatureIds.has(i)) {
+            if (catFeatureIds.contains(i)) {
                 auto catFeatureIdx = catFeatures.size();
                 auto& catFeature = catFeatures.emplace_back();
                 catFeature.FeatureIndex = catFeatureIdx;
@@ -159,7 +159,7 @@ namespace NCatboostCuda {
         TModelSplit modelSplit;
         modelSplit.Type = ESplitType::FloatFeature;
         auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
-        CB_ENSURE(FloatFeaturesRemap.has(dataProviderId));
+        CB_ENSURE(FloatFeaturesRemap.contains(dataProviderId));
         auto remapId = FloatFeaturesRemap.at(dataProviderId);
 
         float border = 0;
@@ -191,7 +191,7 @@ namespace NCatboostCuda {
         TModelSplit modelSplit;
         modelSplit.Type = ESplitType::OneHotFeature;
         auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
-        CB_ENSURE(CatFeaturesRemap.has(dataProviderId));
+        CB_ENSURE(CatFeaturesRemap.contains(dataProviderId));
         auto remapId = CatFeaturesRemap.at(dataProviderId);
         CB_ENSURE(CatFeatureBinToHashIndex[remapId].size(),
                   TStringBuilder() << "Error: no catFeature perfect hash for feature " << dataProviderId);

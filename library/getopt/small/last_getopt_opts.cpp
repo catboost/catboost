@@ -221,7 +221,7 @@ namespace NLastGetopt {
     }
 
     const TString& TOpts::GetFreeArgTitle(size_t pos) const {
-        if (FreeArgSpecs_.has(pos)) {
+        if (FreeArgSpecs_.contains(pos)) {
             const TString& title = FreeArgSpecs_.at(pos).Title;
             if (!title.Empty())
                 return title;
@@ -230,7 +230,7 @@ namespace NLastGetopt {
     }
 
     const TString& TOpts::GetFreeArgHelp(size_t pos) const {
-        if (FreeArgSpecs_.has(pos)) {
+        if (FreeArgSpecs_.contains(pos)) {
             const TString& help = FreeArgSpecs_.at(pos).Help;
             if (!help.Empty())
                 return help;

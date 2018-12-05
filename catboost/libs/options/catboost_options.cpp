@@ -37,7 +37,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::Lq: {
-            CB_ENSURE(lossFunctionConfig.GetLossParams().has("q"), "Param q is mandatory for Lq loss");
+            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("q"), "Param q is mandatory for Lq loss");
             defaultEstimationMethod = ELeavesEstimation::Newton;
             const auto q = GetLqParam(lossFunctionConfig);
             if (q < 2) {

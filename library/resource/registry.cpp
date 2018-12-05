@@ -22,7 +22,7 @@ namespace {
 
     struct TStore: public IStore, public THashMap<TStringBuf, TDescriptor*> {
         void Store(const TStringBuf& key, const TStringBuf& data) override {
-            if (has(key)) {
+            if (contains(key)) {
                 if ((*this)[key]->second != data) {
                     Y_VERIFY(false, "Multiple definition for key '%s'", key.data());
                 }

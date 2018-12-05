@@ -38,6 +38,7 @@ cdef extern from "util/generic/hash.h" nogil:
         size_t erase(T&)
         iterator find(T&)
         bint has(T&)
+        bint contains(T&)
         const_iterator const_find "find"(T&)
         pair[iterator, bint] insert(pair[T, U]) # XXX pair[T,U]&
         iterator insert(iterator, pair[T, U]) # XXX pair[T,U]&

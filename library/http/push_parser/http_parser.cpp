@@ -29,12 +29,12 @@ namespace {
 }
 
 TString THttpParser::GetBestCompressionScheme() const {
-    if (AcceptEncodings_.has("*")) {
+    if (AcceptEncodings_.contains("*")) {
         return BestCodings[0];
     }
 
     for (auto& coding : BestCodings) {
-        if (AcceptEncodings_.has(coding)) {
+        if (AcceptEncodings_.contains(coding)) {
             return coding;
         }
     }

@@ -190,7 +190,7 @@ namespace NCB {
                 TVector<int> ignoredFeatures;
 
                 for (auto flatFeatureIndex : xrange(Pools.Learn->Docs.GetEffectiveFactorCount())) {
-                    if (!usedFeatures.has(flatFeatureIndex)) {
+                    if (!usedFeatures.contains(flatFeatureIndex)) {
                         ignoredFeatures.push_back(flatFeatureIndex);
                     }
                 }

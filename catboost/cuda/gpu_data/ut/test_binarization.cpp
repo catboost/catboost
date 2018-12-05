@@ -108,7 +108,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                         auto freqCtr = calcer.ComputeFreqCtr(&ctrsEstimationPermutation);
                         ctrOrderedBins = NCB::BinarizeLine<ui32>(freqCtr, ENanMode::Forbidden, borders);
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
-                        if (!ctrsCache.has(catFeatureId)) {
+                        if (!ctrsCache.contains(catFeatureId)) {
                             ctrsCache[catFeatureId] = calcer.Calc(ctrsEstimationPermutation,
                                                                   binarizedTarget,
                                                                   numClasses);

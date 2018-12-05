@@ -26,7 +26,7 @@ namespace NCB {
     }
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(FromColumnTypeToColumnId.has(columnType),
+        CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
             "You can not output " << ToString(columnType) << " column by type");
         *outStream << GetCell(docId, FromColumnTypeToColumnId[columnType]);
     }
@@ -88,7 +88,7 @@ namespace NCB {
     }
 
     void TQuantizedPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(ColumnsInfo.has(columnType),
+        CB_ENSURE(ColumnsInfo.contains(columnType),
             "Pool doesn't have " << ToString(columnType) << " column.");
 
         TString token;

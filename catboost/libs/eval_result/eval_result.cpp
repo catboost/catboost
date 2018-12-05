@@ -32,7 +32,7 @@ static TFeatureIdToDesc GetFeatureIdToDesc(const TPool& pool) {
     THashSet<int> catFeatures(pool.CatFeatures.begin(), pool.CatFeatures.end());
 
     for (int index = 0; index < pool.FeatureId.ysize(); ++index) {
-        res.emplace(pool.FeatureId[index], TFeatureDesc{index, catFeatures.has(index)});
+        res.emplace(pool.FeatureId[index], TFeatureDesc{index, catFeatures.contains(index)});
     }
 
     return res;
@@ -118,7 +118,7 @@ namespace NCB {
                           "bad output column name " << name);
                 CB_ENSURE(!isPartOfFullTestSet, "Column output by # is currently supported only for full pools, not pool parts");
             } else {
-                CB_ENSURE(featureIds.has(name), "bad output column name " << name);
+                CB_ENSURE(featureIds.contains(name), "bad output column name " << name);
             }
             CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
         }

@@ -59,7 +59,7 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     auto calcOneFeatureBorder = [&](int idx) {
         auto& floatFeature = floatFeatures->at(idx);
         const auto floatFeatureIdx = floatFeature.FlatFeatureIndex;
-        if (ignoredFeatureIndexes.has(floatFeatureIdx)) {
+        if (ignoredFeatureIndexes.contains(floatFeatureIdx)) {
             return;
         }
 
@@ -74,7 +74,7 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         }
 
         THashSet<float> borderSet = BestSplit(vals, borderCount, borderType);
-        if (borderSet.has(-0.0f)) { // BestSplit might add negative zeros
+        if (borderSet.contains(-0.0f)) { // BestSplit might add negative zeros
             borderSet.erase(-0.0f);
             borderSet.insert(0.0f);
         }

@@ -30,8 +30,8 @@ namespace NCatboostCuda {
     }
 
     bool TBinarizedFeaturesManager::IsKnown(const ui32 featuresProviderId) const {
-        return DataProviderFloatFeatureIdToFeatureManagerId.has(featuresProviderId) ||
-               DataProviderCatFeatureIdToFeatureManagerId.has(featuresProviderId);
+        return DataProviderFloatFeatureIdToFeatureManagerId.contains(featuresProviderId) ||
+               DataProviderCatFeatureIdToFeatureManagerId.contains(featuresProviderId);
     }
 
     bool TBinarizedFeaturesManager::IsKnown(const IFeatureValuesHolder& feature) const {
@@ -39,7 +39,7 @@ namespace NCatboostCuda {
     }
 
     void TBinarizedFeaturesManager::SetOrCheckNanMode(const IFeatureValuesHolder& feature, ENanMode nanMode)  {
-        if (!NanModes.has(feature.GetId())) {
+        if (!NanModes.contains(feature.GetId())) {
             NanModes[feature.GetId()] = nanMode;
         } else {
             CB_ENSURE(NanModes.at(feature.GetId()) == nanMode, "NaN mode should be consistent " << nanMode);
@@ -47,7 +47,7 @@ namespace NCatboostCuda {
     }
 
     ENanMode TBinarizedFeaturesManager::GetOrComputeNanMode(const TFloatValuesHolder& feature)  {
-        if (!NanModes.has(feature.GetId())) {
+        if (!NanModes.contains(feature.GetId())) {
             NanModes[feature.GetId()] = ComputeNanMode(feature.GetValuesPtr(), feature.GetSize());
         }
         return NanModes.at(feature.GetId());
@@ -55,10 +55,10 @@ namespace NCatboostCuda {
 
     ENanMode TBinarizedFeaturesManager::GetNanMode(const ui32 featureId) const  {
         ENanMode nanMode = ENanMode::Forbidden;
-        if (FeatureManagerIdToDataProviderId.has(featureId)) {
+        if (FeatureManagerIdToDataProviderId.contains(featureId)) {
             CB_ENSURE(IsFloat(featureId));
             const ui32 dataProviderId = FeatureManagerIdToDataProviderId[featureId];
-            if (NanModes.has(dataProviderId)) {
+            if (NanModes.contains(dataProviderId)) {
                 nanMode = NanModes.at(dataProviderId);
             }
         }
@@ -72,16 +72,16 @@ namespace NCatboostCuda {
     }
 
     bool TBinarizedFeaturesManager::IsFloat(ui32 featureId) const  {
-        if (FeatureManagerIdToDataProviderId.has(featureId)) {
-            return DataProviderFloatFeatureIdToFeatureManagerId.has(FeatureManagerIdToDataProviderId.at(featureId));
+        if (FeatureManagerIdToDataProviderId.contains(featureId)) {
+            return DataProviderFloatFeatureIdToFeatureManagerId.contains(FeatureManagerIdToDataProviderId.at(featureId));
         } else {
             return false;
         }
     }
 
     bool TBinarizedFeaturesManager::IsCat(ui32 featureId) const {
-        if (FeatureManagerIdToDataProviderId.has(featureId)) {
-            return DataProviderCatFeatureIdToFeatureManagerId.has(FeatureManagerIdToDataProviderId.at(featureId));
+        if (FeatureManagerIdToDataProviderId.contains(featureId)) {
+            return DataProviderCatFeatureIdToFeatureManagerId.contains(FeatureManagerIdToDataProviderId.at(featureId));
         } else {
             return false;
         }
@@ -146,13 +146,13 @@ namespace NCatboostCuda {
     }
 
     ui32 TBinarizedFeaturesManager::GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const {
-        CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.has(dataProviderId),
+        CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.contains(dataProviderId),
                   "Error: feature #" << dataProviderId << " is not categorical");
         return DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderId);
     }
 
     ui32 TBinarizedFeaturesManager::GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const  {
-        CB_ENSURE(DataProviderFloatFeatureIdToFeatureManagerId.has(dataProviderId),
+        CB_ENSURE(DataProviderFloatFeatureIdToFeatureManagerId.contains(dataProviderId),
                   "Error: feature #" << dataProviderId << " is not float");
         return DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderId);
     }
@@ -167,11 +167,11 @@ namespace NCatboostCuda {
     }
 
     ui32 TBinarizedFeaturesManager::GetBinCount(ui32 localId) const {
-        if (Borders.has(localId)) {
+        if (Borders.contains(localId)) {
             return Borders.at(localId).size() + 1 + (GetNanMode(localId) != ENanMode::Forbidden);
         } else if (IsCat(localId)) {
             return GetUniqueValues(localId);
-        } else if (InverseCtrs.has(localId)) {
+        } else if (InverseCtrs.contains(localId)) {
             return GetBinarizationDescription(InverseCtrs[localId]).BorderCount + 1;
         } else if (IsFloat(localId)) {
             return 0;
@@ -181,7 +181,7 @@ namespace NCatboostCuda {
     }
 
     ui32 TBinarizedFeaturesManager::AddCtr(const TCtr& ctr)  {
-        CB_ENSURE(!KnownCtrs.has(ctr));
+        CB_ENSURE(!KnownCtrs.contains(ctr));
         const ui32 id = RequestNewId();
         KnownCtrs[ctr] = id;
         InverseCtrs[id] = ctr;
@@ -209,7 +209,7 @@ namespace NCatboostCuda {
 
         if (HasPerFeatureCtr(featureId)) {
             auto perFeatureCtrs = CreateGrouppedPerFeatureCtr(featureId);
-            if (perFeatureCtrs.has(type)) {
+            if (perFeatureCtrs.contains(type)) {
                 CreateSimpleCtrs(featureId, perFeatureCtrs.at(type), &resultIds);
             }
         } else {
@@ -241,13 +241,13 @@ namespace NCatboostCuda {
             }
             TMap<ECtrType, TSet<NCB::TCtrConfig>> configs;
             CreateCtrConfigsFromDescription(combination.Description, &configs);
-            if (configs.has(type)) {
+            if (configs.contains(type)) {
                 for (auto& ctrConfig : configs[type]) {
                     TCtr ctr;
                     ctr.FeatureTensor = combination.Tensor;
                     ctr.Configuration = ctrConfig;
 
-                    if (!KnownCtrs.has(ctr)) {
+                    if (!KnownCtrs.contains(ctr)) {
                         AddCtr(ctr);
                     }
                     resultIds.insert(GetId(ctr));
@@ -264,7 +264,7 @@ namespace NCatboostCuda {
             ctr.FeatureTensor.AddCatFeature(featureId);
             ctr.Configuration = ctrConfig;
 
-            if (!KnownCtrs.has(ctr)) {
+            if (!KnownCtrs.contains(ctr)) {
                 AddCtr(ctr);
             }
             resultIds->insert(GetId(ctr));
@@ -274,9 +274,9 @@ namespace NCatboostCuda {
     ui32 TBinarizedFeaturesManager::GetId(const IFeatureValuesHolder& feature) const {
         const ui32 featureId = feature.GetId();
 
-        if (DataProviderFloatFeatureIdToFeatureManagerId.has(featureId)) {
+        if (DataProviderFloatFeatureIdToFeatureManagerId.contains(featureId)) {
             return DataProviderFloatFeatureIdToFeatureManagerId[featureId];
-        } else if (DataProviderCatFeatureIdToFeatureManagerId.has(featureId)) {
+        } else if (DataProviderCatFeatureIdToFeatureManagerId.contains(featureId)) {
             return DataProviderCatFeatureIdToFeatureManagerId[featureId];
         } else {
             ythrow TCatboostException() << "Error: unknown feature with id #" << feature.GetId();
@@ -366,7 +366,7 @@ namespace NCatboostCuda {
         TMap<ui32, TMap<ECtrType, TSet<NCB::TCtrConfig>>> perFeatureCtrs;
 
         for (const auto& perFeatureCtr : CatFeatureOptions.PerFeatureCtrs.Get()) {
-            CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.has(perFeatureCtr.first),
+            CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.contains(perFeatureCtr.first),
                       "Error: Feature with id #" << perFeatureCtr.first << " is not categorical. Can't create ctr");
             const ui32 featureId = DataProviderCatFeatureIdToFeatureManagerId[perFeatureCtr.first];
             for (const auto& ctrDescription : perFeatureCtr.second) {
@@ -379,7 +379,7 @@ namespace NCatboostCuda {
     TMap<ECtrType, TSet<NCB::TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtr(ui32 featureId) const  {
         CB_ENSURE(IsCat(featureId), "Feature #" << featureId << " is not categorical. Can't create per feature CTRs");
         ui32 featureIdInPool = GetDataProviderId(featureId);
-        CB_ENSURE(CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool), "No perFeatureCtr for feature #" << featureIdInPool << " was found");
+        CB_ENSURE(CatFeatureOptions.PerFeatureCtrs->contains(featureIdInPool), "No perFeatureCtr for feature #" << featureIdInPool << " was found");
         TMap<ECtrType, TSet<NCB::TCtrConfig>> perFeatureCtr;
         for (const auto& ctrDescription : CatFeatureOptions.PerFeatureCtrs->at(featureIdInPool)) {
             CreateCtrConfigsFromDescription(ctrDescription, &perFeatureCtr);

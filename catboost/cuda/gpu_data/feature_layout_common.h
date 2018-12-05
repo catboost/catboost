@@ -111,7 +111,7 @@ namespace NCatboostCuda {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
-            CB_ENSURE(Grid.InverseFeatures.has(featureId));
+            CB_ENSURE(Grid.InverseFeatures.contains(featureId));
             return CudaFeaturesHost[Grid.InverseFeatures.at(featureId)];
         }
 
