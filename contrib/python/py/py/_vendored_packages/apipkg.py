@@ -9,7 +9,9 @@ import os
 import sys
 from types import ModuleType
 
-__version__ = '1.3.dev'
+
+__version__ = '1.4'
+
 
 def _py_abspath(path):
     """
@@ -22,7 +24,20 @@ def _py_abspath(path):
     else:
         return os.path.abspath(path)
 
-def initpkg(pkgname, exportdefs, attr=dict()):
+
+def distribution_version(name):
+    """try to get the version of the named distribution,
+    returs None on failure"""
+    from pkg_resources import get_distribution, DistributionNotFound
+    try:
+        dist = get_distribution(name)
+    except DistributionNotFound:
+        pass
+    else:
+        return dist.version
+
+
+def initpkg(pkgname, exportdefs, attr=dict(), eager=False):
     """ initialize given package from the export definitions. """
     oldmod = sys.modules.get(pkgname)
     d = {}
@@ -43,6 +58,12 @@ def initpkg(pkgname, exportdefs, attr=dict()):
         oldmod.__dict__.update(d)
     mod = ApiModule(pkgname, exportdefs, implprefix=pkgname, attr=d)
     sys.modules[pkgname] = mod
+    # eagerload in bypthon to avoid their monkeypatching breaking packages
+    if 'bpython' in sys.modules or eager:
+        for module in sys.modules.values():
+            if isinstance(module, ApiModule):
+                module.__dict__
+
 
 def importobj(modpath, attrname):
     module = __import__(modpath, None, None, ['__doc__'])
@@ -55,6 +76,7 @@ def importobj(modpath, attrname):
         retval = getattr(retval, x)
     return retval
 
+
 class ApiModule(ModuleType):
     def __docget(self):
         try:
@@ -62,6 +84,7 @@ class ApiModule(ModuleType):
         except AttributeError:
             if '__doc__' in self.__map__:
                 return self.__makeattr('__doc__')
+
     def __docset(self, value):
         self.__doc = value
     __doc__ = property(__docget, __docset)
@@ -132,8 +155,10 @@ class ApiModule(ModuleType):
 
     __getattr__ = __makeattr
 
+    @property
     def __dict__(self):
-        # force all the content of the module to be loaded when __dict__ is read
+        # force all the content of the module
+        # to be loaded when __dict__ is read
         dictdescr = ModuleType.__dict__['__dict__']
         dict = dictdescr.__get__(self)
         if dict is not None:
@@ -144,7 +169,6 @@ class ApiModule(ModuleType):
                 except AttributeError:
                     pass
         return dict
-    __dict__ = property(__dict__)
 
 
 def AliasModule(modname, modpath, attrname=None):
