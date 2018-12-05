@@ -69,7 +69,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             }
         }
 
-        UNIT_ASSERT_C(serv.Services.Get(), ~err);
+        UNIT_ASSERT_C(serv.Services.Get(), err.data());
         return serv;
     }
 
@@ -94,7 +94,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             reqs << "GET /pipeline?" << delay << " HTTP/1.1\r\n"
                  << "\r\n";
             expectedResponses << "HTTP/1.1 200 Ok\r\n"
-                              << "Content-Length: " << +delay << "\r\n"
+                              << "Content-Length: " << delay.size() << "\r\n"
                               << "Connection: Keep-Alive\r\n"
                               << "Content-Type: text/plain\r\n"
                               << "\r\n"
@@ -111,7 +111,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             UNIT_ASSERT_C(nRecv > 0, "can't read data from socket");
             expectedCntBytes -= nRecv;
         }
-        const TStringBuf responseBuf(~resp, +resp);
+        const TStringBuf responseBuf(resp.data(), resp.size());
         UNIT_ASSERT_C(responseBuf == expectedResponses.Str(), TString("has unexpected responses: ") + responseBuf);
     }
 
@@ -154,7 +154,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             UNIT_ASSERT_C(nRecv > 0, "can't read data from socket.");
             expectedCntBytes -= nRecv;
         }
-        const TStringBuf responseBuf(~response, +response);
+        const TStringBuf responseBuf(response.data(), response.size());
         UNIT_ASSERT_C(responseBuf == expectedResponse.Str(), TString("bad response: ") + responseBuf);
 
         /// Try to write to socket after waiting for a while to check that it's closed.

@@ -17,7 +17,7 @@ namespace {
                "Content-Encoding: "
             << encoding << " \r\n"
                            "Content-Length: "
-            << +data << "\r\n\r\n"
+            << data.size() << "\r\n\r\n"
             << data;
         return msg.Str();
     }
@@ -169,7 +169,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             THttpParser p(THttpParser::Request);
             TString zlibTestLine = "\x78\x9C\x2B\x49\x2D\x2E\x51\xC8\xC9\xCC\x4B\x05\x00\x11\xEE\x03\x89";
             TString msg = MakeEncodedRequest("deflate", zlibTestLine);
-            UNIT_ASSERT(p.Parse(~msg, +msg));
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
         }
         {
@@ -179,7 +179,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
                 "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
                 "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00"));
             TString msg = MakeEncodedRequest("gzip", gzipTestLine);
-            UNIT_ASSERT(p.Parse(~msg, +msg));
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
         }
         {
@@ -189,7 +189,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
                 "*\xc7\x10\x00\x00\x00\x00\x00\x00\x00\x0e"
                 "42.230-20181121*\xc7\x01\x00\x00\x00\x00\x00\x00\x00\x00"));
             TString msg = MakeEncodedRequest("z-snappy", snappyTestLine);
-            UNIT_ASSERT(p.Parse(~msg, +msg));
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), "2.230-20181121");
         }
         {
@@ -197,7 +197,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             THttpParser p(THttpParser::Request);
             TString content = "some trash";
             TString msg = MakeEncodedRequest("unknown", content);
-            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), THttpParseException);
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), THttpParseException);
         }
         {
             for (auto contentEncoding : TVector<TString>{"z-unknown", "z-zstd06", "z-zstd08", "z-zstd08-0"}) {
@@ -205,7 +205,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
                 THttpParser p(THttpParser::Request);
                 TString content = "some trash";
                 TString msg = MakeEncodedRequest(contentEncoding, content);
-                UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), THttpParseException);
+                UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), THttpParseException);
             }
         }
         {
@@ -213,7 +213,7 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             THttpParser p(THttpParser::Request);
             TString content(AsStringBuf("some trash ....................."));
             TString msg = MakeEncodedRequest("deflate", content);
-            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }
         {
             // test broken gzip
@@ -222,14 +222,14 @@ Y_UNIT_TEST_SUITE(THttpParser) {
                 "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
                 "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09some trash\x00\x00\x00"));
             TString msg = MakeEncodedRequest("gzip", content);
-            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }
         {
             // test broken snappy
             THttpParser p(THttpParser::Request);
             TString snappyTestLine(AsStringBuf("\x1b some very\x05,long payload"));
             TString msg = MakeEncodedRequest("z-snappy", snappyTestLine);
-            UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
         }
         {
             // raw content

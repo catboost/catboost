@@ -433,7 +433,7 @@ public:                       \
         const TString _a(A);                                                                             \
         const TString _b(B);                                                                             \
         if (_a == _b) {                                                                                  \
-            auto&& msg = Sprintf("%s == %s %s", ~ToString(_a), ~ToString(_b), ~(TStringBuilder() << C)); \
+            auto&& msg = Sprintf("%s == %s %s", ToString(_a).data(), ToString(_b).data(), (TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings unequal assertion failed", msg);                                     \
         }                                                                                                \
     } while (false)

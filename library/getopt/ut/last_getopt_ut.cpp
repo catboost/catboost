@@ -25,7 +25,7 @@ namespace {
         TOptsParseResultTestWrapper(const TOpts* opts, TVector<const char*> argv)
             : Argv_(argv)
         {
-            Init(opts, (int)+Argv_, ~Argv_);
+            Init(opts, (int)Argv_.size(), Argv_.data());
         }
     };
 
@@ -40,7 +40,7 @@ struct TOptsParserTester {
 
     void Initialize() {
         if (!Parser_)
-            Parser_.Reset(new TOptsParser(&Opts_, (int)+Argv_, ~Argv_));
+            Parser_.Reset(new TOptsParser(&Opts_, (int)Argv_.size(), Argv_.data()));
     }
 
     void Accept() {
