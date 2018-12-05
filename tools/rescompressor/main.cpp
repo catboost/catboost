@@ -36,22 +36,22 @@ private:
     }
 
     void WriteFooter(TStringBuf constname, const TString& data) {
-        AsmOut << AsmPrefix << constname << "Size:\ndd " << +data << "\n";
+        AsmOut << AsmPrefix << constname << "Size:\ndd " << data.size() << "\n";
     }
 
     void WriteIncBin(TStringBuf constname, TStringBuf filename, const TString& data) {
         AsmOut << AsmPrefix << constname << ":\nincbin \"" << Basename(filename) << "\"\n";
-        TFixedBufferFileOutput out(~filename);
+        TFixedBufferFileOutput out(filename.data());
         out << data;
     }
 
     void WriteRaw(TStringBuf constname, const TString& data) {
         AsmOut << AsmPrefix << constname << ":\ndb ";
-        for (size_t i = 0; i < +data - 1; i++) {
+        for (size_t i = 0; i < data.size() - 1; i++) {
             unsigned char c = static_cast<unsigned char>(data[i]);
             AsmOut << IntToString<10, unsigned char>(c) << ",";
         }
-        AsmOut << IntToString<10, unsigned char>(static_cast<unsigned char>(data[+data - 1])) << "\n";
+        AsmOut << IntToString<10, unsigned char>(static_cast<unsigned char>(data[data.size() - 1])) << "\n";
     }
 
     TString Basename(TStringBuf origin) {
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
         else {
             TUnbufferedFileInput inp(*argv);
             TString data = inp.ReadAll();
-            compressed = Compress(TStringBuf(~data, +data));
+            compressed = Compress(TStringBuf(data.data(), data.size()));
             raw = false;
         }
         argv++;

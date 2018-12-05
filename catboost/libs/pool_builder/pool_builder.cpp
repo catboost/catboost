@@ -93,7 +93,7 @@ TVector<TString> TPoolColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TString>&
         }
     } else if (header.Defined()) {
         TVector<TStringBuf> words;
-        StringSplitter(~(*header), ~(*header) + header->size()).Split(fieldDelimiter).AddTo(&words);
+        StringSplitter((*header).data(), (*header).data() + header->size()).Split(fieldDelimiter).AddTo(&words);
         for (int i = 0; i < words.ysize(); ++i) {
             if (Columns[i].Type == EColumn::Categ || Columns[i].Type == EColumn::Num) {
                 featureIds.push_back(ToString(words[i]));

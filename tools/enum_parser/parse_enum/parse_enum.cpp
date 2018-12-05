@@ -36,12 +36,12 @@ static TVector<TString> ParseEnumValues(const TString& strValues) {
 
     TValuesContext ctx;
     TCppSaxParser parser(&ctx);
-    TMemoryInput in(~strValues, +strValues);
+    TMemoryInput in(strValues.data(), strValues.size());
     TransferData(static_cast<IInputStream*>(&in), &parser);
     parser.Finish();
     for (const auto& value : ctx.Values) {
-        Y_ENSURE(+value >= 2, "Invalid C-style string. ");
-        TString dequoted = value.substr(1, +value - 2);
+        Y_ENSURE(value.size() >= 2, "Invalid C-style string. ");
+        TString dequoted = value.substr(1, value.size() - 2);
         // TODO: support C-unescaping
         result.push_back(dequoted);
     }
@@ -134,8 +134,8 @@ public:
     }
 
     void DoMultiLineComment(const TText& text) override {
-        Y_ENSURE(+text.Data >= 4, "Invalid multiline comment " << text.Data.Quote() << ". ");
-        TString commentText = text.Data.substr(2, +text.Data - 4);
+        Y_ENSURE(text.Data.size() >= 4, "Invalid multiline comment " << text.Data.Quote() << ". ");
+        TString commentText = text.Data.substr(2, text.Data.size() - 4);
         commentText = StripString(commentText);
         CurrentItem.CommentText = commentText;
         CurrentItem.Aliases = ParseEnumValues(commentText);
@@ -194,7 +194,7 @@ public:
             ScopeDeclaration = true;
             return;
         }
-        for (size_t i = 0; i < +syn; ++i) {
+        for (size_t i = 0; i < syn.size(); ++i) {
             if ('{' == syn[i]) {
                 OnEnterScope(text.Offset + i);
                 if (InEnum) {
@@ -370,7 +370,7 @@ TEnumParser::TEnumParser(const TString& fileName) {
         in = &Cin;
     }
     TString contents = in->ReadAll();
-    Parse(~contents, +contents);
+    Parse(contents.data(), contents.size());
 }
 
 TEnumParser::TEnumParser(const char* data, size_t length) {
@@ -379,7 +379,7 @@ TEnumParser::TEnumParser(const char* data, size_t length) {
 
 TEnumParser::TEnumParser(IInputStream& in) {
     TString contents = in.ReadAll();
-    Parse(~contents, +contents);
+    Parse(contents.data(), contents.size());
 }
 
 void TEnumParser::Parse(const char* data, size_t length) {

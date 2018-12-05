@@ -45,7 +45,7 @@ namespace NCatboostCuda {
 
                 if (!shouldSkip) {
                     auto bins = CatFeaturesPerfectHashHelper.UpdatePerfectHashAndBinarize(featureId,
-                                                                                          ~Pool.Docs.Factors[featureId],
+                                                                                          Pool.Docs.Factors[featureId].data(),
                                                                                           docCount);
                     Y_UNUSED(bins);
                 }
@@ -64,14 +64,14 @@ namespace NCatboostCuda {
                 if (uniqueValues > 1) {
                     DataProvider.Features.push_back(MakeHolder<TExternalCatFeatureValuesHolder>(featureId,
                                                                                                 docCount,
-                                                                                                ~Pool.Docs.Factors[featureId],
+                                                                                                Pool.Docs.Factors[featureId].data(),
                                                                                                 uniqueValues,
                                                                                                 FeaturesManager,
                                                                                                 featureName));
                 }
             } else {
                 auto holder = MakeHolder<TFloatValuesHolder>(featureId,
-                                                             ~Pool.Docs.Factors[featureId],
+                                                             Pool.Docs.Factors[featureId].data(),
                                                              docCount,
                                                              featureName);
                 if (!IsTest) {

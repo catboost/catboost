@@ -182,13 +182,13 @@ namespace NCatboostCuda {
                 const bool shouldSkip = IsTest && (CatFeaturesPerfectHashHelper.GetUniqueValues(featureId) == 0);
                 if (!shouldSkip) {
                     auto data = CatFeaturesPerfectHashHelper.UpdatePerfectHashAndBinarize(featureId,
-                                                                                          ~line,
+                                                                                          line.data(),
                                                                                           line.size());
 
                     const ui32 uniqueValues = CatFeaturesPerfectHashHelper.GetUniqueValues(featureId);
 
                     if (uniqueValues > 1) {
-                        auto compressedData = CompressVector<ui64>(~data, line.size(), NCB::IntLog2(uniqueValues));
+                        auto compressedData = CompressVector<ui64>(data.data(), line.size(), NCB::IntLog2(uniqueValues));
                         featureColumns[featureId] = MakeHolder<TCatFeatureValuesHolder>(featureId,
                                                                                         line.size(),
                                                                                         std::move(compressedData),
