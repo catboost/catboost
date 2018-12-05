@@ -43,6 +43,10 @@ struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
         CallCount += delta;
         Rng.Advance(delta);
     }
+
+    ui64 GetCallCount() const {
+        return CallCount;
+    }
 private:
     TFastRng64::TArgs SeedArgs;
     TFastRng64 Rng;
