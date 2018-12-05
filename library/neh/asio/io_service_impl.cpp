@@ -78,7 +78,7 @@ void TIOService::TImpl::Run() {
         }
         AtomicDecrement(IsWaiting_);
 
-        if (+evs) {
+        if (evs.size()) {
             for (IPollerFace::TEvents::const_iterator iev = evs.begin(); iev != evs.end() && !Aborted_; ++iev) {
                 const IPollerFace::TEvent& ev = *iev;
                 TEvh& evh = *(TEvh*)ev.Data;

@@ -641,7 +641,7 @@ namespace NNehNetliba {
                     TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
                     ui32 crc32 = 0;
                     int dataSize = rd->Data.ysize();
-                    if (+rd->Data > MIN_SHARED_MEM_PACKET && IsLocal(s.Address)) {
+                    if (rd->Data.size() > MIN_SHARED_MEM_PACKET && IsLocal(s.Address)) {
                         TIntrusivePtr<TSharedMemory> shm = new TSharedMemory;
                         if (shm->Create(dataSize)) {
                             ms->Write((char)PKT_LOCAL_RESPONSE);

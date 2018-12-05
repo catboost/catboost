@@ -377,7 +377,7 @@ namespace NLastGetopt {
                 } else {
                     os << SPad << leftColumn[i] << ' ';
                     if (leftColumnSizes[i] < leftWidth)
-                        os << TStringBuf(~leftPadding, leftWidth - leftColumnSizes[i]);
+                        os << TStringBuf(leftPadding.data(), leftWidth - leftColumnSizes[i]);
                 }
 
                 bool multiLineHelp = false;

@@ -184,8 +184,8 @@ namespace NAsio {
         }
 
         virtual ~TPollFdEventHandler() {
-            Y_ASSERT(+ReadOperations_ == 0);
-            Y_ASSERT(+WriteOperations_ == 0);
+            Y_ASSERT(ReadOperations_.size() == 0);
+            Y_ASSERT(WriteOperations_.size() == 0);
         }
 
         inline void AddReadOp(TFdOperationPtr op) {
@@ -220,10 +220,10 @@ namespace NAsio {
             DBGOUT("TPollFdEventHandler::FixHandledEvents()");
             ui16 filter = 0;
 
-            if (+WriteOperations_) {
+            if (WriteOperations_.size()) {
                 filter |= CONT_POLL_WRITE;
             }
-            if (+ReadOperations_) {
+            if (ReadOperations_.size()) {
                 filter |= CONT_POLL_READ;
             }
 

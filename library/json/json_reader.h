@@ -48,7 +48,7 @@ namespace NJson {
     }
 
     inline bool ValidateJson(TStringBuf in, const TJsonReaderConfig& config = TJsonReaderConfig(), bool throwOnError = false) {
-        TMemoryInput min(~in, +in);
+        TMemoryInput min(in.data(), in.size());
         return ValidateJson(&min, &config, throwOnError);
     }
 

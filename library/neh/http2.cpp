@@ -147,12 +147,12 @@ namespace {
     bool Compress(TData& data, const TString& compressionScheme) {
         if (compressionScheme == "gzip") {
             try {
-                TData gzipped(+data);
-                TMemoryOutput out(~gzipped, +gzipped);
+                TData gzipped(data.size());
+                TMemoryOutput out(gzipped.data(), gzipped.size());
                 TZLibCompress c(&out, ZLib::GZip);
-                c.Write(~data, +data);
+                c.Write(data.data(), data.size());
                 c.Finish();
-                gzipped.resize(out.Buf() - ~gzipped);
+                gzipped.resize(out.Buf() - gzipped.data());
                 data.swap(gzipped);
                 return true;
             } catch (yexception&) {
@@ -167,7 +167,7 @@ namespace {
         THttpRequestBuffers(TRequestData::TPtr rd)
             : Req_(rd)
             , Parts_(Req_->Parts())
-            , IOvec_(~Parts_, +Parts_)
+            , IOvec_(Parts_.data(), Parts_.size())
         {
         }
 
@@ -1456,7 +1456,7 @@ namespace {
                     //DBGOUT("receive and parse: " << TStringBuf(Buff_.Get(), amount));
                     while (P_->Parse(Buff_.Get() + buffPos, amount - buffPos)) {
                         SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive();
-                        char rt = *~P_->FirstLine();
+                        char rt = *P_->FirstLine().data();
                         const size_t extraDataSize = P_->GetExtraDataSize();
                         if (rt == 'P' || rt == 'p') {
                             OnRequest(new TRequestPost(WeakThis_, P_));
@@ -1512,13 +1512,13 @@ namespace {
                 class THttpResponseFormatter {
                 public:
                     THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders) {
-                        Header.Reserve(128 + +contentEncoding + +theHeaders);
+                        Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
                         Header << AsStringBuf(" 200 Ok");
                         if (Compress(theData, contentEncoding)) {
                             Header << AsStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
-                        Header << AsStringBuf("\r\nContent-Length: ") << +theData;
+                        Header << AsStringBuf("\r\nContent-Length: ") << theData.size();
                         if (Y_LIKELY(theVer.Major > 1 || theVer.Minor > 0)) {
                             // since HTTP/1.1 Keep-Alive is default behaviour
                             Header << AsStringBuf("\r\nConnection: Keep-Alive");
@@ -1532,8 +1532,8 @@ namespace {
 
                         Parts[0].buf = ~Header;
                         Parts[0].len = +Header;
-                        Parts[1].buf = ~Body;
-                        Parts[1].len = +Body;
+                        Parts[1].buf = Body.data();
+                        Parts[1].len = Body.size();
                     }
 
                     TStringStream Header;
@@ -1571,7 +1571,7 @@ namespace {
                     THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer) {
                         PrintHttpVersion(Answer, theVer);
                         Answer << AsStringBuf(" ") << theHttpCode << AsStringBuf(" ");
-                        if (+theDescr && !THttp2Options::ErrorDetailsAsResponseBody) {
+                        if (theDescr.size() && !THttp2Options::ErrorDetailsAsResponseBody) {
                             // Reason-Phrase  = *<TEXT, excluding CR, LF>
                             // replace bad chars to '.'
                             TString reasonPhrase = theDescr;

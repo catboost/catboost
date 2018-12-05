@@ -87,7 +87,7 @@ namespace {
         }
 
         static inline TCheckSum Sum(const TStringBuf& s) noexcept {
-            return HostToInet(MurmurHash<TCheckSum>(~s, +s));
+            return HostToInet(MurmurHash<TCheckSum>(s.data(), s.size()));
         }
 
         struct TPacket;
@@ -185,7 +185,7 @@ namespace {
         class TPacketInput: public TMemoryInput {
         public:
             inline TPacketInput(const TPacket& p)
-                : TMemoryInput(~p.Body(), +p.Body())
+                : TMemoryInput(p.Body().data(), p.Body().size())
             {
             }
         };
@@ -452,7 +452,7 @@ namespace {
             inline ~TProto() {
                 Schedule(new TPacket(TStopPacket(), GetSendAddr(S_)));
 
-                for (size_t i = 0; i < +Thrs_; ++i) {
+                for (size_t i = 0; i < Thrs_.size(); ++i) {
                     Thrs_[i]->Join();
                 }
             }

@@ -195,7 +195,7 @@ namespace {
 
                     if (req->SetNotified()) {
                         if (resp->Ok == TUdpHttpResponse::OK) {
-                            req->NotifyResponse(TString(~resp->Data, +resp->Data));
+                            req->NotifyResponse(TString(resp->Data.data(), resp->Data.size()));
                         } else {
                             if (resp->Ok == TUdpHttpResponse::CANCELED) {
                                 req->NotifyError(new TError(resp->Error, TError::Cancelled));
@@ -325,7 +325,7 @@ namespace {
                 }
 
                 TStringBuf Data() override {
-                    return TStringBuf((const char*)~R_->Data, +R_->Data);
+                    return TStringBuf((const char*)R_->Data.data(), R_->Data.size());
                 }
 
                 TStringBuf RequestId() override {

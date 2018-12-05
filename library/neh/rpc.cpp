@@ -102,7 +102,7 @@ namespace {
 
             func.Execute();
 
-            for (size_t i = 0; i < +thrs; ++i) {
+            for (size_t i = 0; i < thrs.size(); ++i) {
                 thrs[i]->Join();
             }
             RQ_->Clear();
@@ -166,7 +166,7 @@ namespace {
             void SyncStop() {
                 Parent->Stop();
 
-                for (size_t i = 0; i < +T_; ++i) {
+                for (size_t i = 0; i < T_.size(); ++i) {
                     T_[i]->Join();
                 }
             }

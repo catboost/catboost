@@ -66,7 +66,7 @@ THttpHeaders::THttpHeaders(IInputStream* stream) {
 
 bool THttpHeaders::HasHeader(const TString& header) const {
     for (THeaders::const_iterator h = Headers_.begin(); h != Headers_.end(); ++h) {
-        if (stricmp(~h->Name(), ~header) == 0) {
+        if (stricmp(h->Name().data(), header.data()) == 0) {
             return true;
         }
     }
@@ -75,7 +75,7 @@ bool THttpHeaders::HasHeader(const TString& header) const {
 
 void THttpHeaders::RemoveHeader(const TString& header) {
     for (THeaders::iterator h = Headers_.begin(); h != Headers_.end(); ++h) {
-        if (stricmp(~h->Name(), ~header) == 0) {
+        if (stricmp(h->Name().data(), header.data()) == 0) {
             Headers_.erase(h);
             return;
         }
@@ -84,7 +84,7 @@ void THttpHeaders::RemoveHeader(const TString& header) {
 
 void THttpHeaders::AddOrReplaceHeader(const THttpInputHeader& header) {
     for (auto& Header : Headers_) {
-        if (stricmp(~Header.Name(), ~header.Name()) == 0) {
+        if (stricmp(Header.Name().data(), header.Name().data()) == 0) {
             Header = header;
 
             return;

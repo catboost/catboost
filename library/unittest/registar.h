@@ -283,8 +283,8 @@ private:                                                   \
         this->AtStart();
 
 #ifndef UT_SKIP_EXCEPTIONS
-#define CATCH_REACTION(FN, e, context) this->AddError(~("(" + TypeName(&e) + ") " + e.what()), context)
-#define CATCH_REACTION_BT(FN, e, context) this->AddError(~("(" + TypeName(&e) + ") " + e.what()), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
+#define CATCH_REACTION(FN, e, context) this->AddError(("(" + TypeName(&e) + ") " + e.what()).data(), context)
+#define CATCH_REACTION_BT(FN, e, context) this->AddError(("(" + TypeName(&e) + ") " + e.what()).data(), (e.BackTrace() ? e.BackTrace()->PrintToString() : TString()), context)
 #else
 #define CATCH_REACTION(FN, e, context) throw
 #define CATCH_REACTION_BT(FN, e, context) throw
@@ -378,7 +378,7 @@ public:                       \
 //types
 #define UNIT_ASSERT_TYPES_EQUAL(A, B)                                                                                                                        \
     if (!std::is_same<A, B>::value) {                                                                                                                        \
-        UNIT_FAIL_IMPL("types equal assertion failed", ~(TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")")); \
+        UNIT_FAIL_IMPL("types equal assertion failed", (TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")").data()); \
     }
 
 //doubles
@@ -387,7 +387,7 @@ public:                       \
         const auto _es = ToString((long double)(E));                                                       \
         const auto _as = ToString((long double)(A));                                                       \
         const auto _ds = ToString((long double)(D));                                                       \
-        auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", ~_es, ~_as, ~_ds, ~(TStringBuilder() << C)); \
+        auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
         UNIT_FAIL_IMPL("assertion failure", failMsg);                                                      \
     }
 
@@ -399,7 +399,7 @@ public:                       \
         const TString _a(A);                                                                                 \
         const TString _b(B);                                                                                 \
         if (_a != _b) {                                                                                      \
-            auto&& failMsg = Sprintf("%s != %s %s", ~ToString(_a), ~ToString(_b), ~(TStringBuilder() << C)); \
+            auto&& failMsg = Sprintf("%s != %s %s", ToString(_a).data(), ToString(_b).data(), (TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings equal assertion failed", failMsg);                                       \
         }                                                                                                    \
     } while (false)
@@ -411,7 +411,7 @@ public:                       \
         const TString _a(A);                                                                                                    \
         const TString _b(B);                                                                                                    \
         if (!_a.Contains(_b)) {                                                                                                 \
-            auto&& msg = Sprintf("\"%s\" does not contain \"%s\", %s", ~ToString(_a), ~ToString(_b), ~(TStringBuilder() << C)); \
+            auto&& msg = Sprintf("\"%s\" does not contain \"%s\", %s", ToString(_a).data(), ToString(_b).data(), (TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings contains assertion failed", msg);                                                           \
         }                                                                                                                       \
     } while (false)
@@ -423,7 +423,7 @@ public:                       \
         const TString _a(A);                                                                                                                   \
         const TString _b(B);                                                                                                                   \
         if (_a != _b) {                                                                                                                        \
-            UNIT_FAIL_IMPL("strings (" #A ") and (" #B ") are different", Sprintf("\n%s", ~::NUnitTest::ColoredDiff(_a, _b, " \t\n.,:;'\""))); \
+            UNIT_FAIL_IMPL("strings (" #A ") and (" #B ") are different", Sprintf("\n%s", ::NUnitTest::ColoredDiff(_a, _b, " \t\n.,:;'\"").data())); \
         }                                                                                                                                      \
     } while (false)
 
@@ -443,7 +443,7 @@ public:                       \
 //bool
 #define UNIT_ASSERT_C(A, C)                                                                   \
     if (!(A)) {                                                                               \
-        UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, ~(TStringBuilder() << C))); \
+        UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (TStringBuilder() << C).data())); \
     }
 
 #define UNIT_ASSERT(A) UNIT_ASSERT_C(A, "")
@@ -451,14 +451,14 @@ public:                       \
 //general
 #define UNIT_ASSERT_EQUAL_C(A, B, C)                                                                        \
     if (!((A) == (B))) {                                                                                    \
-        UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, ~(TStringBuilder() << C))); \
+        UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (TStringBuilder() << C).data())); \
     }
 
 #define UNIT_ASSERT_EQUAL(A, B) UNIT_ASSERT_EQUAL_C(A, B, "")
 
 #define UNIT_ASSERT_UNEQUAL_C(A, B, C)                                                                        \
     if ((A) == (B)) {                                                                                         \
-        UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, ~(TStringBuilder() << C))); \
+        UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (TStringBuilder() << C).data())); \
     }
 
 #define UNIT_ASSERT_UNEQUAL(A, B) UNIT_ASSERT_UNEQUAL_C(A, B, "")
@@ -559,7 +559,7 @@ public:                       \
         } catch (const ::NUnitTest::TAssertException&) {                                                                                                                 \
             throw;                                                                                                                                                       \
         } catch (...) {                                                                                                                                                  \
-            UNIT_FAIL_IMPL("exception-free assertion failed", Sprintf("%s throws %s\nException message: %s", #A, ~(TStringBuilder() << C), ~CurrentExceptionMessage())); \
+            UNIT_FAIL_IMPL("exception-free assertion failed", Sprintf("%s throws %s\nException message: %s", #A, (TStringBuilder() << C).data(), CurrentExceptionMessage().data())); \
         }                                                                                                                                                                \
     } while (false)
 
@@ -620,7 +620,7 @@ public:                       \
         TString _bsInd;                                                                                                                \
         bool _usePlainDiff;                                                                                                            \
         if (!::NUnitTest::NPrivate::CompareAndMakeStrings(A, B, _as, _asInd, _bs, _bsInd, _usePlainDiff, EQflag)) {                    \
-            auto&& failMsg = Sprintf("(%s %s %s) failed: (%s %s %s) %s", #A, EQstr, #B, ~_as, NEQstr, ~_bs, ~(TStringBuilder() << C)); \
+            auto&& failMsg = Sprintf("(%s %s %s) failed: (%s %s %s) %s", #A, EQstr, #B, _as.data(), NEQstr, _bs.data(), (TStringBuilder() << C).data()); \
             if (EQflag && !_usePlainDiff) {                                                                                            \
                 failMsg += ", with diff:\n";                                                                                           \
                 failMsg += ::NUnitTest::ColoredDiff(_asInd, _bsInd);                                                                   \

@@ -222,15 +222,15 @@ namespace {
                 T_.push_back(pfd);
             }
 
-            const ssize_t ret = PollD(~T_, (nfds_t) + T_, deadLine);
+            const ssize_t ret = PollD(T_.data(), (nfds_t) T_.size(), deadLine);
 
             if (ret <= 0) {
                 return;
             }
 
-            events.reserve(+T_);
+            events.reserve(T_.size());
 
-            for (size_t i = 0; i < +T_; ++i) {
+            for (size_t i = 0; i < T_.size(); ++i) {
                 const pollfd& pfd = T_[i];
                 const short ev = pfd.revents;
 

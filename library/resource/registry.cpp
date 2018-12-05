@@ -24,7 +24,7 @@ namespace {
         void Store(const TStringBuf& key, const TStringBuf& data) override {
             if (has(key)) {
                 if ((*this)[key]->second != data) {
-                    Y_VERIFY(false, "Multiple definition for key '%s'", ~key);
+                    Y_VERIFY(false, "Multiple definition for key '%s'", key.data());
                 }
             } else {
                 D_.push_back(TDescriptor(key, data));
