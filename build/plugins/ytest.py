@@ -25,6 +25,7 @@ CANON_MDS_RESOURCE_REGEX = re.compile(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)')
 CANON_SBR_RESOURCE_REGEX = re.compile(r'(sbr:/?/?(\d+))')
 
 VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
+VALID_DNS_REQUIREMENTS = ("default", "local", "dns64")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
 
@@ -84,7 +85,7 @@ def validate_test(kw, is_fuzz_test):
     is_force_sandbox = 'ya:force_sandbox' in tags
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     requirements = {}
-    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network'}
+    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network', 'dns'}
     for req in get_list("REQUIREMENTS"):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
@@ -136,6 +137,10 @@ def validate_test(kw, is_fuzz_test):
             elif req_name == "network":
                 if req_value not in VALID_NETWORK_REQUIREMENTS:
                     errors.append("Unknown 'network' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_NETWORK_REQUIREMENTS)))
+                    continue
+            elif req_name == "dns":
+                if req_value not in VALID_DNS_REQUIREMENTS:
+                    errors.append("Unknown 'dns' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_DNS_REQUIREMENTS)))
                     continue
             requirements[req_name] = req_value
         else:
