@@ -871,6 +871,28 @@ def test_multiclass_classes_count_missed_classes(task_type):
     return local_canonical_file(preds_path)
 
 
+def test_multiclass_classes_custom_labels(task_type):
+    train_labels = [1, 2]
+    test_labels = [0, 1, 2]
+
+    np.random.seed(0)
+    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(train_labels, size=100))
+    test_pool = Pool(np.random.random(size=(50, 10)), label=np.random.choice(test_labels, size=50))
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(train_pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(test_pool)
+    classes = new_classifier.predict(test_pool)
+    assert pred.shape == (50, 2)
+    assert np.array(classes).all() in train_labels
+    preds_path = test_output_path(PREDS_PATH)
+    np.savetxt(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)
+
+
 def test_querywise(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)

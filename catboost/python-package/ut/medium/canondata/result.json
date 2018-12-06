@@ -157,6 +157,10 @@
         "checksum": "c9a8f904589d6ae857cb12d1ebbe9327",
         "uri": "file://test.test_multiclass_classes_count_missed_classes_CPU_/predictions.npy"
     },
+    "test.test_multiclass_classes_custom_labels[CPU]": {
+        "checksum": "cd8d6c87953e35240584c3b7099db9c5",
+        "uri": "file://test.test_multiclass_classes_custom_labels_CPU_/predictions.npy"
+    },
     "test.test_non_ones_weight[CPU]": {
         "checksum": "baacaa5d6ddd21d51d8c03691ea1d531",
         "uri": "file://test.test_non_ones_weight_CPU_/model.bin"
