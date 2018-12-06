@@ -17,7 +17,6 @@ RECURSE(
     libtorrent/bindings/python
     libtorrent/test
     libxml++
-    nlohmannjson
     sigc++
     udns
     mimepp
