@@ -27,12 +27,12 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(c
 
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
     const ui32 docDivider = 1000;
-    size_t docBlockSize = DocCount < docDivider ? CB_THREAD_LIMIT : CB_THREAD_LIMIT * (CeilDiv(DocCount, docDivider));
+    const size_t docBlockSize = DocCount < docDivider ? CB_THREAD_LIMIT : CB_THREAD_LIMIT * (CeilDiv(DocCount, docDivider));
     TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", 1);
     TProfileInfo processDocumentsProfile(DocCount);
 
     for (size_t start = 0; start < DocCount; start += docBlockSize) {
-        size_t end = Min(start + docBlockSize, static_cast<size_t>(DocCount));
+        const size_t end = Min<size_t>(start + docBlockSize, DocCount);
         processDocumentsProfile.StartIterationBlock();
 
         localExecutor.ExecRange([&] (int docId) {
