@@ -2,7 +2,6 @@ import os
 from _common import rootrel_arc_src
 
 
-go_root = os.path.join('contrib', 'go', '_std', 'src') + os.path.sep
 runtime_cgo_path = os.path.join('runtime', 'cgo')
 runtime_msan_path = os.path.join('runtime', 'msan')
 runtime_race_path = os.path.join('runtime', 'race')
@@ -25,6 +24,7 @@ def on_go_process_srcs(unit):
     """
 
     go_files = get_appended_values(unit, 'GO_SRCS_VALUE')
+    go_std_root = unit.get('GOSTD') + os.path.sep
 
     proto_files = filter(lambda x: x.endswith('.proto'), go_files)
     if len(proto_files) > 0:
@@ -41,10 +41,10 @@ def on_go_process_srcs(unit):
     cgo_files = get_appended_values(unit, 'CGO_SRCS_VALUE')
     if len(cgo_files) > 0:
         import_path = rootrel_arc_src(unit.path(), unit)
-        if import_path.startswith(go_root):
-            import_path = import_path[len(go_root):]
+        if import_path.startswith(go_std_root):
+            import_path = import_path[len(go_std_root):]
         if import_path != runtime_cgo_path:
-            unit.onpeerdir(os.path.join(go_root, runtime_cgo_path))
+            unit.onpeerdir(os.path.join(go_std_root, runtime_cgo_path))
         import_runtime_cgo = 'false' if import_path in [runtime_cgo_path, runtime_msan_path, runtime_race_path] else 'true'
         import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
