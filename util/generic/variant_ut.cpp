@@ -573,10 +573,10 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         set.insert(TIntOrStr(TString("world")));
         set.insert(TIntOrStr(TString("qwerty")));
 
-        UNIT_ASSERT(set.has(TIntOrStr(1)));
-        UNIT_ASSERT(set.has(TIntOrStr(TString("hello"))));
-        UNIT_ASSERT(!set.has(TIntOrStr(321)));
-        UNIT_ASSERT(!set.has(TIntOrStr(TString("asdfgh"))));
+        UNIT_ASSERT(set.contains(TIntOrStr(1)));
+        UNIT_ASSERT(set.contains(TIntOrStr(TString("hello"))));
+        UNIT_ASSERT(!set.contains(TIntOrStr(321)));
+        UNIT_ASSERT(!set.contains(TIntOrStr(TString("asdfgh"))));
 
         UNIT_ASSERT_EQUAL(set.size(), 6);
         set.insert(TIntOrStr(1));

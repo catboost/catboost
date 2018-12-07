@@ -1606,20 +1606,6 @@ public:
         return rep.find_i(key, ins);
     }
 
-    // Please use contains() instead. See IGNIETFERRO-1014
-    template <class TheKey>
-    bool has(const TheKey& key) const {
-        return rep.find(key) != rep.end();
-    }
-    bool has(const key_type& key) const {
-        return rep.find(key) != rep.end();
-    }
-
-    template <class TheKey>
-    bool has(const TheKey& key, insert_ctx& ins) {
-        return rep.find_i(key, ins) != rep.end();
-    }
-
     template <class TheKey>
     bool contains(const TheKey& key) const {
         return rep.find(key) != rep.end();
@@ -1934,11 +1920,6 @@ public:
     template <class TheKey>
     iterator find(const TheKey& key, insert_ctx& ins) {
         return rep.find_i(key, ins);
-    }
-
-    template <class TheKey>
-    bool has(const TheKey& key) const {
-        return rep.find(key) != rep.end();
     }
 
     template <class TheKey>

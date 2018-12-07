@@ -69,10 +69,6 @@ public:
         return !this->empty();
     }
 
-    inline bool has(const K& key) const {
-        return this->find(key) != this->end();
-    }
-
     inline bool contains(const K& key) const {
         return this->find(key) != this->end();
     }
@@ -142,10 +138,6 @@ public:
     Y_PURE_FUNCTION
     inline bool empty() const noexcept {
         return TBase::empty();
-    }
-
-    inline bool has(const K& key) const {
-        return this->find(key) != this->end();
     }
 
     inline bool contains(const K& key) const {
