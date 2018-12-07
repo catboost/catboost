@@ -21,7 +21,6 @@ from .PyrexTypes import py_object_type, unspecified_type
 from .TypeSlots import (
     pyfunction_signature, pymethod_signature, richcmp_special_methods,
     get_special_method_signature, get_property_accessor_signature)
-from . import Future
 
 from . import Code
 
@@ -908,28 +907,10 @@ class Scope(object):
                 if res is not None:
                     return res
         function = self.lookup("operator%s" % operator)
-        function_alternatives = []
-        if function is not None:
-            function_alternatives = function.all_alternatives()
-
-        # look-up nonmember methods listed within a class
-        method_alternatives = []
-        if len(operands)==2: # binary operators only
-            for n in range(2):
-                if operands[n].type.is_cpp_class:
-                    obj_type = operands[n].type
-                    method = obj_type.scope.lookup("operator%s" % operator)
-                    if method is not None:
-                        method_alternatives += method.all_alternatives()
-
-        if (not method_alternatives) and (not function_alternatives):
+        if function is None:
             return None
-
-        # select the unique alternatives
-        all_alternatives = list(set(method_alternatives + function_alternatives))
-
         return PyrexTypes.best_match([arg.type for arg in operands],
-                                     all_alternatives)
+                                     function.all_alternatives())
 
     def lookup_operator_for_types(self, pos, operator, types):
         from .Nodes import Node
@@ -1003,12 +984,10 @@ class BuiltinScope(Scope):
             cname, type = definition
             self.declare_var(name, type, None, cname)
 
-    def lookup(self, name, language_level=None, str_is_str=None):
-        # 'language_level' and 'str_is_str' are passed by ModuleScope
-        if name == 'str':
-            if str_is_str is None:
-                str_is_str = language_level in (None, 2)
-            if not str_is_str:
+    def lookup(self, name, language_level=None):
+        # 'language_level' is passed by ModuleScope
+        if language_level == 3:
+            if name == 'str':
                 name = 'unicode'
         return Scope.lookup(self, name)
 
@@ -1177,18 +1156,15 @@ class ModuleScope(Scope):
     def global_scope(self):
         return self
 
-    def lookup(self, name, language_level=None, str_is_str=None):
+    def lookup(self, name, language_level=None):
         entry = self.lookup_here(name)
         if entry is not None:
             return entry
 
         if language_level is None:
             language_level = self.context.language_level if self.context is not None else 3
-        if str_is_str is None:
-            str_is_str = language_level == 2 or (
-                self.context is not None and Future.unicode_literals not in self.context.future_directives)
 
-        return self.outer_scope.lookup(name, language_level=language_level, str_is_str=str_is_str)
+        return self.outer_scope.lookup(name, language_level=language_level)
 
     def declare_tuple_type(self, pos, components):
         components = tuple(components)
@@ -1479,11 +1455,10 @@ class ModuleScope(Scope):
         if entry.utility_code_definition:
             self.utility_code_list.append(entry.utility_code_definition)
 
-    def declare_c_class(self, name, pos, defining=0, implementing=0,
-            module_name=None, base_type=None, objstruct_cname=None,
-            typeobj_cname=None, typeptr_cname=None, visibility='private',
-            typedef_flag=0, api=0, check_size=None,
-            buffer_defaults=None, shadow=0):
+    def declare_c_class(self, name, pos, defining = 0, implementing = 0,
+        module_name = None, base_type = None, objstruct_cname = None,
+        typeobj_cname = None, typeptr_cname = None, visibility = 'private', typedef_flag = 0, api = 0,
+        buffer_defaults = None, shadow = 0):
         # If this is a non-extern typedef class, expose the typedef, but use
         # the non-typedef struct internally to avoid needing forward
         # declarations for anonymous structs.
@@ -1515,8 +1490,7 @@ class ModuleScope(Scope):
         #  Make a new entry if needed
         #
         if not entry or shadow:
-            type = PyrexTypes.PyExtensionType(
-                name, typedef_flag, base_type, visibility == 'extern', check_size=check_size)
+            type = PyrexTypes.PyExtensionType(name, typedef_flag, base_type, visibility == 'extern')
             type.pos = pos
             type.buffer_defaults = buffer_defaults
             if objtypedef_cname is not None:
@@ -2245,9 +2219,7 @@ class CClassScope(ClassScope):
                         # TODO(robertwb): Make this an error.
                         warning(pos,
                             "Compatible but non-identical C method '%s' not redeclared "
-                            "in definition part of extension type '%s'.  "
-                            "This may cause incorrect vtables to be generated." % (
-                                    name, self.class_name), 2)
+                            "in definition part of extension type '%s'.  This may cause incorrect vtables to be generated." % (name, self.class_name), 2)
                         warning(entry.pos, "Previous declaration is here", 2)
                     entry = self.add_cfunction(name, type, pos, cname, visibility='ignore', modifiers=modifiers)
                 else:

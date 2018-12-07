@@ -147,8 +147,6 @@ class SourceDescriptor(object):
     """
     A SourceDescriptor should be considered immutable.
     """
-    filename = None
-
     _file_type = 'pyx'
 
     _escaped_description = None
@@ -278,6 +276,8 @@ class StringSourceDescriptor(SourceDescriptor):
     Instances of this class can be used instead of a filenames if the
     code originates from a string object.
     """
+    filename = None
+
     def __init__(self, name, code):
         self.name = name
         #self.set_file_type_from_name(name)

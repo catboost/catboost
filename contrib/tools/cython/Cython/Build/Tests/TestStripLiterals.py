@@ -6,10 +6,10 @@ class TestStripLiterals(CythonTest):
 
     def t(self, before, expected):
         actual, literals = strip_string_literals(before, prefix="_L")
-        self.assertEqual(expected, actual)
+        self.assertEquals(expected, actual)
         for key, value in literals.items():
             actual = actual.replace(key, value)
-        self.assertEqual(before, actual)
+        self.assertEquals(before, actual)
 
     def test_empty(self):
         self.t("", "")

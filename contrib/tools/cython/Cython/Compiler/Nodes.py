@@ -207,9 +207,6 @@ class Node(object):
     # can either contain a single node or a list of nodes. See Visitor.py.
     child_attrs = None
 
-    # Subset of attributes that are evaluated in the outer scope (e.g. function default arguments).
-    outer_attrs = None
-
     cf_state = None
 
     # This may be an additional (or 'actual') type that will be checked when
@@ -225,7 +222,6 @@ class Node(object):
     gil_message = "Operation"
 
     nogil_check = None
-    in_nogil_context = False  # For use only during code generation.
 
     def gil_error(self, env=None):
         error(self.pos, "%s not allowed without gil" % self.gil_message)
@@ -741,11 +737,9 @@ class CFuncDeclaratorNode(CDeclaratorNode):
                             and not exc_val_type.is_pyobject
                             and not (exc_val_type.is_cfunction
                                      and not exc_val_type.return_type.is_pyobject
-                                     and not exc_val_type.args)
-                            and not (exc_val_type == PyrexTypes.c_char_type
-                                     and self.exception_value.value == '*')):
+                                     and not exc_val_type.args)):
                         error(self.exception_value.pos,
-                              "Exception value must be a Python exception or cdef function with no arguments or *.")
+                              "Exception value must be a Python exception or cdef function with no arguments.")
                     exc_val = self.exception_value
                 else:
                     self.exception_value = self.exception_value.coerce_to(
@@ -854,7 +848,6 @@ class CArgDeclNode(Node):
     # is_dynamic     boolean            Non-literal arg stored inside CyFunction
 
     child_attrs = ["base_type", "declarator", "default", "annotation"]
-    outer_attrs = ["default", "annotation"]
 
     is_self_arg = 0
     is_type_arg = 0
@@ -2053,8 +2046,7 @@ class FuncDefNode(StatNode, BlockNode):
             if err_val is None and default_retval:
                 err_val = default_retval
             if err_val is not None:
-                if err_val != Naming.retval_cname:
-                    code.putln("%s = %s;" % (Naming.retval_cname, err_val))
+                code.putln("%s = %s;" % (Naming.retval_cname, err_val))
             elif not self.return_type.is_void:
                 code.putln("__Pyx_pretend_to_initialize(&%s);" % Naming.retval_cname)
 
@@ -2342,7 +2334,7 @@ class CFuncDefNode(FuncDefNode):
         self.is_c_class_method = env.is_c_class_scope
         if self.directive_locals is None:
             self.directive_locals = {}
-        self.directive_locals.update(env.directives.get('locals', {}))
+        self.directive_locals.update(env.directives['locals'])
         if self.directive_returns is not None:
             base_type = self.directive_returns.analyse_as_type(env)
             if base_type is None:
@@ -2744,7 +2736,6 @@ class DefNode(FuncDefNode):
     # decorator_indirection IndirectionNode Used to remove __Pyx_Method_ClassMethod for fused functions
 
     child_attrs = ["args", "star_arg", "starstar_arg", "body", "decorators", "return_type_annotation"]
-    outer_attrs = ["decorators", "return_type_annotation"]
 
     is_staticmethod = False
     is_classmethod = False
@@ -2785,8 +2776,7 @@ class DefNode(FuncDefNode):
         self.num_required_kw_args = rk
         self.num_required_args = r
 
-    def as_cfunction(self, cfunc=None, scope=None, overridable=True, returns=None, except_val=None, modifiers=None,
-                     nogil=False, with_gil=False):
+    def as_cfunction(self, cfunc=None, scope=None, overridable=True, returns=None, except_val=None, modifiers=None):
         if self.star_arg:
             error(self.star_arg.pos, "cdef function cannot have star argument")
         if self.starstar_arg:
@@ -2807,8 +2797,8 @@ class DefNode(FuncDefNode):
                                               has_varargs=False,
                                               exception_value=None,
                                               exception_check=exception_check,
-                                              nogil=nogil,
-                                              with_gil=with_gil,
+                                              nogil=False,
+                                              with_gil=False,
                                               is_overridable=overridable)
             cfunc = CVarDefNode(self.pos, type=cfunc_type)
         else:
@@ -2909,7 +2899,7 @@ class DefNode(FuncDefNode):
         self.py_wrapper.analyse_declarations(env)
 
     def analyse_argument_types(self, env):
-        self.directive_locals = env.directives.get('locals', {})
+        self.directive_locals = env.directives['locals']
         allow_none_for_extension_args = env.directives['allow_none_for_extension_args']
 
         f2s = env.fused_to_specific
@@ -4265,10 +4255,7 @@ class GeneratorBodyDefNode(DefNode):
             code.put_xgiveref(Naming.retval_cname)
         else:
             code.put_xdecref_clear(Naming.retval_cname, py_object_type)
-        # For Py3.7, clearing is already done below.
-        code.putln("#if !CYTHON_USE_EXC_INFO_STACK")
         code.putln("__Pyx_Coroutine_ResetAndClearException(%s);" % Naming.generator_cname)
-        code.putln("#endif")
         code.putln('%s->resume_label = -1;' % Naming.generator_cname)
         # clean up as early as possible to help breaking any reference cycles
         code.putln('__Pyx_Coroutine_clear((PyObject*)%s);' % Naming.generator_cname)
@@ -4351,28 +4338,7 @@ class OverrideCheckNode(StatNode):
         if self.py_func.is_module_scope:
             code.putln("else {")
         else:
-            code.putln("else if (unlikely((Py_TYPE(%s)->tp_dictoffset != 0)"
-                       " || (Py_TYPE(%s)->tp_flags & (Py_TPFLAGS_IS_ABSTRACT | Py_TPFLAGS_HEAPTYPE)))) {" % (
-                self_arg, self_arg))
-
-        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP")
-        # TODO: remove the object dict version check by 'inlining' the getattr implementation for methods.
-        # This would allow checking the dict versions around _PyType_Lookup() if it returns a descriptor,
-        # and would (tada!) make this check a pure type based thing instead of supporting only a single
-        # instance at a time.
-        code.putln("static PY_UINT64_T tp_dict_version = 0, obj_dict_version = 0;")
-        code.putln("if (likely("
-                   "Py_TYPE(%s)->tp_dict && "
-                   "tp_dict_version == __PYX_GET_DICT_VERSION(Py_TYPE(%s)->tp_dict) && "
-                   "(!Py_TYPE(%s)->tp_dictoffset || "
-                   "obj_dict_version == __PYX_GET_DICT_VERSION(_PyObject_GetDictPtr(%s)))"
-                   "));" % (
-            self_arg, self_arg, self_arg, self_arg))
-        code.putln("else {")
-        code.putln("PY_UINT64_T type_dict_guard = (likely(Py_TYPE(%s)->tp_dict)) ? __PYX_GET_DICT_VERSION(Py_TYPE(%s)->tp_dict) : 0;" % (
-            self_arg, self_arg))
-        code.putln("#endif")
-
+            code.putln("else if (unlikely(Py_TYPE(%s)->tp_dictoffset != 0)) {" % self_arg)
         func_node_temp = code.funcstate.allocate_temp(py_object_type, manage_ref=True)
         self.func_node.set_cname(func_node_temp)
         # need to get attribute manually--scope would return cdef method
@@ -4382,41 +4348,14 @@ class OverrideCheckNode(StatNode):
         code.putln("%s = __Pyx_PyObject_GetAttrStr(%s, %s); %s" % (
             func_node_temp, self_arg, interned_attr_cname, err))
         code.put_gotref(func_node_temp)
-
         is_builtin_function_or_method = "PyCFunction_Check(%s)" % func_node_temp
-        is_overridden = "(PyCFunction_GET_FUNCTION(%s) != (PyCFunction)(void*)%s)" % (
+        is_overridden = "(PyCFunction_GET_FUNCTION(%s) != (PyCFunction)%s)" % (
             func_node_temp, self.py_func.entry.func_cname)
         code.putln("if (!%s || %s) {" % (is_builtin_function_or_method, is_overridden))
         self.body.generate_execution_code(code)
         code.putln("}")
-
-        # NOTE: it's not 100% sure that we catch the exact versions here that were used for the lookup,
-        # but it is very unlikely that the versions change during lookup, and the type dict safe guard
-        # should increase the chance of detecting such a case.
-        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP")
-        code.putln("tp_dict_version = likely(Py_TYPE(%s)->tp_dict) ?"
-                   " __PYX_GET_DICT_VERSION(Py_TYPE(%s)->tp_dict) : 0;" % (
-            self_arg, self_arg))
-        code.putln("obj_dict_version = likely(Py_TYPE(%s)->tp_dictoffset) ?"
-                   " __PYX_GET_DICT_VERSION(_PyObject_GetDictPtr(%s)) : 0;" % (
-            self_arg, self_arg))
-        # Safety check that the type dict didn't change during the lookup.  Since CPython looks up the
-        # attribute (descriptor) first in the type dict and then in the instance dict or through the
-        # descriptor, the only really far-away lookup when we get here is one in the type dict. So we
-        # double check the type dict version before and afterwards to guard against later changes of
-        # the type dict during the lookup process.
-        code.putln("if (unlikely(type_dict_guard != tp_dict_version)) {")
-        code.putln("tp_dict_version = obj_dict_version = 0;")
-        code.putln("}")
-        code.putln("#endif")
-
         code.put_decref_clear(func_node_temp, PyrexTypes.py_object_type)
         code.funcstate.release_temp(func_node_temp)
-
-        code.putln("#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_PYTYPE_LOOKUP")
-        code.putln("}")
-        code.putln("#endif")
-
         code.putln("}")
 
 
@@ -4618,7 +4557,6 @@ class PyClassDefNode(ClassDefNode):
             self.bases.free_temps(code)
         code.pyclass_stack.pop()
 
-
 class CClassDefNode(ClassDefNode):
     #  An extension type definition.
     #
@@ -4631,7 +4569,6 @@ class CClassDefNode(ClassDefNode):
     #  bases              TupleNode         Base class(es)
     #  objstruct_name     string or None    Specified C name of object struct
     #  typeobj_name       string or None    Specified C name of type object
-    #  check_size         'warn', 'error', 'ignore'     What to do if tp_basicsize does not match
     #  in_pxd             boolean           Is in a .pxd file
     #  decorators         [DecoratorNode]   list of decorators or None
     #  doc                string or None
@@ -4648,7 +4585,6 @@ class CClassDefNode(ClassDefNode):
     api = False
     objstruct_name = None
     typeobj_name = None
-    check_size = None
     decorators = None
     shadow = False
 
@@ -4684,7 +4620,6 @@ class CClassDefNode(ClassDefNode):
             typeobj_cname=self.typeobj_name,
             visibility=self.visibility,
             typedef_flag=self.typedef_flag,
-            check_size = self.check_size,
             api=self.api,
             buffer_defaults=self.buffer_defaults(env),
             shadow=self.shadow)
@@ -4770,7 +4705,6 @@ class CClassDefNode(ClassDefNode):
             base_type=self.base_type,
             objstruct_cname=self.objstruct_name,
             typeobj_cname=self.typeobj_name,
-            check_size=self.check_size,
             visibility=self.visibility,
             typedef_flag=self.typedef_flag,
             api=self.api,
@@ -4967,14 +4901,14 @@ class CClassDefNode(ClassDefNode):
                     code.putln("if (__Pyx_MergeVtables(&%s) < 0) %s" % (
                         typeobj_cname,
                         code.error_goto(entry.pos)))
-            if not type.scope.is_internal and not type.scope.directives.get('internal'):
+            if not type.scope.is_internal and not type.scope.directives['internal']:
                 # scope.is_internal is set for types defined by
                 # Cython (such as closures), the 'internal'
                 # directive is set by users
                 code.putln(
-                    'if (PyObject_SetAttr(%s, %s, (PyObject *)&%s) < 0) %s' % (
+                    'if (PyObject_SetAttrString(%s, "%s", (PyObject *)&%s) < 0) %s' % (
                         Naming.module_cname,
-                        code.intern_identifier(scope.class_name),
+                        scope.class_name,
                         typeobj_cname,
                         code.error_goto(entry.pos)))
             weakref_entry = scope.lookup_here("__weakref__") if not scope.is_closure_class_scope else None
@@ -6336,19 +6270,11 @@ class SwitchCaseNode(StatNode):
 
     child_attrs = ['conditions', 'body']
 
-    def generate_condition_evaluation_code(self, code):
-        for cond in self.conditions:
-            cond.generate_evaluation_code(code)
-
     def generate_execution_code(self, code):
-        num_conditions = len(self.conditions)
-        line_tracing_enabled = code.globalstate.directives['linetrace']
-        for i, cond in enumerate(self.conditions, 1):
+        for cond in self.conditions:
+            code.mark_pos(cond.pos)
+            cond.generate_evaluation_code(code)
             code.putln("case %s:" % cond.result())
-            code.mark_pos(cond.pos)  # Tracing code must appear *after* the 'case' statement.
-            if line_tracing_enabled and i < num_conditions:
-                # Allow fall-through after the line tracing code.
-                code.putln('CYTHON_FALLTHROUGH;')
         self.body.generate_execution_code(code)
         code.mark_pos(self.pos, trace=False)
         code.putln("break;")
@@ -6375,10 +6301,6 @@ class SwitchStatNode(StatNode):
 
     def generate_execution_code(self, code):
         self.test.generate_evaluation_code(code)
-        # Make sure all conditions are evaluated before going into the switch() statement.
-        # This is required in order to prevent any execution code from leaking into the space between the cases.
-        for case in self.cases:
-            case.generate_condition_evaluation_code(code)
         code.mark_pos(self.pos)
         code.putln("switch (%s) {" % self.test.result())
         for case in self.cases:
@@ -6922,15 +6844,15 @@ class ForFromStatNode(LoopNode, StatNode):
                 if self.target.entry.scope.is_module_scope:
                     code.globalstate.use_utility_code(
                         UtilityCode.load_cached("GetModuleGlobalName", "ObjectHandling.c"))
-                    lookup_func = '__Pyx_GetModuleGlobalName(%s, %s); %s'
+                    lookup_func = '__Pyx_GetModuleGlobalName(%s)'
                 else:
                     code.globalstate.use_utility_code(
                         UtilityCode.load_cached("GetNameInClass", "ObjectHandling.c"))
-                    lookup_func = '__Pyx_GetNameInClass(%s, {}, %s); %s'.format(
+                    lookup_func = '__Pyx_GetNameInClass(%s, %%s)' % (
                         self.target.entry.scope.namespace_cname)
-                code.putln(lookup_func % (
+                code.putln("%s = %s; %s" % (
                     target_node.result(),
-                    interned_cname,
+                    lookup_func % interned_cname,
                     code.error_goto_if_null(target_node.result(), self.target.pos)))
                 code.put_gotref(target_node.result())
             else:
@@ -7172,9 +7094,6 @@ class TryExceptStatNode(StatNode):
     gil_message = "Try-except statement"
 
     def generate_execution_code(self, code):
-        code.mark_pos(self.pos)  # before changing the error label, in case of tracing errors
-        code.putln("{")
-
         old_return_label = code.return_label
         old_break_label = code.break_label
         old_continue_label = code.continue_label
@@ -7190,6 +7109,8 @@ class TryExceptStatNode(StatNode):
 
         exc_save_vars = [code.funcstate.allocate_temp(py_object_type, False)
                          for _ in range(3)]
+        code.mark_pos(self.pos)
+        code.putln("{")
         save_exc = code.insertion_point()
         code.putln(
             "/*try:*/ {")
@@ -7438,9 +7359,7 @@ class ExceptClauseNode(Node):
 
         if not self.body.is_terminator:
             for var in exc_vars:
-                # FIXME: XDECREF() is needed to allow re-raising (which clears the exc_vars),
-                # but I don't think it's the right solution.
-                code.put_xdecref_clear(var, py_object_type)
+                code.put_decref_clear(var, py_object_type)
             code.put_goto(end_label)
 
         for new_label, old_label in [(code.break_label, old_break_label),
@@ -7522,9 +7441,7 @@ class TryFinallyStatNode(StatNode):
     gil_message = "Try-finally statement"
 
     def generate_execution_code(self, code):
-        code.mark_pos(self.pos)  # before changing the error label, in case of tracing errors
-        code.putln("/*try:*/ {")
-
+        code.mark_pos(self.pos)
         old_error_label = code.error_label
         old_labels = code.all_new_labels()
         new_labels = code.get_all_labels()
@@ -7533,6 +7450,7 @@ class TryFinallyStatNode(StatNode):
             code.error_label = old_error_label
         catch_label = code.new_label()
 
+        code.putln("/*try:*/ {")
         was_in_try_finally = code.funcstate.in_try_finally
         code.funcstate.in_try_finally = 1
 

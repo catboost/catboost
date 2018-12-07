@@ -16,14 +16,6 @@
           (is_signed || likely(v < (type)PY_SSIZE_T_MAX ||        \
                                v == (type)PY_SSIZE_T_MAX)))  )
 
-static CYTHON_INLINE int __Pyx_is_valid_index(Py_ssize_t i, Py_ssize_t limit) {
-    // Optimisation from Section 14.2 "Bounds Checking" in
-    //   https://www.agner.org/optimize/optimizing_cpp.pdf
-    // See https://bugs.python.org/issue28397
-    // The cast to unsigned effectively tests for "0 <= i < limit".
-    return (size_t) i < (size_t) limit;
-}
-
 // fast and unsafe abs(Py_ssize_t) that ignores the overflow for (-PY_SSIZE_T_MAX-1)
 #if defined (__cplusplus) && __cplusplus >= 201103L
     #include <cstdlib>
@@ -92,9 +84,8 @@ static CYTHON_INLINE size_t __Pyx_Py_UNICODE_strlen(const Py_UNICODE *u) {
 
 #define __Pyx_NewRef(obj) (Py_INCREF(obj), obj)
 #define __Pyx_Owned_Py_None(b) __Pyx_NewRef(Py_None)
-static CYTHON_INLINE PyObject * __Pyx_PyBool_FromLong(long b);
+#define __Pyx_PyBool_FromLong(b) ((b) ? __Pyx_NewRef(Py_True) : __Pyx_NewRef(Py_False))
 static CYTHON_INLINE int __Pyx_PyObject_IsTrue(PyObject*);
-static CYTHON_INLINE int __Pyx_PyObject_IsTrueAndDecref(PyObject*);
 static CYTHON_INLINE PyObject* __Pyx_PyNumber_IntOrLong(PyObject* x);
 
 #define __Pyx_PySequence_Tuple(obj) \
@@ -186,7 +177,7 @@ static int __Pyx_init_sys_getdefaultencoding_params(void) {
     if (!default_encoding) goto bad;
     default_encoding_c = PyBytes_AsString(default_encoding);
     if (!default_encoding_c) goto bad;
-    __PYX_DEFAULT_STRING_ENCODING = (char*) malloc(strlen(default_encoding_c) + 1);
+    __PYX_DEFAULT_STRING_ENCODING = (char*) malloc(strlen(default_encoding_c));
     if (!__PYX_DEFAULT_STRING_ENCODING) goto bad;
     strcpy(__PYX_DEFAULT_STRING_ENCODING, default_encoding_c);
     Py_DECREF(default_encoding);
@@ -294,14 +285,6 @@ static CYTHON_INLINE int __Pyx_PyObject_IsTrue(PyObject* x) {
    else return PyObject_IsTrue(x);
 }
 
-static CYTHON_INLINE int __Pyx_PyObject_IsTrueAndDecref(PyObject* x) {
-    int retval;
-    if (unlikely(!x)) return -1;
-    retval = __Pyx_PyObject_IsTrue(x);
-    Py_DECREF(x);
-    return retval;
-}
-
 static PyObject* __Pyx_PyNumber_IntOrLongWrongResultType(PyObject* result, const char* type_name) {
 #if PY_MAJOR_VERSION >= 3
     if (PyLong_Check(result)) {
@@ -384,7 +367,7 @@ static CYTHON_INLINE Py_ssize_t __Pyx_PyIndex_AsSsize_t(PyObject* b) {
     if (sizeof(Py_ssize_t) >= sizeof(long))
         return PyInt_AS_LONG(b);
     else
-        return PyInt_AsSsize_t(b);
+        return PyInt_AsSsize_t(x);
   }
 #endif
   if (likely(PyLong_CheckExact(b))) {
@@ -418,12 +401,6 @@ static CYTHON_INLINE Py_ssize_t __Pyx_PyIndex_AsSsize_t(PyObject* b) {
   Py_DECREF(x);
   return ival;
 }
-
-
-static CYTHON_INLINE PyObject * __Pyx_PyBool_FromLong(long b) {
-  return b ? __Pyx_NewRef(Py_True) : __Pyx_NewRef(Py_False);
-}
-
 
 static CYTHON_INLINE PyObject * __Pyx_PyInt_FromSize_t(size_t ival) {
     return PyInt_FromSize_t(ival);
@@ -537,23 +514,18 @@ static Py_UCS4 __Pyx__PyObject_AsPy_UCS4(PyObject*);
 
 /////////////// ObjectAsUCS4 ///////////////
 
-static Py_UCS4 __Pyx__PyObject_AsPy_UCS4_raise_error(long ival) {
-   if (ival < 0) {
-       if (!PyErr_Occurred())
-           PyErr_SetString(PyExc_OverflowError,
-                           "cannot convert negative value to Py_UCS4");
-   } else {
-       PyErr_SetString(PyExc_OverflowError,
-                       "value too large to convert to Py_UCS4");
-   }
-   return (Py_UCS4)-1;
-}
-
 static Py_UCS4 __Pyx__PyObject_AsPy_UCS4(PyObject* x) {
    long ival;
    ival = __Pyx_PyInt_As_long(x);
-   if (unlikely(!__Pyx_is_valid_index(ival, 1114111 + 1))) {
-       return __Pyx__PyObject_AsPy_UCS4_raise_error(ival);
+   if (unlikely(ival < 0)) {
+       if (!PyErr_Occurred())
+           PyErr_SetString(PyExc_OverflowError,
+                           "cannot convert negative value to Py_UCS4");
+       return (Py_UCS4)-1;
+   } else if (unlikely(ival > 1114111)) {
+       PyErr_SetString(PyExc_OverflowError,
+                       "value too large to convert to Py_UCS4");
+       return (Py_UCS4)-1;
    }
    return (Py_UCS4)ival;
 }
@@ -595,16 +567,14 @@ static CYTHON_INLINE Py_UNICODE __Pyx_PyObject_AsPy_UNICODE(PyObject* x) {
         #endif
         ival = __Pyx_PyInt_As_long(x);
     }
-    if (unlikely(!__Pyx_is_valid_index(ival, maxval + 1))) {
-        if (ival < 0) {
-            if (!PyErr_Occurred())
-                PyErr_SetString(PyExc_OverflowError,
-                                "cannot convert negative value to Py_UNICODE");
-            return (Py_UNICODE)-1;
-        } else {
+    if (unlikely(ival < 0)) {
+        if (!PyErr_Occurred())
             PyErr_SetString(PyExc_OverflowError,
-                            "value too large to convert to Py_UNICODE");
-        }
+                            "cannot convert negative value to Py_UNICODE");
+        return (Py_UNICODE)-1;
+    } else if (unlikely(ival > maxval)) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "value too large to convert to Py_UNICODE");
         return (Py_UNICODE)-1;
     }
     return (Py_UNICODE)ival;
@@ -708,8 +678,8 @@ static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value, Py_ssize_t wid
     // 'dpos' points to end of digits array + 1 initially to allow for pre-decrement looping
     char *dpos, *end = digits + sizeof({{TYPE}})*3+2;
     const char *hex_digits = DIGITS_HEX;
-    Py_ssize_t length, ulength;
-    int prepend_sign, last_one_off;
+    Py_ssize_t ulength;
+    int length, prepend_sign, last_one_off;
     {{TYPE}} remaining;
     const {{TYPE}} neg_one = ({{TYPE}}) -1, const_zero = ({{TYPE}}) 0;
     const int is_unsigned = neg_one > const_zero;
@@ -773,7 +743,7 @@ static CYTHON_INLINE PyObject* {{TO_PY_FUNCTION}}({{TYPE}} value, Py_ssize_t wid
     if (ulength == 1) {
         return PyUnicode_FromOrdinal(*dpos);
     }
-    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, (int) length, prepend_sign, padding_char);
+    return __Pyx_PyUnicode_BuildFromAscii(ulength, dpos, length, prepend_sign, padding_char);
 }
 
 

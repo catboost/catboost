@@ -484,23 +484,18 @@ def copy_c_or_fortran_cname(memview):
     return "__pyx_memoryview_copy_slice_%s_%s" % (
             memview.specialization_suffix(), c_or_f)
 
-
 def get_copy_new_utility(pos, from_memview, to_memview):
-    if (from_memview.dtype != to_memview.dtype and
-            not (from_memview.dtype.is_const and from_memview.dtype.const_base_type == to_memview.dtype)):
-        error(pos, "dtypes must be the same!")
-        return
+    if from_memview.dtype != to_memview.dtype:
+        return error(pos, "dtypes must be the same!")
     if len(from_memview.axes) != len(to_memview.axes):
-        error(pos, "number of dimensions must be same")
-        return
+        return error(pos, "number of dimensions must be same")
     if not (to_memview.is_c_contig or to_memview.is_f_contig):
-        error(pos, "to_memview must be c or f contiguous.")
-        return
+        return error(pos, "to_memview must be c or f contiguous.")
 
     for (access, packing) in from_memview.axes:
         if access != 'direct':
-            error(pos, "cannot handle 'full' or 'ptr' access at this time.")
-            return
+            return error(
+                    pos, "cannot handle 'full' or 'ptr' access at this time.")
 
     if to_memview.is_c_contig:
         mode = 'c'
@@ -520,7 +515,6 @@ def get_copy_new_utility(pos, from_memview, to_memview):
             func_cname=copy_c_or_fortran_cname(to_memview),
             dtype_is_object=int(to_memview.dtype.is_pyobject)),
         requires=[copy_contents_new_utility])
-
 
 def get_axes_specs(env, axes):
     '''

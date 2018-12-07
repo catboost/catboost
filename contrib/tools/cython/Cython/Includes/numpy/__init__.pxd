@@ -17,9 +17,9 @@
 DEF _buffer_format_string_len = 255
 
 cimport cpython.buffer as pybuf
-from cpython.ref cimport Py_INCREF
+from cpython.ref cimport Py_INCREF, Py_XDECREF
 from cpython.mem cimport PyObject_Malloc, PyObject_Free
-from cpython.object cimport PyObject, PyTypeObject
+from cpython.object cimport PyObject
 from cpython.type cimport type
 cimport libc.stdio as stdio
 
@@ -92,13 +92,6 @@ cdef extern from "numpy/arrayobject.h":
         NPY_FORTRANORDER
         NPY_KEEPORDER
 
-    ctypedef enum NPY_CASTING:
-        NPY_NO_CASTING
-        NPY_EQUIV_CASTING
-        NPY_SAFE_CASTING
-        NPY_SAME_KIND_CASTING
-        NPY_UNSAFE_CASTING
-
     ctypedef enum NPY_CLIPMODE:
         NPY_CLIP
         NPY_WRAP
@@ -123,7 +116,6 @@ cdef extern from "numpy/arrayobject.h":
         NPY_SEARCHRIGHT
 
     enum:
-        # DEPRECATED since NumPy 1.7 ! Do not use in new code!
         NPY_C_CONTIGUOUS
         NPY_F_CONTIGUOUS
         NPY_CONTIGUOUS
@@ -156,37 +148,6 @@ cdef extern from "numpy/arrayobject.h":
 
         NPY_UPDATE_ALL
 
-    enum:
-        # Added in NumPy 1.7 to replace the deprecated enums above.
-        NPY_ARRAY_C_CONTIGUOUS
-        NPY_ARRAY_F_CONTIGUOUS
-        NPY_ARRAY_OWNDATA
-        NPY_ARRAY_FORCECAST
-        NPY_ARRAY_ENSURECOPY
-        NPY_ARRAY_ENSUREARRAY
-        NPY_ARRAY_ELEMENTSTRIDES
-        NPY_ARRAY_ALIGNED
-        NPY_ARRAY_NOTSWAPPED
-        NPY_ARRAY_WRITEABLE
-        NPY_ARRAY_UPDATEIFCOPY
-
-        NPY_ARRAY_BEHAVED
-        NPY_ARRAY_BEHAVED_NS
-        NPY_ARRAY_CARRAY
-        NPY_ARRAY_CARRAY_RO
-        NPY_ARRAY_FARRAY
-        NPY_ARRAY_FARRAY_RO
-        NPY_ARRAY_DEFAULT
-
-        NPY_ARRAY_IN_ARRAY
-        NPY_ARRAY_OUT_ARRAY
-        NPY_ARRAY_INOUT_ARRAY
-        NPY_ARRAY_IN_FARRAY
-        NPY_ARRAY_OUT_FARRAY
-        NPY_ARRAY_INOUT_FARRAY
-
-        NPY_ARRAY_UPDATE_ALL
-
     cdef enum:
         NPY_MAXDIMS
 
@@ -200,13 +161,9 @@ cdef extern from "numpy/arrayobject.h":
         # as just a PyObject*.
         PyObject* shape
 
-    ctypedef struct PyArray_Descr:
-        pass
-
-    ctypedef class numpy.dtype [object PyArray_Descr, check_size ignore]:
+    ctypedef class numpy.dtype [object PyArray_Descr]:
         # Use PyDataType_* macros when possible, however there are no macros
         # for accessing some of the fields, so some are defined.
-        cdef PyTypeObject* typeobj
         cdef char kind
         cdef char type
         # Numpy sometimes mutates this without warning (e.g. it'll
@@ -239,7 +196,7 @@ cdef extern from "numpy/arrayobject.h":
         # like PyArrayObject**.
         pass
 
-    ctypedef class numpy.ndarray [object PyArrayObject, check_size ignore]:
+    ctypedef class numpy.ndarray [object PyArrayObject]:
         cdef __cythonbufferdefaults__ = {"mode": "strided"}
 
         cdef:
@@ -249,7 +206,7 @@ cdef extern from "numpy/arrayobject.h":
             int ndim "nd"
             npy_intp *shape "dimensions"
             npy_intp *strides
-            dtype descr  # deprecated since NumPy 1.7 !
+            dtype descr
             PyObject* base
 
         # Note: This syntax (function definition in pxd files) is an
@@ -268,11 +225,11 @@ cdef extern from "numpy/arrayobject.h":
             ndim = PyArray_NDIM(self)
 
             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
-                and not PyArray_CHKFLAGS(self, NPY_ARRAY_C_CONTIGUOUS)):
+                and not PyArray_CHKFLAGS(self, NPY_C_CONTIGUOUS)):
                 raise ValueError(u"ndarray is not C contiguous")
 
             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
-                and not PyArray_CHKFLAGS(self, NPY_ARRAY_F_CONTIGUOUS)):
+                and not PyArray_CHKFLAGS(self, NPY_F_CONTIGUOUS)):
                 raise ValueError(u"ndarray is not Fortran contiguous")
 
             info.buf = PyArray_DATA(self)
@@ -294,7 +251,7 @@ cdef extern from "numpy/arrayobject.h":
 
             cdef int t
             cdef char* f = NULL
-            cdef dtype descr = <dtype>PyArray_DESCR(self)
+            cdef dtype descr = self.descr
             cdef int offset
 
             info.obj = self
@@ -422,8 +379,6 @@ cdef extern from "numpy/arrayobject.h":
     # Macros from ndarrayobject.h
     #
     bint PyArray_CHKFLAGS(ndarray m, int flags)
-    bint PyArray_IS_C_CONTIGUOUS(ndarray arr)
-    bint PyArray_IS_F_CONTIGUOUS(ndarray arr)
     bint PyArray_ISCONTIGUOUS(ndarray m)
     bint PyArray_ISWRITEABLE(ndarray m)
     bint PyArray_ISALIGNED(ndarray m)
@@ -440,8 +395,8 @@ cdef extern from "numpy/arrayobject.h":
     npy_intp PyArray_DIM(ndarray, size_t)
     npy_intp PyArray_STRIDE(ndarray, size_t)
 
-    PyObject *PyArray_BASE(ndarray)  # returns borrowed reference!
-    PyArray_Descr *PyArray_DESCR(ndarray) # returns borrowed reference to dtype!
+    # object PyArray_BASE(ndarray) wrong refcount semantics
+    # dtype PyArray_DESCR(ndarray) wrong refcount semantics
     int PyArray_FLAGS(ndarray)
     npy_intp PyArray_ITEMSIZE(ndarray)
     int PyArray_TYPE(ndarray arr)
@@ -764,7 +719,6 @@ cdef extern from "numpy/arrayobject.h":
     object PyArray_CheckAxis (ndarray, int *, int)
     npy_intp PyArray_OverflowMultiplyList (npy_intp *, int)
     int PyArray_CompareString (char *, char *, size_t)
-    int PyArray_SetBaseObject(ndarray, base)  # NOTE: steals a reference to base! Use "set_array_base()" instead.
 
 
 # Typedefs that matches the runtime dtype objects in
@@ -1019,15 +973,23 @@ cdef extern from "numpy/ufuncobject.h":
 
     int _import_umath() except -1
 
+
 cdef inline void set_array_base(ndarray arr, object base):
-    Py_INCREF(base) # important to do this before stealing the reference below!
-    PyArray_SetBaseObject(arr, base)
+     cdef PyObject* baseptr
+     if base is None:
+         baseptr = NULL
+     else:
+         Py_INCREF(base) # important to do this before decref below!
+         baseptr = <PyObject*>base
+     Py_XDECREF(arr.base)
+     arr.base = baseptr
 
 cdef inline object get_array_base(ndarray arr):
-    base = PyArray_BASE(arr)
-    if base is NULL:
+    if arr.base is NULL:
         return None
-    return <object>base
+    else:
+        return <object>arr.base
+
 
 # Versions of the import_* functions which are more suitable for
 # Cython code.

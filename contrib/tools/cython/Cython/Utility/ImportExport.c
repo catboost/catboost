@@ -222,6 +222,32 @@ bad:
 }
 
 
+/////////////// ModuleImport.proto ///////////////
+
+static PyObject *__Pyx_ImportModule(const char *name); /*proto*/
+
+/////////////// ModuleImport ///////////////
+//@requires: PyIdentifierFromString
+
+#ifndef __PYX_HAVE_RT_ImportModule
+#define __PYX_HAVE_RT_ImportModule
+static PyObject *__Pyx_ImportModule(const char *name) {
+    PyObject *py_name = 0;
+    PyObject *py_module = 0;
+
+    py_name = __Pyx_PyIdentifier_FromString(name);
+    if (!py_name)
+        goto bad;
+    py_module = PyImport_Import(py_name);
+    Py_DECREF(py_name);
+    return py_module;
+bad:
+    Py_XDECREF(py_name);
+    return 0;
+}
+#endif
+
+
 /////////////// SetPackagePathFromImportLib.proto ///////////////
 
 // PY_VERSION_HEX >= 0x03030000
@@ -308,34 +334,37 @@ set_path:
 
 /////////////// TypeImport.proto ///////////////
 
-#ifndef __PYX_HAVE_RT_ImportType_proto
-#define __PYX_HAVE_RT_ImportType_proto
-
-enum __Pyx_ImportType_CheckSize {
-   __Pyx_ImportType_CheckSize_Error = 0,
-   __Pyx_ImportType_CheckSize_Warn = 1,
-   __Pyx_ImportType_CheckSize_Ignore = 2
-};
-
-static PyTypeObject *__Pyx_ImportType(PyObject* module, const char *module_name, const char *class_name, size_t size, enum __Pyx_ImportType_CheckSize check_size);  /*proto*/
-
-#endif
+static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class_name, size_t size, int strict);  /*proto*/
 
 /////////////// TypeImport ///////////////
+//@requires: PyIdentifierFromString
+//@requires: ModuleImport
 
 #ifndef __PYX_HAVE_RT_ImportType
 #define __PYX_HAVE_RT_ImportType
-static PyTypeObject *__Pyx_ImportType(PyObject *module, const char *module_name, const char *class_name,
-    size_t size, enum __Pyx_ImportType_CheckSize check_size)
+static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class_name,
+    size_t size, int strict)
 {
+    PyObject *py_module = 0;
     PyObject *result = 0;
+    PyObject *py_name = 0;
     char warning[200];
     Py_ssize_t basicsize;
 #ifdef Py_LIMITED_API
     PyObject *py_basicsize;
 #endif
 
-    result = PyObject_GetAttrString(module, class_name);
+    py_module = __Pyx_ImportModule(module_name);
+    if (!py_module)
+        goto bad;
+    py_name = __Pyx_PyIdentifier_FromString(class_name);
+    if (!py_name)
+        goto bad;
+    result = PyObject_GetAttr(py_module, py_name);
+    Py_DECREF(py_name);
+    py_name = 0;
+    Py_DECREF(py_module);
+    py_module = 0;
     if (!result)
         goto bad;
     if (!PyType_Check(result)) {
@@ -356,30 +385,21 @@ static PyTypeObject *__Pyx_ImportType(PyObject *module, const char *module_name,
     if (basicsize == (Py_ssize_t)-1 && PyErr_Occurred())
         goto bad;
 #endif
-    if ((size_t)basicsize < size) {
-        PyErr_Format(PyExc_ValueError,
-            "%.200s.%.200s size changed, may indicate binary incompatibility. "
-            "Expected %zd from C header, got %zd from PyObject",
-            module_name, class_name, size, basicsize);
-        goto bad;
-    }
-    if (check_size == __Pyx_ImportType_CheckSize_Error && (size_t)basicsize != size) {
-        PyErr_Format(PyExc_ValueError,
-            "%.200s.%.200s size changed, may indicate binary incompatibility. "
-            "Expected %zd from C header, got %zd from PyObject",
-            module_name, class_name, size, basicsize);
-        goto bad;
-    }
-    else if (check_size == __Pyx_ImportType_CheckSize_Warn && (size_t)basicsize > size) {
+    if (!strict && (size_t)basicsize > size) {
         PyOS_snprintf(warning, sizeof(warning),
-            "%s.%s size changed, may indicate binary incompatibility. "
-            "Expected %zd from C header, got %zd from PyObject",
-            module_name, class_name, size, basicsize);
+            "%s.%s size changed, may indicate binary incompatibility. Expected %zd, got %zd",
+            module_name, class_name, basicsize, size);
         if (PyErr_WarnEx(NULL, warning, 0) < 0) goto bad;
     }
-    /* check_size == __Pyx_ImportType_CheckSize_Ignore does not warn nor error */
+    else if ((size_t)basicsize != size) {
+        PyErr_Format(PyExc_ValueError,
+            "%.200s.%.200s has the wrong size, try recompiling. Expected %zd, got %zd",
+            module_name, class_name, basicsize, size);
+        goto bad;
+    }
     return (PyTypeObject *)result;
 bad:
+    Py_XDECREF(py_module);
     Py_XDECREF(result);
     return NULL;
 }

@@ -1,4 +1,3 @@
-# cython: auto_pickle=False
 #=======================================================================
 #
 #   Python Lexical Analyser
@@ -292,7 +291,7 @@ class Scanner(object):
         else:  # input_state = 5
             self.cur_char = u''
         if self.trace:
-            print("--> [%d] %d %r" % (input_state, self.cur_pos, self.cur_char))
+            print("--> [%d] %d %s" % (input_state, self.cur_pos, repr(self.cur_char)))
 
     def position(self):
         """

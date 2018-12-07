@@ -64,7 +64,6 @@ cdef extern from *:
         PyBUF_WRITABLE
         PyBUF_STRIDES
         PyBUF_INDIRECT
-        PyBUF_ND
         PyBUF_RECORDS
         PyBUF_RECORDS_RO
 
@@ -427,7 +426,7 @@ cdef class memoryview(object):
     cdef is_slice(self, obj):
         if not isinstance(obj, memoryview):
             try:
-                obj = memoryview(obj, self.flags & ~PyBUF_WRITABLE | PyBUF_ANY_CONTIGUOUS,
+                obj = memoryview(obj, self.flags|PyBUF_ANY_CONTIGUOUS,
                                  self.dtype_is_object)
             except TypeError:
                 return None
@@ -515,7 +514,7 @@ cdef class memoryview(object):
         if flags & PyBUF_WRITABLE and self.view.readonly:
             raise ValueError("Cannot create writable memory view from read-only memoryview")
 
-        if flags & PyBUF_ND:
+        if flags & PyBUF_STRIDES:
             info.shape = self.view.shape
         else:
             info.shape = NULL

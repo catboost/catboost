@@ -38,14 +38,14 @@ cdef extern from "<set>" namespace "std" nogil:
         const_iterator const_end "end"()
         pair[iterator, iterator] equal_range(const T&)
         #pair[const_iterator, const_iterator] equal_range(T&)
-        iterator erase(iterator)
-        iterator erase(iterator, iterator)
+        void erase(iterator)
+        void erase(iterator, iterator)
         size_t erase(T&)
         iterator find(T&)
         const_iterator const_find "find"(T&)
         pair[iterator, bint] insert(const T&) except +
         iterator insert(iterator, const T&) except +
-        void insert(iterator, iterator) except +
+        #void insert(input_iterator, input_iterator)
         #key_compare key_comp()
         iterator lower_bound(T&)
         const_iterator const_lower_bound "lower_bound"(T&)

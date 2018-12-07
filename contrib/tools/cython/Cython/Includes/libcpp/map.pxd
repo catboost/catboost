@@ -13,14 +13,18 @@ cdef extern from "<map>" namespace "std" nogil:
             iterator operator--()
             bint operator==(iterator)
             bint operator!=(iterator)
+        cppclass const_iterator:
+            pair[const T, U]& operator*()
+            const_iterator operator++()
+            const_iterator operator--()
+            bint operator==(const_iterator)
+            bint operator!=(const_iterator)
         cppclass reverse_iterator:
             pair[T, U]& operator*()
             iterator operator++()
             iterator operator--()
             bint operator==(reverse_iterator)
             bint operator!=(reverse_iterator)
-        cppclass const_iterator(iterator):
-            pass
         cppclass const_reverse_iterator(reverse_iterator):
             pass
         map() except +
@@ -35,7 +39,6 @@ cdef extern from "<map>" namespace "std" nogil:
         bint operator<=(map&, map&)
         bint operator>=(map&, map&)
         U& at(const T&) except +
-        const U& const_at "at"(const T&) except +
         iterator begin()
         const_iterator const_begin "begin" ()
         void clear()
