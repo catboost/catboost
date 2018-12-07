@@ -77,6 +77,10 @@ namespace NNeh {
     /// if exceed soft limit, reduce quantity unused connections in cache
     void SetHttp2InputConnectionsLimits(size_t softLimit, size_t hardLimit);
 
+    /// for debug and monitoring purposes
+    TAtomicBase GetHttpOutputConnectionCount();
+    TAtomicBase GetHttpInputConnectionCount();
+
     /// unused input sockets keepalive timeouts
     /// real(used) timeout:
     ///   - max, if not reached soft limit

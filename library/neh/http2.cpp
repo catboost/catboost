@@ -1891,6 +1891,14 @@ namespace NNeh {
         HttpInConnLimits()->Hard = hardLimit;
     }
 
+    TAtomicBase GetHttpOutputConnectionCount() {
+        return HttpOutConnCounter()->Val();
+    }
+
+    TAtomicBase GetHttpInputConnectionCount() {
+        return HttpInConnCounter()->Val();
+    }
+
     void SetHttp2InputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds) {
         THttp2Options::ServerInputDeadlineKeepAliveMin = TDuration::Seconds(minSeconds);
         THttp2Options::ServerInputDeadlineKeepAliveMax = TDuration::Seconds(maxSeconds);
