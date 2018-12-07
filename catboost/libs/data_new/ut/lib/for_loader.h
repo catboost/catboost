@@ -26,7 +26,7 @@ namespace NCB {
     struct TSrcData {
         TStringBuf CdFileData;
         TStringBuf DsvFileData;
-        bool DsvFileHasHeader;
+        bool DsvFileHasHeader = false;
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
         TVector<ui32> IgnoredFeatures;
