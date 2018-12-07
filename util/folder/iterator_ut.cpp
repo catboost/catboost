@@ -56,7 +56,7 @@ private:
                     break;
 
                 case 1:
-                    MakeDirIfNotExist(~path.Path);
+                    MakeDirIfNotExist(path.Path.data());
                     break;
 
                 case 2:

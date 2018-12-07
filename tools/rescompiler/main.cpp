@@ -11,14 +11,14 @@
 using namespace NResource;
 
 static inline void GenOne(const TString& data, const TString& key, IOutputStream& out) {
-    const TString name = "name" + ToString(CityHash64(~key, +key));
+    const TString name = "name" + ToString(CityHash64(key.data(), key.size()));
 
     out << "static const unsigned char " << name << "[] = {";
 
     const TString c = Compress(data);
     char buf[16];
 
-    for (size_t i = 0; i < +c; ++i) {
+    for (size_t i = 0; i < c.size(); ++i) {
         if ((i % 10) == 0) {
             out << "\n    ";
         }
