@@ -10,7 +10,7 @@ from _ctypes import CFuncPtr as _CFuncPtr
 from _ctypes import __version__ as _ctypes_version
 from _ctypes import RTLD_LOCAL, RTLD_GLOBAL
 from _ctypes import ArgumentError
-from .util import find_library
+from .util import find_library as _find_library
 
 from struct import calcsize as _calcsize
 
@@ -390,6 +390,8 @@ class CDLL(object):
 
     def __getitem__(self, name_or_ordinal):
         if self._builtin:
+            if name_or_ordinal not in self._builtin:
+                raise AttributeError("function %r not found" % name_or_ordinal)
             func = self._FuncPtr(self._builtin[name_or_ordinal])
         else:
             func = self._FuncPtr((name_or_ordinal, self))
@@ -468,7 +470,7 @@ else:
     try:
         pythonapi = PyDLL(None)
     except OSError:
-        pythonapi = PyDLL(find_library('python'))
+        pythonapi = PyDLL(_find_library('python'))
 
 
 if _os.name in ("nt", "ce"):
