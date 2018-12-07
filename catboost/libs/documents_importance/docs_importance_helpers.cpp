@@ -26,8 +26,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(c
     UpdateFinalFirstDerivatives(leafIndices, pool);
 
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
-    const ui32 docDivider = 1000;
-    const size_t docBlockSize = DocCount < docDivider ? CB_THREAD_LIMIT : CB_THREAD_LIMIT * (CeilDiv(DocCount, docDivider));
+    const size_t docBlockSize = 1000;
     TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", 1);
     TProfileInfo processDocumentsProfile(DocCount);
 
