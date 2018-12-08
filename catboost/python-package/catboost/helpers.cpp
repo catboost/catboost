@@ -37,7 +37,7 @@ void ResetPythonInterruptHandler() {
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& srcData,
     const TVector<TString>& metricsDescription,
     int begin,
     int end,
@@ -48,6 +48,8 @@ TVector<TVector<double>> EvalMetrics(
 ) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
+
+    TRestorableFastRng64 rand(0);
 
     auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
@@ -61,13 +63,19 @@ TVector<TVector<double>> EvalMetrics(
         metrics
     );
 
+    auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(
+        srcData,
+        model,
+        &rand,
+        &executor
+    );
+
     if (plotCalcer.HasAdditiveMetric()) {
-        plotCalcer.ProceedDataSetForAdditiveMetrics(pool, /*isProcessBoundaryGroups=*/false);
-        plotCalcer.FinishProceedDataSetForAdditiveMetrics();
+        plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
     }
     if (plotCalcer.HasNonAdditiveMetric()) {
         while (!plotCalcer.AreAllIterationsProcessed()) {
-            plotCalcer.ProceedDataSetForNonAdditiveMetrics(pool);
+            plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
     }

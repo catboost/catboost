@@ -216,4 +216,6 @@ namespace NCB {
     };
 
     bool IsNanValue(const TStringBuf& s);
+
+    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
 }

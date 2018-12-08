@@ -1,6 +1,10 @@
 #include "train.h"
 #include <catboost/libs/helpers/query_info_helper.h>
 
+
+using namespace NCB;
+
+
 class TCrossEntropyError;
 class TRMSEError;
 class TQuantileError;
@@ -23,7 +27,7 @@ TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossi
 }
 
 template <typename TError>
-void TrainOneIter(const TDataset& data, const TDatasetPtrs& testDataPtrs, TLearnContext* ctx);
+void TrainOneIter(const TTrainingForCPUDataProviders& data, TLearnContext* ctx);
 
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
     switch (lossFunction) {

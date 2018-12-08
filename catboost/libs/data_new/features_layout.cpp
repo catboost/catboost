@@ -18,6 +18,10 @@ bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
         std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
 }
 
+TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
+    : TFeaturesLayout(featureCount, TVector<ui32>(), TVector<TString>())
+{}
+
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId)
 {
@@ -118,6 +122,31 @@ TVector<TString> TFeaturesLayout::GetExternalFeatureIds() const {
         result.push_back(metaInfo.Name);
     }
     return result;
+}
+
+void TFeaturesLayout::SetExternalFeatureIds(TConstArrayRef<TString> featureIds) {
+    CheckDataSize(featureIds.size(), ExternalIdxToMetaInfo.size(), "feature names", false, "feature count");
+    for (auto i : xrange(ExternalIdxToMetaInfo.size())) {
+        ExternalIdxToMetaInfo[i].Name = featureIds[i];
+    }
+}
+
+void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
+    for (auto ignoredFeature : ignoredFeatures) {
+        if (ignoredFeature < GetExternalFeatureCount()) {
+            IgnoreExternalFeature(ignoredFeature);
+        }
+    }
+}
+
+
+bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
+    for (const auto& metaInfo : ExternalIdxToMetaInfo) {
+        if (metaInfo.IsAvailable && !metaInfo.IsIgnored) {
+            return true;
+        }
+    }
+    return false;
 }
 
 

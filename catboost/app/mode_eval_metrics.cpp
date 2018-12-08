@@ -9,12 +9,17 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/target/data_providers.h>
 
 #include <library/getopt/small/last_getopt_opts.h>
 
 #include <util/folder/tempdir.h>
 #include <util/string/iterator.h>
 #include <util/system/compiler.h>
+
+
+using namespace NCB;
 
 
 struct TModeEvalMetricsParams {
@@ -53,37 +58,50 @@ struct TModeEvalMetricsParams {
     }
 };
 
-static void PreprocessTarget(const TLabelConverter& labelConverter, TVector<float>* targets) {
-    if (labelConverter.IsInitialized()) {
-        PrepareTargetCompressed(labelConverter, targets);
-    }
-}
 
 static void ReadDatasetParts(
     const NCB::TAnalyticalModeCommonParams& params,
     int blockSize,
-    const TLabelConverter& labelConverter,
+    const TFullModel& model,
+    TRestorableFastRng64* rand,
     NPar::TLocalExecutor* executor,
-    TVector<TPool>* datasetParts) {
-    ReadAndProceedPoolInBlocks(params, blockSize, [&](TPool& poolPart) {
-        PreprocessTarget(labelConverter, &poolPart.Docs.Target);
-        datasetParts->emplace_back();
-        datasetParts->back().Swap(poolPart);
+    TVector<TProcessedDataProvider>* processedDatasetParts) {
+
+    processedDatasetParts->clear();
+    ReadAndProceedPoolInBlocks(params, blockSize, [&](TDataProviderPtr datasetPart) {
+        auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+            *datasetPart,
+            model,
+            rand,
+            executor);
+        processedDatasetParts->push_back(std::move(processedDataProvider));
     },
     executor);
 }
 
+static TVector<NCatboostOptions::TLossDescription> CreateMetricDescriptions(
+    TStringBuf metricsDescription) {
+
+    TVector<NCatboostOptions::TLossDescription> result;
+    for (const auto& metricDescription : StringSplitter(metricsDescription).Split(',').SkipEmpty()) {
+        result.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription.Token()));
+    }
+    CB_ENSURE(!result.empty(), "No metric in metrics description " << metricsDescription);
+
+    return result;
+}
+
 static TVector<THolder<IMetric>> CreateMetrics(
-    const TModeEvalMetricsParams& plotParams,
+    TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
     int approxDim) {
 
-    TVector<TString> metricsDescription;
-    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',').SkipEmpty()) {
-        metricsDescription.emplace_back(metricDescription.Token());
+    TVector<THolder<IMetric>> metrics;
+    for (const auto& metricDescription : metricDescriptions) {
+        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
+        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
+            metrics.push_back(std::move(metricsBatch[i]));
+        }
     }
-    CB_ENSURE(!metricsDescription.empty(), "No metric in metrics description " << plotParams.MetricsDescription);
-
-    auto metrics = CreateMetricsFromDescription(metricsDescription, approxDim);
     return metrics;
 }
 
@@ -132,7 +150,10 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
-    auto metrics = CreateMetrics(plotParams, model.ObliviousTrees.ApproxDimension);
+    TRestorableFastRng64 rand(0);
+
+    auto metricDescriptions = CreateMetricDescriptions(plotParams.MetricsDescription);
+    auto metrics = CreateMetrics(metricDescriptions, model.ObliviousTrees.ApproxDimension);
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
@@ -145,26 +166,31 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         metrics
     );
 
-    auto labelConverter = BuildLabelsHelper<TLabelConverter>(model);
-
-    TVector<TPool> datasetParts;
+    TVector<TProcessedDataProvider> datasetParts;
     if (plotCalcer.HasAdditiveMetric()) {
-        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
-            PreprocessTarget(labelConverter, &poolPart.Docs.Target);
-            plotCalcer.ProceedDataSetForAdditiveMetrics(poolPart, !poolPart.Docs.QueryId.empty());
+        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
+            auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+                *datasetPart,
+                model,
+                &rand,
+                &executor);
+
+            plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
             if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
-                datasetParts.emplace_back();
-                datasetParts.back().Swap(poolPart);
+                datasetParts.push_back(std::move(processedDataProvider));
             }
         }, &executor);
-        plotCalcer.FinishProceedDataSetForAdditiveMetrics();
     }
 
     if (plotCalcer.HasNonAdditiveMetric() && calcOnParts) {
         while (!plotCalcer.AreAllIterationsProcessed()) {
-            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
-                PreprocessTarget(labelConverter, &poolPart.Docs.Target);
-                plotCalcer.ProceedDataSetForNonAdditiveMetrics(poolPart);
+            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
+                auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+                    *datasetPart,
+                    model,
+                    &rand,
+                    &executor);
+                plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
             }, &executor);
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
@@ -172,7 +198,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
         if (datasetParts.empty()) {
-            ReadDatasetParts(params, plotParams.ReadBlockSize, labelConverter, &executor, &datasetParts);
+            ReadDatasetParts(params, plotParams.ReadBlockSize, model, &rand, &executor, &datasetParts);
         }
         plotCalcer.ComputeNonAdditiveMetrics(datasetParts);
     }

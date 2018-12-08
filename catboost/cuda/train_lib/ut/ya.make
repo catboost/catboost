@@ -14,6 +14,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/data_new
     catboost/libs/train_lib
     catboost/libs/model
 )

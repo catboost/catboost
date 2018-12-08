@@ -6,6 +6,8 @@
 #include <library/unittest/registar.h>
 
 using namespace std;
+using namespace NCB;
+
 
 Y_UNIT_TEST_SUITE(TShrinkModel) {
     Y_UNIT_TEST(TestTruncateModel) {
@@ -15,15 +17,31 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
         TFullModel model, model2;
         TEvalResult evalResult;
 
-        TPool pool = GetAdultPool();
+        TDataProviderPtr pool = GetAdultPool();
 
-        TrainModel(params, Nothing(), Nothing(), TClearablePoolPtrs(pool, {&pool}), "", &model, {&evalResult});
+        TrainModel(
+            params,
+            nullptr,
+            Nothing(),
+            Nothing(),
+            TDataProviders{pool, {pool}},
+            "",
+            &model,
+            {&evalResult});
         params.InsertValue("iterations", 7);
-        TrainModel(params, Nothing(), Nothing(), TClearablePoolPtrs(pool, {&pool}), "", &model2, {&evalResult});
+        TrainModel(
+            params,
+            nullptr,
+            Nothing(),
+            Nothing(),
+            TDataProviders{pool, {pool}},
+            "",
+            &model2,
+            {&evalResult});
 
         model.Truncate(0, 7);
-        auto result = ApplyModel(model, pool);
-        auto result2 = ApplyModel(model, pool);
+        auto result = ApplyModel(model, *(pool->ObjectsData));
+        auto result2 = ApplyModel(model, *(pool->ObjectsData));
         UNIT_ASSERT_EQUAL(result.ysize(), result2.ysize());
         for (int idx = 0; idx < result.ysize(); ++idx) {
             UNIT_ASSERT_DOUBLES_EQUAL(result[idx], result2[idx], 1e-6);

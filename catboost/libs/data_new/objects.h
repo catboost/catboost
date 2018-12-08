@@ -149,6 +149,16 @@ namespace NCB {
             return (*CommonData.CatFeaturesHashToString)[catFeatureIdx];
         }
 
+        /* set functions are needed for current python mutable Pool interface
+           builders should prefer to set fields directly to avoid unnecessary data copying
+        */
+
+        // updates ObjectsGrouping
+        void SetGroupIds(TConstArrayRef<TGroupId> groupIds); // [objectIdx]
+
+        void SetSubgroupIds(TConstArrayRef<TSubgroupId> subgroupIds); // [objectIdx]
+
+
         void SaveCommonDataNonSharedPart(IBinSaver* binSaver) const {
             CommonData.SaveNonSharedPart(binSaver);
         }
@@ -258,6 +268,11 @@ namespace NCB {
         void SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds);
         void SetSubgroupIds(TConstArrayRef<TStringBuf> subgroupStringIds);
 
+        /* old TPool format (for cat feature  categ features hashes reinterpreted as float,
+         * for compatibility with old code only
+         */
+        TVector<float> GetFeatureDataOldFormat(ui32 flatFeatureIdx) const;
+
     private:
         friend class TQuantizationImpl;
         friend class TRawBuilderDataHelper;
@@ -265,7 +280,6 @@ namespace NCB {
     private:
         TRawObjectsData Data;
     };
-
 
     // for use while building and storing this part in TRawObjectsDataProvider
     struct TQuantizedObjectsData {
@@ -303,6 +317,8 @@ namespace NCB {
         );
         void SaveNonSharedPart(IBinSaver* binSaver) const;
     };
+
+    using TRawObjectsDataProviderPtr = TIntrusivePtr<TRawObjectsDataProvider>;
 
 
     class TQuantizedObjectsDataProvider : public TObjectsDataProvider {
@@ -398,6 +414,9 @@ namespace NCB {
         TQuantizedObjectsData Data;
     };
 
+    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
+
+
     class TQuantizedForCPUObjectsDataProvider : public TQuantizedObjectsDataProvider {
     public:
         TQuantizedForCPUObjectsDataProvider(
@@ -424,6 +443,14 @@ namespace NCB {
             );
         }
 
+        // needed for effective calculation with Permutation blocks on CPU
+        void EnsureConsecutiveFeaturesData(NPar::TLocalExecutor* localExecutor);
+
+        // needed for low-level optimizations in CPU training code
+        const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
+            return *CommonData.SubsetIndexing;
+        }
+
         /* overrides base class implementation with more restricted type
          * (more efficient for CPU score calculation)
          * features guaranteed to be stored as an array of ui8
@@ -437,6 +464,11 @@ namespace NCB {
             );
         }
 
+        // low-level function, data is without subset indexing, apply external subset indexing!
+        const ui8* GetFloatFeatureRawSrcData(ui32 floatFeatureIdx) const {
+            return *((*GetFloatFeature(floatFeatureIdx))->GetArrayData().GetSrc());
+        }
+
         /* overrides base class implementation with more restricted type
          * (more efficient for CPU score calculation)
          * features guaranteed to be stored as an array of ui32
@@ -448,6 +480,11 @@ namespace NCB {
                     Data.CatFeatures[catFeatureIdx].Get()
                 )
             );
+        }
+
+        // low-level function, data is without subset indexing, apply external subset indexing!
+        const ui32* GetCatFeatureRawSrcData(ui32 catFeatureIdx) const {
+            return *((*GetCatFeature(catFeatureIdx))->GetArrayData().GetSrc());
         }
 
         TCatFeatureUniqueValuesCounts GetCatFeatureUniqueValuesCounts(ui32 catFeatureIdx) const {
@@ -464,6 +501,19 @@ namespace NCB {
     };
 
 
+    // util function for commonly used functionality
+    template <class TBase>
+    inline TConstPtrArraySubset<typename TBase::TValueType> SubsetWithAlternativeIndexing(
+        TMaybeData<const TCompressedValuesHolderImpl<TBase>*> featureData,
+        const TFeaturesArraySubsetIndexing* alternativeIndexing
+    ) {
+        return TConstPtrArraySubset<typename TBase::TValueType>(
+            (*featureData)->GetArrayData().GetSrc(),
+            alternativeIndexing
+        );
+    }
+
+
     // needed to make friends with TObjectsDataProvider s
     class TObjectsSerialization {
     public:
@@ -477,7 +527,8 @@ namespace NCB {
             TCommonObjectsData commonObjectsData;
             commonObjectsData.Load(featuresLayout, objectsGrouping->GetObjectCount(), binSaver);
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                featuresLayout,
+                *featuresLayout,
+                TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions()
             );
             quantizedFeaturesInfo->LoadNonSharedPart(binSaver);
@@ -503,5 +554,7 @@ namespace NCB {
             objectsData.SaveDataNonSharedPart(binSaver);
         }
     };
+
+    THashMap<ui32, TString> MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData);
 
 }

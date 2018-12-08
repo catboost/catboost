@@ -8,6 +8,8 @@
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <util/datetime/base.h>
+
 
 namespace NCB {
 
@@ -133,26 +135,24 @@ namespace NCB {
     ) {
         loadOptions.Validate();
 
-        /* TODO(akhropov): This cast will go away after all code is switched to new dataset interfaces.
-         * MLTOOLS-140.
-         */
-        const TVector<ui32> ignoredFeatures = ToUnsigned(loadOptions.IgnoredFeatures);
-
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount - 1);
 
         TDataProviders dataProviders;
 
         if (loadOptions.LearnSetPath.Inited()) {
+            CATBOOST_DEBUG_LOG << "Loading features..." << Endl;
+            auto start = Now();
             dataProviders.Learn = ReadDataset(
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
                 loadOptions.GroupWeightsFilePath,
                 loadOptions.DsvPoolFormatParams,
-                ignoredFeatures,
+                loadOptions.IgnoredFeatures,
                 objectsOrder,
                 &localExecutor
             );
+            CATBOOST_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
             if (profile) {
                 (*profile)->AddOperation("Build learn pool");
             }
@@ -160,6 +160,7 @@ namespace NCB {
         dataProviders.Test.resize(0);
 
         if (readTestData) {
+            CATBOOST_DEBUG_LOG << "Loading test..." << Endl;
             for (int testIdx = 0; testIdx < loadOptions.TestSetPaths.ysize(); ++testIdx) {
                 const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
                 const NCB::TPathWithScheme& testPairsFilePath =
@@ -172,7 +173,7 @@ namespace NCB {
                     testPairsFilePath,
                     testGroupWeightsFilePath,
                     loadOptions.DsvPoolFormatParams,
-                    ignoredFeatures,
+                    loadOptions.IgnoredFeatures,
                     objectsOrder,
                     &localExecutor
                 );

@@ -6,11 +6,11 @@
 
 #include <library/grid_creator/binarization.h>
 
+#include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
-#include <util/generic/vector.h>
 
 
-TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
+TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                         int targetBorderCount,

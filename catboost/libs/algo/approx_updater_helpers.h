@@ -3,7 +3,7 @@
 #include "learn_context.h"
 
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/data/dataset.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_types/query.h>
 
 #include <library/fast_exp/fast_exp.h>
@@ -14,6 +14,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/types.h>
 #include <util/system/yassert.h>
 
 
@@ -99,10 +100,10 @@ inline void UpdateApprox(
 
 void UpdateAvrgApprox(
     bool storeExpApprox,
-    size_t learnSampleCount,
+    ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    const TDatasetPtrs& testDataPtrs,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 );
@@ -116,12 +117,12 @@ void NormalizeLeafValues(
 
 inline TVector<double> SumLeafWeights(size_t leafCount,
     const TVector<TIndexType>& leafIndices,
-    const TVector<ui32>& learnPermutation,
-    const TVector<float>& learnWeights
+    TConstArrayRef<ui32> learnPermutation,
+    TConstArrayRef<float> learnWeights // can be empty
 ) {
     TVector<double> weightSum(leafCount);
-    for (size_t docIdx = 0; docIdx < learnWeights.size(); ++docIdx) {
-        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights[docIdx];
+    for (size_t docIdx = 0; docIdx < learnPermutation.size(); ++docIdx) {
+        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights.empty() ? 1.0 : learnWeights[docIdx];
     }
     return weightSum;
 }

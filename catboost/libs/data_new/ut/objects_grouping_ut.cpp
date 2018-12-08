@@ -113,7 +113,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                     MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>(groups1)),
                     TArraySubsetIndexing<ui32>(subsetVector[0]),
                     subsetGroupOrders[0],
-                    MakeHolder<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(42)),
+                    MakeMaybe<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(42)),
                     subsetGroupOrders[0]
                 )
             );
@@ -130,7 +130,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                     ),
                     TArraySubsetIndexing<ui32>(subsetVector[1]),
                     subsetGroupOrders[1],
-                    MakeHolder<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges)),
+                    MakeMaybe<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges)),
                     subsetGroupOrders[1]
                 )
             );
@@ -147,7 +147,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                     ),
                     TArraySubsetIndexing<ui32>(subsetVector[2]),
                     subsetGroupOrders[2],
-                    MakeHolder<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges)),
+                    MakeMaybe<TArraySubsetIndexing<ui32>>(TRangesSubset<ui32>(savedIndexRanges)),
                     subsetGroupOrders[2]
                 )
             );
@@ -306,6 +306,68 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
 
             UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(22), TCatboostException);
             UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatboostException);
+        }
+    }
+
+    Y_UNIT_TEST(Shuffle) {
+        {
+            auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(ui32(10));
+            ui32 permuteBlockSize = 1;
+
+            TRestorableFastRng64 rand(0);
+            auto shuffledObjectsGroupingSubset = Shuffle(objectsGrouping, permuteBlockSize, &rand);
+
+            UNIT_ASSERT(
+                IndicesEqual(
+                    shuffledObjectsGroupingSubset.GetGroupsIndexing(),
+                    {8, 6, 5, 0, 3, 1, 7, 4, 9, 2}
+                )
+            );
+            UNIT_ASSERT(
+                IndicesEqual(
+                    shuffledObjectsGroupingSubset.GetObjectsIndexing(),
+                    {8, 6, 5, 0, 3, 1, 7, 4, 9, 2}
+                )
+            );
+        }
+        {
+            auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(ui32(13));
+            ui32 permuteBlockSize = 4;
+
+            TRestorableFastRng64 rand(0);
+            auto shuffledObjectsGroupingSubset = Shuffle(objectsGrouping, permuteBlockSize, &rand);
+
+            UNIT_ASSERT(
+                IndicesEqual(
+                    shuffledObjectsGroupingSubset.GetGroupsIndexing(),
+                    {8, 9, 10, 11, 12, 4, 5, 6, 7, 0, 1, 2, 3}
+                )
+            );
+            UNIT_ASSERT(
+                IndicesEqual(
+                    shuffledObjectsGroupingSubset.GetObjectsIndexing(),
+                    {8, 9, 10, 11, 12, 4, 5, 6, 7, 0, 1, 2, 3}
+                )
+            );
+        }
+        {
+            auto objectsGrouping = MakeIntrusive<TObjectsGrouping>(
+                TVector<TGroupBounds>{{0, 2}, {2, 5}, {5, 8}, {8, 9}, {9, 10}, {10, 12}}
+            );
+            ui32 permuteBlockSize = 1;
+
+            TRestorableFastRng64 rand(0);
+            auto shuffledObjectsGroupingSubset = Shuffle(objectsGrouping, permuteBlockSize, &rand);
+
+            UNIT_ASSERT(
+                IndicesEqual(shuffledObjectsGroupingSubset.GetGroupsIndexing(), { 2, 4, 5, 0, 3, 1 })
+            );
+            UNIT_ASSERT(
+                IndicesEqual(
+                    shuffledObjectsGroupingSubset.GetObjectsIndexing(),
+                    {7, 5, 6, 9, 11, 10, 1, 0, 8, 2, 4, 3}
+                )
+            );
         }
     }
 }

@@ -5,17 +5,16 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/tensor_search_helpers.h>
-#include <catboost/libs/data/dataset.h>
+#include <catboost/libs/data_new/data_provider.h>
 
 void InitializeMaster(TLearnContext* ctx);
 void FinalizeMaster(TLearnContext* ctx);
-void MapBuildPlainFold(const TDataset& trainData, TLearnContext* ctx);
+void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnContext* ctx);
 void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);
 void MapTensorSearchStart(TLearnContext* ctx);
 void MapBootstrap(TLearnContext* ctx);
 void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx);
 void MapRemoteCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx);
-void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
 void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
@@ -38,7 +37,7 @@ TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvi
 }
 
 template <typename TError, typename TApproxDefs>
-void MapSetApproxes(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtrs, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
+void MapSetApproxes(const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
     static_assert(TError::IsCatboostErrorFunction, "TError is not a CatBoost error function class");
 
     using namespace NCatboostDistributed;
@@ -85,7 +84,7 @@ void MapSetApproxes(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtr
     }
 
     NormalizeLeafValues(
-        IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction()),
+        UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),
         ctx->Params.BoostingOptions->LearningRate,
         *sumLeafWeights,
         averageLeafValues
@@ -94,9 +93,9 @@ void MapSetApproxes(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtr
     // update learn approx and average approx
     ApplyMapper<TApproxUpdater>(workerCount, ctx->SharedTrainData, *averageLeafValues);
     // update test
-    const auto indices = BuildIndices(/*unused fold*/{}, splitTree, /*learnData*/ {}, testDataPtrs, &ctx->LocalExecutor);
+    const auto indices = BuildIndices(/*unused fold*/{}, splitTree, /*learnData*/nullptr, testData, ctx->LocalExecutor);
     const bool storeExpApprox = IsStoreExpApprox(ctx->Params.LossFunctionDescription->GetLossFunction());
-    UpdateAvrgApprox(storeExpApprox, /*learnSampleCount*/ 0, indices, *averageLeafValues, testDataPtrs, &ctx->LearnProgress, &ctx->LocalExecutor);
+    UpdateAvrgApprox(storeExpApprox, /*learnSampleCount*/ 0, indices, *averageLeafValues, testData, &ctx->LearnProgress, ctx->LocalExecutor);
 }
 
 template <typename TError>
@@ -162,13 +161,13 @@ struct TSetApproxesMultiDefs {
 };
 
 template <typename TError>
-void MapSetApproxesSimple(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtrs, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
-    MapSetApproxes<TError, TSetApproxesSimpleDefs<TError>>(splitTree, testDataPtrs, averageLeafValues, sumLeafWeights, ctx);
+void MapSetApproxesSimple(const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
+    MapSetApproxes<TError, TSetApproxesSimpleDefs<TError>>(splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
 }
 
 template <typename TError>
-void MapSetApproxesMulti(const TSplitTree& splitTree, const TDatasetPtrs& testDataPtrs, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
-    MapSetApproxes<TError, TSetApproxesMultiDefs<TError>>(splitTree, testDataPtrs, averageLeafValues, sumLeafWeights, ctx);
+void MapSetApproxesMulti(const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
+    MapSetApproxes<TError, TSetApproxesMultiDefs<TError>>(splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
 }
 
 template <typename TError>

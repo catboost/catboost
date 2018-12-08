@@ -8,6 +8,8 @@
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/vector.h>
+#include <util/system/types.h>
+
 
 namespace NJson {
     class TJsonValue;
@@ -23,7 +25,7 @@ namespace NCatboostOptions {
         bool operator==(const TDataProcessingOptions& rhs) const;
         bool operator!=(const TDataProcessingOptions& rhs) const;
 
-        TOption<TVector<int>> IgnoredFeatures;
+        TOption<TVector<ui32>> IgnoredFeatures;
         TOption<bool> HasTimeFlag;
         TOption<bool> AllowConstLabel;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;

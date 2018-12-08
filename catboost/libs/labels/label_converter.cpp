@@ -66,10 +66,11 @@ void TLabelConverter::Initialize(const TString& multiclassLabelParams) {
     Initialized = true;
 }
 
-void TLabelConverter::Initialize(const TVector<float>& targets, int classesCount) {
+void TLabelConverter::Initialize(TConstArrayRef<float> targets, int classesCount) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
 
-    LabelToClass = CalcLabelToClassMap(targets, classesCount);
+    TVector<float> targetsCopy(targets.begin(), targets.end());
+    LabelToClass = CalcLabelToClassMap(std::move(targetsCopy), classesCount);
     ClassesCount = Max(classesCount, LabelToClass.ysize());
 
     ClassToLabel.resize(LabelToClass.ysize());
@@ -90,7 +91,7 @@ int TLabelConverter::GetClassIdx(float label) const {
     return it == LabelToClass.cend() ? 0 : it->second;
 }
 
-void TLabelConverter::ValidateLabels(const TVector<float>& labels) const {
+void TLabelConverter::ValidateLabels(TConstArrayRef<float> labels) const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
 
     THashSet<float> missingLabels;

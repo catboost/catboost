@@ -117,13 +117,7 @@ bool IsBinaryClassMetric(ELossFunction lossFunction) {
 }
 
 bool IsMultiClassMetric(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::MultiClass ||
-            lossFunction == ELossFunction::MultiClassOneVsAll ||
-            lossFunction == ELossFunction::HingeLoss ||
-            lossFunction == ELossFunction::Kappa ||
-            lossFunction == ELossFunction::WKappa ||
-            lossFunction == ELossFunction::HammingLoss ||
-            lossFunction == ELossFunction::ZeroOneLoss);
+    return IsMultiDimensionalError(lossFunction);
 }
 
 
@@ -157,17 +151,34 @@ bool IsRegressionObjective(const TStringBuf lossDescription) {
     return IsRegressionObjective(lossType);
 }
 
+bool IsRegressionMetric(ELossFunction lossFunction) {
+    return (IsRegressionObjective(lossFunction) ||
+        lossFunction == ELossFunction::R2 ||
+        lossFunction == ELossFunction::MSLE ||
+        lossFunction == ELossFunction::MedianAbsoluteError
+    );
+}
+
+
 bool IsGroupwiseMetric(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::QueryRMSE ||
         lossFunction == ELossFunction::QuerySoftMax  ||
         lossFunction == ELossFunction::QueryCrossEntropy ||
         IsGroupwiseOrderMetric(lossFunction) ||
-        IsPairwiseError(lossFunction)
+        IsPairwiseMetric(lossFunction)
     );
 }
 
-bool IsPairwiseError(ELossFunction lossFunction) {
+bool IsPairwiseMetric(ELossFunction lossFunction) {
+    return (
+        lossFunction == ELossFunction::PairLogit ||
+        lossFunction == ELossFunction::PairLogitPairwise ||
+        lossFunction == ELossFunction::PairAccuracy
+    );
+}
+
+bool UsesPairsForCalculation(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::PairLogit ||
         lossFunction == ELossFunction::YetiRank ||

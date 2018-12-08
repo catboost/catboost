@@ -24,6 +24,7 @@ PEERDIR(
     catboost/cuda/models
     catboost/cuda/targets
     catboost/libs/algo
+    catboost/libs/data_new
     catboost/libs/eval_result
     catboost/libs/fstr
     catboost/libs/helpers

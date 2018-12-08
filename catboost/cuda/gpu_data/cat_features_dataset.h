@@ -1,21 +1,23 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
+
+#include <catboost/libs/data_new/data_provider.h>
+
 #include <util/generic/noncopyable.h>
 
 namespace NCatboostCuda {
-    inline ui64 EstimatePerDeviceMemoryUsageForCatFeaturesDataSet(const TDataProvider& dataProvider,
+    inline ui64 EstimatePerDeviceMemoryUsageForCatFeaturesDataSet(const NCB::TTrainingDataProvider& dataProvider,
                                                                   const TBinarizedFeaturesManager& featuresManager) {
         ui32 maxUniqueValue = 0;
         for (auto feature : featuresManager.GetCatFeatureIds()) {
             maxUniqueValue = std::max<ui32>(maxUniqueValue, featuresManager.GetBinCount(feature));
         }
         return static_cast<ui64>(
-            CompressedSize<ui64>(static_cast<ui32>(dataProvider.GetSampleCount()), maxUniqueValue) * 1.0 *
+            CompressedSize<ui64>(static_cast<ui32>(dataProvider.GetObjectCount()), maxUniqueValue) * 1.0 *
             featuresManager.GetCatFeatureIds().size() / NCudaLib::GetCudaManager().GetDeviceCount());
     }
 
@@ -34,7 +36,7 @@ namespace NCatboostCuda {
         using TCompressedCatFeatureVecGpu = TCompressedCatFeatureVec<NCudaLib::EPtrType::CudaDevice>;
 
         ui64 GetDocCount() const {
-            return DataProvider->GetSampleCount();
+            return DataProvider->GetObjectCount();
         }
 
         ui32 GetFeatureCount() const {
@@ -84,14 +86,14 @@ namespace NCatboostCuda {
         TVector<TVector<ui32>> DeviceFeatures;
         TMap<ui32, TCatFeature> Features;
 
-        const TDataProvider* DataProvider = nullptr;
+        const NCB::TTrainingDataProvider* DataProvider = nullptr;
 
         friend class TCompressedCatFeatureDataSetBuilder;
     };
 
     class TCompressedCatFeatureDataSetBuilder {
     public:
-        TCompressedCatFeatureDataSetBuilder(const TDataProvider& dataProvider,
+        TCompressedCatFeatureDataSetBuilder(const NCB::TTrainingDataProvider& dataProvider,
                                             TBinarizedFeaturesManager& featuresManager,
                                             TCompressedCatFeatureDataSet& dataSet)
             : DevCount(GetDeviceCount())
@@ -119,7 +121,7 @@ namespace NCatboostCuda {
         ui32 DeviceId = 0;
         TVector<ui64> MemoryUsage;
 
-        const TDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider& DataProvider;
         const TBinarizedFeaturesManager& FeaturesManager;
     };
 

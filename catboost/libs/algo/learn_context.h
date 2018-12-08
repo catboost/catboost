@@ -6,6 +6,8 @@
 #include "split.h"
 #include "calc_score_cache.h"
 
+
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/labels/label_converter.h>
@@ -61,27 +63,23 @@ public:
     TCommonContext(const NCatboostOptions::TCatBoostOptions& params,
                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                   ui32 featureCount,
-                   const TVector<ui32>& catFeatures,
-                   const TVector<TString>& featureId)
+                   NCB::TFeaturesLayoutPtr layout,
+                   NPar::TLocalExecutor* localExecutor)
         : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
         , EvalMetricDescriptor(evalMetricDescriptor)
-        , Layout(featureCount, catFeatures, featureId)
-        , CatFeatures(catFeatures.begin(), catFeatures.end()) {
-        LocalExecutor.RunAdditionalThreads(Params.SystemOptions->NumThreads - 1);
-        CB_ENSURE(static_cast<ui32>(LocalExecutor.GetThreadCount()) == Params.SystemOptions->NumThreads - 1);
-    }
+        , Layout(layout)
+        , LocalExecutor(localExecutor)
+    {}
 
 public:
     NCatboostOptions::TCatBoostOptions Params;
     const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
     const TMaybe<TCustomMetricDescriptor> EvalMetricDescriptor;
-    NCB::TFeaturesLayout Layout;
-    THashSet<ui32> CatFeatures;
+    NCB::TFeaturesLayoutPtr Layout;
     TCtrHelper CtrsHelper;
     // TODO(asaitgalin): local executor should be shared by all contexts. MLTOOLS-2451.
-    NPar::TLocalExecutor LocalExecutor;
+    NPar::TLocalExecutor* LocalExecutor;
 };
 
 
@@ -96,11 +94,11 @@ public:
                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                   const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                  ui32 featureCount,
-                  const TVector<ui32>& catFeatures,
-                  const TVector<TString>& featuresId,
+                  NCB::TFeaturesLayoutPtr layout,
+                  TMaybe<const TRestorableFastRng64*> initRand,
+                  NPar::TLocalExecutor* localExecutor,
                   const TString& fileNamesPrefix = "")
-        : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
+        : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, std::move(layout), localExecutor)
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
@@ -111,11 +109,15 @@ public:
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);
+
+        if (initRand) {
+            Rand.Advance((**initRand).GetCallCount());
+        }
     }
     ~TLearnContext();
 
     void OutputMeta();
-    void InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs);
+    void InitContext(const NCB::TTrainingForCPUDataProviders& data);
     void SaveProgress();
     bool TryLoadProgress();
     bool UseTreeLevelCaching() const;

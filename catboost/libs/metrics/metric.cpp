@@ -122,9 +122,9 @@ namespace {
         explicit TCrossEntropyMetric(ELossFunction lossFunction, double border);
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -153,9 +153,9 @@ TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double bord
 
 TMetricHolder TCrossEntropyMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -204,9 +204,9 @@ namespace {
         }
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -224,9 +224,9 @@ THolder<IMetric> MakeCtrFactorMetric(double border) {
 
 TMetricHolder TCtrFactorMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -264,9 +264,9 @@ namespace {
     struct TRMSEMetric: public TAdditiveMetric<TRMSEMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -282,9 +282,9 @@ THolder<IMetric> MakeRMSEMetric() {
 
 TMetricHolder TRMSEMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -325,9 +325,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -345,9 +345,9 @@ THolder<IMetric> MakeLqMetric(double q) {
 
 TMetricHolder TLqMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& /*queriesInfo*/,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int begin,
         int end
 ) const {
@@ -384,9 +384,9 @@ namespace {
         explicit TQuantileMetric(ELossFunction lossFunction, double alpha);
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -414,9 +414,9 @@ TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
 
 TMetricHolder TQuantileMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -460,9 +460,9 @@ namespace {
         explicit TLogLinQuantileMetric(double alpha);
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -486,9 +486,9 @@ TLogLinQuantileMetric::TLogLinQuantileMetric(double alpha)
 
 TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -524,9 +524,9 @@ namespace {
     struct TMAPEMetric : public TAdditiveMetric<TMAPEMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -541,9 +541,9 @@ THolder<IMetric> MakeMAPEMetric() {
 
 TMetricHolder TMAPEMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -581,9 +581,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
@@ -601,9 +601,9 @@ THolder<IMetric> MakeNumErrorsMetric(double k) {
 
 TMetricHolder TNumErrorsMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& /*queriesInfo*/,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int begin,
         int end
 ) const {
@@ -637,9 +637,9 @@ namespace {
     struct TPoissonMetric : public TAdditiveMetric<TPoissonMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -654,9 +654,9 @@ THolder<IMetric> MakePoissonMetric() {
 
 TMetricHolder TPoissonMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -693,9 +693,9 @@ namespace {
     struct TMSLEMetric : public TAdditiveMetric<TMSLEMetric> {
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -711,9 +711,9 @@ THolder<IMetric> MakeMSLEMetric() {
 
 TMetricHolder TMSLEMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -749,9 +749,9 @@ namespace {
     struct TMedianAbsoluteErrorMetric : public TNonAdditiveMetric {
         TMetricHolder Eval(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end,
                 NPar::TLocalExecutor& executor) const override;
@@ -769,9 +769,9 @@ THolder<IMetric> MakeMedianAbsoluteErrorMetric() {
 
 TMetricHolder TMedianAbsoluteErrorMetric::Eval(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
     NPar::TLocalExecutor& /*executor*/
@@ -812,9 +812,9 @@ namespace {
     struct TSMAPEMetric : public TAdditiveMetric<TSMAPEMetric> {
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -830,9 +830,9 @@ THolder<IMetric> MakeSMAPEMetric() {
 
 TMetricHolder TSMAPEMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -869,9 +869,9 @@ namespace {
     struct TLLPMetric : public TAdditiveMetric<TLLPMetric> {
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -888,9 +888,9 @@ THolder<IMetric> MakeLLPMetric() {
 
 TMetricHolder TLLPMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& /*queriesInfo*/,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int begin,
         int end
 ) const {
@@ -919,9 +919,9 @@ namespace {
     struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -936,13 +936,13 @@ THolder<IMetric> MakeMultiClassMetric() {
 
 TMetricHolder TMultiClassMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
+    Y_ASSERT(target.size() == approx[0].size());
     int approxDimension = approx.ysize();
 
     TMetricHolder error(2);
@@ -988,9 +988,9 @@ namespace {
     struct TMultiClassOneVsAllMetric : public TAdditiveMetric<TMultiClassOneVsAllMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -1005,13 +1005,13 @@ THolder<IMetric> MakeMultiClassOneVsAllMetric() {
 
 TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
+    Y_ASSERT(target.size() == approx[0].size());
     int approxDimension = approx.ysize();
 
     TMetricHolder error(2);
@@ -1047,9 +1047,9 @@ namespace {
     struct TPairLogitMetric : public TAdditiveMetric<TPairLogitMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -1065,9 +1065,9 @@ THolder<IMetric> MakePairLogitMetric() {
 
 TMetricHolder TPairLogitMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> /*target*/,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -1116,9 +1116,9 @@ namespace {
     struct TQueryRMSEMetric : public TAdditiveMetric<TQueryRMSEMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -1132,8 +1132,8 @@ namespace {
             int start,
             int count,
             const TVector<double>& approxes,
-            const TVector<float>& targets,
-            const TVector<float>& weights
+            TConstArrayRef<float> targets,
+            TConstArrayRef<float> weights
         ) const;
     };
 }
@@ -1144,9 +1144,9 @@ THolder<IMetric> MakeQueryRMSEMetric() {
 
 TMetricHolder TQueryRMSEMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -1170,8 +1170,8 @@ double TQueryRMSEMetric::CalcQueryAvrg(
     int start,
     int count,
     const TVector<double>& approxes,
-    const TVector<float>& targets,
-    const TVector<float>& weights
+    TConstArrayRef<float> targets,
+    TConstArrayRef<float> weights
 ) const {
     double qsum = 0;
     double qcount = 0;
@@ -1211,9 +1211,9 @@ namespace {
         explicit TPFoundMetric(int topSize, double decay);
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -1239,9 +1239,9 @@ TPFoundMetric::TPFoundMetric(int topSize, double decay)
 
 TMetricHolder TPFoundMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -1284,9 +1284,9 @@ namespace {
         explicit TNdcgMetric(int topSize, ENdcgMetricType type);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
@@ -1312,9 +1312,9 @@ TNdcgMetric::TNdcgMetric(int topSize, ENdcgMetricType type)
 
 TMetricHolder TNdcgMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -1360,9 +1360,9 @@ namespace {
     struct TQuerySoftMaxMetric : public TAdditiveMetric<TQuerySoftMaxMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -1375,8 +1375,8 @@ namespace {
             int start,
             int count,
             const TVector<double>& approxes,
-            const TVector<float>& targets,
-            const TVector<float>& weights,
+            TConstArrayRef<float> targets,
+            TConstArrayRef<float> weights,
             TVector<double>* softmax
         ) const;
     };
@@ -1388,9 +1388,9 @@ THolder<IMetric> MakeQuerySoftMaxMetric() {
 
 TMetricHolder TQuerySoftMaxMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -1414,8 +1414,8 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
     int start,
     int count,
     const TVector<double>& approxes,
-    const TVector<float>& targets,
-    const TVector<float>& weights,
+    TConstArrayRef<float> targets,
+    TConstArrayRef<float> weights,
     TVector<double>* softmax
 ) const {
     double maxApprox = -std::numeric_limits<double>::max();
@@ -1483,9 +1483,9 @@ namespace {
     struct TR2Metric: public TAdditiveMetric<TR2Metric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -1501,9 +1501,9 @@ THolder<IMetric> MakeR2Metric() {
 
 TMetricHolder TR2Metric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -1554,9 +1554,9 @@ namespace {
 
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
             NPar::TLocalExecutor& executor) const override;
@@ -1580,9 +1580,9 @@ THolder<IMetric> MakeMultiClassAucMetric(int positiveClass) {
 
 TMetricHolder TAUCMetric::Eval(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weightIn,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weightIn,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
     NPar::TLocalExecutor& /* executor */
@@ -1590,7 +1590,7 @@ TMetricHolder TAUCMetric::Eval(
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
     const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
     Y_ASSERT(approxVec.size() == target.size());
-    const auto& weight = UseWeights ? weightIn : TVector<float>{};
+    auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
 
     TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
     TVector<double> targetCopy(target.begin() + begin, target.begin() + end);
@@ -1645,9 +1645,9 @@ namespace {
         }
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -1665,13 +1665,13 @@ THolder<IMetric> MakeAccuracyMetric(double border) {
 
 TMetricHolder TAccuracyMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
+    Y_ASSERT(target.size() == approx[0].size());
     return GetAccuracy(approx, target, weight, begin, end, Border);
 }
 
@@ -1698,9 +1698,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -1726,9 +1726,9 @@ THolder<IMetric> MakeMultiClassPrecisionMetric(int positiveClass) {
 
 TMetricHolder TPrecisionMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -1775,9 +1775,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -1803,9 +1803,9 @@ THolder<IMetric> MakeMultiClassRecallMetric(int positiveClass) {
 
 TMetricHolder TRecallMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -1856,9 +1856,9 @@ namespace {
         }
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -1878,9 +1878,9 @@ THolder<IMetric> MakeBinClassBalancedAccuracyMetric(double border) {
 
 TMetricHolder TBalancedAccuracyMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -1910,9 +1910,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -1932,9 +1932,9 @@ THolder<IMetric> MakeBinClassBalancedErrorRate(double border) {
 
 TMetricHolder TBalancedErrorRate::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -1964,9 +1964,9 @@ namespace {
         }
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -1990,9 +1990,9 @@ THolder<IMetric> MakeMultiClassKappaMetric(int classCount) {
 
 TMetricHolder TKappaMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -2023,9 +2023,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -2050,9 +2050,9 @@ THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
 
 TMetricHolder TWKappaMatric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -2086,9 +2086,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -2115,9 +2115,9 @@ THolder<IMetric> MakeMultiClassF1Metric(int positiveClass) {
 
 TMetricHolder TF1Metric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -2161,9 +2161,9 @@ namespace {
         }
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -2183,9 +2183,9 @@ THolder<IMetric> MakeTotalF1Metric(int classesCount) {
 
 TMetricHolder TTotalF1Metric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -2254,8 +2254,8 @@ static double GetConstValue(const TVector<double>& squareMatrix, int i, int j) {
 
 static void BuildConfusionMatrix(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
     int begin,
     int end,
     TVector<double>* confusionMatrix
@@ -2282,9 +2282,9 @@ namespace {
         }
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
         ) const;
@@ -2304,9 +2304,9 @@ THolder<IMetric> MakeMCCMetric(int classesCount) {
 
 TMetricHolder TMCCMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -2357,9 +2357,9 @@ namespace {
     struct TBrierScoreMetric : public TAdditiveMetric<TBrierScoreMetric> {
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -2378,13 +2378,12 @@ THolder<IMetric> MakeBrierScoreMetric() {
 
 TMetricHolder TBrierScoreMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
-    CB_ENSURE(target.size() == weight.size(), "BrierScore metric requires weights");
     return ComputeBrierScoreMetric(approx.front(), target, weight, begin, end);
 }
 
@@ -2406,9 +2405,9 @@ namespace {
     struct THingeLossMetric : public TAdditiveMetric<THingeLossMetric> {
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -2424,9 +2423,9 @@ THolder<IMetric> MakeHingeLossMetric() {
 
 TMetricHolder THingeLossMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
@@ -2452,9 +2451,9 @@ namespace {
         explicit TZeroOneLossMetric(double border, bool isMultiClass);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -2479,13 +2478,13 @@ TZeroOneLossMetric::TZeroOneLossMetric(double border, bool isMultiClass)
 
 TMetricHolder TZeroOneLossMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
+    Y_ASSERT(target.size() == approx[0].size());
     return GetAccuracy(approx, target, weight, begin, end, Border);
 }
 
@@ -2512,9 +2511,9 @@ namespace {
         explicit THammingLossMetric(double border, bool isMultiClass);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int begin,
                 int end
         ) const;
@@ -2540,13 +2539,13 @@ THammingLossMetric::THammingLossMetric(double border, bool isMultiClass)
 
 TMetricHolder THammingLossMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end
 ) const {
-    Y_ASSERT(target.ysize() == approx[0].ysize());
+    Y_ASSERT(target.size() == approx[0].size());
     TMetricHolder error(2);
     const bool isMulticlass = approx.size() > 1;
 
@@ -2595,9 +2594,9 @@ namespace {
     struct TPairAccuracyMetric : public TAdditiveMetric<TPairAccuracyMetric> {
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -2613,9 +2612,9 @@ THolder<IMetric> MakePairAccuracyMetric() {
 
 TMetricHolder TPairAccuracyMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> /*target*/,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -2656,9 +2655,9 @@ namespace {
         explicit TPrecisionAtKMetric(int topSize, double border);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
@@ -2684,9 +2683,9 @@ TPrecisionAtKMetric::TPrecisionAtKMetric(int topSize, double border)
 
 TMetricHolder TPrecisionAtKMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& /*weight*/,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         int queryStartIndex,
         int queryEndIndex
 ) const {
@@ -2728,9 +2727,9 @@ namespace {
         explicit TRecallAtKMetric(int topSize, double border);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
@@ -2757,9 +2756,9 @@ TRecallAtKMetric::TRecallAtKMetric(int topSize, double border)
 
 TMetricHolder TRecallAtKMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& /*weight*/,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         int queryStartIndex,
         int queryEndIndex
 ) const {
@@ -2801,9 +2800,9 @@ namespace {
         explicit TMAPKMetric(int topSize, double border);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
@@ -2830,9 +2829,9 @@ TMAPKMetric::TMAPKMetric(int topSize, double border)
 
 TMetricHolder TMAPKMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& /*weight*/,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         int queryStartIndex,
         int queryEndIndex
 ) const {
@@ -2877,9 +2876,9 @@ namespace {
         explicit TCustomMetric(const TCustomMetricDescriptor& descriptor);
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
             NPar::TLocalExecutor& executor
@@ -2912,14 +2911,14 @@ TCustomMetric::TCustomMetric(const TCustomMetricDescriptor& descriptor)
 
 TMetricHolder TCustomMetric::Eval(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weightIn,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weightIn,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
     NPar::TLocalExecutor& /* executor */
 ) const {
-    const auto& weight = UseWeights ? weightIn : TVector<float>{};
+    auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
     TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
     CB_ENSURE(result.Stats.ysize() == 2, "Custom metric evaluate() returned incorrect value");
     return result;
@@ -2963,9 +2962,9 @@ namespace {
         explicit TUserDefinedPerObjectMetric(const TMap<TString, TString>& params);
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
             NPar::TLocalExecutor& executor
@@ -2996,9 +2995,9 @@ TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TMap<TString, TSt
 
 TMetricHolder TUserDefinedPerObjectMetric::Eval(
     const TVector<TVector<double>>& /*approx*/,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> /*target*/,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int /*begin*/,
     int /*end*/,
     NPar::TLocalExecutor& /*executor*/
@@ -3024,9 +3023,9 @@ namespace {
         explicit TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params);
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -3054,9 +3053,9 @@ TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TSt
 
 TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
     const TVector<TVector<double>>& /*approx*/,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
+    TConstArrayRef<float> /*target*/,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int /*queryStartIndex*/,
     int /*queryEndIndex*/
 ) const {
@@ -3090,9 +3089,9 @@ namespace {
 
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int queryStartIndex,
             int queryEndIndex
         ) const;
@@ -3110,9 +3109,9 @@ THolder<IMetric> MakeAverageGainMetric(float topSize) {
 
 TMetricHolder TAverageGain::EvalSingleThread(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
@@ -3672,19 +3671,19 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
 
 TMetricHolder EvalErrors(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         const THolder<IMetric>& error,
         NPar::TLocalExecutor* localExecutor
 ) {
     if (error->GetErrorType() == EErrorType::PerObjectError) {
-        int begin = 0, end = target.ysize();
+        int begin = 0, end = target.size();
         Y_VERIFY(approx[0].ysize() == end - begin);
         return error->Eval(approx, target, weight, queriesInfo, begin, end, *localExecutor);
     } else {
         Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError || error->GetErrorType() == EErrorType::PairwiseError);
-        int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
+        int queryStartIndex = 0, queryEndIndex = queriesInfo.size();
         return error->Eval(approx, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
 }
@@ -3739,9 +3738,9 @@ namespace {
         explicit TQueryCrossEntropyMetric(double alpha);
         TMetricHolder EvalSingleThread(
                 const TVector<TVector<double>>& approx,
-                const TVector<float>& target,
-                const TVector<float>& weight,
-                const TVector<TQueryInfo>& queriesInfo,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
         ) const;
@@ -3801,9 +3800,9 @@ void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const floa
 
 
 TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
-                                                         const TVector<float>& target,
-                                                         const TVector<float>& weight,
-                                                         const TVector<TQueryInfo>& queriesInfo,
+                                                         TConstArrayRef<float> target,
+                                                         TConstArrayRef<float> weight,
+                                                         TConstArrayRef<TQueryInfo> queriesInfo,
                                                          int queryStartIndex,
                                                          int queryEndIndex) const {
     TMetricHolder result(2);
@@ -3883,7 +3882,21 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
     }
 }
 
-void CheckTarget(const TVector<float>& target, ELossFunction lossFunction) {
+void CheckPreprocessedTarget(
+    TConstArrayRef<float> target,
+    ELossFunction lossFunction,
+    bool isLearnData,
+    bool allowConstLabel
+) {
+    if (isLearnData && (lossFunction == ELossFunction::Logloss)) {
+        auto targetBounds = CalcMinMax(target);
+        CB_ENSURE(targetBounds.Min == 0, "All train targets are greater than border");
+        CB_ENSURE(targetBounds.Max == 1, "All train targets are smaller than border");
+    }
+    if (isLearnData && (lossFunction != ELossFunction::PairLogit)) {
+        auto targetBounds = CalcMinMax(target);
+        CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
+    }
     if (lossFunction == ELossFunction::CrossEntropy) {
         auto targetBounds = CalcMinMax(target);
         CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));

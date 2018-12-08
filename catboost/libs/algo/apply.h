@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/options/enums.h>
@@ -10,9 +10,16 @@
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 
+namespace NCB {
+    template <class TTObjectsDataProvider> class TDataProviderTemplate;
+
+    using TDataProvider = TDataProviderTemplate<TObjectsDataProvider>;
+}
+
+
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TObjectsDataProvider& objectsData,
     const EPredictionType predictionType,
     int begin,
     int end,
@@ -21,16 +28,26 @@ TVector<TVector<double>> ApplyModelMulti(
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TObjectsDataProvider& objectsData,
     bool verbose = false,
     const EPredictionType predictionType = EPredictionType::RawFormulaVal,
     int begin = 0,
     int end = 0,
     int threadCount = 1);
 
+TVector<TVector<double>> ApplyModelMulti(
+    const TFullModel& model,
+    const NCB::TDataProvider& data,
+    bool verbose = false,
+    const EPredictionType predictionType = EPredictionType::RawFormulaVal,
+    int begin = 0,
+    int end = 0,
+    int threadCount = 1);
+
+
 TVector<double> ApplyModel(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TObjectsDataProvider& objectsData,
     bool verbose = false,
     const EPredictionType predictionType = EPredictionType::RawFormulaVal,
     int begin = 0,
@@ -45,7 +62,7 @@ class TModelCalcerOnPool {
 public:
     TModelCalcerOnPool(
         const TFullModel& model,
-        const TPool& pool,
+        NCB::TObjectsDataProviderPtr objectsData,
         NPar::TLocalExecutor* executor);
 
     void ApplyModelMulti(
@@ -57,7 +74,7 @@ public:
 
 private:
     const TFullModel* Model;
-    const TPool* Pool;
+    NCB::TRawObjectsDataProviderPtr RawObjectsData;
     NPar::TLocalExecutor* Executor;
     NPar::TLocalExecutor::TExecRangeParams BlockParams;
     TVector<THolder<TFeatureCachedTreeEvaluator>> ThreadCalcers;

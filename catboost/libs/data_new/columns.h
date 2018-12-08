@@ -104,7 +104,7 @@ namespace NCB {
     class TArrayValuesHolder: public IFeatureValuesHolder {
     public:
         TArrayValuesHolder(ui32 featureId,
-                           TMaybeOwningArrayHolder<T> srcData,
+                           TMaybeOwningConstArrayHolder<T> srcData,
                            const TFeaturesArraySubsetIndexing* subsetIndexing)
             : IFeatureValuesHolder(TType,
                                    featureId,
@@ -115,12 +115,12 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
 
-        const TConstMaybeOwningArraySubset<T, ui32> GetArrayData() const {
+        const TMaybeOwningConstArraySubset<T, ui32> GetArrayData() const {
             return {&SrcData, SubsetIndexing};
         }
 
     private:
-        TMaybeOwningArrayHolder<T> SrcData;
+        TMaybeOwningConstArrayHolder<T> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 

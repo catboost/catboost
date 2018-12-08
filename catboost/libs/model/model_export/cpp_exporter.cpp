@@ -235,7 +235,7 @@ namespace NCatboost {
         out << --indent << "};" << '\n';
     };
 
-    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) {
+    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to cpp is not supported.");
 
         WriteCTRStructs();

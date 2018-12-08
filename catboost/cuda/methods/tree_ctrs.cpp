@@ -126,7 +126,7 @@ NCatboostCuda::TTreeCtrDataSetsHelper::TTreeCtrDataSetsHelper(const NCatboostCud
                                                                            dataSet.GetCatFeatures().GetFeatureCount(dev),
                                                                            FoldCount,
                                                                            MaxDepth,
-                                                                           static_cast<const ui32>(dataSet.GetDataProvider().GetSampleCount()),
+                                                                           static_cast<const ui32>(dataSet.GetDataProvider().GetObjectCount()),
                                                                            dataSet.GetCatFeatures().GetStorageType() == EGpuCatFeaturesStorage::GpuRam
                                                                                ? NCudaLib::EPtrType::CudaDevice
                                                                                : NCudaLib::EPtrType::CudaHost));
@@ -497,7 +497,7 @@ bool NCatboostCuda::TTreeCtrDataSetsHelper::NeedToDropDataSetAfterVisit(ui32 dev
     }
     auto freeMemory = GetFreeMemory(deviceId);
 
-    if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetSampleCount() * 12.0 / 1024 / 1024)) {
+    if (freeMemory < (MinFreeMemory + DataSet.GetDataProvider().GetObjectCount() * 12.0 / 1024 / 1024)) {
         return true;
     }
     return false;

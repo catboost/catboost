@@ -25,12 +25,24 @@ namespace NCB {
         TConstArrayRef<T> weights,
         ui32 objectCount,
         const TStringBuf weightTypeName,
-        bool dataCanBeEmpty = false
+        bool dataCanBeEmpty = false,
+        bool allWeightsCanBeZero = false
     ) {
         CheckDataSize(weights.size(), (size_t)objectCount, weightTypeName, dataCanBeEmpty);
 
-        for (auto i : xrange(weights.size())) {
-            CB_ENSURE(weights[i] >= T(0), "" << weightTypeName << '[' << i << "] is negative");
+        if ((objectCount > 0) && (weights.size() > 0)) {
+            bool hasNonZeroWeights = false;
+            for (auto i : xrange(weights.size())) {
+                if (weights[i] > T(0)) {
+                    hasNonZeroWeights = true;
+                } else {
+                    CB_ENSURE(weights[i] >= T(0), "" << weightTypeName << '[' << i << "] is negative");
+                }
+            }
+            CB_ENSURE(
+                allWeightsCanBeZero || hasNonZeroWeights,
+                "All data in " << weightTypeName << " is 0"
+            );
         }
     }
 
@@ -56,24 +68,29 @@ namespace NCB {
             ui32 size,
             TMaybeOwningArrayHolder<T> weights = TMaybeOwningArrayHolder<T>::CreateNonOwning(TArrayRef<T>()),
             bool skipCheck = false,
-            const TStringBuf weightTypeName = AsStringBuf("Weight") // for error messages in check
+            const TStringBuf weightTypeName = AsStringBuf("Weight"), // for error messages in check
+            bool allWeightsCanBeZero = false
         )
             : Size(size)
             , Weights(std::move(weights))
         {
             if (!skipCheck) {
-                CheckWeights(TConstArrayRef<T>(*Weights), Size, weightTypeName, true);
+                CheckWeights(TConstArrayRef<T>(*Weights), Size, weightTypeName, true, allWeightsCanBeZero);
             }
         }
 
         /* use this constructor when weights are non-trivial,
          * empty 'weights' argument's size means empty data size, not trivial data weights!
          */
-        explicit TWeights(TVector<T>&& weights, const TStringBuf weightTypeName = AsStringBuf("Weight"))
+        explicit TWeights(
+            TVector<T>&& weights,
+            const TStringBuf weightTypeName = AsStringBuf("Weight"),
+            bool allWeightsCanBeZero = false
+        )
             : Size(weights.size())
             , Weights(TMaybeOwningArrayHolder<T>::CreateOwning(std::move(weights)))
         {
-            CheckWeights(TConstArrayRef<T>(*Weights), Size, weightTypeName, false);
+            CheckWeights(TConstArrayRef<T>(*Weights), Size, weightTypeName, false, allWeightsCanBeZero);
         }
 
 

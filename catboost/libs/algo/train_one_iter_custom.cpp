@@ -7,4 +7,4 @@ TCustomError BuildError<TCustomError>(const NCatboostOptions::TCatBoostOptions& 
     return TCustomError(params, descriptor);
 }
 
-template void TrainOneIter<TCustomError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);
+template void TrainOneIter<TCustomError>(const NCB::TTrainingForCPUDataProviders&, TLearnContext*);

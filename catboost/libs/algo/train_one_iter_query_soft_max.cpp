@@ -17,4 +17,4 @@ TQuerySoftMaxError BuildError<TQuerySoftMaxError>(
     return TQuerySoftMaxError(lambdaReg, isStoreExpApprox);
 }
 
-template void TrainOneIter<TQuerySoftMaxError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);
+template void TrainOneIter<TQuerySoftMaxError>(const NCB::TTrainingForCPUDataProviders&, TLearnContext*);

@@ -1,8 +1,12 @@
 #include "calc_score_cache.h"
 
+#include <util/generic/algorithm.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/system/guard.h>
+
+
+using namespace NCB;
 
 
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams) {
@@ -214,10 +218,10 @@ static int GetMaxTailFinish(const TVector<TFold>& folds, int bodyTailIdx) {
 void TCalcScoreFold::Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate) {
     BernoulliSampleRate = sampleRate;
     Y_ASSERT(BernoulliSampleRate > 0.0f && BernoulliSampleRate <= 1.0f);
-    DocCount = folds[0].LearnPermutation.ysize();
+    DocCount = folds[0].GetLearnSampleCount();
     Y_ASSERT(DocCount > 0);
     Indices.yresize(DocCount);
-    LearnPermutation.yresize(DocCount);
+    FeaturesSubsetBegin = folds[0].FeaturesSubsetBegin;
     IndexInFold.yresize(DocCount);
     LearnWeights.yresize(DocCount);
     SampleWeights.yresize(DocCount);
@@ -275,12 +279,40 @@ static inline TData GetElement(const TData* source, size_t j) {
     return source[j];
 }
 
+template <typename TData, typename TDstRef>
+static inline void SetElementsToConstant(TArrayRef<const bool> srcControlRef, TData constant, TDstRef dstRef, int* dstCount) {
+    const bool* controlData = srcControlRef.data();
+    const size_t sourceCount = srcControlRef.size();
+    auto* __restrict destinationData = dstRef.data();
+    const size_t destinationCount = dstRef.size();
+    size_t endElementIdx = 0;
+#pragma unroll(4)
+    for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
+        destinationData[endElementIdx] = constant;
+        endElementIdx += controlData[sourceIdx];
+    }
+    *dstCount = endElementIdx;
+}
+
+
 template <typename TFoldType>
 void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock) {
     int ignored;
     const auto srcControlRef = srcBlock.GetConstRef(Control);
-    SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnPermutation), GetElement<ui32>, dstBlock.GetRef(LearnPermutation), &ignored);
-    SetElements(srcControlRef, srcBlock.GetConstRef(fold.GetLearnWeights()), GetElement<float>, dstBlock.GetRef(LearnWeights), &ignored);
+    SetElements(
+        srcControlRef,
+        srcBlock.GetConstRef(fold.LearnPermutationFeaturesSubset.template Get<TIndexedSubset<ui32>>()),
+        GetElement<ui32>,
+        dstBlock.GetRef(LearnPermutationFeaturesSubset.template Get<TIndexedSubset<ui32>>()),
+        &ignored);
+
+    const auto& srcLearnWeights = fold.GetLearnWeights();
+    TArrayRef<float> dstLearnWeights = dstBlock.GetRef(LearnWeights);
+    if (srcLearnWeights.empty()) {
+        SetElementsToConstant(srcControlRef, 1.0f, dstLearnWeights, &ignored);
+    } else {
+        SetElements(srcControlRef, srcBlock.GetConstRef(srcLearnWeights), GetElement<float>, dstLearnWeights, &ignored);
+    }
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.SampleWeights), GetElement<float>, dstBlock.GetRef(SampleWeights), &ignored);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
         const auto& srcBodyTail = fold.BodyTailArr[bodyTailIdx];
@@ -320,6 +352,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
     );
 
     DocCount = dstBlocks.Total;
+    LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
     ClearBodyTail();
     BodyTailCount = fold.GetBodyTailCount();
     localExecutor->ExecRange([&](int blockIdx) {
@@ -354,6 +387,7 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
     );
 
     DocCount = dstBlocks.Total;
+    LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
     ClearBodyTail();
     BodyTailCount = fold.BodyTailArr.ysize();
     localExecutor->ExecRange([&](int blockIdx) {
@@ -362,7 +396,7 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
         const auto dstBlock = dstBlocks.Slices[blockIdx];
         int ignored;
         SetElements(srcControlRef, srcBlock.GetConstRef(indices), GetElement<TIndexType>, dstBlock.GetRef(Indices), &ignored);
-        SetElements(srcControlRef, srcBlock.GetConstRef(TVector<size_t>()), [=](const size_t*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
+        SetElements(srcControlRef, srcBlock.GetConstRef(TVector<size_t>()), [=](const size_t*, size_t j) { return ui32(srcBlock.Offset + j); }, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
     SetPermutationBlockSizeAndCalcStatsRanges(
@@ -555,7 +589,10 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
         int calcStatsBlockStart = 0;
         int blockStart = 0;
         for (int blockIdx : xrange(permutedBlockCount)) {
-            const int permutedBlockIdx = LearnPermutation[blockStart] / NonCtrDataPermutationBlockSize;
+            const int permutedBlockIdx = (
+                int(LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>()[blockStart] - FeaturesSubsetBegin)
+                / NonCtrDataPermutationBlockSize
+            );
             const int nextBlockStart = blockStart +
                (permutedBlockIdx + 1 == permutedBlockCount ?
                   docCount - permutedBlockIdx * NonCtrDataPermutationBlockSize

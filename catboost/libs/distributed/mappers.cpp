@@ -4,7 +4,10 @@
 #include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/score_calcer.h>
 #include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/online_ctr.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 
 #include <utility>
 
@@ -21,20 +24,23 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     localData.StoreExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction());
 
     localData.Progress.ApproxDimension = trainData->ApproxDimension;
-    localData.Progress.AveragingFold = TFold::BuildPlainFold(trainData->TrainData,
+    localData.Progress.AveragingFold = TFold::BuildPlainFold(*trainData->TrainData,
         trainData->TargetClassifiers,
         /*shuffle*/ false,
-        trainData->TrainData.GetSampleCount(),
+        trainData->TrainData->GetObjectCount(),
         trainData->ApproxDimension,
         localData.StoreExpApprox,
-        IsPairwiseError(localData.Params.LossFunctionDescription->GetLossFunction()),
-        *localData.Rand);
+        UsesPairsForCalculation(localData.Params.LossFunctionDescription->GetLossFunction()),
+        *localData.Rand,
+        &NPar::LocalExecutor());
     Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
-    localData.Progress.AvrgApprox.resize(trainData->ApproxDimension, TVector<double>(trainData->TrainData.GetSampleCount()));
-    if (!trainData->TrainData.Baseline.empty()) {
-        localData.Progress.AvrgApprox = trainData->TrainData.Baseline;
-    }
 
+    auto baseline = GetBaseline(trainData->TrainData->TargetData);
+    if (!baseline.empty()) {
+        AssignRank2<float>(baseline, &localData.Progress.AvrgApprox);
+    } else {
+        localData.Progress.AvrgApprox.resize(trainData->ApproxDimension, TVector<double>(trainData->TrainData->GetObjectCount()));
+    }
 
     localData.UseTreeLevelCaching = NeedToUseTreeLevelCaching(
         localData.Params,
@@ -48,17 +54,21 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     if (localData.UseTreeLevelCaching) {
         localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize);
         localData.PrevTreeLevelStats.Create({plainFold},
-            CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures),
+            CountNonCtrBuckets(
+                trainData->SplitCounts,
+                *(trainData->TrainData->ObjectsData->GetQuantizedFeaturesInfo()),
+                localData.Params.CatFeatureParams->OneHotMaxSize.Get()
+            ),
             localData.Params.ObliviousTreeOptions->MaxDepth);
     }
-    localData.Indices.yresize(plainFold.LearnPermutation.ysize());
+    localData.Indices.yresize(plainFold.GetLearnSampleCount());
     localData.AllDocCount = trainData->AllDocCount;
     localData.SumAllWeights = trainData->SumAllWeights;
 }
 
 void TApproxReconstructor::DoMap(NPar::IUserContext* ctx, int hostId, TInput* valuedForest, TOutput* /*unused*/) const {
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-    Y_ASSERT(AllOf(trainData->TrainData.AllFeatures.CatFeaturesRemapped, [](const auto& catFeature) { return catFeature.empty(); }));
+    Y_ASSERT(!trainData->TrainData->MetaInfo.FeaturesLayout->GetCatFeatureCount());
 
     auto& localData = TLocalTensorSearchData::GetRef();
     Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
@@ -67,15 +77,17 @@ void TApproxReconstructor::DoMap(NPar::IUserContext* ctx, int hostId, TInput* va
     const auto& leafValues = valuedForest->Data.second;
     Y_ASSERT(forest.size() == leafValues.size());
 
-    if (!trainData->TrainData.Baseline.empty()) {
-        localData.Progress.AvrgApprox = trainData->TrainData.Baseline;
+    auto baseline = GetBaseline(trainData->TrainData->TargetData);
+    if (!baseline.empty()) {
+        AssignRank2<float>(baseline, &localData.Progress.AvrgApprox);
     }
-    const size_t learnSampleCount = trainData->TrainData.GetSampleCount();
+
+    const ui32 learnSampleCount = trainData->TrainData->GetObjectCount();
     const bool storeExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction());
     const auto& avrgFold = localData.Progress.AveragingFold;
     for (size_t treeIdx : xrange(forest.size())) {
-        const auto leafIndices = BuildIndices(avrgFold, forest[treeIdx], trainData->TrainData, /*testDataPtrs*/ {}, &NPar::LocalExecutor());
-        UpdateAvrgApprox(storeExpApprox, learnSampleCount, leafIndices, leafValues[treeIdx], /*testDataPtrs*/ {}, &localData.Progress, &NPar::LocalExecutor());
+        const auto leafIndices = BuildIndices(avrgFold, forest[treeIdx], trainData->TrainData, /*testData*/ {}, &NPar::LocalExecutor());
+        UpdateAvrgApprox(storeExpApprox, learnSampleCount, leafIndices, leafValues[treeIdx], /*testData*/ {}, &localData.Progress, &NPar::LocalExecutor());
     }
 }
 
@@ -128,7 +140,7 @@ static void CalcStats3D(const NPar::TCtxPtr<TTrainData>& trainData,
     TStats3D* stats3D
 ) {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcStatsAndScores(trainData->TrainData.AllFeatures,
+    CalcStatsAndScores(*trainData->TrainData->ObjectsData,
         trainData->SplitCounts,
         localData.Progress.AveragingFold.GetAllCtrs(),
         localData.SampledDocs,
@@ -152,7 +164,7 @@ static void CalcPairwiseStats(const NPar::TCtxPtr<TTrainData>& trainData,
     TPairwiseStats* pairwiseStats
 ) {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcStatsAndScores(trainData->TrainData.AllFeatures,
+    CalcStatsAndScores(*trainData->TrainData->ObjectsData,
         trainData->SplitCounts,
         localData.Progress.AveragingFold.GetAllCtrs(),
         localData.SampledDocs,
@@ -262,7 +274,7 @@ void TLeafIndexSetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* bestSp
     auto& localData = TLocalTensorSearchData::GetRef();
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     SetPermutedIndices(bestSplit,
-        trainData->TrainData.AllFeatures,
+        *trainData->TrainData->ObjectsData,
         localData.Depth + 1,
         localData.Progress.AveragingFold,
         &localData.Indices,
@@ -390,7 +402,7 @@ void TApproxUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInpu
             &NPar::LocalExecutor(),
             &localData.Progress.AveragingFold);
     }
-    TConstArrayRef<ui32> learnPermutationRef(localData.Progress.AveragingFold.LearnPermutation);
+    TConstArrayRef<ui32> learnPermutationRef(localData.Progress.AveragingFold.GetLearnPermutationArray());
     TConstArrayRef<TIndexType> indicesRef(localData.Indices);
     const auto updateAvrgApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
         approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
@@ -513,9 +525,9 @@ void TErrorCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/
             const TString metricDescription = errors[errorIdx]->GetDescription();
             (*additiveStats)[metricDescription] = EvalErrors(
                 localData.Progress.AvrgApprox,
-                trainData->TrainData.Target,
-                trainData->TrainData.Weights,
-                trainData->TrainData.QueryInfo,
+                GetTarget(trainData->TrainData->TargetData),
+                GetWeights(trainData->TrainData->TargetData),
+                GetGroupInfo(trainData->TrainData->TargetData),
                 errors[errorIdx],
                 &NPar::LocalExecutor()
             );
@@ -527,7 +539,7 @@ void TLeafWeightsGetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*un
     auto& localData = TLocalTensorSearchData::GetRef();
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     const size_t leafCount = localData.Buckets.size();
-    *leafWeights = SumLeafWeights(leafCount, localData.Indices, localData.Progress.AveragingFold.LearnPermutation, trainData->TrainData.Weights);
+    *leafWeights = SumLeafWeights(leafCount, localData.Indices, localData.Progress.AveragingFold.GetLearnPermutationArray(), GetWeights(trainData->TrainData->TargetData));
 }
 } // NCatboostDistributed
 

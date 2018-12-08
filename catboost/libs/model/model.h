@@ -444,7 +444,7 @@ struct TFullModel {
     }
 
     /**
-     * Special interface for model evaluation on transposed TPool layout
+     * Special interface for model evaluation on transposed dataset layout
      * @param[in] transposedFeatures transposed flat features vector. First dimension is feature index, second dimension is object index.
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[in] treeStart Index of first tree in model to start evaluation
@@ -640,7 +640,7 @@ void ExportModel(const TFullModel& model,
                  const TString& userParametersJson = "",
                  bool addFileFormatExtension = false,
                  const TVector<TString>* featureId=nullptr,
-                 const THashMap<int, TString>* catFeaturesHashToString=nullptr);
+                 const THashMap<ui32, TString>* catFeaturesHashToString=nullptr);
 
 /**
  * Serialize model to string

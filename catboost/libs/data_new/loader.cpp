@@ -4,9 +4,11 @@
 #include <catboost/libs/helpers/mem_usage.h>
 
 #include <util/generic/ptr.h>
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
 #include <util/system/types.h>
 
+#include <limits>
 #include <utility>
 
 
@@ -165,4 +167,19 @@ namespace NCB {
         return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
     }
 
+    bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value) {
+        if (!TryFromString<float>(stringValue, *value)) {
+            if (IsNanValue(stringValue)) {
+                *value = std::numeric_limits<float>::quiet_NaN();
+            } else if (stringValue.length() == 0) {
+                *value = std::numeric_limits<float>::quiet_NaN();
+            } else {
+                return false;
+            }
+        }
+        if (*value == 0.0f) {
+            *value = 0.0f; // remove negative zeros
+        }
+        return true;
+    }
 }

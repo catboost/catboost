@@ -1,3 +1,3 @@
 #include "train_templ.h"
 
-template void TrainOneIter<TMultiClassOneVsAllError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);
+template void TrainOneIter<TMultiClassOneVsAllError>(const NCB::TTrainingForCPUDataProviders&, TLearnContext*);

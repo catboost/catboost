@@ -37,6 +37,7 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/ctrs
     catboost/libs/ctr_description
+    catboost/libs/data_new
     catboost/libs/helpers
     catboost/libs/quantization
 )

@@ -6,8 +6,10 @@
 
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_lib/cache.h>
-#include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/data/permutation.h>
+
+#include <catboost/libs/data_new/data_provider.h>
+
 
 namespace NCatboostCuda {
     template <class TSamplesMapping>
@@ -228,7 +230,7 @@ namespace NCatboostCuda {
             Y_UNREACHABLE();
         }
 
-        const TDataProvider& GetDataProvider() const {
+        const NCB::TTrainingDataProvider& GetDataProvider() const {
             return DataProvider;
         }
 
@@ -244,7 +246,7 @@ namespace NCatboostCuda {
             return TargetsBuffer.GetTargets().GetMapping();
         }
 
-        TDataSetBase(const TDataProvider& dataProvider,
+        TDataSetBase(const NCB::TTrainingDataProvider& dataProvider,
                      TAtomicSharedPtr<TCompressedIndex> compressedIndex,
                      const TDataPermutation& ctrPermutation,
                      TTarget<TSamplesMapping>&& target)
@@ -260,7 +262,7 @@ namespace NCatboostCuda {
         // so let's save some memory
         TTarget<TSamplesMapping> TargetsBuffer;
 
-        const TDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider& DataProvider;
         TAtomicSharedPtr<TCompressedIndex> CompressedIndex;
         TDataPermutation CtrsEstimationPermutation;
 

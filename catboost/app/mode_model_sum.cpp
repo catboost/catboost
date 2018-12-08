@@ -24,12 +24,12 @@ int mode_model_sum(int argc, const char* argv[]) {
         .StoreResult(&outputModelPath);
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
-    TVector<THolder<TFullModel>> models;
+    TVector<TFullModel> models;
     TVector<const TFullModel*> modelPtrs;
     TVector<double> weights;
     for (const auto& [path, weight] : modelPathsWithWeights) {
-        models.emplace_back(MakeHolder<TFullModel>(ReadModel(path)));
-        modelPtrs.emplace_back(models.back().Get());
+        models.emplace_back(ReadModel(path));
+        modelPtrs.emplace_back(&models.back());
         weights.emplace_back(weight);
     }
     TFullModel result = SumModels(modelPtrs, weights);

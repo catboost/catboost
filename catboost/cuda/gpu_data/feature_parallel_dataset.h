@@ -8,8 +8,10 @@
 
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_lib/cache.h>
-#include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/data/permutation.h>
+
+#include <catboost/libs/data_new/data_provider.h>
+
 
 namespace NCatboostCuda {
     class TPermutationScope: public TThreadSafeGuidHolder {
@@ -63,7 +65,7 @@ namespace NCatboostCuda {
         }
 
     private:
-        TFeatureParallelDataSet(const TDataProvider& dataProvider,
+        TFeatureParallelDataSet(const NCB::TTrainingDataProvider& dataProvider,
                                 TAtomicSharedPtr<TCompressedIndex> compressedIndex,
                                 TAtomicSharedPtr<TPermutationScope> permutationIndependentScope,
                                 TAtomicSharedPtr<TPermutationScope> permutationDependentScope,
@@ -82,19 +84,24 @@ namespace NCatboostCuda {
             , CtrTargets(ctrTargets)
             , CatFeatures(catFeatures)
         {
-            if (dataProvider.HasQueries()) {
+            if (dataProvider.MetaInfo.HasGroupId) {
                 const auto& ctrEstimationPermutation = TParent::GetCtrsEstimationPermutation();
-                auto permutedQids = ctrEstimationPermutation.Gather(dataProvider.GetQueryIds());
-                auto samplesGrouping = MakeHolder<TQueriesGrouping>(std::move(permutedQids),
-                                                                    dataProvider.GetPairs());
-                if (dataProvider.HasSubgroupIds()) {
-                    auto permutedGids = ctrEstimationPermutation.Gather(dataProvider.GetSubgroupIds());
+                TVector<ui32> objectsOrder;
+                ctrEstimationPermutation.FillOrder(objectsOrder);
+                auto samplesGrouping = MakeHolder<TQueriesGrouping>(objectsOrder,
+                                                                    *dataProvider.ObjectsGrouping,
+                                                                    NCB::GetGroupInfo(dataProvider.TargetData),
+                                                                    dataProvider.MetaInfo.HasPairs);
+                if (dataProvider.MetaInfo.HasSubgroupIds) {
+                    auto permutedGids
+                        = ctrEstimationPermutation.Gather(*dataProvider.ObjectsData->GetSubgroupIds());
                     samplesGrouping->SetSubgroupIds(std::move(permutedGids));
                 }
                 SamplesGrouping = std::move(samplesGrouping);
             } else {
-                SamplesGrouping.Reset(new TWithoutQueriesGrouping(dataProvider.GetSampleCount()));
+                SamplesGrouping.Reset(new TWithoutQueriesGrouping(dataProvider.GetObjectCount()));
             }
+
         }
 
     private:
@@ -122,7 +129,7 @@ namespace NCatboostCuda {
             return *dataSetPtr;
         }
 
-        const TDataProvider& GetDataProvider() const {
+        const NCB::TTrainingDataProvider& GetDataProvider() const {
             CB_ENSURE(DataProvider);
             return *DataProvider;
         }
@@ -156,7 +163,7 @@ namespace NCatboostCuda {
 
         TFeatureParallelDataSetsHolder() = default;
 
-        TFeatureParallelDataSetsHolder(const TDataProvider& dataProvider,
+        TFeatureParallelDataSetsHolder(const NCB::TTrainingDataProvider& dataProvider,
                                        const TBinarizedFeaturesManager& featuresManager)
             : DataProvider(&dataProvider)
             , FeaturesManager(&featuresManager)
@@ -182,7 +189,7 @@ namespace NCatboostCuda {
         }
 
     private:
-        const TDataProvider* DataProvider = nullptr;
+        const NCB::TTrainingDataProvider* DataProvider = nullptr;
         const TBinarizedFeaturesManager* FeaturesManager = nullptr;
 
         //learn target and weights

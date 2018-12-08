@@ -168,8 +168,16 @@ const TVector<EPredictionType>& NCatboostOptions::TOutputFilesOptions::GetPredic
     return PredictionTypes.Get();
 }
 
-const TVector<TString>& NCatboostOptions::TOutputFilesOptions::GetOutputColumns() const {
-    return OutputColumns.Get();
+const TVector<TString> NCatboostOptions::TOutputFilesOptions::GetOutputColumns(bool datasetHasLabels) const {
+    if (!OutputColumns.IsSet()) {
+        TVector<TString> result{"DocId", "RawFormulaVal"};
+        if (datasetHasLabels) {
+            result.emplace_back("Label");
+        }
+        return result;
+    } else {
+        return OutputColumns;
+    }
 }
 
 bool NCatboostOptions::TOutputFilesOptions::AllowWriteFiles() const {

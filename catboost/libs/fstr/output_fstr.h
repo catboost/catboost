@@ -80,15 +80,14 @@ inline void OutputFeatureImportanceMatrix(
     }
 }
 
-inline void CalcAndOutputFstr(
-    const TFullModel& model,
-    const TPool* pool,
-    const TString* regularFstrPath,
-    const TString* internalFstrPath)
-{
+inline void CalcAndOutputFstr(const TFullModel& model,
+                              const NCB::TDataProviderPtr dataset, // can be nullptr
+                              NPar::TLocalExecutor* localExecutor,
+                              const TString* regularFstrPath,
+                              const TString* internalFstrPath) {
     NCB::TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
-    TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool);
+    TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, dataset, localExecutor);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
         OutputFstr(layout, internalEffect, *internalFstrPath);
     }

@@ -6,6 +6,8 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_util/helpers.h>
 #include <catboost/libs/helpers/cpu_random.h>
+
+#include <util/generic/fwd.h>
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
@@ -146,7 +148,7 @@ namespace NCatboostCuda {
         TSharedCompressedIndexBuilder& Write(const ui32 dataSetId,
                                              const ui32 featureId,
                                              const ui32 binCount,
-                                             const TVector<TBinType>& bins) {
+                                             TConstArrayRef<TBinType> bins) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
             CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
                                                                                       << " total dataSets " << GatherIndex.size());

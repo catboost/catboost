@@ -1,3 +1,3 @@
 #include "train_templ.h"
 
-template void TrainOneIter<TPairLogitError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);
+template void TrainOneIter<TPairLogitError>(const NCB::TTrainingForCPUDataProviders&, TLearnContext*);

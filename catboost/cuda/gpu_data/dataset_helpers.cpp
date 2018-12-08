@@ -2,11 +2,14 @@
 #include "feature_layout_doc_parallel.h"
 #include "feature_layout_feature_parallel.h"
 
+#include <util/generic/maybe.h>
+
+
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
-                                                                                            const NCatboostCuda::TDataProvider& dataProvider,
-                                                                                            const NCatboostCuda::TDataProvider* test) {
-    TVector<float> joinedTarget = Join(dataProvider.GetTargets(),
-                                       test ? &test->GetTargets() : nullptr);
+                                                                                            const NCB::TTrainingDataProvider& dataProvider,
+                                                                                            const NCB::TTrainingDataProvider* test) {
+    TVector<float> joinedTarget = Join(GetTarget(dataProvider.TargetData),
+                                       test ? MakeMaybe(GetTarget(test->TargetData)) : Nothing());
 
     THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr;
     ctrsTargetPtr = new TCtrTargets<NCudaLib::TMirrorMapping>;
@@ -17,8 +20,8 @@ THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::Bui
     ctrsTarget.WeightedTarget.Reset(NCudaLib::TMirrorMapping(joinedTarget.size()));
     ctrsTarget.Weights.Reset(NCudaLib::TMirrorMapping(joinedTarget.size()));
 
-    ctrsTarget.LearnSlice = TSlice(0, dataProvider.GetSampleCount());
-    ctrsTarget.TestSlice = TSlice(dataProvider.GetSampleCount(), joinedTarget.size());
+    ctrsTarget.LearnSlice = TSlice(0, dataProvider.GetObjectCount());
+    ctrsTarget.TestSlice = TSlice(dataProvider.GetObjectCount(), joinedTarget.size());
 
     TVector<float> ctrWeights;
     ctrWeights.resize(joinedTarget.size(), 1.0f);

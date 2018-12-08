@@ -6,6 +6,7 @@
 
 #include <library/fast_exp/fast_exp.h>
 
+#include <util/generic/cast.h>
 #include <util/system/yassert.h>
 
 #include <functional>
@@ -14,7 +15,7 @@
 template <typename TError>
 void EvaluateDerivativesForError(
     const TVector<double>& approxes,
-    const TPool& pool,
+    TConstArrayRef<float> target,
     ELossFunction lossFunction,
     ELeavesEstimation leafEstimationMethod,
     TVector<double>* firstDerivatives,
@@ -22,7 +23,7 @@ void EvaluateDerivativesForError(
     TVector<double>* thirdDerivatives
 ) {
     const bool isStoreExpApprox = IsStoreExpApprox(lossFunction);
-    ui32 docCount = pool.Docs.GetDocCount();
+    ui32 docCount = SafeIntegerCast<ui32>(target.size());
 
     TVector<double> expApproxes;
     if (isStoreExpApprox) {
@@ -44,7 +45,7 @@ void EvaluateDerivativesForError(
         /*calcThirdDer=*/thirdDerivatives != nullptr,
         approxesRef.data(),
         /*approxDeltas=*/nullptr,
-        pool.Docs.Target.data(),
+        target.data(),
         /*weights=*/nullptr,
         derivatives.data()
     );
@@ -64,7 +65,7 @@ void EvaluateDerivativesForError(
 
 using TEvaluateDerivativesFunc = std::function<void(
     const TVector<double>& approxes,
-    const TPool& pool,
+    TConstArrayRef<float> target,
     ELossFunction lossFunction,
     ELeavesEstimation leafEstimationMethod,
     TVector<double>* firstDerivatives,
@@ -103,7 +104,7 @@ void EvaluateDerivatives(
     ELossFunction lossFunction,
     ELeavesEstimation leafEstimationMethod,
     const TVector<double>& approxes,
-    const TPool& pool,
+    TConstArrayRef<float> target,
     TVector<double>* firstDerivatives,
     TVector<double>* secondDerivatives,
     TVector<double>* thirdDerivatives
@@ -111,7 +112,7 @@ void EvaluateDerivatives(
     auto evaluateDerivativesFunc = GetEvaluateDerivativesFunc(lossFunction);
     evaluateDerivativesFunc(
         approxes,
-        pool,
+        target,
         lossFunction,
         leafEstimationMethod,
         firstDerivatives,

@@ -2315,9 +2315,9 @@ class CatBoostClassifier(CatBoost):
         elif y is None:
             raise CatboostError("y should be specified.")
         correct = []
-        y = np.array(y)
+        y = np.array(y, dtype=np.int32)
         for i, val in enumerate(self.predict(X)):
-            correct.append(1 * (y[i] == val))
+            correct.append(1 * (y[i] == np.int32(val)))
         return np.mean(correct)
 
     def _check_is_classification_objective(self, loss_function):
@@ -2603,7 +2603,7 @@ class CatBoostRegressor(CatBoost):
         elif y is None:
             raise CatboostError("y should be specified.")
         error = []
-        y = np.array(y)
+        y = np.array(y, dtype=np.float64)
         for i, val in enumerate(self.predict(X)):
             error.append(pow(y[i] - val, 2))
         return np.sqrt(np.mean(error))

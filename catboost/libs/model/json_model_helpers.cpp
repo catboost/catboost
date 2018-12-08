@@ -247,7 +247,7 @@ static TCatFeature CatFeatureFromJson(const TJsonValue& value) {
 static TJsonValue GetFeaturesInfoJson(
         const TObliviousTrees& obliviousTrees,
         const TVector<TString>* featureId,
-        const THashMap<int, TString>* catFeaturesHashToString
+        const THashMap<ui32, TString>* catFeaturesHashToString
 ) {
     TJsonValue jsonValue;
     if (!obliviousTrees.FloatFeatures.empty()) {
@@ -381,7 +381,7 @@ static void GetObliviousTrees(const TJsonValue& jsonValue, TObliviousTrees* obli
     obliviousTrees->TreeStartOffsets.pop_back();
 }
 
-TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* featureId, const THashMap<int, TString>* catFeaturesHashToString) {
+TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
     TJsonValue jsonModel;
     TJsonValue modelInfo;
     for (const auto& key_value : model.ModelInfo) {
@@ -471,7 +471,7 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
     fullModel->UpdateDynamicData();
 }
 
-void OutputModelJson(const TFullModel& model, const TString& outputPath, const TVector<TString>* featureId, const THashMap<int, TString>* catFeaturesHashToString) {
+void OutputModelJson(const TFullModel& model, const TString& outputPath, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
     TOFStream out(outputPath);
     auto jsonModel = ConvertModelToJson(model, featureId, catFeaturesHashToString);
     WriteJson(&out, &jsonModel, true, false);

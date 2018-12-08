@@ -462,13 +462,13 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     }
 }
 
-TVector<int> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions) {
-    TVector<int> result;
+TVector<ui32> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions) {
+    TVector<ui32> result;
     auto& dataProcessingOptions = catBoostJsonOptions["data_processing_options"];
     if (dataProcessingOptions.IsMap()) {
         auto& ignoredFeatures = dataProcessingOptions["ignored_features"];
         if (ignoredFeatures.IsArray()) {
-            NCatboostOptions::TJsonFieldHelper<TVector<int>>::Read(ignoredFeatures, &result);
+            NCatboostOptions::TJsonFieldHelper<TVector<ui32>>::Read(ignoredFeatures, &result);
         }
     }
     return result;

@@ -5,4 +5,4 @@ TUserDefinedPerObjectError BuildError<TUserDefinedPerObjectError>(const NCatboos
     return TUserDefinedPerObjectError(params.LossFunctionDescription->GetLossParams(), IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()));
 }
 
-template void TrainOneIter<TUserDefinedPerObjectError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);
+template void TrainOneIter<TUserDefinedPerObjectError>(const NCB::TTrainingForCPUDataProviders&, TLearnContext*);

@@ -1,10 +1,12 @@
 #pragma once
 
+#include "dbg_output.h"
 #include "exception.h"
 #include "maybe_owning_array_holder.h"
 
 #include <catboost/libs/index_range/index_range.h>
 
+#include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
@@ -113,6 +115,11 @@ namespace NCB {
         using TBase = TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
 
     public:
+        // default constructor is necessary for BinSaver serialization & Cython
+        TArraySubsetIndexing()
+            : TArraySubsetIndexing(TFullSubset<TSize>(0))
+        {}
+
         explicit TArraySubsetIndexing(TFullSubset<TSize>&& subset)
             : TBase(std::move(subset))
         {}
@@ -163,6 +170,45 @@ namespace NCB {
         template <class T>
         decltype(auto) Get() const {
             return ::Get<T>((const TBase&)*this);
+        }
+
+        // returns Nothing() if subset is not consecutive
+        TMaybe<TSize> GetConsecutiveSubsetBegin() const {
+            switch (TBase::Index()) {
+                case TBase::template TagOf<TFullSubset<TSize>>():
+                    return TSize(0);
+                case TBase::template TagOf<TRangesSubset<TSize>>():
+                    {
+                        const auto& blocks = Get<TRangesSubset<TSize>>().Blocks;
+                        if (blocks.size() == 0) {
+                            return TSize(0);
+                        }
+                        for (auto i : xrange(blocks.size() - 1)) {
+                            if (blocks[i].SrcEnd != blocks[i + 1].SrcBegin) {
+                                return Nothing();
+                            }
+                        }
+                        return blocks[0].SrcBegin;
+                    }
+                case TBase::template TagOf<TIndexedSubset<TSize>>():
+                    {
+                        TConstArrayRef<TSize> indices = Get<TIndexedSubset<TSize>>();
+                        if (indices.size() == 0) {
+                            return TSize(0);
+                        }
+                        for (auto i : xrange(indices.size() - 1)) {
+                            if ((indices[i] + 1) != indices[i + 1]) {
+                                return Nothing();
+                            }
+                        }
+                        return indices[0];
+                    }
+            }
+            return Nothing(); // just to silence compiler warnings
+        }
+
+        bool IsConsecutive() const {
+            return GetConsecutiveSubsetBegin().Defined();
         }
 
         // f is a visitor function that will be repeatedly called with (index, srcIndex) arguments
@@ -309,6 +355,10 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
+            if (!Size()) {
+                return;
+            }
+
             if (!approximateBlockSize.Defined()) {
                 TSize localExecutorThreadsPlusCurrentCount = (TSize)localExecutor->GetThreadCount() + 1;
                 approximateBlockSize = CeilDiv(Size(), localExecutorThreadsPlusCurrentCount);
@@ -336,6 +386,52 @@ namespace NCB {
         }
     };
 
+    template <class TS, class TSize>
+    class TDumperVisitor {
+    public:
+        TDumperVisitor(TS& s)
+            : S(s)
+        {}
+
+        void operator()(const TFullSubset<TSize>& fullSubset) const {
+            S << "FullSubset(size=" << fullSubset.Size << ")";
+        }
+
+        void operator()(const TRangesSubset<TSize>& rangesSubset) const {
+            S << "RangesSubset(size=" << rangesSubset.Size << ", blocks="
+              << DbgDumpWithIndices<TSubsetBlock<TSize>>(rangesSubset.Blocks, true) << ")";
+        }
+
+        void operator()(const TIndexedSubset<TSize>& indexedSubset) const {
+            S << "IndexedSubset(size=" << indexedSubset.size() << ", indices="
+              << DbgDumpWithIndices<TSize>(indexedSubset, true) << ")";
+        }
+
+    private:
+        TS& S;
+    };
+}
+
+
+template <class TSize>
+struct TDumper<NCB::TSubsetBlock<TSize>> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TSubsetBlock<TSize>& block) {
+        s << "Src=[" << block.SrcBegin << "," << block.SrcEnd << "), DstBegin=" << block.DstBegin;
+    }
+};
+
+
+template <class TSize>
+struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
+        subset.Visit(NCB::TDumperVisitor<S, TSize>(s));
+    }
+};
+
+
+namespace NCB {
 
     // TODO(akhropov): too expensive for release?
     template <class TSize = size_t>
@@ -758,7 +854,7 @@ namespace NCB {
     using TMaybeOwningArraySubset = TArraySubset<TMaybeOwningArrayHolder<T>, TSize>;
 
     template <class T, class TSize=size_t>
-    using TConstMaybeOwningArraySubset = TArraySubset<const TMaybeOwningArrayHolder<T>, TSize>;
+    using TMaybeOwningConstArraySubset = TArraySubset<const TMaybeOwningArrayHolder<const T>, TSize>;
 
 }
 

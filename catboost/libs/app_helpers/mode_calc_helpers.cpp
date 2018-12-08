@@ -4,6 +4,7 @@
 
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/logging.h>
@@ -12,6 +13,7 @@
 #include <util/string/iterator.h>
 
 #include <util/generic/utility.h>
+#include <util/generic/xrange.h>
 
 
 void NCB::PrepareCalcModeParamsParser(
@@ -88,7 +90,7 @@ void NCB::ReadModelAndUpdateParams(
 
 static NCB::TEvalResult Apply(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& dataset,
     size_t begin, size_t end,
     size_t evalPeriod,
     NPar::TLocalExecutor* executor) {
@@ -96,12 +98,15 @@ static NCB::TEvalResult Apply(
     NCB::TEvalResult resultApprox;
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
     rawValues.resize(1);
-    if (pool.Docs.Baseline.ysize() > 0) {
-        rawValues[0].assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
+
+    auto maybeBaseline = dataset.RawTargetData.GetBaseline();
+    if (maybeBaseline) {
+        AssignRank2(*maybeBaseline, &rawValues[0]);
     } else {
-        rawValues[0].resize(model.ObliviousTrees.ApproxDimension, TVector<double>(pool.Docs.GetDocCount(), 0.0));
+        rawValues[0].resize(model.ObliviousTrees.ApproxDimension,
+                            TVector<double>(dataset.ObjectsGrouping->GetObjectCount(), 0.0));
     }
-    TModelCalcerOnPool modelCalcerOnPool(model, pool, executor);
+    TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
     TVector<double> flatApprox;
     TVector<TVector<double>> approx;
     for (; begin < end; begin += evalPeriod) {
@@ -139,14 +144,14 @@ void NCB::CalcModelSingleHost(
     ui64 docIdOffset = 0;
     auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.DsvPoolFormatParams.Format);
     const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
-    ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
+    ReadAndProceedPoolInBlocks(params, blockSize, [&](const NCB::TDataProviderPtr datasetPart) {
         if (IsFirstBlock) {
-            ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);
+            ValidateColumnOutput(params.OutputColumnsIds, *datasetPart, true);
         }
-        auto approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
+        auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, &executor);
         auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
 
-        poolColumnsPrinter->UpdateColumnTypeInfo(poolPart.MetaInfo.ColumnsInfo);
+        poolColumnsPrinter->UpdateColumnTypeInfo(datasetPart->MetaInfo.ColumnsInfo);
 
         TSetLoggingSilent inThisScope;
         OutputEvalResultToFile(
@@ -154,7 +159,7 @@ void NCB::CalcModelSingleHost(
             &executor,
             params.OutputColumnsIds,
             visibleLabelsHelper,
-            poolPart,
+            *datasetPart,
             true,
             &outputStream,
             // TODO: src file columns output is incompatible with block processing
@@ -164,7 +169,7 @@ void NCB::CalcModelSingleHost(
             docIdOffset,
             std::make_pair(evalPeriod, iterationsLimit)
         );
-        docIdOffset += blockSize;
+        docIdOffset += datasetPart->ObjectsGrouping->GetObjectCount();
         IsFirstBlock = false;
     }, &executor);
 }

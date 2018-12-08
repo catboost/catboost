@@ -123,7 +123,7 @@ void ExportModel(
         const TString& userParametersJson,
         bool addFileFormatExtension,
         const TVector<TString>* featureId,
-        const THashMap<int, TString>* catFeaturesHashToString
+        const THashMap<ui32, TString>* catFeaturesHashToString
 ) {
     const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
     switch (format) {

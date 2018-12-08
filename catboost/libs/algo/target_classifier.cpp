@@ -14,11 +14,11 @@ static TVector<float> GetMultiClassBorders(int cnt) {
     return borders;
 }
 
-static TVector<float> SelectBorders(const TVector<float>& target,
+static TVector<float> SelectBorders(TConstArrayRef<float> target,
                                     int targetBorderCount,
                                     EBorderSelectionType targetBorderType,
                                     bool allowConstLabel) {
-    TVector<float> learnTarget(target);
+    TVector<float> learnTarget(target.begin(), target.end());
 
     THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
     TVector<float> borders(borderSet.begin(), borderSet.end());
@@ -32,7 +32,7 @@ static TVector<float> SelectBorders(const TVector<float>& target,
     return borders;
 }
 
-TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
+TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                         int targetBorderCount,
@@ -44,7 +44,7 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
 
     CB_ENSURE(!target.empty(), "train target should not be empty");
 
-    TMinMax<float> targetBounds = CalcMinMax(target);
+    TMinMax<float> targetBounds = CalcMinMax<float>(target);
     CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "target in train should not be constant");
 
     switch (loss) {

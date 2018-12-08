@@ -854,7 +854,6 @@ def test_shrink_model(boosting_type):
 
 LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE', 'MultiClass', 'MultiClassOneVsAll']
 
-
 LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 
 
@@ -1144,7 +1143,7 @@ def test_baseline(boosting_type):
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_multiclass_baseline(boosting_type, loss_function):
-    labels = [0, 1, 2, 3]
+    labels = ['0', '1', '2', '3']
 
     model_path = yatest.common.test_output_path('model.bin')
 
@@ -1227,22 +1226,9 @@ def test_multiclass_baseline_lost_class(boosting_type, loss_function):
         '--use-best-model', 'false',
         '--classes-count', '4',
     )
-    yatest.common.execute(cmd)
 
-    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
-
-    calc_cmd = (
-        CATBOOST_PATH,
-        'calc',
-        '--input-path', test_path,
-        '--column-description', cd_path,
-        '-m', model_path,
-        '--output-path', formula_predict_path,
-        '--prediction-type', 'RawFormulaVal'
-    )
-    yatest.common.execute(calc_cmd)
-    assert(compare_evals(eval_path, formula_predict_path))
-    return [local_canonical_file(eval_path)]
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -1786,6 +1772,7 @@ def test_fstr(fstr_type, boosting_type):
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
 def test_reproducibility(loss_function, dev_score_calc_obj_block_size):
+
     def run_catboost(threads, model_path, eval_path):
         cmd = [
             CATBOOST_PATH,
@@ -1802,6 +1789,7 @@ def test_reproducibility(loss_function, dev_score_calc_obj_block_size):
             '--eval-file', eval_path,
         ]
         yatest.common.execute(cmd)
+
     model_1 = yatest.common.test_output_path('model_1.bin')
     eval_1 = yatest.common.test_output_path('test_1.eval')
     run_catboost(1, model_1, eval_1)
@@ -4271,6 +4259,7 @@ def test_multiple_eval_sets_err_log():
 # Cast<float>(CityHash('Sineco')) is SNaN
 @pytest.mark.parametrize('cat_value', ['Normal', 'Quvena', 'Sineco'])
 def test_const_cat_feature(cat_value):
+
     def make_a_set(nrows, value):
         label = np.random.randint(0, nrows, [nrows, 1])
         feature = np.full([nrows, 1], value, dtype='|S{}'.format(len(value)))

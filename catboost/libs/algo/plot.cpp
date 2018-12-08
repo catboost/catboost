@@ -2,12 +2,10 @@
 
 #include "apply.h"
 
-#include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/loss_description.h>
 
 #include <util/folder/path.h>
 #include <util/generic/array_ref.h>
@@ -21,6 +19,9 @@
 #include <util/ysaveload.h>
 
 #include <cmath>
+
+
+using namespace NCB;
 
 
 TMetricsPlotCalcer::TMetricsPlotCalcer(
@@ -67,16 +68,13 @@ TMetricsPlotCalcer::TMetricsPlotCalcer(
 
 void TMetricsPlotCalcer::ComputeAdditiveMetric(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weights,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weights,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     ui32 plotLineIndex
 ) {
     for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
         const auto& metric = *AdditiveMetrics[metricId];
-        ELossFunction lossFunction = ParseLossType(metric.GetDescription());
-        CheckTarget(target, lossFunction);
-
         const auto docCount = static_cast<int>(target.size());
         const auto queryCount = static_cast<int>(queriesInfo.size());
         TMetricHolder metricResult;
@@ -100,75 +98,26 @@ void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx, TVector<
     };
 }
 
-static void ResizePool(int size, const TPool& basePool, TPool* pool) {
-    pool->Docs.Resize(
-        size,
-        basePool.Docs.GetEffectiveFactorCount(),
-        basePool.Docs.GetBaselineDimension(),
-        !basePool.Docs.QueryId.empty(),
-        !basePool.Docs.SubgroupId.empty()
-    );
-}
-
-TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
-    TPool resultPool;
-    resultPool.Swap(LastGroupPool);
-
-    const int offset = resultPool.Docs.GetDocCount();
-    const int rawPoolSize = rawPool.Docs.GetDocCount();
-    ResizePool(offset + rawPoolSize, rawPool, &resultPool);
-    for (int docId = 0; docId < rawPoolSize; ++docId) {
-        resultPool.Docs.AssignDoc(offset + docId, rawPool.Docs, docId);
-    }
-
-    int lastQuerySize = 0;
-    const TGroupId lastQueryId = rawPool.Docs.QueryId.back();
-    for (auto queryIdIt = rawPool.Docs.QueryId.rbegin(); queryIdIt != rawPool.Docs.QueryId.rend(); ++queryIdIt) {
-        if (lastQueryId == *queryIdIt) {
-            ++lastQuerySize;
-        } else {
-            break;
-        }
-    }
-    ResizePool(lastQuerySize, resultPool, &LastGroupPool);
-    const int newResultPoolSize = offset + rawPoolSize - lastQuerySize;
-    for (int docId = 0; docId < lastQuerySize; ++docId) {
-        LastGroupPool.Docs.AssignDoc(docId, resultPool.Docs, newResultPoolSize + docId);
-    }
-    LastGroupPool.CatFeatures = rawPool.CatFeatures;
-
-    if (resultPool.CatFeatures.size() != LastGroupPool.CatFeatures.size()) {
-        resultPool.CatFeatures = LastGroupPool.CatFeatures;
-    }
-
-    ResizePool(newResultPoolSize, resultPool, &resultPool);
-    CB_ENSURE(resultPool.Docs.GetDocCount() != 0, "The size of the queries should be less than block-size parameter.");
-    return resultPool;
-}
-
-TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForAdditiveMetrics(const TPool& pool, bool isProcessBoundaryGroups) {
-    ProceedDataSet(pool, 0, Iterations.ysize(), isProcessBoundaryGroups, /*isAdditiveMetrics=*/true);
+TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForAdditiveMetrics(const TProcessedDataProvider& processedData) {
+    ProceedDataSet(processedData, 0, Iterations.ysize(), /*isAdditiveMetrics=*/true);
     return *this;
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::FinishProceedDataSetForAdditiveMetrics() {
-    if (LastGroupPool.Docs.GetDocCount() != 0) {
-        ProceedDataSet(LastGroupPool, 0, Iterations.ysize(), /*isProcessBoundaryGroups=*/false, /*isAdditiveMetrics=*/true);
-    }
-    return *this;
-}
-
-TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(const TPool& pool) {
+TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(const TProcessedDataProvider& processedData) {
     if (ProcessedIterationsCount == 0) {
-        const ui32 newPoolSize = NonAdditiveMetricsData.Target.size() + pool.Docs.Target.size();
+        const ui32 newPoolSize = NonAdditiveMetricsData.Target.size() + processedData.ObjectsData->GetObjectCount();
         NonAdditiveMetricsData.Target.reserve(newPoolSize);
         NonAdditiveMetricsData.Weights.reserve(newPoolSize);
-        NonAdditiveMetricsData.Target.insert(NonAdditiveMetricsData.Target.end(), pool.Docs.Target.begin(), pool.Docs.Target.end());
-        NonAdditiveMetricsData.Weights.insert(NonAdditiveMetricsData.Weights.end(), pool.Docs.Weight.begin(), pool.Docs.Weight.end());
+
+        const auto target = GetTarget(processedData.TargetData);
+        NonAdditiveMetricsData.Target.insert(NonAdditiveMetricsData.Target.end(), target.begin(), target.end());
+
+        const auto weights = GetWeights(processedData.TargetData);
+        NonAdditiveMetricsData.Weights.insert(NonAdditiveMetricsData.Weights.end(), weights.begin(), weights.end());
     }
     ui32 begin = ProcessedIterationsCount;
     ui32 end = Min<ui32>(ProcessedIterationsCount + ProcessedIterationsStep, Iterations.size());
-    ProceedDataSet(pool, begin, end, /*isProcessBoundaryGroups=*/false, /*isAdditiveMetrics=*/false);
+    ProceedDataSet(processedData, begin, end, /*isAdditiveMetrics=*/false);
     return *this;
 }
 
@@ -195,17 +144,17 @@ static void Load(ui32 docCount, IInputStream* input, TVector<TVector<double>>* o
     }
 }
 
-static int GetDocCount(TConstArrayRef<TPool> poolParts) {
-    int answer = 0;
-    for (const auto& pool : poolParts) {
-        answer += pool.Docs.GetDocCount();
+static ui32 GetDocCount(TConstArrayRef<TProcessedDataProvider> datasetParts) {
+    ui32 answer = 0;
+    for (const auto& datasetPart : datasetParts) {
+        answer += datasetPart.ObjectsData->GetObjectCount();
     }
     return answer;
 }
 
 static void InitApproxBuffer(
     int approxDimension,
-    TConstArrayRef<TPool> datasetParts,
+    TConstArrayRef<TProcessedDataProvider> datasetParts,
     bool initBaselineIfAvailable,
     TVector<TVector<double>>* approxMatrix
 ) {
@@ -215,10 +164,10 @@ static void InitApproxBuffer(
 
     bool hasBaseline = false;
     if (initBaselineIfAvailable) {
-        hasBaseline = !datasetParts[0].Docs.Baseline.empty();
+        hasBaseline = !GetBaseline(datasetParts[0].TargetData).empty();
         for (auto datasetPartIdx : xrange<size_t>(1, datasetParts.size())) {
             CB_ENSURE(
-                !datasetParts[datasetPartIdx].Docs.Baseline.empty() == hasBaseline,
+                !GetBaseline(datasetParts[datasetPartIdx].TargetData).empty() == hasBaseline,
                 "Inconsistent baseline specification between dataset parts: part 0 has "
                 << (hasBaseline ? "" : "no ") << " baseline, but part " << datasetPartIdx << " has"
                 << (hasBaseline ? " not" : "")
@@ -226,17 +175,17 @@ static void InitApproxBuffer(
         }
     }
 
-    int docCount = GetDocCount(datasetParts);
+    ui32 docCount = GetDocCount(datasetParts);
 
     for (auto approxIdx : xrange(approxDimension)) {
         auto& approx = (*approxMatrix)[approxIdx];
         if (hasBaseline) {
             approx.reserve(docCount);
             for (const auto& datasetPart : datasetParts) {
-                const auto& baselinePart = datasetPart.Docs.Baseline[approxIdx];
+                auto baselinePart = GetBaseline(datasetPart.TargetData)[approxIdx];
                 approx.insert(approx.end(), baselinePart.begin(), baselinePart.end());
             }
-            Y_ASSERT(approx.ysize() == docCount);
+            Y_ASSERT(approx.size() == (size_t)docCount);
         } else {
             approx.resize(docCount);
         }
@@ -250,26 +199,17 @@ static void ClearApproxBuffer(TVector<TVector<double>>* approxMatrix) {
 }
 
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
-    const TPool& rawPool,
+    const TProcessedDataProvider& processedData,
     ui32 beginIterationIndex,
     ui32 endIterationIndex,
-    bool isProcessBoundaryGroups,
     bool isAdditiveMetrics
 ) {
-    TPool tmpPool;
-    if (isProcessBoundaryGroups) {
-        tmpPool = ProcessBoundaryGroups(rawPool);
-    }
-    const TPool& pool = isProcessBoundaryGroups ? tmpPool : rawPool;
-    TModelCalcerOnPool modelCalcerOnPool(Model, pool, &Executor);
-    TVector<TQueryInfo> queriesInfo;
-    const TVector<float>& groupWeight = pool.MetaInfo.HasGroupWeight ? pool.Docs.Weight : TVector<float>();
-    UpdateQueriesInfo(pool.Docs.QueryId, groupWeight, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
-    UpdateQueriesPairs(pool.Pairs, 0, pool.Pairs.ysize(), /*invertedPermutation=*/{}, &queriesInfo);
-    const ui32 docCount = pool.Docs.GetDocCount();
+    TModelCalcerOnPool modelCalcerOnPool(Model, processedData.ObjectsData, &Executor);
+
+    const ui32 docCount = processedData.ObjectsData->GetObjectCount();
     InitApproxBuffer(
         Model.ObliviousTrees.ApproxDimension,
-        MakeArrayRef(&pool, 1),
+        MakeArrayRef(&processedData, 1),
         /*initBaselineIfAvailable*/ beginIterationIndex == 0,
         &CurApproxBuffer
     );
@@ -282,12 +222,22 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
         Load(docCount, LastApproxes.Get(), &CurApproxBuffer);
     }
 
+    const auto target = GetTarget(processedData.TargetData);
+    const auto weights = GetWeights(processedData.TargetData);
+    const auto groupInfos = GetGroupInfo(processedData.TargetData);
+
     for (ui32 iterationIndex = beginIterationIndex; iterationIndex < endIterationIndex; ++iterationIndex) {
         end = Iterations[iterationIndex] + 1;
         modelCalcerOnPool.ApplyModelMulti(EPredictionType::InternalRawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
         Append(NextApproxBuffer, &CurApproxBuffer);
+
         if (isAdditiveMetrics) {
-            ComputeAdditiveMetric(CurApproxBuffer, pool.Docs.Target, pool.Docs.Weight, queriesInfo, iterationIndex);
+            ComputeAdditiveMetric(
+                CurApproxBuffer,
+                target,
+                weights,
+                groupInfos,
+                iterationIndex);
         } else {
             SaveApproxToFile(iterationIndex, CurApproxBuffer);
         }
@@ -313,38 +263,41 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
     }
 }
 
-static TVector<float> BuildTargets(const TVector<TPool>& poolParts) {
+static TVector<float> BuildTargets(const TVector<TProcessedDataProvider>& datasetParts) {
     TVector<float> result;
-    result.reserve(GetDocCount(poolParts));
-    for (const auto& pool : poolParts) {
-        result.insert(result.end(), pool.Docs.Target.begin(), pool.Docs.Target.end());
+    result.reserve(GetDocCount(datasetParts));
+    for (const auto& datasetPart : datasetParts) {
+        const auto target = GetTarget(datasetPart.TargetData);
+        result.insert(result.end(), target.begin(), target.end());
     }
     return result;
 }
 
-static TVector<float> BuildWeights(const TVector<TPool>& poolParts) {
+static TVector<float> BuildWeights(const TVector<TProcessedDataProvider>& datasetParts) {
     TVector<float> result;
-    result.reserve(GetDocCount(poolParts));
-    for (const auto& pool : poolParts) {
-        result.insert(result.end(), pool.Docs.Weight.begin(), pool.Docs.Weight.end());
+    result.reserve(GetDocCount(datasetParts));
+    for (const auto& datasetPart : datasetParts) {
+        const auto weights = GetWeights(datasetPart.TargetData);
+        result.insert(result.end(), weights.begin(), weights.end());
     }
     return result;
 }
 
-static TVector<int> GetStartDocIdx(const TVector<TPool>& poolParts) {
-    TVector<int> result;
-    result.reserve(poolParts.size());
-    int start = 0;
-    for (const auto& pool : poolParts) {
+static TVector<ui32> GetStartDocIdx(const TVector<TProcessedDataProvider>& datasetParts) {
+    TVector<ui32> result;
+    result.reserve(datasetParts.size());
+    ui32 start = 0;
+    for (const auto& datasetPart : datasetParts) {
         result.push_back(start);
-        start += pool.Docs.GetDocCount();
+        start += datasetPart.ObjectsData->GetObjectCount();
     }
     return result;
 }
 
-void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& datasetParts) {
+void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TProcessedDataProvider>& datasetParts) {
     TVector<float> allTargets = BuildTargets(datasetParts);
     TVector<float> allWeights = BuildWeights(datasetParts);
+
 
     TVector<TVector<double>> curApprox;
     InitApproxBuffer(
@@ -356,8 +309,8 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& dataset
 
     int begin = 0;
     TVector<TModelCalcerOnPool> modelCalcers;
-    for (const auto& pool : datasetParts) {
-        modelCalcers.emplace_back(Model, pool, &Executor);
+    for (const auto& datasetPart : datasetParts) {
+        modelCalcers.emplace_back(Model, datasetPart.ObjectsData, &Executor);
     }
 
     auto startDocIdx = GetStartDocIdx(datasetParts);

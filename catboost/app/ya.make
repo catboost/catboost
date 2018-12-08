@@ -22,7 +22,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/app_helpers
     catboost/libs/column_description
-    catboost/libs/data
+    catboost/libs/data_new
     catboost/libs/data_util
     catboost/libs/distributed
     catboost/libs/documents_importance
@@ -33,6 +33,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/target
     catboost/libs/train_lib
     library/getopt/small
     library/grid_creator

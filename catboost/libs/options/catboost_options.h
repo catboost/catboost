@@ -80,4 +80,4 @@ namespace NCatboostOptions {
 
 using TCatboostOptions = NCatboostOptions::TCatBoostOptions;
 
-TVector<int> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions);
+TVector<ui32> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions);

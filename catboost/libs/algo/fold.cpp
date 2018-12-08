@@ -2,11 +2,16 @@
 #include "helpers.h"
 #include "approx_updater_helpers.h"
 
-#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+
+#include <util/generic/cast.h>
+
+
+using namespace NCB;
+
 
 static ui32 UpdateSize(ui32 size, const TVector<TQueryInfo>& queryInfo, const TVector<ui32>& queryIndices, ui32 learnSampleCount) {
     size = Min(size, learnSampleCount);
@@ -25,20 +30,20 @@ static double SelectTailSize(ui32 oldSize, double multiplier) {
 }
 
 static void InitFromBaseline(
-    const int beginIdx,
-    const int endIdx,
-    const TVector<TVector<double>>& baseline,
-    const TVector<ui32>& learnPermutation,
+    const ui32 beginIdx,
+    const ui32 endIdx,
+    const TVector<TConstArrayRef<float>>& baseline,
+    TConstArrayRef<ui32> learnPermutation,
     bool storeExpApproxes,
     TVector<TVector<double>>* approx
 ) {
-    const int learnSampleCount = learnPermutation.ysize();
+    const ui32 learnSampleCount = learnPermutation.size();
     const int approxDimension = approx->ysize();
     for (int dim = 0; dim < approxDimension; ++dim) {
-        TVector<double> tempBaseline(baseline[dim]);
+        TVector<double> tempBaseline(baseline[dim].begin(), baseline[dim].end());
         ExpApproxIf(storeExpApproxes, &tempBaseline);
-        for (int docId = beginIdx; docId < endIdx; ++docId) {
-            int initialIdx = docId;
+        for (ui32 docId = beginIdx; docId < endIdx; ++docId) {
+            ui32 initialIdx = docId;
             if (docId < learnSampleCount) {
                 initialIdx = learnPermutation[docId];
             }
@@ -47,89 +52,112 @@ static void InitFromBaseline(
     }
 }
 
-static void ShuffleData(const TDataset& learnData, int permuteBlockSize, TRestorableFastRng64& rand, TFold* fold) {
-    const int learnSampleCount = learnData.GetSampleCount();
-    if (permuteBlockSize == 1 || !learnData.QueryId.empty()) {
-        Shuffle(learnData.QueryId, rand, &fold->LearnPermutation);
-        fold->PermutationBlockSize = 1;
-    } else {
-        const int blocksCount = (learnSampleCount + permuteBlockSize - 1) / permuteBlockSize;
-        TVector<int> blockedPermute(blocksCount);
-        std::iota(blockedPermute.begin(), blockedPermute.end(), 0);
-        Shuffle(blockedPermute.begin(), blockedPermute.end(), rand);
 
-        int currentIdx = 0;
-        for (int i = 0; i < blocksCount; ++i) {
-            const int blockStartIdx = blockedPermute[i] * permuteBlockSize;
-            const int blockEndIndx = Min(blockStartIdx + permuteBlockSize, learnSampleCount);
-            for (int j = blockStartIdx; j < blockEndIndx; ++j) {
-                fold->LearnPermutation[currentIdx + j - blockStartIdx] = j;
-            }
-            currentIdx += blockEndIndx - blockStartIdx;
+static void InitPermutationData(
+    const NCB::TTrainingForCPUDataProvider& learnData,
+    bool shuffle,
+    ui32 permuteBlockSize,
+    TRestorableFastRng64* rand,
+    TFold* fold
+) {
+    const ui32 learnSampleCount = learnData.GetObjectCount();
+    const auto& featuresArraySubsetIndexing = learnData.ObjectsData->GetFeaturesArraySubsetIndexing();
+
+    TMaybe<ui32> consecutiveSubsetBegin = featuresArraySubsetIndexing.GetConsecutiveSubsetBegin();
+    if (shuffle) {
+        if (consecutiveSubsetBegin) {
+            fold->PermutationBlockSize = learnData.ObjectsGrouping->IsTrivial() ? permuteBlockSize : 1;
+            fold->FeaturesSubsetBegin = *consecutiveSubsetBegin;
+        } else {
+            fold->PermutationBlockSize = 1;
         }
-        fold->PermutationBlockSize = permuteBlockSize;
+        fold->LearnPermutation = Shuffle(learnData.ObjectsGrouping, fold->PermutationBlockSize, rand);
+        fold->LearnPermutationFeaturesSubset = Compose(
+            featuresArraySubsetIndexing,
+            fold->LearnPermutation->GetObjectsIndexing()
+        );
+    } else {
+        if (consecutiveSubsetBegin) {
+            fold->PermutationBlockSize = learnSampleCount;
+            fold->FeaturesSubsetBegin = *consecutiveSubsetBegin;
+        } else {
+            fold->PermutationBlockSize = 1;
+        }
+
+        // implementation requires permutation vectors to exist even if they are not shuffled
+        TIndexedSubset<ui32> learnPermutation;
+        learnPermutation.yresize(learnSampleCount);
+        std::iota(learnPermutation.begin(), learnPermutation.end(), 0);
+
+        fold->LearnPermutation = TObjectsGroupingSubset(
+            learnData.ObjectsGrouping,
+            TArraySubsetIndexing<ui32>(TFullSubset<ui32>(learnData.ObjectsGrouping->GetGroupCount())),
+            EObjectsOrder::Ordered,
+            MakeMaybe<TFeaturesArraySubsetIndexing>(std::move(learnPermutation)),
+            EObjectsOrder::Ordered
+        );
+
+        TIndexedSubset<ui32> learnPermutationFeaturesSubset;
+        learnPermutationFeaturesSubset.yresize(learnSampleCount);
+        featuresArraySubsetIndexing.ForEach(
+            [&] (ui32 idx, ui32 srcIdx) { learnPermutationFeaturesSubset[idx] = srcIdx; }
+        );
+        fold->LearnPermutationFeaturesSubset = TFeaturesArraySubsetIndexing(
+            std::move(learnPermutationFeaturesSubset)
+        );
     }
 }
 
+
 TFold TFold::BuildDynamicFold(
-    const TDataset& learnData,
+    const NCB::TTrainingForCPUDataProvider& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
-    int permuteBlockSize,
+    ui32 permuteBlockSize,
     int approxDimension,
     double multiplier,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
-    TRestorableFastRng64& rand
+    TRestorableFastRng64& rand,
+    NPar::TLocalExecutor* localExecutor
 ) {
-    const int learnSampleCount = learnData.GetSampleCount();
+    const ui32 learnSampleCount = learnData.GetObjectCount();
 
     TFold ff;
     ff.SampleWeights.resize(learnSampleCount, 1);
-    ff.LearnPermutation.resize(learnSampleCount);
 
-    std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
-    if (shuffle) {
-        ShuffleData(learnData, permuteBlockSize, rand, &ff);
-    } else {
-        ff.PermutationBlockSize = learnSampleCount;
-    }
+    InitPermutationData(learnData, shuffle, permuteBlockSize, &rand, &ff);
 
-    ff.AssignTarget(learnData.Target, targetClassifiers);
-    ff.SetWeights(learnData.Weights, learnSampleCount);
-
-    TVector<ui32> invertPermutation = InvertPermutation(ff.LearnPermutation);
+    ff.AssignTarget(GetMaybeTarget(learnData.TargetData), targetClassifiers);
+    ff.SetWeights(GetWeights(learnData.TargetData), learnSampleCount);
 
     TVector<ui32> queryIndices;
-    if (!learnData.QueryId.empty()) {
+
+    TConstArrayRef<TQueryInfo> groupInfos = GetGroupInfo(learnData.TargetData);
+    if (!groupInfos.empty()) {
         if (shuffle) {
-            TVector<TGroupId> groupIds;
-            TVector<ui32> subgroupId;
-            ff.AssignPermuted(learnData.QueryId, &groupIds);
-            if (!learnData.SubgroupId.empty()) {
-                ff.AssignPermuted(learnData.SubgroupId, &subgroupId);
-            }
-            const TVector<float>& groupWeight = learnData.HasGroupWeight ? ff.LearnWeights : TVector<float>();
-            UpdateQueriesInfo(groupIds, groupWeight, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
-            UpdateQueriesPairs(learnData.Pairs, invertPermutation, &ff.LearnQueriesInfo);
+            GetGroupInfosSubset(groupInfos, *ff.LearnPermutation, localExecutor, &ff.LearnQueriesInfo);
         } else {
-            ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());
+            ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), groupInfos.begin(), groupInfos.end());
         }
         queryIndices = GetQueryIndicesForDocs(ff.LearnQueriesInfo, learnSampleCount);
     }
+
     TVector<float> pairwiseWeights;
     if (hasPairwiseWeights) {
         pairwiseWeights.resize(learnSampleCount);
         CalcPairwiseWeights(ff.LearnQueriesInfo, ff.LearnQueriesInfo.ysize(), &pairwiseWeights);
     }
 
-    int leftPartLen = UpdateSize(SelectMinBatchSize(learnSampleCount), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
+    TVector<TConstArrayRef<float>> baseline = GetBaseline(learnData.TargetData);
+
+    ui32 leftPartLen = UpdateSize(SelectMinBatchSize(learnSampleCount), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
     while (ff.BodyTailArr.empty() || leftPartLen < learnSampleCount) {
-        int bodyFinish = leftPartLen;
-        int tailFinish = UpdateSize(SelectTailSize(leftPartLen, multiplier), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
+        int bodyFinish = (int)leftPartLen;
+        int tailFinish = (int)UpdateSize(SelectTailSize(leftPartLen, multiplier), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
         int bodyQueryFinish = 0;
         int tailQueryFinish = 0;
-        if (!learnData.QueryId.empty()) {
+        if (!groupInfos.empty()) {
             bodyQueryFinish = queryIndices[bodyFinish - 1] + 1;
             tailQueryFinish = queryIndices[tailFinish - 1] + 1;
         }
@@ -140,8 +168,8 @@ TFold TFold::BuildDynamicFold(
         TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
 
         bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
-        if (!learnData.Baseline.empty()) {
-            InitFromBaseline(leftPartLen, bt.TailFinish, learnData.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
+        if (!baseline.empty()) {
+            InitFromBaseline(leftPartLen, bt.TailFinish, baseline, ff.GetLearnPermutationArray(), storeExpApproxes, &bt.Approx);
         }
         bt.WeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
         bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
@@ -151,12 +179,12 @@ TFold TFold::BuildDynamicFold(
             bt.SamplePairwiseWeights.resize(bt.TailFinish);
         }
         ff.BodyTailArr.emplace_back(std::move(bt));
-        leftPartLen = bt.TailFinish;
+        leftPartLen = (ui32)bt.TailFinish;
     }
     return ff;
 }
 
-void TFold::SetWeights(const TVector<float>& weights, int learnSampleCount) {
+void TFold::SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount) {
     if (!weights.empty()) {
         AssignPermuted(weights, &LearnWeights);
         SumWeight = Accumulate(weights.begin(), weights.end(), (double)0.0);
@@ -166,50 +194,39 @@ void TFold::SetWeights(const TVector<float>& weights, int learnSampleCount) {
 }
 
 TFold TFold::BuildPlainFold(
-    const TDataset& learnData,
+    const NCB::TTrainingForCPUDataProvider& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
-    int permuteBlockSize,
+    ui32 permuteBlockSize,
     int approxDimension,
     bool storeExpApproxes,
     bool hasPairwiseWeights,
-    TRestorableFastRng64& rand
+    TRestorableFastRng64& rand,
+    NPar::TLocalExecutor* localExecutor
 ) {
-    const int learnSampleCount = learnData.GetSampleCount();
+    const ui32 learnSampleCount = learnData.GetObjectCount();
 
     TFold ff;
     ff.SampleWeights.resize(learnSampleCount, 1);
-    ff.LearnPermutation.resize(learnSampleCount);
 
-    std::iota(ff.LearnPermutation.begin(), ff.LearnPermutation.end(), 0);
-    if (shuffle) {
-        ShuffleData(learnData, permuteBlockSize, rand, &ff);
-    } else {
-        ff.PermutationBlockSize = learnSampleCount;
+    InitPermutationData(learnData, shuffle, permuteBlockSize, &rand, &ff);
+
+    ff.AssignTarget(GetMaybeTarget(learnData.TargetData), targetClassifiers);
+    ff.SetWeights(GetWeights(learnData.TargetData), learnSampleCount);
+
+    TConstArrayRef<TQueryInfo> groupInfos = GetGroupInfo(learnData.TargetData);
+    if (!groupInfos.empty()) {
+        if (shuffle) {
+            GetGroupInfosSubset(groupInfos, *ff.LearnPermutation, localExecutor, &ff.LearnQueriesInfo);
+        } else {
+            ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), groupInfos.begin(), groupInfos.end());
+        }
     }
 
-    ff.AssignTarget(learnData.Target, targetClassifiers);
-    ff.SetWeights(learnData.Weights, learnSampleCount);
+    const int groupCountAsInt = SafeIntegerCast<int>(groupInfos.size());
+    const int learnSampleCountAsInt = SafeIntegerCast<int>(learnSampleCount);
 
-    TVector<ui32> invertPermutation = InvertPermutation(ff.LearnPermutation);
-
-    if (shuffle) {
-        TVector<TGroupId> groupIds;
-        TVector<ui32> subgroupId;
-        if (!learnData.QueryId.empty()) {
-            ff.AssignPermuted(learnData.QueryId, &groupIds);
-        }
-        if (!learnData.SubgroupId.empty()) {
-            ff.AssignPermuted(learnData.SubgroupId, &subgroupId);
-        }
-        const TVector<float>& groupWeight = learnData.HasGroupWeight ? ff.LearnWeights : TVector<float>();
-        UpdateQueriesInfo(groupIds, groupWeight, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
-        UpdateQueriesPairs(learnData.Pairs, invertPermutation, &ff.LearnQueriesInfo);
-    } else {
-        ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());
-    }
-
-    TFold::TBodyTail bt(learnData.GetQueryCount(), learnData.GetQueryCount(), learnSampleCount, learnSampleCount, ff.GetSumWeight());
+    TFold::TBodyTail bt(groupCountAsInt, groupCountAsInt, learnSampleCountAsInt, learnSampleCountAsInt, ff.GetSumWeight());
 
     bt.Approx.resize(approxDimension, TVector<double>(learnSampleCount, GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
@@ -219,8 +236,10 @@ TFold TFold::BuildPlainFold(
         CalcPairwiseWeights(ff.LearnQueriesInfo, bt.TailQueryFinish, &bt.PairwiseWeights);
         bt.SamplePairwiseWeights.resize(learnSampleCount);
     }
-    if (!learnData.Baseline.empty()) {
-        InitFromBaseline(0, learnSampleCount, learnData.Baseline, ff.LearnPermutation, storeExpApproxes, &bt.Approx);
+
+    TVector<TConstArrayRef<float>> baseline = GetBaseline(learnData.TargetData);
+    if (!baseline.empty()) {
+        InitFromBaseline(0, learnSampleCount, baseline, ff.GetLearnPermutationArray(), storeExpApproxes, &bt.Approx);
     }
     ff.BodyTailArr.emplace_back(std::move(bt));
     return ff;
@@ -244,15 +263,20 @@ void TFold::DropEmptyCTRs() {
     }
 }
 
-void TFold::AssignTarget(const TVector<float>& target, const TVector<TTargetClassifier>& targetClassifiers) {
-    AssignPermuted(target, &LearnTarget);
-    int learnSampleCount = LearnPermutation.ysize();
+void TFold::AssignTarget(TMaybeData<TConstArrayRef<float>> target, const TVector<TTargetClassifier>& targetClassifiers) {
+    ui32 learnSampleCount = GetLearnSampleCount();
+    if (target.Defined()) {
+        AssignPermuted(*target, &LearnTarget);
+    } else {
+        // TODO(akhropov): make this field optional
+        LearnTarget.assign(learnSampleCount, 0.0f);
+    }
 
     int ctrCount = targetClassifiers.ysize();
     LearnTargetClass.assign(ctrCount, TVector<int>(learnSampleCount));
     TargetClassesCount.resize(ctrCount);
     for (int ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
-        for (int z = 0; z < learnSampleCount; ++z) {
+        for (ui32 z = 0; z < learnSampleCount; ++z) {
             LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[z]);
         }
         TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();

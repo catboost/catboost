@@ -29,7 +29,7 @@ namespace NCB {
     {
         CB_ENSURE(NFs::Exists(path), "Borders file at [" << path << "] was not found");
 
-        const auto featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
+        const auto featuresLayout = *quantizedFeaturesInfo->GetFeaturesLayout();
 
         THashMap<TFloatFeatureIdx, TVector<float>> borders;
         THashMap<TFloatFeatureIdx, ENanMode> nanModes;
@@ -84,7 +84,7 @@ namespace NCB {
         const TString& file,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
     {
-        const auto& featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
+        const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
 
         TOFStream out(file);
 

@@ -33,14 +33,16 @@ namespace NCatboostCuda {
     TCompressedCatFeatureDataSetBuilder& TCompressedCatFeatureDataSetBuilder::AddImpl(ui32 featureId,
                                                                                       TVector<typename TCompressedCatFeatureDataSet::TCompressedCatFeatureVec<PtrType>>* dst) {
         const ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);
-        const auto& catFeature = dynamic_cast<const ICatFeatureValuesHolder&>(DataProvider.GetFeatureById(
-                dataProviderId));
+        const auto& catFeature = **(DataProvider.ObjectsData->GetCatFeature(
+            DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(dataProviderId)
+        ));
+
         const ui64 docCount = catFeature.GetSize();
 
-        auto uncompressedCatFeature = catFeature.ExtractValues();
+        auto uncompressedCatFeature = catFeature.ExtractValues(&NPar::LocalExecutor());
         TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
-                NCudaLib::TSingleMapping(DeviceId, uncompressedCatFeature.size()));
-        tmp.Write(uncompressedCatFeature);
+                NCudaLib::TSingleMapping(DeviceId, (*uncompressedCatFeature).size()));
+        tmp.Write(*uncompressedCatFeature);
         const auto uniqueValues = FeaturesManager.GetBinCount(featureId);
         const auto compressedSize = CompressedSize<ui64>((ui32)docCount, uniqueValues);
         auto compressedMapping = NCudaLib::TSingleMapping(DeviceId, compressedSize);

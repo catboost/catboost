@@ -12,7 +12,7 @@ namespace NCB {
 
     void TCatFeaturesPerfectHashHelper::UpdatePerfectHashAndMaybeQuantize(
         const TCatFeatureIdx catFeatureIdx,
-        TConstMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
+        TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
         TMaybe<TArrayRef<ui32>*> dstBins
     ) {
         QuantizedFeaturesInfo->CheckCorrectPerTypeFeatureIdx(catFeatureIdx);

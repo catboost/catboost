@@ -17,6 +17,25 @@
 
 #include <numeric>
 
+
+using namespace NCB;
+
+
+bool HasFeaturesForCtrs(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 oneHotMaxSize) {
+    const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
+
+    bool hasFeaturesForCtrs = false;
+    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&] (TCatFeatureIdx catFeatureIdx) {
+            if (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly > oneHotMaxSize) {
+                hasFeaturesForCtrs = true;
+            }
+        }
+    );
+    return hasFeaturesForCtrs;
+}
+
+
 struct TCtrCalcer {
     template <typename T>
     T* Alloc(size_t count) {
@@ -318,8 +337,7 @@ static inline void CountOnlineCTRTotal(const TVector<ui64>& hashArr, int sampleC
     }
 }
 
-void ComputeOnlineCTRs(const TDataset& learnData,
-                       const TDatasetPtrs& testDataPtrs,
+void ComputeOnlineCTRs(const TTrainingForCPUDataProviders& data,
                        const TFold& fold,
                        const TProjection& proj,
                        const TLearnContext* ctx,
@@ -327,10 +345,11 @@ void ComputeOnlineCTRs(const TDataset& learnData,
     const TCtrHelper& ctrHelper = ctx->CtrsHelper;
     const auto& ctrInfo = ctrHelper.GetCtrInfo(proj);
     dst->Feature.resize(ctrInfo.size());
-    size_t learnSampleCount = fold.LearnPermutation.size();
-    const TVector<size_t>& testOffsets = CalcTestOffsets(learnSampleCount, testDataPtrs);
-    size_t totalSampleCount = learnSampleCount + GetSampleCount(testDataPtrs);
+    size_t learnSampleCount = data.Learn->GetObjectCount();
+    const TVector<size_t>& testOffsets = data.CalcTestOffsets();
+    size_t totalSampleCount = learnSampleCount + data.GetTestSampleCount();
 
+    const auto& quantizedFeaturesInfo = *data.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
     using THashArr = TVector<ui64>;
     using TRehashHash = TDenseHash<ui64, ui32>;
@@ -340,33 +359,54 @@ void ComputeOnlineCTRs(const TDataset& learnData,
     if (proj.IsSingleCatFeature()) {
         // Shortcut for simple ctrs
         Clear(&hashArr, totalSampleCount);
+        TArrayRef<ui64> hashArrView = hashArr;
         if (learnSampleCount > 0) {
-            const int* featureValues = learnData.AllFeatures.CatFeaturesRemapped[proj.CatFeatures[0]].data();
-            const auto* permutation = fold.LearnPermutation.data();
-            for (size_t i = 0; i < learnSampleCount; ++i) {
-                hashArr[i] = ((ui64)featureValues[permutation[i]]) + 1;
-            }
+            SubsetWithAlternativeIndexing(
+                data.Learn->ObjectsData->GetCatFeature((ui32)proj.CatFeatures[0]),
+                &fold.LearnPermutationFeaturesSubset
+            ).ForEach(
+                [hashArrView] (ui32 i, ui32 featureValue) {
+                    hashArrView[i] = (ui64)featureValue + 1;
+                }
+            );
         }
-        for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < testDataPtrs.size(); ++testIdx) {
-            const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
-            const int* featureValues = testDataPtrs[testIdx]->AllFeatures.CatFeaturesRemapped[proj.CatFeatures[0]].data();
-            for (size_t i = 0; i < testSampleCount; ++i) {
-                hashArr[docOffset + i] = ((ui64)featureValues[i]) + 1;
-            }
+        for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < data.Test.size(); ++testIdx) {
+            const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
+            (*data.Test[testIdx]->ObjectsData->GetCatFeature((ui32)proj.CatFeatures[0]))->GetArrayData()
+                .ForEach(
+                    [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
+                        hashArrView[docOffset + i] = (ui64)featureValue + 1;
+                    }
+                );
+
             docOffset += testSampleCount;
         }
-        rehashHashTlsVal.Get().MakeEmpty(learnData.AllFeatures.OneHotValues[proj.CatFeatures[0]].size());
+        rehashHashTlsVal.Get().MakeEmpty(
+            quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(proj.CatFeatures[0])).OnLearnOnly
+        );
     } else {
         Clear(&hashArr, totalSampleCount);
-        CalcHashes(proj, learnData.AllFeatures, 0, &fold.LearnPermutation, false, hashArr.begin(), hashArr.begin() + learnSampleCount);
-        for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < testDataPtrs.size(); ++testIdx) {
-            const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
-            CalcHashes(proj, testDataPtrs[testIdx]->AllFeatures, 0, nullptr, false, hashArr.begin() + docOffset, hashArr.begin() + docOffset + testSampleCount);
+        CalcHashes(
+            proj,
+            *data.Learn->ObjectsData,
+            fold.LearnPermutationFeaturesSubset,
+            nullptr,
+            hashArr.begin(),
+            hashArr.begin() + learnSampleCount);
+        for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < data.Test.size(); ++testIdx) {
+            const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
+            CalcHashes(
+                proj,
+                *data.Test[testIdx]->ObjectsData,
+                data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                nullptr,
+                hashArr.begin() + docOffset,
+                hashArr.begin() + docOffset + testSampleCount);
             docOffset += testSampleCount;
         }
         size_t approxBucketsCount = 1;
         for (auto cf : proj.CatFeatures) {
-            approxBucketsCount *= learnData.AllFeatures.OneHotValues[cf].size();
+            approxBucketsCount *= quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(cf)).OnLearnOnly;
             if (approxBucketsCount > learnSampleCount) {
                 break;
             }
@@ -380,8 +420,8 @@ void ComputeOnlineCTRs(const TDataset& learnData,
     auto leafCount = ComputeReindexHash(topSize, rehashHashTlsVal.GetPtr(), hashArr.begin(), hashArr.begin() + learnSampleCount);
     dst->CounterUniqueValuesCount = dst->UniqueValuesCount = leafCount;
 
-    for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < testDataPtrs.size(); ++testIdx) {
-        const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
+    for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < data.Test.size(); ++testIdx) {
+        const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
         leafCount = UpdateReindexHash(rehashHashTlsVal.GetPtr(), hashArr.begin() + docOffset, hashArr.begin() + docOffset + testSampleCount);
         docOffset += testSampleCount;
     }
@@ -467,13 +507,13 @@ void CalcFinalCtrsImpl(
     const ECtrType ctrType,
     const ui64 ctrLeafCountLimit,
     const TVector<int>& targetClass,
-    const TVector<float>& targets,
-    const ui64 totalSampleCount,
+    TConstArrayRef<float> targets,
+    const ui32 totalSampleCount,
     int targetClassesCount,
     TVector<ui64>* hashArr,
     TCtrValueTable* result
 ) {
-    Y_ASSERT(hashArr->size() == totalSampleCount);
+    Y_ASSERT(hashArr->size() == (size_t)totalSampleCount);
 
     size_t leafCount = 0;
     {
@@ -529,33 +569,39 @@ static void CalcFinalCtrs(
     const ECtrType ctrType,
     const TProjection& projection,
     const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+    const NCB::TFeaturesArraySubsetIndexing& learnFeaturesSubsetIndexing,
+    const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
     int targetBorderClassifierIdx,
     ui64 ctrLeafCountLimit,
     bool storeAllSimpleCtr,
     ECounterCalc counterCalcMethod,
     TCtrValueTable* result
 ) {
-    ui64 learnSampleCount = datasetDataForFinalCtrs.LearnData->GetSampleCount();
-    ui64 totalSampleCount = learnSampleCount;
+    ui32 learnSampleCount = datasetDataForFinalCtrs.Data.Learn->GetObjectCount();
+    ui32 totalSampleCount = learnSampleCount;
     if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
-        totalSampleCount += GetSampleCount(*(datasetDataForFinalCtrs.TestDataPtrs));
+        totalSampleCount += datasetDataForFinalCtrs.Data.GetTestSampleCount();
     }
     TVector<ui64> hashArr(totalSampleCount);
     CalcHashes(
         projection,
-        datasetDataForFinalCtrs.LearnData->AllFeatures,
-        0,
-        datasetDataForFinalCtrs.LearnPermutation.Defined() ?
-            *datasetDataForFinalCtrs.LearnPermutation : nullptr,
-        true,
+        *datasetDataForFinalCtrs.Data.Learn->ObjectsData,
+        learnFeaturesSubsetIndexing,
+        &perfectHashedToHashedCatValuesMap,
         hashArr.begin(),
         hashArr.begin() + learnSampleCount
     );
     if (totalSampleCount > learnSampleCount) {
         ui64* testHashBegin = hashArr.begin() + learnSampleCount;
-        for (const auto testDataPtr : *datasetDataForFinalCtrs.TestDataPtrs) {
-            ui64* testHashEnd = testHashBegin + testDataPtr->GetSampleCount();
-            CalcHashes(projection, testDataPtr->AllFeatures, 0, nullptr, true, testHashBegin, testHashEnd);
+        for (const auto& testDataPtr : datasetDataForFinalCtrs.Data.Test) {
+            ui64* testHashEnd = testHashBegin + testDataPtr->GetObjectCount();
+            CalcHashes(
+                projection,
+                *testDataPtr->ObjectsData,
+                testDataPtr->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                &perfectHashedToHashedCatValuesMap,
+                testHashBegin,
+                testHashEnd);
             testHashBegin = testHashEnd;
         }
     }
@@ -579,17 +625,16 @@ static void CalcFinalCtrs(
 
 static ui64 EstimateCalcFinalCtrsCpuRamUsage(
     const ECtrType ctrType,
-    const TDataset& learnData,
-    const TDatasetPtrs& testDataPtrs,
+    const TTrainingForCPUDataProviders& data,
     int targetClassesCount,
     ui64 ctrLeafCountLimit,
     ECounterCalc counterCalcMethod
 ) {
     ui64 cpuRamUsageEstimate = 0;
 
-    ui64 totalSampleCount = learnData.GetSampleCount();
+    ui32 totalSampleCount = data.Learn->GetObjectCount();
     if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
-        totalSampleCount += GetSampleCount(testDataPtrs);
+        totalSampleCount += data.GetTestSampleCount();
     }
     // for hashArr in CalcFinalCtrs
     cpuRamUsageEstimate += sizeof(ui64)*totalSampleCount;
@@ -604,7 +649,7 @@ static ui64 EstimateCalcFinalCtrsCpuRamUsage(
     // CalcFinalCtrsImpl stage 1
     ui64 computeReindexHashRamLimit = reindexHashRamLimit + computeReindexHashTopRamLimit;
 
-    ui64 reindexHashAfterComputeSizeLimit = Min(ctrLeafCountLimit, totalSampleCount);
+    ui64 reindexHashAfterComputeSizeLimit = Min<ui64>(ctrLeafCountLimit, totalSampleCount);
 
     ui64 reindexHashAfterComputeRamLimit =
         sizeof(TDenseHash<ui64,ui32>::value_type)*FastClp2(reindexHashAfterComputeSizeLimit*2);
@@ -640,14 +685,28 @@ void CalcFinalCtrsAndSaveToModel(
     NPar::TLocalExecutor& localExecutor,
     const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
     const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+    const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
     ui64 ctrLeafCountLimit,
     bool storeAllSimpleCtrs,
     ECounterCalc counterCalcMethod,
-    const NCB::TFeaturesLayout& layout,
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
 ) {
     CATBOOST_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
+
+    TMaybe<TFeaturesArraySubsetIndexing> permutedLearnFeaturesSubsetIndexing;
+    const TFeaturesArraySubsetIndexing* learnFeaturesSubsetIndexing = nullptr;
+    if (datasetDataForFinalCtrs.LearnPermutation) {
+        permutedLearnFeaturesSubsetIndexing = Compose(
+            datasetDataForFinalCtrs.Data.Learn->ObjectsData->GetFeaturesArraySubsetIndexing(),
+            **datasetDataForFinalCtrs.LearnPermutation
+        );
+        learnFeaturesSubsetIndexing = &*permutedLearnFeaturesSubsetIndexing;
+    } else {
+        learnFeaturesSubsetIndexing =
+            &datasetDataForFinalCtrs.Data.Learn->ObjectsData->GetFeaturesArraySubsetIndexing();
+    }
+
 
     ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
 
@@ -665,12 +724,16 @@ void CalcFinalCtrsAndSaveToModel(
             true
         );
 
+        const auto& layout = *datasetDataForFinalCtrs.Data.Learn->MetaInfo.FeaturesLayout;
+
         auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
             TCtrValueTable resTable;
             CalcFinalCtrs(
                 ctr.CtrType,
                 featureCombinationToProjectionMap.at(ctr.Projection),
                 datasetDataForFinalCtrs,
+                *learnFeaturesSubsetIndexing,
+                perfectHashedToHashedCatValuesMap,
                 ctr.TargetBorderClassifierIdx,
                 ctrLeafCountLimit,
                 storeAllSimpleCtrs,
@@ -688,8 +751,7 @@ void CalcFinalCtrsAndSaveToModel(
                 {
                     EstimateCalcFinalCtrsCpuRamUsage(
                         ctr.CtrType,
-                        *datasetDataForFinalCtrs.LearnData,
-                        *datasetDataForFinalCtrs.TestDataPtrs,
+                        datasetDataForFinalCtrs.Data,
                         NeedTargetClassifier(ctr.CtrType) ?
                             (**datasetDataForFinalCtrs.TargetClassesCount)[ctr.TargetBorderClassifierIdx]
                             : 0,

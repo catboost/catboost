@@ -3,13 +3,18 @@
 
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/utility.h>
 #include <util/stream/fwd.h>
 #include <util/string/cast.h>
 
 #include <cmath>
+
+
+using namespace NCB;
 
 
 namespace {
@@ -55,7 +60,7 @@ void TRocCurve::AddPoint(double newBoundary, double newFnr, double newFpr) {
 
 void TRocCurve::BuildCurve(
     const TVector<TVector<double>>& approxes, // [poolId][docId]
-    const TVector<TVector<float>>& labels, // [poolId][docId]
+    const TVector<TConstArrayRef<float>>& labels, // [poolId][docId]
     NPar::TLocalExecutor* localExecutor
 ) {
     size_t allDocumentsCount = 0;
@@ -120,9 +125,10 @@ void TRocCurve::BuildCurve(
     AddPoint(0, 0, 1); // always ends with (0, 0, 1)
 }
 
+
 TRocCurve::TRocCurve(
     const TVector<TVector<double>>& approxes,
-    const TVector<TVector<float>>& labels,
+    const TVector<TConstArrayRef<float>>& labels,
     int threadCount
 ) {
     NPar::TLocalExecutor localExecutor;
@@ -131,40 +137,46 @@ TRocCurve::TRocCurve(
     BuildCurve(approxes, labels, &localExecutor);
 }
 
-TRocCurve::TRocCurve(
-    const TVector<TVector<double>>& approxes,
-    const TVector<TPool>& pools,
-    NPar::TLocalExecutor* localExecutor
-) {
-    TVector<TVector<float>> labels;
-    for (const auto& pool : pools) {
-        labels.push_back(pool.Docs.Target);
-    }
 
-    BuildCurve(approxes, labels, localExecutor);
-}
+TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& datasets, int threadCount) {
+    TVector<TVector<double>> approxes(datasets.size());
+    TVector<TConstArrayRef<float>> labels(datasets.size());
 
-TRocCurve::TRocCurve(const TFullModel& model, const TVector<TPool>& pools, int threadCount) {
-    TVector<TVector<double>> approxes(pools.size());
-    for (size_t poolIdx = 0; poolIdx < pools.size(); ++poolIdx) {
-        approxes[poolIdx] = ApplyModel(
-            model,
-            pools[poolIdx],
-            false,
-            EPredictionType::RawFormulaVal,
-            0,
-            pools[poolIdx].Docs.GetDocCount(),
-            threadCount
-        );
-    }
+    // need to save owners of labels data
+    TVector<TTargetDataProviders> targetDataParts(datasets.size());
 
-    TVector<TVector<float>> labels;
-    for (const auto& pool : pools) {
-        labels.push_back(pool.Docs.Target);
-    }
+
+    TRestorableFastRng64 rand(0);
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    localExecutor.ExecRange(
+        [&] (int i) {
+            TProcessedDataProvider processedData = CreateModelCompatibleProcessedDataProvider(
+                *datasets[i],
+                model,
+                &rand,
+                &localExecutor
+            );
+
+            approxes[i] = ApplyModelMulti(
+                model,
+                *processedData.ObjectsData,
+                EPredictionType::RawFormulaVal,
+                0,
+                SafeIntegerCast<int>(processedData.ObjectsData->GetObjectCount()),
+                &localExecutor
+            )[0];
+
+            targetDataParts[i] = std::move(processedData.TargetData);
+
+            labels[i] = GetTarget(targetDataParts[i]);
+        },
+        0,
+        SafeIntegerCast<int>(datasets.size()),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
     BuildCurve(approxes, labels, &localExecutor);
 }

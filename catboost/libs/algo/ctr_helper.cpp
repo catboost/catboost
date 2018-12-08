@@ -33,7 +33,7 @@ inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description
 
 void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
                       const NCB::TFeaturesLayout& layout,
-                      const TVector<float>& target,
+                      NCB::TMaybeData<TConstArrayRef<float>> target,
                       ELossFunction loss,
                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                       bool allowConstLabel) {
@@ -77,11 +77,15 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
     for (const auto& targetClassifier : targetClassifierIds) {
         ui32 id = targetClassifier.second;
         const NCatboostOptions::TBinarizationOptions& binarizationOption = targetClassifier.first;
-        TargetClassifiers[id] = BuildTargetClassifier(target,
-                                                      loss,
-                                                      objectiveDescriptor,
-                                                      binarizationOption.BorderCount,
-                                                      binarizationOption.BorderSelectionType,
-                                                      allowConstLabel);
+        if (binarizationOption.BorderCount.Get() == 0) {
+            TargetClassifiers[id] = TTargetClassifier();
+        } else {
+            TargetClassifiers[id] = BuildTargetClassifier(*target,
+                                                          loss,
+                                                          objectiveDescriptor,
+                                                          binarizationOption.BorderCount,
+                                                          binarizationOption.BorderSelectionType,
+                                                          allowConstLabel);
+        }
     }
 }

@@ -37,8 +37,8 @@ namespace NCatboostCuda {
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider* DataProvider = nullptr;
-        const TDataProvider* TestDataProvider = nullptr;
+        const NCB::TTrainingDataProvider* DataProvider = nullptr;
+        const NCB::TTrainingDataProvider* TestDataProvider = nullptr;
         TBoostingProgressTracker* ProgressTracker = nullptr;
 
         TGpuAwareRandom& Random;
@@ -49,8 +49,8 @@ namespace NCatboostCuda {
 
     private:
         inline static TDocParallelDataSetsHolder CreateDocParallelDataSet(TBinarizedFeaturesManager& manager,
-                                                                          const TDataProvider& dataProvider,
-                                                                          const TDataProvider* test,
+                                                                          const NCB::TTrainingDataProvider& dataProvider,
+                                                                          const NCB::TTrainingDataProvider* test,
                                                                           ui32 permutationCount) {
             TDocParallelDataSetBuilder dataSetsHolderBuilder(manager,
                                                              dataProvider,
@@ -107,14 +107,16 @@ namespace NCatboostCuda {
                 state->Cursors[i].Reset(state->DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping(), approxDim);
                 CB_ENSURE(state->Cursors[i].GetMapping().GetObjectsSlice().Size());
 
-                if (dataProvider.HasBaseline()) {
+                if (dataProvider.MetaInfo.BaselineCount > 0) {
+                    auto dataProviderBaseline = GetBaseline(dataProvider.TargetData);
+
                     TVector<float> baselineBias;
-                    if (dataProvider.GetBaselineColumns() > approxDim) {
-                        CB_ENSURE(approxDim + 1 == dataProvider.GetBaselineColumns());
-                        baselineBias = loadBalancingPermutation.Gather(dataProvider.GetBaseline(approxDim));
+                    if (dataProvider.MetaInfo.BaselineCount > approxDim) {
+                        CB_ENSURE(approxDim + 1 == dataProvider.MetaInfo.BaselineCount);
+                        baselineBias = loadBalancingPermutation.Gather(dataProviderBaseline[approxDim]);
                     }
                     for (ui32 dim = 0; dim < approxDim; ++dim) {
-                        TVector<float> baseline = loadBalancingPermutation.Gather(dataProvider.GetBaseline(dim));
+                        TVector<float> baseline = loadBalancingPermutation.Gather(dataProviderBaseline[dim]);
                         for (ui32 i = 0; i < baselineBias.size(); ++i) {
                             baseline[i] -= baselineBias[i];
                         }
@@ -128,15 +130,17 @@ namespace NCatboostCuda {
 
             if (TestDataProvider) {
                 state->TestCursor.Reset(state->DataSets.GetTestDataSet().GetTarget().GetSamplesMapping(), approxDim);
-                if (TestDataProvider->HasBaseline()) {
+                if (TestDataProvider->MetaInfo.BaselineCount > 0) {
+                    auto testDataProviderBaseline = GetBaseline(TestDataProvider->TargetData);
+
                     const auto& testPermutation = state->DataSets.GetTestLoadBalancingPermutation();
                     TVector<float> baselineBias;
-                    if (TestDataProvider->GetBaselineColumns() > approxDim) {
-                        CB_ENSURE(approxDim + 1 == TestDataProvider->GetBaselineColumns());
-                        baselineBias = testPermutation.Gather(TestDataProvider->GetBaseline(approxDim));
+                    if (TestDataProvider->MetaInfo.BaselineCount > approxDim) {
+                        CB_ENSURE(approxDim + 1 == TestDataProvider->MetaInfo.BaselineCount);
+                        baselineBias = testPermutation.Gather(testDataProviderBaseline[approxDim]);
                     }
                     for (ui32 dim = 0; dim < approxDim; ++dim) {
-                        TVector<float> baseline = testPermutation.Gather(TestDataProvider->GetBaseline(dim));
+                        TVector<float> baseline = testPermutation.Gather(testDataProviderBaseline[dim]);
                         for (ui32 i = 0; i < baselineBias.size(); ++i) {
                             baseline[i] -= baselineBias[i];
                         }
@@ -281,7 +285,7 @@ namespace NCatboostCuda {
                     using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
                     auto target = TTargetAtPointTrait<TObjective>::Create(*(learnTarget[learnPermutationId]),
                                                                           (*learnCursors)[learnPermutationId]);
-                    auto mult = CalcScoreModelLengthMult(dataSet.GetDataProvider().GetSampleCount(),
+                    auto mult = CalcScoreModelLengthMult(dataSet.GetDataProvider().GetObjectCount(),
                                                          iteration * step);
                     auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(mult);
                     //search for best model and values of shifted target
@@ -374,8 +378,8 @@ namespace NCatboostCuda {
         virtual ~TBoosting() = default;
 
         //TODO(noxoomo): to common with dynamic boosting superclass
-        TBoosting& SetDataProvider(const TDataProvider& learnData,
-                                   const TDataProvider* testData = nullptr) {
+        TBoosting& SetDataProvider(const NCB::TTrainingDataProvider& learnData,
+                                   const NCB::TTrainingDataProvider* testData = nullptr) {
             DataProvider = &learnData;
             TestDataProvider = testData;
             return *this;

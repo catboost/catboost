@@ -11,6 +11,7 @@
 #include "yetirank_helpers.h"
 #include "pairwise_leaves_calculation.h"
 
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/enum_helpers.h>
@@ -94,7 +95,7 @@ void CalcShiftedApproxDers(
 ) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
     blockParams.SetBlockSize(APPROX_BLOCK_SIZE);
-    ctx->LocalExecutor.ExecRange([&](int blockId) {
+    ctx->LocalExecutor->ExecRange([&](int blockId) {
         const int blockOffset = sampleStart + blockId * blockParams.GetBlockSize(); // espetrov: OK for small datasets
         error.CalcDersRange(
             blockOffset,
@@ -417,18 +418,18 @@ void CalcApproxDeltaSimple(
     TVector<double> curLeafValues; // iteration scratch space
     TVector<double>& resArr = (*approxDelta)[0];
     for (int it = 0; it < gradientIterations; ++it) {
-        UpdateBucketsSimple(indices, ff, bt, bt.Approx[0], resArr, error, bt.BodyFinish, bt.BodyQueryFinish, it, estimationMethod, ctx->Params, randomSeed, &ctx->LocalExecutor, &buckets, &pairwiseBuckets, &weightedDers);
+        UpdateBucketsSimple(indices, ff, bt, bt.Approx[0], resArr, error, bt.BodyFinish, bt.BodyQueryFinish, it, estimationMethod, ctx->Params, randomSeed, ctx->LocalExecutor, &buckets, &pairwiseBuckets, &weightedDers);
         CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
         if (sumLeafValues != nullptr) {
             AddElementwise(curLeafValues, &(*sumLeafValues)[0]);
         }
 
         if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
-            UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.TailFinish, &ctx->LocalExecutor, &curLeafValues, &resArr);
+            UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.TailFinish, ctx->LocalExecutor, &curLeafValues, &resArr);
         } else {
             Y_ASSERT(!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction()));
-            UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.BodyFinish, &ctx->LocalExecutor, &curLeafValues, &resArr);
-            CalcTailModelSimple(indices, ff, bt, error, it, l2Regularizer, ctx->Params, randomSeed, &ctx->LocalExecutor, ctx, &buckets, &resArr, &weightedDers);
+            UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.BodyFinish, ctx->LocalExecutor, &curLeafValues, &resArr);
+            CalcTailModelSimple(indices, ff, bt, error, it, l2Regularizer, ctx->Params, randomSeed, ctx->LocalExecutor, ctx, &buckets, &resArr, &weightedDers);
         }
     }
 }
@@ -451,7 +452,7 @@ void CalcLeafValuesSimple(
     const auto& learnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = learnerOptions.LeavesEstimationIterations;
     const auto estimationMethod = learnerOptions.LeavesEstimationMethod;
-    auto& localExecutor = ctx->LocalExecutor;
+    auto& localExecutor = *ctx->LocalExecutor;
     const TFold::TBodyTail& bt = ff.BodyTailArr[0];
 
     TVector<double> approxes(bt.Approx[0].begin(), bt.Approx[0].begin() + ff.GetLearnSampleCount()); // iteration scratch space
@@ -472,8 +473,7 @@ void CalcLeafValuesSimple(
 
 template <typename TError>
 void CalcLeafValues(
-    const TDataset& learnData,
-    const TDatasetPtrs& testDataPtrs,
+    const NCB::TTrainingForCPUDataProviders& data,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
@@ -481,9 +481,9 @@ void CalcLeafValues(
     TVector<TVector<double>>* leafValues,
     TVector<TIndexType>* indices
 ) {
-    *indices = BuildIndices(fold, tree, learnData, testDataPtrs, &ctx->LocalExecutor);
+    *indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress.AveragingFold.GetApproxDimension();
-    Y_VERIFY(fold.GetLearnSampleCount() == (int)learnData.GetSampleCount());
+    Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
     const int leafCount = tree.GetLeafCount();
     if (approxDimension == 1) {
         CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafValues);
@@ -495,8 +495,7 @@ void CalcLeafValues(
 // output is permuted (learnSampleCount samples are permuted by LearnPermutation, test is indexed directly)
 template <typename TError>
 void CalcApproxForLeafStruct(
-    const TDataset& learnData,
-    const TDatasetPtrs& testDataPtrs,
+    const NCB::TTrainingForCPUDataProviders& data,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
@@ -504,7 +503,8 @@ void CalcApproxForLeafStruct(
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
-    const TVector<TIndexType> indices = BuildIndices(fold, tree, learnData, testDataPtrs, &ctx->LocalExecutor);
+    const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
+
     const int approxDimension = ctx->LearnProgress.ApproxDimension;
     const int leafCount = tree.GetLeafCount();
     TVector<ui64> randomSeeds;
@@ -512,7 +512,7 @@ void CalcApproxForLeafStruct(
         randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     }
     approxesDelta->resize(fold.BodyTailArr.ysize());
-    ctx->LocalExecutor.ExecRange([&](int bodyTailId) {
+    ctx->LocalExecutor->ExecRange([&](int bodyTailId) {
         const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
         TVector<TVector<double>>& approxDelta = (*approxesDelta)[bodyTailId];
         const double initValue = GetNeutralApprox<TError::StoreExpApprox>();

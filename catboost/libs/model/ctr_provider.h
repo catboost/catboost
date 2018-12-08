@@ -21,7 +21,7 @@ public:
     virtual void CalcCtrs(
         const TVector<TModelCtr>& neededCtrs,
         const TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features
-        const TConstArrayRef<int>& hashedCatFeatures,
+        const TConstArrayRef<ui32>& hashedCatFeatures,
         size_t docCount,
         TArrayRef<float> result) = 0;
 
@@ -58,12 +58,12 @@ public:
 // slow reference realization
 inline ui64 CalcHash(
     const TConstArrayRef<ui8>& binarizedFeatures,
-    const TConstArrayRef<int>& hashedCatFeatures,
+    const TConstArrayRef<ui32>& hashedCatFeatures,
     const TConstArrayRef<int>& transposedCatFeatureIndexes,
     const TConstArrayRef<int>& binarizedFeatureIndexes) {
     ui64 result = 0;
     for (const int featureIdx : transposedCatFeatureIndexes) {
-        result = CalcHash(result, (ui64)hashedCatFeatures[featureIdx]);
+        result = CalcHash(result, (ui64)(int)hashedCatFeatures[featureIdx]);
     }
     for (const auto& index : binarizedFeatureIndexes) {
         result = CalcHash(result, (ui64)binarizedFeatures[index]);
@@ -85,7 +85,7 @@ struct TBinFeatureIndexValue {
 
 inline void CalcHashes(
     const TConstArrayRef<ui8>& binarizedFeatures,
-    const TConstArrayRef<int>& hashedCatFeatures,
+    const TConstArrayRef<ui32>& hashedCatFeatures,
     const TConstArrayRef<int>& transposedCatFeatureIndexes,
     const TConstArrayRef<TBinFeatureIndexValue>& binarizedFeatureIndexes,
     size_t docCount,
@@ -96,7 +96,7 @@ inline void CalcHashes(
     for (const int featureIdx : transposedCatFeatureIndexes) {
         auto valPtr = &hashedCatFeatures[featureIdx * docCount];
         for (size_t i = 0; i < docCount; ++i) {
-            ptr[i] = CalcHash(ptr[i], (ui64)valPtr[i]);
+            ptr[i] = CalcHash(ptr[i], (ui64)(int)valPtr[i]);
         }
     }
     for (const auto& binFeatureIndex : binarizedFeatureIndexes) {
@@ -126,7 +126,7 @@ inline void CalcHashes(
     for (auto catFeatureIndex : featureCombination.CatFeatures) {
         for (size_t docId = 0; docId < docCount; ++docId) {
             ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)catFeatureAccessor(catFeatureIndex, docId));
+                                  (ui64)(int)catFeatureAccessor(catFeatureIndex, docId));
         }
     }
     for (const auto& floatFeature : featureCombination.BinFeatures) {

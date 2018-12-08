@@ -1,3 +1,6 @@
+
+#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 
@@ -5,9 +8,14 @@
 
 #include <util/folder/tempdir.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/xrange.h>
 #include <util/random/fast.h>
 
 #include <limits>
+
+
+using namespace NCB;
+
 
 template <typename Prng>
 static void FillWithRandom(TArrayRef<TVector<float>> matrix, Prng& prng) {
@@ -25,6 +33,39 @@ static void FillWithRandom(TArrayRef<float> array, Prng& prng) {
     }
 }
 
+static TDataProviderPtr SmallFloatPool() {
+    return CreateDataProvider(
+        [&] (IRawFeaturesOrderDataVisitor* visitor) {
+            TDataMetaInfo metaInfo;
+            metaInfo.HasTarget = true;
+            metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                (ui32)3,
+                TVector<ui32>{},
+                TVector<TString>{}
+            );
+
+            visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
+
+            visitor->AddFloatFeature(
+                0,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f})
+            );
+            visitor->AddFloatFeature(
+                1,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f})
+            );
+            visitor->AddFloatFeature(
+                2,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f})
+            );
+
+            visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f});
+
+            visitor->Finish();
+        }
+    );
+}
+
 Y_UNIT_TEST_SUITE(TrainModelTests) {
     Y_UNIT_TEST(TrainWithoutNansTestWithNans) {
         // Train doesn't have NaNs, so TrainModel implicitly forbids them (during quantization), but
@@ -34,19 +75,36 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         //
         TTempDir trainDir;
 
-        TPool learn;
-        learn.Docs.Resize(/*doc count*/3, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-        learn.Docs.Factors[0] = {+0.5f, +1.5f, -2.5f};
-        learn.Docs.Factors[1] = {+0.7f, +6.4f, +2.4f};
-        learn.Docs.Factors[2] = {-2.0f, -1.0f, +6.0f};
-        learn.Docs.Target = {1.0f, 0.0f, 0.2f};
+        TDataProviders dataProviders;
 
-        TPool test;
-        test.Docs.Resize(/*doc count*/1, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-        test.Docs.Factors[0] = {std::numeric_limits<float>::quiet_NaN()};
-        test.Docs.Factors[1] = {+1.5f};
-        test.Docs.Factors[2] = {-2.5f};
-        test.Docs.Target = {1.0f};
+
+        dataProviders.Learn = SmallFloatPool();
+
+        dataProviders.Test.emplace_back(
+            CreateDataProvider(
+                [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                    visitor->Start(dataProviders.Learn->MetaInfo, 1, EObjectsOrder::Undefined, {});
+
+                    visitor->AddFloatFeature(
+                        0,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(
+                            TVector<float>{std::numeric_limits<float>::quiet_NaN()}
+                        )
+                    );
+                    visitor->AddFloatFeature(
+                        1,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f})
+                    );
+                    visitor->AddFloatFeature(
+                        2,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f})
+                    );
+                    visitor->AddTarget(TVector<float>{1.0f});
+
+                    visitor->Finish();
+                }
+            )
+        );
 
         TFullModel model;
         TEvalResult evalResult;
@@ -58,9 +116,10 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         const auto f = [&] {
             TrainModel(
                 params,
+                nullptr,
                 {},
                 {},
-                TClearablePoolPtrs(learn, {&test}),
+                std::move(dataProviders),
                 "",
                 &model,
                 {&evalResult}
@@ -79,12 +138,9 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         //
         TTempDir trainDir;
 
-        TPool learn;
-        learn.Docs.Resize(/*doc count*/3, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-        learn.Docs.Factors[0] = {+0.5f, +1.5f, -2.5f};
-        learn.Docs.Factors[1] = {+0.7f, +6.4f, +2.4f};
-        learn.Docs.Factors[2] = {-2.0f, -1.0f, +6.0f};
-        learn.Docs.Target = {1.0f, 0.0f, 0.2f};
+        TDataProviders dataProviders;
+        dataProviders.Learn = SmallFloatPool();
+        dataProviders.Test.push_back(dataProviders.Learn);
 
         TFullModel model;
         TEvalResult evalResult;
@@ -94,9 +150,10 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         params.InsertValue("train_dir", trainDir.Name());
         TrainModel(
             params,
+            nullptr,
             {},
             {},
-            TClearablePoolPtrs(learn, {&learn}),
+            std::move(dataProviders),
             "",
             &model,
             {&evalResult}
@@ -115,20 +172,48 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         // issue: MLTOOLS-2464
 
         const ui64 seed = 20181029;
-        const size_t objectCount = 100;
-        const size_t numericFeatureCount = 2;
+        const ui32 objectCount = 100;
+        const ui32 numericFeatureCount = 2;
         const double randomStrength[2] = {2., 5000.};
 
         TFullModel models[2];
         for (size_t i = 0; i < 2; ++i) {
             TTempDir trainDir;
 
-            TPool learn;
-            learn.Docs.Resize(objectCount, numericFeatureCount, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
+            TVector<TVector<float>> factors(numericFeatureCount);
+            ResizeRank2(numericFeatureCount, objectCount, factors);
+
+            TVector<float> target(objectCount);
 
             TFastRng<ui64> prng(seed);
-            FillWithRandom(learn.Docs.Factors, prng);
-            FillWithRandom(learn.Docs.Target, prng);
+            FillWithRandom(factors, prng);
+            FillWithRandom(target, prng);
+
+            TDataProviders dataProviders;
+            dataProviders.Learn = CreateDataProvider(
+                [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                    TDataMetaInfo metaInfo;
+                    metaInfo.HasTarget = true;
+                    metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                        numericFeatureCount,
+                        TVector<ui32>{},
+                        TVector<TString>{}
+                    );
+
+                    visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {});
+
+                    for (auto featureIdx : xrange(numericFeatureCount)) {
+                        visitor->AddFloatFeature(
+                            featureIdx,
+                            TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(factors[featureIdx]))
+                        );
+                    }
+                    visitor->AddTarget(target);
+
+                    visitor->Finish();
+                }
+            );
+            dataProviders.Test.push_back(dataProviders.Learn);
 
             TEvalResult evalResult;
             NJson::TJsonValue params;
@@ -139,9 +224,10 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
             params.InsertValue("boosting_type", "Plain");
             TrainModel(
                 params,
+                nullptr,
                 {},
                 {},
-                TClearablePoolPtrs(learn, {&learn}),
+                std::move(dataProviders),
                 "",
                 &models[i],
                 {&evalResult}

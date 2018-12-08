@@ -9,6 +9,7 @@
 
 #include <library/dbg_output/dump.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>
 #include <util/generic/xrange.h>
 #include <util/stream/output.h>
@@ -73,7 +74,7 @@ namespace NCB {
         if (FloatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
             return ENanMode::Forbidden;
         }
-        TConstMaybeOwningArraySubset<float, ui32> arrayData = feature.GetArrayData();
+        TMaybeOwningConstArraySubset<float, ui32> arrayData = feature.GetArrayData();
 
         bool hasNans = arrayData.Find([] (size_t /*idx*/, float value) { return IsNan(value); });
         if (hasNans) {
@@ -97,6 +98,44 @@ namespace NCB {
             nanMode = NanModes.at(*floatFeatureIdx);
         }
         return nanMode;
+    }
+
+    TPerfectHashedToHashedCatValuesMap TQuantizedFeaturesInfo::CalcPerfectHashedToHashedCatValuesMap(
+        NPar::TLocalExecutor* localExecutor
+    ) const {
+        // load once and then work with all features in parallel
+        LoadCatFeaturePerfectHashToRam();
+
+        const auto& featuresLayout = *GetFeaturesLayout();
+        TPerfectHashedToHashedCatValuesMap result(featuresLayout.GetCatFeatureCount());
+
+        localExecutor->ExecRangeWithThrow(
+            [&] (int catFeatureIdx) {
+                if (!featuresLayout.GetInternalFeatureMetaInfo(
+                        (ui32)catFeatureIdx,
+                        EFeatureType::Categorical
+                    ).IsAvailable)
+                {
+                    return;
+                }
+
+                const auto& catFeaturePerfectHash = GetCategoricalFeaturesPerfectHash(
+                    TCatFeatureIdx((ui32)catFeatureIdx)
+                );
+                auto& perFeatureResult = result[catFeatureIdx];
+                perFeatureResult.yresize(catFeaturePerfectHash.size());
+                for (const auto [hashedCatValue, perfectHash] : catFeaturePerfectHash) {
+                    perFeatureResult[perfectHash] = hashedCatValue;
+                }
+            },
+            0,
+            SafeIntegerCast<int>(featuresLayout.GetCatFeatureCount()),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
+
+        UnloadCatFeaturePerfectHashFromRam();
+
+        return result;
     }
 
     ui32 TQuantizedFeaturesInfo::CalcCheckSum() const {

@@ -22,10 +22,38 @@ namespace NCB {
         bool CpuCompatibilityShuffleOverFullData = true;
     };
 
+    void CalcBordersAndNanMode(
+        const TQuantizationOptions& options,
+        TRawDataProviderPtr rawDataProvider,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    );
+
+
+    TQuantizedObjectsDataProviderPtr Quantize(
+        const TQuantizationOptions& options,
+        TRawObjectsDataProviderPtr rawObjectsDataProvider,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    );
+
+
     TQuantizedDataProviderPtr Quantize(
         const TQuantizationOptions& options,
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    );
+
+    TQuantizedDataProviders Quantize(
+        const TQuantizationOptions& options,
+        const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+        bool floatFeaturesAllowNansInTestOnly,
+        TConstArrayRef<ui32> ignoredFeatures,
+        TRawDataProviders rawDataProviders,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );

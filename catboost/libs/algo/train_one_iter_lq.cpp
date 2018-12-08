@@ -6,4 +6,4 @@ TLqError BuildError<TLqError>(const NCatboostOptions::TCatBoostOptions& params, 
     return {q, IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction())};
 }
 
-template void TrainOneIter<TLqError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);
+template void TrainOneIter<TLqError>(const NCB::TTrainingForCPUDataProviders&, TLearnContext*);

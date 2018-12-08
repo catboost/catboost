@@ -11,11 +11,14 @@
 #include <util/string/cast.h>
 
 
+using namespace NCB;
+
+
 const TString BaselinePrefix = "Baseline#";
 
 namespace {
     struct TFeatureDesc {
-        int Index;
+        size_t Index;
         bool IsCategorical;
 
     public:
@@ -26,13 +29,16 @@ namespace {
     using TFeatureIdToDesc = THashMap<TString, TFeatureDesc>;
 }
 
-static TFeatureIdToDesc GetFeatureIdToDesc(const TPool& pool) {
+static TFeatureIdToDesc GetFeatureIdToDesc(const TDataProvider& pool) {
     TFeatureIdToDesc res;
 
-    THashSet<int> catFeatures(pool.CatFeatures.begin(), pool.CatFeatures.end());
+    const auto& poolFeaturesMetaInfo = pool.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo();
 
-    for (int index = 0; index < pool.FeatureId.ysize(); ++index) {
-        res.emplace(pool.FeatureId[index], TFeatureDesc{index, catFeatures.contains(index)});
+    for (size_t index = 0; index < poolFeaturesMetaInfo.size(); ++index) {
+        res.emplace(
+            poolFeaturesMetaInfo[index].Name,
+            TFeatureDesc{index, poolFeaturesMetaInfo[index].Type == EFeatureType::Categorical}
+        );
     }
 
     return res;
@@ -61,11 +67,14 @@ namespace NCB {
     }
 
     void ValidateColumnOutput(const TVector<TString>& outputColumns,
-                              const TPool& pool,
+                              const TDataProvider& pool,
                               bool isPartOfFullTestSet,
                               bool CV_mode)
     {
-        THashSet<TString> featureIds(pool.FeatureId.begin(), pool.FeatureId.end());
+        THashSet<TString> featureIds;
+        for (const auto& featureMetaInfo : pool.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
+            featureIds.emplace(featureMetaInfo.Name);
+        }
 
         bool hasPrediction = false;
 
@@ -79,6 +88,9 @@ namespace NCB {
             EColumn columnType;
             if (TryFromString<EColumn>(name, columnType)) {
                 switch (columnType) {
+                    case (EColumn::Label):
+                        CB_ENSURE(pool.MetaInfo.HasTarget > 0, "bad output column name " << name << " (No target/label info in pool)");
+                        break;
                     case (EColumn::Baseline):
                         CB_ENSURE(pool.MetaInfo.BaselineCount > 0, "bad output column name " << name << " (No baseline info in pool)");
                         break;
@@ -119,6 +131,10 @@ namespace NCB {
                 CB_ENSURE(!isPartOfFullTestSet, "Column output by # is currently supported only for full pools, not pool parts");
             } else {
                 CB_ENSURE(featureIds.contains(name), "bad output column name " << name);
+                CB_ENSURE(
+                    dynamic_cast<TRawObjectsDataProvider*>(pool.ObjectsData.Get()),
+                    "Raw feature values are not available for quantized pools"
+                );
             }
             CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
         }
@@ -128,7 +144,7 @@ namespace NCB {
     TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& testSetFormat,
-        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
+        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     ) {
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
         if (testSetPath.Inited()) {
@@ -146,7 +162,7 @@ namespace NCB {
         NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
-        const TPool& pool,
+        const TDataProvider& pool,
         bool isPartOfFullTestSet,
         IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
@@ -156,8 +172,6 @@ namespace NCB {
         TMaybe<std::pair<size_t, size_t>> evalParameters) {
 
         TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
-
-        TVector<TString> convertedTarget = ConvertTargetToExternalName(pool.Docs.Target, visibleLabelsHelper);
 
         TVector<THolder<IColumnPrinter>> columnPrinter;
 
@@ -170,9 +184,7 @@ namespace NCB {
             EColumn outputType;
             if (TryFromString<EColumn>(columnName, outputType)) {
                 if (outputType == EColumn::Label) {
-                    if  (!pool.Docs.Target.empty()) {
-                        columnPrinter.push_back(MakeHolder<TVectorPrinter<TString>>(convertedTarget, columnName));
-                    }
+                    columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(*pool.RawTargetData.GetTarget(), columnName));
                     continue;
                 }
                 if (outputType == EColumn::DocId) {
@@ -188,11 +200,11 @@ namespace NCB {
                     continue;
                 }
                 if (outputType == EColumn::Timestamp) {
-                    columnPrinter.push_back(MakeHolder<TVectorPrinter<ui64>>(pool.Docs.Timestamp, columnName));
+                    columnPrinter.push_back(MakeHolder<TArrayPrinter<ui64>>(*pool.ObjectsData->GetTimestamp(), columnName));
                     continue;
                 }
                 if (outputType == EColumn::Weight) {
-                    columnPrinter.push_back(MakeHolder<TVectorPrinter<float>>(pool.Docs.Weight, columnName));
+                    columnPrinter.push_back(MakeHolder<TWeightsPrinter>(pool.RawTargetData.GetWeights(), columnName));
                     continue;
                 }
                 if ((outputType == EColumn::GroupId) || (outputType == EColumn::SubgroupId)) {
@@ -208,20 +220,21 @@ namespace NCB {
                     continue;
                 }
                 if (outputType == EColumn::Baseline) {
-                    for (int idx = 0; idx < pool.Docs.Baseline.ysize(); ++idx) {
+                    auto baseline = *pool.RawTargetData.GetBaseline();
+                    for (size_t idx = 0; idx < baseline.size(); ++idx) {
                         TStringBuilder header;
                         header << "Baseline";
-                        if (pool.Docs.Baseline.ysize() > 1) {
+                        if (baseline.size() > 1) {
                             header << "#" << idx;
                         }
-                        columnPrinter.push_back(MakeHolder<TVectorPrinter<double>>(pool.Docs.Baseline[idx], header));
+                        columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>(baseline[idx], header));
                     }
                     continue;
                 }
             }
             if (!columnName.compare(0, BaselinePrefix.length(), BaselinePrefix)) {
                 int idx = FromString<int>(columnName.substr(BaselinePrefix.length()));
-                columnPrinter.push_back(MakeHolder<TVectorPrinter<double>>(pool.Docs.Baseline[idx], columnName));
+                columnPrinter.push_back(MakeHolder<TArrayPrinter<float>>((*pool.RawTargetData.GetBaseline())[idx], columnName));
                 continue;
             }
             if (columnName[0] == '#') {
@@ -238,18 +251,37 @@ namespace NCB {
                 auto it = featureIdToDesc.find(columnName);
                 CB_ENSURE(it != featureIdToDesc.end(),
                           "columnName [" << columnName << "] not found in featureIds");
+
+                const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(pool.ObjectsData.Get());
+                CB_ENSURE(
+                    rawObjectsData,
+                    "Raw feature values are not available for quantized pools"
+                );
+
                 if (it->second.IsCategorical) {
+                    const auto arrayData = (*rawObjectsData->GetCatFeature(it->second.Index))->GetArrayData();
+                    TVector<ui32> catFeaturesArray = GetSubset<ui32>(
+                        *arrayData.GetSrc(),
+                        *arrayData.GetSubsetIndexing()
+                    );
+
                     columnPrinter.push_back(
                         MakeHolder<TCatFeaturePrinter>(
-                            pool.Docs.Factors[it->second.Index],
-                            pool.CatFeaturesHashToString,
+                            std::move(catFeaturesArray),
+                            rawObjectsData->GetCatFeaturesHashToString(it->second.Index),
                             columnName
                         )
                     );
                 } else {
+                    const auto arrayData = (*rawObjectsData->GetFloatFeature(it->second.Index))->GetArrayData();
+                    TVector<float> floatFeaturesArray = GetSubset<float>(
+                        *arrayData.GetSrc(),
+                        *arrayData.GetSubsetIndexing()
+                    );
+
                     columnPrinter.push_back(
-                        MakeHolder<TVectorPrinter<float>>(
-                            pool.Docs.Factors[it->second.Index],
+                        MakeHolder<TArrayPrinter<float>>(
+                            std::move(floatFeaturesArray),
                             columnName
                         )
                     );
@@ -265,7 +297,7 @@ namespace NCB {
             }
             *outputStream << Endl;
         }
-        for (size_t docId = 0; docId < pool.Docs.GetDocCount(); ++docId) {
+        for (ui32 docId = 0; docId < pool.ObjectsGrouping->GetObjectCount(); ++docId) {
             TString delimiter = "";
             for (auto& printer : columnPrinter) {
                 *outputStream << delimiter;
@@ -281,7 +313,7 @@ namespace NCB {
         int threadCount,
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
-        const TPool& pool,
+        const TDataProvider& pool,
         bool isPartOfFullTestSet,
         IOutputStream* outputStream,
         const TPathWithScheme& testSetPath,
@@ -310,86 +342,6 @@ namespace NCB {
             testFileWhichOf,
             writeHeader,
             docIdOffset);
-    }
-
-    void OutputGpuEvalResultToFile(
-        const TVector<TVector<double>>& approxes,
-        ui32 threadCount,
-        TConstArrayRef<TString> outputColumns,
-        const TPathWithScheme& testSetPath,
-        const TDsvFormatOptions& testSetFormat,
-        const TPoolMetaInfo& poolMetaInfo,
-        const TString& serializedMulticlassLabelParams,
-        const TString& evalOutputFileName
-    ) {
-        NPar::TLocalExecutor executor;
-        executor.RunAdditionalThreads(threadCount - 1);
-
-        TVector<THolder<IColumnPrinter>> columnPrinter;
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
-            testSetPath,
-            testSetFormat,
-            poolMetaInfo.ColumnsInfo);
-
-        TExternalLabelsHelper visibleLabelsHelper;
-        if (approxes.ysize() > 1) {
-            visibleLabelsHelper.Initialize(serializedMulticlassLabelParams);
-        }
-
-        for (const auto& columnName : outputColumns) {
-            EPredictionType type;
-            if (TryFromString<EPredictionType>(columnName, type)) {
-                columnPrinter.push_back(MakeHolder<TEvalPrinter>(&executor, TVector<TVector<TVector<double>>>(1, approxes), type, visibleLabelsHelper, TMaybe<std::pair<size_t, size_t>>()));
-                continue;
-            }
-            EColumn outputType;
-            if (TryFromString<EColumn>(columnName, outputType)) {
-                switch (outputType) {
-                    case EColumn::DocId:
-                        columnPrinter.push_back(
-                              (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
-                                  poolColumnsPrinter,
-                                  /*docIdOffset=*/0u,
-                                  columnName
-                              )
-                        );
-                        break;
-                    case EColumn::Label:
-                    case EColumn::Weight:
-                    case EColumn::GroupId:
-                    case EColumn::SubgroupId:
-                        columnPrinter.push_back(
-                            (THolder<IColumnPrinter>)MakeHolder<TColumnPrinter>(
-                                poolColumnsPrinter,
-                                outputType,
-                                /*docIdOffset=*/0u,
-                                columnName));
-                        break;
-                    default:
-                        CATBOOST_WARNING_LOG << "OutputGpuEvalResultToFile doesnt support " << ToString(outputType) << " column type" << Endl;
-                }
-            }
-        }
-
-        const ui64 docCount = approxes.empty() ? 0 : approxes[0].size();
-        TOFStream outputStream(evalOutputFileName);
-        TString delimiter = "";
-        for (auto& printer : columnPrinter) {
-            outputStream << delimiter;
-            printer->OutputHeader(&outputStream);
-            delimiter = printer->GetAfterColumnDelimiter();
-        }
-        outputStream << Endl;
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            TString delimiter = "";
-            for (auto& printer : columnPrinter) {
-                outputStream << delimiter;
-                printer->OutputValue(&outputStream, docId);
-                delimiter = printer->GetAfterColumnDelimiter();
-            }
-            outputStream << Endl;
-        }
-
     }
 
 } // namespace NCB

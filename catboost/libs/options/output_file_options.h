@@ -66,7 +66,8 @@ namespace NCatboostOptions {
 
         const TVector<EPredictionType>& GetPredictionTypes() const;
 
-        const TVector<TString>& GetOutputColumns() const;
+        // default depends on whether dataset has target or not
+        const TVector<TString> GetOutputColumns(bool datasetHasTarget) const;
 
         bool AllowWriteFiles() const;
 

@@ -2,6 +2,7 @@
 
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data_types/groupid.h>
+#include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/noncopyable.h>
 
@@ -26,7 +27,7 @@ void ResetPythonInterruptHandler();
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& srcData,
     const TVector<TString>& metricsDescription,
     int begin,
     int end,
@@ -57,7 +58,8 @@ public:
                                     int threadCount,
                                     const TString& tmpDir,
                                     bool deleteTempDirOnExit = false)
-    : Metrics(CreateMetricsFromDescription(metricDescriptions, model.ObliviousTrees.ApproxDimension))
+    : Rand(0)
+    , Metrics(CreateMetricsFromDescription(metricDescriptions, model.ObliviousTrees.ApproxDimension))
     , MetricPlotCalcer(CreateMetricCalcer(
             model,
             begin,
@@ -75,12 +77,19 @@ public:
         MetricPlotCalcer.ClearTempFiles();
     }
 
-    void AddPool(const TPool& pool) {
+    void AddPool(const NCB::TDataProvider& srcData) {
+        auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(
+            srcData,
+            MetricPlotCalcer.GetModel(),
+            &Rand,
+            &Executor
+        );
+
         if (MetricPlotCalcer.HasAdditiveMetric()) {
-            MetricPlotCalcer.ProceedDataSetForAdditiveMetrics(pool, /*isProcessBoundaryGroups=*/false);
+            MetricPlotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
         }
         if (MetricPlotCalcer.HasNonAdditiveMetric()) {
-            MetricPlotCalcer.ProceedDataSetForNonAdditiveMetrics(pool);
+            MetricPlotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
         }
 
     }
@@ -94,9 +103,6 @@ public:
     }
 
     TVector<TVector<double>> ComputeScores()  {
-        if (MetricPlotCalcer.HasAdditiveMetric()) {
-            MetricPlotCalcer.FinishProceedDataSetForAdditiveMetrics();
-        }
         if (MetricPlotCalcer.HasNonAdditiveMetric()) {
             MetricPlotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
@@ -104,6 +110,7 @@ public:
     }
 
 private:
+    TRestorableFastRng64 Rand;
     NPar::TLocalExecutor Executor;
     TVector<THolder<IMetric>> Metrics;
     TMetricsPlotCalcer MetricPlotCalcer;

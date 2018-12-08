@@ -4,13 +4,22 @@
 #include "enums.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/target/data_providers.h>
 
+#include <util/generic/cast.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
 #include <util/string/iterator.h>
 
 #include <functional>
 #include <numeric>
+
+
+using namespace NCB;
+
 
 
 static TUpdateMethod ParseUpdateMethod(const TString& updateMethod) {
@@ -101,8 +110,8 @@ static TDStrResult GetFinalDocumentImportances(
 
 TDStrResult GetDocumentImportances(
     const TFullModel& model,
-    const TPool& trainPool,
-    const TPool& testPool,
+    const NCB::TDataProvider& trainData,
+    const NCB::TDataProvider& testData,
     const TString& dstrTypeStr,
     int topSize,
     const TString& updateMethodStr,
@@ -110,7 +119,7 @@ TDStrResult GetDocumentImportances(
     int threadCount
 ) {
     if (topSize == -1) {
-        topSize = trainPool.Docs.GetDocCount();
+        topSize = SafeIntegerCast<int>(trainData.ObjectsData->GetObjectCount());
     } else {
         CB_ENSURE(topSize >= 0, "Top size should be nonnegative integer or -1 (for unlimited top size).");
     }
@@ -118,8 +127,36 @@ TDStrResult GetDocumentImportances(
     TUpdateMethod updateMethod = ParseUpdateMethod(updateMethodStr);
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
     EImportanceValuesSign importanceValuesSign = FromString<EImportanceValuesSign>(importanceValuesSignStr);
-    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, trainPool, updateMethod, threadCount);
-    const TVector<TVector<double>> documentImportances = leafInfluenceEvaluator.GetDocumentImportances(testPool);
+
+    TRestorableFastRng64 rand(0);
+
+    auto localExecutor = MakeAtomicShared<NPar::TLocalExecutor>();
+    localExecutor->RunAdditionalThreads(threadCount - 1);
+
+    // use maybe to enable delayed initialization
+    TMaybe<TProcessedDataProvider> trainProcessedData;
+    TMaybe<TProcessedDataProvider> testProcessedData;
+
+    TVector<std::function<void()>> tasks;
+    tasks.emplace_back(
+        [&] () {
+            trainProcessedData.ConstructInPlace(
+                CreateModelCompatibleProcessedDataProvider(trainData, model, &rand, localExecutor.Get())
+            );
+        }
+    );
+    tasks.emplace_back(
+        [&] () {
+            testProcessedData.ConstructInPlace(
+                CreateModelCompatibleProcessedDataProvider(testData, model, &rand, localExecutor.Get())
+            );
+        }
+    );
+    ExecuteTasksInParallel(&tasks, localExecutor.Get());
+
+    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, *trainProcessedData, updateMethod, localExecutor);
+    const TVector<TVector<double>> documentImportances
+        = leafInfluenceEvaluator.GetDocumentImportances(*testProcessedData);
     return GetFinalDocumentImportances(documentImportances, dstrType, topSize, importanceValuesSign);
 }
 

@@ -1,43 +1,22 @@
 #pragma once
 
-#include <catboost/libs/data/dataset.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/data_processing_options.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/output_file_options.h>
 
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/string.h>
-#include <util/generic/vector.h>
-#include <util/stream/fwd.h>
+#include <util/stream/file.h>
 
 #include <functional>
 
 
-namespace NJson {
-    class TJsonValue;
-}
-
-
-/// Preprocess targets and weights of the `data` as required by loss.
-void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
-                const TVector<float>& classWeights,
-                const TLabelConverter& labelConverter,
-                TDataset& learnOrTestData);
-
-/// Check consistency of the data with loss and with each other, after Preprocess.
-/// Check 1 of 2: consistency of the learnData itself.
-void CheckLearnConsistency(
-    const NCatboostOptions::TLossDescription& lossDescription,
-    bool allowConstLabel,
-    const TDataset& learnData
-);
-/// Check 2 of 2: consistency of the testData sets with the learnData.
-void CheckTestConsistency(
-    const NCatboostOptions::TLossDescription& lossDescription,
-    const TDataset& learnData,
-    const TDataset& testData
-);
+void CheckConsistency(const NCB::TTrainingDataProviders& data);
 
 void UpdateUndefinedRandomSeed(
     ETaskType taskType,
@@ -49,4 +28,18 @@ void UpdateUndefinedRandomSeed(
 void UpdateUndefinedClassNames(
     const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
     NJson::TJsonValue* updatedJsonParams
+);
+
+
+NCB::TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+    NCB::TDataProviderPtr learnData,
+    NPar::TLocalExecutor* localExecutor
+);
+
+NCB::TDataProviderPtr ShuffleLearnDataIfNeeded(
+    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+    NCB::TDataProviderPtr learnData,
+    NPar::TLocalExecutor* localExecutor,
+    TRestorableFastRng64* rand
 );

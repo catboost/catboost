@@ -2,8 +2,8 @@
 
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/data_util/line_data_reader.h>
-#include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/target/binarize_target.h>
 
 #include <library/getopt/small/last_getopt.h>
 
@@ -79,11 +79,12 @@ int mode_roc(int argc, const char* argv[]) {
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     TVector<TVector<double>> approxes(1);
-    TVector<TVector<float>> labels(1);
-    ParseEvalResult(params.EvalResultPath, &approxes[0], &labels[0]);
-    PrepareTargetBinary(params.LabelBinarizationBorder, &labels[0]);
+    TVector<float> labels;
+    ParseEvalResult(params.EvalResultPath, &approxes[0], &labels);
+    PrepareTargetBinary(labels, params.LabelBinarizationBorder, &labels);
 
-    TRocCurve rocCurve(approxes, labels, params.ThreadCount);
+    TVector<TConstArrayRef<float>> labelsParam(1, labels);
+    TRocCurve rocCurve(approxes, labelsParam, params.ThreadCount);
     rocCurve.OutputRocCurve(params.OutputPath);
     return 0;
 }

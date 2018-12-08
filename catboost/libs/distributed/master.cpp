@@ -3,71 +3,12 @@
 
 #include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/index_calcer.h>
-#include <catboost/libs/helpers/data_split.h>
 
 #include <library/par/par_settings.h>
 
 using namespace NCatboostDistributed;
+using namespace NCB;
 
-template <typename TData>
-static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pair<ui32, ui32>& part) {
-    const size_t columnSize = column.size();
-    if ((size_t)part.first >= columnSize) {
-        return TVector<TData>();
-    }
-    const auto& columnBegin = column.begin();
-    return TVector<TData>(columnBegin + part.first, columnBegin + Min((size_t)part.second, columnSize));
-}
-
-template <typename TData>
-static TVector<TVector<TData>> GetWorkerPart(const TVector<TVector<TData>>& masterTable, const std::pair<ui32, ui32>& part) {
-    TVector<TVector<TData>> workerPart;
-    workerPart.reserve(masterTable.ysize());
-    for (const auto& masterColumn : masterTable) {
-        workerPart.emplace_back(GetWorkerPart(masterColumn, part));
-    }
-    return workerPart;
-}
-
-static TAllFeatures GetWorkerPart(const TAllFeatures& allFeatures, const std::pair<ui32, ui32>& part) {
-    TAllFeatures workerPart;
-    workerPart.FloatHistograms = GetWorkerPart(allFeatures.FloatHistograms, part);
-    workerPart.CatFeaturesRemapped = GetWorkerPart(allFeatures.CatFeaturesRemapped, part);
-    workerPart.OneHotValues = allFeatures.OneHotValues;
-    workerPart.IsOneHot = allFeatures.IsOneHot;
-    return workerPart;
-}
-
-using TPartPairMap = THashMap<std::pair<ui32, ui32>, TVector<TPair>>;
-
-static ::TDataset GetWorkerPart(const ::TDataset& trainData, const TPartPairMap& partPairMap, const std::pair<ui32, ui32>& part) {
-    ::TDataset workerPart;
-    workerPart.AllFeatures = GetWorkerPart(trainData.AllFeatures, part);
-    workerPart.Baseline = GetWorkerPart(trainData.Baseline, part);
-    workerPart.Target = GetWorkerPart(trainData.Target, part);
-    workerPart.Weights = GetWorkerPart(trainData.Weights, part);
-    workerPart.QueryId = GetWorkerPart(trainData.QueryId, part);
-    workerPart.SubgroupId = GetWorkerPart(trainData.SubgroupId, part);
-    if (!trainData.Pairs.empty()) {
-        Y_ASSERT(partPairMap.contains(part));
-        workerPart.Pairs = partPairMap.at(part);
-    }
-    workerPart.HasGroupWeight = trainData.HasGroupWeight;
-    UpdateQueryInfo(&workerPart);
-    return workerPart;
-}
-
-static TPartPairMap GetPairsForParts(const TVector<TPair>& pairs, const TVector<std::pair<ui32, ui32>>& parts) {
-    TPartPairMap pairsForParts;
-    const auto IsElement = [](size_t value, const std::pair<ui32, ui32>& range) { return range.first <= value && value < range.second; };
-    for (const auto& pair : pairs) {
-        const auto winnerPart = FindIf(parts, [pair, &IsElement](const auto& part) { return IsElement(pair.WinnerId, part); } );
-        Y_ASSERT(winnerPart != parts.end() && IsElement(pair.LoserId, *winnerPart));
-        const auto partStart = winnerPart->first;
-        pairsForParts[*winnerPart].emplace_back(pair.WinnerId - partStart, pair.LoserId - partStart, pair.Weight);
-    }
-    return pairsForParts;
-}
 
 void InitializeMaster(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
@@ -91,19 +32,13 @@ void FinalizeMaster(TLearnContext* ctx) {
     }
 }
 
-void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
+void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const auto& plainFold = ctx->LearnProgress.Folds[0];
-    Y_ASSERT(plainFold.PermutationBlockSize == plainFold.LearnPermutation.ysize());
+    Y_ASSERT(plainFold.PermutationBlockSize == plainFold.GetLearnSampleCount());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<std::pair<ui32, ui32>> workerParts;
-    TPartPairMap pairsForParts;
-    if (trainData.QueryId.empty()) {
-        workerParts = Split((ui32)trainData.GetSampleCount(), (ui32)workerCount);
-    } else {
-        workerParts = Split((ui32)trainData.GetSampleCount(), trainData.QueryId, (ui32)workerCount);
-        pairsForParts = GetPairsForParts(trainData.Pairs, workerParts);
-    }
+    TVector<TArraySubsetIndexing<ui32>> workerParts = Split(*trainData->ObjectsGrouping, (ui32)workerCount);
+
     const ui64 randomSeed = ctx->Rand.GenRand();
     const auto& splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
     const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
@@ -120,7 +55,10 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
         ctx->SharedTrainData->SetContextData(workerIdx,
             new NCatboostDistributed::TTrainData(
-                GetWorkerPart(trainData, pairsForParts, workerParts[workerIdx]),
+                trainData->GetSubset(
+                    NCB::GetSubset(trainData->ObjectsGrouping, std::move(workerParts[workerIdx]), EObjectsOrder::Ordered),
+                    ctx->LocalExecutor
+                ),
                 targetClassifiers,
                 splitCounts,
                 randomSeed,
@@ -160,7 +98,7 @@ void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* 
     const int candidateCount = candidateList->ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
     // set best split for each candidate
-    NPar::ParallelFor(ctx->LocalExecutor, 0, candidateCount, [&] (int candidateIdx) {
+    NPar::ParallelFor(*ctx->LocalExecutor, 0, candidateCount, [&] (int candidateIdx) {
         auto& subCandidates = (*candidateList)[candidateIdx].Candidates;
         const int subcandidateCount = subCandidates.ysize();
         TVector<TVector<double>> allScores(subcandidateCount);
@@ -176,24 +114,6 @@ void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* 
         }
         SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &subCandidates);
     });
-}
-
-void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
-    const float l2Reg = ctx->Params.ObliviousTreeOptions->L2Reg;
-    const float pairwiseBucketWeightPriorReg = ctx->Params.ObliviousTreeOptions->PairwiseNonDiagReg;
-    const auto splitCount = CountSplits(ctx->LearnProgress.FloatFeatures);
-    const auto getPairwiseScore = [&] (const TPairwiseStats& pairwiseStats, const TCandidateInfo& splitInfo) {
-        const int bucketCount = GetSplitCount(splitCount, /*oneHotValues*/ {}, splitInfo.SplitCandidate) + 1;
-        TVector<TScoreBin> scoreBins(bucketCount);
-        CalculatePairwiseScore(pairwiseStats,
-            bucketCount,
-            splitInfo.SplitCandidate.Type,
-            l2Reg,
-            pairwiseBucketWeightPriorReg,
-            &scoreBins);
-        return GetScores(scoreBins);
-    };
-    MapGenericCalcScore<TPairwiseScoreCalcer>(getPairwiseScore, scoreStDev, candidateList, ctx);
 }
 
 // TODO(espetrov): Remove unused code.
@@ -223,7 +143,7 @@ void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList,
     const int candidateCount = candidateList->ysize();
     Y_ASSERT(candidateCount == allScores.ysize());
     const ui64 randSeed = ctx->Rand.GenRand();
-    ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
+    ctx->LocalExecutor->ExecRange([&] (int candidateIdx) {
         SetBestScore(randSeed + candidateIdx, allScores[candidateIdx], scoreStDev, &(*candidateList)[candidateIdx].Candidates);
     }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);
 }

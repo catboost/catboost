@@ -1,20 +1,16 @@
 #include "cross_validation.h"
 
+#include "approx_dimension.h"
+#include "data.h"
 #include "preprocess.h"
 #include "train_model.h"
 
 #include <catboost/libs/algo/calc_score_cache.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/quantization.h>
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/algo/train.h>
-#include <catboost/libs/data/dataset.h>
-#include <catboost/libs/helpers/data_split.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/int_cast.h>
-#include <catboost/libs/helpers/permutation.h>
-#include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
@@ -36,161 +32,49 @@
 #include <numeric>
 
 
-static TVector<TVector<ui32>> GetSplittedDocs(const TVector<std::pair<ui32, ui32>>& startEnd) {
-    TVector<TVector<ui32>> result(startEnd.size());
-    for (ui32 fold = 0; fold < result.size(); ++fold) {
-        ui32 foldStartIndex = startEnd[fold].first;
-        ui32 foldEndIndex = startEnd[fold].second;
-        result[fold].reserve(foldEndIndex - foldStartIndex);
-        for (ui32 idx = foldStartIndex; idx < foldEndIndex; ++idx) {
-            result[fold].push_back(idx);
-        }
-    }
-    return result;
+using namespace NCB;
+
+
+TConstArrayRef<TString> GetTargetForStratifiedSplit(const TDataProvider& dataProvider) {
+    auto maybeTarget = dataProvider.RawTargetData.GetTarget();
+    CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
+    return *maybeTarget;
 }
 
-static TVector<TVector<ui32>> CalcTrainDocs(const TVector<TVector<ui32>>& testDocs, ui32 docCount) {
-    TVector<TVector<ui32>> result(testDocs.size());
-    for (ui32 fold = 0; fold < result.size(); ++fold) {
-        result[fold].reserve(docCount - testDocs[fold].size());
-        for (ui32 testFold = 0; testFold < testDocs.size(); ++testFold) {
-            if (testFold == fold) {
-                continue;
-            }
-            for (auto doc : testDocs[testFold]) {
-                result[fold].push_back(doc);
-            }
-        }
-    }
-    return result;
+
+TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
+    return NCB::GetTarget(dataProvider.TargetData);
 }
 
-static void PopulateData(const TPool& pool,
-                         const TVector<ui32>& indices,
-                         TDataset* learnOrTestData) {
-    auto& data = *learnOrTestData;
-    const TDocumentStorage& docStorage = pool.Docs;
-    data.Target.yresize(indices.size());
-    data.Weights.yresize(indices.size());
-    for (size_t i = 0; i < indices.size(); ++i) {
-        data.Target[i] = docStorage.Target[indices[i]];
-        data.Weights[i] = docStorage.Weight[indices[i]];
-    }
-    for (int dim = 0; dim < docStorage.GetBaselineDimension(); ++dim) {
-        data.Baseline[dim].yresize(indices.size());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            data.Baseline[dim][i] = docStorage.Baseline[dim][indices[i]];
-        }
-    }
 
-    if (!docStorage.QueryId.empty()) {
-        data.QueryId.yresize(indices.size());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            data.QueryId[i] = docStorage.QueryId[indices[i]];
-        }
-    }
-    if (!docStorage.SubgroupId.empty()) {
-        data.SubgroupId.yresize(indices.size());
-        for (size_t i = 0; i < indices.size(); ++i) {
-            data.SubgroupId[i] = docStorage.SubgroupId[indices[i]];
-        }
-    }
-    learnOrTestData->HasGroupWeight = pool.MetaInfo.HasGroupWeight;
-    const TVector<float>& groupWeight = data.HasGroupWeight ? data.Weights : TVector<float>();
-    UpdateQueriesInfo(data.QueryId, groupWeight, data.SubgroupId, 0, data.GetSampleCount(), &data.QueryInfo);
-};
-
-static void PrepareFolds(
-    const NCatboostOptions::TLossDescription& lossDescription,
-    bool allowConstLabel,
-    const TPool& pool,
-    const TVector<THolder<TLearnContext>>& contexts,
-    const TCrossValidationParams& cvParams,
-    TVector<TDataset>* folds,
-    TVector<TDataset>* testFolds
+TVector<TArraySubsetIndexing<ui32>> CalcTrainSubsets(
+    const TVector<TArraySubsetIndexing<ui32>>& testSubsets,
+    ui32 groupCount
 ) {
-    bool hasQuery = !pool.Docs.QueryId.empty();
-    TVector<TVector<ui32>> docsInTest;
-    TVector<std::pair<ui32, ui32>> testDocsStartEndIndices;
-    if (cvParams.Stratified) {
-        docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
-    } else {
-        testDocsStartEndIndices = hasQuery
-            ? Split(pool.Docs.GetDocCount(), pool.Docs.QueryId, cvParams.FoldCount)
-            : Split(pool.Docs.GetDocCount(), cvParams.FoldCount);
-        docsInTest = GetSplittedDocs(testDocsStartEndIndices);
+
+    TVector<TVector<ui32>> trainSubsetIndices(testSubsets.size());
+    for (ui32 fold = 0; fold < testSubsets.size(); ++fold) {
+        trainSubsetIndices[fold].reserve(groupCount - testSubsets[fold].Size());
     }
-
-    const int docCount = pool.Docs.GetDocCount();
-    TVector<TVector<ui32>> docsInTrain = CalcTrainDocs(docsInTest, docCount);
-
-    if (cvParams.Inverted) {
-        docsInTest.swap(docsInTrain);
-    }
-
-    TVector<ui32> docIndices;
-    docIndices.reserve(docCount);
-    for (ui32 foldIdx = 0; foldIdx < cvParams.FoldCount; ++foldIdx) {
-        TDataset learnData;
-        TDataset testData;
-
-        docIndices.clear();
-        docIndices.insert(docIndices.end(), docsInTrain[foldIdx].begin(), docsInTrain[foldIdx].end());
-        docIndices.insert(docIndices.end(), docsInTest[foldIdx].begin(), docsInTest[foldIdx].end());
-
-        PopulateData(pool, docsInTrain[foldIdx], &learnData);
-        PopulateData(pool, docsInTest[foldIdx], &testData);
-
-        if (!pool.Pairs.empty()) {
-            int testDocsBegin = testDocsStartEndIndices[foldIdx].first;
-            int testDocsEnd = testDocsStartEndIndices[foldIdx].second;
-            SplitPairsAndReindex(pool.Pairs, testDocsBegin, testDocsEnd, &learnData.Pairs, &testData.Pairs);
-        }
-
-        UpdateQueriesPairs(learnData.Pairs, /*invertedPermutation=*/{}, &learnData.QueryInfo);
-        UpdateQueriesPairs(testData.Pairs, /*invertedPermutation=*/{}, &testData.QueryInfo);
-
-        const auto& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
-        const auto& labelConverter =  contexts[foldIdx]->LearnProgress.LabelConverter;
-        Preprocess(lossDescription, classWeights, labelConverter, learnData);
-        Preprocess(lossDescription, classWeights, labelConverter, testData);
-
-
-        // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
-        THashSet<int> catFeatures = ToSigned(contexts[foldIdx]->CatFeatures);
-
-        PrepareAllFeaturesLearn(
-            catFeatures,
-            contexts[foldIdx]->LearnProgress.FloatFeatures,
-            Nothing(),
-            contexts[foldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
-            /*ignoreRedundantFeatures=*/true,
-            (size_t)contexts[foldIdx]->Params.CatFeatureParams->OneHotMaxSize,
-            /*clearPool=*/false,
-            contexts[foldIdx]->LocalExecutor,
-            docsInTrain[foldIdx],
-            &pool.Docs,
-            &learnData.AllFeatures
+    for (ui32 testFold = 0; testFold < testSubsets.size(); ++testFold) {
+        testSubsets[testFold].ForEach(
+            [&](ui32 /*idx*/, ui32 srcIdx) {
+                for (ui32 fold = 0; fold < trainSubsetIndices.size(); ++fold) {
+                    if (testFold == fold) {
+                        continue;
+                    }
+                    trainSubsetIndices[fold].push_back(srcIdx);
+                }
+            }
         );
-
-        PrepareAllFeaturesTest(
-            catFeatures,
-            contexts[foldIdx]->LearnProgress.FloatFeatures,
-            learnData.AllFeatures,
-            /*allowNansOnlyInTest=*/true,
-            /*clearPool=*/false,
-            contexts[foldIdx]->LocalExecutor,
-            docsInTest[foldIdx],
-            &pool.Docs,
-            &testData.AllFeatures
-        );
-
-        CheckLearnConsistency(lossDescription, allowConstLabel, learnData);
-        CheckTestConsistency(lossDescription, learnData, testData);
-
-        folds->push_back(learnData);
-        testFolds->push_back(testData);
     }
+
+    TVector<TArraySubsetIndexing<ui32>> result;
+    for (auto& foldIndices : trainSubsetIndices) {
+        result.push_back( TArraySubsetIndexing<ui32>(std::move(foldIndices)) );
+    }
+
+    return result;
 }
 
 static double ComputeStdDev(const TVector<double>& values, double avg) {
@@ -231,46 +115,91 @@ void CrossValidate(
     const NJson::TJsonValue& plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& pool,
+    TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results
 ) {
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
-    NCatboostOptions::TOutputFilesOptions outputFileOptions(ETaskType::CPU);
-    outputFileOptions.Load(outputJsonParams);
     NCatboostOptions::TCatBoostOptions params(NCatboostOptions::LoadOptions(jsonParams));
+    NCatboostOptions::TOutputFilesOptions outputFileOptions(params.GetTaskType());
+    outputFileOptions.Load(outputJsonParams);
 
-    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool is empty");
-    CB_ENSURE(pool.Docs.GetDocCount() > cvParams.FoldCount, "Pool is too small to be split into folds");
 
-    const int featureCount = pool.Docs.GetEffectiveFactorCount();
+    const ui32 allDataObjectCount = data->ObjectsData->GetObjectCount();
+
+    CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
+    CB_ENSURE(allDataObjectCount > cvParams.FoldCount, "Pool is too small to be split into folds");
+
+    // TODO(akhropov): implement ordered split. MLTOOLS-2486.
+    CB_ENSURE(
+        data->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
+        "Cross-validation for Ordered objects data is not yet implemented"
+    );
+
+    const ui32 oneFoldSize = allDataObjectCount / cvParams.FoldCount;
+    const ui32 cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
+    SetDataDependentDefaults(
+        cvTrainSize,
+        /*testPoolSize=*/allDataObjectCount - cvTrainSize,
+        /*hasTestLabels=*/data->MetaInfo.HasTarget,
+        /*hasTestPairs*/data->MetaInfo.HasPairs,
+        &outputFileOptions.UseBestModel,
+        &params
+    );
+
+
+    TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(params.SystemOptions->NumThreads.Get() - 1);
+
+    if (cvParams.Shuffle) {
+        auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
+        data = data->GetSubset(objectsGroupingSubset, &localExecutor);
+    }
+
+    TLabelConverter labelConverter;
+
+    TTrainingDataProviderPtr trainingData = GetTrainingData(
+        std::move(data),
+        /*isLearnData*/ true,
+        TStringBuf(),
+        Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
+        /*unloadCatFeaturePerfectHashFromRam*/ true,
+        /*quantizedFeaturesInfo*/ nullptr,
+        &params,
+        &labelConverter,
+        &localExecutor,
+        &rand);
+
+    TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
+        *trainingData->ObjectsData->GetQuantizedFeaturesInfo());
+
+    ui32 approxDimension = GetApproxDimension(params, labelConverter);
+
 
     TVector<THolder<TLearnContext>> contexts;
     contexts.reserve(cvParams.FoldCount);
 
-    const int oneFoldSize = pool.Docs.GetDocCount() / cvParams.FoldCount;
-    const int cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
-    SetDataDependentDefaults(
-        cvTrainSize,
-        /*testPoolSize=*/pool.Docs.GetDocCount() - cvTrainSize,
-        /*hasTestLabels=*/true,
-        &outputFileOptions.UseBestModel,
-        &params
-    );
     for (size_t idx = 0; idx < cvParams.FoldCount; ++idx) {
         contexts.emplace_back(new TLearnContext(
             params,
             objectiveDescriptor,
             evalMetricDescriptor,
             outputFileOptions,
-            featureCount,
-            // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
-            ToUnsigned(pool.CatFeatures),
-            pool.FeatureId,
+            trainingData->MetaInfo.FeaturesLayout,
+            /*rand*/ Nothing(),
+            &localExecutor,
             "fold_" + ToString(idx) + "_"
         ));
+
+        contexts.back()->LearnProgress.ApproxDimension = (int)approxDimension;
+        if (approxDimension > 1) {
+            contexts.back()->LearnProgress.LabelConverter = labelConverter;
+        }
+        contexts.back()->LearnProgress.FloatFeatures = floatFeatures;
     }
 
     // TODO(kirillovs): All contexts are created equally, the difference is only in
@@ -280,16 +209,6 @@ void CrossValidate(
 
     TSetLogging inThisScope(ctx->Params.LoggingLevel);
 
-    if (IsMultiClassMetric(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-        for (const auto& context : contexts) {
-            int classesCount = GetClassesCount(
-                    context->Params.DataProcessingOptions->ClassesCount,
-                    context->Params.DataProcessingOptions->ClassNames
-            );
-            context->LearnProgress.LabelConverter.Initialize(pool.Docs.Target, classesCount);
-            context->LearnProgress.ApproxDimension =  context->LearnProgress.LabelConverter.GetApproxDimension();
-        }
-    }
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         ctx->Params.LossFunctionDescription,
@@ -311,48 +230,40 @@ void CrossValidate(
         }
     }
     if (hasQuerywiseMetric) {
-        CB_ENSURE(pool.Docs.QueryId.size() == pool.Docs.Target.size(), "Query ids not provided for querywise metric.");
         CB_ENSURE(!cvParams.Stratified, "Stratified split is incompatible with groupwise metrics");
     }
 
-    TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
-    TVector<ui64> indices(pool.Docs.GetDocCount(), 0);
-    std::iota(indices.begin(), indices.end(), 0);
-    if (cvParams.Shuffle) {
-        Shuffle(pool.Docs.QueryId, rand, &indices);
+    TVector<TTrainingDataProviders> folds = PrepareCvFolds<TTrainingDataProviders>(
+        std::move(trainingData),
+        cvParams,
+        Nothing(),
+        /* oldCvStyleSplit */ false,
+        &localExecutor);
+
+    TVector<TTrainingForCPUDataProviders> foldsForCpu;
+    for (auto& fold : folds) {
+        foldsForCpu.emplace_back(fold.Cast<TQuantizedForCPUObjectsDataProvider>());
     }
 
-    ApplyPermutation(InvertPermutation(indices), &pool, &ctx->LocalExecutor);
-    Y_DEFER {
-        ApplyPermutation(indices, &pool, &ctx->LocalExecutor);
-    };
-    TVector<TFloatFeature> floatFeatures;
-    GenerateBorders(pool, ctx.Get(), &floatFeatures);
 
-    for (size_t i = 0; i < cvParams.FoldCount; ++i) {
-        contexts[i]->LearnProgress.FloatFeatures = floatFeatures;
-    }
-
-    TVector<TDataset> learnFolds;
-    TVector<TDataset> testFolds;
-    PrepareFolds(ctx->Params.LossFunctionDescription.Get(), ctx->Params.DataProcessingOptions->AllowConstLabel, pool, contexts, cvParams, &learnFolds, &testFolds);
-
-    for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-        contexts[foldIdx]->InitContext(learnFolds[foldIdx], {&testFolds[foldIdx]});
+    for (size_t foldIdx = 0; foldIdx < foldsForCpu.size(); ++foldIdx) {
+        contexts[foldIdx]->InitContext(foldsForCpu[foldIdx]);
     }
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
-    for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
+    for (size_t foldIdx = 0; foldIdx < foldsForCpu.size(); ++foldIdx) {
         TLearnContext& ctx = *contexts[foldIdx];
         const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx.Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
         if (ctx.UseTreeLevelCaching()) {
             ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
             ctx.PrevTreeLevelStats.Create(
                 ctx.LearnProgress.Folds,
-                CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), learnFolds[foldIdx].AllFeatures),
-                static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth)
-            );
+                CountNonCtrBuckets(
+                    CountSplits(ctx.LearnProgress.FloatFeatures),
+                    *foldsForCpu[foldIdx].Learn->ObjectsData->GetQuantizedFeaturesInfo(),
+                    params.CatFeatureParams->OneHotMaxSize),
+                static_cast<int>(ctx.Params.ObliviousTreeOptions->MaxDepth));
         }
         ctx.SampledDocs.Create(
             ctx.LearnProgress.Folds,
@@ -425,11 +336,10 @@ void CrossValidate(
         const bool calcErrorTrackerMetric = calcMetrics || errorTracker.IsActive();
         const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
 
-        for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-            TrainOneIteration(learnFolds[foldIdx], &testFolds[foldIdx], contexts[foldIdx].Get());
+        for (size_t foldIdx = 0; foldIdx < foldsForCpu.size(); ++foldIdx) {
+            TrainOneIteration(foldsForCpu[foldIdx], contexts[foldIdx].Get());
             CalcErrors(
-                learnFolds[foldIdx],
-                {&testFolds[foldIdx]},
+                foldsForCpu[foldIdx],
                 metrics,
                 calcMetrics,
                 calcErrorTrackerMetric,
@@ -447,7 +357,7 @@ void CrossValidate(
             const TString& metricDescription = metric->GetDescription();
             TVector<double> trainFoldsMetric;
             TVector<double> testFoldsMetric;
-            for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
+            for (size_t foldIdx = 0; foldIdx < foldsForCpu.size(); ++foldIdx) {
                 trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().at(metricDescription));
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + learnToken,
@@ -460,7 +370,7 @@ void CrossValidate(
                 );
             }
 
-            TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
+            TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, foldsForCpu.size());
 
             (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
@@ -497,17 +407,14 @@ void CrossValidate(
             ctx->Params.LossFunctionDescription->GetLossFunction() == ELossFunction::Logloss,
             "For ROC curve loss function must be Logloss."
         );
-        TVector<TVector<double>> allApproxes(1, TVector<double>(pool.Docs.GetDocCount()));
-        size_t documentOffset = 0;
-        for (size_t foldIdx = 0; foldIdx < testFolds.size(); ++foldIdx) {
-            for (size_t documentIdx = 0; documentIdx < testFolds[foldIdx].GetSampleCount(); ++documentIdx) {
-                allApproxes[0][documentOffset + documentIdx] =
-                    contexts[foldIdx]->LearnProgress.TestApprox[0][0][documentIdx];
-            }
-            documentOffset += testFolds[foldIdx].GetSampleCount();
+        TVector<TVector<double>> allApproxes;
+        TVector<TConstArrayRef<float>> labels;
+        for (auto foldIdx : xrange(folds.size())) {
+            allApproxes.push_back(std::move(contexts[foldIdx]->LearnProgress.TestApprox[0][0]));
+            labels.push_back(GetTarget(folds[foldIdx].Test[0]->TargetData));
         }
-        TVector<TPool> pools(1, pool);
-        TRocCurve rocCurve(allApproxes, pools, &ctx->LocalExecutor);
+
+        TRocCurve rocCurve(allApproxes, labels, params.SystemOptions.Get().NumThreads);
         rocCurve.OutputRocCurve(ctx->OutputOptions.GetRocOutputPath());
     }
 }
