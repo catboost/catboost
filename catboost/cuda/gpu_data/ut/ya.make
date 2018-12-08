@@ -1,17 +1,15 @@
-UNITTEST(gpu_data_test)
 
 
-
-IF (NOT AUTOCHECK)
-SRCS(
-    test_binarization.cpp
-    test_bin_builder.cpp
-)
+IF (AUTOCHECK)
+    LIBRARY()
+ELSE()
+    UNITTEST()
+    SIZE(MEDIUM)
 ENDIF()
 
-SIZE(MEDIUM)
-
 SRCS(
+    test_bin_builder.cpp
+    test_binarization.cpp
     test_data_provider_load.cpp
 )
 

@@ -1,16 +1,18 @@
 
 
-UNITTEST()
+IF (AUTOCHECK)
+    LIBRARY()
+ELSE()
+    UNITTEST()
+    SIZE(MEDIUM)
+ENDIF()
 
-IF (NOT AUTOCHECK)
-SIZE(MEDIUM)
 SRCS(
     test_auc.cpp
     test_dcg.cpp
     test_multi_logit.cpp
     test_query_cross_entropy.cpp
 )
-ENDIF()
 
 PEERDIR(
     catboost/cuda/cuda_lib

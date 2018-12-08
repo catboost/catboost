@@ -227,7 +227,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             }
 
             float score = 0;
-            const float* targetPtr = ~linearSystems + matrixOffset + rowSize * (rowSize + 1) / 2;
+            const float* targetPtr = linearSystems.data() + matrixOffset + rowSize * (rowSize + 1) / 2;
             for (ui32 i = 0; i < rowSize; ++i) {
                 score += targetPtr[i] * solutionFloat[i];
             }
@@ -288,8 +288,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
 
             for (ui32 x = 0; x < rowSize; ++x) {
                 if (std::abs(refVectors[refVecOffset + x] - gpuLinearSystems[gpuVecOffset + x]) > 1e-5) {
-                    DumpVec(~refVectors + refVecOffset, rowSize, "reference");
-                    DumpVec(~gpuLinearSystems + gpuVecOffset, rowSize, "gpu");
+                    DumpVec(refVectors.data() + refVecOffset, rowSize, "reference");
+                    DumpVec(gpuLinearSystems.data() + gpuVecOffset, rowSize, "gpu");
                 }
                 UNIT_ASSERT_DOUBLES_EQUAL_C(refVectors[refVecOffset + x], gpuLinearSystems[gpuVecOffset + x], 1e-5, "Policy " << policy << " rowSize " << rowSize << ": " << x << " " << i << " " << refVectors[refVecOffset + x] << " " << gpuLinearSystems[gpuVecOffset + x]);
             }
@@ -300,8 +300,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                     const float valCpu = refMatrices[refMxOffset + row * rowSize + col];
 
                     if (std::abs(valCpu - valGpu) > 1e-5) {
-                        DumpVec(~refMatrices + refMxOffset, matrixSize + 20, "reference");
-                        DumpVec(~gpuLinearSystems + gpuMxOffset, linearSystemSize, "gpu");
+                        DumpVec(refMatrices.data() + refMxOffset, matrixSize + 20, "reference");
+                        DumpVec(gpuLinearSystems.data() + gpuMxOffset, linearSystemSize, "gpu");
                     }
 
                     UNIT_ASSERT_DOUBLES_EQUAL_C(valCpu, valGpu, 1e-5,
@@ -362,9 +362,9 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 const ui32 rowSize = 1u << (currentDepth + 1);
                 ui32 bf = i / (rowSize);
                 const ui32 systemSize = rowSize + (rowSize * (rowSize + 1)) / 2;
-                DumpVec(~computedSystems + bf * systemSize, systemSize, "Linear system");
-                DumpVec(~solutionsCpu + bf * rowSize, rowSize, "CPU");
-                DumpVec(~solutionsGpu + bf * rowSize, rowSize, "GPU");
+                DumpVec(computedSystems.data() + bf * systemSize, systemSize, "Linear system");
+                DumpVec(solutionsCpu.data() + bf * rowSize, rowSize, "CPU");
+                DumpVec(solutionsGpu.data() + bf * rowSize, rowSize, "GPU");
             }
             UNIT_ASSERT_DOUBLES_EQUAL_C(solutionsCpu[i], solutionsGpu[i], 1e-5, i << " " << solutionsCpu[i] << " not equal to " << solutionsGpu[i] << " depth " << (1 << currentDepth));
         }

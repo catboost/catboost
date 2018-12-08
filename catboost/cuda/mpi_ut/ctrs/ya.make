@@ -1,6 +1,6 @@
+
+
 PROGRAM()
-
-
 
 IF(OS_LINUX)
 
@@ -18,8 +18,5 @@ SRCS(catboost/cuda/mpi_ut/empty_main.cpp)
 ENDIF()
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
-
-ALLOCATOR(LF)
-
 
 END()

@@ -1,15 +1,16 @@
-UNITTEST(method_tests)
 
 
-
+IF (AUTOCHECK)
+    LIBRARY()
 IF (NOT AUTOCHECK)
+    UNITTEST()
+ENDIF()
+
 SRCS(
     test_tree_searcher.cpp
     test_pairwise_tree_searcher.cpp
     test_mutlistat_histograms.cpp
 )
-ENDIF()
-
 
 PEERDIR(
     catboost/cuda/gpu_data
@@ -21,7 +22,5 @@ PEERDIR(
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
-
-ALLOCATOR(LF)
 
 END()

@@ -1,16 +1,17 @@
 
 
-UNITTEST_FOR(catboost/cuda/train_lib)
+IF (AUTOCHECK)
+    LIBRARY()
+    PEERDIR(catboost/cuda/train_lib)
+    ADDINCL(catboost/cuda/train_lib)
+ELSE()
+    UNITTEST_FOR(catboost/cuda/train_lib)
+ENDIF()
 
 SRCS(
     dummy_ut.cpp
+    train_ut.cpp
 )
-
-IF (NOT AUTOCHECK)
-    SRCS(
-        train_ut.cpp
-    )
-ENDIF()
 
 PEERDIR(
     catboost/libs/train_lib
