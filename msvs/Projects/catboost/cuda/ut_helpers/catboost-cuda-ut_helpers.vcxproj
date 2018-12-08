@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{FDD25008-369E-2F3A-AB2B-AAE786EA08BE}</ProjectGUID>
+    <ProjectGUID>{C233CFC0-2A44-923A-971B-4ABD62981459}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>ut_helpers</ProjectName>
+    <ProjectName>catboost-cuda-ut_helpers</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>ut_helpers</TargetName>
+    <TargetName>catboost-cuda-ut_helpers</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\catboost\cuda\ut_helpers\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FDD25008-369E-2F3A-AB2B-AAE786EA08BE\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C233CFC0-2A44-923A-971B-4ABD62981459\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
