@@ -80,18 +80,26 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping>
+static void AddVectorImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    const TCudaBuffer<T, TMapping>& y,
+    ui32 stream)
+{
+    using TKernel = TBinOpKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::AddVec);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                            \
-    template <>                                                                        \
-    void AddVector<T, TMapping>(                                                       \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& x,                              \
-        const TCudaBuffer<T, TMapping>& y,                                             \
-        ui32 stream)                                                                   \
-    {                                                                                  \
-        using TKernel = TBinOpKernel<std::remove_const_t<T>>;                          \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::AddVec); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                \
+    template <>                                            \
+    void AddVector<T, TMapping>(                           \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
+        const TCudaBuffer<T, TMapping>& y,                 \
+        ui32 stream) {                                     \
+        ::AddVectorImpl(x, y, stream);                     \
     }
 
 Y_MAP_ARGS(
@@ -123,18 +131,25 @@ Y_MAP_ARGS(
 
 // AddVector
 
+template <typename T, typename TMapping>
+static void AddVectorImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    T value,
+    ui32 stream) {
+    using TKernel = TBinOpKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, value, EBinOpType::AddConst);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                                  \
-    template <>                                                                              \
-    void AddVector<T, TMapping>(                                                             \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& x,                                    \
-        T value,                                                                             \
-        ui32 stream)                                                                         \
-    {                                                                                        \
-        using TKernel = TBinOpKernel<std::remove_const_t<T>>;                                \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, value, EBinOpType::AddConst); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                \
+    template <>                                            \
+    void AddVector<T, TMapping>(                           \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
+        T value,                                           \
+        ui32 stream) {                                     \
+        ::AddVectorImpl(x, value, stream);                 \
     }
 
 Y_MAP_ARGS(
@@ -166,18 +181,26 @@ Y_MAP_ARGS(
 
 // SubstractVector
 
+template <typename T, typename TMapping>
+static void SubtractVectorImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    const TCudaBuffer<T, TMapping>& y,
+    ui32 stream)
+{
+    using TKernel = TBinOpKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::SubVec);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                            \
-    template <>                                                                        \
-    void SubtractVector<T, TMapping>(                                                  \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& x,                              \
-        const TCudaBuffer<T, TMapping>& y,                                             \
-        ui32 stream)                                                                   \
-    {                                                                                  \
-        using TKernel = TBinOpKernel<std::remove_const_t<T>>;                          \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::SubVec); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                \
+    template <>                                            \
+    void SubtractVector<T, TMapping>(                      \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
+        const TCudaBuffer<T, TMapping>& y,                 \
+        ui32 stream) {                                     \
+        ::SubtractVectorImpl(x, y, stream);               \
     }
 
 Y_MAP_ARGS(
@@ -212,18 +235,26 @@ Y_MAP_ARGS(
 
 // MultiplyVector
 
+template <typename T, typename TMapping>
+static void MultiplyVectorImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    const TCudaBuffer<T, TMapping>& y,
+    ui32 stream)
+{
+    using TKernel = TBinOpKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::MulVec);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                            \
-    template <>                                                                        \
-    void MultiplyVector<T, TMapping>(                                                  \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& x,                              \
-        const TCudaBuffer<T, TMapping>& y,                                             \
-        ui32 stream)                                                                   \
-    {                                                                                  \
-        using TKernel = TBinOpKernel<std::remove_const_t<T>>;                          \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::MulVec); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                \
+    template <>                                            \
+    void MultiplyVector<T, TMapping>(                      \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
+        const TCudaBuffer<T, TMapping>& y,                 \
+        ui32 stream) {                                     \
+        ::MultiplyVectorImpl(x, y, stream);                \
     }
 
 Y_MAP_ARGS(
@@ -258,18 +289,26 @@ Y_MAP_ARGS(
 
 // MultiplyVector
 
+template <typename T, typename TMapping>
+static void MultiplyVectorImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    T y,
+    ui32 stream)
+{
+    using TKernel = TBinOpKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::MulConst);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                              \
-    template <>                                                                          \
-    void MultiplyVector<T, TMapping>(                                                    \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& x,                                \
-        T y,                                                                             \
-        ui32 stream)                                                                     \
-    {                                                                                    \
-        using TKernel = TBinOpKernel<std::remove_const_t<T>>;                            \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::MulConst); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                \
+    template <>                                            \
+    void MultiplyVector<T, TMapping>(                      \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
+        T y,                                               \
+        ui32 stream) {                                     \
+        ::MultiplyVectorImpl(x, y, stream);                \
     }
 
 Y_MAP_ARGS(
@@ -301,18 +340,26 @@ Y_MAP_ARGS(
 
 // DivideVector
 
+template <typename T, typename TMapping>
+static void DivideVectorImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    const TCudaBuffer<T, TMapping>& y,
+    ui32 stream)
+{
+    using TKernel = TBinOpKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::DivVec);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                            \
-    template <>                                                                        \
-    void DivideVector<T, TMapping>(                                                    \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& x,                              \
-        const TCudaBuffer<T, TMapping>& y,                                             \
-        ui32 stream)                                                                   \
-    {                                                                                  \
-        using TKernel = TBinOpKernel<std::remove_const_t<T>>;                          \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::DivVec); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                \
+    template <>                                            \
+    void DivideVector<T, TMapping>(                        \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
+        const TCudaBuffer<T, TMapping>& y,                 \
+        ui32 stream) {                                     \
+        ::DivideVectorImpl(x, y, stream);                  \
     }
 
 Y_MAP_ARGS(
@@ -377,17 +424,24 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping>
+static void ExpVectorImpl(
+    TCudaBuffer<T, TMapping>& x,
+    ui32 stream)
+{
+    using TKernel = TApplyFuncKernel<T>;
+    LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, EFuncType::Exp);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                     \
-    template <>                                                                 \
-    void ExpVector<T, TMapping>(                                                \
-        TCudaBuffer<T, TMapping>& x,                                            \
-        ui32 stream)                                                            \
-    {                                                                           \
-        using TKernel = TApplyFuncKernel<T>;                                    \
-        LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, EFuncType::Exp); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping) \
+    template <>                             \
+    void ExpVector<T, TMapping>(            \
+        TCudaBuffer<T, TMapping> & x,       \
+        ui32 stream) {                      \
+        ::ExpVectorImpl(x, stream);         \
     }
 
 Y_MAP_ARGS(
@@ -460,19 +514,28 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, typename U>
+static void GatherImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
+    const TCudaBuffer<T, TMapping>& src,
+    const TCudaBuffer<U, TMapping>& map,
+    ui32 stream)
+{
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)                                                      \
-    template <>                                                                                     \
-    void Gather<T, TMapping, U>(                                                                    \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,                                         \
-        const TCudaBuffer<T, TMapping>& src,                                                        \
-        const TCudaBuffer<U, TMapping>& map,                                                        \
-        ui32 stream)                                                                                \
-    {                                                                                               \
-        using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;                               \
-        LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)               \
+    template <>                                              \
+    void Gather<T, TMapping, U>(                             \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & dst, \
+        const TCudaBuffer<T, TMapping>& src,                 \
+        const TCudaBuffer<U, TMapping>& map,                 \
+        ui32 stream) {                                       \
+        ::GatherImpl(dst, src, map, stream);                 \
     }
 
 Y_MAP_ARGS(
@@ -525,19 +588,28 @@ Y_MAP_ARGS(
 
 // Gather
 
+template <typename T, typename U>
+static void GatherImpl(
+    TCudaBuffer<std::remove_const_t<T>, TStripeMapping>& dst,
+    const TCudaBuffer<T, TMirrorMapping>& src,
+    const TCudaBuffer<U, TStripeMapping>& map,
+    ui32 stream)
+{
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, U)                                                                \
-    template <>                                                                                     \
-    void Gather<T, U>(                                                                              \
-        TCudaBuffer<std::remove_const_t<T>, TStripeMapping>& dst,                                   \
-        const TCudaBuffer<T, TMirrorMapping>& src,                                                  \
-        const TCudaBuffer<U, TStripeMapping>& map,                                                  \
-        ui32 stream)                                                                                \
-    {                                                                                               \
-        using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;                               \
-        LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, U)                               \
+    template <>                                                    \
+    void Gather<T, U>(                                             \
+        TCudaBuffer<std::remove_const_t<T>, TStripeMapping> & dst, \
+        const TCudaBuffer<T, TMirrorMapping>& src,                 \
+        const TCudaBuffer<U, TStripeMapping>& map,                 \
+        ui32 stream) {                                             \
+        ::GatherImpl(dst, src, map, stream);                       \
     }
 
 Y_MAP_ARGS(
@@ -555,20 +627,30 @@ Y_MAP_ARGS(
 
 // GatherWithMask
 
+template <typename T, typename TMapping ,typename U>
+static void GatherWithMaskImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
+    const TCudaBuffer<T, TMapping>& src,
+    const TCudaBuffer<U, TMapping>& map,
+    ui32 mask,
+    ui32 stream)
+{
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather, mask);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)                                                            \
-    template <>                                                                                           \
-     void GatherWithMask<T, TMapping, U>(                                                                 \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,                                               \
-        const TCudaBuffer<T, TMapping>& src,                                                              \
-        const TCudaBuffer<U, TMapping>& map,                                                              \
-        ui32 mask,                                                                                        \
-        ui32 stream)                                                                                      \
-    {                                                                                                     \
-        using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;                                     \
-        LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather, mask); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)               \
+    template <>                                              \
+    void GatherWithMask<T, TMapping, U>(                     \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & dst, \
+        const TCudaBuffer<T, TMapping>& src,                 \
+        const TCudaBuffer<U, TMapping>& map,                 \
+        ui32 mask,                                           \
+        ui32 stream) {                                       \
+        ::GatherWithMaskImpl(dst, src, map, mask, stream);   \
     }
 
 Y_MAP_ARGS(
@@ -610,20 +692,29 @@ Y_MAP_ARGS(
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
 // Scatter
+//
+template <typename T, typename TMapping, typename U>
+static void ScatterImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
+    const TCudaBuffer<T, TMapping>& src,
+    const TCudaBuffer<U, TMapping>& map,
+    ui32 stream)
+{
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter);
+}
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)                                                       \
-    template <>                                                                                      \
-    void Scatter<T, TMapping, U>(                                                                    \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,                                          \
-        const TCudaBuffer<T, TMapping>& src,                                                         \
-        const TCudaBuffer<U, TMapping>& map,                                                         \
-        ui32 stream)                                                                                 \
-    {                                                                                                \
-        using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;                                \
-        LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)               \
+    template <>                                              \
+    void Scatter<T, TMapping, U>(                            \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & dst, \
+        const TCudaBuffer<T, TMapping>& src,                 \
+        const TCudaBuffer<U, TMapping>& map,                 \
+        ui32 stream) {                                       \
+        ::ScatterImpl(dst, src, map, stream);                \
     }
 
 Y_MAP_ARGS(
@@ -652,20 +743,30 @@ Y_MAP_ARGS(
 
 // ScatterWithMask
 
+template <typename T, typename TMapping, typename U>
+static void ScatterWithMaskImpl(
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
+    const TCudaBuffer<T, TMapping>& src,
+    const TCudaBuffer<U, TMapping>& map,
+    ui32 mask,
+    ui32 stream)
+{
+    using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
+    LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter, mask);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)                                                             \
-    template <>                                                                                            \
-    void ScatterWithMask<T, TMapping, U>(                                                                  \
-        TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,                                                \
-        const TCudaBuffer<T, TMapping>& src,                                                               \
-        const TCudaBuffer<U, TMapping>& map,                                                               \
-        ui32 mask,                                                                                         \
-        ui32 stream)                                                                                       \
-    {                                                                                                      \
-        using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;                                      \
-        LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter, mask); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, U)               \
+    template <>                                              \
+    void ScatterWithMask<T, TMapping, U>(                    \
+        TCudaBuffer<std::remove_const_t<T>, TMapping> & dst, \
+        const TCudaBuffer<T, TMapping>& src,                 \
+        const TCudaBuffer<U, TMapping>& map,                 \
+        ui32 mask,                                           \
+        ui32 stream) {                                       \
+        ::ScatterWithMaskImpl(dst, src, map, mask, stream);  \
     }
 
 Y_MAP_ARGS(
@@ -723,17 +824,24 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping>
+static void ReverseImpl(
+    TCudaBuffer<T, TMapping>& data,
+    ui32 stream)
+{
+    using TKernel = TReverseKernel<T>;
+    LaunchKernels<TKernel>(data.NonEmptyDevices(), stream, data);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                           \
-    template <>                                                       \
-    void Reverse<T, TMapping>(                                        \
-        TCudaBuffer<T, TMapping>& data,                               \
-        ui32 stream)                                                  \
-    {                                                                 \
-        using TKernel = TReverseKernel<T>;                            \
-        LaunchKernels<TKernel>(data.NonEmptyDevices(), stream, data); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping) \
+    template <>                             \
+    void Reverse<T, TMapping>(              \
+        TCudaBuffer<T, TMapping> & data,    \
+        ui32 stream) {                      \
+        ::ReverseImpl(data, stream);        \
     }
 
 Y_MAP_ARGS(

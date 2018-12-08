@@ -41,18 +41,26 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping>
+static void FillBufferImpl(
+    TCudaBuffer<T, TMapping>& buffer,
+    std::remove_const_t<T> value,
+    ui32 streamId)
+{
+    using TKernel = TFillBufferKernel<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), streamId, buffer, value);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(type, mapping)                                      \
-    template <>                                                                    \
-    void FillBuffer<type, mapping>(                                                \
-        TCudaBuffer<type, mapping>& buffer,                                        \
-        type value,                                                                \
-        ui32 streamId)                                                             \
-    {                                                                              \
-        using TKernel = TFillBufferKernel<type>;                                   \
-        LaunchKernels<TKernel>(buffer.NonEmptyDevices(), streamId, buffer, value); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)        \
+    template <>                                    \
+    void FillBuffer<T, TMapping>(                  \
+        TCudaBuffer<T, TMapping> & buffer,         \
+        std::remove_const_t<T> value,              \
+        ui32 streamId) {                           \
+        ::FillBufferImpl(buffer, value, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -113,14 +121,19 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping>
+static void MakeSequenceImpl(TCudaBuffer<T, TMapping>& buffer, ui32 stream) {
+    using TKernel = TMakeSequenceKernel<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(type, mapping)                             \
-    template <>                                                           \
-    void MakeSequence(TCudaBuffer<type, mapping>& buffer, ui32 stream) {  \
-        using TKernel = TMakeSequenceKernel<type>;                        \
-        LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                            \
+    template <>                                                        \
+    void MakeSequence(TCudaBuffer<T, TMapping>& buffer, ui32 stream) { \
+        ::MakeSequenceImpl(buffer, stream);                            \
     }
 
 Y_MAP_ARGS(
@@ -140,18 +153,26 @@ Y_MAP_ARGS(
 
 // MakeSequenceWithOffset
 
+template <typename T, typename TMapping>
+static void MakeSequenceWithOffsetImpl(
+    TCudaBuffer<T, TMapping>& buffer,
+    const NCudaLib::TDistributedObject<T>& offset,
+    ui32 stream)
+{
+    using TKernel = TMakeSequenceKernel<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(type, mapping)                                     \
-    template <>                                                                   \
-    void MakeSequenceWithOffset<type, mapping>(                                   \
-        TCudaBuffer<type, mapping>& buffer,                                       \
-        const NCudaLib::TDistributedObject<type>& offset,                         \
-        ui32 stream)                                                              \
-    {                                                                             \
-        using TKernel = TMakeSequenceKernel<type>;                                \
-        LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                   \
+    template <>                                               \
+    void MakeSequenceWithOffset<T, TMapping>(                 \
+        TCudaBuffer<T, TMapping> & buffer,                    \
+        const NCudaLib::TDistributedObject<T>& offset,        \
+        ui32 stream) {                                        \
+        ::MakeSequenceWithOffsetImpl(buffer, offset, stream); \
     }
 
 Y_MAP_ARGS(
@@ -171,19 +192,26 @@ Y_MAP_ARGS(
 
 // MakeSequenceGlobal
 
-#define Y_CATBOOST_CUDA_F_IMPL(type)                                                  \
-    template <>                                                                       \
-    void MakeSequenceGlobal<type>(                                                    \
-        TCudaBuffer<type, NCudaLib::TStripeMapping>& buffer,                          \
-        ui32 stream)                                                                  \
-    {                                                                                 \
-        NCudaLib::TDistributedObject<type> offset = CreateDistributedObject<type>(0); \
-        for (ui32 dev = 0; dev < offset.DeviceCount(); ++dev) {                       \
-            offset.Set(dev, buffer.GetMapping().DeviceSlice(dev).Left);               \
-        }                                                                             \
-                                                                                      \
-        using TKernel = TMakeSequenceKernel<type>;                                    \
-        LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset);     \
+template <typename T>
+static void MakeSequenceGlobalImpl(
+    TCudaBuffer<T, NCudaLib::TStripeMapping>& buffer,
+    ui32 stream)
+{
+    auto offset = CreateDistributedObject<T>(0);
+    for (ui32 dev = 0; dev < offset.DeviceCount(); ++dev) {
+        offset.Set(dev, buffer.GetMapping().DeviceSlice(dev).Left);
+    }
+
+    using TKernel = TMakeSequenceKernel<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(T)                          \
+    template <>                                            \
+    void MakeSequenceGlobal<T>(                            \
+        TCudaBuffer<T, NCudaLib::TStripeMapping> & buffer, \
+        ui32 stream) {                                     \
+        ::MakeSequenceGlobalImpl(buffer, stream);          \
     }
 
 Y_MAP_ARGS(
@@ -221,18 +249,26 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping>
+static void InversePermutationImpl(
+    const TCudaBuffer<T, TMapping>& order,
+    TCudaBuffer<ui32, TMapping>& inverseOrder,
+    ui32 streamId)
+{
+    using TKernel = TInversePermutationKernel<ui32>;
+    LaunchKernels<TKernel>(order.NonEmptyDevices(), streamId, order, inverseOrder);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(type, mapping)                                           \
-    template <>                                                                         \
-    void InversePermutation<type, mapping>(                                             \
-        const TCudaBuffer<type, mapping>& order,                                        \
-        TCudaBuffer<ui32, mapping>& inverseOrder,                                       \
-        ui32 streamId)                                                                  \
-    {                                                                                   \
-        using TKernel = TInversePermutationKernel<ui32>;                                \
-        LaunchKernels<TKernel>(order.NonEmptyDevices(), streamId, order, inverseOrder); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                      \
+    template <>                                                  \
+    void InversePermutation<T, TMapping>(                        \
+        const TCudaBuffer<T, TMapping>& order,                   \
+        TCudaBuffer<ui32, TMapping>& inverseOrder,               \
+        ui32 streamId) {                                         \
+        ::InversePermutationImpl(order, inverseOrder, streamId); \
     }
 
 Y_MAP_ARGS(

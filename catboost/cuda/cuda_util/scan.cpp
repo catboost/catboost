@@ -16,6 +16,8 @@ using NKernelHost::TCudaBufferPtr;
 using NKernelHost::TCudaStream;
 using NKernelHost::TKernelBase;
 
+// ScanVector
+
 namespace {
     template <typename T>
     class TScanVectorKernel: public TKernelBase<NKernel::TScanKernelContext<T>, false> {
@@ -66,21 +68,28 @@ namespace {
     };
 }
 
-// ScanVector
+template <typename T, typename TMapping>
+static void ScanVectorImpl(
+    const TCudaBuffer<T, TMapping>& input,
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
+    bool inclusive,
+    ui32 streamId)
+{
+    using TKernel = TScanVectorKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, inclusive, false);
+}
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(type, mapping)                                                       \
-    template <>                                                                                     \
-    void ScanVector<type, mapping>(                                                                 \
-        const TCudaBuffer<type, mapping>& input,                                                    \
-        TCudaBuffer<type, mapping>& output,                                                         \
-        bool inclusive,                                                                             \
-        ui32 streamId)                                                                              \
-    {                                                                                               \
-        using TKernel = TScanVectorKernel<type>;                                                    \
-        LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, inclusive, false); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                    \
+    template <>                                                \
+    void ScanVector<T, TMapping>(                              \
+        const TCudaBuffer<T, TMapping>& input,                 \
+        TCudaBuffer<std::remove_const_t<T>, TMapping>& output, \
+        bool inclusive,                                        \
+        ui32 streamId) {                                       \
+        ::ScanVectorImpl(input, output, inclusive, streamId);  \
     }
 
 Y_MAP_ARGS(
@@ -103,18 +112,26 @@ Y_MAP_ARGS(
 
 // InclusiveSegmentedScanNonNegativeVector
 
+template <typename T, typename TMapping>
+static void InclusiveSegmentedScanNonNegativeVectorImpl(
+    const TCudaBuffer<T, TMapping>& input,
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
+    ui32 streamId)
+{
+    using TKernel = TScanVectorKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, true, true);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                                   \
-    template <>                                                                               \
-    void InclusiveSegmentedScanNonNegativeVector<T, TMapping>(                                \
-        const TCudaBuffer<T, TMapping>& input,                                                \
-        TCudaBuffer<T, TMapping>& output,                                                     \
-        ui32 streamId)                                                                        \
-    {                                                                                         \
-        using TKernel = TScanVectorKernel<T>;                                                 \
-        LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, true, true); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                     \
+    template <>                                                                 \
+    void InclusiveSegmentedScanNonNegativeVector<T, TMapping>(                  \
+        const TCudaBuffer<T, TMapping>& input,                                  \
+        TCudaBuffer<std::remove_const_t<T>, TMapping>& output,                  \
+        ui32 streamId) {                                                        \
+        ::InclusiveSegmentedScanNonNegativeVectorImpl(input, output, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -176,20 +193,30 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, typename TUi32>
+static void SegmentedScanAndScatterNonNegativeVectorImpl(
+    const TCudaBuffer<T, TMapping>& inputWithSignMasks,
+    const TCudaBuffer<TUi32, TMapping>& indices,
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
+    bool inclusive,
+    ui32 streamId)
+{
+    using TKernel = TNonNegativeSegmentedScanAndScatterVectorKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(inputWithSignMasks.NonEmptyDevices(), streamId, inputWithSignMasks, indices, output, inclusive);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, TUi32)                                                                              \
-    template <>                                                                                                                 \
-    void SegmentedScanAndScatterNonNegativeVector<T, TMapping, TUi32>(                                                          \
-        const TCudaBuffer<T, TMapping>& inputWithSignMasks,                                                                     \
-        const TCudaBuffer<TUi32, TMapping>& indices,                                                                            \
-        TCudaBuffer<T, TMapping>& output,                                                                                       \
-        bool inclusive,                                                                                                         \
-        ui32 streamId)                                                                                                          \
-    {                                                                                                                           \
-        using TKernel = TNonNegativeSegmentedScanAndScatterVectorKernel<T>;                                                     \
-        LaunchKernels<TKernel>(inputWithSignMasks.NonEmptyDevices(), streamId, inputWithSignMasks, indices, output, inclusive); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, TUi32)                                                                \
+    template <>                                                                                                   \
+    void SegmentedScanAndScatterNonNegativeVector<T, TMapping, TUi32>(                                            \
+        const TCudaBuffer<T, TMapping>& inputWithSignMasks,                                                       \
+        const TCudaBuffer<TUi32, TMapping>& indices,                                                              \
+        TCudaBuffer<std::remove_const_t<T>, TMapping>& output,                                                    \
+        bool inclusive,                                                                                           \
+        ui32 streamId) {                                                                                          \
+        ::SegmentedScanAndScatterNonNegativeVectorImpl(inputWithSignMasks, indices, output, inclusive, streamId); \
     }
 
 Y_MAP_ARGS(

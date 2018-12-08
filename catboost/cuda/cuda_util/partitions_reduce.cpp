@@ -66,17 +66,27 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                            \
-    template <>                                                                                     \
-    void ComputePartitionStats<TMapping>(                                                           \
-        const TCudaBuffer<float, TMapping>& input,                                                  \
-        const TCudaBuffer<TDataPartition, TMapping>& parts,                                         \
-        const TCudaBuffer<ui32, NCudaLib::TMirrorMapping>& partIds,                                 \
-        TCudaBuffer<double, TMapping>* output,                                                      \
-        ui32 streamId)                                                                              \
-    {                                                                                               \
-        using TKernel = TReducePartitionsKernel;                                                    \
-        LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, parts, partIds, output); \
+template <typename TMapping>
+static void ComputePartitionStatsImpl(
+    const TCudaBuffer<float, TMapping>& input,
+    const TCudaBuffer<TDataPartition, TMapping>& parts,
+    const TCudaBuffer<ui32, TMirrorMapping>& partIds,
+    TCudaBuffer<double, TMapping>* output,
+    ui32 streamId)
+{
+    using TKernel = TReducePartitionsKernel;
+    LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, parts, partIds, output);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                      \
+    template <>                                                               \
+    void ComputePartitionStats<TMapping>(                                     \
+        const TCudaBuffer<float, TMapping>& input,                            \
+        const TCudaBuffer<TDataPartition, TMapping>& parts,                   \
+        const TCudaBuffer<ui32, TMirrorMapping>& partIds,                     \
+        TCudaBuffer<double, TMapping>* output,                                \
+        ui32 streamId) {                                                      \
+        ::ComputePartitionStatsImpl(input, parts, partIds, output, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -135,19 +145,28 @@ namespace {
     };
 }
 
+template <typename TMapping, typename TFloat>
+static void ComputePartitionStatsImpl(
+    const TCudaBuffer<TFloat, TMapping>& input,
+    const TCudaBuffer<ui32, TMapping>& offsets,
+    TCudaBuffer<double, TMapping>* output,
+    ui32 streamId)
+{
+    using TKernel = TReducePartitionsWithOffsetsKernel;
+    LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, offsets, output);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping, TFloat)                                             \
-    template <>                                                                              \
-    void ComputePartitionStats<TMapping, TFloat>(                                            \
-        const TCudaBuffer<TFloat, TMapping>& input,                                          \
-        const TCudaBuffer<ui32, TMapping>& offsets,                                          \
-        TCudaBuffer<double, TMapping>* output,                                               \
-        ui32 streamId)                                                                       \
-    {                                                                                        \
-        using TKernel = TReducePartitionsWithOffsetsKernel;                                  \
-        LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, offsets, output); \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping, TFloat)                       \
+    template <>                                                        \
+    void ComputePartitionStats<TMapping, TFloat>(                      \
+        const TCudaBuffer<TFloat, TMapping>& input,                    \
+        const TCudaBuffer<ui32, TMapping>& offsets,                    \
+        TCudaBuffer<double, TMapping>* output,                         \
+        ui32 streamId) {                                               \
+        ::ComputePartitionStatsImpl(input, offsets, output, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -187,15 +206,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                            \
-    template <>                                                                     \
-    void CastCopy<TMapping>(                                                        \
-        const TCudaBuffer<float, TMapping>& input,                                  \
-        TCudaBuffer<double, TMapping>* output,                                      \
-        ui32 streamId)                                                              \
-    {                                                                               \
-        using TKernel = TCastCopyKernel;                                            \
-        LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, output); \
+template <typename TMapping>
+static void CastCopyImpl(
+    const TCudaBuffer<float, TMapping>& input,
+    TCudaBuffer<double, TMapping>* output,
+    ui32 streamId)
+{
+    using TKernel = TCastCopyKernel;
+    LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, output);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)           \
+    template <>                                    \
+    void CastCopy<TMapping>(                       \
+        const TCudaBuffer<float, TMapping>& input, \
+        TCudaBuffer<double, TMapping>* output,     \
+        ui32 streamId) {                           \
+        ::CastCopyImpl(input, output, streamId);   \
     }
 
 Y_MAP_ARGS(

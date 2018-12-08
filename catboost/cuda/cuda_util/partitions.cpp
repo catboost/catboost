@@ -46,15 +46,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                 \
-    template <>                                                                          \
-    void UpdatePartitionDimensions<TMapping>(                                            \
-        const TCudaBuffer<ui32, TMapping>& sortedBins,                                   \
-        TCudaBuffer<TDataPartition, TMapping>& parts,                                    \
-        ui32 stream)                                                                     \
-    {                                                                                    \
-        using TKernel = TUpdatePartitionDimensionsKernel;                                \
-        LaunchKernels<TKernel>(sortedBins.NonEmptyDevices(), stream, sortedBins, parts); \
+template <typename TMapping>
+static void UpdatePartitionDimensionsImpl(
+    const TCudaBuffer<ui32, TMapping>& sortedBins,
+    TCudaBuffer<TDataPartition, TMapping>& parts,
+    ui32 stream)
+{
+    using TKernel = TUpdatePartitionDimensionsKernel;
+    LaunchKernels<TKernel>(sortedBins.NonEmptyDevices(), stream, sortedBins, parts);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                            \
+    template <>                                                     \
+    void UpdatePartitionDimensions<TMapping>(                       \
+        const TCudaBuffer<ui32, TMapping>& sortedBins,              \
+        TCudaBuffer<TDataPartition, TMapping>& parts,               \
+        ui32 stream) {                                              \
+        ::UpdatePartitionDimensionsImpl(sortedBins, parts, stream); \
     }
 
 Y_MAP_ARGS(
@@ -95,15 +103,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                   \
-    template <>                                                                            \
-    void UpdatePartitionOffsets<TMapping>(                                                 \
-        const TCudaBuffer<ui32, TMapping>& sortedBins,                                     \
-        TCudaBuffer<ui32, TMapping>& offsets,                                              \
-        ui32 stream)                                                                       \
-    {                                                                                      \
-        using TKernel = TUpdatePartitionOffsetsKernel;                                     \
-        LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, sortedBins, offsets); \
+template <typename TMapping>
+static void UpdatePartitionOffsetsImpl(
+    const TCudaBuffer<ui32, TMapping>& sortedBins,
+    TCudaBuffer<ui32, TMapping>& offsets,
+    ui32 stream)
+{
+    using TKernel = TUpdatePartitionOffsetsKernel;
+    LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, sortedBins, offsets);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                           \
+    template <>                                                    \
+    void UpdatePartitionOffsets<TMapping>(                         \
+        const TCudaBuffer<ui32, TMapping>& sortedBins,             \
+        TCudaBuffer<ui32, TMapping>& offsets,                      \
+        ui32 stream) {                                             \
+        ::UpdatePartitionOffsetsImpl(sortedBins, offsets, stream); \
     }
 
 Y_MAP_ARGS(
@@ -117,7 +133,7 @@ Y_MAP_ARGS(
 // ComputeSegmentSizes
 
 namespace {
-    template <NCudaLib::EPtrType PtrType>
+    template <EPtrType PtrType>
     class TComputeSegmentSizesKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> Offsets;
@@ -144,18 +160,26 @@ namespace {
     };
 }
 
+template <typename TMapping, typename TUi32, EPtrType DstPtr>
+static void ComputeSegmentSizesImpl(
+    const TCudaBuffer<TUi32, TMapping>& offsets,
+    TCudaBuffer<float, TMapping, DstPtr>& dst,
+    ui32 stream)
+{
+    using TKernel = TComputeSegmentSizesKernel<DstPtr>;
+    LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, offsets, dst);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping, TUi32, DstPtr)                          \
-    template <>                                                                  \
-    void ComputeSegmentSizes<TMapping, TUi32, DstPtr>(                           \
-        const TCudaBuffer<TUi32, TMapping>& offsets,                             \
-        TCudaBuffer<float, TMapping, DstPtr>& dst,                               \
-        ui32 stream)                                                             \
-    {                                                                            \
-        using TKernel = TComputeSegmentSizesKernel<DstPtr>;                      \
-        LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, offsets, dst); \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping, TUi32, DstPtr)  \
+    template <>                                          \
+    void ComputeSegmentSizes<TMapping, TUi32, DstPtr>(   \
+        const TCudaBuffer<TUi32, TMapping>& offsets,     \
+        TCudaBuffer<float, TMapping, DstPtr>& dst,       \
+        ui32 stream) {                                   \
+        ::ComputeSegmentSizesImpl(offsets, dst, stream); \
     }
 
 Y_MAP_ARGS(
