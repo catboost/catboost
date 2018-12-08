@@ -763,6 +763,74 @@ def test_all_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), '2/10',
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv_for_query(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), '2/7',
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv_for_pairs(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), '2/7',
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_custom_priors(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

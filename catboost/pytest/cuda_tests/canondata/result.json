@@ -357,25 +357,25 @@
     ],
     "test_gpu.test_cv_for_pairs[Ordered-inverted]": [
         {
-            "checksum": "1111be0d16f539c5c74d55221853a738",
+            "checksum": "518344d7753b3cffb4d6b39a82353ed0",
             "uri": "file://test_gpu.test_cv_for_pairs_Ordered-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Ordered]": [
         {
-            "checksum": "be34b4747e3dfff77a6b8d5ccf90bd0b",
+            "checksum": "8ad40d5185264a322714a7a75c0ca162",
             "uri": "file://test_gpu.test_cv_for_pairs_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Plain-inverted]": [
         {
-            "checksum": "3f0d387b667df8570e28d0cdc0af741b",
+            "checksum": "6b30ca322f8f67b2e228680ce91c3d65",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Plain]": [
         {
-            "checksum": "eb40f835c30a028ebb6643a46274d894",
+            "checksum": "b8d4d687a6282f8686138ff1a274435b",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
