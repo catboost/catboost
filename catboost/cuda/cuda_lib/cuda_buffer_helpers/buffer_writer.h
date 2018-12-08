@@ -28,7 +28,7 @@ namespace NCudaLib {
     public:
         TCudaBufferWriter(const TVector<T>& src,
                           TCudaBuffer& dst)
-            : Src(~src)
+            : Src(src.data())
             , Dst(&dst)
             , SrcMaxSize(src.size())
             , WriteSlice(dst.GetMapping().GetObjectsSlice())

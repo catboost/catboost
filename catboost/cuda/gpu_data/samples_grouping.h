@@ -150,7 +150,7 @@ namespace NCatboostCuda {
         const ui32* GetSubgroupIds(ui32 queryId) const {
             CB_ENSURE(HasSubgroupIds());
             auto offset = GetQueryOffset(queryId);
-            return ~SubgroupIds + offset;
+            return SubgroupIds.data() + offset;
         }
 
     private:
