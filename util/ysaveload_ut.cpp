@@ -305,7 +305,7 @@ private:
 
             Load(&S_, buf);
             UNIT_ASSERT_EQUAL(buf.size(), 4);
-            UNIT_ASSERT_EQUAL(memcmp(~buf, "asdf", 4), 0);
+            UNIT_ASSERT_EQUAL(memcmp(buf.data(), "asdf", 4), 0);
         }
 
         {

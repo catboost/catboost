@@ -41,8 +41,8 @@ void TBaseServerRequestData::AppendQueryString(const char* str, size_t length) {
         ModifiedQueryString.Assign(str, length);
     }
     ModifiedQueryString.Append('\0');
-    Search = ~ModifiedQueryString;
-    SearchLength = +ModifiedQueryString - 1; // ignore terminator
+    Search = ModifiedQueryString.data();
+    SearchLength = ModifiedQueryString.size() - 1; // ignore terminator
 }
 
 void TBaseServerRequestData::SetRemoteAddr(TStringBuf addr) {

@@ -145,7 +145,7 @@ struct TParserCtx {
         Buffer.Clear();
         Buffer.Reserve(2 * (te - ts));
 
-        return OnString(UnescapeJsonUnicode(TStringBuf(ts + 1, te - ts - 2), ~Buffer), SS_MUSTCOPY);
+        return OnString(UnescapeJsonUnicode(TStringBuf(ts + 1, te - ts - 2), Buffer.data()), SS_MUSTCOPY);
     }
 
     bool OnMapClose() {

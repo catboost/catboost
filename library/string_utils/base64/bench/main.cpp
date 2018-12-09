@@ -96,9 +96,9 @@ static inline void BenchEncode(T& d, const NBench::NCpu::TParams& iface) {
     for (const auto it : xrange(iface.Iterations())) {
         Y_UNUSED(it);
         for (size_t i = 0; i < d.Size; ++i) {
-            NBench::Escape(~d.PlaceToEncode[i]);
+            NBench::Escape(d.PlaceToEncode[i].data());
             Y_DO_NOT_OPTIMIZE_AWAY(
-                Base64Encode(~d.PlaceToEncode[i], (const unsigned char*)d.Data[i].data(), d.Data[i].size()));
+                Base64Encode(d.PlaceToEncode[i].data(), (const unsigned char*)d.Data[i].data(), d.Data[i].size()));
             NBench::Clobber();
         }
     }
@@ -109,9 +109,9 @@ static inline void BenchEncodeUrl(T& d, const NBench::NCpu::TParams& iface) {
     for (const auto it : xrange(iface.Iterations())) {
         Y_UNUSED(it);
         for (size_t i = 0; i < d.Size; ++i) {
-            NBench::Escape(~d.PlaceToEncode[i]);
+            NBench::Escape(d.PlaceToEncode[i].data());
             Y_DO_NOT_OPTIMIZE_AWAY(
-                Base64EncodeUrl(~d.PlaceToEncode[i], (const unsigned char*)d.Data[i].data(), d.Data[i].size()));
+                Base64EncodeUrl(d.PlaceToEncode[i].data(), (const unsigned char*)d.Data[i].data(), d.Data[i].size()));
             NBench::Clobber();
         }
     }
@@ -122,9 +122,9 @@ static inline void BenchDecode(T& d, const NBench::NCpu::TParams& iface) {
     for (const auto it : xrange(iface.Iterations())) {
         Y_UNUSED(it);
         for (size_t i = 0; i < d.Size; ++i) {
-            NBench::Escape(~d.PlaceToDecode[i]);
+            NBench::Escape(d.PlaceToDecode[i].data());
             Y_DO_NOT_OPTIMIZE_AWAY(
-                Base64Decode(~d.PlaceToDecode[i], (const char*)d.DataEncoded[i].data(), (const char*)(d.DataEncoded[i].data() + d.DataEncoded[i].size())));
+                Base64Decode(d.PlaceToDecode[i].data(), (const char*)d.DataEncoded[i].data(), (const char*)(d.DataEncoded[i].data() + d.DataEncoded[i].size())));
             NBench::Clobber();
         }
     }

@@ -79,7 +79,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
     };
 
     Y_UNIT_TEST(TestCodings1) {
-        UNIT_ASSERT(+SupportedCodings() > 0);
+        UNIT_ASSERT(SupportedCodings().size() > 0);
     }
 
     Y_UNIT_TEST(TestHttpInput) {

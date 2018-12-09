@@ -112,13 +112,13 @@ namespace {
                 TAutoPtr<TOpaqueAddr> addr(new TOpaqueAddr());
 
             retry_on_intr : {
-                const int rv = recvfrom(s, tmp.Data(), +tmp, MSG_WAITALL, addr->MutableAddr(), addr->LenPtr());
+                const int rv = recvfrom(s, tmp.Data(), tmp.size(), MSG_WAITALL, addr->MutableAddr(), addr->LenPtr());
 
                 if (rv < 0) {
                     int err = LastSystemError();
                     if (err == EAGAIN || err == EWOULDBLOCK) {
                         Data.Resize(sizeof(TCheckSum) + 1);
-                        *(~Data + sizeof(TCheckSum)) = static_cast<char>(PT_TIMEOUT);
+                        *(Data.data() + sizeof(TCheckSum)) = static_cast<char>(PT_TIMEOUT);
                     } else if (err == EINTR) {
                         goto retry_on_intr;
                     } else {
@@ -135,7 +135,7 @@ namespace {
             inline void SendTo(TSocketHolder& s) {
                 Sign();
 
-                if (sendto(s, ~Data, +Data, 0, Addr->Addr(), Addr->Len()) < 0) {
+                if (sendto(s, Data.data(), Data.size(), 0, Addr->Addr(), Addr->Len()) < 0) {
                     Cdbg << LastSystemErrorText() << Endl;
                 }
             }
@@ -150,11 +150,11 @@ namespace {
             }
 
             inline char Type() const noexcept {
-                return *(~Data + sizeof(TCheckSum));
+                return *(Data.data() + sizeof(TCheckSum));
             }
 
             inline void CheckSign() const {
-                if (+Data < 16) {
+                if (Data.size() < 16) {
                     ythrow yexception() << "small packet";
                 }
 
@@ -176,7 +176,7 @@ namespace {
             }
 
             inline TStringBuf Body() const noexcept {
-                return TStringBuf(~Data + sizeof(TCheckSum), Data.End());
+                return TStringBuf(Data.data() + sizeof(TCheckSum), Data.End());
             }
         };
 

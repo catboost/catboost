@@ -21,8 +21,8 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
             TString s = "привет!";
             TString q = "ПРИВЕТ!";
             TString tmp;
-            UNIT_ASSERT(ToLowerUTF8Impl(~s, +s, tmp) == false);
-            UNIT_ASSERT(ToLowerUTF8Impl(~q, +q, tmp) == true);
+            UNIT_ASSERT(ToLowerUTF8Impl(s.data(), s.size(), tmp) == false);
+            UNIT_ASSERT(ToLowerUTF8Impl(q.data(), q.size(), tmp) == true);
         }
 
         {
@@ -61,8 +61,8 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
             TString s = "ПРИВЕТ!";
             TString q = "привет!";
             TString tmp;
-            UNIT_ASSERT(ToUpperUTF8Impl(~s, +s, tmp) == false);
-            UNIT_ASSERT(ToUpperUTF8Impl(~q, +q, tmp) == true);
+            UNIT_ASSERT(ToUpperUTF8Impl(s.data(), s.size(), tmp) == false);
+            UNIT_ASSERT(ToUpperUTF8Impl(q.data(), q.size(), tmp) == true);
         }
 
         {
