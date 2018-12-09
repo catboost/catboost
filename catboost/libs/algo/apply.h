@@ -11,11 +11,11 @@
 #include <util/generic/vector.h>
 
 namespace NCB {
-    template <class TTObjectsDataProvider> class TDataProviderTemplate;
+    template <class TTObjectsDataProvider>
+    class TDataProviderTemplate;
 
     using TDataProvider = TDataProviderTemplate<TObjectsDataProvider>;
 }
-
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -23,8 +23,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    NPar::TLocalExecutor* executor);
-
+    NPar::TLocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -43,7 +42,6 @@ TVector<TVector<double>> ApplyModelMulti(
     int begin = 0,
     int end = 0,
     int threadCount = 1);
-
 
 TVector<double> ApplyModel(
     const TFullModel& model,

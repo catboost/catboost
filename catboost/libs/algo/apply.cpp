@@ -13,85 +13,93 @@
 
 #include <cmath>
 
-
 using namespace NCB;
+using NPar::TLocalExecutor;
 
-
-TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const TObjectsDataProvider& objectsData,
-                                         const EPredictionType predictionType,
-                                         int begin, /*= 0*/
-                                         int end,   /*= 0*/
-                                         NPar::TLocalExecutor* executor) {
-
-    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
+TVector<TVector<double>> ApplyModelMulti(
+    const TFullModel& model,
+    const TObjectsDataProvider& objectsData,
+    const EPredictionType predictionType,
+    int begin, /*= 0*/
+    int end,   /*= 0*/
+    TLocalExecutor* executor)
+{
+    const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
     CB_ENSURE(rawObjectsData, "Not supported for quantized pools");
+
+    end = end == 0 ? model.GetTreeCount() : Min<int>(end, model.GetTreeCount());
+    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+    const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
+    const int approxesDimension = model.ObliviousTrees.ApproxDimension;
+
     THashMap<ui32, ui32> columnReorderMap;
     CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
-    const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
-    auto approxDimension = model.ObliviousTrees.ApproxDimension;
-    TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
 
+    TVector<double> approxesFlat;
+    approxesFlat.yresize(docCount * approxesDimension);
     if (docCount > 0) {
         const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(*rawObjectsData);
+        const int threadCount = executorThreadCount + 1; // one for current thread
+        const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
+        const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
-        const int threadCount = executor->GetThreadCount() + 1; //one for current thread
-        const int MinBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
-        const int effectiveBlockCount = Min(threadCount, (int)ceil(docCount * 1.0 / MinBlockSize));
-
-        NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+        TLocalExecutor::TExecRangeParams blockParams(0, docCount);
         blockParams.SetBlockCount(effectiveBlockCount);
 
-        if (end == 0) {
-            end = model.GetTreeCount();
-        } else {
-            end = Min<int>(end, model.GetTreeCount());
-        }
-
-        const auto& featuresLayout = *rawObjectsData->GetFeaturesLayout();
-
-        auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx) -> const float* {
+        const auto featuresLayout = rawObjectsData->GetFeaturesLayout();
+        const auto getFeatureDataPtr = [&](ui32 flatFeatureIdx) -> const float* {
             return GetRawFeatureDataBeginPtr(
                 *rawObjectsData,
-                featuresLayout,
+                *featuresLayout,
                 consecutiveSubsetBegin,
                 flatFeatureIdx);
         };
-
-        executor->ExecRange([&](int blockId) {
+        const auto applyOnBlock = [&](int blockId) {
             TVector<TConstArrayRef<float>> repackedFeatures(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
-            const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-            const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
+            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+            const int blockSize = blockLastIdx - blockFirstIdx;
             if (columnReorderMap.empty()) {
                 for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
-                    repackedFeatures[i] = MakeArrayRef(getFeatureDataBeginPtr(i) + blockFirstId, blockLastId - blockFirstId);
+                    repackedFeatures[i] = MakeArrayRef(getFeatureDataPtr(i) + blockFirstIdx, blockSize);
                 }
             } else {
                 for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
-                    repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataBeginPtr(sourceIdx) + blockFirstId, blockLastId - blockFirstId);
+                    repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataPtr(sourceIdx) + blockFirstIdx, blockSize);
                 }
             }
-            TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
-            model.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);
-        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            model.CalcFlatTransposed(
+                repackedFeatures,
+                begin,
+                end,
+                MakeArrayRef(
+                    approxesFlat.data() + blockFirstIdx * approxesDimension,
+                    blockSize * approxesDimension));
+        };
+        if (executor) {
+            executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            applyOnBlock(0);
+        }
     }
 
-    TVector<TVector<double>> approx(approxDimension, TVector<double>(docCount));
-    if (approxDimension == 1) { //shortcut
-        approx[0].swap(approxFlat);
+    TVector<TVector<double>> approxes(approxesDimension);
+    if (approxesDimension == 1) { //shortcut
+        approxes[0].swap(approxesFlat);
     } else {
-        for (int dim = 0; dim < approxDimension; ++dim) {
+        for (int dim = 0; dim < approxesDimension; ++dim) {
+            approxes.yresize(docCount);
             for (int doc = 0; doc < docCount; ++doc) {
-                approx[dim][doc] = approxFlat[approxDimension * doc + dim];
+                approxes[dim][doc] = approxesFlat[approxesDimension * doc + dim];
             };
         }
     }
 
     if (predictionType == EPredictionType::InternalRawFormulaVal) {
         //shortcut
-        return approx;
+        return approxes;
     } else {
-        return PrepareEvalForInternalApprox(predictionType, model, approx, executor);
+        return PrepareEvalForInternalApprox(predictionType, model, approxes, executor);
     }
 }
 
