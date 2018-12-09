@@ -31,8 +31,8 @@ struct TParserCtx {
 
     TParserCtx(TJsonCallbacks& h, TStringBuf data)
         : Hndl(h)
-        , p0(~data)
-        , p(~data)
+        , p0(data.data())
+        , p(data.data())
         , pe(data.end())
         , eof(data.end())
     {}
