@@ -88,7 +88,7 @@ TVector<TVector<double>> ApplyModelMulti(
         approxes[0].swap(approxesFlat);
     } else {
         for (int dim = 0; dim < approxesDimension; ++dim) {
-            approxes.yresize(docCount);
+            approxes[dim].yresize(docCount);
             for (int doc = 0; doc < docCount; ++doc) {
                 approxes[dim][doc] = approxesFlat[approxesDimension * doc + dim];
             };
