@@ -138,21 +138,6 @@ public:
     }
 
     /*
-     * some helpers...
-     */
-    inline T* operator~() noexcept {
-        return Data();
-    }
-
-    inline const T* operator~() const noexcept {
-        return Data();
-    }
-
-    inline size_t operator+() const noexcept {
-        return Size();
-    }
-
-    /*
      * iterator-like interface
      */
     inline TConstIterator Begin() const noexcept {

@@ -169,21 +169,6 @@ public:
         }
     }
 
-    /*
-     * some helpers...
-     */
-    inline char* operator~() noexcept {
-        return Data();
-    }
-
-    inline const char* operator~() const noexcept {
-        return Data();
-    }
-
-    inline size_t operator+() const noexcept {
-        return Size();
-    }
-
     inline char* data() noexcept {
         return Data();
     }

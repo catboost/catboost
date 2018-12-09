@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
         buf.Resize(6);
         buf.EraseBack(2);
 
-        UNIT_ASSERT_EQUAL(TString(~buf, +buf), "1234");
+        UNIT_ASSERT_EQUAL(TString(buf.data(), buf.size()), "1234");
     }
 
     Y_UNIT_TEST(TestAppend) {
@@ -32,7 +32,7 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
             }
         }
 
-        UNIT_ASSERT_EQUAL(TString(~buf, +buf), str);
+        UNIT_ASSERT_EQUAL(TString(buf.data(), buf.size()), str);
     }
 
     Y_UNIT_TEST(TestReset) {
@@ -55,17 +55,17 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
         TBuffer buf;
 
         buf.Resize(10);
-        UNIT_ASSERT_VALUES_EQUAL(+buf, 10u);
+        UNIT_ASSERT_VALUES_EQUAL(buf.size(), 10u);
 
         buf.Resize(0);
-        UNIT_ASSERT_VALUES_EQUAL(+buf, 0u);
+        UNIT_ASSERT_VALUES_EQUAL(buf.size(), 0u);
 
         buf.Resize(9);
-        memcpy(~buf, content, 9);
-        UNIT_ASSERT_VALUES_EQUAL(TString(~buf, +buf), "some text");
+        memcpy(buf.data(), content, 9);
+        UNIT_ASSERT_VALUES_EQUAL(TString(buf.data(), buf.size()), "some text");
 
         buf.Resize(4);
-        UNIT_ASSERT_VALUES_EQUAL(TString(~buf, +buf), "some");
+        UNIT_ASSERT_VALUES_EQUAL(TString(buf.data(), buf.size()), "some");
     }
 
     Y_UNIT_TEST(TestReserve) {
@@ -112,7 +112,7 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
         buf.ShrinkToFit();
         UNIT_ASSERT_EQUAL(buf.Size(), 9);
         UNIT_ASSERT_EQUAL(buf.Capacity(), 9);
-        UNIT_ASSERT_EQUAL(TString(~buf, +buf), content);
+        UNIT_ASSERT_EQUAL(TString(buf.data(), buf.size()), content);
 
         const size_t MB = 1024 * 1024;
         buf.Resize(MB);
@@ -184,10 +184,10 @@ Y_UNIT_TEST(TestSpeed) {
         buf.Append("Some ", 5);
         buf.Fill('!', 5);
         buf.Append(" text.", 6);
-        UNIT_ASSERT_VALUES_EQUAL(TString(~buf, +buf), "Some !!!!! text.");
+        UNIT_ASSERT_VALUES_EQUAL(TString(buf.data(), buf.size()), "Some !!!!! text.");
 
         buf.Chop(5, 6);
-        UNIT_ASSERT_VALUES_EQUAL(TString(~buf, +buf), "Some text.");
+        UNIT_ASSERT_VALUES_EQUAL(TString(buf.data(), buf.size()), "Some text.");
     }
 
 } // TBufferTest
