@@ -102,14 +102,14 @@ public:
     }
 
     TVariant(const TVariant& rhs) {
-        if (!rhs.ValuelessByException()) {
+        if (!rhs.valueless_by_exception()) {
             ForwardVariant(rhs);
         }
     }
 
     TVariant(TVariant&& rhs) noexcept(
         TConjunction<std::is_nothrow_move_constructible<Ts>...>::value) {
-        if (!rhs.ValuelessByException()) {
+        if (!rhs.valueless_by_exception()) {
             ForwardVariant(std::move(rhs));
         }
     }
@@ -136,12 +136,12 @@ public:
     }
 
     TVariant& operator=(const TVariant& rhs) {
-        if (Y_UNLIKELY(rhs.ValuelessByException())) {
-            if (Y_LIKELY(!ValuelessByException())) {
+        if (Y_UNLIKELY(rhs.valueless_by_exception())) {
+            if (Y_LIKELY(!valueless_by_exception())) {
                 DestroyImpl();
                 Index_ = ::TVariantSize<TVariant>::value;
             }
-        } else if (Index() == rhs.Index()) {
+        } else if (index() == rhs.index()) {
             ::Visit([&](auto& dst) -> void {
                 ::Visit([&](const auto& src) -> void {
                     ::NVariant::CallIfSame<void>([](auto& x, const auto& y) {
@@ -157,12 +157,12 @@ public:
     }
 
     TVariant& operator=(TVariant&& rhs) {
-        if (Y_UNLIKELY(rhs.ValuelessByException())) {
-            if (Y_LIKELY(!ValuelessByException())) {
+        if (Y_UNLIKELY(rhs.valueless_by_exception())) {
+            if (Y_LIKELY(!valueless_by_exception())) {
                 DestroyImpl();
                 Index_ = ::TVariantSize<TVariant>::value;
             }
-        } else if (Index() == rhs.Index()) {
+        } else if (index() == rhs.index()) {
             ::Visit([&](auto& dst) -> void {
                 ::Visit([&](auto& src) -> void {
                     ::NVariant::CallIfSame<void>([](auto& x, auto& y) {
@@ -189,14 +189,14 @@ public:
         if (::HoldsAlternative<std::decay_t<T>>(*this)) {
             *ReinterpretAs<T>() = std::forward<T>(value);
         } else {
-            Emplace<T>(std::forward<T>(value));
+            emplace<T>(std::forward<T>(value));
         }
         return *this;
     }
 
-    void Swap(TVariant& rhs) {
-        if (!ValuelessByException() || !rhs.ValuelessByException()) {
-            if (Index() == rhs.Index()) {
+    void swap(TVariant& rhs) {
+        if (!valueless_by_exception() || !rhs.valueless_by_exception()) {
+            if (index() == rhs.index()) {
                 ::Visit([&](auto& aVal) -> void {
                     ::Visit([&](auto& bVal) -> void {
                         ::NVariant::CallIfSame<void>([](auto& x, auto& y) {
@@ -214,8 +214,12 @@ public:
         }
     }
 
+    void Swap(TVariant& rhs) {
+        swap(rhs);
+    }
+
     template <class T, class... TArgs>
-    T& Emplace(TArgs&&... args) {
+    T& emplace(TArgs&&... args) {
         Destroy();
         try {
             return EmplaceImpl<T>(std::forward<TArgs>(args)...);
@@ -226,8 +230,18 @@ public:
     };
 
     template <size_t I, class... TArgs, class T = TVariantAlternativeType<I, TVariant>>
+    T& emplace(TArgs&&... args) {
+        return emplace<T>(std::forward<TArgs>(args)...);
+    };
+
+    template <class T, class... TArgs>
     T& Emplace(TArgs&&... args) {
-        return Emplace<T>(std::forward<TArgs>(args)...);
+        return emplace<T>(std::forward<TArgs>(args)...);
+    };
+
+    template <size_t I, class... TArgs, class T = TVariantAlternativeType<I, TVariant>>
+    T& Emplace(TArgs&&... args) {
+        return emplace<T>(std::forward<TArgs>(args)...);
     };
 
     template <class T>
@@ -280,14 +294,18 @@ public:
         return ::Visit(std::forward<Visitor>(visitor), *this);
     }
 
+    constexpr size_t index() const noexcept {
+        return valueless_by_exception() ? TVARIANT_NPOS : Index_;
+    }
+
     //! Returns the discriminating index of the instance.
-    /*[[deprecated("use Index() instead")]]*/ constexpr size_t Tag() const noexcept {
-        return Index();
+    /*[[deprecated("use index() instead")]]*/ constexpr size_t Tag() const noexcept {
+        return index();
     }
 
     //! Standart integration
     constexpr size_t Index() const noexcept {
-        return ValuelessByException() ? TVARIANT_NPOS : Index_;
+        return index();
     }
 
     //! Returns the discriminating index of the given type.
@@ -299,13 +317,17 @@ public:
     /* A TVariant that is valueless by exception is treated as being in an invalid state:
      * Index returns TVARIANT_NPOS, Get and Visit throw TWrongVariantError.
      */
-    constexpr bool ValuelessByException() const noexcept {
+    constexpr bool valueless_by_exception() const noexcept {
         return Index_ == ::TVariantSize<TVariant>::value;
+    }
+
+    constexpr bool ValuelessByException() const noexcept {
+        return valueless_by_exception();
     }
 
 private:
     void Destroy() noexcept {
-        if (!ValuelessByException()) {
+        if (!valueless_by_exception()) {
             DestroyImpl();
         }
     }
@@ -352,10 +374,10 @@ private:
 
 template <class... Ts>
 bool operator==(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
-    if (a.Index() != b.Index()) {
+    if (a.index() != b.index()) {
         return false;
     }
-    return a.ValuelessByException() || ::Visit([&](const auto& aVal) -> bool {
+    return a.valueless_by_exception() || ::Visit([&](const auto& aVal) -> bool {
         return ::Visit([&](const auto& bVal) -> bool {
             return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                 return x == y;
@@ -368,10 +390,10 @@ template <class... Ts>
 bool operator!=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
     // The standard forces as to call operator!= for values stored in variants.
     // So we cannot reuse operator==.
-    if (a.Index() != b.Index()) {
+    if (a.index() != b.index()) {
         return true;
     }
-    return !a.ValuelessByException() && ::Visit([&](const auto& aVal) -> bool {
+    return !a.valueless_by_exception() && ::Visit([&](const auto& aVal) -> bool {
         return ::Visit([&](const auto& bVal) -> bool {
             return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
                 return x != y;
@@ -382,13 +404,13 @@ bool operator!=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
 
 template <class... Ts>
 bool operator<(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
-    if (b.ValuelessByException()) {
+    if (b.valueless_by_exception()) {
         return false;
     }
-    if (a.ValuelessByException()) {
+    if (a.valueless_by_exception()) {
         return true;
     }
-    if (a.Index() == b.Index()) {
+    if (a.index() == b.index()) {
         return ::Visit([&](const auto& aVal) -> bool {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
@@ -397,20 +419,20 @@ bool operator<(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             }, b);
         }, a);
     }
-    return a.Index() < b.Index();
+    return a.index() < b.index();
 }
 
 template <class... Ts>
 bool operator>(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
     // The standard forces as to call operator> for values stored in variants.
     // So we cannot reuse operator< and operator==.
-    if (a.ValuelessByException()) {
+    if (a.valueless_by_exception()) {
         return false;
     }
-    if (b.ValuelessByException()) {
+    if (b.valueless_by_exception()) {
         return true;
     }
-    if (a.Index() == b.Index()) {
+    if (a.index() == b.index()) {
         return ::Visit([&](const auto& aVal) -> bool {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
@@ -419,20 +441,20 @@ bool operator>(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             }, b);
         }, a);
     }
-    return a.Index() > b.Index();
+    return a.index() > b.index();
 }
 
 template <class... Ts>
 bool operator<=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
     // The standard forces as to call operator> for values stored in variants.
     // So we cannot reuse operator< and operator==.
-    if (a.ValuelessByException()) {
+    if (a.valueless_by_exception()) {
         return true;
     }
-    if (b.ValuelessByException()) {
+    if (b.valueless_by_exception()) {
         return false;
     }
-    if (a.Index() == b.Index()) {
+    if (a.index() == b.index()) {
         return ::Visit([&](const auto& aVal) -> bool {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
@@ -441,20 +463,20 @@ bool operator<=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             }, b);
         }, a);
     }
-    return a.Index() < b.Index();
+    return a.index() < b.index();
 }
 
 template <class... Ts>
 bool operator>=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
     // The standard forces as to call operator> for values stored in variants.
     // So we cannot reuse operator< and operator==.
-    if (b.ValuelessByException()) {
+    if (b.valueless_by_exception()) {
         return true;
     }
-    if (a.ValuelessByException()) {
+    if (a.valueless_by_exception()) {
         return false;
     }
-    if (a.Index() == b.Index()) {
+    if (a.index() == b.index()) {
         return ::Visit([&](const auto& aVal) -> bool {
             return ::Visit([&](const auto& bVal) -> bool {
                 return ::NVariant::CallIfSame<bool>([](const auto& x, const auto& y) {
@@ -463,7 +485,7 @@ bool operator>=(const TVariant<Ts...>& a, const TVariant<Ts...>& b) {
             }, b);
         }, a);
     }
-    return a.Index() > b.Index();
+    return a.index() > b.index();
 }
 
 
@@ -505,14 +527,14 @@ decltype(auto) Visit(F&& f, const TVariant<Ts...>&& v) {
 template <class T, class... Ts>
 constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept {
     static_assert(::NVariant::TIndexOf<T, Ts...>::value != TVARIANT_NPOS, "T not in types");
-    return ::NVariant::TIndexOf<T, Ts...>::value == v.Index();
+    return ::NVariant::TIndexOf<T, Ts...>::value == v.index();
 }
 
 
 namespace NVariant {
     template <size_t I, class V>
     decltype(auto) GetImpl(V&& v) {
-        Y_ENSURE_EX(v.Index() == I, TWrongVariantError());
+        Y_ENSURE_EX(v.index() == I, TWrongVariantError());
         return ::NVariant::TVariantAccessor::Get<I>(std::forward<V>(v));
     }
 }
@@ -568,12 +590,12 @@ decltype(auto) Get(const TVariant<Ts...>&& v) {
 
 template <size_t I, class... Ts>
 auto* GetIf(TVariant<Ts...>* v) noexcept {
-    return v != nullptr && I == v->Index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
+    return v != nullptr && I == v->index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
 }
 
 template <size_t I, class... Ts>
 const auto* GetIf(const TVariant<Ts...>* v) noexcept {
-    return v != nullptr && I == v->Index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
+    return v != nullptr && I == v->index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
 }
 
 template <class T, class... Ts>
@@ -590,8 +612,8 @@ template <class... Ts>
 struct THash<TVariant<Ts...>> {
 public:
     inline size_t operator()(const TVariant<Ts...>& v) const {
-        const size_t tagHash = IntHash(v.Index());
-        const size_t valueHash = v.ValuelessByException() ? 0 : Visit(
+        const size_t tagHash = IntHash(v.index());
+        const size_t valueHash = v.valueless_by_exception() ? 0 : Visit(
             [](const auto& value) {
                 using T = std::decay_t<decltype(value)>;
                 return ::THash<T>{}(value);

@@ -32,7 +32,7 @@ TObjectsGroupingSubset NCB::GetSubset(
 
     if (objectsGrouping->IsTrivial()) {
         return TObjectsGroupingSubset(
-            (groupsSubset.Index() == TSubsetVariantType::template TagOf<TFullSubset<ui32>>()) ?
+            (groupsSubset.index() == TSubsetVariantType::template TagOf<TFullSubset<ui32>>()) ?
                 objectsGrouping : MakeIntrusive<TObjectsGrouping>(groupsSubset.Size()),
             std::move(groupsSubset),
             groupSubsetOrder
@@ -41,7 +41,7 @@ TObjectsGroupingSubset NCB::GetSubset(
         TMaybe<TArraySubsetIndexing<ui32>> objectsSubset;
         TVector<TGroupBounds> subsetGroupBounds;
 
-        switch (groupsSubset.Index()) {
+        switch (groupsSubset.index()) {
             case TSubsetVariantType::template TagOf<TFullSubset<ui32>>():
                 objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
                     TFullSubset<ui32>(objectsGrouping->GetObjectCount())

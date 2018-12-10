@@ -131,8 +131,8 @@ namespace {
 
     template <class V>
     void AssertValuelessByException(V& v) {
-        UNIT_ASSERT(v.ValuelessByException());
-        UNIT_ASSERT(v.Index() == TVARIANT_NPOS);
+        UNIT_ASSERT(v.valueless_by_exception());
+        UNIT_ASSERT(v.index() == TVARIANT_NPOS);
         UNIT_ASSERT_EXCEPTION(Get<0>(v), TWrongVariantError);
         UNIT_ASSERT_EQUAL(GetIf<0>(&v), nullptr);
         UNIT_ASSERT_EXCEPTION(Visit([](auto&&) { Y_FAIL(); }, v), TWrongVariantError);
@@ -186,7 +186,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
 
         UNIT_ASSERT(HoldsAlternative<int>(v));
 
-        UNIT_ASSERT_EQUAL(0, v.Index());
+        UNIT_ASSERT_EQUAL(0, v.index());
         UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
 
         UNIT_ASSERT_EQUAL(123, Get<int>(v));
@@ -200,7 +200,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT(HoldsAlternative<double>(v));
         UNIT_ASSERT(!HoldsAlternative<int>(v));
 
-        UNIT_ASSERT_EQUAL(1, v.Index());
+        UNIT_ASSERT_EQUAL(1, v.index());
         UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
         UNIT_ASSERT_EQUAL(1, v.TagOf<double>());
 
@@ -232,7 +232,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         {
             TVariant<TString, S, int> v(TVariantTypeTag<S>{}, 6);
             UNIT_ASSERT(HoldsAlternative<S>(v));
-            UNIT_ASSERT_EQUAL(1, v.Index());
+            UNIT_ASSERT_EQUAL(1, v.index());
             UNIT_ASSERT_EQUAL(6, Get<S>(v).Value);
             UNIT_ASSERT_EQUAL(6, Get<1>(v).Value);
         }
@@ -249,7 +249,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT(HoldsAlternative<TString>(v));
             UNIT_ASSERT(Get<TString>(v).Empty());
             UNIT_ASSERT(Get<1>(v).Empty());
-            UNIT_ASSERT_EQUAL(1, v.Index());
+            UNIT_ASSERT_EQUAL(1, v.index());
         }
         UNIT_ASSERT_EQUAL(0, S::CtorCalls);
         UNIT_ASSERT_EQUAL(0, S::DtorCalls);
@@ -262,7 +262,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         {
             TVariant<TString, double, S, int> v(TVariantIndexTag<2>{}, 25);
             UNIT_ASSERT(HoldsAlternative<S>(v));
-            UNIT_ASSERT_EQUAL(2, v.Index());
+            UNIT_ASSERT_EQUAL(2, v.index());
             UNIT_ASSERT_EQUAL(25, Get<S>(v).Value);
             UNIT_ASSERT_EQUAL(25, Get<2>(v).Value);
         }
@@ -389,10 +389,10 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             S s(123);
             TVariant<TString, S> v1(s);
             UNIT_ASSERT(HoldsAlternative<S>(v1));
-            UNIT_ASSERT_EQUAL(1, v1.Index());
+            UNIT_ASSERT_EQUAL(1, v1.index());
             TVariant<TString, S> v2(TString("hello"));
             UNIT_ASSERT(HoldsAlternative<TString>(v2));
-            UNIT_ASSERT_EQUAL(0, v2.Index());
+            UNIT_ASSERT_EQUAL(0, v2.index());
 
             v2 = std::move(v1);
 
@@ -432,13 +432,13 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT(HoldsAlternative<S>(var));
             UNIT_ASSERT_VALUES_EQUAL(222, Get<S>(var).Value);
             UNIT_ASSERT_EQUAL(1, S::CtorCalls);
-            var.Emplace<TString>("foobar");
+            var.emplace<TString>("foobar");
             UNIT_ASSERT_VALUES_EQUAL("foobar", Get<TString>(var));
             UNIT_ASSERT_EQUAL(1, S::DtorCalls);
-            var.Emplace<S>(333);
+            var.emplace<S>(333);
             UNIT_ASSERT_EQUAL(2, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(333, Get<S>(var).Value);
-            var.Emplace<S>(444);
+            var.emplace<S>(444);
             UNIT_ASSERT_EQUAL(3, S::CtorCalls);
             UNIT_ASSERT_EQUAL(2, S::DtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(444, Get<S>(var).Value);
@@ -450,14 +450,14 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         S::Reset();
         {
             TVariant<TMonostate, S> var;
-            UNIT_ASSERT(0 == var.Index());
+            UNIT_ASSERT(0 == var.index());
             UNIT_ASSERT_VALUES_EQUAL(0, S::CtorCalls);
-            var.Emplace<S>(123);
+            var.emplace<S>(123);
             UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(123, Get<S>(var).Value);
-            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.Index());
-            var.Emplace<0>();
+            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.index());
+            var.emplace<0>();
             UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
             var = S(321);
@@ -465,7 +465,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(321, Get<S>(var).Value);
-            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.Index());
+            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.index());
         }
         UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
         UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
@@ -475,7 +475,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
     Y_UNIT_TEST(TestMonostate) {
         using TVar = TVariant<TMonostate>;
         TVar var;
-        UNIT_ASSERT(0 == var.Index());
+        UNIT_ASSERT(0 == var.index());
         UNIT_ASSERT_EQUAL(1, TVariantSize<TVar>::value);
         UNIT_ASSERT_EQUAL(1, TVariantSize<decltype(var)>::value);
     }
@@ -519,20 +519,20 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT(!(v1 > v2));
         UNIT_ASSERT(v1 >= v2);
 
-        v1.Emplace<TString>("aaa");
-        v2.Emplace<TString>("aaaa");
+        v1.emplace<TString>("aaa");
+        v2.emplace<TString>("aaaa");
         UNIT_ASSERT(v1 < v2);
         UNIT_ASSERT(v1 <= v2);
         UNIT_ASSERT(!(v1 > v2));
         UNIT_ASSERT(!(v1 >= v2));
 
-        v2.Emplace<TString>("aaa");
+        v2.emplace<TString>("aaa");
         UNIT_ASSERT(!(v1 < v2));
         UNIT_ASSERT(v1 <= v2);
         UNIT_ASSERT(!(v1 > v2));
         UNIT_ASSERT(v1 >= v2);
 
-        v1.Emplace<TString>("aab");
+        v1.emplace<TString>("aab");
         UNIT_ASSERT(!(v1 < v2));
         UNIT_ASSERT(!(v1 <= v2));
         UNIT_ASSERT(v1 > v2);
@@ -544,7 +544,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT(v1 > v2);
         UNIT_ASSERT(v1 >= v2);
 
-        v1.Swap(v2);
+        v1.swap(v2);
         UNIT_ASSERT(v1 < v2);
         UNIT_ASSERT(v1 <= v2);
         UNIT_ASSERT(!(v1 > v2));
@@ -555,11 +555,11 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         TVariant<int, TString> varInt(10);
         UNIT_ASSERT_EQUAL(Visit(TVisitorToString(), varInt), "10");
         TVariant<int, TString> varStr(TString("hello"));
-        UNIT_ASSERT_EQUAL(varStr.Visit(TVisitorToString()), "hello");
+        UNIT_ASSERT_EQUAL(Visit(TVisitorToString(), varStr), "hello");
 
-        varInt.Visit(TVisitorIncrement());
+        Visit(TVisitorIncrement(), varInt);
         UNIT_ASSERT_EQUAL(varInt, 11);
-        varStr.Visit(TVisitorIncrement());
+        Visit(TVisitorIncrement(), varStr);
         UNIT_ASSERT_EQUAL(varStr, TString("hello1"));
     }
 
@@ -592,9 +592,9 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
 
     Y_UNIT_TEST(TestVisitorWithoutDefaultConstructor) {
         TVariant<int, TString> varInt(10);
-        UNIT_ASSERT_EQUAL(varInt.Visit(TVisitorDouble()), 20);
+        UNIT_ASSERT_EQUAL(Visit(TVisitorDouble(), varInt), 20);
         TVariant<int, TString> varStr(TString("hello"));
-        UNIT_ASSERT_EQUAL(varStr.Visit(TVisitorDouble()), TString("hellohello"));
+        UNIT_ASSERT_EQUAL(Visit(TVisitorDouble(), varStr), TString("hellohello"));
     }
 
     Y_UNIT_TEST(TestSwapSameAlternative) {
@@ -606,7 +606,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT_EQUAL(5, Get<S>(v1).Value);
             UNIT_ASSERT(HoldsAlternative<S>(v2));
             UNIT_ASSERT_EQUAL(64, Get<S>(v2).Value);
-            v1.Swap(v2);
+            v1.swap(v2);
             UNIT_ASSERT_EQUAL(64, Get<S>(v1).Value);
             UNIT_ASSERT_EQUAL(5, Get<S>(v2).Value);
         }
@@ -625,7 +625,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT_EQUAL(5, Get<S>(v1).Value);
             UNIT_ASSERT(HoldsAlternative<TString>(v2));
             UNIT_ASSERT_EQUAL("test", Get<TString>(v2));
-            v1.Swap(v2);
+            v1.swap(v2);
             UNIT_ASSERT(HoldsAlternative<TString>(v1));
             UNIT_ASSERT_EQUAL("test", Get<TString>(v1));
             UNIT_ASSERT(HoldsAlternative<S>(v2));
@@ -640,7 +640,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
     Y_UNIT_TEST(TestGetThrow) {
         TVariant<int, double, TString> v(TVariantIndexTag<0>(), 1);
         UNIT_ASSERT(HoldsAlternative<int>(v));
-        UNIT_ASSERT_EQUAL(0, v.Index());
+        UNIT_ASSERT_EQUAL(0, v.index());
         UNIT_ASSERT_EXCEPTION(Get<1>(v), TWrongVariantError);
         UNIT_ASSERT_EXCEPTION(Get<2>(v), TWrongVariantError);
         UNIT_ASSERT_EXCEPTION(Get<double>(v), TWrongVariantError);
@@ -662,13 +662,13 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
 
     Y_UNIT_TEST(TestValuelessAfterConstruct) {
         TVariant<int, TThrowOnAny, TString> v;
-        UNIT_ASSERT_EXCEPTION(v.Emplace<1>(0), int);
+        UNIT_ASSERT_EXCEPTION(v.emplace<1>(0), int);
         AssertValuelessByException(v);
     }
 
     Y_UNIT_TEST(TestValuelessAfterMove) {
         TVariant<int, TThrowOnAny, TString> v;
-        UNIT_ASSERT_EXCEPTION(v.Emplace<1>(TThrowOnAny{}), int);
+        UNIT_ASSERT_EXCEPTION(v.emplace<1>(TThrowOnAny{}), int);
         AssertValuelessByException(v);
     }
 
@@ -682,7 +682,7 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         TVariant<int, TThrowOnCopy, TString> v;
         TVariant<int, TThrowOnCopy, TString> v2{TVariantIndexTag<1>{}};
         UNIT_ASSERT_EXCEPTION(v = v2, int);
-        UNIT_ASSERT_UNEQUAL(v.Index(), TVARIANT_NPOS);
-        UNIT_ASSERT(!v.ValuelessByException());
+        UNIT_ASSERT_UNEQUAL(v.index(), TVARIANT_NPOS);
+        UNIT_ASSERT(!v.valueless_by_exception());
     }
 }

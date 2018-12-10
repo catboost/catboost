@@ -137,7 +137,7 @@ namespace NCB {
         }
 
         TSize Size() const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return Get<TFullSubset<TSize>>().Size;
                 case TBase::template TagOf<TRangesSubset<TSize>>():
@@ -150,7 +150,7 @@ namespace NCB {
 
         // number of elements for TFullSubset or TIndexedSubset, number of ranges for TRangesSubset
         TSize GetParallelizableUnitsCount() const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return Get<TFullSubset<TSize>>().Size;
                 case TBase::template TagOf<TRangesSubset<TSize>>():
@@ -253,7 +253,7 @@ namespace NCB {
 
         // might be used for external parallelism if you need element indices of the subrange
         NCB::TIndexRange<TSize> GetElementRangeFromUnitRange(NCB::TIndexRange<TSize> unitRange) const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return unitRange;
                 case TBase::template TagOf<TRangesSubset<TSize>>():
@@ -274,7 +274,7 @@ namespace NCB {
 
 // need to be able to use 'break' or 'return' in iteration
 #define LOOP_SUB_RANGE(unitSubRange, LOOP_BODY_MACRO) \
-        switch (TBase::Index()) { \
+        switch (TBase::index()) { \
             case TBase::template TagOf<TFullSubset<TSize>>(): \
                 { \
                     for (TSize index : unitSubRange.Iter()) { \
@@ -438,7 +438,7 @@ namespace NCB {
     void CheckSubsetIndices(const TArraySubsetIndexing<TSize>& srcSubset, TSize srcSize) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (srcSubset.Index()) {
+        switch (srcSubset.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 CB_ENSURE(
                     srcSize == srcSubset.Size(),
@@ -575,7 +575,7 @@ namespace NCB {
     ) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (srcSubset.Index()) {
+        switch (srcSubset.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 CB_ENSURE(
                     src.Size == srcSubset.Size(),
@@ -643,7 +643,7 @@ namespace NCB {
     ) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (srcSubset.Index()) {
+        switch (srcSubset.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 CB_ENSURE(
                     src.size() == srcSubset.Size(),
@@ -670,7 +670,7 @@ namespace NCB {
     ) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (src.Index()) {
+        switch (src.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 return Compose(src.template Get<TFullSubset<TSize>>(), srcSubset);
             case TVariantType::template TagOf<TRangesSubset<TSize>>():
