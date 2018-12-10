@@ -1,5 +1,19 @@
+# Release 0.11.2
+## Changes:
+* Implemented GPU-optimized NDCG, IDCG, and DCG metrics
+* Enabled LQ loss function
+* Sped up DCG on CPU by 15%
+* Added model_sum mode to command line interface
+* Added SHAP values benchmark
+* Enabled passing a test pool to caret training (#544)
+* Fixed a bug in exporting the model as python code (#556)
+* Fixed label mapper for multiclassification custom labels (#523)
+* Fixed hash type of categorical features (#558)
+* Fixed handling of cross-validation fold count options in python package (#568)
+
+
 # Release 0.11.1
-## Changes: 
+## Changes:
 * Accelerated formula evaluation by ~15%
 * Improved model application interface
 * Improved compilation time for building GPU version
@@ -8,7 +22,7 @@
 * Added references to Catboost papers in R-package CITATION file
 * Fixed a build issue in compilation for GPU
 * Fixed a bug in model applicator
-* Fixed model conversion, #533 
+* Fixed model conversion, #533
 * Returned pre 0.11 behaviour for `best_score_` and `evals_result_` (issue #539)
 * Make valid RECORD in wheel (issue #534)
 
