@@ -1,6 +1,7 @@
 #pragma once
 
-#include <catboost/libs/metrics/metric.h>
+#include "custom_objective_descriptor.h"
+
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/libs/options/enums.h>
 

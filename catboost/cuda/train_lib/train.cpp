@@ -7,6 +7,7 @@
 #include <catboost/cuda/cuda_lib/devices_provider.h>
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
 
+#include <catboost/libs/algo/custom_objective_descriptor.h>
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/online_ctr.h>

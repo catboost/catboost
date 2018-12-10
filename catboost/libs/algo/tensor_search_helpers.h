@@ -7,6 +7,7 @@
 #include "error_functions.h"
 #include "yetirank_helpers.h"
 #include "approx_calcer.h"
+#include "custom_objective_descriptor.h"
 
 #include <catboost/libs/options/enums.h>
 

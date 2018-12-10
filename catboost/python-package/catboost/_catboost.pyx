@@ -450,7 +450,7 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
 cdef extern from "catboost/libs/data_new/data_provider_builders.h" namespace "NCB":
     cdef cppclass IDataProviderBuilder:
         TDataProviderPtr GetResult() except +ProcessException
-        
+
     cdef cppclass TDataProviderBuilderOptions:
         pass
 
@@ -561,7 +561,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric);
 
-cdef extern from "catboost/libs/metrics/ders_holder.h":
+cdef extern from "catboost/libs/algo/ders_holder.h":
     cdef cppclass TDers:
         double Der1
         double Der2
@@ -586,6 +586,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
         double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
 
+cdef extern from "catboost/libs/algo/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
         void* CustomData
 
@@ -1513,7 +1514,7 @@ cdef class _PoolBase:
         cdef TDataProviderBuilderOptions options
         cdef THolder[IDataProviderBuilder] data_provider_builder
         cdef IRawObjectsOrderDataVisitor* builder_visitor
-        
+
         CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
 
         cdef TDataMetaInfo data_meta_info

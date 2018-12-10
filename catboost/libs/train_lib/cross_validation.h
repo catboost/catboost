@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/algo/custom_objective_descriptor.h>
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/metrics/metric.h>

@@ -1,10 +1,8 @@
 #pragma once
 
 #include "metric_holder.h"
-#include "ders_holder.h"
 #include "pfound.h"
 
-#include <catboost/libs/algo/hessian.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -94,27 +92,6 @@ struct TCustomMetricDescriptor {
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
-};
-
-struct TCustomObjectiveDescriptor {
-    using TCalcDersRangePtr = void (*)(
-        int count,
-        const double* approxes,
-        const float* targets,
-        const float* weights,
-        TDers* ders,
-        void* customData);
-    using TCalcDersMultiPtr = void (*)(
-        const TVector<double>& approx,
-        float target,
-        float weight,
-        TVector<double>* ders,
-        THessianInfo* der2,
-        void* customData);
-
-    void* CustomData = nullptr;
-    TCalcDersRangePtr CalcDersRange = nullptr;
-    TCalcDersMultiPtr CalcDersMulti = nullptr;
 };
 
 struct IMetric {

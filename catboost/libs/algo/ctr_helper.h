@@ -2,11 +2,11 @@
 
 #include "target_classifier.h"
 #include "projection.h"
+#include "custom_objective_descriptor.h"
 
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/data_new/util.h>
 #include <catboost/libs/options/cat_feature_options.h>
-#include <catboost/libs/metrics/metric.h>
 
 #include <util/generic/array_ref.h>
 

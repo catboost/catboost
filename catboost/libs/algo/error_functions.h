@@ -1,14 +1,12 @@
 #pragma once
 
 #include "approx_updater_helpers.h"
-
+#include "custom_objective_descriptor.h"
+#include "ders_holder.h"
 #include "hessian.h"
 
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/metrics/ders_holder.h>
-#include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/metrics/auc.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 
