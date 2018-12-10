@@ -337,7 +337,10 @@ void CrossValidate(
         const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
 
         for (size_t foldIdx = 0; foldIdx < foldsForCpu.size(); ++foldIdx) {
-            TrainOneIteration(foldsForCpu[foldIdx], contexts[foldIdx].Get());
+            {
+                TSetLogging inThisScope(ctx->Params.LoggingLevel);
+                TrainOneIteration(foldsForCpu[foldIdx], contexts[foldIdx].Get());
+            }
             CalcErrors(
                 foldsForCpu[foldIdx],
                 metrics,

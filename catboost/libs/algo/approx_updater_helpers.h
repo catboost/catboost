@@ -23,9 +23,8 @@ static inline double UpdateApprox(double approx, double approxDelta) {
     return StoreExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
-template <bool StoreExpApprox>
-static inline double GetNeutralApprox() {
-    return StoreExpApprox ? 1.0 : 0.0;
+static inline double UpdateApprox(bool storeExpApprox, double approx, double approxDelta) {
+    return storeExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
 template <bool StoreExpApprox>
@@ -35,9 +34,9 @@ static inline double ApplyLearningRate(double approxDelta, double learningRate) 
 
 static inline double GetNeutralApprox(bool storeExpApproxes) {
     if (storeExpApproxes) {
-        return GetNeutralApprox</*StoreExpApprox*/ true>();
+        return 1.0;
     } else {
-        return GetNeutralApprox</*StoreExpApprox*/ false>();
+        return 0.0;
     }
 }
 
@@ -54,7 +53,7 @@ static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* 
 }
 
 
-inline bool IsStoreExpApprox(ELossFunction lossFunction) {
+static inline bool IsStoreExpApprox(ELossFunction lossFunction) {
     return EqualToOneOf(
         lossFunction,
         ELossFunction::Logloss,

@@ -4,6 +4,8 @@ LIBRARY()
 
 SRCS(
     apply.cpp
+    approx_calcer.cpp
+    approx_calcer_multi.cpp
     approx_calcer_querywise.cpp
     approx_updater_helpers.cpp
     calc_score_cache.cpp
@@ -26,21 +28,6 @@ SRCS(
     target_classifier.cpp
     tensor_search_helpers.cpp
     train.cpp
-    train_one_iter_custom.cpp
-    train_one_iter_log_lin_quantile.cpp
-    train_one_iter_cross_entropy.cpp
-    train_one_iter_map.cpp
-    train_one_iter_multi_class.cpp
-    train_one_iter_multi_class_one_vs_all.cpp
-    train_one_iter_pair_logit.cpp
-    train_one_iter_poisson.cpp
-    train_one_iter_quantile.cpp
-    train_one_iter_query_rmse.cpp
-    train_one_iter_query_soft_max.cpp
-    train_one_iter_rmse.cpp
-    train_one_iter_user_per_object.cpp
-    train_one_iter_user_querywise.cpp
-    train_one_iter_lq.cpp
     tree_print.cpp
     yetirank_helpers.cpp
     pairwise_leaves_calculation.cpp

@@ -135,7 +135,6 @@ static void Train(
 
     const int approxDimension = ctx->LearnProgress.ApproxDimension;
     const bool hasTest = data.GetTestSampleCount() > 0;
-    auto trainOneIterationFunc = GetOneIterationFunc(ctx->Params.LossFunctionDescription->GetLossFunction());
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         ctx->Params.LossFunctionDescription,
         ctx->Params.MetricOptions,
@@ -266,7 +265,7 @@ static void Train(
             timer.Reset();
         }
 
-        trainOneIterationFunc(data, ctx);
+        TrainOneIteration(data, ctx);
 
         bool calcAllMetrics = DivisibleOrLastIteration(
             iter,
@@ -848,17 +847,4 @@ void TrainModel(
         model,
         evalResultPtrs,
         metricsAndTimeHistory);
-}
-
-
-
-/// Used by cross validation, hence one test dataset.
-void TrainOneIteration(const TTrainingForCPUDataProviders& data, TLearnContext* ctx) {
-    TSetLogging inThisScope(ctx->Params.LoggingLevel);
-
-    TTrainOneIterationFunc trainFunc;
-    ELossFunction lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
-
-    Y_VERIFY(data.Test.size() == 1);
-    GetOneIterationFunc(lossFunction)(data, ctx);
 }

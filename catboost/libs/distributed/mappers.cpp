@@ -1,6 +1,7 @@
 #include "mappers.h"
 
 #include <catboost/libs/algo/approx_calcer.h>
+#include <catboost/libs/algo/approx_calcer_multi.h>
 #include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/score_calcer.h>
 #include <catboost/libs/algo/learn_context.h>
@@ -293,14 +294,13 @@ void TEmptyLeafFinder::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput
     ++localData.Depth; // tree level completed
 }
 
-template <typename TError>
-void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
+void TBucketSimpleUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     const int approxDimension = localData.Progress.ApproxDimension;
     Y_ASSERT(approxDimension == 1);
-    const auto error = BuildError<TError>(localData.Params, /*custom objective*/ Nothing());
+    const auto error = BuildError(localData.Params, /*custom objective*/ Nothing());
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
-    const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
+    const int scratchSize = error->GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
         : localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish; // plain boosting ==> not approx on full history
     TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize);
@@ -310,7 +310,7 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
         localData.Progress.AveragingFold.BodyTailArr[0],
         localData.Progress.AveragingFold.BodyTailArr[0].Approx[0],
         localData.ApproxDeltas[0],
-        error,
+        *error,
         localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
         localData.Progress.AveragingFold.BodyTailArr[0].BodyQueryFinish,
         localData.GradientIteration,
@@ -323,24 +323,6 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
         &weightedDers);
     sums->Data = std::make_pair(localData.Buckets, localData.PairwiseBuckets);
 }
-template void TBucketSimpleUpdater<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TRMSEError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TLogLinQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TMAPError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TPoissonError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TMultiClassError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TMultiClassOneVsAllError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-
-template <> void TBucketSimpleUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
-    CB_ENSURE(false, "Custom objective not supported in distributed training");
-}
-template void TBucketSimpleUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 
 void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
@@ -373,19 +355,11 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
 
 void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* leafValues, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    if (localData.StoreExpApprox) {
-        UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,
-            localData.Progress.AveragingFold.BodyTailArr[0].TailFinish,
-            &NPar::LocalExecutor(),
-            &(*leafValues)[0],
-            &localData.ApproxDeltas[0]);
-    } else {
-        UpdateApproxDeltas</*StoreExpApprox*/ false>(localData.Indices,
-            localData.Progress.AveragingFold.BodyTailArr[0].TailFinish,
-            &NPar::LocalExecutor(),
-            &(*leafValues)[0],
-            &localData.ApproxDeltas[0]);
-    }
+    UpdateApproxDeltas(localData.StoreExpApprox, localData.Indices,
+        localData.Progress.AveragingFold.BodyTailArr[0].TailFinish,
+        &NPar::LocalExecutor(),
+        &(*leafValues)[0],
+        &localData.ApproxDeltas[0]);
     ++localData.GradientIteration; // gradient iteration completed
 }
 
@@ -410,103 +384,58 @@ void TApproxUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInpu
     UpdateApprox(updateAvrgApprox, *averageLeafValues, &localData.Progress.AvrgApprox, &NPar::LocalExecutor());
 }
 
-template <typename TError>
-void TDerivativeSetter<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
+void TDerivativeSetter::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
-    CalcWeightedDerivatives(BuildError<TError>(localData.Params, /*custom objective*/ Nothing()),
+    const auto error = BuildError(localData.Params, /*custom objective*/ Nothing());
+    CalcWeightedDerivatives(*error,
         /*bodyTailIdx*/ 0,
         localData.Params,
         localData.Rand->GenRand(),
         &localData.Progress.AveragingFold,
         &NPar::LocalExecutor());
 }
-template void TDerivativeSetter<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TRMSEError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TLogLinQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TMAPError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TPoissonError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TMultiClassError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TMultiClassOneVsAllError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 
-template <> void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
-    CB_ENSURE(false, "Custom objective not supported in distributed training");
-}
-template void TDerivativeSetter<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-
-template <typename TError>
-void TBucketMultiUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
+void TBucketMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     const int approxDimension = localData.Progress.ApproxDimension;
     Y_ASSERT(approxDimension > 1);
-    const auto error = BuildError<TError>(localData.Params, /*custom objective*/ Nothing());
+    const auto error = BuildError(localData.Params, /*custom objective*/ Nothing());
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
 
     if (estimationMethod == ELeavesEstimation::Newton) {
-        UpdateBucketsMulti(AddSampleToBucketNewtonMulti<TError>,
+        UpdateBucketsMulti(AddSampleToBucketNewtonMulti,
             localData.Indices,
             localData.Progress.AveragingFold.LearnTarget,
             localData.Progress.AveragingFold.GetLearnWeights(),
             localData.Progress.AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,
-            error,
+            *error,
             localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
             localData.GradientIteration,
             &localData.MultiBuckets);
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-        UpdateBucketsMulti(AddSampleToBucketGradientMulti<TError>,
+        UpdateBucketsMulti(AddSampleToBucketGradientMulti,
             localData.Indices,
             localData.Progress.AveragingFold.LearnTarget,
             localData.Progress.AveragingFold.GetLearnWeights(),
             localData.Progress.AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,
-            error,
+            *error,
             localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
             localData.GradientIteration,
             &localData.MultiBuckets);
     }
     sums->Data = std::make_pair(localData.MultiBuckets, TUnusedInitializedParam());
 }
-template void TBucketMultiUpdater<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TRMSEError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TLogLinQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TMAPError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TPoissonError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TMultiClassError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TMultiClassOneVsAllError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-
-template <> void TBucketMultiUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
-    CB_ENSURE(false, "Custom objective not supported in distributed training");
-}
-template void TBucketMultiUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketMultiUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-
 
 void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* leafValues, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    if (localData.StoreExpApprox) {
-        UpdateApproxDeltasMulti</*StoreExpApprox*/ true>(localData.Indices,
-            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
-            leafValues,
-            &localData.ApproxDeltas);
-    } else {
-        UpdateApproxDeltasMulti</*StoreExpApprox*/ false>(localData.Indices,
-            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
-            leafValues,
-            &localData.ApproxDeltas);
-    }
+    UpdateApproxDeltasMulti(localData.StoreExpApprox, localData.Indices,
+        localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+        leafValues,
+        &localData.ApproxDeltas);
     ++localData.GradientIteration; // gradient iteration completed
 }
 
@@ -563,53 +492,10 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48d, NCatboostDistributed, TEnvelope, TI
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48e, NCatboostDistributed, TEnvelope, TCandidateInfo);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48f, NCatboostDistributed, TEnvelope, TSplitTree);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d490, NCatboostDistributed, TEnvelope, TSums);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d491, NCatboostDistributed, TBucketSimpleUpdater, TCrossEntropyError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d493, NCatboostDistributed, TBucketSimpleUpdater, TRMSEError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d494, NCatboostDistributed, TBucketSimpleUpdater, TQuantileError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d495, NCatboostDistributed, TBucketSimpleUpdater, TLogLinQuantileError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d496, NCatboostDistributed, TBucketSimpleUpdater, TMAPError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d497, NCatboostDistributed, TBucketSimpleUpdater, TPoissonError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d498, NCatboostDistributed, TBucketSimpleUpdater, TMultiClassError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d499, NCatboostDistributed, TBucketSimpleUpdater, TMultiClassOneVsAllError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49a, NCatboostDistributed, TBucketSimpleUpdater, TPairLogitError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49b, NCatboostDistributed, TBucketSimpleUpdater, TQueryRmseError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49c, NCatboostDistributed, TBucketSimpleUpdater, TQuerySoftMaxError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49d, NCatboostDistributed, TBucketSimpleUpdater, TCustomError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49e, NCatboostDistributed, TBucketSimpleUpdater, TUserDefinedPerObjectError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49f, NCatboostDistributed, TBucketSimpleUpdater, TUserDefinedQuerywiseError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d50f, NCatboostDistributed, TBucketSimpleUpdater, TLqError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a0, NCatboostDistributed, TDerivativeSetter, TCrossEntropyError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a2, NCatboostDistributed, TDerivativeSetter, TRMSEError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a3, NCatboostDistributed, TDerivativeSetter, TQuantileError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a4, NCatboostDistributed, TDerivativeSetter, TLogLinQuantileError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a5, NCatboostDistributed, TDerivativeSetter, TMAPError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a6, NCatboostDistributed, TDerivativeSetter, TPoissonError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a7, NCatboostDistributed, TDerivativeSetter, TMultiClassError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a8, NCatboostDistributed, TDerivativeSetter, TMultiClassOneVsAllError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a9, NCatboostDistributed, TDerivativeSetter, TPairLogitError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4aa, NCatboostDistributed, TDerivativeSetter, TQueryRmseError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ab, NCatboostDistributed, TDerivativeSetter, TQuerySoftMaxError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ac, NCatboostDistributed, TDerivativeSetter, TCustomError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ad, NCatboostDistributed, TDerivativeSetter, TUserDefinedPerObjectError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ae, NCatboostDistributed, TDerivativeSetter, TUserDefinedQuerywiseError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4af, NCatboostDistributed, TDerivativeSetter, TLqError);
-
+REGISTER_SAVELOAD_NM_CLASS(0xd66d50f, NCatboostDistributed, TBucketSimpleUpdater);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4af, NCatboostDistributed, TDerivativeSetter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4b2, NCatboostDistributed, TDeltaMultiUpdater);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b1, NCatboostDistributed, TBucketMultiUpdater, TCrossEntropyError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b3, NCatboostDistributed, TBucketMultiUpdater, TRMSEError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b4, NCatboostDistributed, TBucketMultiUpdater, TQuantileError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b5, NCatboostDistributed, TBucketMultiUpdater, TLogLinQuantileError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b6, NCatboostDistributed, TBucketMultiUpdater, TMAPError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b7, NCatboostDistributed, TBucketMultiUpdater, TPoissonError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b8, NCatboostDistributed, TBucketMultiUpdater, TMultiClassError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b9, NCatboostDistributed, TBucketMultiUpdater, TMultiClassOneVsAllError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ba, NCatboostDistributed, TBucketMultiUpdater, TPairLogitError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bb, NCatboostDistributed, TBucketMultiUpdater, TQueryRmseError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bc, NCatboostDistributed, TBucketMultiUpdater, TQuerySoftMaxError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bd, NCatboostDistributed, TBucketMultiUpdater, TCustomError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4be, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedPerObjectError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bf, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedQuerywiseError);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4c1, NCatboostDistributed, TBucketMultiUpdater, TLqError);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4c1, NCatboostDistributed, TBucketMultiUpdater);
 
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d1, NCatboostDistributed, TPairwiseScoreCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d2, NCatboostDistributed, TRemotePairwiseBinCalcer);

@@ -78,23 +78,17 @@ static TEvaluateDerivativesFunc GetEvaluateDerivativesFunc(ELossFunction lossFun
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
             return EvaluateDerivativesForError<TCrossEntropyError>;
-            break;
         case ELossFunction::RMSE:
             return EvaluateDerivativesForError<TRMSEError>;
-            break;
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             return EvaluateDerivativesForError<TQuantileError>;
-            break;
         case ELossFunction::LogLinQuantile:
             return EvaluateDerivativesForError<TLogLinQuantileError>;
-            break;
         case ELossFunction::MAPE:
             return EvaluateDerivativesForError<TMAPError>;
-            break;
         case ELossFunction::Poisson:
             return EvaluateDerivativesForError<TPoissonError>;
-            break;
         default:
             CB_ENSURE(false, "provided error function is not supported yet");
     }
