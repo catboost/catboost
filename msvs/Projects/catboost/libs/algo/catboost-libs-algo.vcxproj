@@ -115,6 +115,8 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>

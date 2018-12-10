@@ -122,7 +122,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\brier_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\dcg.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\doc_comparator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\kappa.h"/>
