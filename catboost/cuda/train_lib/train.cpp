@@ -227,6 +227,7 @@ namespace NCatboostCuda {
                                                                 const TTrainingDataProvider* testProvider,
                                                                 TBinarizedFeaturesManager& featuresManager,
                                                                 ui32 approxDimension,
+                                                                const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
@@ -249,6 +250,7 @@ namespace NCatboostCuda {
                                        testProvider,
                                        random,
                                        approxDimension,
+                                       onEndIterationCallback,
                                        testMultiApprox,
                                        metricsAndTimeHistory);
         } else {
@@ -272,14 +274,16 @@ namespace NCatboostCuda {
     class TGPUModelTrainer: public IModelTrainer {
     public:
         void TrainModel(
+            bool calcMetricsOnly,
             const NJson::TJsonValue& params,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+            const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor,
-            TRestorableFastRng64* rand,
+            const TMaybe<TRestorableFastRng64*> rand,
             TFullModel* model,
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override
@@ -294,7 +298,8 @@ namespace NCatboostCuda {
             catBoostOptions.Load(params);
 
             bool saveFinalCtrsInModel
-                = (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
+                = !calcMetricsOnly &&
+                    (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
                     HasFeaturesForCtrs(*trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
                                        catBoostOptions.CatFeatureParams.Get().OneHotMaxSize);
 
@@ -344,9 +349,17 @@ namespace NCatboostCuda {
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 featuresManager,
                 approxDimension,
+                onEndIterationCallback,
                 &rawValues,
                 metricsAndTimeHistory);
 
+            if (evalResultPtrs.size()) {
+                evalResultPtrs[0]->SetRawValuesByMove(rawValues);
+            }
+
+            if (calcMetricsOnly) {
+                return;
+            }
 
             TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
                 = quantizedFeaturesInfo->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
@@ -401,12 +414,6 @@ namespace NCatboostCuda {
                     updatedOutputOptions.GetModelFormats(),
                     updatedOutputOptions.AddFileFormatExtension()
                 );
-            }
-
-            if (trainingData.Test.size() && evalResultPtrs.size()) {
-                evalResultPtrs[0]->SetRawValuesByMove(rawValues);
-            } else if (evalResultPtrs.size()) {
-                evalResultPtrs[0]->GetRawValuesRef().resize(approxDimension);
             }
         }
     };

@@ -16,22 +16,32 @@
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
 
+#include <functional>
+
+
 using NCB::TEvalResult;
+
+// returns whether training should be continued
+using TOnEndIterationCallback = std::function<bool(const TMetricsAndTimeLeftHistory&)>;
+
 
 class IModelTrainer {
 public:
     virtual void TrainModel(
+        bool calcMetricsOnly,
         const NJson::TJsonValue& jsonParams,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
         NPar::TLocalExecutor* localExecutor,
-        TRestorableFastRng64* rand,
+        const TMaybe<TRestorableFastRng64*> rand,
         TFullModel* model,
         const TVector<TEvalResult*>& evalResultPtrs,
-        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+    ) const = 0;
 
     virtual ~IModelTrainer() = default;
 };

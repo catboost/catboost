@@ -1400,16 +1400,18 @@ def test_copy_model():
 
 
 def test_cv(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv(pool, {
-        "iterations": 5,
-        "learning_rate": 0.03,
-        "loss_function": "Logloss",
-        "eval_metric": "AUC",
-        "task_type": task_type,
-    })
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        },
+        iterations_batch_size=6
+    )
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
@@ -1420,10 +1422,12 @@ def test_cv(task_type):
 
 
 def test_cv_query(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type})
+    results = cv(
+        pool,
+        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type},
+        iterations_batch_size=6
+    )
     assert "train-QueryRMSE-mean" in results
 
     prev_value = results["train-QueryRMSE-mean"][0]
@@ -1434,10 +1438,18 @@ def test_cv_query(task_type):
 
 
 def test_cv_pairs(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 8, "loss_function": "PairLogit", "task_type": task_type})
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "random_seed": 8,
+            "loss_function": "PairLogit",
+            "task_type": task_type
+        },
+        iterations_batch_size=6
+    )
     assert "train-PairLogit-mean" in results
 
     prev_value = results["train-PairLogit-mean"][0]
@@ -1549,20 +1561,29 @@ def test_full_history(task_type):
 
 
 def test_cv_logging(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type})
+    cv(
+        pool,
+        {
+            "iterations": 14,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "task_type": task_type
+        },
+        iterations_batch_size=6
+    )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_cv_with_not_binarized_target(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
-    cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type})
+    cv(
+        pool,
+        {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+        iterations_batch_size=6
+    )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -1696,10 +1717,14 @@ def test_verbose_int(verbose, task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
-    if task_type != 'GPU':
-        with LogStdout(open(tmpfile, 'w')):
-            cv(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
-        assert(_count_lines(tmpfile) == expected_line_count[verbose])
+    with LogStdout(open(tmpfile, 'w')):
+        cv(
+            pool,
+            {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+            verbose=verbose,
+            iterations_batch_size=6
+        )
+    assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     with LogStdout(open(tmpfile, 'w')):
         train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'}, verbose=verbose)
@@ -2331,10 +2356,12 @@ def test_learning_rate_auto_set(task_type):
 
 
 def test_learning_rate_auto_set_in_cv(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv(pool, {"iterations": 5, "loss_function": "Logloss", "task_type": task_type})
+    results = cv(
+        pool,
+        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type},
+        iterations_batch_size=6
+    )
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
@@ -2498,8 +2525,6 @@ def test_str_eval_metrics_in_eval_features():
 
 
 def test_cv_fold_count_alias(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results_fold_count = cv(pool=pool, params={
         "iterations": 5,
@@ -2562,7 +2587,7 @@ def test_permuted_columns_dataset():
     assert all(pred == permuted_pred)
 
 
-def test_roc():
+def test_roc(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     cv(
@@ -2571,8 +2596,10 @@ def test_roc():
             'loss_function': 'Logloss',
             'iterations': 10,
             'roc_file': 'out_cv',
-            'thread_count': 4
-        }
+            'thread_count': 4,
+            'task_type': task_type
+        },
+        iterations_batch_size=6
     )
 
     model = CatBoostClassifier(loss_function='Logloss', iterations=20)
@@ -2724,19 +2751,21 @@ def test_use_loss_if_no_eval_metric():
     assert model_1.tree_count_ == model_2.tree_count_
 
 
-def test_use_loss_if_no_eval_metric_cv():
+def test_use_loss_if_no_eval_metric_cv(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     params = {
         'iterations': 50,
         'loss_function': 'Logloss',
-        'logging_level': 'Silent'
+        'logging_level': 'Silent',
+        'task_type': task_type
     }
 
     cv_params = {
         'params': params,
         'seed': 0,
         'nfold': 3,
-        'early_stopping_rounds': 5
+        'early_stopping_rounds': 5,
+        'iterations_batch_size': 20
     }
 
     results_1 = cv(train_pool, **cv_params)
@@ -2757,13 +2786,14 @@ def test_use_loss_if_no_eval_metric_cv():
     {'custom_metric': ['Accuracy'], 'eval_metric': 'Logloss'},
     {'custom_metric': ['Accuracy'], 'eval_metric': 'Accuracy'},
     {'custom_metric': ['Accuracy', 'Logloss'], 'eval_metric': 'Logloss'}])
-def test_no_fail_if_metric_is_repeated_cv(metrics):
+def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     params = {
         'iterations': 10,
         'loss_function': 'Logloss',
         'custom_metric': metrics['custom_metric'],
-        'logging_level': 'Silent'
+        'logging_level': 'Silent',
+        'task_type': task_type
     }
     if metrics['eval_metric'] is not None:
         params['eval_metric'] = metrics['eval_metric']
@@ -2771,7 +2801,8 @@ def test_no_fail_if_metric_is_repeated_cv(metrics):
     cv_params = {
         'params': params,
         'nfold': 2,
-        'as_pandas': True
+        'as_pandas': True,
+        'iterations_batch_size': 6
     }
 
     cv(train_pool, **cv_params)

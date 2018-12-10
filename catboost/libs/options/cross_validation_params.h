@@ -9,6 +9,7 @@ struct TCrossValidationParams {
     int PartitionRandSeed = 0;
     bool Shuffle = true;
     bool Stratified = false;
+    ui32 IterationsBatchSize = 100;
 };
 
 struct TCvDataPartitionParams : public TCrossValidationParams {

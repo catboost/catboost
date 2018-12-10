@@ -16,6 +16,7 @@ namespace NCatboostCuda {
                                                         const NCB::TTrainingDataProvider* test,
                                                         TGpuAwareRandom& random,
                                                         ui32 approxDimension,
+                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
@@ -28,6 +29,7 @@ namespace NCatboostCuda {
                                     test,
                                     random,
                                     approxDimension,
+                                    onEndIterationCallback,
                                     testMultiApprox,
                                     metricsAndTimeHistory);
 
@@ -40,6 +42,7 @@ namespace NCatboostCuda {
                                                test,
                                                random,
                                                approxDimension,
+                                               onEndIterationCallback,
                                                testMultiApprox,
                                                metricsAndTimeHistory);
         }
@@ -55,6 +58,7 @@ namespace NCatboostCuda {
                                                                         const NCB::TTrainingDataProvider* test,
                                                                         TGpuAwareRandom& random,
                                                                         ui32 approxDimension,
+                                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return Train<TTargetTemplate>(featuresManager,
@@ -64,6 +68,7 @@ namespace NCatboostCuda {
                                             test,
                                             random,
                                             approxDimension,
+                                            onEndIterationCallback,
                                             testMultiApprox,
                                             metricsAndTimeHistory);
         };

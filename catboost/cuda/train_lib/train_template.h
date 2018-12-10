@@ -15,6 +15,7 @@ namespace NCatboostCuda {
                                                                          const NCB::TTrainingDataProvider* test,
                                                                          TGpuAwareRandom& random,
                                                                          ui32 approxDimension,
+                                                                         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
@@ -38,8 +39,8 @@ namespace NCatboostCuda {
         TBoostingProgressTracker progressTracker(catBoostOptions,
                                                  outputOptions,
                                                  test != nullptr,
-                                                 approxDimension
-                                                 );
+                                                 approxDimension,
+                                                 onEndIterationCallback);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 

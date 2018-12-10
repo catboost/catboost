@@ -1,6 +1,7 @@
 #include "loss_description.h"
 #include "json_helper.h"
 
+#include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/string/iterator.h>
 #include <util/string/vector.h>
@@ -207,6 +208,22 @@ TMap<TString, TString> ParseHintsDescription(const TStringBuf hintsDescription) 
 
     return hints;
 }
+
+TString MakeHintsDescription(const TMap<TString, TString>& hints) {
+    if (hints.empty()) {
+        return TString();
+    }
+
+    TStringBuilder out;
+    auto it = hints.begin();
+    out << it->first << '~' << it->second;
+    for (++it; it != hints.end(); ++it) {
+        out << '|' << it->first << '~' << it->second;
+    }
+
+    return out;
+}
+
 
 NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     NJson::TJsonValue descriptionJson(NJson::JSON_MAP);

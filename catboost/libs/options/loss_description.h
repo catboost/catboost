@@ -59,5 +59,6 @@ namespace NCatboostOptions {
 void ValidateHints(const TMap<TString, TString>& hints);
 
 TMap<TString, TString> ParseHintsDescription(TStringBuf hintsDescription);
+TString MakeHintsDescription(const TMap<TString, TString>& hints);
 
 NJson::TJsonValue LossDescriptionToJson(TStringBuf lossDescription);

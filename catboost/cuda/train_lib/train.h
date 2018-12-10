@@ -10,6 +10,7 @@
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/train_lib/train_model.h>
 
 #include <library/object_factory/object_factory.h>
 
@@ -28,6 +29,7 @@ namespace NCatboostCuda {
             const NCB::TTrainingDataProvider* test,
             TGpuAwareRandom& random,
             ui32 approxDimension,
+            const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 

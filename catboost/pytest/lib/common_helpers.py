@@ -29,8 +29,9 @@ def remove_time_from_json(filename):
         log = json.load(f)
     iterations = log['iterations']
     for i, iter_info in enumerate(iterations):
-        del iter_info['remaining_time']
-        del iter_info['passed_time']
+        for key in ['remaining_time', 'passed_time']:
+            if key in iter_info.keys():
+                del iter_info[key]
     with open(filename, 'w') as f:
         json.dump(log, f, sort_keys=True)
     return filename

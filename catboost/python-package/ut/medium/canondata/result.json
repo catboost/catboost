@@ -44,23 +44,23 @@
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_cv[CPU]": {
-        "checksum": "c6179063cb4862d8468018a617ad2ce2",
+        "checksum": "0d2145e1d2ef68c2047af3e6a1054623",
         "uri": "file://test.test_cv_CPU_/catboost_training.json"
     },
     "test.test_cv_logging[CPU]": {
-        "checksum": "3c795270bfa023f42f719b8ea76cd459",
+        "checksum": "8da779ebb151cfcf4b48fb4f46e2cb04",
         "uri": "file://test.test_cv_logging_CPU_/catboost_training.json"
     },
     "test.test_cv_pairs[CPU]": {
-        "checksum": "b56ebb6ab564c800cf949c0509088929",
+        "checksum": "428944103884a945a0d2bba7583f1bc5",
         "uri": "file://test.test_cv_pairs_CPU_/catboost_training.json"
     },
     "test.test_cv_query[CPU]": {
-        "checksum": "66896674f7a55402ccc835bd5fb6f0ec",
+        "checksum": "79870de8b72935516df5bcc4321d6f87",
         "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
     },
     "test.test_cv_with_not_binarized_target[CPU]": {
-        "checksum": "3c795270bfa023f42f719b8ea76cd459",
+        "checksum": "63bed0c6ce8f4ae88010f51fd284485e",
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
     "test.test_early_stopping_rounds[CPU]": [
@@ -142,7 +142,7 @@
         "uri": "file://test.test_learning_rate_auto_set_CPU_/catboost_training.json"
     },
     "test.test_learning_rate_auto_set_in_cv[CPU]": {
-        "checksum": "140653f2d38092614374336e527caff0",
+        "checksum": "f8741fd321637137f80579183d3627bf",
         "uri": "file://test.test_learning_rate_auto_set_in_cv_CPU_/catboost_training.json"
     },
     "test.test_metadata": {
@@ -221,18 +221,18 @@
         "checksum": "4be1d876025a25329c77d74e598ae512",
         "uri": "file://test.test_regression_ctr_CPU_/model.bin"
     },
-    "test.test_roc": [
+    "test.test_roc[CPU]": [
         {
-            "checksum": "8fce6d2c03d6d24add92484dca86d879",
-            "uri": "file://test.test_roc/out_cv"
+            "checksum": "b69037026a6a2f04def0c5fccd8358f4",
+            "uri": "file://test.test_roc_CPU_/out_cv"
         },
         {
             "checksum": "785dbddc0093c1559adb44276505c439",
-            "uri": "file://test.test_roc/out_model"
+            "uri": "file://test.test_roc_CPU_/out_model"
         },
         {
             "checksum": "b5774fb7dbb4da7bb37cabda34eda8a6",
-            "uri": "file://test.test_roc/bounds"
+            "uri": "file://test.test_roc_CPU_/bounds"
         }
     ],
     "test.test_shap[CPU]": {

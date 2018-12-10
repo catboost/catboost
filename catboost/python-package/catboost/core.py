@@ -2734,7 +2734,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, iterations_batch_size=100):
     """
     Cross-validate the CatBoost model.
 
@@ -2822,6 +2822,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     snapshot_interval: int, [default=600]
         Interval beetween saving snapshots (seconds)
 
+    iterations_batch_size: int [default:100]
+        Number of iterations to compute for each fold before aggregating results.
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2897,7 +2900,8 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         assert nfold is None or nfold == fold_count
 
     with log_fixup(), plot_wrapper(plot, params):
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
+                   as_pandas, iterations_batch_size)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

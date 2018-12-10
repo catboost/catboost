@@ -128,6 +128,7 @@ static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues
 
 static void Train(
     const TTrainingForCPUDataProviders& data,
+    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
@@ -189,6 +190,7 @@ static void Train(
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
     const TVector<TTimeInfo>& timeHistory = ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory;
 
+    bool continueTraining = true;
     for (int iter : xrange(ctx->LearnProgress.TreeStruct.ysize())) {
         bool calcAllMetrics = DivisibleOrLastIteration(
             iter,
@@ -218,6 +220,10 @@ static void Train(
             calcAllMetrics,
             &logger
         );
+
+        if (onEndIterationCallback) {
+            continueTraining = (*onEndIterationCallback)(ctx->LearnProgress.MetricsAndTimeHistory);
+        }
     }
 
     AddConsoleLogger(
@@ -231,26 +237,32 @@ static void Train(
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
     const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
-    if (ctx->UseTreeLevelCaching()) {
-        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
-        ctx->PrevTreeLevelStats.Create(
+
+    if (continueTraining) {
+        if (ctx->UseTreeLevelCaching()) {
+            ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
+            ctx->PrevTreeLevelStats.Create(
+                ctx->LearnProgress.Folds,
+                CountNonCtrBuckets(
+                    CountSplits(ctx->LearnProgress.FloatFeatures),
+                    *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
+                    ctx->Params.CatFeatureParams->OneHotMaxSize),
+                static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
+            );
+        }
+        ctx->SampledDocs.Create(
             ctx->LearnProgress.Folds,
-            CountNonCtrBuckets(
-                CountSplits(ctx->LearnProgress.FloatFeatures),
-                *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
-                ctx->Params.CatFeatureParams->OneHotMaxSize),
-            static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
-        );
+            isPairwiseScoring,
+            defaultCalcStatsObjBlockSize,
+            GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
+        ); // TODO(espetrov): create only if sample rate < 1
     }
-    ctx->SampledDocs.Create(
-        ctx->LearnProgress.Folds,
-        isPairwiseScoring,
-        defaultCalcStatsObjBlockSize,
-        GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
-    ); // TODO(espetrov): create only if sample rate < 1
 
     THPTimer timer;
-    for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
+    for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize();
+         continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
+         ++iter)
+    {
         if (errorTracker.GetIsNeedStop()) {
             CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
@@ -316,6 +328,10 @@ static void Train(
                 << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
             break;
         }
+
+        if (onEndIterationCallback) {
+            continueTraining = (*onEndIterationCallback)(ctx->LearnProgress.MetricsAndTimeHistory);
+        }
     }
 
     ctx->SaveProgress();
@@ -354,14 +370,16 @@ namespace {
     class TCPUModelTrainer : public IModelTrainer {
 
         void TrainModel(
+            bool calcMetricsOnly,
             const NJson::TJsonValue& jsonParams,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+            const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor,
-            TRestorableFastRng64* rand,
+            const TMaybe<TRestorableFastRng64*> rand,
             TFullModel* model,
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory
@@ -369,16 +387,18 @@ namespace {
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
-            if (model != nullptr) {
-                CB_ENSURE(
-                    !outputOptions.ResultModelPath.IsSet(),
-                    "Both modelPtr != nullptr and ResultModelPath is set"
-                );
-            } else {
-                CB_ENSURE(
-                    !outputOptions.ResultModelPath.Get().empty(),
-                    "Both modelPtr == nullptr and ResultModelPath is empty"
-                );
+            if (!calcMetricsOnly) {
+                if (model != nullptr) {
+                    CB_ENSURE(
+                        !outputOptions.ResultModelPath.IsSet(),
+                        "Both modelPtr != nullptr and ResultModelPath is set"
+                    );
+                } else {
+                    CB_ENSURE(
+                        !outputOptions.ResultModelPath.Get().empty(),
+                        "Both modelPtr == nullptr and ResultModelPath is empty"
+                    );
+                }
             }
 
             NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(jsonParams));
@@ -441,10 +461,24 @@ namespace {
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
 
-            Train(trainingDataForCpu, &ctx, &rawValues);
+            Train(trainingDataForCpu, onEndIterationCallback, &ctx, &rawValues);
 
             for (int testIdx = 0; testIdx < trainingDataForCpu.Test.ysize(); ++testIdx) {
                 evalResultPtrs[testIdx]->SetRawValuesByMove(rawValues[testIdx]);
+            }
+
+            if (metricsAndTimeHistory) {
+                *metricsAndTimeHistory = ctx.LearnProgress.MetricsAndTimeHistory;
+            }
+
+            const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
+            if (!trainingOptionsFileName.empty()) {
+                TOFStream trainingOptionsFile(trainingOptionsFileName);
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
+            }
+
+            if (calcMetricsOnly) {
+                return;
             }
 
             TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
@@ -525,15 +559,6 @@ namespace {
                         ctx.OutputOptions.AddFileFormatExtension()
                     );
                 }
-            }
-            const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
-            if (!trainingOptionsFileName.empty()) {
-                TOFStream trainingOptionsFile(trainingOptionsFileName);
-                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
-            }
-
-            if (metricsAndTimeHistory) {
-                *metricsAndTimeHistory = ctx.LearnProgress.MetricsAndTimeHistory;
             }
         }
     };
@@ -660,10 +685,12 @@ static void TrainModel(
     }
 
     modelTrainerHolder->TrainModel(
+        false,
         updatedTrainOptionsJson,
         updatedOutputOptions,
         objectiveDescriptor,
         evalMetricDescriptor,
+        Nothing(),
         std::move(trainingData),
         labelConverter,
         &localExecutor,
