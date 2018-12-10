@@ -371,6 +371,7 @@ private:
         return strnicmp(FirstLine().data(), "get", 3) == 0 ||
                strnicmp(FirstLine().data(), "post", 4) == 0 ||
                strnicmp(FirstLine().data(), "put", 3) == 0 ||
+               strnicmp(FirstLine().data(), "patch", 5) == 0 ||
                strnicmp(FirstLine().data(), "head", 4) == 0 ||
                strnicmp(FirstLine().data(), "delete", 6) == 0;
     }
@@ -737,6 +738,7 @@ private:
 
     inline bool HasRequestBody() const noexcept {
         return strnicmp(FirstLine_.data(), "POST", 4) == 0 ||
+               strnicmp(FirstLine_.data(), "PATCH", 5) == 0 ||
                strnicmp(FirstLine_.data(), "PUT", 3) == 0;
     }
     static inline size_t ParseHttpVersion(const TString& s) {
