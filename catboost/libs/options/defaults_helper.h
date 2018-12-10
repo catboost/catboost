@@ -44,10 +44,7 @@ inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::
 }
 
 inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
-    //Cout << LabeledOutput(useBestModel->NotSet(), hasTest, hasTestConstTarget, hasTestPairs) << Endl;
-
     if (useBestModel->NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
-        Cout << "*useBestModel = true\n";
         *useBestModel = true;
     }
     if (!hasTest && *useBestModel) {
@@ -98,7 +95,6 @@ inline void SetDataDependentDefaults(
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
-    //Cout << LabeledOutput(hasTestConstTarget, hasTestPairs) << Endl;
     UpdateUseBestModel(testPoolSize, hasTestConstTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
