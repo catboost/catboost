@@ -597,7 +597,6 @@ def test_predict_class_raw(task_type):
     return local_canonical_file(preds_path)
 
 
-@fails_on_gpu(how='model.get_test_eval() returns `bool`')
 def test_raw_predict_equals_to_model_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -605,7 +604,7 @@ def test_raw_predict_equals_to_model_predict(task_type):
     model.fit(train_pool, eval_set=test_pool)
     assert(model.is_fitted())
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
-    assert all(model.get_test_eval() == pred)
+    assert np.all(np.isclose(model.get_test_eval(), pred, rtol=1.e-6))
 
 
 def test_model_pickling(task_type):

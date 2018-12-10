@@ -41,7 +41,7 @@ namespace NCatboostCuda {
         }
 
         bool NeedBestTestCursor() const {
-            return HasTest && !OutputOptions.CreateEvalFullPath().empty();
+            return HasTest;
         }
 
         size_t GetCurrentIteration() const {
