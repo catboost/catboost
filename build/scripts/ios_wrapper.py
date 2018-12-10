@@ -1,4 +1,5 @@
 import errno
+import json
 import os
 import shutil
 import subprocess
@@ -28,7 +29,7 @@ def just_do_it(args):
         raise Exception('Bad call')
     main_out, app_name, module_dir = parts[0]
     inputs, binaries, storyboard_user_flags = parts[1:]
-    plists, storyboards, signs, nibs = [], [], [], []
+    plists, storyboards, signs, nibs, resources, signed_resources, plist_jsons, strings = [], [], [], [], [], [], [], []
     for i in inputs:
         if i.endswith('.plist') or i.endswith('.partial_plist'):
             plists.append(i)
@@ -38,6 +39,14 @@ def just_do_it(args):
             signs.append(i)
         elif i.endswith('.nib'):
             nibs.append(i)
+        elif i.endswith('.resource_tar'):
+            resources.append(i)
+        elif i.endswith('.signed_resource_tar'):
+            signed_resources.append(i)
+        elif i.endswith('.plist_json'):
+            plist_jsons.append(i)
+        elif i.endswith('.strings_tar'):
+            strings.append(i)
         else:
             print >> sys.stderr, 'Unknown input:', i, 'ignoring'
     if not plists:
@@ -63,13 +72,27 @@ def just_do_it(args):
     ensure_dir(app_dir)
     copy_nibs(nibs, module_dir, app_dir)
     replaced_parameters = {
-        '$(DEVELOPMENT_LANGUAGE)': 'en',
-        '$(EXECUTABLE_NAME)': os.path.basename(main_binary) if main_binary else '',
-        '$(PRODUCT_BUNDLE_IDENTIFIER)': 'Yandex.' + app_name,
-        '$(PRODUCT_NAME)': app_name,
+        'DEVELOPMENT_LANGUAGE': 'en',
+        'EXECUTABLE_NAME': os.path.basename(main_binary) if main_binary else '',
+        'PRODUCT_BUNDLE_IDENTIFIER': 'Yandex.' + app_name,
+        'PRODUCT_NAME': app_name,
     }
-    make_main_plist(plists, os.path.join(app_dir, 'Info.plist'), replaced_parameters)
+    replaced_templates = {}
+    for plist_json in plist_jsons:
+        with open(plist_json) as jsonfile:
+            for k, v in json.loads(jsonfile.read()).items():
+                replaced_parameters[k] = v
+    for k, v in replaced_parameters.items():
+        replaced_templates['$(' + k + ')'] = v
+        replaced_templates['${' + k + '}'] = v
+    make_main_plist(plists, os.path.join(app_dir, 'Info.plist'), replaced_templates)
     link_storyboards(storyboards, app_name, app_dir, storyboard_user_flags)
+    if resources:
+        extract_resources(resources, app_dir)
+    if signed_resources:
+        extract_resources(signed_resources, app_dir, sign=True)
+    if strings:
+        extract_resources(strings, app_dir, strings=True)
     if not signs:
         sign_file = os.path.join(module_dir, app_name + '.xcent')
         with open(sign_file, 'w') as f:
@@ -123,7 +146,7 @@ def make_main_plist(inputs, out, replaced_parameters):
                     root[k] = replaced_parameters[root[k]]
     scan_n_replace(united_data)
     plistlib.writePlist(united_data, out)
-    subprocess.check_call(['plutil', '-convert', 'binary1', out])
+    subprocess.check_call(['/usr/bin/plutil', '-convert', 'binary1', out])
 
 
 def link_storyboards(archives, app_name, app_dir, flags):
@@ -144,6 +167,17 @@ def link_storyboards(archives, app_name, app_dir, flags):
 
 def sign_application(xcent, app_dir):
     subprocess.check_call(['/usr/bin/codesign', '--force', '--sign', '-', '--entitlements', xcent, '--timestamp=none', app_dir])
+
+
+def extract_resources(resources, app_dir, strings=False, sign=False):
+    for res in resources:
+        with tarfile.open(res) as tf:
+            for tfinfo in tf:
+                tf.extract(tfinfo.name, app_dir)
+                if strings:
+                    subprocess.check_call(['/usr/bin/plutil', '-convert', 'binary1', os.path.join(app_dir, tfinfo.name)])
+                if sign:
+                    subprocess.check_call(['/usr/bin/codesign', '--force', '--sign', '-', os.path.join(app_dir, tfinfo.name)])
 
 
 def make_archive(app_dir, output):
