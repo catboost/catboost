@@ -546,7 +546,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     SEXP resultDim = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TDataProviderPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     TString fstrType = CHAR(asChar(fstrTypeParam));
 
     const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
@@ -590,7 +590,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         INTEGER(resultDim)[1] = numCols;
         setAttrib(result, R_DimSymbol, resultDim);
     }
-
+    Y_UNUSED(pool.Release());
     R_API_END();
     UNPROTECT(2);
     return result;
