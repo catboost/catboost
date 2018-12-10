@@ -658,6 +658,10 @@ class Build(object):
         yasm.configure()
         yasm.print_variables()
 
+        swiftc = SwiftCompiler(self)
+        swiftc.configure()
+        swiftc.print_compiler()
+
         if host.is_linux or host.is_freebsd or host.is_macos or host.is_cygwin:
             if is_negative('USE_ARCADIA_PYTHON'):
                 python = Python(self.tc)
@@ -1171,9 +1175,27 @@ class GnuToolchain(Toolchain):
 
         self.env = self.tc.get_env()
 
+        self.swift_flags_platform = []
+        self.swift_lib_path = None
+
         if self.tc.is_from_arcadia:
             for lib_path in build.host.library_path_variables:
                 self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
+
+        swift_target = select(default=None, selectors=[
+            (target.is_ios and target.is_x86_64, 'x86_64-apple-ios9-simulator'),
+            (target.is_ios and target.is_i386, 'i386-apple-ios9-simulator'),
+            (target.is_ios and target.is_arm64, 'arm64-apple-ios9'),
+            (target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
+        ])
+        if swift_target:
+            self.swift_flags_platform += ['-target', swift_target]
+
+        if self.tc.is_from_arcadia:
+            self.swift_lib_path = select(default=None, selectors=[
+                (host.is_macos and target.is_ios and (target.is_x86_64 or target.is_i386), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphonesimulator'),
+                (host.is_macos and target.is_ios and (target.is_arm64 or target.is_armv7), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphoneos'),
+            ])
 
         if self.tc.is_clang:
             target_triple = select(default=None, selectors=[
@@ -1238,6 +1260,7 @@ class GnuToolchain(Toolchain):
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
         self.c_flags_platform.append('--sysroot={}'.format(var))
+        self.swift_flags_platform += ['-sdk', var]
 
     # noinspection PyShadowingBuiltins
     def setup_tools(self, project, var, bin, ldlibs):
@@ -1252,6 +1275,8 @@ class GnuToolchain(Toolchain):
 
         emit('TOOLCHAIN_ENV', format_env(self.env, list_separator=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
+        emit('SWIFT_FLAGS_PLATFORM', self.swift_flags_platform)
+        emit('SWIFT_LD_FLAGS', '-L{}'.format(self.swift_lib_path) if self.swift_lib_path else '')
 
         if preset('OS_SDK') is None:
             emit('OS_SDK', self.tc.os_sdk)
@@ -1490,6 +1515,19 @@ class GnuCompiler(Compiler):
                  'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
                  'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
                  'contrib/libs/libfuzzer-5.0')
+
+
+class SwiftCompiler(object):
+    def __init__(self, build):
+        self.host = build.host
+        self.compiler = None
+
+    def configure(self):
+        if self.host.is_macos:
+            self.compiler = '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/bin/swiftc'
+
+    def print_compiler(self):
+        emit('SWIFT_COMPILER', self.compiler or '')
 
 
 class Linker(object):
