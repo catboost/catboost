@@ -1,10 +1,11 @@
 # Release 0.11.2
 ## Changes:
-* Implemented GPU-optimized NDCG, IDCG, and DCG metrics
+* Pure GPU implementation of NDCG metric
 * Enabled LQ loss function
-* Sped up DCG on CPU by 15%
-* Added model_sum mode to command line interface
-* Added SHAP values benchmark
+* Fixed NDCG metric on CPU
+* Added `model_sum` mode to command line interface
+* Added SHAP values benchmark (#566)
+* fixed `random_strength` for `Plain` boosting (#448)
 * Enabled passing a test pool to caret training (#544)
 * Fixed a bug in exporting the model as python code (#556)
 * Fixed label mapper for multiclassification custom labels (#523)
