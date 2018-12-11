@@ -1000,7 +1000,8 @@ THashMap<ui32, TString> NCB::MergeCatFeaturesHashToString(const NCB::TObjectsDat
         const auto& perFeatureCatFeaturesHashToString
             = objectsData.GetCatFeaturesHashToString(catFeatureIdx);
         for (const auto& [hashedCatValue, catValueString] : perFeatureCatFeaturesHashToString) {
-            result[hashedCatValue] = catValueString;
+            // TODO(kirillovs): remove this cast, needed only for MSVC 14.12 compiler bug
+            result[(ui32)hashedCatValue] = catValueString;
         }
     }
 
