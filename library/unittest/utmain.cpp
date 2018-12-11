@@ -38,7 +38,7 @@
 #endif
 
 #ifdef WITH_VALGRIND
-#define NOTE_IN_VALGRIND(test) VALGRIND_PRINTF("%s::%s", ~test->unit->name, test->name)
+#define NOTE_IN_VALGRIND(test) VALGRIND_PRINTF("%s::%s", test->unit->name.data(), test->name)
 #else
 #define NOTE_IN_VALGRIND(test)
 #endif
