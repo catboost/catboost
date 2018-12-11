@@ -200,6 +200,9 @@ TModelCalcerOnPool::TModelCalcerOnPool(
     , Executor(executor)
     , BlockParams(0, SafeIntegerCast<int>(objectsData->GetObjectCount()))
 {
+    if (BlockParams.FirstId == BlockParams.LastId) {
+        return;
+    }
     CB_ENSURE(RawObjectsData, "Not supported for quantized pools");
     THashMap<ui32, ui32> columnReorderMap;
     CheckModelAndDatasetCompatibility(model, *RawObjectsData, &columnReorderMap);

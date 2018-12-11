@@ -151,7 +151,7 @@ cdef extern from "catboost/libs/options/enums.h":
 
 
     cdef cppclass EPredictionType:
-        pass
+        bool_t operator==(EPredictionType)
 
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
@@ -544,6 +544,11 @@ cdef extern from "library/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
 
+cdef extern from "library/threading/local_executor/local_executor.h" namespace "NPar":
+    cdef cppclass TLocalExecutor:
+        TLocalExecutor() nogil
+        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
+
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
 
@@ -666,6 +671,20 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/apply.h":
+    cdef cppclass TModelCalcerOnPool:
+        TModelCalcerOnPool(
+            const TFullModel& model,
+            TIntrusivePtr[TObjectsDataProvider] objectsData,
+            TLocalExecutor* executor
+        ) nogil
+        void ApplyModelMulti(
+            const EPredictionType predictionType,
+            int begin,
+            int end,
+            TVector[double]* flatApprox,
+            TVector[TVector[double]]* approx
+        ) nogil except +ProcessException
+
     cdef TVector[double] ApplyModel(
         const TFullModel& model,
         const TObjectsDataProvider& objectsData,
@@ -1998,12 +2017,12 @@ cdef class _CatBoost:
             ntree_end,
             thread_count
         )
-        return _convert_to_visible_labels(prediction_type, pred, thread_count, self.__model)
+        return _convert_to_visible_labels(predictionType, pred, thread_count, self.__model)
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
-        stagedPredictIterator = _StagedPredictIterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-        stagedPredictIterator.set_model(self.__model)
+        stagedPredictIterator = _StagedPredictIterator(prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+        stagedPredictIterator._initialize_model_calcer(self.__model, pool)
         return stagedPredictIterator
 
     cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
@@ -2306,8 +2325,8 @@ cdef _FloatOrStringFromString(char* s):
     return s
 
 
-cdef  _convert_to_visible_labels(str prediction_type, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
-     if prediction_type == 'Class':
+cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
+     if predictionType == PyPredictionType('Class').predictionType:
         return [[_FloatOrStringFromString(value) for value \
             in ConvertTargetToExternalName([value for value in raws[0]], dereference(model))]]
 
@@ -2315,27 +2334,35 @@ cdef  _convert_to_visible_labels(str prediction_type, TVector[TVector[double]] r
 
 
 cdef class _StagedPredictIterator:
+    cdef TVector[double] __flatApprox
     cdef TVector[TVector[double]] __approx
+    cdef TVector[TVector[double]] __pred
     cdef TFullModel* __model
-    cdef _PoolBase pool
-    cdef str prediction_type
+    cdef TLocalExecutor __executor
+    cdef TModelCalcerOnPool* __modelCalcerOnPool
+    cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
     cdef bool_t verbose
 
-    cdef set_model(self, TFullModel* model):
-        self.__model = model
-
-    def __cinit__(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
-        self.pool = pool
-        self.prediction_type = prediction_type
+    def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        self.predictionType = PyPredictionType(prediction_type).predictionType
         self.ntree_start = ntree_start
         self.ntree_end = ntree_end
         self.eval_period = eval_period
-        self.thread_count = thread_count
+        self.thread_count = UpdateThreadCount(thread_count)
         self.verbose = verbose
+        self.__executor.RunAdditionalThreads(self.thread_count - 1)
+
+    cdef _initialize_model_calcer(self, TFullModel* model, _PoolBase pool):
+        self.__model = model
+        self.__modelCalcerOnPool = new TModelCalcerOnPool(
+            dereference(self.__model),
+            pool.__pool.Get()[0].ObjectsData,
+            &self.__executor
+        )
 
     def __dealloc__(self):
-        pass
+        del self.__modelCalcerOnPool
 
     def __deepcopy__(self, _):
         raise CatboostError('Can\'t deepcopy _StagedPredictIterator object')
@@ -2344,27 +2371,25 @@ cdef class _StagedPredictIterator:
         if self.ntree_start >= self.ntree_end:
             raise StopIteration
 
-        cdef TVector[TVector[double]] pred
-        cdef EPredictionType predictionType = PyPredictionType(self.prediction_type).predictionType
-        pred = ApplyModelMulti(dereference(self.__model),
-                               self.pool.__pool.Get()[0].ObjectsData.Get()[0],
-                               self.verbose,
-                               PyPredictionType('InternalRawFormulaVal').predictionType,
-                               self.ntree_start,
-                               min(self.ntree_start + self.eval_period, self.ntree_end),
-                               self.thread_count)
+        dereference(self.__modelCalcerOnPool).ApplyModelMulti(
+            PyPredictionType('InternalRawFormulaVal').predictionType,
+            self.ntree_start,
+            min(self.ntree_start + self.eval_period, self.ntree_end),
+            &self.__flatApprox,
+            &self.__pred
+        )
+
         if self.__approx.empty():
-            self.__approx = pred
+            self.__approx.swap(self.__pred)
         else:
             for i in range(self.__approx.size()):
                 for j in range(self.__approx[0].size()):
-                    self.__approx[i][j] += pred[i][j]
+                    self.__approx[i][j] += self.__pred[i][j]
 
         self.ntree_start += self.eval_period
-        pred = PrepareEvalForInternalApprox(predictionType, dereference(self.__model), self.__approx, 1)
+        self.__pred = PrepareEvalForInternalApprox(self.predictionType, dereference(self.__model), self.__approx, self.thread_count)
 
-        return  _convert_to_visible_labels(self.prediction_type, pred, self.thread_count, self.__model)
-
+        return _convert_to_visible_labels(self.predictionType, self.__pred, self.thread_count, self.__model)
 
 
 class MetricDescription:
