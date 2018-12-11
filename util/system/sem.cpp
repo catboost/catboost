@@ -169,9 +169,9 @@ namespace {
 
 #if defined(_unix_)
 /*
-    Disable errors/warnings about deprecated sem_* in iOS
+    Disable errors/warnings about deprecated sem_* in Darwin
 */
-#ifdef _ios_
+#ifdef _darwin_
 Y_PRAGMA_DIAGNOSTIC_PUSH
 Y_PRAGMA_NO_DEPRECATED
 #endif
@@ -206,7 +206,7 @@ Y_PRAGMA_NO_DEPRECATED
 
         sem_t S_;
     };
-#ifdef _ios_
+#ifdef _darwin_
 Y_PRAGMA_DIAGNOSTIC_POP
 #endif
 #endif
