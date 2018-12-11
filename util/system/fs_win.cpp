@@ -10,13 +10,13 @@
 
 namespace NFsPrivate {
     static LPCWSTR UTF8ToWCHAR(const TStringBuf str, TUtf16String& wstr) {
-        wstr.resize(+str);
+        wstr.resize(str.size());
         size_t written = 0;
-        if (!UTF8ToWide(~str, +str, wstr.begin(), written))
+        if (!UTF8ToWide(str.data(), str.size(), wstr.begin(), written))
             return nullptr;
         wstr.erase(written);
         static_assert(sizeof(WCHAR) == sizeof(wchar16), "expect sizeof(WCHAR) == sizeof(wchar16)");
-        return (const WCHAR*)~wstr;
+        return (const WCHAR*)wstr.data();
     }
 
     static TString WCHARToUTF8(const LPWSTR wstr, size_t len) {

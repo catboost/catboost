@@ -413,15 +413,15 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     TString cmd = UseShell ? "cmd /A /Q /S /C \"" + qcmd + "\"" : qcmd;
     // winapi can modify command text, copy it
 
-    Y_ENSURE(+cmd < MAX_COMMAND_LINE, AsStringBuf("Command is too long"));
+    Y_ENSURE(cmd.size() < MAX_COMMAND_LINE, AsStringBuf("Command is too long"));
     TTempArray<wchar_t> cmdcopy(MAX_COMMAND_LINE);
-    Copy(~cmd, ~cmd + +cmd, cmdcopy.Data());
-    *(cmdcopy.Data() + +cmd) = 0;
+    Copy(cmd.data(), cmd.data() + cmd.size(), cmdcopy.Data());
+    *(cmdcopy.Data() + cmd.size()) = 0;
 
     const wchar_t* cwd = NULL;
     std::wstring cwdBuff;
-    if (+WorkDir) {
-        cwdBuff = GetWString(~WorkDir);
+    if (WorkDir.size()) {
+        cwdBuff = GetWString(WorkDir.data());
         cwd = cwdBuff.c_str();
     }
 
@@ -432,7 +432,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
             env += e->first + '=' + e->second + '\0';
         }
         env += '\0';
-        lpEnvironment = const_cast<char*>(~env);
+        lpEnvironment = const_cast<char*>(env.data());
     }
 
 // disable messagebox (may be in debug too)
@@ -454,9 +454,9 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
             &process_info);
     } else {
         res = CreateProcessWithLogonW(
-            GetWString(~User.Name).c_str(),
+            GetWString(User.Name.data()).c_str(),
             nullptr, // domain (if this parameter is NULL, the user name must be specified in UPN format)
-            GetWString(~User.Password).c_str(),
+            GetWString(User.Password.data()).c_str(),
             0,    // logon flags
             NULL, // image name
             cmdcopy.Data(),

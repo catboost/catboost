@@ -348,8 +348,8 @@ int resolvepath(char* apath, const char* rpath, const char* cpath) {
 }
 
 bool correctpath(TString& filename) {
-    char* ptr = (char*)alloca(+filename + 2);
-    if (correctpath(ptr, ~filename)) {
+    char* ptr = (char*)alloca(filename.size() + 2);
+    if (correctpath(ptr, filename.data())) {
         filename = ptr;
         return true;
     }
@@ -357,8 +357,8 @@ bool correctpath(TString& filename) {
 }
 
 bool resolvepath(TString& folder, const TString& home) {
-    char* ptr = (char*)alloca(+folder + 3 + +home);
-    if (resolvepath(ptr, ~folder, ~home)) {
+    char* ptr = (char*)alloca(folder.size() + 3 + home.size());
+    if (resolvepath(ptr, folder.data(), home.data())) {
         folder = ptr;
         return true;
     }
@@ -405,7 +405,7 @@ TString RealPath(const TString& path) {
     TTempBuf result;
     Y_ASSERT(result.Size() > MAX_PATH); //TMP_BUF_LEN > MAX_PATH
 #ifdef _win_
-    if (GetFullPathName(~path, result.Size(), result.Data(), nullptr) == 0)
+    if (GetFullPathName(path.data(), result.Size(), result.Data(), nullptr) == 0)
 #else
     if (realpath(path.data(), result.Data()) == nullptr)
 #endif

@@ -7,7 +7,7 @@
 #include <util/generic/vector.h>
 
 void Check(TString symbol, TString expectedName) {
-    THolder<char, TFree> name = llvm_demangle_gnu3(~symbol);
+    THolder<char, TFree> name = llvm_demangle_gnu3(symbol.data());
     TString actualName = name.Get();
     UNIT_ASSERT_VALUES_EQUAL(expectedName, actualName);
 }
