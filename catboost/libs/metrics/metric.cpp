@@ -575,7 +575,7 @@ void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TNumErrorsMetric: public TAdditiveMetric<TNumErrorsMetric> {
         explicit TNumErrorsMetric(double k)
-            : GreaterThen(k) {
+            : GreaterThan(k) {
             CB_ENSURE(k > 0, "Error: NumErrors metric requires num_erros > 0 parameter, got " << k);
         }
 
@@ -591,7 +591,7 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        double GreaterThen;
+        double GreaterThan;
     };
 }
 
@@ -615,7 +615,7 @@ TMetricHolder TNumErrorsMetric::EvalSingleThread(
     TMetricHolder error(2);
     for (int k = begin; k < end; ++k) {
         float w = weight.empty() ? 1 : weight[k];
-        error.Stats[0] += (Abs(approxVec[k] - target[k]) > GreaterThen ? 1 : 0) * w;
+        error.Stats[0] += (Abs(approxVec[k] - target[k]) > GreaterThan ? 1 : 0) * w;
         error.Stats[1] += w;
     }
 
@@ -623,7 +623,7 @@ TMetricHolder TNumErrorsMetric::EvalSingleThread(
 }
 
 TString TNumErrorsMetric::GetDescription() const {
-    TMetricParam<double> k("greater_then", GreaterThen, true);
+    TMetricParam<double> k("greater_than", GreaterThan, true);
     return BuildDescription(ELossFunction::NumErrors, UseWeights, "%.3g", k);
 }
 
@@ -3366,9 +3366,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             result.push_back(MakeR2Metric());
             break;
         case ELossFunction::NumErrors: {
-            CB_ENSURE(params.contains("greater_then"), "Metric " << ELossFunction::NumErrors << " requirese greater_then as parameter");
-            result.push_back(MakeNumErrorsMetric(FromString<double>(params.at("greater_then"))));
-            validParams = {"greater_then"};
+            CB_ENSURE(params.contains("greater_than"), "Metric " << ELossFunction::NumErrors << " requires greater_than as parameter");
+            result.push_back(MakeNumErrorsMetric(FromString<double>(params.at("greater_than"))));
+            validParams = {"greater_than"};
             break;
         }
         case ELossFunction::AUC: {

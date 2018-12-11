@@ -225,7 +225,7 @@ namespace NCatboostCuda {
                         alpha = FromString<float>(params.at("alpha"));
                     }
                     if (metricType == ELossFunction::NumErrors) {
-                        alpha = FromString<float>(params.at("greater_then"));
+                        alpha = FromString<float>(params.at("greater_than"));
                     }
                     if (metricType == ELossFunction::Lq) {
                         alpha = FromString<float>(params.at("q"));

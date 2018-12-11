@@ -1,4 +1,4 @@
-iter	RMSE	NumErrors:greater_then=0.01	NumErrors:greater_then=0.1	NumErrors:greater_then=0.5
+iter	RMSE	NumErrors:greater_than=0.01	NumErrors:greater_than=0.1	NumErrors:greater_than=0.5
 0	0.5761106328	0.9603960396	0.8712871287	0.4752475248
 1	0.5664000901	0.9702970297	0.8613861386	0.4554455446
 2	0.556655248	0.9900990099	0.8514851485	0.4554455446

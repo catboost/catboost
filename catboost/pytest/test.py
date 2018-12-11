@@ -2389,7 +2389,7 @@ def test_quantile_targets(loss_function, boosting_type):
 
 
 CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE',
-                         'NumErrors:greater_then=0.01,NumErrors:greater_then=0.1,NumErrors:greater_then=0.5']
+                         'NumErrors:greater_than=0.01,NumErrors:greater_than=0.1,NumErrors:greater_than=0.5']
 
 
 @pytest.mark.parametrize('custom_loss_function', CUSTOM_LOSS_FUNCTIONS)

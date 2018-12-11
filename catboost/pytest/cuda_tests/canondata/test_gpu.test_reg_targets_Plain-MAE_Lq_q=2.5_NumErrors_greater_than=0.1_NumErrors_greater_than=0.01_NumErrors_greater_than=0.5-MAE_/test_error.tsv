@@ -1,4 +1,4 @@
-iter	MAE	Lq:q=2.5	NumErrors:greater_then=0.1	NumErrors:greater_then=0.01	NumErrors:greater_then=0.5
+iter	MAE	Lq:q=2.5	NumErrors:greater_than=0.1	NumErrors:greater_than=0.01	NumErrors:greater_than=0.5
 0	0.4734503491	0.2427692602	0.9207920792	0.9702970297	0.4851485149
 1	0.4619071885	0.2314448782	0.8910891089	0.9801980198	0.4653465347
 2	0.4523857041	0.2224021761	0.8811881188	0.9801980198	0.4554455446

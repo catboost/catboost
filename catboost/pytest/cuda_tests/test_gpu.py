@@ -2014,7 +2014,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
 
 
 REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3']
-CUSTOM_METRIC = ["MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5"]
+CUSTOM_METRIC = ["MAE,Lq:q=2.5,NumErrors:greater_than=0.1,NumErrors:greater_than=0.01,NumErrors:greater_than=0.5"]
 
 
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)
