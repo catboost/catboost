@@ -234,16 +234,6 @@ public:
         return emplace<T>(std::forward<TArgs>(args)...);
     };
 
-    template <class T, class... TArgs>
-    T& Emplace(TArgs&&... args) {
-        return emplace<T>(std::forward<TArgs>(args)...);
-    };
-
-    template <size_t I, class... TArgs, class T = TVariantAlternativeType<I, TVariant>>
-    T& Emplace(TArgs&&... args) {
-        return emplace<T>(std::forward<TArgs>(args)...);
-    };
-
     template <class T>
     std::enable_if_t<!std::is_same<std::decay_t<T>, TVariant>::value,
                      bool>
@@ -251,61 +241,9 @@ public:
         return ::HoldsAlternative<T>(*this) && *ReinterpretAs<T>() == value;
     }
 
-    //! Casts the instance to a given type.
-    template <class T>
-    /*[[deprecated("use Get<T>() instead")]]*/ T& As() {
-        return ::Get<T>(*this);
-    }
-
-    //! Similar to its non-const version.
-    template <class T>
-    /*[[deprecated("use Get<T>() instead")]]*/ const T& As() const {
-        return ::Get<T>(*this);
-    }
-
-    //! Checks if the instance holds a given of a given type.
-    //! Returns the pointer to the value on success or |nullptr| on failure.
-    template <class T>
-    /*[[deprecated("use GetIf<T>() instead")]]*/ T* TryAs() noexcept {
-        return ::GetIf<T>(this);
-    }
-
-    //! Similar to its non-const version.
-    template <class T>
-    /*[[deprecated("use GetIf<T>() instead")]]*/ const T* TryAs() const noexcept {
-        return ::GetIf<T>(this);
-    }
-
-    //! Returns |true| iff the instance holds a value of a given type.
-    template <class T>
-    /*[[deprecated("use HoldsAlternative<T>() instead")]]*/ constexpr bool Is() const noexcept {
-        return ::HoldsAlternative<T>(*this);
-    }
-
-    //! Pass mutable internal value to visitor
-    template <class Visitor>
-    /*[[deprecated("use global Visit() instead")]]*/ decltype(auto) Visit(Visitor&& visitor) {
-        return ::Visit(std::forward<Visitor>(visitor), *this);
-    }
-
-    //! Pass const internal value to visitor
-    template <class Visitor>
-    /*[[deprecated("use global Visit() instead")]]*/ decltype(auto) Visit(Visitor&& visitor) const {
-        return ::Visit(std::forward<Visitor>(visitor), *this);
-    }
-
+    //! Standart integration
     constexpr size_t index() const noexcept {
         return valueless_by_exception() ? TVARIANT_NPOS : Index_;
-    }
-
-    //! Returns the discriminating index of the instance.
-    /*[[deprecated("use index() instead")]]*/ constexpr size_t Tag() const noexcept {
-        return index();
-    }
-
-    //! Standart integration
-    constexpr size_t Index() const noexcept {
-        return index();
     }
 
     //! Returns the discriminating index of the given type.
@@ -319,10 +257,6 @@ public:
      */
     constexpr bool valueless_by_exception() const noexcept {
         return Index_ == ::TVariantSize<TVariant>::value;
-    }
-
-    constexpr bool ValuelessByException() const noexcept {
-        return valueless_by_exception();
     }
 
 private:

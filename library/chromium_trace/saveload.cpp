@@ -144,7 +144,7 @@ void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::T
 
     ::SaveStr(out, v.Name);
 
-    i8 tag = v.Value.Index();
+    i8 tag = v.Value.index();
     ::Save(out, tag);
     Visit(TSaveVisitor{out}, v.Value);
 }

@@ -174,7 +174,7 @@ namespace NCB {
 
         // returns Nothing() if subset is not consecutive
         TMaybe<TSize> GetConsecutiveSubsetBegin() const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return TSize(0);
                 case TBase::template TagOf<TRangesSubset<TSize>>():
