@@ -431,6 +431,9 @@ void NCB::TRawObjectsData::Check(
             auto* catFeaturePtr = CatFeatures[catFeatureIdx].Get();
             if (catFeaturePtr) {
                 const auto& hashToStringMap = (*catFeaturesHashToString)[catFeatureIdx];
+                if (hashToStringMap.empty()) {
+                    return;
+                }
                 catFeaturePtr->GetArrayData().ParallelForEach(
                     [&] (ui32 objectIdx, ui32 hashValue) {
                         CB_ENSURE_INTERNAL(

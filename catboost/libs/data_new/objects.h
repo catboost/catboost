@@ -66,7 +66,9 @@ namespace NCB {
         TMaybeData<TVector<TSubgroupId>> SubgroupIds; // [objectIdx]
         TMaybeData<TVector<ui64>> Timestamp; // [objectIdx]
 
-        // can be empty if there's no cat features
+        /* can be empty if there's no cat features
+           elements can be empty, it is allowed for some cat features to have hashed representation only
+        */
         TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
 
     public:
