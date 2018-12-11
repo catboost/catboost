@@ -12,7 +12,7 @@
 
 namespace NKernel {
 
-    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int limit = 64) {
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int limit = 128) {
         int blocksPerSm = TArchProps::GetMajorVersion() < 5 ? 1 : 2;
         ui32 multiplier = 1;
         while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount() * blocksPerSm * 1.25) &&
@@ -190,7 +190,7 @@ namespace NKernel {
         const int tid = threadIdx.x;
 #pragma unroll 16
         for (int i = tid; i < count; i += BLOCK_SIZE) {
-            sum += buffer[i];
+            sum += __ldg(buffer + i);
         }
         return sum;
     };
