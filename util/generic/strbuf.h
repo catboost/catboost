@@ -404,12 +404,6 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    // defined in a parent, but repeat for overload above
-    Y_PURE_FUNCTION
-    inline size_t operator+() const noexcept {
-        return length();
-    }
-
     TGenericString<TChar> ToString() const {
         return {Start, Length};
     }
