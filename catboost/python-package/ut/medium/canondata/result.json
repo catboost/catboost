@@ -157,9 +157,17 @@
         "checksum": "c9a8f904589d6ae857cb12d1ebbe9327",
         "uri": "file://test.test_multiclass_classes_count_missed_classes_CPU_/predictions.npy"
     },
-    "test.test_multiclass_classes_custom_labels[CPU]": {
-        "checksum": "cd8d6c87953e35240584c3b7099db9c5",
-        "uri": "file://test.test_multiclass_classes_custom_labels_CPU_/predictions.npy"
+    "test.test_multiclass_custom_class_labels[CPU-int]": {
+        "checksum": "a0be17b7926c825519e240b1bada29e6",
+        "uri": "file://test.test_multiclass_custom_class_labels_CPU-int_/predictions.txt"
+    },
+    "test.test_multiclass_custom_class_labels[CPU-string]": {
+        "checksum": "a0be17b7926c825519e240b1bada29e6",
+        "uri": "file://test.test_multiclass_custom_class_labels_CPU-string_/predictions.txt"
+    },
+    "test.test_multiclass_custom_class_labels_from_files[CPU]": {
+        "checksum": "620a7cd7a81a5496e6c528662b699d58",
+        "uri": "file://test.test_multiclass_custom_class_labels_from_files_CPU_/predictions.txt"
     },
     "test.test_non_ones_weight[CPU]": {
         "checksum": "2da5ecc56eb14b62c33c553ccc638c73",

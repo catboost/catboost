@@ -10,7 +10,14 @@ import timeit
 import json
 
 import catboost
-from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, apply_catboost, permute_dataset_columns
+from catboost_pytest_lib import (
+    data_file,
+    local_canonical_file,
+    remove_time_from_json,
+    apply_catboost,
+    permute_dataset_columns,
+    generate_random_labeled_set
+)
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
@@ -4336,12 +4343,6 @@ def test_model_metadata():
     assert 'A' == py_catboost.get_metadata()['A']
     assert 'BBB' == py_catboost.get_metadata()['BBB']
     assert 'CCC' == py_catboost.get_metadata()['CCC']
-
-
-def generate_random_labeled_set(nrows, nvals, labels):
-    label = np.random.choice(labels, [nrows, 1])
-    feature = np.random.random([nrows, nvals])
-    return np.concatenate([label, feature], axis=1)
 
 
 def test_fit_multiclass_with_class_names():

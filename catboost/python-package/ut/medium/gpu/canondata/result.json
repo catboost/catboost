@@ -133,9 +133,17 @@
         "checksum": "dd78be2bab6a015e24e39329e56dfffc",
         "uri": "file://test.test_multiclass_classes_count_missed_classes_GPU_/predictions.npy"
     },
-    "test.test_multiclass_classes_custom_labels[GPU]": {
-        "checksum": "1e656759caaa7687fa7d4a64a2e9ed2a",
-        "uri": "file://test.test_multiclass_classes_custom_labels_GPU_/predictions.npy"
+    "test.test_multiclass_custom_class_labels[GPU-int]": {
+        "checksum": "595c35aad95abe5155b656b01ebb0f51",
+        "uri": "file://test.test_multiclass_custom_class_labels_GPU-int_/predictions.txt"
+    },
+    "test.test_multiclass_custom_class_labels[GPU-string]": {
+        "checksum": "595c35aad95abe5155b656b01ebb0f51",
+        "uri": "file://test.test_multiclass_custom_class_labels_GPU-string_/predictions.txt"
+    },
+    "test.test_multiclass_custom_class_labels_from_files[GPU]": {
+        "checksum": "361ddce8b7778aa74fbd0edac5d05e86",
+        "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },
     "test.test_non_ones_weight[GPU]": {
         "checksum": "c010078303776c35b3b4382a06db7db9",

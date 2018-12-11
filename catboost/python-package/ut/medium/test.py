@@ -32,7 +32,9 @@ from catboost_pytest_lib import (
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
-    test_output_path,)
+    test_output_path,
+    generate_random_labeled_set
+)
 
 if sys.version_info.major == 2:
     import cPickle as pickle
@@ -79,6 +81,7 @@ OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 OUTPUT_JSON_MODEL_PATH = 'model.json'
 PREDS_PATH = 'predictions.npy'
+PREDS_TXT_PATH = 'predictions.txt'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
@@ -876,13 +879,15 @@ def test_multiclass_classes_count_missed_classes(task_type):
     return local_canonical_file(preds_path)
 
 
-def test_multiclass_classes_custom_labels(task_type):
-    train_labels = [1, 2]
-    test_labels = [0, 1, 2]
-
+@pytest.mark.parametrize('label_type', ['string', 'int'])
+def test_multiclass_custom_class_labels(label_type, task_type):
+    if label_type == 'int':
+        train_labels = [1, 2]
+    elif label_type == 'string':
+        train_labels = ['Class1', 'Class2']
     np.random.seed(0)
     train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(train_labels, size=100))
-    test_pool = Pool(np.random.random(size=(50, 10)), label=np.random.choice(test_labels, size=50))
+    test_pool = Pool(np.random.random(size=(50, 10)))
     classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(train_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -892,9 +897,40 @@ def test_multiclass_classes_custom_labels(task_type):
     pred = new_classifier.predict_proba(test_pool)
     classes = new_classifier.predict(test_pool)
     assert pred.shape == (50, 2)
-    assert np.array(classes).all() in train_labels
-    preds_path = test_output_path(PREDS_PATH)
-    np.savetxt(preds_path, np.array(pred))
+    assert all(((class1 in train_labels) for class1 in classes))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
+def test_multiclass_custom_class_labels_from_files(task_type):
+    labels = ['a', 'b', 'c', 'd']
+
+    cd_path = test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(25, 10, labels), fmt='%s', delimiter='\t')
+
+    train_pool = Pool(train_path, column_description=cd_path)
+    test_pool = Pool(test_path, column_description=cd_path)
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(train_pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(test_pool)
+    classes = new_classifier.predict(test_pool)
+    assert pred.shape == (25, 4)
+    assert all(((class1 in labels) for class1 in classes))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
     return local_canonical_file(preds_path)
 
 
