@@ -20,6 +20,12 @@ public:
     inline TSet() {
     }
 
+    template <typename TAllocParam>
+    inline explicit TSet(TAllocParam* allocator)
+        : TBase(TKeyCompare(), allocator)
+    {
+    }
+
     template <class It>
     inline TSet(It f, It l)
         : TBase(f, l)
