@@ -5,7 +5,7 @@ namespace NKernel {
 
     template <typename T, int BLOCK_SIZE>
     __global__ void DotProductImpl(const T *x, const T *y, T *partResults, ui64 size) {
-        __shared__T sdata[BLOCK_SIZE];
+        __shared__ T sdata[BLOCK_SIZE];
         ui32 tid = threadIdx.x;
         ui32 i = blockIdx.x * BLOCK_SIZE * 2 + tid;
 
