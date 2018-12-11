@@ -1374,10 +1374,6 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             self.sfdl_flags.append('-Qunused-arguments')
 
-            self.c_warnings += [
-                '-Wno-error=deprecated',
-            ]
-
             self.cxx_warnings += [
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-c++17-extensions',
