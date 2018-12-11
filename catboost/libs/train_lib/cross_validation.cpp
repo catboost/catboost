@@ -238,6 +238,31 @@ static void DisableMetricsSkipTrain(NJson::TJsonValue* trainOptionsJson) {
 }
 
 
+static void UpdatePermutationBlockSize(
+    ETaskType taskType,
+    TConstArrayRef<TTrainingDataProviders> foldsData,
+    NJson::TJsonValue* updatedTrainOptionsJson
+) {
+    if (taskType == ETaskType::GPU) {
+        return;
+    }
+
+    bool isAnyFoldHasNonConsecutiveLearnFeaturesData = AnyOf(
+        foldsData,
+        [&] (const TTrainingDataProviders& foldData) {
+            const auto& learnObjectsDataProvider
+                = dynamic_cast<const TQuantizedForCPUObjectsDataProvider&>(*foldData.Learn->ObjectsData);
+
+            return !learnObjectsDataProvider.GetFeaturesArraySubsetIndexing().IsConsecutive();
+        }
+    );
+
+    if (isAnyFoldHasNonConsecutiveLearnFeaturesData) {
+        (*updatedTrainOptionsJson)["boosting_options"]["fold_permutation_block"] = 1;
+    }
+}
+
+
 void CrossValidate(
     const NJson::TJsonValue& plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -295,6 +320,7 @@ void CrossValidate(
         TStringBuf(),
         Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
         /*unloadCatFeaturePerfectHashFromRam*/ true,
+        /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
         /*quantizedFeaturesInfo*/ nullptr,
         &catBoostOptions,
         &labelConverter,
@@ -370,6 +396,10 @@ void CrossValidate(
         /* oldCvStyleSplit */ false,
         &localExecutor);
 
+    /* ensure that all folds have the same permutation block size because some of them might be consecutive
+       and some might not
+    */
+    UpdatePermutationBlockSize(taskType, foldsData, &updatedTrainOptionsJson);
 
     TVector<TFoldContext> foldContexts;
 

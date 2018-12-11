@@ -20,6 +20,7 @@ namespace NCB {
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
         bool unloadCatFeaturePerfectHashFromRam,
+        bool ensureConsecutiveFeaturesDataForCpu,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
@@ -29,6 +30,7 @@ namespace NCB {
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
+        bool ensureConsecutiveLearnFeaturesDataForCpu,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,

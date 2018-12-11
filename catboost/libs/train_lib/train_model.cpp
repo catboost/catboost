@@ -668,6 +668,7 @@ static void TrainModel(
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
+        /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
         quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,

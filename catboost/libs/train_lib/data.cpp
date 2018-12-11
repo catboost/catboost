@@ -35,6 +35,7 @@ namespace NCB {
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
         bool unloadCatFeaturePerfectHashFromRam,
+        bool ensureConsecutiveFeaturesDataForCpu,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
@@ -48,7 +49,6 @@ namespace NCB {
         if (auto* quantizedObjectsDataProviderPtr
                 = dynamic_cast<TQuantizedObjectsDataProvider*>(srcData->ObjectsData.Get()))
         {
-            // We need data to be consecutive for efficient blocked permutations
             if (params->GetTaskType() == ETaskType::CPU) {
                 auto quantizedForCPUObjectsDataProvider
                     = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(quantizedObjectsDataProviderPtr);
@@ -56,13 +56,20 @@ namespace NCB {
                     quantizedForCPUObjectsDataProvider,
                     "Quantized objects data is not compatible with CPU task type"
                 );
-                if (!quantizedForCPUObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
-                    // TODO(akhropov): make it work in non-shared case
-                    CB_ENSURE_INTERNAL(
-                        (srcData->RefCount() <= 1) && (quantizedForCPUObjectsDataProvider->RefCount() <= 1),
-                        "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
-                    );
-                    quantizedForCPUObjectsDataProvider->EnsureConsecutiveFeaturesData(localExecutor);
+
+                /*
+                 * We need data to be consecutive for efficient blocked permutations
+                 * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
+                 */
+                if (ensureConsecutiveFeaturesDataForCpu) {
+                    if (!quantizedForCPUObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
+                        // TODO(akhropov): make it work in non-shared case
+                        CB_ENSURE_INTERNAL(
+                            (srcData->RefCount() <= 1) && (quantizedForCPUObjectsDataProvider->RefCount() <= 1),
+                            "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
+                        );
+                        quantizedForCPUObjectsDataProvider->EnsureConsecutiveFeaturesData(localExecutor);
+                    }
                 }
             } else { // GPU
                 /*
@@ -166,6 +173,7 @@ namespace NCB {
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
+        bool ensureConsecutiveLearnFeaturesDataForCpu,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
@@ -180,6 +188,7 @@ namespace NCB {
             "learn",
             bordersFile,
             /*unloadCatFeaturePerfectHashFromRam*/ srcData.Test.empty(),
+            ensureConsecutiveLearnFeaturesDataForCpu,
             quantizedFeaturesInfo,
             params,
             labelConverter,
@@ -196,6 +205,7 @@ namespace NCB {
                     TStringBuilder() << "test #" << testIdx,
                     Nothing(), // borders already loaded
                     /*unloadCatFeaturePerfectHashFromRam*/ (testIdx + 1) == srcData.Test.size(),
+                    /*ensureConsecutiveFeaturesDataForCpu*/ false, // not needed for test
                     quantizedFeaturesInfo,
                     params,
                     labelConverter,
