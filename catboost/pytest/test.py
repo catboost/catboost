@@ -24,8 +24,15 @@ CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
 PREDICTION_TYPES = ['Probability', 'RawFormulaVal', 'Class']
 
-CLASSIFICATION_LOSSES = ['Logloss', 'CrossEntropy', 'MultiClass', 'MultiClassOneVsAll']
+BINCLASS_LOSSES = ['Logloss', 'CrossEntropy']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
+CLASSIFICATION_LOSSES = BINCLASS_LOSSES + MULTICLASS_LOSSES
+REGRESSION_LOSSES = ['MAE', 'MAPE', 'Poisson', 'Quantile', 'RMSE', 'LogLinQuantile', 'Lq']
+PAIRWISE_LOSSES = ['PairLogit', 'PairLogitPairwise']
+GROUPWISE_LOSSES = ['YetiRank', 'YetiRankPairwise', 'QueryRMSE', 'QuerySoftMax']
+RANKING_LOSSES = PAIRWISE_LOSSES + GROUPWISE_LOSSES
+ALL_LOSSES = CLASSIFICATION_LOSSES + REGRESSION_LOSSES + RANKING_LOSSES
+
 
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
@@ -3655,6 +3662,34 @@ def test_no_target():
         '-f', train_path,
         '--cd', cd_path,
         '--learn-pairs', pairs_path
+    )
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('loss_function', ALL_LOSSES)
+def test_const_target(loss_function):
+    train_path = yatest.common.test_output_path('train')
+    cd_path = yatest.common.test_output_path('train.cd')
+
+    np.savetxt(
+        train_path,
+        [[0, 0, 0],
+         [0, 0, 1],
+         [0, 0, 2],
+         [0, 0, 3],
+         [0, 0, 4]],
+        delimiter='\t',
+        fmt='%.4f'
+    )
+    np.savetxt(cd_path, [('0', 'Target'), ('1', 'GroupId')], delimiter='\t', fmt='%s')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', train_path,
+        '--cd', cd_path,
     )
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
