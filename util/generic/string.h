@@ -225,10 +225,6 @@ public:
         return Ptr();
     }
 
-    constexpr inline const TCharType* operator~() const noexcept {
-        return Ptr();
-    }
-
     inline const_iterator begin() const noexcept {
         return Ptr();
     }
@@ -272,10 +268,6 @@ public:
     }
 
     constexpr inline size_t size() const noexcept {
-        return Len();
-    }
-
-    constexpr inline size_t operator+() const noexcept {
         return Len();
     }
 
