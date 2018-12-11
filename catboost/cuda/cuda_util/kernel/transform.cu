@@ -191,7 +191,7 @@ namespace NKernel {
         while (i < size) {
             Index m = __ldg(map + i);
             for (int column = 0; column < columnCount; ++column) {
-                WriteThrough(dst + i + column * dstColumnAlignSize, __ldg(src + m + column * srcColumnAlignSize));
+                WriteThrough(dst + i + column * dstColumnAlignSize, StreamLoad(src + m + column * srcColumnAlignSize));
             }
             i += gridDim.x * blockDim.x;
         }
@@ -235,7 +235,7 @@ namespace NKernel {
         while (i < size) {
             Index m = __ldg(map + i);
             for (int column = 0; column < columnCount; ++column) {
-                WriteThrough(dst + m + dstColumnAlignSize * column, __ldg(src + i + srcColumnALignSize * column));
+                WriteThrough(dst + m + dstColumnAlignSize * column, StreamLoad(src + i + srcColumnALignSize * column));
             }
             i += gridDim.x * blockDim.x;
         }
