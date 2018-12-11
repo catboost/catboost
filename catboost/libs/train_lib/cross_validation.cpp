@@ -207,7 +207,6 @@ public:
             TVector<TEvalResult*>{&LastUpdateEvalResult},
             /*metricsAndTimeHistory*/nullptr
         );
-        const auto& rawValues = LastUpdateEvalResult.GetRawValuesConstRef();
     }
 };
 
