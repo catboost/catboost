@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
 
             bool Reply(void* /*tsr*/) override {
                 if (!ProcessHeaders()) {
-                    return false;
+                    return true;
                 }
 
                 // Check that function will not hang on
