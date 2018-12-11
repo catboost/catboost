@@ -168,6 +168,13 @@ namespace {
     };
 
 #if defined(_unix_)
+/*
+    Disable errors/warnings about deprecated sem_* in iOS
+*/
+#ifdef _ios_
+Y_PRAGMA_DIAGNOSTIC_PUSH
+Y_PRAGMA_NO_DEPRECATED
+#endif
     struct TPosixSemaphore {
         inline TPosixSemaphore(ui32 maxFreeCount) {
             if (sem_init(&S_, 0, maxFreeCount)) {
@@ -199,6 +206,9 @@ namespace {
 
         sem_t S_;
     };
+#ifdef _ios_
+Y_PRAGMA_DIAGNOSTIC_POP
+#endif
 #endif
 }
 
