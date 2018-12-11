@@ -6,8 +6,8 @@ import sys
 import tempfile
 
 
-arcadia_project_prefix = 'a.yandex-team.ru/'
-contrib_go_std_src_prefix = 'contrib/go/_std/src/'
+arc_project_prefix = 'a.yandex-team.ru/'
+std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
 
 
@@ -27,15 +27,15 @@ def get_vendor_index(import_path):
 def get_import_path(module_path):
     assert len(module_path) > 0
     import_path = module_path.replace('\\', '/')
-    is_std_module = import_path.startswith(contrib_go_std_src_prefix)
+    is_std_module = import_path.startswith(std_lib_prefix)
     if is_std_module:
-        import_path = import_path[len(contrib_go_std_src_prefix):]
+        import_path = import_path[len(std_lib_prefix):]
     index = get_vendor_index(import_path)
     if index >= 0:
         index += len(vendor_prefix)
         import_path = import_path[index:]
     elif not is_std_module:
-        import_path = arcadia_project_prefix + import_path
+        import_path = arc_project_prefix + import_path
     assert len(import_path) > 0
     return import_path, is_std_module
 
@@ -250,6 +250,8 @@ if __name__ == '__main__':
     parser.add_argument('++asmhdr', nargs='?', default=None)
     parser.add_argument('++test-import-path', nargs='?')
     parser.add_argument('++test-miner', nargs='?')
+    parser.add_argument('++arc-project-prefix', nargs='?', default=arc_project_prefix)
+    parser.add_argument('++std-lib-prefix', nargs='?', default=std_lib_prefix)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
@@ -263,6 +265,9 @@ if __name__ == '__main__':
     args.output_root = os.path.dirname(args.output)
     args.import_map = {}
     args.module_map = {}
+
+    arc_project_prefix = args.arc_project_prefix
+    std_lib_prefix = args.std_lib_prefix
 
     # compute root relative module dir path
     assert args.output is None or args.output_root == os.path.dirname(args.output)
