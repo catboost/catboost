@@ -238,6 +238,13 @@ namespace NCB {
             "Pool labels are not provided. Cannot generate pairs."
         );
 
+        auto minMaxTarget = MinMaxElement(targetData.begin(), targetData.end());
+        CB_ENSURE(
+            *minMaxTarget.first != *minMaxTarget.second,
+            "Target data is constant. Cannot generate pairs."
+        );
+
+
         TMaybe<ui32> maxPairsCount;
 
         for (const auto& metricDescription : metricDescriptions) {
