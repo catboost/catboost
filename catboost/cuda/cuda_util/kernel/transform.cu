@@ -12,10 +12,10 @@ namespace NKernel {
     __global__ void AddVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T y0 = y[i];
-            const T x0 = x[i];
+            const T y0 = __ldg(y + i);
+            const T x0 = __ldg(x + i);
             const T r0 = y0 + x0;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -33,9 +33,9 @@ namespace NKernel {
     __global__ void AddVectorImpl(T *x, const T y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T x0 = x[i];
+            const T x0 = __ldg(x + i);
             const T r0 = y + x0;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -52,10 +52,10 @@ namespace NKernel {
     __global__ void SubtractVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T y0 = y[i];
-            const T x0 = x[i];
+            const T y0 = __ldg(y + i);
+            const T x0 = __ldg(x + i);
             const T r0 = x0 - y0;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -64,9 +64,9 @@ namespace NKernel {
     __global__ void SubtractVectorImpl(T *x, const T y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T x0 = x[i];
+            const T x0 = __ldg(x + i);
             const T r0 = x0 - y;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -92,10 +92,10 @@ namespace NKernel {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
 
         while (i < size) {
-            const T y0 = y[i];
-            const T x0 = x[i];
+            const T y0 = __ldg(y + i);
+            const T x0 = __ldg(x + i);
             const T r0 = y0 * x0;
-            x[i] = r0;
+            WriteThrough(x + i,  r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -112,9 +112,9 @@ namespace NKernel {
     __global__ void MultiplyVectorImpl(T *x, const T c, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            T x0 = x[i];
+            T x0 = __ldg(x + i);
             T r0 = x0 * c;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -171,8 +171,8 @@ namespace NKernel {
     __global__ void ExpVectorImpl(T *x, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            T val = x[i];
-            x[i] = exp(val);
+            T val = __ldg(x + i);
+            x[i] = __expf(val);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -189,9 +189,9 @@ namespace NKernel {
                                int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            Index m = StreamLoad(map + i);
+            Index m = __ldg(map + i);
             for (int column = 0; column < columnCount; ++column) {
-                WriteThrough(dst + i + column * dstColumnAlignSize, StreamLoad(src + m + column * srcColumnAlignSize));
+                WriteThrough(dst + i + column * dstColumnAlignSize, __ldg(src + m + column * srcColumnAlignSize));
             }
             i += gridDim.x * blockDim.x;
         }
@@ -233,9 +233,9 @@ namespace NKernel {
     __global__ void ScatterImpl(T* dst, const T* src, const Index* map, Index size, int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnALignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            Index m = StreamLoad(map + i);
+            Index m = __ldg(map + i);
             for (int column = 0; column < columnCount; ++column) {
-                WriteThrough(dst + m + dstColumnAlignSize * column, StreamLoad(src + i + srcColumnALignSize * column));
+                WriteThrough(dst + m + dstColumnAlignSize * column, __ldg(src + i + srcColumnALignSize * column));
             }
             i += gridDim.x * blockDim.x;
         }
