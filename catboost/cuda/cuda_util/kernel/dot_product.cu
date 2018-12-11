@@ -49,7 +49,7 @@ namespace NKernel {
         T val2x = i + BLOCK_SIZE < size ? __ldg(x + i + BLOCK_SIZE) : 0.;
         T val2y = i + BLOCK_SIZE < size ? __ldg(y + i + BLOCK_SIZE) : 0;
         T weight2 = i + BLOCK_SIZE < size ? __ldg(weights + i + BLOCK_SIZE) : 0;
-        sdata[tid] += weight * valx * valy + weight2 * val2x * val2y;
+        sdata[tid] = weight * valx * valy + weight2 * val2x * val2y;
         __syncthreads();
 
         for (ui32 s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
