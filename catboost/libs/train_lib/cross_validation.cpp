@@ -208,8 +208,6 @@ public:
             /*metricsAndTimeHistory*/nullptr
         );
         const auto& rawValues = LastUpdateEvalResult.GetRawValuesConstRef();
-        Cerr << "fold " << NamesPrefix << ". LastUpdateEvalResult.size=" << rawValues.size()
-             << " .[0].size=" << rawValues[0].size() << Endl;
     }
 };
 
