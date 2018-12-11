@@ -7,6 +7,10 @@
         "checksum": "a01ebbcf5e68b47844e6b06ff7b23a97",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
     },
+    "test.test_class_names[CPU]": {
+        "checksum": "ac9cf0603af5a275f99180bab5b6ebc1",
+        "uri": "file://test.test_class_names_CPU_/predictions.txt"
+    },
     "test.test_class_weights[CPU]": {
         "checksum": "0192b2d4f21092ce9c96eba40e87b02e",
         "uri": "file://test.test_class_weights_CPU_/model.bin"

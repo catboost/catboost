@@ -934,6 +934,50 @@ def test_multiclass_custom_class_labels_from_files(task_type):
     return local_canonical_file(preds_path)
 
 
+def test_class_names(task_type):
+    class_names = ['Small', 'Medium', 'Large']
+
+    np.random.seed(0)
+    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(class_names, size=100))
+    test_pool = Pool(np.random.random(size=(25, 10)))
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=class_names,
+        thread_count=8,
+        task_type=task_type,
+        devices='0'
+    )
+    classifier.fit(train_pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(test_pool)
+    classes = new_classifier.predict(test_pool)
+    assert pred.shape == (25, 3)
+    assert all(((class1 in class_names) for class1 in classes))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
+def test_inconsistent_labels_and_class_names():
+    class_names = ['Small', 'Medium', 'Large']
+
+    np.random.seed(0)
+    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([0, 1, 2], size=100))
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=class_names,
+    )
+    with pytest.raises(CatboostError):
+        classifier.fit(train_pool)
+
+
 def test_querywise(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)

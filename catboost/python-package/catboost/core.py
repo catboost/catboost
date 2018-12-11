@@ -1864,10 +1864,17 @@ class CatBoostClassifier(CatBoost):
         The given integer should be greater than any of the target values.
         If this parameter is specified the labels for all classes in the input dataset
         should be smaller than the given value.
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
     class_weights : list of floats, [default=None]
         Classes weights. The values are used as multipliers for the object weights.
         If None, all classes are supposed to have weight one.
-        Number of classes indicated by classes_count and class_weights should be the same.
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
+    class_names: list of strings, [default=None]
+        Class names. Allows to redefine the default values for class labels (integer numbers).
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
     one_hot_max_size : int, [default=None]
         Convert the feature to float
         if the number of different values that it takes exceeds the specified value.
@@ -2007,6 +2014,7 @@ class CatBoostClassifier(CatBoost):
         allow_const_label=None,
         classes_count=None,
         class_weights=None,
+        class_names=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
@@ -2332,8 +2340,7 @@ class CatBoostRegressor(CatBoost):
 
     Parameters
     ----------
-    Like in CatBoostClassifier, except loss_function, class_weights and
-    classes_count
+    Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
 
     loss_function : string, [default='RMSE']
         'RMSE'

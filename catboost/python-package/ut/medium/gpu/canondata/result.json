@@ -7,6 +7,10 @@
         "checksum": "a01ebbcf5e68b47844e6b06ff7b23a97",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-2Gb_/predictions.npy"
     },
+    "test.test_class_names[GPU]": {
+        "checksum": "68ec6cd55ef371f52ff09199971a2e2d",
+        "uri": "file://test.test_class_names_GPU_/predictions.txt"
+    },
     "test.test_class_weights[GPU]": {
         "checksum": "e07c3176c6f01527a76b05df317712b5",
         "uri": "file://test.test_class_weights_GPU_/model.bin"
