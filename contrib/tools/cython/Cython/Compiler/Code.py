@@ -1134,10 +1134,12 @@ class GlobalState(object):
 
         self.const_cnames_used = {}
         self.string_const_index = {}
+        self.dedup_const_index = {}
         self.pyunicode_ptr_const_index = {}
         self.num_const_index = {}
         self.py_constants = []
         self.cached_cmethods = {}
+        self.initialised_constants = set()
 
         writer.set_global_state(self)
         self.rootwriter = writer
@@ -1247,7 +1249,12 @@ class GlobalState(object):
 
     # constant handling at code generation time
 
-    def get_cached_constants_writer(self):
+    def get_cached_constants_writer(self, target=None):
+        if target is not None:
+            if target in self.initialised_constants:
+                # Return None on second/later calls to prevent duplicate creation code.
+                return None
+            self.initialised_constants.add(target)
         return self.parts['cached_constants']
 
     def get_int_const(self, str_value, longness=False):
@@ -1265,13 +1272,19 @@ class GlobalState(object):
             c = self.new_num_const(str_value, 'float', value_code)
         return c
 
-    def get_py_const(self, type, prefix='', cleanup_level=None):
+    def get_py_const(self, type, prefix='', cleanup_level=None, dedup_key=None):
+        if dedup_key is not None:
+            const = self.dedup_const_index.get(dedup_key)
+            if const is not None:
+                return const
         # create a new Python object constant
         const = self.new_py_const(type, prefix)
         if cleanup_level is not None \
                 and cleanup_level <= Options.generate_cleanup_code:
             cleanup_writer = self.parts['cleanup_globals']
             cleanup_writer.putln('Py_CLEAR(%s);' % const.cname)
+        if dedup_key is not None:
+            self.dedup_const_index[dedup_key] = const
         return const
 
     def get_string_const(self, text, py_version=None):
@@ -1792,8 +1805,8 @@ class CCodeWriter(object):
     def get_py_float(self, str_value, value_code):
         return self.globalstate.get_float_const(str_value, value_code).cname
 
-    def get_py_const(self, type, prefix='', cleanup_level=None):
-        return self.globalstate.get_py_const(type, prefix, cleanup_level).cname
+    def get_py_const(self, type, prefix='', cleanup_level=None, dedup_key=None):
+        return self.globalstate.get_py_const(type, prefix, cleanup_level, dedup_key).cname
 
     def get_string_const(self, text):
         return self.globalstate.get_string_const(text).cname
@@ -1815,8 +1828,8 @@ class CCodeWriter(object):
     def intern_identifier(self, text):
         return self.get_py_string_const(text, identifier=True)
 
-    def get_cached_constants_writer(self):
-        return self.globalstate.get_cached_constants_writer()
+    def get_cached_constants_writer(self, target=None):
+        return self.globalstate.get_cached_constants_writer(target)
 
     # code generation
 

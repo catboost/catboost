@@ -187,6 +187,29 @@ def infer_sequence_item_type(env, seq_node, index_node=None, seq_type=None):
             return item_types.pop()
     return None
 
+
+def make_dedup_key(outer_type, item_nodes):
+    """
+    Recursively generate a deduplication key from a sequence of values.
+    Includes Cython node types to work around the fact that (1, 2.0) == (1.0, 2), for example.
+
+    @param outer_type: The type of the outer container.
+    @param item_nodes: A sequence of constant nodes that will be traversed recursively.
+    @return: A tuple that can be used as a dict key for deduplication.
+    """
+    item_keys = [
+        (py_object_type, None) if node is None
+        else make_dedup_key(node.type, node.args) if node.is_sequence_constructor
+        else make_dedup_key(node.type, (node.start, node.stop, node.step)) if node.is_slice
+        else (node.type, node.constant_result) if node.has_constant_result()
+        else None
+        for node in item_nodes
+    ]
+    if None in item_keys:
+        return None
+    return outer_type, tuple(item_keys)
+
+
 # Returns a block of code to translate the exception,
 # plus a boolean indicating whether to check for Python exceptions.
 def get_exception_handler(exception_value):
@@ -1598,15 +1621,17 @@ class UnicodeNode(ConstNode):
                 # decoded by the UTF-8 codec in Py3.3
                 self.result_code = code.get_py_const(py_object_type, 'ustring')
                 data_cname = code.get_pyunicode_ptr_const(self.value)
-                code = code.get_cached_constants_writer()
-                code.mark_pos(self.pos)
-                code.putln(
+                const_code = code.get_cached_constants_writer(self.result_code)
+                if const_code is None:
+                    return  # already initialised
+                const_code.mark_pos(self.pos)
+                const_code.putln(
                     "%s = PyUnicode_FromUnicode(%s, (sizeof(%s) / sizeof(Py_UNICODE))-1); %s" % (
                         self.result_code,
                         data_cname,
                         data_cname,
                         code.error_goto_if_null(self.result_code, self.pos)))
-                code.put_error_if_neg(
+                const_code.put_error_if_neg(
                     self.pos, "__Pyx_PyUnicode_READY(%s)" % self.result_code)
             else:
                 self.result_code = code.get_py_string_const(self.value)
@@ -5228,8 +5253,11 @@ class SliceNode(ExprNode):
 
     def generate_result_code(self, code):
         if self.is_literal:
-            self.result_code = code.get_py_const(py_object_type, 'slice', cleanup_level=2)
-            code = code.get_cached_constants_writer()
+            dedup_key = make_dedup_key(self.type, (self,))
+            self.result_code = code.get_py_const(py_object_type, 'slice', cleanup_level=2, dedup_key=dedup_key)
+            code = code.get_cached_constants_writer(self.result_code)
+            if code is None:
+                return  # already initialised
             code.mark_pos(self.pos)
 
         code.putln(
@@ -7961,11 +7989,14 @@ class TupleNode(SequenceNode):
             return
 
         if self.is_literal or self.is_partly_literal:
-            tuple_target = code.get_py_const(py_object_type, 'tuple', cleanup_level=2)
-            const_code = code.get_cached_constants_writer()
-            const_code.mark_pos(self.pos)
-            self.generate_sequence_packing_code(const_code, tuple_target, plain=not self.is_literal)
-            const_code.put_giveref(tuple_target)
+            dedup_key = make_dedup_key(self.type, self.args) if self.is_literal else None
+            tuple_target = code.get_py_const(py_object_type, 'tuple', cleanup_level=2, dedup_key=dedup_key)
+            const_code = code.get_cached_constants_writer(tuple_target)
+            if const_code is not None:
+                # constant is not yet initialised
+                const_code.mark_pos(self.pos)
+                self.generate_sequence_packing_code(const_code, tuple_target, plain=not self.is_literal)
+                const_code.put_giveref(tuple_target)
             if self.is_literal:
                 self.result_code = tuple_target
             else:
@@ -9481,7 +9512,9 @@ class CodeObjectNode(ExprNode):
         if self.result_code is None:
             self.result_code = code.get_py_const(py_object_type, 'codeobj', cleanup_level=2)
 
-        code = code.get_cached_constants_writer()
+        code = code.get_cached_constants_writer(self.result_code)
+        if code is None:
+            return  # already initialised
         code.mark_pos(self.pos)
         func = self.def_node
         func_name = code.get_py_string_const(
