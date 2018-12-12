@@ -153,6 +153,7 @@ bool IsRegressionObjective(const TStringBuf lossDescription) {
 
 bool IsRegressionMetric(ELossFunction lossFunction) {
     return (IsRegressionObjective(lossFunction) ||
+        lossFunction == ELossFunction::SMAPE ||
         lossFunction == ELossFunction::R2 ||
         lossFunction == ELossFunction::MSLE ||
         lossFunction == ELossFunction::MedianAbsoluteError
