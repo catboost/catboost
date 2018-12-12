@@ -629,7 +629,12 @@ def onjava_test(unit, *args):
 
     test_cwd = unit.get('TEST_CWD_VALUE') or ''  # TODO: validate test_cwd value
 
-    script_rel_path = 'testng.test' if unit.get('MODULE_TYPE') == 'TESTNG' else 'junit.test'
+    if unit.get('MODULE_TYPE') == 'TESTNG':
+        script_rel_path = 'testng.test'
+    elif unit.get('MODULE_TYPE') == 'JUNIT5':
+        script_rel_path = 'junit5.test'
+    else:
+        script_rel_path = 'junit.test'
 
     test_record = {
         'SOURCE-FOLDER-PATH': path,
