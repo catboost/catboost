@@ -861,7 +861,7 @@ void TrainModel(
     NJson::TJsonValue outputFilesOptionsJson;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
 
-    NCatboostOptions::TOutputFilesOptions outputOptions(NCatboostOptions::GetTaskType(trainOptionsJson));
+    NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);
 
     TrainModel(

@@ -21,7 +21,7 @@ namespace NCatboostOptions {
 
     class TOutputFilesOptions {
     public:
-        explicit TOutputFilesOptions(ETaskType taskType);
+        explicit TOutputFilesOptions();
 
         TOption<TString> ResultModelPath;
         TOption<bool> UseBestModel;
@@ -122,7 +122,7 @@ namespace NCatboostOptions {
         TOption<TString> TrainingOptionsFileName;
 
         TOption<ui64> SnapshotSaveIntervalSeconds;
-        TGpuOnlyOption<TString> OutputBordersFileName;
+        TOption<TString> OutputBordersFileName;
         TOption<int> VerbosePeriod;
         TOption<int> MetricPeriod;
 

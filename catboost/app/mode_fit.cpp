@@ -59,7 +59,7 @@ int mode_fit(int argc, const char* argv[]) {
     poolLoadOptions.Validate(taskType);
 
     THolder<IModelTrainer> modelTrainerHolder;
-    NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
+    NCatboostOptions::TOutputFilesOptions outputOptions;
     if (!outputOptionsJson.Has("train_dir")) {
         outputOptionsJson["train_dir"] = ".";
     }

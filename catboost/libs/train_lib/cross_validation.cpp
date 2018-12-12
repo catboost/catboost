@@ -123,13 +123,11 @@ struct TFoldContext {
 public:
     TFoldContext(
         size_t foldIdx,
-        ETaskType taskType,
         const NJson::TJsonValue& commonOutputJsonParams,
         TTrainingDataProviders&& trainingData,
         ui64 randomSeed)
         : NamesPrefix("fold_" + ToString(foldIdx) + "_")
         , TempDir(MakeHolder<TTempDir>())
-        , OutputOptions(taskType)
         , TrainingData(std::move(trainingData))
         , Rand(randomSeed)
     {
@@ -275,7 +273,7 @@ void CrossValidate(
     NJson::TJsonValue outputJsonParams;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
-    NCatboostOptions::TOutputFilesOptions outputFileOptions(catBoostOptions.GetTaskType());
+    NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
 
 
@@ -406,7 +404,6 @@ void CrossValidate(
     for (auto foldIdx : xrange((size_t)cvParams.FoldCount)) {
         foldContexts.emplace_back(
             foldIdx,
-            taskType,
             outputJsonParams,
             std::move(foldsData[foldIdx]),
             catBoostOptions.RandomSeed);
