@@ -98,7 +98,6 @@ namespace NKernel {
         }
         __syncthreads();
 
-        const ui32 leavesCount = 1 << depth;
         while (tid < size) {
             ui32 bin = 0;
             const ui32 loadIdx = readIndices ? readIndices[tid] : tid;

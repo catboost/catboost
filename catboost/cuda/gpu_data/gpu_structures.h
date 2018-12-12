@@ -16,8 +16,8 @@
 //struct to make bin-feature from ui32 feature
 // (compressedIndex[Offset] & Mask  should be true
 struct TCBinFeature {
-    ui32 FeatureId = -1;
-    ui32 BinId = -1;
+    ui32 FeatureId = static_cast<ui32>(-1);
+    ui32 BinId = static_cast<ui32>(-1);
 
     bool operator<(const TCBinFeature& other) const {
         return FeatureId < other.FeatureId || (FeatureId == other.FeatureId && BinId < other.BinId);

@@ -249,7 +249,7 @@ namespace NKernel {
 
     struct TCmpBinsWithoutOneHot {
 
-        __forceinline__ __device__ TCmpBinsWithoutOneHot() = default;
+        __forceinline__ TCmpBinsWithoutOneHot() = default;
         __forceinline__ __device__ TCmpBinsWithoutOneHot (const TCFeature*,
                                                           int) {
 
