@@ -6,8 +6,6 @@ ELSE()
     UNITTEST()
 ENDIF()
 
-NO_WERROR()
-
 SRCS(
     test_ctrs.cpp
 )

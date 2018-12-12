@@ -2,8 +2,6 @@
 
 LIBRARY()
 
-NO_WERROR()
-
 SRCS(
     auc.cpp
     gpu_metrics.cpp

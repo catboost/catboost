@@ -6,8 +6,6 @@ ELSE()
     UNITTEST()
 ENDIF()
 
-NO_WERROR()
-
 SRCS(
     performance_tests.cpp
     test_all_reduce.cpp

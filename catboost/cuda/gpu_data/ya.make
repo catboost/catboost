@@ -1,7 +1,5 @@
 LIBRARY()
 
-NO_WERROR()
-
 
 
 SRCS(

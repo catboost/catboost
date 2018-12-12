@@ -6,8 +6,6 @@ ELSE()
     UNITTEST()
 ENDIF()
 
-NO_WERROR()
-
 SRCS(
     test_compression_cpu.cpp
     test_compression_gpu.cpp

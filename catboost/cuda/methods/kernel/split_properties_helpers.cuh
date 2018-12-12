@@ -12,7 +12,7 @@
 
 namespace NKernel {
 
-    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int limit = 128) {
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, ui32 limit = 128) {
         int blocksPerSm = TArchProps::GetMajorVersion() < 5 ? 1 : 2;
         ui32 multiplier = 1;
         while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount() * blocksPerSm * 1.25) &&

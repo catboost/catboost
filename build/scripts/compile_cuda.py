@@ -35,7 +35,9 @@ def main():
         sys.exit(1)
 
     if is_clang(command):
-        cflags.append('-Wno-unused-parameter')
+        # nvcc concatenates the sources for clang, and clang reports unused
+        # things from .h files as if they they were defined in a .cpp file.
+        cflags += ['-Wno-unused-function', '-Wno-unused-parameter']
 
     if not is_clang(command) and '-fopenmp=libomp' in cflags:
         cflags.append('-fopenmp')
