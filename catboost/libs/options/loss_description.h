@@ -4,6 +4,8 @@
 #include "option.h"
 
 #include <util/generic/map.h>
+#include <util/system/types.h>
+
 
 namespace NJson {
     class TJsonValue;
@@ -51,7 +53,7 @@ namespace NCatboostOptions {
 
     double GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig);
 
-    int GetMaxPairCount(const TLossDescription& lossFunctionConfig);
+    ui32 GetMaxPairCount(const TLossDescription& lossFunctionConfig);
 
     TLossDescription ParseLossDescription(TStringBuf stringLossDescription);
 }

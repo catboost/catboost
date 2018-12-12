@@ -55,6 +55,10 @@
         "checksum": "372ddf21ab3e4239bb6e735a139bc23f",
         "uri": "file://test.test_cv_pairs_GPU_/catboost_training.json"
     },
+    "test.test_cv_pairs_generated[GPU]": {
+        "checksum": "e3564e0e9e67727cd60b4910824f2144",
+        "uri": "file://test.test_cv_pairs_generated_GPU_/catboost_training.json"
+    },
     "test.test_cv_query[GPU]": {
         "checksum": "66e79b55de466ec3c2ddf1f88f82bfd8",
         "uri": "file://test.test_cv_query_GPU_/catboost_training.json"

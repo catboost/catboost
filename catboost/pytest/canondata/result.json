@@ -1309,6 +1309,18 @@
             "uri": "file://test.test_eval_metrics_PFound-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics[PairAccuracy-1]": [
+        {
+            "checksum": "65b618058d5f4a95802bc730baaaf201",
+            "uri": "file://test.test_eval_metrics_PairAccuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics[PairAccuracy-2]": [
+        {
+            "checksum": "5c329c1595968e61a590873379ddb102",
+            "uri": "file://test.test_eval_metrics_PairAccuracy-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics[TotalF1-1]": [
         {
             "checksum": "4147e76bd2750349731788282b4070fa",
@@ -2785,11 +2797,11 @@
     ],
     "test.test_pairs_generation_with_max_pairs": [
         {
-            "checksum": "c033866bcc7d581012f04cc24fa5df9b",
+            "checksum": "12e21996085a9c1053d9861eb1bb8ed5",
             "uri": "file://test.test_pairs_generation_with_max_pairs/learn_error.tsv"
         },
         {
-            "checksum": "224214e158ea86e4e327f0a22628d5d0",
+            "checksum": "2a5889f938a5a747fae6e54700e0bffa",
             "uri": "file://test.test_pairs_generation_with_max_pairs/test_error.tsv"
         },
         {

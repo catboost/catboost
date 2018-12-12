@@ -1539,6 +1539,28 @@ def test_cv_pairs(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
+def test_cv_pairs_generated(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 10,
+            "learning_rate": 0.03,
+            "random_seed": 8,
+            "loss_function": "PairLogit",
+            "task_type": task_type
+        },
+        iterations_batch_size=6
+    )
+    assert "train-PairLogit-mean" in results
+
+    prev_value = results["train-PairLogit-mean"][0]
+    for value in results["train-PairLogit-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')

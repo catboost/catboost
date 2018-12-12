@@ -249,7 +249,7 @@ namespace NCB {
         TMaybe<ui32> maxPairsCount;
 
         for (const auto& metricDescription : metricDescriptions) {
-            if (IsPairLogit(metricDescription.GetLossFunction())) {
+            if (IsPairwiseMetric(metricDescription.GetLossFunction())) {
                 ui32 localMaxPairsCount = (ui32)NCatboostOptions::GetMaxPairCount(metricDescription);
                 if (maxPairsCount) {
                     CB_ENSURE(
