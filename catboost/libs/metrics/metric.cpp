@@ -3596,6 +3596,21 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
 }
 
 TVector<THolder<IMetric>> CreateMetrics(
+    TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+    int approxDim) {
+
+    TVector<THolder<IMetric>> metrics;
+    for (const auto& metricDescription : metricDescriptions) {
+        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
+        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
+            metrics.push_back(std::move(metricsBatch[i]));
+        }
+    }
+    return metrics;
+}
+
+
+TVector<THolder<IMetric>> CreateMetrics(
         const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
         const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,

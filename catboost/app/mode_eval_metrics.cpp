@@ -59,26 +59,6 @@ struct TModeEvalMetricsParams {
 };
 
 
-static void ReadDatasetParts(
-    const NCB::TAnalyticalModeCommonParams& params,
-    int blockSize,
-    const TFullModel& model,
-    TRestorableFastRng64* rand,
-    NPar::TLocalExecutor* executor,
-    TVector<TProcessedDataProvider>* processedDatasetParts) {
-
-    processedDatasetParts->clear();
-    ReadAndProceedPoolInBlocks(params, blockSize, [&](TDataProviderPtr datasetPart) {
-        auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
-            *datasetPart,
-            model,
-            rand,
-            executor);
-        processedDatasetParts->push_back(std::move(processedDataProvider));
-    },
-    executor);
-}
-
 static TVector<NCatboostOptions::TLossDescription> CreateMetricDescriptions(
     TStringBuf metricsDescription) {
 
@@ -91,19 +71,29 @@ static TVector<NCatboostOptions::TLossDescription> CreateMetricDescriptions(
     return result;
 }
 
-static TVector<THolder<IMetric>> CreateMetrics(
-    TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
-    int approxDim) {
 
-    TVector<THolder<IMetric>> metrics;
-    for (const auto& metricDescription : metricDescriptions) {
-        auto metricsBatch = CreateMetricFromDescription(metricDescription, approxDim);
-        for (ui32 i = 0; i < metricsBatch.size(); ++i) {
-            metrics.push_back(std::move(metricsBatch[i]));
-        }
-    }
-    return metrics;
+static void ReadDatasetParts(
+    const NCB::TAnalyticalModeCommonParams& params,
+    int blockSize,
+    TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+    const TFullModel& model,
+    TRestorableFastRng64* rand,
+    NPar::TLocalExecutor* executor,
+    TVector<TProcessedDataProvider>* processedDatasetParts) {
+
+    processedDatasetParts->clear();
+    ReadAndProceedPoolInBlocks(params, blockSize, [&](TDataProviderPtr datasetPart) {
+        auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+            *datasetPart,
+            metricDescriptions,
+            model,
+            rand,
+            executor);
+        processedDatasetParts->push_back(std::move(processedDataProvider));
+    },
+    executor);
 }
+
 
 int mode_eval_metrics(int argc, const char* argv[]) {
     NCB::TAnalyticalModeCommonParams params;
@@ -171,6 +161,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
             auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
                 *datasetPart,
+                metricDescriptions,
                 model,
                 &rand,
                 &executor);
@@ -187,6 +178,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
             ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
                 auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
                     *datasetPart,
+                    metricDescriptions,
                     model,
                     &rand,
                     &executor);
@@ -198,7 +190,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
         if (datasetParts.empty()) {
-            ReadDatasetParts(params, plotParams.ReadBlockSize, model, &rand, &executor, &datasetParts);
+            ReadDatasetParts(params, plotParams.ReadBlockSize, metricDescriptions, model, &rand, &executor, &datasetParts);
         }
         plotCalcer.ComputeNonAdditiveMetrics(datasetParts);
     }

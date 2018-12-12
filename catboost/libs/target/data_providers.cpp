@@ -12,6 +12,7 @@
 #include <catboost/libs/pairs/util.h>
 
 #include <util/generic/cast.h>
+#include <util/generic/mapfindptr.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
@@ -355,6 +356,8 @@ namespace NCB {
             CB_ENSURE(rawData.GetObjectCount() > 0, "Train dataset is empty");
         }
 
+        CB_ENSURE_INTERNAL(!metricDescriptions.empty(), "CreateTargetDataProviders: No metrics specified");
+
         auto isAnyOfMetrics = [&](auto&& predicate) {
             return AnyOf(
                 metricDescriptions,
@@ -387,12 +390,9 @@ namespace NCB {
         }
         ui32 classCount = (ui32)GetClassesCount((int)knownClassCount, *classNames);
 
-        // some metrics are both binclass and multiclass (e.g. HingeLoss)
 
-        bool hasBinClassOnlyMetrics = isAnyOfMetrics(
-            [](ELossFunction lossFunction) {
-                return IsBinaryClassMetric(lossFunction) && !IsMultiClassMetric(lossFunction);
-            });
+
+        bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
 
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(
             [](ELossFunction lossFunction) {
@@ -661,24 +661,48 @@ namespace NCB {
 
     TProcessedDataProvider CreateModelCompatibleProcessedDataProvider(
         const TDataProvider& srcData,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         const TFullModel& model,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor) {
 
-        const TString& modelInfoParams = model.ModelInfo.at("params");
-        NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
-
-        CB_ENSURE(paramsJson.Has("loss_function"), "No loss_function in model metadata params");
-
-        TVector<NCatboostOptions::TLossDescription> metrics(1);
-        metrics[0].Load(paramsJson["loss_function"]);
+        TVector<NCatboostOptions::TLossDescription> updatedMetricsDescriptions(
+            metricDescriptions.begin(),
+            metricDescriptions.end());
 
         TVector<float> classWeights;
         TVector<TString> classNames;
         ui32 classCount = 0;
 
-        if (paramsJson.Has("data_processing_options")) {
-            InitClassesParams(paramsJson["data_processing_options"], &classWeights, &classNames, &classCount);
+        if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
+            NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
+
+            if (paramsJson.Has("data_processing_options")) {
+                InitClassesParams(
+                    paramsJson["data_processing_options"],
+                    &classWeights,
+                    &classNames,
+                    &classCount);
+            }
+
+            if (paramsJson.Has("loss_function")) {
+                updatedMetricsDescriptions.resize(1);
+                NCatboostOptions::TLossDescription modelLossDescription;
+                modelLossDescription.Load(paramsJson["loss_function"]);
+
+                if ((classCount == 0) && IsBinaryClassOnlyMetric(modelLossDescription.LossFunction)) {
+                    CB_ENSURE_INTERNAL(
+                        model.ObliviousTrees.ApproxDimension == 1,
+                        "model trained with binary classification function has ApproxDimension="
+                        << model.ObliviousTrees.ApproxDimension
+                    );
+                    classCount = 2;
+                }
+
+                if (updatedMetricsDescriptions.empty()) {
+                    updatedMetricsDescriptions.push_back(std::move(modelLossDescription));
+                }
+            }
         }
 
         TLabelConverter labelConverter;
@@ -710,7 +734,7 @@ namespace NCB {
             /*isForGpu*/ false,
             /*isLearn*/ false,
             /*datasetName*/ TStringBuf(),
-            metrics,
+            updatedMetricsDescriptions,
             /*mainLossFunction*/ Nothing(),
             /*allowConstLabel*/ true,
             classCount,

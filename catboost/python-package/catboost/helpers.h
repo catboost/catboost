@@ -2,6 +2,9 @@
 
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data_types/groupid.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/noncopyable.h>
@@ -48,6 +51,21 @@ TVector<double> EvalMetricsForUtils(
     int threadCount
 );
 
+
+inline TVector<NCatboostOptions::TLossDescription> CreateMetricLossDescriptions(
+    const TVector<TString>& metricDescriptions) {
+
+    CB_ENSURE(!metricDescriptions.empty(), "No metrics in metric descriptions");
+
+    TVector<NCatboostOptions::TLossDescription> result;
+    for (const auto& metricDescription : metricDescriptions) {
+        result.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription));
+    }
+
+    return result;
+}
+
+
 class TMetricsPlotCalcerPythonWrapper {
 public:
     TMetricsPlotCalcerPythonWrapper(const TVector<TString>& metricDescriptions,
@@ -59,7 +77,8 @@ public:
                                     const TString& tmpDir,
                                     bool deleteTempDirOnExit = false)
     : Rand(0)
-    , Metrics(CreateMetricsFromDescription(metricDescriptions, model.ObliviousTrees.ApproxDimension))
+    , MetricLossDescriptions(CreateMetricLossDescriptions(metricDescriptions))
+    , Metrics(CreateMetrics(MetricLossDescriptions, model.ObliviousTrees.ApproxDimension))
     , MetricPlotCalcer(CreateMetricCalcer(
             model,
             begin,
@@ -80,6 +99,7 @@ public:
     void AddPool(const NCB::TDataProvider& srcData) {
         auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(
             srcData,
+            MetricLossDescriptions,
             MetricPlotCalcer.GetModel(),
             &Rand,
             &Executor
@@ -112,6 +132,7 @@ public:
 private:
     TRestorableFastRng64 Rand;
     NPar::TLocalExecutor Executor;
+    TVector<NCatboostOptions::TLossDescription> MetricLossDescriptions;
     TVector<THolder<IMetric>> Metrics;
     TMetricsPlotCalcer MetricPlotCalcer;
 };

@@ -2,7 +2,10 @@
 
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/target/data_providers.h>
+
+#include <util/generic/mapfindptr.h>
 
 
 using namespace NCB;
@@ -16,13 +19,33 @@ TVector<TVector<double>> CollectLeavesStatistics(
     const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
     CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
 
-    TRestorableFastRng64 rand(0);
 
-    TProcessedDataProvider processedData = CreateModelCompatibleProcessedDataProvider(
-        dataset,
-        model,
-        &rand,
-        localExecutor);
+    TConstArrayRef<float> weights;
+
+    if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
+        NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
+        if (paramsJson.Has("loss_function")) {
+            TRestorableFastRng64 rand(0);
+
+            TProcessedDataProvider processedData = CreateModelCompatibleProcessedDataProvider(
+                dataset,
+                {},
+                model,
+                &rand,
+                localExecutor);
+
+            weights = GetWeights(processedData.TargetData);
+        }
+    }
+
+    // If it is impossible to get properly adjusted weights use raw weights from RawTargetData
+    if (weights.empty()) {
+        const TWeights<float>& rawWeights = dataset.RawTargetData.GetWeights();
+        if (!rawWeights.IsTrivial()) {
+            weights = rawWeights.GetNonTrivialData();
+        }
+    }
+
 
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
     TVector<TVector<double>> leavesStatistics(treeCount);
@@ -32,7 +55,7 @@ TVector<TVector<double>> CollectLeavesStatistics(
 
     auto binFeatures = BinarizeFeatures(model, *rawObjectsData);
 
-    TConstArrayRef<float> weights = GetWeights(processedData.TargetData);
+
 
     const auto documentsCount = dataset.GetObjectCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {

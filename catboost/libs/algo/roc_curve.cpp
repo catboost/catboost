@@ -6,6 +6,7 @@
 #include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/utility.h>
 #include <util/stream/fwd.h>
@@ -145,6 +146,8 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
     // need to save owners of labels data
     TVector<TTargetDataProviders> targetDataParts(datasets.size());
 
+    NCatboostOptions::TLossDescription logLoss;
+    logLoss.LossFunction.Set(ELossFunction::Logloss);
 
     TRestorableFastRng64 rand(0);
 
@@ -155,6 +158,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
         [&] (int i) {
             TProcessedDataProvider processedData = CreateModelCompatibleProcessedDataProvider(
                 *datasets[i],
+                TConstArrayRef<NCatboostOptions::TLossDescription>(&logLoss, 1),
                 model,
                 &rand,
                 &localExecutor

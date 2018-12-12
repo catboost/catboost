@@ -21,7 +21,7 @@ namespace NCB {
         bool isForGpu,
         bool isLearnData,
         TStringBuf datasetName,
-        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions, // must be non-empty
 
         /* used to select whether to convert target to binary or not
          * pass nothing if target providers are created not for training
@@ -39,6 +39,9 @@ namespace NCB {
 
     TProcessedDataProvider CreateModelCompatibleProcessedDataProvider(
         const TDataProvider& srcData,
+
+        // can be empty, then try to get the metric from loss_function parameter of the model
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         const TFullModel& model,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::TLocalExecutor* localExecutor);

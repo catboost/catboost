@@ -51,7 +51,8 @@ TVector<TVector<double>> EvalMetrics(
 
     TRestorableFastRng64 rand(0);
 
-    auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
+    auto metricLossDescriptions = CreateMetricLossDescriptions(metricsDescription);
+    auto metrics = CreateMetrics(metricLossDescriptions, model.ObliviousTrees.ApproxDimension);
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
         begin,
@@ -65,6 +66,7 @@ TVector<TVector<double>> EvalMetrics(
 
     auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(
         srcData,
+        metricLossDescriptions,
         model,
         &rand,
         &executor

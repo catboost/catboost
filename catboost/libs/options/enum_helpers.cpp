@@ -120,6 +120,10 @@ bool IsMultiClassMetric(ELossFunction lossFunction) {
     return IsMultiDimensionalError(lossFunction);
 }
 
+bool IsBinaryClassOnlyMetric(ELossFunction lossFunction) {
+    return IsBinaryClassMetric(lossFunction) && !IsMultiClassMetric(lossFunction);
+}
+
 
 bool IsClassificationMetric(ELossFunction lossFunction) {
     return IsBinaryClassMetric(lossFunction) || IsMultiClassMetric(lossFunction);

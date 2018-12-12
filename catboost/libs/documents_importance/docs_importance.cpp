@@ -128,6 +128,8 @@ TDStrResult GetDocumentImportances(
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
     EImportanceValuesSign importanceValuesSign = FromString<EImportanceValuesSign>(importanceValuesSignStr);
 
+
+
     TRestorableFastRng64 rand(0);
 
     auto localExecutor = MakeAtomicShared<NPar::TLocalExecutor>();
@@ -141,14 +143,14 @@ TDStrResult GetDocumentImportances(
     tasks.emplace_back(
         [&] () {
             trainProcessedData.ConstructInPlace(
-                CreateModelCompatibleProcessedDataProvider(trainData, model, &rand, localExecutor.Get())
+                CreateModelCompatibleProcessedDataProvider(trainData, {}, model, &rand, localExecutor.Get())
             );
         }
     );
     tasks.emplace_back(
         [&] () {
             testProcessedData.ConstructInPlace(
-                CreateModelCompatibleProcessedDataProvider(testData, model, &rand, localExecutor.Get())
+                CreateModelCompatibleProcessedDataProvider(testData, {}, model, &rand, localExecutor.Get())
             );
         }
     );
