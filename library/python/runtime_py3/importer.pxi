@@ -181,7 +181,8 @@ class ResourceImporter(object):
             abspath = resfs_resolve(relpath)
             if abspath:
                 return utf_8_decode(file_bytes(abspath))[0]
-        return utf_8_decode(resfs_read(mod_path(fullname)))[0]
+        data = resfs_read(mod_path(fullname))
+        return utf_8_decode(data)[0] if data else ""
 
     def get_code(self, fullname):
         modname = fullname
