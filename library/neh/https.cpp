@@ -59,6 +59,7 @@ namespace NNeh {
     bool THttpsOptions::CheckCertificateHostname = false;
     THttpsOptions::TVerifyCallback THttpsOptions::ClientVerifyCallback = nullptr;
     THttpsOptions::TPasswordCallback THttpsOptions::KeyPasswdCallback = nullptr;
+    bool THttpsOptions::RedirectionNotError = false;
 
     bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
 #define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
@@ -75,6 +76,7 @@ namespace NNeh {
         YNDX_NEH_HTTPS_TRY_SET(EnableSslServerDebug);
         YNDX_NEH_HTTPS_TRY_SET(EnableSslClientDebug);
         YNDX_NEH_HTTPS_TRY_SET(CheckCertificateHostname);
+        YNDX_NEH_HTTPS_TRY_SET(RedirectionNotError);
 
 #undef YNDX_NEH_HTTPS_TRY_SET
 
@@ -1430,7 +1432,7 @@ namespace NNeh {
                 *headers = in.Headers();
 
                 i32 code = ParseHttpRetCode(in.FirstLine());
-                if (code < 200 || code > 299) {
+                if (code < 200 || code > (!THttpsOptions::RedirectionNotError ? 299 : 399)) {
                     return new TError(TStringBuilder() << AsStringBuf("request failed(") << in.FirstLine() << ')', TError::TType::ProtocolSpecific, code);
                 }
 

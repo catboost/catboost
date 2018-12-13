@@ -67,6 +67,9 @@ namespace NNeh {
         //use details (SendError argument) as response body
         static bool ErrorDetailsAsResponseBody;
 
+        //consider responses with 3xx code as successful
+        static bool RedirectionNotError;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };

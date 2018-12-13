@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/fwd.h>
+#include <util/generic/hash_set.h>
 
 enum class EBorderSelectionType {
     Median = 1,

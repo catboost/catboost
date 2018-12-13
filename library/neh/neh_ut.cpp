@@ -259,6 +259,8 @@ Y_UNIT_TEST_SUITE(Neh) {
         UNIT_ASSERT_EQUAL(THttp2Options::UseResponseAsErrorMessage, true);
         UNIT_ASSERT(SetProtocolOption("http2/FullHeadersAsErrorMessage", "1"));
         UNIT_ASSERT_EQUAL(THttp2Options::FullHeadersAsErrorMessage, true);
+        UNIT_ASSERT(SetProtocolOption("http2/RedirectionNotError", "1"));
+        UNIT_ASSERT_EQUAL(THttp2Options::RedirectionNotError, true);
         UNIT_ASSERT(SetProtocolOption("tcp2/InputBufferSize", "4999"));
         UNIT_ASSERT_EQUAL(TTcp2Options::InputBufferSize, 4999);
         UNIT_ASSERT(SetProtocolOption("tcp2/InputBufferSize", "4888"));
@@ -273,5 +275,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         UNIT_ASSERT_EQUAL(THttpsOptions::CAPath, "path");
         UNIT_ASSERT(SetProtocolOption("https/CheckCertificateHostname", "yes"));
         UNIT_ASSERT_EQUAL(THttpsOptions::CheckCertificateHostname, true);
+        UNIT_ASSERT(SetProtocolOption("https/RedirectionNotError", "yes"));
+        UNIT_ASSERT_EQUAL(THttpsOptions::RedirectionNotError, true);
     }
 }
