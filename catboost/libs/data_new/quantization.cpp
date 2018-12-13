@@ -558,7 +558,7 @@ namespace NCB {
 
             CB_ENSURE(
                 featuresLayout->HasAvailableAndNotIgnoredFeatures(),
-                "No available and not ignored features has remained after quantization"
+                "All features are either constant or ignored."
             );
 
             data->ObjectsData.QuantizedFeaturesInfo = quantizedFeaturesInfo;
