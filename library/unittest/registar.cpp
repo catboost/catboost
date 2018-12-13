@@ -345,7 +345,7 @@ void NUnitTest::TTestBase::BeforeTest(const char* func) {
 
 void NUnitTest::TTestBase::Finish(const char* func, TTestContext* context) {
     TRusage finishRusage = TRusage::Get();
-    context->Metrics["ru_rss"] = finishRusage.Rss - rusage.Rss;
+    context->Metrics["ru_rss"] = finishRusage.MaxRss - rusage.MaxRss;
     context->Metrics["ru_major_pagefaults"] = finishRusage.MajorPageFaults - rusage.MajorPageFaults;
     context->Metrics["ru_utime"] = (finishRusage.Utime - rusage.Utime).MicroSeconds();
     context->Metrics["ru_stime"] = (finishRusage.Stime - rusage.Stime).MicroSeconds();
