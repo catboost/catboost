@@ -13,6 +13,7 @@ RECURSE(
     pytest/empty
     pytest/plugins
     reservoir_sampling
+    resource
     runtime
     runtime/main
     runtime/test

@@ -12,6 +12,7 @@ PEERDIR(
     contrib/python/appdirs
     contrib/python/packaging
     contrib/python/six
+    library/python/resource
 )
 
 NO_LINT()
