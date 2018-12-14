@@ -10,7 +10,8 @@
 
 TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const TFullModel& model,
-    const TPool& pool
+    const TPool& pool,
+    int logPeriod
 ) {
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
     const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
@@ -25,7 +26,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);
 
-    TFstrLogger treesLogger(treeCount, "Trees processed", "Processing trees...", 1);
+    TFstrLogger treesLogger(treeCount, "Trees processed", "Processing trees...", logPeriod);
     TProfileInfo processTreesProfile(treeCount);
 
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {

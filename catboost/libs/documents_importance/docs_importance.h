@@ -27,6 +27,7 @@ TDStrResult GetDocumentImportances(
     int topSize,
     const TString& updateMethodStr,
     const TString& importanceValuesSignStr,
-    int threadCount
+    int threadCount,
+    int logPeriod = 0
 );
 

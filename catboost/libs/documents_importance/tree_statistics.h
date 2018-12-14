@@ -33,7 +33,8 @@ public:
 
     TVector<TTreeStatistics> EvaluateTreeStatistics(
         const TFullModel& model,
-        const TPool& pool
+        const TPool& pool,
+        int logPeriod = 0
     );
 
 private:

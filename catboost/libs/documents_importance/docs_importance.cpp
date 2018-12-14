@@ -108,7 +108,8 @@ TDStrResult GetDocumentImportances(
     int topSize,
     const TString& updateMethodStr,
     const TString& importanceValuesSignStr,
-    int threadCount
+    int threadCount,
+    int logPeriod
 ) {
     if (topSize == -1) {
         topSize = trainPool.Docs.GetDocCount();
@@ -121,8 +122,8 @@ TDStrResult GetDocumentImportances(
     TUpdateMethod updateMethod = ParseUpdateMethod(updateMethodStr);
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
     EImportanceValuesSign importanceValuesSign = FromString<EImportanceValuesSign>(importanceValuesSignStr);
-    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, trainPool, updateMethod, threadCount);
-    const TVector<TVector<double>> documentImportances = leafInfluenceEvaluator.GetDocumentImportances(testPool);
+    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, trainPool, updateMethod, threadCount, logPeriod);
+    const TVector<TVector<double>> documentImportances = leafInfluenceEvaluator.GetDocumentImportances(testPool, logPeriod);
     return GetFinalDocumentImportances(documentImportances, dstrType, topSize, importanceValuesSign);
 }
 

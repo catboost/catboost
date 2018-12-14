@@ -41,7 +41,8 @@ public:
         const TFullModel& model,
         const TPool& pool,
         const TUpdateMethod& updateMethod,
-        int threadCount
+        int threadCount,
+        int logPeriod
     )
         : Model(model)
         , UpdateMethod(updateMethod)
@@ -63,11 +64,11 @@ public:
         Y_ASSERT(leavesEstimationMethod == ELeavesEstimation::Newton);
             treeStatisticsEvaluator = MakeHolder<TNewtonTreeStatisticsEvaluator>(DocCount);
         }
-        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, pool);
+        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, pool, logPeriod);
     }
 
     // Getting the importance of all train objects for all objects from pool.
-    TVector<TVector<double>> GetDocumentImportances(const TPool& pool);
+    TVector<TVector<double>> GetDocumentImportances(const TPool& pool, int logPeriod = 0);
 
 private:
     // Evaluate first derivatives at the final approxes

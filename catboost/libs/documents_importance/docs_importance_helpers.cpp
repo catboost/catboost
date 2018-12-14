@@ -14,7 +14,7 @@
 #include <numeric>
 
 
-TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(const TPool& pool) {
+TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(const TPool& pool, int logPeriod) {
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(ThreadCount - 1);
 
@@ -27,7 +27,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(c
 
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
     const size_t docBlockSize = 1000;
-    TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", 1);
+    TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
     TProfileInfo processDocumentsProfile(DocCount);
 
     for (size_t start = 0; start < DocCount; start += docBlockSize) {

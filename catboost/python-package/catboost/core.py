@@ -885,8 +885,8 @@ class _CatBoostBase(object):
         """returns (fstr_values, feature_ids)."""
         return self._object._calc_fstr(fstr_type.name, pool, thread_count, verbose)
 
-    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
-        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
+        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
 
     def _base_shrink(self, ntree_start, ntree_end):
         self._object._base_shrink(ntree_start, ntree_end)
@@ -1590,6 +1590,10 @@ class CatBoost(_CatBoostBase):
             Number of threads.
             If -1, then the number of threads is set to the number of cores.
 
+        verbose : bool or int
+            If False, then evaluation is not logged. If True, then each possible iteration is logged.
+            If positive integer, then it stands for log write period.
+
         Returns
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
@@ -1602,7 +1606,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError('verbose should be non-negative.')
 
         with log_fixup():
-            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
         return result
 
     def shrink(self, ntree_end, ntree_start=0):
