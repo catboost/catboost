@@ -130,7 +130,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.Objects.FloatFeatures = {
                 TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2},
                 TVector<ui8>{0, 0, 2, 3, 1, 1, 4, 4, 2},
-                TVector<ui8>{5, 1, 2, 0, 4, 3, 0, 5, 2}
+                TVector<ui8>{4, 1, 2, 0, 3, 3, 0, 4, 2}
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -146,7 +146,6 @@ Y_UNIT_TEST_SUITE(Quantization) {
                         std::numeric_limits<float>::lowest(),
                         0.0549999997f,
                         0.1550000012f,
-                        0.3199999928f,
                         0.6349999905f
                     }
                 };
@@ -231,7 +230,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.MetaInfo = metaInfo;
             expectedData.Objects.FloatFeatures = {
                 TVector<ui8>{1, 2, 0, 0, 4, 4, 4, 4, 3, 2, 0, 1, 4},
-                TVector<ui8>{5, 1, 2, 0, 4, 3, 0, 5, 2, 4, 4, 3, 5}
+                TVector<ui8>{4, 1, 1, 0, 3, 2, 0, 4, 1, 3, 3, 2, 4}
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -244,7 +243,6 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     {0.1149999946f, 0.2250000089f, 0.4449999928f, 0.6150000095f},
                     {
                         std::numeric_limits<float>::lowest(),
-                        0.0549999997f,
                         0.150000006f,
                         0.25f,
                         0.4900000095f
@@ -331,7 +329,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.MetaInfo = metaInfo;
             expectedData.Objects.FloatFeatures = {
                 TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2},
-                TVector<ui8>{4, 0, 1, 5, 3, 2, 5, 4, 1}
+                TVector<ui8>{3, 0, 1, 4, 2, 2, 4, 3, 1}
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -345,7 +343,6 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     {
                         0.0549999997f,
                         0.1550000012f,
-                        0.3199999928f,
                         0.6349999905f,
                         std::numeric_limits<float>::max()
                     }
@@ -563,7 +560,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.MetaInfo = metaInfo;
             expectedData.Objects.FloatFeatures = {
                 TVector<ui8>{1, 2, 0, 0, 3, 2, 3, 4, 2, 1, 0, 1, 4},
-                TVector<ui8>{5, 1, 2, 0, 4, 2, 0, 5, 1, 3, 3, 2, 5}
+                TVector<ui8>{4, 1, 2, 0, 3, 2, 0, 4, 1, 3, 3, 2, 4}
             };
             expectedData.Objects.CatFeatures = {
                 TVector<ui32>{0, 1, 2, 3, 4, 0, 5, 6, 7, 8, 0, 3, 1},
@@ -583,7 +580,6 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     std::numeric_limits<float>::lowest(),
                     0.1149999946f,
                     0.2649999857f,
-                    0.3799999952f,
                     0.5600000024f
                 }
             };

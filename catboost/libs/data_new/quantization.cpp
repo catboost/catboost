@@ -132,6 +132,8 @@ namespace NCB {
     ) {
         const auto& binarizationOptions = quantizedFeaturesInfo.GetFloatFeatureBinarization();
 
+        Y_VERIFY(binarizationOptions.BorderCount > 0);
+
         TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
 
         TMaybeOwningConstArraySubset<float, ui32> srcDataForBuildBorders(
@@ -162,21 +164,27 @@ namespace NCB {
             " float features are not allowed. Set nan_mode != Forbidden."
         );
 
+        int nonNanValuesBorderCount = binarizationOptions.BorderCount;
         if (hasNans) {
             *nanMode = binarizationOptions.NanMode;
+            --nonNanValuesBorderCount;
         } else {
             *nanMode = ENanMode::Forbidden;
         }
 
-        THashSet<float> borderSet = BestSplit(
-            srcFeatureValuesForBuildBorders,
-            binarizationOptions.BorderCount,
-            binarizationOptions.BorderSelectionType
-        );
+        THashSet<float> borderSet;
 
-        if (borderSet.contains(-0.0f)) { // BestSplit might add negative zeros
-            borderSet.erase(-0.0f);
-            borderSet.insert(0.0f);
+        if (nonNanValuesBorderCount > 0) {
+            borderSet = BestSplit(
+                srcFeatureValuesForBuildBorders,
+                nonNanValuesBorderCount,
+                binarizationOptions.BorderSelectionType
+            );
+
+            if (borderSet.contains(-0.0f)) { // BestSplit might add negative zeros
+                borderSet.erase(-0.0f);
+                borderSet.insert(0.0f);
+            }
         }
 
         borders->assign(borderSet.begin(), borderSet.end());
