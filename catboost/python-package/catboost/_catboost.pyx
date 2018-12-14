@@ -2356,37 +2356,39 @@ cdef class _CatBoost:
     cpdef _get_float_feature_indices(self):
             return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.FloatFeatures]
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
         cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-
-        pred = ApplyModel(
-            dereference(self.__model),
-            pool.__pool.Get()[0].ObjectsData.Get()[0],
-            verbose,
-            predictionType,
-            ntree_start,
-            ntree_end,
-            thread_count
-        )
+        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
+        with nogil:
+            pred = ApplyModel(
+                dereference(self.__model),
+                dereference(objectsData),
+                verbose,
+                predictionType,
+                ntree_start,
+                ntree_end,
+                thread_count
+            )
         return [value for value in pred]
 
     cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end,
-                              int thread_count, verbose):
+                              int thread_count, bool_t verbose):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-
-        pred = ApplyModelMulti(
-            dereference(self.__model),
-            pool.__pool.Get()[0].ObjectsData.Get()[0],
-            verbose,
-            predictionType,
-            ntree_start,
-            ntree_end,
-            thread_count
-        )
+        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
+        with nogil:
+            pred = ApplyModelMulti(
+                dereference(self.__model),
+                dereference(objectsData),
+                verbose,
+                predictionType,
+                ntree_start,
+                ntree_end,
+                thread_count
+            )
         return _convert_to_visible_labels(predictionType, pred, thread_count, self.__model)
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
