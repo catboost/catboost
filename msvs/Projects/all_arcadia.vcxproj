@@ -707,6 +707,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\reservoir_sampling\pylibrary-python-reservoir_sampling.vcxproj">
       <Project>E655E773-8276-167D-BDF1-90860E722883</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
+      <Project>37AC15B4-A170-D4C8-25DC-6474572B40BA</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\main\python-runtime-main.vcxproj">
       <Project>C60800BC-3870-2EF2-25B3-AB8DC8C46E35</Project>
     </ProjectReference>
