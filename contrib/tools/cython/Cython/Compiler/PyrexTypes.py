@@ -3497,7 +3497,8 @@ builtin_cpp_conversions = {
     # arcadia_cpp_conversions
     "TMaybe":             1,
     "TVector":            1,
-    "THashMap":              2,
+    "THashMap":           2,
+    "TMap":               2,
 }
 
 class CppClassType(CType):
