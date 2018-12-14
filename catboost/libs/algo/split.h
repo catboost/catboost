@@ -1,6 +1,9 @@
 #pragma once
 
+#include "index_hash_calcer.h"
 #include "projection.h"
+
+#include <catboost/libs/data_new/quantized_features_info.h>
 
 #include <library/binsaver/bin_saver.h>
 
@@ -78,7 +81,7 @@ struct TSplitCandidate {
 
 int GetSplitCount(
     const TVector<int>& splitsCount,
-    const TVector<TVector<int>>& oneHotValues,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     const TSplitCandidate& split
 );
 
@@ -91,7 +94,6 @@ struct THash<TSplitCandidate> {
 };
 
 class TLearnContext;
-class TDataset;
 
 // TODO(kirillovs): this structure has doppelganger (TBinarySplit) in cuda code, merge them later
 struct TSplit : public TSplitCandidate {
@@ -109,7 +111,9 @@ struct TSplit : public TSplitCandidate {
     inline void Load(IInputStream* s) {
         ::LoadMany(s, static_cast<TSplitCandidate&>(*this), BinBorder);
     }
-    TModelSplit GetModelSplit(const TLearnContext& ctx, const TDataset& learnData) const;
+    TModelSplit GetModelSplit(
+        const TLearnContext& ctx,
+        const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap) const;
 
     static inline float EmulateUi8Rounding(int value) {
         return value + 0.999999f;

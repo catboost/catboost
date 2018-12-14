@@ -68,10 +68,6 @@ public:
         return *this;
     }
 
-    inline size_type operator+() const noexcept {
-        return this->size();
-    }
-
     inline yssize_t ysize() const noexcept {
         return (yssize_t)this->size();
     }

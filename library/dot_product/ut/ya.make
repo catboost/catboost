@@ -11,6 +11,3 @@ PEERDIR(
 )
 
 END()
-
-
-NEED_CHECK()

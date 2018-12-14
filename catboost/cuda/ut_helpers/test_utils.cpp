@@ -1,4 +1,9 @@
 #include "test_utils.h"
+
+#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/train_lib/data.h>
+
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>
 
@@ -125,3 +130,64 @@ void SavePoolCDToFile(const char* filename, ui32 catFeatures) {
         output << (3 + i) << "\tCateg" << Endl;
     }
 }
+
+
+void LoadTrainingData(NCB::TPathWithScheme poolPath,
+                      NCB::TPathWithScheme cdFilePath,
+                      const NCatboostOptions::TBinarizationOptions& floatFeaturesBinarization,
+                      const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+                      NCB::TTrainingDataProviderPtr* trainingData,
+                      THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager) {
+
+    NCB::TDataProviderPtr dataProvider;
+    {
+        NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
+        dsvPoolFormatParams.CdFilePath = cdFilePath;
+
+        dataProvider = NCB::ReadDataset(poolPath,
+                                        NCB::TPathWithScheme(),
+                                        NCB::TPathWithScheme(),
+                                        dsvPoolFormatParams,
+                                        {},
+                                        NCB::EObjectsOrder::Ordered,
+                                        16,
+                                        true);
+    }
+
+    NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
+    catBoostOptions.DataProcessingOptions.Get().FloatFeaturesBinarization = floatFeaturesBinarization;
+    catBoostOptions.CatFeatureParams = catFeatureParams;
+
+    TLabelConverter labelConverter;
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(15);
+
+    TRestorableFastRng64 rand(0);
+
+    *trainingData = NCB::GetTrainingData(std::move(dataProvider),
+                                         true,
+                                         "learn",
+                                         Nothing(),
+                                         /*unloadCatFeaturePerfectHashFromRam*/ true,
+                                         /*ensureConsecutiveFeaturesDataForCpu*/ false, // irrelevant for GPU
+                                         nullptr,
+                                         &catBoostOptions,
+                                         &labelConverter,
+                                         &localExecutor,
+                                         &rand);
+
+    *featuresManager = MakeHolder<NCatboostCuda::TBinarizedFeaturesManager>(
+        catFeatureParams,
+        (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
+
+    NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+    (*featuresManager)->SetTargetBorders(
+        NCB::TBordersBuilder(
+            gridBuilderFactory,
+            NCB::GetTarget((*trainingData)->TargetData))(
+                 (*featuresManager)->GetTargetBinarizationDescription()));
+
+}
+
+

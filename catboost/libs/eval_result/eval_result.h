@@ -3,9 +3,9 @@
 #include "column_printer.h"
 #include "pool_printer.h"
 
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/data/pool.h>
 #include <catboost/libs/labels/external_label_helper.h>
 
 #include <util/generic/fwd.h>
@@ -40,14 +40,14 @@ namespace NCB {
 
     void ValidateColumnOutput(
         const TVector<TString>& outputColumns,
-        const TPool& pool,
+        const TDataProvider& pool,
         bool isPartOfFullTestSet=false,
         bool CV_mode=false);
 
     TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& testSetFormat,
-        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo = {}
+        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo = {}
     );
 
     void OutputEvalResultToFile(
@@ -55,7 +55,7 @@ namespace NCB {
         NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
-        const TPool& pool,
+        const TDataProvider& pool,
         bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
@@ -69,7 +69,7 @@ namespace NCB {
         int threadCount,
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
-        const TPool& pool,
+        const TDataProvider& pool,
         bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
         const NCB::TPathWithScheme& testSetPath,
@@ -77,15 +77,5 @@ namespace NCB {
         const NCB::TDsvFormatOptions& testSetFormat,
         bool writeHeader = true,
         ui64 docIdOffset = 0);
-
-    void OutputGpuEvalResultToFile(
-        const TVector<TVector<double>>& approxes,
-        ui32 threadCount,
-        TConstArrayRef<TString> outputColumns,
-        const TPathWithScheme& testSetPath,
-        const TDsvFormatOptions& testSetFormat,
-        const TPoolMetaInfo& poolMetaInfo,
-        const TString& serializedMulticlassLabelParams,
-        const TString& evalOutputFileName);
 
 } // namespace NCB

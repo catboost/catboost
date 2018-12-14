@@ -184,7 +184,7 @@ namespace NKernel {
         U First;
         V Second;
 
-        __host__ __device__ __forceinline__ TPair() = default;
+        __forceinline__ TPair() = default;
 
         __host__ __device__ __forceinline__ TPair(const U& first, const V& second)
                 : First(first)

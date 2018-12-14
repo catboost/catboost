@@ -21,21 +21,21 @@ size_t TRandomAccessFileInput::DoSkip(size_t len) {
 }
 
 TRandomAccessFileOutput::TRandomAccessFileOutput(TDirectIOBufferedFile& file)
-    : File(file)
+    : File(&file)
 {
 }
 
 void TRandomAccessFileOutput::DoWrite(const void* buf, size_t len) {
-    File.Write(buf, len);
+    File->Write(buf, len);
 }
 
 void TRandomAccessFileOutput::DoFlush() {
-    File.FlushData();
+    File->FlushData();
 }
 
 TBufferedFileOutputEx::TBufferedFileOutputEx(const TString& path, EOpenMode oMode, size_t buflen)
     : TRandomAccessFileOutput(*(new TDirectIOBufferedFile(path, oMode, buflen)))
-    , FileHolder(&File)
+    , FileHolder(File)
 {
 }
 

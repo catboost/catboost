@@ -124,7 +124,7 @@ void TNetStatSampler::UpdateFromData(const TString& data) {
         {
             auto pos = line.find(':');
             entry.Header = line.substr(0, pos);
-            auto tail = TStringBuf(~line + pos + 2, ~line + +line);
+            auto tail = TStringBuf(line.data() + pos + 2, line.data() + line.size());
             StringSplitter(tail).Split(' ').Consume([&](TStringBuf token) {
                 entry.Names.emplace_back(token);
             });
@@ -135,7 +135,7 @@ void TNetStatSampler::UpdateFromData(const TString& data) {
             input.ReadLine(line);
             auto pos = line.find(':');
             entry.Header = line.substr(0, pos);
-            auto tail = TStringBuf(~line + pos + 2, ~line + +line);
+            auto tail = TStringBuf(line.data() + pos + 2, line.data() + line.size());
             StringSplitter(tail).Split(' ').Consume([&](TStringBuf token) {
                 entry.Values.emplace_back(FromString<i64>(token));
             });

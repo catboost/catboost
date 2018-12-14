@@ -20,7 +20,7 @@ public:
     template <typename FuncType>
     void ForInput(const TStringBuf text, const FuncType& func) {
         TFile tempFile(TFile::Temporary("input_ut"));
-        tempFile.Write(~text, +text);
+        tempFile.Write(text.data(), text.size());
         tempFile.FlushData();
         tempFile.Seek(0, sSet);
 

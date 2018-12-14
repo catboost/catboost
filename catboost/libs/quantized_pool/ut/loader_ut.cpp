@@ -237,7 +237,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<ui8>{2, 3, 0, 3, 1}
             };
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 3)
             );
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(0), {0.1f, 0.2f, 0.3f});
@@ -337,7 +338,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<ui8>{0, 2, 3, 1, 4, 2}
             };
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
             );
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
@@ -439,7 +441,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<ui8>{0, 2, 3, 1, 4, 2}
             };
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
             );
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
@@ -555,7 +558,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<ui8>{0, 2, 3, 1, 4, 2}
             };
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
             );
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
@@ -659,7 +663,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 Nothing()
             };
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
             );
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(
@@ -806,7 +811,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
         expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
         expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-            expectedData.MetaInfo.FeaturesLayout,
+            *expectedData.MetaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
             NCatboostOptions::TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 4)
         );
 

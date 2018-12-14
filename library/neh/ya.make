@@ -42,10 +42,6 @@ SRCS(
     utils.cpp
 )
 
-GENERATE_ENUM_SERIALIZATION(
-    http_common.h
-)
+GENERATE_ENUM_SERIALIZATION(http_common.h)
 
 END()
-
-NEED_CHECK()

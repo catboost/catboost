@@ -5,7 +5,7 @@ import _import_wrapper as iw
 import _common as common
 
 
-_SWIG_LIB_PATH = 'contrib/libs/swig/swig-2.0.9/Lib'
+_SWIG_LIB_PATH = 'contrib/tools/swig/Lib'
 
 _PREDEFINED_INCLUDES = [
     os.path.join(_SWIG_LIB_PATH, 'python', 'python.swg'),
@@ -96,7 +96,7 @@ class Swig(iw.CustomCommand):
 class SwigParser(object):
     def __init__(self, path, unit):
         self._path = path
-        retargeted = os.path.join(unit.path(), os.path.basename(path))
+        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
         with open(path, 'rb') as f:
             includes, induced = SwigParser.parse_includes(f.readlines())
 

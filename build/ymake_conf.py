@@ -658,6 +658,10 @@ class Build(object):
         yasm.configure()
         yasm.print_variables()
 
+        swiftc = SwiftCompiler(self)
+        swiftc.configure()
+        swiftc.print_compiler()
+
         if host.is_linux or host.is_freebsd or host.is_macos or host.is_cygwin:
             if is_negative('USE_ARCADIA_PYTHON'):
                 python = Python(self.tc)
@@ -1171,9 +1175,27 @@ class GnuToolchain(Toolchain):
 
         self.env = self.tc.get_env()
 
+        self.swift_flags_platform = []
+        self.swift_lib_path = None
+
         if self.tc.is_from_arcadia:
             for lib_path in build.host.library_path_variables:
                 self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
+
+        swift_target = select(default=None, selectors=[
+            (target.is_ios and target.is_x86_64, 'x86_64-apple-ios9-simulator'),
+            (target.is_ios and target.is_i386, 'i386-apple-ios9-simulator'),
+            (target.is_ios and target.is_arm64, 'arm64-apple-ios9'),
+            (target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
+        ])
+        if swift_target:
+            self.swift_flags_platform += ['-target', swift_target]
+
+        if self.tc.is_from_arcadia:
+            self.swift_lib_path = select(default=None, selectors=[
+                (host.is_macos and target.is_ios and (target.is_x86_64 or target.is_i386), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphonesimulator'),
+                (host.is_macos and target.is_ios and (target.is_arm64 or target.is_armv7), '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/lib/swift/iphoneos'),
+            ])
 
         if self.tc.is_clang:
             target_triple = select(default=None, selectors=[
@@ -1238,6 +1260,7 @@ class GnuToolchain(Toolchain):
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
         self.c_flags_platform.append('--sysroot={}'.format(var))
+        self.swift_flags_platform += ['-sdk', var]
 
     # noinspection PyShadowingBuiltins
     def setup_tools(self, project, var, bin, ldlibs):
@@ -1252,6 +1275,8 @@ class GnuToolchain(Toolchain):
 
         emit('TOOLCHAIN_ENV', format_env(self.env, list_separator=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
+        emit('SWIFT_FLAGS_PLATFORM', self.swift_flags_platform)
+        emit('SWIFT_LD_FLAGS', '-L{}'.format(self.swift_lib_path) if self.swift_lib_path else '')
 
         if preset('OS_SDK') is None:
             emit('OS_SDK', self.tc.os_sdk)
@@ -1274,7 +1299,19 @@ class GnuCompiler(Compiler):
         self.target = self.build.target
         self.tc = tc
 
-        self.c_defines = []
+        self.c_foptions = ['-fexceptions']
+        self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
+        self.cxx_warnings = [
+            '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
+            '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
+            '-Wno-register',  # IGNIETFERRO-722 needed for contrib
+        ]
+        self.c_defines = [
+            '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
+            '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
+            '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS', '-DGNU',
+        ]
+        self.c_flags = []
 
         if not self.target.is_android:
             # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
@@ -1282,26 +1319,22 @@ class GnuCompiler(Compiler):
             # Arcadia have API 14 for 32-bit Androids.
             self.c_defines.append('-D_FILE_OFFSET_BITS=64')
 
-        self.c_defines.extend(('-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS', '-DGNU'))
-
         if self.target.is_linux or self.target.is_cygwin:
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):
-                self.c_defines.append('-faligned-allocation')
+                self.c_foptions.append('-faligned-allocation')
             else:
-                self.c_defines.append('-Wno-aligned-allocation-unavailable')
+                self.c_warnings.append('-Wno-aligned-allocation-unavailable')
 
         if self.target.is_android:
-            self.c_defines.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
+            self.c_flags.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
 
         self.extra_compile_opts = []
 
-        self.c_flags = self.tc.arch_opt + ['-pipe', '-fexceptions']
-        self.c_only_flags = []
-        self.cxx_flags = []
+        self.c_flags += self.tc.arch_opt + ['-pipe']
 
         self.sfdl_flags = ['-E', '-C', '-x', 'c++']
 
@@ -1326,7 +1359,7 @@ class GnuCompiler(Compiler):
                     self.c_flags.append(opt)
                     self.c_defines.append(define)
             else:
-                self.c_defines.append('-no-sse')
+                self.c_flags.append('-no-sse')
 
         self.debug_info_flags = ['-g']
         if self.target.is_linux:
@@ -1341,31 +1374,27 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             self.sfdl_flags.append('-Qunused-arguments')
 
-            if self.tc.version_at_least(3, 6):
-                self.c_flags.append('-Wno-inconsistent-missing-override')
-
-            if self.tc.version_at_least(5, 0):
-                # Clang 5.0 for Android is from Android NDK.
-                # It does not recognize some command line arguments
-                # recognized by the regular Clang 5.0.
-                if not self.target.is_android:
-                    self.c_flags.append('-Wno-c++17-extensions')
-
-                self.c_flags.append('-Wno-exceptions')
+            self.cxx_warnings += [
+                '-Wimport-preprocessor-directive-pedantic',
+                '-Wno-c++17-extensions',
+                '-Wno-exceptions',
+                '-Wno-inconsistent-missing-override',
+                '-Wno-undefined-var-template',
+            ]
 
             if self.tc.version_at_least(7):
-                self.cxx_flags.append('-Wno-return-std-move')
+                self.cxx_warnings.append('-Wno-return-std-move')
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
-            self.c_flags.append('-fno-delete-null-pointer-checks')
-            self.c_flags.append('-fabi-version=8')
+            self.c_foptions.append('-fno-delete-null-pointer-checks')
+            self.c_foptions.append('-fabi-version=8')
 
     def configure_build_type(self):
         if self.build.is_valgrind:
             self.c_defines.append('-DWITH_VALGRIND=1')
 
         if self.build.is_debug:
-            self.c_flags.append('$FSTACK')
+            self.c_foptions.append('$FSTACK')
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
@@ -1377,9 +1406,9 @@ class GnuCompiler(Compiler):
             self.c_defines.append('-UNDEBUG')
 
         if self.build.is_coverage:
-            self.c_flags.extend(['-fprofile-arcs', '-ftest-coverage'])
+            self.c_foptions.extend(['-fprofile-arcs', '-ftest-coverage'])
         if self.build.profiler_type in (Profiler.Generic, Profiler.GProf):
-            self.c_flags.append('-fno-omit-frame-pointer')
+            self.c_foptions.append('-fno-omit-frame-pointer')
 
         if self.build.profiler_type == Profiler.GProf:
             self.c_flags.append('-pg')
@@ -1392,13 +1421,11 @@ class GnuCompiler(Compiler):
         emit('OPTIMIZE', self.optimize)
         emit('WERROR_MODE', self.tc.werror_mode)
         emit('FSTACK', self.gcc_fstack)
-        append('C_DEFINES', self.c_defines, '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES')
+        append('C_DEFINES', self.c_defines)
         emit('DUMP_DEPS')
         emit('GCC_PREPROCESSOR_OPTS', '$DUMP_DEPS', '$C_DEFINES')
-        append('C_WARNING_OPTS', '-Wall', '-W', '-Wno-parentheses')
-        append('CXX_WARNING_OPTS', '-Woverloaded-virtual')
-        append('USER_CFLAGS_GLOBAL', '')
-        append('USER_CFLAGS_GLOBAL', '')
+        append('C_WARNING_OPTS', self.c_warnings)
+        append('CXX_WARNING_OPTS', self.cxx_warnings)
 
         emit_big('''
             when ($PIC && $PIC == "yes") {
@@ -1408,10 +1435,9 @@ class GnuCompiler(Compiler):
                 PICFLAGS=
             }''')
 
-        append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
-               '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
-        append('CXXFLAGS', '$CXX_WARNING_OPTS', '-std=c++1z', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
-        append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
+        append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$PICFLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
+        append('CXXFLAGS', '$CFLAGS', '-std=c++1z', '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CONLYFLAGS', '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
         emit('NOGCCSTACKCHECK', 'yes')
@@ -1424,33 +1450,26 @@ class GnuCompiler(Compiler):
         emit('DEBUG_INFO_FLAGS', self.debug_info_flags)
 
         emit_big('''
+            when ($NO_WSHADOW == "yes") {
+                C_WARNING_OPTS += -Wno-shadow
+            }
             when ($NO_COMPILER_WARNINGS == "yes") {
-                CFLAGS+= -w
+                C_WARNING_OPTS = -w
+                CXX_WARNING_OPTS = -Wno-register
             }
             when ($NO_OPTIMIZE == "yes") {
-                OPTIMIZE=-O0
+                OPTIMIZE = -O0
             }
             when ($SAVE_TEMPS ==  "yes") {
                 CXXFLAGS += -save-temps
             }
             when ($NOGCCSTACKCHECK != "yes") {
-                FSTACK+= -fstack-check
-            }
-            when ($NO_WSHADOW == "yes") {
-                CFLAGS += -Wno-shadow
+                FSTACK += -fstack-check
             }
             macro MSVC_FLAGS(Flags...) {
                 # TODO: FIXME
                 ENABLE(UNUSED_MACRO)
             }''')
-
-        append('CXX_WARNING_OPTS', '-Wno-register')  # IGNIETFERRO-722 understand what to do with the contrib
-        append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
-        append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec')  # IGNIETFERRO-282 some problems with lucid
-        append('CXX_WARNING_OPTS', '-Wno-attributes')
-
-        if self.tc.is_clang and self.tc.version_at_least(3, 9):
-            append('CXX_WARNING_OPTS', '-Wno-undefined-var-template', '-Wimport-preprocessor-directive-pedantic')
 
         # TODO(somov): Check whether this specific architecture is needed.
         if self.target.arch == 'i386':
@@ -1492,7 +1511,19 @@ class GnuCompiler(Compiler):
                  'contrib/libs/libfuzzer7' if self.tc.version_at_least(7) else
                  'contrib/libs/libfuzzer6' if self.tc.version_at_least(6) else
                  'contrib/libs/libfuzzer-5.0')
-            emit('WERROR_FLAG', '-Werror', '-Wno-error=deprecated')
+
+
+class SwiftCompiler(object):
+    def __init__(self, build):
+        self.host = build.host
+        self.compiler = None
+
+    def configure(self):
+        if self.host.is_macos:
+            self.compiler = '$SWIFT_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/bin/swiftc'
+
+    def print_compiler(self):
+        emit('SWIFT_COMPILER', self.compiler or '')
 
 
 class Linker(object):

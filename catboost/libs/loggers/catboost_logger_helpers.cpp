@@ -3,7 +3,7 @@
 void TMetricsAndTimeLeftHistory::TryUpdateBestError(const IMetric& metric, double error, THashMap<TString, double>& bestError, bool updateBestIteration) {
     TString metricDescription = metric.GetDescription();
     bool shouldUpdate = false;
-    if (!bestError.has(metricDescription)) {
+    if (!bestError.contains(metricDescription)) {
         shouldUpdate = true;
     } else {
         double currentBestError = bestError.at(metricDescription);
@@ -177,7 +177,7 @@ void Log(
             const THashMap<TString, double>& learnErrors = learnErrorsHistory[iteration];
             for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
                 const TString& metricDescription = metricsDescription[metricIdx];
-                if (learnErrors.has(metricDescription)) {
+                if (learnErrors.contains(metricDescription)) {
                     oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricDescription, learnErrors.at(metricDescription), metricIdx == 0));
                 }
             }
@@ -253,7 +253,7 @@ NJson::TJsonValue GetJsonMeta(
         }
 
         const TMap<TString, TString>& hints = loss->GetHints();
-        if (!learnSetNames.empty() && (!hints.has("skip_train") || hints.at("skip_train") == "false")) {
+        if (!learnSetNames.empty() && (!hints.contains("skip_train") || hints.at("skip_train") == "false")) {
             meta["learn_metrics"].AppendValue(metricJson);
         }
         if (!testSetNames.empty()) {

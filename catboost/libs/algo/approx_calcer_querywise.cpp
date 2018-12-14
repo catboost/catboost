@@ -5,6 +5,36 @@
 
 #include <util/generic/cast.h>
 
+void CalculateDersForQueries(
+    const TVector<double>& approxes,
+    const TVector<double>& approxesDelta,
+    const TVector<float>& targets,
+    const TVector<float>& weights,
+    const TVector<TQueryInfo>& queriesInfo,
+    const IDerCalcer& error,
+    int queryStartIndex,
+    int queryEndIndex,
+    TVector<TDers>* weightedDers,
+    NPar::TLocalExecutor* localExecutor
+) {
+    if (!approxesDelta.empty()) {
+        TVector<double> fullApproxes;
+        fullApproxes.yresize(approxes.ysize());
+        if (error.GetIsExpApprox()) {
+            NPar::ParallelFor(*localExecutor, queriesInfo[queryStartIndex].Begin, queriesInfo[queryEndIndex - 1].End, [&](ui32 docId) {
+                fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/true>(approxes[docId], approxesDelta[docId]);
+            });
+        } else {
+            NPar::ParallelFor(*localExecutor, queriesInfo[queryStartIndex].Begin, queriesInfo[queryEndIndex - 1].End, [&](ui32 docId) {
+                fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/false>(approxes[docId], approxesDelta[docId]);
+            });
+        }
+        error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, weightedDers, localExecutor);
+    } else {
+        error.CalcDersForQueries(queryStartIndex, queryEndIndex, approxes, targets, weights, queriesInfo, weightedDers, localExecutor);
+    }
+}
+
 template <ELeavesEstimation estimationMethod>
 static void UpdateBucketsForLeaves(
     const TVector<TDers>& bucketDers,

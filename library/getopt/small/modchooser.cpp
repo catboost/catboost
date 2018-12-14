@@ -114,7 +114,7 @@ void TModChooser::AddMode(const TString& mode, TMainClassV* main, const TString&
 }
 
 void TModChooser::AddGroupModeDescription(const TString& description) {
-    UnsortedModes.push_back(TMode(nullptr, nullptr, ~description));
+    UnsortedModes.push_back(TMode(nullptr, nullptr, description.data()));
 }
 
 void TModChooser::SetDescription(const TString& descr) {
@@ -196,7 +196,7 @@ void TModChooser::PrintHelp(const TString& progName) const {
 
     if (ShowSeparated) {
         for (const auto& unsortedMode : UnsortedModes)
-            if (+unsortedMode.Name) {
+            if (unsortedMode.Name.size()) {
                 Cerr << "  " << NColorizer::StdErr().GreenColor() << RightPad(unsortedMode.Name, maxModeLen + 2, ' ') << NColorizer::StdErr().OldColor() << "  " << unsortedMode.Description << Endl;
             } else {
                 Cerr << SeparationString << Endl;

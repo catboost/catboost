@@ -100,7 +100,7 @@ static float DotProductImpl(
     ui64 stream)
 {
     using T = std::remove_const_t<T1>;
-    using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaHost>;
+    using TResultBuffer = TCudaBuffer<T, TMapping, EPtrType::CudaHost>;
     using TKernel = TDotProductKernel<T>;
 
     auto tmp = TResultBuffer::Create(x.GetMapping().RepeatOnAllDevices(1));

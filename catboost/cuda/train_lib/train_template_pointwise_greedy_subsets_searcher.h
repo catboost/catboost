@@ -16,9 +16,12 @@ namespace NCatboostCuda {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                        const TDataProvider& learn,
-                                                                        const TDataProvider* test,
+                                                                        const NCB::TTrainingDataProvider& learn,
+                                                                        const NCB::TTrainingDataProvider* test,
                                                                         TGpuAwareRandom& random,
+                                                                        ui32 approxDimension,
+                                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
             using TBoostingImpl = TBoosting<TTargetTemplate, TGreedySubsetsSearcher>;
@@ -28,6 +31,9 @@ namespace NCatboostCuda {
                                         learn,
                                         test,
                                         random,
+                                        approxDimension,
+                                        onEndIterationCallback,
+                                        testMultiApprox,
                                         metricsAndTimeHistory);
         };
     };

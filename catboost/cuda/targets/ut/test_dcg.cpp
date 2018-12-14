@@ -8,26 +8,36 @@
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/targets/dcg.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/dcg.h>
+#include <catboost/libs/metrics/sample.h>
 
+#include <library/accurate_accumulate/accurate_accumulate.h>
 #include <library/float16/float16.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/random/fast.h>
 #include <util/stream/labeled.h>
 
+using NCatboostCuda::CalculateDcg;
+using NCatboostCuda::CalculateIdcg;
+using NCatboostCuda::CalculateNdcg;
 using NCatboostCuda::NDetail::FuseUi32AndFloatIntoUi64;
 using NCatboostCuda::NDetail::FuseUi32AndTwoFloatsIntoUi64;
-using NCatboostCuda::NDetail::GetBits;
-using NCatboostCuda::NDetail::MakeDcgDecay;
-using NCatboostCuda::NDetail::MakeDcgExponentialDecay;
+using NCatboostCuda::NDetail::MakeDcgDecays;
+using NCatboostCuda::NDetail::MakeDcgExponentialDecays;
+using NCatboostCuda::NDetail::MakeElementwiseOffsets;
+using NCatboostCuda::NDetail::MakeEndOfGroupMarkers;
 using NCudaLib::GetCudaManager;
+using NCudaLib::TDistributedObject;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
+using NMetrics::TSample;
 
-static TVector<ui32> MakeOffsets(const ui32 groupCount, const ui32 maxGroupSize, const ui64 seed) {
+static TVector<ui32> MakeElementwiseOffsets(const ui32 groupCount, const ui32 maxGroupSize, const ui64 seed) {
     TFastRng<ui64> prng(seed);
     TVector<ui32> offsets;
     offsets.reserve(static_cast<size_t>(groupCount) * maxGroupSize);
@@ -43,7 +53,7 @@ static TVector<ui32> MakeOffsets(const ui32 groupCount, const ui32 maxGroupSize,
     return offsets;
 }
 
-static TStripeMapping MakeGroupAwareStripeMapping(const TConstArrayRef<ui32> offsets) {
+static TStripeMapping MakeGroupAwareStripeMappingFromElementwiseOffsets(const TConstArrayRef<ui32> offsets) {
     // We don't want group to be split across multiple devies
     const auto deviceCount = GetCudaManager().GetDeviceCount();
     const auto objectsPerDevice = (offsets.size() + deviceCount - 1) / deviceCount;
@@ -60,11 +70,28 @@ static TStripeMapping MakeGroupAwareStripeMapping(const TConstArrayRef<ui32> off
     }
 
     // init rest of slices
-    slices.resize(deviceCount);
+    slices.insert(slices.begin(), deviceCount - slices.size(), TSlice());
     return TStripeMapping(std::move(slices));
 }
 
-static TVector<ui32> MakeBiasedOffsets(const TConstArrayRef<ui32> offsets, const TStripeMapping& mapping) {
+static TDistributedObject<ui32> MakeOffsetsBias(
+    const TConstArrayRef<ui32> biasedOffsets,
+    const TStripeMapping& mapping) {
+
+    const auto deviceCount = GetCudaManager().GetDeviceCount();
+    auto offsetsBias = GetCudaManager().CreateDistributedObject<ui32>();
+    for (ui64 device = 0; device < deviceCount; ++device) {
+        const auto slice = mapping.DeviceSlice(device);
+        offsetsBias.Set(device, biasedOffsets[slice.Left]);
+    }
+
+    return offsetsBias;
+}
+
+static TVector<ui32> MakeDeviceLocalElementwiseOffsets(
+    const TConstArrayRef<ui32> offsets,
+    const TStripeMapping& mapping)
+{
     const auto deviceCount = GetCudaManager().GetDeviceCount();
     TVector<ui32> biasedOffsets;
     biasedOffsets.yresize(offsets.size());
@@ -77,22 +104,79 @@ static TVector<ui32> MakeBiasedOffsets(const TConstArrayRef<ui32> offsets, const
     return biasedOffsets;
 }
 
-static TVector<float> MakeDcgDecay(const TConstArrayRef<ui32> offsets) {
-    TVector<float> decay;
-    decay.yresize(offsets.size());
-    for (ui32 i = 0, iEnd = offsets.size(); i < iEnd; ++i) {
-        decay[i] = 1.f / Log2(static_cast<float>(i - offsets[i] + 2));
+static TStripeMapping MakeGroupAwareStripeMappingFromSizes(const TConstArrayRef<ui32> sizes) {
+    const auto deviceCount = GetCudaManager().GetDeviceCount();
+    const auto elementsCount = Accumulate(sizes.begin(), sizes.end(), size_t(0));
+    const auto elementsPerDevice = (elementsCount + deviceCount - 1) / deviceCount;
+    TVector<TSlice> slices;
+    slices.reserve(deviceCount);
+
+    TSlice slice;
+    for (size_t i = 0, inSliceElementCount = 0; i < sizes.size(); ++i) {
+        inSliceElementCount += sizes[i];
+        if (inSliceElementCount > elementsPerDevice) {
+            slice.Right = i + 1;
+            slices.push_back(slice);
+            slice.Left = slice.Right;
+            inSliceElementCount = 0;
+        }
     }
-    return decay;
+
+    slice.Right = sizes.size();
+    slices.push_back(slice);
+
+    // init rest of slices
+    slices.insert(slices.begin(), deviceCount - slices.size(), TSlice());
+    return TStripeMapping(std::move(slices));
 }
 
-static TVector<float> MakeDcgExponentialDecay(const TConstArrayRef<ui32> offsets, const float base) {
-    TVector<float> decay;
-    decay.yresize(offsets.size());
-    for (ui32 i = 0, iEnd = offsets.size(); i < iEnd; ++i) {
-        decay[i] = pow(base, i - offsets[i]);
+static TStripeMapping MakeGroupAwareElementsStripeMappingFromSizes(const TConstArrayRef<ui32> sizes)
+{
+    const auto deviceCount = GetCudaManager().GetDeviceCount();
+    const auto elementsCount = Accumulate(sizes.begin(), sizes.end(), size_t(0));
+    const auto elementsPerDevice = (elementsCount + deviceCount - 1) / deviceCount;
+    TVector<TSlice> slices;
+    slices.reserve(deviceCount);
+
+    TSlice slice;
+    for (size_t i = 0, inSliceElementCount = 0, totalElementCount = 0; i < sizes.size(); ++i) {
+        inSliceElementCount += sizes[i];
+        totalElementCount += sizes[i];
+        if (inSliceElementCount > elementsPerDevice) {
+            slice.Right = totalElementCount;
+            slices.push_back(slice);
+            slice.Left = slice.Right;
+            inSliceElementCount = 0;
+        }
     }
-    return decay;
+
+    slice.Right = elementsCount;
+    slices.push_back(slice);
+
+    // init rest of slices
+    slices.insert(slices.begin(), deviceCount - slices.size(), TSlice());
+    return TStripeMapping(std::move(slices));
+}
+
+static TVector<float> MakeDcgDecays(const TConstArrayRef<ui32> elementwiseOffsets) {
+    TVector<float> decays;
+    decays.yresize(elementwiseOffsets.size());
+    for (ui32 i = 0, iEnd = elementwiseOffsets.size(); i < iEnd; ++i) {
+        decays[i] = 1.f / Log2(static_cast<float>(i - elementwiseOffsets[i] + 2));
+    }
+    return decays;
+}
+
+static TVector<float> MakeDcgExponentialDecays(
+    const TConstArrayRef<ui32> elementwiseOffsets,
+    const float base)
+{
+    TVector<float> decays;
+    decays.yresize(elementwiseOffsets.size());
+    for (ui32 i = 0, iEnd = elementwiseOffsets.size(); i < iEnd; ++i) {
+        decays[i] = pow(base, i - elementwiseOffsets[i]);
+    }
+    return decays;
 }
 
 static TVector<ui64> FuseUi32AndFloatIntoUi64(
@@ -135,21 +219,6 @@ static TVector<ui64> FuseUi32AndTwoFloatsIntoUi64(
     }
 
     return fused;
-}
-
-template <typename T, typename U>
-static TVector<U> GetBits(const TConstArrayRef<T> src, const ui32 bitsOffset, const ui32 bitsCount)
-{
-    CB_ENSURE(bitsCount <= sizeof(T) * 8, LabeledOutput(bitsCount, sizeof(T) * 8));
-    CB_ENSURE(bitsCount <= sizeof(U) * 8, LabeledOutput(bitsCount, sizeof(U) * 8));
-    CB_ENSURE(bitsOffset <= sizeof(T) * 8, LabeledOutput(bitsOffset, sizeof(T) * 8));
-
-    TVector<U> dst;
-    dst.yresize(src.size());
-    for (size_t i = 0; i < src.size(); ++i) {
-        dst[i] = (src[i] << (sizeof(T) - bitsOffset + bitsCount)) >> (sizeof(T) + bitsCount);
-    }
-    return dst;
 }
 
 static void Sort(
@@ -233,7 +302,7 @@ static void Sort(
                     return TFloat16(lhsFloat1) > TFloat16(rhsFloat1);
                 }
 
-                return ui32s[offset + lhs] > ui32s[offset + rhs];
+                return ui32s[offset + lhs] < ui32s[offset + rhs];
         });
     }
 
@@ -262,6 +331,88 @@ static void Sort(
     }
 }
 
+static float CalculateIdcg(
+    const TConstArrayRef<ui32> sizes,
+    const TConstArrayRef<float> weights,
+    const TConstArrayRef<float> targets,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay,
+    const ui32 topSize)
+{
+    TMaybe<double> doubleDecay;
+    if (exponentialDecay.Defined()) {
+        doubleDecay = exponentialDecay.GetRef();
+    }
+
+    TVector<float> perQueryMetrics;
+    perQueryMetrics.yresize(sizes.size());
+    TVector<TSample> docs;
+    for (size_t i = 0, offset = 0; i < sizes.size(); offset += sizes[i], (void)++i) {
+        docs.resize(sizes[i]);
+        for (size_t j = 0, jEnd = sizes[i]; j < jEnd; ++j) {
+            docs[j].Target = targets[offset + j];
+        }
+
+        perQueryMetrics[i] = weights[offset] * CalcIDcg(docs, type, doubleDecay, topSize);
+    }
+
+    return FastAccumulate(perQueryMetrics);
+}
+
+static float CalculateDcg(
+    const TConstArrayRef<ui32> sizes,
+    const TConstArrayRef<float> weights,
+    const TConstArrayRef<float> targets,
+    const TConstArrayRef<float> approxes,
+    const ENdcgMetricType type,
+    const TMaybe<float> exponentialDecay,
+    const ui32 topSize)
+{
+    TMaybe<double> doubleDecay;
+    if (exponentialDecay.Defined()) {
+        doubleDecay = exponentialDecay.GetRef();
+    }
+
+    TVector<float> perQueryMetrics;
+    perQueryMetrics.yresize(sizes.size());
+    TVector<TSample> docs;
+    for (size_t i = 0, offset = 0; i < sizes.size(); offset += sizes[i], (void)++i) {
+        docs.resize(sizes[i]);
+        for (size_t j = 0, jEnd = sizes[i]; j < jEnd; ++j) {
+            docs[j].Target = targets[offset + j];
+            docs[j].Prediction = approxes[offset + j];
+        }
+
+        perQueryMetrics[i] = weights[offset] * CalcDcg(docs, type, doubleDecay, topSize);
+    }
+
+    return FastAccumulate(perQueryMetrics);
+}
+
+static float CalculateNdcg(
+    const TConstArrayRef<ui32> sizes,
+    const TConstArrayRef<float> weights,
+    const TConstArrayRef<float> targets,
+    const TConstArrayRef<float> approxes,
+    const ENdcgMetricType type,
+    const ui32 topSize)
+{
+    TVector<float> perQueryMetrics;
+    perQueryMetrics.yresize(sizes.size());
+    TVector<TSample> docs;
+    for (size_t i = 0, offset = 0; i < sizes.size(); offset += sizes[i], (void)++i) {
+        docs.resize(sizes[i]);
+        for (size_t j = 0, jEnd = sizes[i]; j < jEnd; ++j) {
+            docs[j].Target = targets[offset + j];
+            docs[j].Prediction = approxes[offset + j];
+        }
+
+        perQueryMetrics[i] = weights[offset] * CalcNdcg(docs, type, topSize);
+    }
+
+    return FastAccumulate(perQueryMetrics);
+}
+
 Y_UNIT_TEST_SUITE(NdcgTests) {
     Y_UNIT_TEST(TestMakeDcgDecaySingleDevice) {
         const auto devicesGuard = StartCudaManager();
@@ -269,15 +420,15 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const ui32 maxGroupSize = 30;
         const ui64 seed = 0;
 
-        const auto offsets = MakeOffsets(groupCount, maxGroupSize, seed);
-        const auto cpuDecay = ::MakeDcgDecay(offsets);
+        const auto offsets = MakeElementwiseOffsets(groupCount, maxGroupSize, seed);
+        const auto cpuDecay = ::MakeDcgDecays(offsets);
 
         const TSingleMapping mapping(0, offsets.size());
         auto deviceDecay = TSingleBuffer<float>::Create(mapping);
         auto deviceOffsets = TSingleBuffer<ui32>::Create(mapping);
 
         deviceOffsets.Write(offsets);
-        MakeDcgDecay(deviceOffsets, deviceDecay);
+        MakeDcgDecays(deviceOffsets, deviceDecay);
 
         TVector<float> gpuDecay;
         deviceDecay.Read(gpuDecay);
@@ -296,15 +447,15 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const ui32 maxGroupSize = 30;
         const ui64 seed = 0;
 
-        const auto offsets = MakeOffsets(groupCount, maxGroupSize, seed);
-        const auto cpuDecay = ::MakeDcgDecay(offsets);
+        const auto offsets = MakeElementwiseOffsets(groupCount, maxGroupSize, seed);
+        const auto cpuDecay = ::MakeDcgDecays(offsets);
 
-        const auto mapping = MakeGroupAwareStripeMapping(offsets);
+        const auto mapping = MakeGroupAwareStripeMappingFromElementwiseOffsets(offsets);
         auto deviceDecay = TStripeBuffer<float>::Create(mapping);
         auto deviceOffsets = TStripeBuffer<ui32>::Create(mapping);
 
-        deviceOffsets.Write(MakeBiasedOffsets(offsets, mapping));
-        MakeDcgDecay(deviceOffsets, deviceDecay);
+        deviceOffsets.Write(MakeDeviceLocalElementwiseOffsets(offsets, mapping));
+        MakeDcgDecays(deviceOffsets, deviceDecay);
 
         TVector<float> gpuDecay;
         deviceDecay.Read(gpuDecay);
@@ -324,15 +475,15 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const ui64 seed = 0;
         const float base = 1.3f;
 
-        const auto offsets = MakeOffsets(groupCount, maxGroupSize, seed);
-        const auto cpuDecay = ::MakeDcgExponentialDecay(offsets, base);
+        const auto offsets = MakeElementwiseOffsets(groupCount, maxGroupSize, seed);
+        const auto cpuDecay = ::MakeDcgExponentialDecays(offsets, base);
 
         const TSingleMapping mapping(0, offsets.size());
         auto deviceOffsets = TSingleBuffer<ui32>::Create(mapping);
         auto deviceDecay = TSingleBuffer<float>::Create(mapping);
 
         deviceOffsets.Write(offsets);
-        MakeDcgExponentialDecay(deviceOffsets, base, deviceDecay);
+        MakeDcgExponentialDecays(deviceOffsets, base, deviceDecay);
 
         TVector<float> gpuDecay;
         deviceDecay.Read(gpuDecay);
@@ -352,15 +503,15 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const ui64 seed = 0;
         const float base = 1.3f;
 
-        const auto offsets = MakeOffsets(groupCount, maxGroupSize, seed);
-        const auto cpuDecay = ::MakeDcgExponentialDecay(offsets, base);
+        const auto offsets = MakeElementwiseOffsets(groupCount, maxGroupSize, seed);
+        const auto cpuDecay = ::MakeDcgExponentialDecays(offsets, base);
 
-        const auto mapping = MakeGroupAwareStripeMapping(offsets);
+        const auto mapping = MakeGroupAwareStripeMappingFromElementwiseOffsets(offsets);
         auto deviceDecay = TStripeBuffer<float>::Create(mapping);
         auto deviceOffsets = TStripeBuffer<ui32>::Create(mapping);
 
-        deviceOffsets.Write(MakeBiasedOffsets(offsets, mapping));
-        MakeDcgExponentialDecay(deviceOffsets, base, deviceDecay);
+        deviceOffsets.Write(MakeDeviceLocalElementwiseOffsets(offsets, mapping));
+        MakeDcgExponentialDecays(deviceOffsets, base, deviceDecay);
 
         TVector<float> gpuDecay;
         deviceDecay.Read(gpuDecay);
@@ -527,10 +678,9 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
     Y_UNIT_TEST(TestSortFusedUi32AndTwoFloats) {
         const auto devicesGuard = StartCudaManager();
         const size_t size = 30000000;
-        // const size_t size = 30;
         const ui32 groupCount = size / 30;
         const ui64 seed = 0;
-        const float scaleFactor = 100.f;
+        const float scaleFactor = 5.f;
 
         TFastRng<ui64> prng(seed);
         TVector<ui32> ui32s;
@@ -579,9 +729,9 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         deviceFloats1.Write(floats1);
         deviceFloats2.Write(floats2);
 
-        FuseUi32AndTwoFloatsIntoUi64(deviceUi32s, deviceFloats1, deviceFloats2, deviceFused, false, true);
+        FuseUi32AndTwoFloatsIntoUi64(deviceUi32s, deviceFloats1, deviceFloats2, deviceFused, true, false);
         MakeSequence(deviceIndices);
-        RadixSort(deviceFused, deviceIndices, true);
+        RadixSort(deviceFused, deviceIndices);
         Gather(deviceSortedUi32s, deviceUi32s, deviceIndices);
         Gather(deviceSortedFloats1, deviceFloats1, deviceIndices);
         Gather(deviceSortedFloats2, deviceFloats2, deviceIndices);
@@ -617,37 +767,406 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         }
     }
 
-    Y_UNIT_TEST(TestGetBits) {
-        const auto devicesGuard = StartCudaManager();
-        const size_t size = 30000000;
+    static void TestIdcg(
+        const size_t size,
+        const size_t maxDocsPerQuery,
+        const ui64 seed,
+        const ENdcgMetricType type,
+        const TMaybe<float> exponentialDecay,
+        const bool withWeights,
+        const ui32 topSize,
+        const float eps)
+    {
+        const auto deviceGuard = StartCudaManager();
+        const float scale = 5;
+        const float weightsScale = 1;
+
+        TFastRng<ui64> prng(seed);
+        TVector<ui32> sizes;
+        sizes.reserve(size);
+        TVector<ui32> offsets;
+        offsets.reserve(size);
+        for (size_t curSize = 0; curSize < size; curSize += sizes.back()) {
+            sizes.push_back(Min<ui32>(prng.Uniform(maxDocsPerQuery) + 1, size - curSize));
+            offsets.push_back(curSize);
+        }
+        TVector<float> targets;
+        targets.yresize(size);
+        for (auto& target : targets) {
+            target = prng.GenRandReal1() * scale;
+        }
+        TVector<float> weights;
+        weights.yresize(size);
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            const auto weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+            for (ui32 j = 0; j < sizes[i]; ++j) {
+                weights[offsets[i] + j] = weight;
+            }
+        }
+
+        const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
+        const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
+        auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
+        auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
+        auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
+
+        deviceSizes.Write(sizes);
+        deviceBiasedOffsets.Write(offsets);
+        deviceWeights.Write(weights);
+        deviceTargets.Write(targets);
+
+        const auto cpuIdcg = CalculateIdcg(
+            sizes,
+            weights,
+            targets,
+            type,
+            exponentialDecay,
+            topSize) / sizes.size();
+        const auto gpuIdcg = CalculateIdcg(
+            deviceSizes.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            deviceOffsetsBias,
+            deviceWeights.ConstCopyView(),
+            deviceTargets.ConstCopyView(),
+            type,
+            exponentialDecay,
+            {topSize}).front() / sizes.size();
+        UNIT_ASSERT_DOUBLES_EQUAL_C(
+            cpuIdcg, gpuIdcg, eps,
+            LabeledOutput(size, maxDocsPerQuery, seed, type, exponentialDecay));
+    }
+
+    Y_UNIT_TEST(TestIdcg) {
+        const ui64 seed = 0;
+        const TMaybe<float> exponentialDecays[] = {Nothing(), 0.5};
+        const ui32 topSizes[] = {5, 10, Max<ui32>()};
+        for (const size_t size : {1000, 10000, 10000000}) {
+            for (const size_t maxDocsPerQuery : {1, 2, 3, 4, 7, 8, 15, 16, 31, 32, 40}) {
+                for (const auto type : {ENdcgMetricType::Base, ENdcgMetricType::Exp}) {
+                    for (const auto exponentialDecay : exponentialDecays) {
+                        for (const auto withWeights : {false, true}) {
+                            for (const auto topSize : topSizes) {
+                                float eps = 1e-5;
+                                if (size == 10000000 || maxDocsPerQuery == 40) {
+                                    eps = 1e-4;
+                                }
+                                TestIdcg(size, maxDocsPerQuery, seed, type, exponentialDecay, withWeights, topSize, eps);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static void TestDcg(
+        const size_t size,
+        const size_t maxDocsPerQuery,
+        const ui64 seed,
+        const ENdcgMetricType type,
+        const TMaybe<float> exponentialDecay,
+        const bool withWeights,
+        const ui32 topSize,
+        const float eps)
+    {
+        const auto deviceGuard = StartCudaManager();
+        const float scale = 5;
+        const float weightsScale = 1;
+
+        TFastRng<ui64> prng(seed);
+        TVector<ui32> sizes;
+        sizes.reserve(size);
+        TVector<ui32> offsets;
+        offsets.reserve(size);
+        for (size_t curSize = 0; curSize < size; curSize += sizes.back()) {
+            sizes.push_back(Min<ui32>(prng.Uniform(maxDocsPerQuery) + 1, size - curSize));
+            offsets.push_back(curSize);
+        }
+
+        // `CalculateDcg` on GPU operates float16 when does sorting, if we leave bits in mantissa
+        // that get lost when rounding from float to float16 we may get a different sorting order
+        // which in turn may result in significant difference in metric value (up to ones on 10^6
+        // randomly generated documents with relevance in [0; 5]), its manifestation especially
+        // visible on Exp variant of metric where numerator of summand is 2^relevance_i.
+        TVector<float> targets;
+        targets.yresize(size);
+        for (auto& target : targets) {
+            target = TFloat16(prng.GenRandReal1() * scale);
+        }
+        TVector<float> approxes;
+        approxes.yresize(size);
+        for (auto& approx : approxes) {
+            approx = TFloat16(prng.GenRandReal1() * scale);
+        }
+        TVector<float> weights;
+        weights.yresize(size);
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            const auto weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+            for (ui32 j = 0; j < sizes[i]; ++j) {
+                weights[offsets[i] + j] = weight;
+            }
+        }
+
+        const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
+        const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
+        auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
+        auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
+        auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
+        auto deviceApproxes = TStripeBuffer<float>::Create(elementsMapping);
+
+        deviceSizes.Write(sizes);
+        deviceBiasedOffsets.Write(offsets);
+        deviceWeights.Write(weights);
+        deviceTargets.Write(targets);
+        deviceApproxes.Write(approxes);
+
+        const auto cpuDcg = CalculateDcg(
+            sizes,
+            weights,
+            targets,
+            approxes,
+            type,
+            exponentialDecay,
+            topSize) / sizes.size();
+        const auto gpuDcg = CalculateDcg(
+            deviceSizes.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            deviceOffsetsBias,
+            deviceWeights.ConstCopyView(),
+            deviceTargets.ConstCopyView(),
+            deviceApproxes.ConstCopyView(),
+            type,
+            exponentialDecay,
+            {topSize}).front() / sizes.size();
+        UNIT_ASSERT_DOUBLES_EQUAL_C(
+            cpuDcg, gpuDcg, eps,
+            LabeledOutput(size, maxDocsPerQuery, seed, type, exponentialDecay));
+    }
+
+    Y_UNIT_TEST(TestDcg) {
+        const ui64 seed = 0;
+        const TMaybe<float> exponentialDecays[] = {Nothing(), 0.5};
+        const ui32 topSizes[] = {5, 10, Max<ui32>()};
+        for (const size_t size : {1000, 10000, 10000000}) {
+            for (const size_t maxDocsPerQuery : {1, 2, 3, 4, 7, 8, 15, 16, 31, 32, 40}) {
+                for (const auto type : {ENdcgMetricType::Base, ENdcgMetricType::Exp}) {
+                    for (const auto exponentialDecay : exponentialDecays) {
+                        for (const auto withWeights : {false, true}) {
+                            for (const auto topSize : topSizes) {
+                                float eps = 1e-5;
+                                if (size == 10000000) {
+                                    eps = 1e-4;
+                                }
+                                if (size == 10000000 && type == ENdcgMetricType::Exp) {
+                                    eps = 1e-3;
+                                }
+                                if (size == 10000 && maxDocsPerQuery == 31) {
+                                    eps = 1e-3;
+                                }
+                                TestDcg(size, maxDocsPerQuery, seed, type, exponentialDecay, withWeights, topSize, eps);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestMakeEndOfGroupMarkers) {
+        const auto deviceGuard = StartCudaManager();
+        const size_t size = 10000000;
+        const size_t maxGroupSize = 30;
         const ui64 seed = 0;
 
         TFastRng<ui64> prng(seed);
-        TVector<ui64> src;
-        src.yresize(size);
-        for (auto& value : src) {
-            value = prng();
+        TVector<ui32> sizes;
+        sizes.reserve(size / maxGroupSize);
+        TVector<ui32> offsets;
+        sizes.reserve(sizes.size());
+        for (size_t curSize = 0; curSize < size;) {
+            sizes.push_back(Min<ui32>(prng.Uniform(maxGroupSize) + 1, size - curSize));
+            offsets.push_back(curSize);
+            curSize += sizes.back();
         }
 
-        const auto mapping = TStripeMapping::SplitBetweenDevices(size);
-        auto deviceSrc = TStripeBuffer<ui64>::Create(mapping);
-        auto deviceDst = TStripeBuffer<ui32>::Create(mapping);
+        TVector<ui32> cpuEndOfGroupMarkers;
+        cpuEndOfGroupMarkers.resize(size);
+        cpuEndOfGroupMarkers[0] = 1;
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            if (const auto offset = offsets[i] + sizes[i]; offset < size) {
+                cpuEndOfGroupMarkers[offset] = 1;
+            }
+        }
 
-        deviceSrc.Write(src);
+        const TSingleMapping sizesMapping(0, sizes.size());
+        auto deviceSizes = TSingleBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TSingleBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = GetCudaManager().CreateDistributedObject<ui32>(0);
+        const TSingleMapping endOfGroupMarkersMapping(0, size);
+        auto deviceEndOfGroupMarkers = TSingleBuffer<ui32>::Create(endOfGroupMarkersMapping);
 
-        const std::pair<ui32, ui32> cases[] = {{32, 32}, {3, 5}, {0, 32}};
-        for (const auto [bitsOffset, bitsCount] : cases) {
-            const auto cpuDst = GetBits<ui64, ui32>(src, bitsOffset, bitsCount);
-            GetBits(deviceSrc, deviceDst, bitsOffset, bitsCount);
+        deviceSizes.Write(sizes);
+        deviceBiasedOffsets.Write(offsets);
 
-            TVector<ui32> gpuDst;
-            deviceDst.Read(gpuDst);
+        FillBuffer(deviceEndOfGroupMarkers, ui32(0));
+        MakeEndOfGroupMarkers(deviceSizes, deviceBiasedOffsets, deviceOffsetsBias, deviceEndOfGroupMarkers);
 
-            UNIT_ASSERT_VALUES_EQUAL(cpuDst.size(), gpuDst.size());
-            for (size_t i = 0, iEnd = cpuDst.size(); i < iEnd; ++i) {
-                UNIT_ASSERT_VALUES_EQUAL_C(
-                    cpuDst[i], gpuDst[i],
-                    LabeledOutput(bitsOffset, bitsCount, i));
+        TVector<ui32> gpuEndOfGroupMarkers;
+        deviceEndOfGroupMarkers.Read(gpuEndOfGroupMarkers);
+
+        for (size_t i = 0; i < size; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL_C(
+                cpuEndOfGroupMarkers[i], gpuEndOfGroupMarkers[i],
+                LabeledOutput(i, size, maxGroupSize));
+        }
+    }
+
+    void TestMakeElementwiseOffsets(const size_t size, const size_t maxGroupSize, const ui64 seed) {
+        const auto deviceGuard = StartCudaManager();
+
+        TFastRng<ui64> prng(seed);
+        TVector<ui32> sizes;
+        sizes.reserve(size);
+        TVector<ui32> offsets;
+        sizes.reserve(sizes.size());
+        for (size_t curSize = 0; curSize < size; curSize += sizes.back()) {
+            sizes.push_back(Min<ui32>(prng.Uniform(maxGroupSize) + 1, size - curSize));
+            offsets.push_back(curSize);
+        }
+
+        const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
+        const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
+        auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
+        auto deviceElementwiseOffsets = TStripeBuffer<ui32>::Create(elementsMapping);
+
+        deviceSizes.Write(sizes);
+        deviceBiasedOffsets.Write(offsets);
+
+        MakeElementwiseOffsets(deviceSizes, deviceBiasedOffsets, deviceOffsetsBias, deviceElementwiseOffsets);
+
+        TVector<ui32> gpuElementwiseOffsets;
+        deviceElementwiseOffsets.Read(gpuElementwiseOffsets);
+
+        TVector<ui32> cpuElementwiseOffsets;
+        cpuElementwiseOffsets.yresize(size);
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            for (size_t j = offsets[i], jEnd = offsets[i] + sizes[i]; j < jEnd; ++j) {
+                cpuElementwiseOffsets[j] = offsets[i];
+            }
+        }
+        cpuElementwiseOffsets = MakeDeviceLocalElementwiseOffsets(cpuElementwiseOffsets, elementsMapping);
+
+        for (size_t i = 0; i < size; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL_C(
+                cpuElementwiseOffsets[i], gpuElementwiseOffsets[i],
+                LabeledOutput(i, size, maxGroupSize));
+        }
+    }
+
+    Y_UNIT_TEST(TestMakeElementwiseOffsets) {
+        const ui64 seed = 0;
+        for (const size_t size : {100, 999, 998, 997, 996, 995, 994, 1000000}) {
+            for (const size_t maxGroupSize : {1, 2, 3, 4, 7, 8, 15, 16, 31, 32, 40}) {
+                TestMakeElementwiseOffsets(size, maxGroupSize, seed);
+            }
+        }
+    }
+
+    static void TestNdcg(
+        const size_t size,
+        const size_t maxDocsPerQuery,
+        const ui64 seed,
+        const ENdcgMetricType type,
+        const bool withWeights,
+        const ui32 topSize,
+        const float eps)
+    {
+        const auto deviceGuard = StartCudaManager();
+        const float scale = 5;
+        const float weightsScale = 1;
+
+        TFastRng<ui64> prng(seed);
+        TVector<ui32> sizes;
+        sizes.reserve(size);
+        TVector<ui32> offsets;
+        offsets.reserve(size);
+        for (size_t curSize = 0; curSize < size; curSize += sizes.back()) {
+            sizes.push_back(Min<ui32>(prng.Uniform(maxDocsPerQuery) + 1, size - curSize));
+            offsets.push_back(curSize);
+        }
+        TVector<float> targets;
+        targets.yresize(size);
+        for (auto& target : targets) {
+            target = TFloat16(prng.GenRandReal1() * scale);
+        }
+        TVector<float> approxes;
+        approxes.yresize(size);
+        for (auto& approx : approxes) {
+            approx = TFloat16(prng.GenRandReal1() * scale);
+        }
+        TVector<float> weights;
+        weights.yresize(size);
+        for (size_t i = 0; i < sizes.size(); ++i) {
+            const auto weight = withWeights ? prng.GenRandReal1() * weightsScale : 1.f;
+            for (ui32 j = 0; j < sizes[i]; ++j) {
+                weights[offsets[i] + j] = weight;
+            }
+        }
+
+        const auto sizesMapping = MakeGroupAwareStripeMappingFromSizes(sizes);
+        const auto elementsMapping = MakeGroupAwareElementsStripeMappingFromSizes(sizes);
+        auto deviceSizes = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceBiasedOffsets = TStripeBuffer<ui32>::Create(sizesMapping);
+        auto deviceOffsetsBias = MakeOffsetsBias(offsets, sizesMapping);
+        auto deviceWeights = TStripeBuffer<float>::Create(elementsMapping);
+        auto deviceTargets = TStripeBuffer<float>::Create(elementsMapping);
+        auto deviceApproxes = TStripeBuffer<float>::Create(elementsMapping);
+
+        deviceSizes.Write(sizes);
+        deviceBiasedOffsets.Write(offsets);
+        deviceWeights.Write(weights);
+        deviceTargets.Write(targets);
+        deviceApproxes.Write(approxes);
+
+        const auto cpuNdcg = CalculateNdcg(
+            sizes,
+            weights,
+            targets,
+            approxes,
+            type,
+            topSize) / sizes.size();
+        const auto gpuNdcg = CalculateNdcg(
+            deviceSizes.ConstCopyView(),
+            deviceBiasedOffsets.ConstCopyView(),
+            deviceOffsetsBias,
+            deviceWeights.ConstCopyView(),
+            deviceTargets.ConstCopyView(),
+            deviceApproxes.ConstCopyView(),
+            type,
+            {topSize}).front() / sizes.size();
+        UNIT_ASSERT_DOUBLES_EQUAL_C(
+            cpuNdcg, gpuNdcg, eps,
+            LabeledOutput(size, maxDocsPerQuery, seed, type));
+    }
+
+    Y_UNIT_TEST(TestNdcg) {
+        const ui64 seed = 0;
+        const ui32 topSizes[] = {5, 10, Max<ui32>()};
+        for (const size_t size : {1000, 10000, 10000000}) {
+            for (const size_t maxDocsPerQuery : {1, 2, 3, 4, 7, 8, 15, 16, 31, 32, 40}) {
+                for (const auto type : {ENdcgMetricType::Base, ENdcgMetricType::Exp}) {
+                    for (const auto withWeights : {false, true}) {
+                        for (const auto topSize : topSizes) {
+                            TestNdcg(size, maxDocsPerQuery, seed, type, withWeights, topSize, 1e-5);
+                        }
+                    }
+                }
             }
         }
     }

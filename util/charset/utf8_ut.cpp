@@ -21,8 +21,8 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
             TString s = "привет!";
             TString q = "ПРИВЕТ!";
             TString tmp;
-            UNIT_ASSERT(ToLowerUTF8Impl(~s, +s, tmp) == false);
-            UNIT_ASSERT(ToLowerUTF8Impl(~q, +q, tmp) == true);
+            UNIT_ASSERT(ToLowerUTF8Impl(s.data(), s.size(), tmp) == false);
+            UNIT_ASSERT(ToLowerUTF8Impl(q.data(), q.size(), tmp) == true);
         }
 
         {
@@ -46,6 +46,46 @@ Y_UNIT_TEST_SUITE(TUtfUtilTest) {
                     tmp.to_lower();
 
                     UNIT_ASSERT_VALUES_EQUAL(ToLowerUTF8(s), WideToUTF8(tmp));
+                }
+                numberOfVariants *= N;
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestToUpperUtfString) {
+        UNIT_ASSERT_VALUES_EQUAL(ToUpperUTF8("xyz XYZ привет!"), "XYZ XYZ ПРИВЕТ!");
+
+        UNIT_ASSERT_VALUES_EQUAL(ToUpperUTF8(AsStringBuf("XYZ")), "XYZ");
+
+        {
+            TString s = "ПРИВЕТ!";
+            TString q = "привет!";
+            TString tmp;
+            UNIT_ASSERT(ToUpperUTF8Impl(s.data(), s.size(), tmp) == false);
+            UNIT_ASSERT(ToUpperUTF8Impl(q.data(), q.size(), tmp) == true);
+        }
+
+        {
+            const char* weird = "\xC8\xBE"; // 'Ⱦ', U+023E. strlen(weird)==2, strlen(ToUpper_utf8(weird)) is 3
+            const char* turkI = "İ";        //strlen("İ") == 2, strlen(ToUpper_utf8("İ") == 1
+            TStringBuf chars[] = {"F", "f", "б", "Б", turkI, weird};
+            const int N = Y_ARRAY_SIZE(chars);
+            //try all combinations of these letters.
+            int numberOfVariants = 1;
+            for (int len = 0; len <= 4; ++len) {
+                for (int i = 0; i < numberOfVariants; ++i) {
+                    TString s;
+                    int k = i;
+                    for (int j = 0; j < len; ++j) {
+                        //Treat 'i' like number in base-N system with digits from 'chars'-array
+                        s += chars[k % N];
+                        k /= N;
+                    }
+
+                    TUtf16String tmp = UTF8ToWide(s);
+                    tmp.to_upper();
+
+                    UNIT_ASSERT_VALUES_EQUAL(ToUpperUTF8(s), WideToUTF8(tmp));
                 }
                 numberOfVariants *= N;
             }

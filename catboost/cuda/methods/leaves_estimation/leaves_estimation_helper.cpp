@@ -58,11 +58,12 @@ namespace NCatboostCuda {
     }
 
     TVector<double> ComputeBinStatisticsForParts(const TStripeBuffer<float>& stat,
-                                                const TStripeBuffer<ui32>& partOffsets,
-                                                ui32 partCount) {
+                                                 const TStripeBuffer<ui32>& partOffsets,
+                                                 ui32 partCount) {
+
         auto reducedStatsMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(partCount);
         auto reducedStat = TStripeBuffer<double>::Create(reducedStatsMapping);
-        ComputePartitionStats(stat, NCudaLib::ParallelStripeView(partOffsets, TSlice(0, partCount)), &reducedStat);
+        ComputePartitionStats(stat, NCudaLib::ParallelStripeView(partOffsets, TSlice(0, partCount + 1)), &reducedStat);
         return ReadReduce(reducedStat);
     }
 

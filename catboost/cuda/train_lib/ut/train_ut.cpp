@@ -1,3 +1,5 @@
+
+#include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 
@@ -7,6 +9,10 @@
 
 #include <limits>
 
+
+using namespace NCB;
+
+
 Y_UNIT_TEST_SUITE(TrainModelTests) {
     Y_UNIT_TEST(TrainWithoutNansTestWithNans) {
         // Train doesn't have NaNs, so TrainModel implicitly forbids them (during quantization), and
@@ -14,22 +20,66 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         //
         TTempDir trainDir;
 
-        // gpu CatBoost requires at least 4*numberof_devices documents in dataset
-        TPool learn;
-        learn.Docs.Resize(/*doc count*/4, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-        learn.Docs.Factors[0] = {+0.5f, +1.5f, -2.5f, 0.3f};
-        learn.Docs.Factors[1] = {+0.7f, +6.4f, +2.4f, 0.7f};
-        learn.Docs.Factors[2] = {-2.0f, -1.0f, +6.0f, -1.2f};
-        learn.Docs.Target = {1.0f, 0.0f, 0.2f, 0.0f};
-        learn.FeatureId = {"aaa", "bbb", "ccc"};
+        TDataProviders dataProviders;
 
-        TPool test;
-        test.Docs.Resize(/*doc count*/1, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-        test.Docs.Factors[0] = {std::numeric_limits<float>::quiet_NaN()};
-        test.Docs.Factors[1] = {+1.5f};
-        test.Docs.Factors[2] = {-2.5f};
-        test.Docs.Target = {1.0f};
-        test.FeatureId = {"aaa", "bbb", "ccc"};
+        // gpu CatBoost requires at least 4*numberof_devices documents in dataset
+
+        dataProviders.Learn = CreateDataProvider(
+            [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                TDataMetaInfo metaInfo;
+                metaInfo.HasTarget = true;
+                metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                    (ui32)3,
+                    TVector<ui32>{},
+                    TVector<TString>{"aaa", "bbb", "ccc"}
+                );
+
+                visitor->Start(metaInfo, 4, EObjectsOrder::Undefined, {});
+
+                visitor->AddFloatFeature(
+                    0,
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f, 0.3f})
+                );
+                visitor->AddFloatFeature(
+                    1,
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f, 0.7f})
+                );
+                visitor->AddFloatFeature(
+                    2,
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f, -1.2f})
+                );
+
+                visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f, 0.0f});
+
+                visitor->Finish();
+            }
+        );
+
+        dataProviders.Test.emplace_back(
+            CreateDataProvider(
+                [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                    visitor->Start(dataProviders.Learn->MetaInfo, 1, EObjectsOrder::Undefined, {});
+
+                    visitor->AddFloatFeature(
+                        0,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(
+                            TVector<float>{std::numeric_limits<float>::quiet_NaN()}
+                        )
+                    );
+                    visitor->AddFloatFeature(
+                        1,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f})
+                    );
+                    visitor->AddFloatFeature(
+                        2,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f})
+                    );
+                    visitor->AddTarget(TVector<float>{1.0f});
+
+                    visitor->Finish();
+                }
+            )
+        );
 
         TFullModel model;
         TEvalResult evalResult;
@@ -43,9 +93,10 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         const auto f = [&] {
             TrainModel(
                 params,
+                nullptr,
                 {},
                 {},
-                TClearablePoolPtrs(learn, {&test}),
+                std::move(dataProviders),
                 "",
                 &model,
                 {&evalResult}

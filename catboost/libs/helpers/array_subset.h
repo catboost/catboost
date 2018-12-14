@@ -1,10 +1,12 @@
 #pragma once
 
+#include "dbg_output.h"
 #include "exception.h"
 #include "maybe_owning_array_holder.h"
 
 #include <catboost/libs/index_range/index_range.h>
 
+#include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
@@ -78,6 +80,10 @@ namespace NCB {
         bool operator ==(const TRangesSubset& lhs) const {
             return (Size == lhs.Size) && (Blocks == lhs.Blocks);
         }
+
+        bool operator !=(const TRangesSubset& lhs) const {
+            return !(*this == lhs);
+        }
     };
 
     template <class TSize>
@@ -95,6 +101,10 @@ namespace NCB {
         bool operator ==(const TFullSubset& lhs) const {
             return Size == lhs.Size;
         }
+
+        bool operator !=(const TFullSubset& lhs) const {
+            return !(*this == lhs);
+        }
     };
 
     template <class TSize>
@@ -105,6 +115,11 @@ namespace NCB {
         using TBase = TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
 
     public:
+        // default constructor is necessary for BinSaver serialization & Cython
+        TArraySubsetIndexing()
+            : TArraySubsetIndexing(TFullSubset<TSize>(0))
+        {}
+
         explicit TArraySubsetIndexing(TFullSubset<TSize>&& subset)
             : TBase(std::move(subset))
         {}
@@ -117,12 +132,12 @@ namespace NCB {
             : TBase(std::move(subset))
         {}
 
-        bool operator ==(const TArraySubsetIndexing& lhs) const {
-            return TBase::operator ==((const TBase&)lhs);
+        friend bool operator ==(const TArraySubsetIndexing& a, const TArraySubsetIndexing& b) {
+            return static_cast<const TBase&>(a) == static_cast<const TBase&>(b);
         }
 
         TSize Size() const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return Get<TFullSubset<TSize>>().Size;
                 case TBase::template TagOf<TRangesSubset<TSize>>():
@@ -135,7 +150,7 @@ namespace NCB {
 
         // number of elements for TFullSubset or TIndexedSubset, number of ranges for TRangesSubset
         TSize GetParallelizableUnitsCount() const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return Get<TFullSubset<TSize>>().Size;
                 case TBase::template TagOf<TRangesSubset<TSize>>():
@@ -155,6 +170,45 @@ namespace NCB {
         template <class T>
         decltype(auto) Get() const {
             return ::Get<T>((const TBase&)*this);
+        }
+
+        // returns Nothing() if subset is not consecutive
+        TMaybe<TSize> GetConsecutiveSubsetBegin() const {
+            switch (TBase::index()) {
+                case TBase::template TagOf<TFullSubset<TSize>>():
+                    return TSize(0);
+                case TBase::template TagOf<TRangesSubset<TSize>>():
+                    {
+                        const auto& blocks = Get<TRangesSubset<TSize>>().Blocks;
+                        if (blocks.size() == 0) {
+                            return TSize(0);
+                        }
+                        for (auto i : xrange(blocks.size() - 1)) {
+                            if (blocks[i].SrcEnd != blocks[i + 1].SrcBegin) {
+                                return Nothing();
+                            }
+                        }
+                        return blocks[0].SrcBegin;
+                    }
+                case TBase::template TagOf<TIndexedSubset<TSize>>():
+                    {
+                        TConstArrayRef<TSize> indices = Get<TIndexedSubset<TSize>>();
+                        if (indices.size() == 0) {
+                            return TSize(0);
+                        }
+                        for (auto i : xrange(indices.size() - 1)) {
+                            if ((indices[i] + 1) != indices[i + 1]) {
+                                return Nothing();
+                            }
+                        }
+                        return indices[0];
+                    }
+            }
+            return Nothing(); // just to silence compiler warnings
+        }
+
+        bool IsConsecutive() const {
+            return GetConsecutiveSubsetBegin().Defined();
         }
 
         // f is a visitor function that will be repeatedly called with (index, srcIndex) arguments
@@ -199,7 +253,7 @@ namespace NCB {
 
         // might be used for external parallelism if you need element indices of the subrange
         NCB::TIndexRange<TSize> GetElementRangeFromUnitRange(NCB::TIndexRange<TSize> unitRange) const {
-            switch (TBase::Index()) {
+            switch (TBase::index()) {
                 case TBase::template TagOf<TFullSubset<TSize>>():
                     return unitRange;
                 case TBase::template TagOf<TRangesSubset<TSize>>():
@@ -220,7 +274,7 @@ namespace NCB {
 
 // need to be able to use 'break' or 'return' in iteration
 #define LOOP_SUB_RANGE(unitSubRange, LOOP_BODY_MACRO) \
-        switch (TBase::Index()) { \
+        switch (TBase::index()) { \
             case TBase::template TagOf<TFullSubset<TSize>>(): \
                 { \
                     for (TSize index : unitSubRange.Iter()) { \
@@ -301,6 +355,10 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
+            if (!Size()) {
+                return;
+            }
+
             if (!approximateBlockSize.Defined()) {
                 TSize localExecutorThreadsPlusCurrentCount = (TSize)localExecutor->GetThreadCount() + 1;
                 approximateBlockSize = CeilDiv(Size(), localExecutorThreadsPlusCurrentCount);
@@ -328,13 +386,59 @@ namespace NCB {
         }
     };
 
+    template <class TS, class TSize>
+    class TDumperVisitor {
+    public:
+        TDumperVisitor(TS& s)
+            : S(s)
+        {}
+
+        void operator()(const TFullSubset<TSize>& fullSubset) const {
+            S << "FullSubset(size=" << fullSubset.Size << ")";
+        }
+
+        void operator()(const TRangesSubset<TSize>& rangesSubset) const {
+            S << "RangesSubset(size=" << rangesSubset.Size << ", blocks="
+              << DbgDumpWithIndices<TSubsetBlock<TSize>>(rangesSubset.Blocks, true) << ")";
+        }
+
+        void operator()(const TIndexedSubset<TSize>& indexedSubset) const {
+            S << "IndexedSubset(size=" << indexedSubset.size() << ", indices="
+              << DbgDumpWithIndices<TSize>(indexedSubset, true) << ")";
+        }
+
+    private:
+        TS& S;
+    };
+}
+
+
+template <class TSize>
+struct TDumper<NCB::TSubsetBlock<TSize>> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TSubsetBlock<TSize>& block) {
+        s << "Src=[" << block.SrcBegin << "," << block.SrcEnd << "), DstBegin=" << block.DstBegin;
+    }
+};
+
+
+template <class TSize>
+struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
+        subset.Visit(NCB::TDumperVisitor<S, TSize>(s));
+    }
+};
+
+
+namespace NCB {
 
     // TODO(akhropov): too expensive for release?
     template <class TSize = size_t>
     void CheckSubsetIndices(const TArraySubsetIndexing<TSize>& srcSubset, TSize srcSize) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (srcSubset.Index()) {
+        switch (srcSubset.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 CB_ENSURE(
                     srcSize == srcSubset.Size(),
@@ -471,7 +575,7 @@ namespace NCB {
     ) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (srcSubset.Index()) {
+        switch (srcSubset.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 CB_ENSURE(
                     src.Size == srcSubset.Size(),
@@ -539,7 +643,7 @@ namespace NCB {
     ) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (srcSubset.Index()) {
+        switch (srcSubset.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 CB_ENSURE(
                     src.size() == srcSubset.Size(),
@@ -566,7 +670,7 @@ namespace NCB {
     ) {
         using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
 
-        switch (src.Index()) {
+        switch (src.index()) {
             case TVariantType::template TagOf<TFullSubset<TSize>>():
                 return Compose(src.template Get<TFullSubset<TSize>>(), srcSubset);
             case TVariantType::template TagOf<TRangesSubset<TSize>>():
@@ -750,7 +854,7 @@ namespace NCB {
     using TMaybeOwningArraySubset = TArraySubset<TMaybeOwningArrayHolder<T>, TSize>;
 
     template <class T, class TSize=size_t>
-    using TConstMaybeOwningArraySubset = TArraySubset<const TMaybeOwningArrayHolder<T>, TSize>;
+    using TMaybeOwningConstArraySubset = TArraySubset<const TMaybeOwningArrayHolder<const T>, TSize>;
 
 }
 

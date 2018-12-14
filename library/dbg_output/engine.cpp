@@ -21,7 +21,7 @@ DBGDUMP_INLINE_IF_INCLUDED void TDumpBase::String(const TWtringBuf& s) {
 }
 
 DBGDUMP_INLINE_IF_INCLUDED void TDumpBase::Raw(const TStringBuf& s) {
-    Stream().Write(~s, +s);
+    Stream().Write(s.data(), s.size());
 }
 
 DBGDUMP_INLINE_IF_INCLUDED void TDumpBase::Char(char ch) {

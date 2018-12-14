@@ -167,9 +167,9 @@ void THashTest::TestHMap1() {
     m['x'] = "10"; // Correct mistake.
     UNIT_ASSERT(!strcmp(m['x'].c_str(), "10"));
 
-    UNIT_ASSERT(!m.has('z'));
+    UNIT_ASSERT(!m.contains('z'));
     UNIT_ASSERT(!strcmp(m['z'].c_str(), ""));
-    UNIT_ASSERT(m.has('z'));
+    UNIT_ASSERT(m.contains('z'));
 
     UNIT_ASSERT(m.count('z') == 1);
     auto p = m.insert(std::pair<const char, TString>('c', TString("100")));
@@ -351,9 +351,9 @@ void THashTest::TestHMMapHas() {
     m.insert(std::pair<const char, int>('X', 10));
     m.insert(std::pair<const char, int>('X', 20));
     m.insert(std::pair<const char, int>('Y', 32));
-    UNIT_ASSERT(m.has('X'))
-    UNIT_ASSERT(m.has('Y'))
-    UNIT_ASSERT(!m.has('Z'))
+    UNIT_ASSERT(m.contains('X'))
+    UNIT_ASSERT(m.contains('Y'))
+    UNIT_ASSERT(!m.contains('Z'))
 }
 
 void THashTest::TestHSetConstructorsAndAssignments() {
@@ -367,34 +367,34 @@ void THashTest::TestHSetConstructorsAndAssignments() {
 
     UNIT_ASSERT_VALUES_EQUAL(2, c1.size());
     UNIT_ASSERT_VALUES_EQUAL(2, c2.size());
-    UNIT_ASSERT(c1.has(100));
-    UNIT_ASSERT(c2.has(200));
+    UNIT_ASSERT(c1.contains(100));
+    UNIT_ASSERT(c2.contains(200));
 
     container c3(std::move(c1));
 
     UNIT_ASSERT_VALUES_EQUAL(0, c1.size());
     UNIT_ASSERT_VALUES_EQUAL(2, c3.size());
-    UNIT_ASSERT(c3.has(100));
+    UNIT_ASSERT(c3.contains(100));
 
     c2.insert(300);
     c3 = c2;
 
     UNIT_ASSERT_VALUES_EQUAL(3, c2.size());
     UNIT_ASSERT_VALUES_EQUAL(3, c3.size());
-    UNIT_ASSERT(c3.has(300));
+    UNIT_ASSERT(c3.contains(300));
 
     c2.insert(400);
     c3 = std::move(c2);
 
     UNIT_ASSERT_VALUES_EQUAL(0, c2.size());
     UNIT_ASSERT_VALUES_EQUAL(4, c3.size());
-    UNIT_ASSERT(c3.has(400));
+    UNIT_ASSERT(c3.contains(400));
 
     container c4 = {1, 2, 3};
     UNIT_ASSERT_VALUES_EQUAL(c4.size(), 3);
-    UNIT_ASSERT(c4.has(1));
-    UNIT_ASSERT(c4.has(2));
-    UNIT_ASSERT(c4.has(3));
+    UNIT_ASSERT(c4.contains(1));
+    UNIT_ASSERT(c4.contains(2));
+    UNIT_ASSERT(c4.contains(3));
 }
 
 void THashTest::TestHSetSize() {
@@ -880,31 +880,31 @@ void THashTest::TestHMMapEmplaceDirect() {
 void THashTest::TestHSetEmplace() {
     using hash_t = THashSet<TNonCopyableInt<0>, THash<int>, TEqualTo<int>>;
     hash_t hash;
-    UNIT_ASSERT(!hash.has(0));
+    UNIT_ASSERT(!hash.contains(0));
     hash.emplace(0);
-    UNIT_ASSERT(hash.has(0));
-    UNIT_ASSERT(!hash.has(1));
+    UNIT_ASSERT(hash.contains(0));
+    UNIT_ASSERT(!hash.contains(1));
 }
 
 void THashTest::TestHSetEmplaceNoresize() {
     using hash_t = THashSet<TNonCopyableInt<0>, THash<int>, TEqualTo<int>>;
     hash_t hash;
     hash.reserve(1);
-    UNIT_ASSERT(!hash.has(0));
+    UNIT_ASSERT(!hash.contains(0));
     hash.emplace_noresize(0);
-    UNIT_ASSERT(hash.has(0));
-    UNIT_ASSERT(!hash.has(1));
+    UNIT_ASSERT(hash.contains(0));
+    UNIT_ASSERT(!hash.contains(1));
 }
 
 void THashTest::TestHSetEmplaceDirect() {
     using hash_t = THashSet<TNonCopyableInt<0>, THash<int>, TEqualTo<int>>;
     hash_t hash;
-    UNIT_ASSERT(!hash.has(0));
+    UNIT_ASSERT(!hash.contains(0));
     hash_t::insert_ctx ins;
     hash.find(0, ins);
     hash.emplace_direct(ins, 1);
-    UNIT_ASSERT(hash.has(0));
-    UNIT_ASSERT(!hash.has(1));
+    UNIT_ASSERT(hash.contains(0));
+    UNIT_ASSERT(!hash.contains(1));
 }
 
 void THashTest::TestNonCopyable() {
@@ -968,8 +968,8 @@ void THashTest::TestReleaseNodes() {
     for (int i = 10; i < 13; i++)
         set.insert(i);
     UNIT_ASSERT_VALUES_EQUAL(counters.Allocations, 7);
-    UNIT_ASSERT(set.has(10));
-    UNIT_ASSERT(!set.has(0));
+    UNIT_ASSERT(set.contains(10));
+    UNIT_ASSERT(!set.contains(0));
 
     set.basic_clear();
     UNIT_ASSERT_VALUES_EQUAL(counters.Deallocations, 3);

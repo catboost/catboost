@@ -1,19 +1,17 @@
 #pragma once
 
-#include "columns.h"
 #include "feature.h"
-#include "cat_feature_perfect_hash.h"
+
 #include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/enums.h>
 
-#include <util/generic/guid.h>
 #include <util/generic/map.h>
 #include <util/generic/set.h>
 #include <util/generic/vector.h>
-#include <util/string/builder.h>
 #include <util/system/types.h>
 
 
@@ -22,45 +20,12 @@ namespace NCatboostCuda {
     //WARNING: not thread-safe
     class TBinarizedFeaturesManager {
     public:
-        explicit TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
-                                           const NCatboostOptions::TBinarizationOptions& floatFeaturesBinarization)
-            : CatFeatureOptions(catFeatureOptions)
-            , FloatFeaturesBinarization(floatFeaturesBinarization)
-            , CatFeaturesPerfectHash(TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp")
-        {
-        }
-
-        bool IsKnown(const ui32 featuresProviderId) const;
-
-        bool IsKnown(const IFeatureValuesHolder& feature) const;
-
-        template <class TBuilder>
-        const TVector<float>& GetOrCreateFloatFeatureBorders(const TFloatValuesHolder& feature,
-                                                             TBuilder&& builder) {
-            CB_ENSURE(IsKnown(feature));
-            const ui32 featureId = GetFeatureManagerId(feature);
-            if (!Borders.has(featureId)) {
-                Borders[featureId] = builder(GetFloatFeatureBinarization());
-            }
-            return Borders[featureId];
-        }
-
-        bool HasFloatFeatureBorders(const TFloatValuesHolder& feature) const {
-            return Borders.has(GetId(feature));
-        }
-
-        void SetOrCheckNanMode(const IFeatureValuesHolder& feature,
-                               ENanMode nanMode);
-
-        ENanMode GetOrComputeNanMode(const TFloatValuesHolder& feature);
+        TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
+                                  NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
         ENanMode GetNanMode(const ui32 featureId) const;
 
-        const TVector<float>& GetFloatFeatureBorders(const TFloatValuesHolder& feature) const;
-
-        bool HasBorders(ui32 featureId) const {
-            return Borders.has(featureId);
-        }
+        bool HasBorders(ui32 featureId) const;
 
         void SetBorders(ui32 featureId, TVector<float> borders) {
             CB_ENSURE(!HasBorders(featureId));
@@ -70,8 +35,6 @@ namespace NCatboostCuda {
         bool IsFloat(ui32 featureId) const;
 
         bool IsCat(ui32 featureId) const;
-
-        TVector<ui32> GetOneHotIds(const TVector<ui32>& ids) const;
 
         bool UseForOneHotEncoding(ui32 featureId) const;
 
@@ -94,7 +57,7 @@ namespace NCatboostCuda {
 
         bool IsCtr(ui32 featureId) const {
             CB_ENSURE(featureId < Cursor);
-            return InverseCtrs.has(featureId);
+            return InverseCtrs.contains(featureId);
         }
 
         bool IsTreeCtr(ui32 featureId) const {
@@ -115,56 +78,16 @@ namespace NCatboostCuda {
             return Cursor;
         }
 
-        ui32 RegisterDataProviderCatFeature(ui32 featureId) {
-            CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.has(featureId));
-            const ui32 id = RequestNewId();
-            DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
-            FeatureManagerIdToDataProviderId[id] = featureId;
-            CatFeaturesPerfectHash.RegisterId(id);
-            return id;
-        }
-
-        ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
-            CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.has(featureId));
-            const ui32 id = RequestNewId();
-            DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
-            FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
-        }
-
-        bool HasFloatFeatureBordersForDataProviderFeature(const ui32 dataProviderId) {
-            const ui32 featureId = GetFeatureManagerIdForFloatFeature(dataProviderId);
-            return Borders.has(featureId);
-        }
-
-        ui32 SetFloatFeatureBordersForDataProviderId(ui32 dataProviderId,
-                                                     TVector<float>&& borders) {
-            const ui32 id = GetFeatureManagerIdForFloatFeature(dataProviderId);
-            Borders[id] = std::move(borders);
-            return id;
-        }
-
-        ui32 SetFloatFeatureBorders(const TFloatValuesHolder& feature,
-                                    TVector<float>&& borders) {
-            CB_ENSURE(IsKnown(feature));
-
-            const ui32 id = GetFeatureManagerId(feature);
-            Borders[id] = std::move(borders);
-            return id;
-        }
-
         ui32 GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const;
 
         ui32 GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
-
-        ui32 GetFeatureManagerId(const IFeatureValuesHolder& feature) const;
 
         ui32 GetDataProviderId(ui32 featureId) const {
             return FeatureManagerIdToDataProviderId.at(featureId);
         }
 
         bool IsKnown(const TCtr& ctr) const {
-            return KnownCtrs.has(ctr);
+            return KnownCtrs.contains(ctr);
         }
 
         ui32 AddCtr(const TCtr& ctr);
@@ -176,18 +99,11 @@ namespace NCatboostCuda {
             return id;
         }
 
-        const TVector<float>& GetBorders(ui32 id) const {
-            CB_ENSURE(Borders.has(id), "Can't find borders for feature #" << id);
-            return Borders.at(id);
-        }
+        const TVector<float>& GetBorders(ui32 featureId) const;
 
         ui32 CtrsPerTreeCtrFeatureTensor() const;
 
         ui32 GetBinCount(ui32 localId) const;
-
-        const NCatboostOptions::TBinarizationOptions& GetFloatFeatureBinarization() const {
-            return FloatFeaturesBinarization;
-        }
 
         const NCatboostOptions::TBinarizationOptions& GetTargetBinarizationDescription() const {
             return CatFeatureOptions.TargetBorders;
@@ -197,10 +113,8 @@ namespace NCatboostCuda {
             return GetCtrBinarizationForConfig(ctr.Configuration);
         }
 
-        ui32 GetId(const IFeatureValuesHolder& feature) const;
-
         ui32 GetId(const TCtr& ctr) const {
-            CB_ENSURE(KnownCtrs.has(ctr));
+            CB_ENSURE(KnownCtrs.contains(ctr));
             return KnownCtrs[ctr];
         }
 
@@ -248,16 +162,6 @@ namespace NCatboostCuda {
             return GetCtrBinarizationForConfig(ctr.Configuration);
         }
 
-        //store perfect hash by featureManager id
-        const TMap<int, ui32>& GetCategoricalFeaturesPerfectHash(const ui32 featureId) const {
-            CB_ENSURE(CatFeaturesPerfectHash.HasFeature(featureId));
-            return CatFeaturesPerfectHash.GetFeatureIndex(featureId);
-        };
-
-        void UnloadCatFeaturePerfectHashFromRam() const {
-            CatFeaturesPerfectHash.FreeRam();
-        }
-
         bool UseFullSetForCatFeatureStatCtrs() {
             return CatFeatureOptions.CounterCalcMethod.Get() == ECounterCalc::Full;
         }
@@ -268,7 +172,7 @@ namespace NCatboostCuda {
 
         bool HasPerFeatureCtr(ui32 featureId) const {
             ui32 featureIdInPool = GetDataProviderId(featureId);
-            return CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool);
+            return CatFeatureOptions.PerFeatureCtrs->contains(featureIdInPool);
         }
 
         TMap<ECtrType, TSet<NCB::TCtrConfig>> CreateGrouppedPerFeatureCtr(ui32 featureId) const;
@@ -282,6 +186,22 @@ namespace NCatboostCuda {
         }
 
     private:
+        ui32 RegisterDataProviderCatFeature(ui32 featureId) {
+            CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.contains(featureId));
+            const ui32 id = RequestNewId();
+            DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
+            FeatureManagerIdToDataProviderId[id] = featureId;
+            return id;
+        }
+
+        ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
+            CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.contains(featureId));
+            const ui32 id = RequestNewId();
+            DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
+            FeatureManagerIdToDataProviderId[id] = featureId;
+            return id;
+        }
+
         void CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
                                              TMap<ECtrType, TSet<NCB::TCtrConfig>>* grouppedConfigs) const;
 
@@ -293,21 +213,11 @@ namespace NCatboostCuda {
         //stupid line-search here is not issue :)
         inline ui32 GetOrCreateCtrBinarizationId(const NCatboostOptions::TBinarizationOptions& binarization) const;
 
-        ui32 GetUniqueValues(ui32 featureId) const {
-            CB_ENSURE(IsCat(featureId));
-            return CatFeaturesPerfectHash.GetUniqueValues(featureId);
-        }
+        NCB::TCatFeatureUniqueValuesCounts GetUniqueValuesCounts(ui32 featureId) const;
 
         ui32 RequestNewId() {
             return Cursor++;
         }
-
-        TBinarizedFeaturesManager& SetBinarization(ui64 featureId,
-                                                   TVector<float>&& borders);
-
-        friend class TCatFeaturesPerfectHashHelper;
-
-        inline ENanMode ComputeNanMode(const float* values, ui32 size) const;
 
     private:
         mutable TMap<TCtr, ui32> KnownCtrs;
@@ -324,12 +234,11 @@ namespace NCatboostCuda {
         TVector<float> TargetBorders;
 
         const NCatboostOptions::TCatFeatureParams& CatFeatureOptions;
-        const NCatboostOptions::TBinarizationOptions& FloatFeaturesBinarization;
 
-        //float and ctr features
+        // for ctr features, for float - get from QuantizedFeaturesInfo
         TMap<ui32, TVector<float>> Borders;
-        TMap<ui32, ENanMode> NanModes;
-        TCatFeaturesPerfectHash CatFeaturesPerfectHash;
+
+        NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
 
         struct TUserDefinedCombination {
             TFeatureTensor Tensor;

@@ -2,9 +2,7 @@ UNITTEST()
 
 
 
-SRCDIR(
-    library/containers/dense_hash
-)
+SRCDIR(library/containers/dense_hash)
 
 PEERDIR(
     library/containers/dense_hash
@@ -15,5 +13,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

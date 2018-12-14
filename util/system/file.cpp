@@ -236,7 +236,7 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     if (oMode & ARUser)
         permMode |= S_IRUSR;
 
-    Fd_ = ::open(~fName, fcMode, permMode);
+    Fd_ = ::open(fName.data(), fcMode, permMode);
 
 #if HAVE_POSIX_FADVISE
     if (Fd_ >= 0) {
@@ -252,7 +252,7 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
 
     //temp file
     if (Fd_ >= 0 && oMode & Transient) {
-        unlink(~fName);
+        unlink(fName.data());
     }
 #else
 #error unsupported platform

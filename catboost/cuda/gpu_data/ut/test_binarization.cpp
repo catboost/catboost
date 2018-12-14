@@ -1,6 +1,5 @@
 #include <util/random/shuffle.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
-#include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/compressed_index_builder.h>
 #include <catboost/cuda/ctrs/ut/calc_ctr_cpu.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
@@ -24,9 +23,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
     void CheckDataSet(const TCompressedDataSet& dataSet,
                       const TBinarizedFeaturesManager& featuresManager,
                       const TDataPermutation& ctrsPermutation,
-                      const TDataProvider& dataProvider,
+                      const NCB::TTrainingDataProvider& dataProvider,
                       const TDataPermutation* onGpuPermutation = nullptr) {
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(dataProvider.GetTargets(),
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(GetTarget(dataProvider.TargetData),
                                                       ENanMode::Forbidden,
                                                       featuresManager.GetTargetBorders());
         ui32 numClasses = 0;
@@ -78,28 +77,38 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                 TVector<ui32> bins;
 
                 ui32 binarization = 0;
+
                 if (featuresManager.IsFloat(featureId)) {
-                    auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(featureId)));
-                    bins = valuesHolder.ExtractValues();
-                    binarization = valuesHolder.BinCount();
+                    const auto floatFeatureIdx
+                        = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
+                    auto& valuesHolder = **(dataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
+                    auto binsArray = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                    bins.assign((*binsArray).begin(), (*binsArray).end());
+                    binarization = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx);
                 } else if (featuresManager.IsCat(featureId)) {
-                    auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(featureId)));
-                    bins = valuesHolder.ExtractValues();
-                    binarization = valuesHolder.GetUniqueValues();
+                    const auto catFeatureIdx
+                        = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
+                    auto& valuesHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
+                    auto binsArray = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                    bins.assign((*binsArray).begin(), (*binsArray).end());
+                    binarization = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll;
                 } else {
                     CB_ENSURE(featuresManager.IsCtr(featureId));
                     const auto& ctr = featuresManager.GetCtr(featureId);
                     CB_ENSURE(ctr.IsSimple());
 
-                    const ui32 catFeatureId = ctr.FeatureTensor.GetCatFeatures()[0];
-                    auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(dataProvider.GetFeatureById(featuresManager.GetDataProviderId(catFeatureId)));
-                    auto catFeatureBins = valuesHolder.ExtractValues();
+                    const ui32 catFeatureFlatIdx = ctr.FeatureTensor.GetCatFeatures()[0];
+                    const auto catFeatureIdx
+                        = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(catFeatureFlatIdx);
+                    auto& valuesHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
+                    auto binsArray = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                    TVector<ui32> catFeatureBins((*binsArray).begin(), (*binsArray).end());
                     const auto& borders = featuresManager.GetBorders(featureId);
                     binarization = borders.size() + 1;
 
-                    TCpuTargetClassCtrCalcer calcer(valuesHolder.GetUniqueValues(),
+                    TCpuTargetClassCtrCalcer calcer(dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
                                                     catFeatureBins,
-                                                    dataProvider.GetWeights(),
+                                                    GetWeights(dataProvider.TargetData),
                                                     ctr.Configuration.Prior[0],
                                                     ctr.Configuration.Prior[1]);
 
@@ -108,14 +117,14 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                         auto freqCtr = calcer.ComputeFreqCtr(&ctrsEstimationPermutation);
                         ctrOrderedBins = NCB::BinarizeLine<ui32>(freqCtr, ENanMode::Forbidden, borders);
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
-                        if (!ctrsCache.has(catFeatureId)) {
-                            ctrsCache[catFeatureId] = calcer.Calc(ctrsEstimationPermutation,
-                                                                  binarizedTarget,
-                                                                  numClasses);
+                        if (!ctrsCache.contains(featureId)) {
+                            ctrsCache[featureId] = calcer.Calc(ctrsEstimationPermutation,
+                                                               binarizedTarget,
+                                                               numClasses);
                         }
                         TVector<float> values;
-                        for (ui32 i = 0; i < catFeatureBins.size(); ++i) {
-                            values.push_back(ctrsCache[catFeatureId][i][ctr.Configuration.ParamId]);
+                        for (size_t i = 0; i < catFeatureBins.size(); ++i) {
+                            values.push_back(ctrsCache[featureId][i][ctr.Configuration.ParamId]);
                         }
                         ctrOrderedBins = NCB::BinarizeLine<ui32>(MakeArrayRef(values.data(), binarizedTarget.size()),
                                                                  ENanMode::Forbidden,
@@ -151,7 +160,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
     void CheckPermutationDataSet(const TDataSet& dataSet,
                                  const TBinarizedFeaturesManager& featuresManager,
                                  const TDataPermutation& ctrsPermutation,
-                                 const TDataProvider& dataProvider,
+                                 const NCB::TTrainingDataProvider& dataProvider,
                                  const bool onlyPermutationDependent = false,
                                  const TDataPermutation* onGpuPermutation = nullptr) {
         if (dataSet.HasFeatures() && !onlyPermutationDependent) {
@@ -184,31 +193,26 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                                                                    binarization);
         NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
         catFeatureParams.OneHotMaxSize = Min<ui32>(6, binarization);
-        TBinarizedFeaturesManager binarizedFeaturesManager(catFeatureParams,
-                                                           binarizationOptions);
 
-        TDataProvider dataProvider;
-        TDataProviderBuilder dataProviderBuilder(binarizedFeaturesManager, dataProvider);
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> binarizedFeaturesManager;
 
-        {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         binarizationOptions,
+                         catFeatureParams,
+                         &dataProvider,
+                         &binarizedFeaturesManager);
 
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
-        UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
-        UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
+        UNIT_ASSERT_VALUES_EQUAL(
+            pool.NumFeatures + 1,
+            dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount()
+        );
+        UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
         auto docsMapping = TCudaFeaturesLayoutHelper<TLayout>::CreateDocLayout(pool.NumSamples);
 
-        TDataPermutation permutation = GetPermutation(dataProvider,
+        TDataPermutation permutation = GetPermutation(*dataProvider,
                                                       permutationId);
         TVector<ui32> order;
         permutation.FillOrder(order);
@@ -219,17 +223,17 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         TSet<ui32> referenceFeatures;
         {
             TSharedCompressedIndexBuilder<TLayout> builder(compressedIndex);
-            TBinarizationInfoProvider binarizationInfoProvider(binarizedFeaturesManager,
-                                                               &dataProvider);
+            TBinarizationInfoProvider binarizationInfoProvider(*binarizedFeaturesManager,
+                                                               dataProvider.Get());
             TDataSetDescription desc;
             desc.Name = "UnitTest";
 
             TVector<ui32> features;
-            for (ui32 feature : binarizedFeaturesManager.GetFloatFeatureIds()) {
+            for (ui32 feature : binarizedFeaturesManager->GetFloatFeatureIds()) {
                 features.push_back(feature);
             }
-            for (ui32 catFeature : binarizedFeaturesManager.GetCatFeatureIds()) {
-                if (binarizedFeaturesManager.GetBinCount(catFeature) <= catFeatureParams.OneHotMaxSize) {
+            for (ui32 catFeature : binarizedFeaturesManager->GetCatFeatureIds()) {
+                if (binarizedFeaturesManager->GetBinCount(catFeature) <= catFeatureParams.OneHotMaxSize) {
                     features.push_back(catFeature);
                 }
             }
@@ -243,9 +247,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             builder.PrepareToWrite();
             UNIT_ASSERT_EQUAL(id, 0u);
 
-            TFloatAndOneHotFeaturesWriter<TLayout> writer(binarizedFeaturesManager,
+            TFloatAndOneHotFeaturesWriter<TLayout> writer(*binarizedFeaturesManager,
                                                           builder,
-                                                          dataProvider,
+                                                          *dataProvider,
                                                           id);
             writer.Write(features);
             builder.Finish();
@@ -258,9 +262,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                                                 ds.GetFeatures().end());
         UNIT_ASSERT_EQUAL(dataSetFeatures, referenceFeatures);
         CheckDataSet(ds,
-                     binarizedFeaturesManager,
+                     *binarizedFeaturesManager,
                      permutation,
-                     dataProvider,
+                     *dataProvider,
                      &permutation);
 
     }
@@ -268,27 +272,34 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
     template <class TMapping>
     void CheckCtrTargets(const TCtrTargets<TMapping>& targets,
                          const TVector<ui32>& binarizedTargetRef,
-                         const TDataProvider& dataProvider) {
+                         const NCB::TTrainingDataProvider& dataProvider) {
+
+        auto dataProviderTargets = GetTarget(dataProvider.TargetData);
+        auto dataProviderWeights = GetWeights(dataProvider.TargetData);
+
         TVector<float> targetsCpu;
         targets.WeightedTarget.Read(targetsCpu);
-        for (ui32 i = 0; i < dataProvider.GetTargets().size(); ++i) {
-            UNIT_ASSERT_DOUBLES_EQUAL(dataProvider.GetTargets()[i] * dataProvider.GetWeights()[i], targetsCpu[i], 1e-9);
+        for (ui32 i = 0; i < dataProviderTargets.size(); ++i) {
+            UNIT_ASSERT_DOUBLES_EQUAL(
+                dataProviderTargets[i] * (dataProviderWeights.empty() ? 1.0f : dataProviderWeights[i]),
+                targetsCpu[i],
+                1e-9);
         }
 
         TVector<ui8> binTargetsCpu;
         targets.BinarizedTarget.Read(binTargetsCpu);
-        for (ui32 i = 0; i < dataProvider.GetTargets().size(); ++i) {
+        for (ui32 i = 0; i < dataProviderTargets.size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(binTargetsCpu[i], binarizedTargetRef[i]);
         }
 
         TVector<float> weightsCpu;
         targets.Weights.Read(weightsCpu);
-        for (ui32 i = 0; i < dataProvider.GetTargets().size(); ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(weightsCpu[i], dataProvider.GetWeights()[i]);
+        for (ui32 i = 0; i < dataProviderTargets.size(); ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(weightsCpu[i], dataProviderWeights.empty() ? 1.0f : dataProviderWeights[i]);
         }
     }
 
-    void CheckIndices(const TDataProvider& dataProvider,
+    void CheckIndices(const NCB::TTrainingDataProvider& dataProvider,
                       const TFeatureParallelDataSetsHolder& dataSet) {
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             auto permutation = GetPermutation(dataProvider, i);
@@ -340,51 +351,47 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             catFeatureParams.AddTreeCtrDescription(bucketsCtr);
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
-        TBinarizedFeaturesManager featuresManager(catFeatureParams,
-                                                  floatBinarization);
 
-        TDataProvider dataProvider;
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
+
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         floatBinarization,
+                         catFeatureParams,
+                         &dataProvider,
+                         &featuresManager);
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder dataProviderBuilder(featuresManager, dataProvider);
+
+        const auto dataProviderTarget = GetTarget(dataProvider->TargetData);
 
         {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
+            featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
+                                                                   dataProviderTarget)(floatBinarization));
 
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
-        {
-            featuresManager.SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
-                                                                  dataProvider.GetTargets())(floatBinarization));
-
-            const auto& targetBorders = featuresManager.GetTargetBorders();
+            const auto& targetBorders = featuresManager->GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);
         }
 
-        UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
-        UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
+        UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1,
+                                 dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount());
+        UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
-        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(featuresManager,
-                                                                    dataProvider);
+        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
+                                                                    *dataProvider);
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
         {
-            auto binarizedTargetRef = NCB::BinarizeLine<ui32>(dataProvider.GetTargets(),
+            auto binarizedTargetRef = NCB::BinarizeLine<ui32>(dataProviderTarget,
                                                               ENanMode::Forbidden,
-                                                              featuresManager.GetTargetBorders());
+                                                              featuresManager->GetTargetBorders());
             CheckCtrTargets(dataSet.GetCtrTargets(),
                             binarizedTargetRef,
-                            dataProvider);
+                            *dataProvider);
         }
         {
-            CheckIndices(dataProvider, dataSet);
+            CheckIndices(*dataProvider, dataSet);
         }
 
         for (ui32 permutation = 0; permutation < dataSet.PermutationsCount(); ++permutation) {
@@ -396,9 +403,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             CB_ENSURE(dataSetForPermutation.HasFeatures());
 
             CheckPermutationDataSet(dataSetForPermutation,
-                                    featuresManager,
+                                    *featuresManager,
                                     dataSet.GetPermutation(permutation),
-                                    dataProvider,
+                                    *dataProvider,
                                     permutation > 0,
                                     &dataSet.GetPermutation(permutation));
         }
@@ -433,39 +440,36 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             catFeatureParams.AddTreeCtrDescription(bucketsCtr);
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
-        TBinarizedFeaturesManager featuresManager(catFeatureParams,
-                                                  floatBinarization);
 
-        TDataProvider dataProvider;
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder dataProviderBuilder(featuresManager, dataProvider);
+
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         floatBinarization,
+                         catFeatureParams,
+                         &dataProvider,
+                         &featuresManager);
+
 
         {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
+            featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
+                                                                   GetTarget(dataProvider->TargetData))(floatBinarization));
 
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
-        {
-            featuresManager.SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
-                                                                  dataProvider.GetTargets())(floatBinarization));
-
-            const auto& targetBorders = featuresManager.GetTargetBorders();
+            const auto& targetBorders = featuresManager->GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);
         }
 
-        UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
-        UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
+        UNIT_ASSERT_VALUES_EQUAL(
+            pool.NumFeatures + 1,
+            dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount()
+        );
+        UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
-        TDocParallelDataSetBuilder dataSetsHolderBuilder(featuresManager,
-                                                         dataProvider);
+        TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
+                                                         *dataProvider);
 
         TDocParallelDataSetsHolder dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
         const TDataPermutation& loadBalancingPermutation = dataSet.GetLoadBalancingPermutation();
@@ -479,9 +483,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             CB_ENSURE(dataSetForPermutation.HasFeatures());
 
             CheckPermutationDataSet(dataSetForPermutation,
-                                    featuresManager,
+                                    *featuresManager,
                                     dataSetForPermutation.GetCtrsEstimationPermutation(),
-                                    dataProvider,
+                                    *dataProvider,
                                     permutation > 0,
                                     &loadBalancingPermutation);
         }

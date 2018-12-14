@@ -70,7 +70,7 @@ private:
 
     inline void TestTildeEmptyToNull() {
         TVector<int> v;
-        UNIT_ASSERT_EQUAL(nullptr, ~v);
+        UNIT_ASSERT_EQUAL(nullptr, v.data());
     }
 
     inline void TestTilde() {
@@ -78,16 +78,16 @@ private:
         v.push_back(10);
         v.push_back(20);
 
-        UNIT_ASSERT_EQUAL(10, (~v)[0]);
-        UNIT_ASSERT_EQUAL(20, (~v)[1]);
+        UNIT_ASSERT_EQUAL(10, (v.data())[0]);
+        UNIT_ASSERT_EQUAL(20, (v.data())[1]);
 
         for (int i = 0; i < 10000; ++i)
             v.push_back(99);
 
-        UNIT_ASSERT_EQUAL(10, (~v)[0]);
-        UNIT_ASSERT_EQUAL(20, (~v)[1]);
-        UNIT_ASSERT_EQUAL(99, (~v)[3]);
-        UNIT_ASSERT_EQUAL(99, (~v)[4]);
+        UNIT_ASSERT_EQUAL(10, (v.data())[0]);
+        UNIT_ASSERT_EQUAL(20, (v.data())[1]);
+        UNIT_ASSERT_EQUAL(99, (v.data())[3]);
+        UNIT_ASSERT_EQUAL(99, (v.data())[4]);
     }
 
     // Copy-paste of STLPort tests

@@ -70,6 +70,8 @@ namespace NCB {
         // needed because of default init in Cython and because of BinSaver
         TFeaturesLayout() = default;
 
+        explicit TFeaturesLayout(const ui32 featureCount);
+
         TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId);
         TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures);
 
@@ -98,6 +100,9 @@ namespace NCB {
             return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)].Name;
         }
         TVector<TString> GetExternalFeatureIds() const;
+
+        // needed for python-package
+        void SetExternalFeatureIds(TConstArrayRef<TString> featureIds);
 
         ui32 GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
             if (type == EFeatureType::Float) {
@@ -164,6 +169,8 @@ namespace NCB {
             metaInfo.IsAvailable = false;
         }
 
+        // indices in list can be outside of range of features in layout - such features are ignored
+        void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures);
 
         // Function must get one param -  TFeatureIdx<FeatureType>
         template <EFeatureType FeatureType, class Function>
@@ -181,6 +188,8 @@ namespace NCB {
             return CatFeatureInternalIdxToExternalIdx;
         }
 
+        bool HasAvailableAndNotIgnoredFeatures() const;
+
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;
@@ -189,6 +198,12 @@ namespace NCB {
     };
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
+
+    void CheckCompatibleForApply(
+        const TFeaturesLayout& learnFeaturesLayout,
+        const TFeaturesLayout& applyFeaturesLayout,
+        const TString& applyDataName
+    );
 }
 
 

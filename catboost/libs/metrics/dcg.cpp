@@ -2,6 +2,7 @@
 #include "doc_comparator.h"
 #include "sample.h"
 
+#include <library/containers/stack_vector/stack_vec.h>
 #include <library/dot_product/dot_product.h>
 
 #include <util/generic/algorithm.h>
@@ -13,19 +14,27 @@
 using NMetrics::TSample;
 
 template <typename F>
-static TVector<double> GetSortedTargets(const TConstArrayRef<TSample> samples, F&& cmp) {
-    TVector<ui32> indices;
+static TStackVec<double> GetTopSortedTargets(
+    const TConstArrayRef<TSample> samples,
+    const ui32 topSizeRequested,
+    F&& cmp)
+{
+    const ui32 topSize = Min<ui32>(topSizeRequested, samples.size());
+
+    TStackVec<ui32> indices;
     indices.yresize(samples.size());
     Iota(indices.begin(), indices.end(), static_cast<ui32>(0));
 
-    Sort(indices, [samples, cmp](const auto lhs, const auto rhs) {
-        return cmp(samples[lhs], samples[rhs]);
+    PartialSort(
+        indices.begin(), indices.begin() + topSize, indices.end(),
+        [samples, cmp](const auto lhs, const auto rhs) {
+            return cmp(samples[lhs], samples[rhs]);
     });
 
     Y_ASSERT(samples.size() == indices.size());
-    TVector<double> targets;
-    targets.yresize(samples.size());
-    for (size_t i = 0; i < samples.size(); ++i) {
+    TStackVec<double> targets;
+    targets.yresize(topSize);
+    for (size_t i = 0, iEnd = topSize; i < iEnd; ++i) {
         targets[i] = samples[indices[i]].Target;
     }
 
@@ -39,7 +48,7 @@ static double CalcDcgSorted(
 {
     const auto size = sortedTargets.size();
 
-    TVector<double> decay;
+    TStackVec<double> decay;
     decay.yresize(size);
     decay.front() = 1.;
     if (expDecay.Defined()) {
@@ -53,7 +62,7 @@ static double CalcDcgSorted(
         }
     }
 
-    TVector<double> modifiedTargetsHolder;
+    TStackVec<double> modifiedTargetsHolder;
     TConstArrayRef<double> modifiedTargets = sortedTargets;
     if (ENdcgMetricType::Exp == type) {
         modifiedTargetsHolder.yresize(size);
@@ -66,22 +75,22 @@ static double CalcDcgSorted(
     return DotProduct(modifiedTargets.data(), decay.data(), size);
 }
 
-double CalcDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay) {
-    const auto sortedTargets = GetSortedTargets(samples,  [](const auto& left, const auto& right) {
+double CalcDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay, ui32 topSize) {
+    const auto sortedTargets = GetTopSortedTargets(samples, topSize, [](const auto& left, const auto& right) {
         return CompareDocs(left.Prediction, left.Target, right.Prediction, right.Target);
     });
     return CalcDcgSorted(sortedTargets, type, expDecay);
 }
 
-double CalcIDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay) {
-    const auto sortedTargets = GetSortedTargets(samples, [](const auto& left, const auto& right) {
+double CalcIDcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, TMaybe<double> expDecay, ui32 topSize) {
+    const auto sortedTargets = GetTopSortedTargets(samples, topSize, [](const auto& left, const auto& right) {
         return left.Target > right.Target;
     });
     return CalcDcgSorted(sortedTargets, type, expDecay);
 }
 
-double CalcNdcg(TConstArrayRef<TSample> samples, ENdcgMetricType type) {
-    double dcg = CalcDcg(samples, type);
-    double idcg = CalcIDcg(samples, type);
+double CalcNdcg(TConstArrayRef<TSample> samples, ENdcgMetricType type, ui32 topSize) {
+    double dcg = CalcDcg(samples, type, Nothing(), topSize);
+    double idcg = CalcIDcg(samples, type, Nothing(), topSize);
     return idcg > 0 ? dcg / idcg : 0;
 }

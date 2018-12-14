@@ -22,8 +22,8 @@ class TestHash(unittest.TestCase):
         self.assertEqual(2, c1.size())
         self.assertEqual(2, c2.size())
         self.assertEqual(1, c1.at("one"))
-        self.assertTrue(c1.has("two"))
-        self.assertTrue(c2.has("one"))
+        self.assertTrue(c1.contains("two"))
+        self.assertTrue(c2.contains("one"))
         self.assertEqual(2, c2.at("two"))
         c2["three"] = 3
         c1 = c2

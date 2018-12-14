@@ -1,3 +1,8 @@
+# This file is modified version of benchmark.py.
+# benchmark.py was released by RAMitchell (Copyright (c) 2018 Rory Mitchell) under MIT License
+# and available at https://github.com/RAMitchell/GBM-Benchmarks/blob/master/benchmark.py
+# License text is available at https://github.com/RAMitchell/GBM-Benchmarks/blob/master/LICENSE
+
 import json
 import os
 

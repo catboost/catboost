@@ -69,5 +69,5 @@ static inline T FnvHash(const void* buf, size_t len) {
 
 template <class T, class Buf>
 static inline T FnvHash(const Buf& buf) {
-    return FnvHash<T>(~buf, +buf * sizeof(*~buf));
+    return FnvHash<T>(buf.data(), buf.size() * sizeof(*buf.data()));
 }

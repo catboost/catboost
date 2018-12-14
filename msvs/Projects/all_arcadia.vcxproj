@@ -53,20 +53,20 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\catboost-cuda-ctrs.vcxproj">
       <Project>07ECC93E-2BA3-7E0C-C328-28501ED2E5A3</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\ut\ctrs_ut.vcxproj">
-      <Project>BE19711F-9193-1989-1964-FB77507F0A3E</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\ut\catboost-cuda-ctrs-ut.vcxproj">
+      <Project>F4ED40CD-A861-D2FE-8B63-C9FE7257B8EB</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\catboost-cuda-cuda_lib.vcxproj">
       <Project>8F0089E7-CD22-2D41-938B-A9A7A3319AE7</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\ut\cuda_lib_ut.vcxproj">
-      <Project>FF28825A-C354-F653-BADC-814AEB962C6D</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\ut\catboost-cuda-cuda_lib-ut.vcxproj">
+      <Project>F759C2C1-7DF7-DBF6-A853-C0074055926A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\catboost-cuda-cuda_util.vcxproj">
       <Project>46C6451F-4D82-1C63-28D4-7F5FD766784A</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\ut\cuda_util_ut.vcxproj">
-      <Project>EDD1DCFA-46CC-D3F3-E79E-E0F9A77FE218</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\ut\catboost-cuda-cuda_util-ut.vcxproj">
+      <Project>108B49EF-7938-126B-0613-20E15C76D328</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
       <Project>7A8B786E-2597-9616-5F4E-B17CEE2501EE</Project>
@@ -74,14 +74,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\catboost-cuda-gpu_data.vcxproj">
       <Project>4FE35BB1-F43A-39F4-9770-E9463DC3D595</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\ut\gpu_data_test.vcxproj">
-      <Project>EABF487D-452C-F771-C854-521DDA050828</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\ut\catboost-cuda-gpu_data-ut.vcxproj">
+      <Project>8568DFB0-53C1-0CEE-22C8-79C2141EB6E2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\catboost-cuda-methods.vcxproj">
       <Project>B414E7D1-BF71-311C-0E2C-D6B4527D7528</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\ut\method_tests.vcxproj">
-      <Project>C0586287-04FE-545A-5E6E-BF40B282E8A8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
       <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
@@ -101,6 +98,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\mpi_ut\methods\methods.vcxproj">
       <Project>2335A927-8D1F-0395-59E1-489790E4193B</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\bin\ndcg_cpu_vs_gpu\ndcg_cpu_vs_gpu.vcxproj">
+      <Project>4567125C-B899-141F-2EF4-FC5A42F86E96</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\catboost-cuda-targets.vcxproj">
       <Project>1D3CF7E0-080E-0EC6-D27D-211F8567FEC0</Project>
     </ProjectReference>
@@ -113,8 +113,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\ut\catboost-cuda-train_lib-ut.vcxproj">
       <Project>689E2EDA-3835-56FA-3820-322FF997965F</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ut_helpers\ut_helpers.vcxproj">
-      <Project>FDD25008-369E-2F3A-AB2B-AAE786EA08BE</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ut_helpers\catboost-cuda-ut_helpers.vcxproj">
+      <Project>C233CFC0-2A44-923A-971B-4ABD62981459</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
       <Project>E73DCA9C-B071-4A48-F573-C852583220CE</Project>
@@ -145,12 +145,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
       <Project>5030F53C-99A3-E919-89CF-5D8DD5FD3717</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
-      <Project>262F6CF9-EB50-BD91-AC9B-1967CC6B84F7</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\ut\data_load_ut.vcxproj">
-      <Project>941315A1-10E7-6B02-C1F3-0A56EE8049B0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
       <Project>2C228BC9-6312-D2CC-3CFB-6F34BAB794C9</Project>
@@ -254,9 +248,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
       <Project>6BE76251-8797-21D8-087A-ECBA25DEF163</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
-      <Project>6A09BF62-AFB5-75EC-A85E-C21BE08BF083</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>FB5A55D2-0C31-3068-15EB-9FA55E97086F</Project>
     </ProjectReference>
@@ -271,6 +262,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\ut\catboost-libs-quantized_pool-ut.vcxproj">
       <Project>EB0CBF19-3B67-53B2-74E1-00519C0C7885</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
+      <Project>5B13F9C8-8762-C986-5C05-19D08B360E04</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
       <Project>B6361F28-19AC-62AF-82F3-98822E01D227</Project>
@@ -536,11 +530,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\accurate_accumulate\library-accurate_accumulate.vcxproj">
+      <Project>F147C10C-CE54-5773-ED1B-953056696152</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
+      <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
@@ -610,6 +610,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\float16\library-float16.vcxproj">
       <Project>1C45FF0F-0120-CA53-5202-C69A88A98E2E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\library-getopt.vcxproj">
+      <Project>1B84398E-CEDA-82B5-EE84-A684324BB064</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>DB9C26F0-E241-89AB-6F12-8CE533A7E012</Project>

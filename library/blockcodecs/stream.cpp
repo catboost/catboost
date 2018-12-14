@@ -21,7 +21,7 @@ namespace {
         inline TIds() {
             const TCodecList lst = ListAllCodecs();
 
-            for (size_t i = 0; i < +lst; ++i) {
+            for (size_t i = 0; i < lst.size(); ++i) {
                 const ICodec* c = Codec(lst[i]);
 
                 ByID[CodecID(c)] = c;
@@ -36,7 +36,7 @@ namespace {
                 ui32 Data;
             } x;
 
-            x.Data = MurmurHash<ui32>(~name, +name);
+            x.Data = MurmurHash<ui32>(name.data(), name.size());
 
             return x.Parts[1] ^ x.Parts[0];
         }

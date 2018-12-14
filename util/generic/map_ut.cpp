@@ -468,7 +468,7 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
             {"two", -2},
             {"three", 3},
         };
-        UNIT_ASSERT(mm.has("two"));
+        UNIT_ASSERT(mm.contains("two"));
         TMultiMap<TString, int> expected;
         expected.emplace("one", 1);
         expected.emplace("two", 2);
@@ -485,12 +485,12 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
         TMapInPool m(&pool);
         m.emplace(0, 1);
 
-        UNIT_ASSERT(m.has(0));
+        UNIT_ASSERT(m.contains(0));
         UNIT_ASSERT_VALUES_EQUAL(1, m[0]);
 
         TMapInPool movedM = std::move(m);
 
-        UNIT_ASSERT(movedM.has(0));
+        UNIT_ASSERT(movedM.contains(0));
         UNIT_ASSERT_VALUES_EQUAL(1, movedM[0]);
     }
 }

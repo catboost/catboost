@@ -94,7 +94,7 @@ def _getsvnversion(ver=[]):
 
 def _escape_helper(text):
     text = str(text)
-    if py.std.sys.platform != 'win32':
+    if sys.platform != 'win32':
         text = str(text).replace('$', '\\$')
     return text
 
@@ -327,7 +327,7 @@ def fixlocale():
     return ''
 
 # some nasty chunk of code to solve path and url conversion and quoting issues
-ILLEGAL_CHARS = '* | \ / : < > ? \t \n \x0b \x0c \r'.split(' ')
+ILLEGAL_CHARS = '* | \\ / : < > ? \t \n \x0b \x0c \r'.split(' ')
 if os.sep in ILLEGAL_CHARS:
     ILLEGAL_CHARS.remove(os.sep)
 ISWINDOWS = sys.platform == 'win32'
@@ -354,7 +354,7 @@ def path_to_fspath(path, addat=True):
 
 def url_from_path(path):
     fspath = path_to_fspath(path, False)
-    quote = py.std.urllib.quote
+    from urllib import quote
     if ISWINDOWS:
         match = _reg_allow_disk.match(fspath)
         fspath = fspath.replace('\\', '/')
@@ -490,7 +490,7 @@ class SvnWCCommandPath(common.PathBase):
                 strerr.find('file already exists') != -1 or
                 strerr.find('w150002:') != -1 or
                 strerr.find("can't create directory") != -1):
-                raise py.error.EEXIST(self)
+                raise py.error.EEXIST(strerr) #self)
             raise
         return out
 
@@ -504,7 +504,7 @@ class SvnWCCommandPath(common.PathBase):
         if url is None:
             url = self.url
         if rev is None or rev == -1:
-            if (py.std.sys.platform != 'win32' and
+            if (sys.platform != 'win32' and
                     _getsvnversion() == '1.3'):
                 url += "@HEAD"
         else:
@@ -785,7 +785,7 @@ recursively. """
             info = InfoSvnWCCommand(output)
 
             # Can't reliably compare on Windows without access to win32api
-            if py.std.sys.platform != 'win32':
+            if sys.platform != 'win32':
                 if info.path != self.localpath:
                     raise py.error.ENOENT(self, "not a versioned resource:" +
                             " %s != %s" % (info.path, self.localpath))

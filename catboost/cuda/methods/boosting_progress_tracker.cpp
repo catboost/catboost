@@ -20,7 +20,9 @@ namespace NCatboostCuda {
 
     TBoostingProgressTracker::TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                        const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
-                                                       bool hasTest, ui32 cpuApproxDim)
+                                                       bool hasTest,
+                                                       ui32 cpuApproxDim,
+                                                       const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback)
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
         , OutputFiles(outputFilesOptions, "")
@@ -28,6 +30,7 @@ namespace NCatboostCuda {
                                    catBoostOptions.MetricOptions, cpuApproxDim))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , BestModelMinTreesTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
+        , OnEndIterationCallback(onEndIterationCallback)
         , LearnToken(GetTrainModelLearnToken())
         , TestTokens(GetTrainModelTestTokens(hasTest ? 1 : 0))
         , HasTest(hasTest)
@@ -90,6 +93,10 @@ namespace NCatboostCuda {
             TestTokens,
             calcMetrics,
             &Logger);
+
+        if (OnEndIterationCallback) {
+            ContinueTraining = (*OnEndIterationCallback)(History);
+        }
 
         ++Iteration;
     }

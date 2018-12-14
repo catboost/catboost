@@ -102,18 +102,6 @@ public:
         return TBase::empty();
     }
 
-    inline size_type operator+() const noexcept {
-        return this->size();
-    }
-
-    inline T* operator~() noexcept {
-        return this->data();
-    }
-
-    inline const T* operator~() const noexcept {
-        return this->data();
-    }
-
     inline yssize_t ysize() const noexcept {
         return (yssize_t)TBase::size();
     }

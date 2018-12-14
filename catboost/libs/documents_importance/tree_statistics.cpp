@@ -6,13 +6,20 @@
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
 
+
+using namespace NCB;
+
+
 // ITreeStatisticsEvaluator
 
 TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TProcessedDataProvider& processedData
     int logPeriod
 ) {
+    const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());
+    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
+
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
     const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
     const ELeavesEstimation leafEstimationMethod = FromString<ELeavesEstimation>(paramsJson["tree_learner_options"]["leaf_estimation_method"].GetString());
@@ -21,7 +28,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const float l2LeafReg = paramsJson["tree_learner_options"]["l2_leaf_reg"].GetDouble();
     const ui32 treeCount = model.ObliviousTrees.GetTreeCount();
 
-    const TVector<ui8> binarizedFeatures = BinarizeFeatures(model, pool);
+    const TVector<ui8> binarizedFeatures = BinarizeFeatures(model, *rawObjectsData);
     TVector<TTreeStatistics> treeStatistics;
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);
@@ -46,25 +53,28 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
         TVector<TVector<double>> formulaNumeratorAdding(leavesEstimationIterations);
         TVector<TVector<double>> formulaNumeratorMultiplier(leavesEstimationIterations);
         TVector<double> localApproxes(approxes);
+
+        TConstArrayRef<float> weights = GetWeights(processedData.TargetData);
+
         for (ui32 it = 0; it < leavesEstimationIterations; ++it) {
             EvaluateDerivatives(
                 lossFunction,
                 leafEstimationMethod,
                 localApproxes,
-                pool,
+                GetTarget(processedData.TargetData),
                 &FirstDerivatives,
                 &SecondDerivatives,
                 &ThirdDerivatives
             );
 
-            const TVector<double> leafNumerators = ComputeLeafNumerators(pool.Docs.Weight);
-            TVector<double> leafDenominators = ComputeLeafDenominators(pool.Docs.Weight, l2LeafReg);
+            const TVector<double> leafNumerators = ComputeLeafNumerators(weights);
+            TVector<double> leafDenominators = ComputeLeafDenominators(weights, l2LeafReg);
             LeafValues.resize(LeafCount);
             for (ui32 leafId = 0; leafId < LeafCount; ++leafId) {
                 LeafValues[leafId] = -leafNumerators[leafId] / leafDenominators[leafId];
             }
             formulaNumeratorAdding[it] = ComputeFormulaNumeratorAdding();
-            formulaNumeratorMultiplier[it] = ComputeFormulaNumeratorMultiplier(pool.Docs.Weight);
+            formulaNumeratorMultiplier[it] = ComputeFormulaNumeratorMultiplier(weights);
             formulaDenominators[it].swap(leafDenominators);
 
             for (ui32 docId = 0; docId < DocCount; ++docId) {
@@ -101,7 +111,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
 
 // TGradientTreeStatisticsEvaluator
 
-TVector<double> TGradientTreeStatisticsEvaluator::ComputeLeafNumerators(const TVector<float>& weights) {
+TVector<double> TGradientTreeStatisticsEvaluator::ComputeLeafNumerators(TConstArrayRef<float> weights) {
     TVector<double> leafNumerators(LeafCount);
     if (weights.empty()) {
         for (ui32 docId = 0; docId < DocCount; ++docId) {
@@ -115,7 +125,7 @@ TVector<double> TGradientTreeStatisticsEvaluator::ComputeLeafNumerators(const TV
     return leafNumerators;
 }
 
-TVector<double> TGradientTreeStatisticsEvaluator::ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) {
+TVector<double> TGradientTreeStatisticsEvaluator::ComputeLeafDenominators(TConstArrayRef<float> weights, float l2LeafReg) {
     TVector<double> leafDenominators(LeafCount);
     if (weights.empty()) {
         for (ui32 docId = 0; docId < DocCount; ++docId) {
@@ -140,7 +150,7 @@ TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorAdding(
     return formulaNumeratorAdding;
 }
 
-TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) {
+TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(TConstArrayRef<float> weights) {
     TVector<double> formulaNumeratorMultiplier(DocCount);
     if (weights.empty()) {
         formulaNumeratorMultiplier = SecondDerivatives;
@@ -154,7 +164,7 @@ TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorMultipl
 
 // TNewtonTreeStatisticsEvaluator
 
-TVector<double> TNewtonTreeStatisticsEvaluator::ComputeLeafNumerators(const TVector<float>& weights) {
+TVector<double> TNewtonTreeStatisticsEvaluator::ComputeLeafNumerators(TConstArrayRef<float> weights) {
     TVector<double> leafNumerators(LeafCount);
     if (weights.empty()) {
         for (ui32 docId = 0; docId < DocCount; ++docId) {
@@ -168,7 +178,7 @@ TVector<double> TNewtonTreeStatisticsEvaluator::ComputeLeafNumerators(const TVec
     return leafNumerators;
 }
 
-TVector<double> TNewtonTreeStatisticsEvaluator::ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) {
+TVector<double> TNewtonTreeStatisticsEvaluator::ComputeLeafDenominators(TConstArrayRef<float> weights, float l2LeafReg) {
     TVector<double> leafDenominators(LeafCount);
     if (weights.empty()) {
         for (ui32 docId = 0; docId < DocCount; ++docId) {
@@ -193,7 +203,7 @@ TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorAdding() 
     return formulaNumeratorAdding;
 }
 
-TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) {
+TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(TConstArrayRef<float> weights) {
     TVector<double> formulaNumeratorMultiplier(DocCount);
     if (weights.empty()) {
         for (ui32 docId = 0; docId < DocCount; ++docId) {

@@ -69,7 +69,7 @@ public:
         return !this->empty();
     }
 
-    inline bool has(const K& key) const {
+    inline bool contains(const K& key) const {
         return this->find(key) != this->end();
     }
 };
@@ -140,7 +140,7 @@ public:
         return TBase::empty();
     }
 
-    inline bool has(const K& key) const {
+    inline bool contains(const K& key) const {
         return this->find(key) != this->end();
     }
 };

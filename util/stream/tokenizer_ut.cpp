@@ -8,7 +8,7 @@
 #include "tokenizer.h"
 
 static inline void CheckIfNullTerminated(const TStringBuf str) {
-    UNIT_ASSERT_VALUES_EQUAL('\0', *(~str + +str));
+    UNIT_ASSERT_VALUES_EQUAL('\0', *(str.data() + str.size()));
 }
 
 Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {

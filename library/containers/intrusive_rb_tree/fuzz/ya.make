@@ -3,6 +3,7 @@ FUZZ()
 
 
 SIZE(LARGE)
+
 TAG(ya:fat)
 
 PEERDIR(
@@ -14,5 +15,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

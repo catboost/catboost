@@ -112,7 +112,7 @@ def pytest_addoption(parser):
     parser.addoption("--split-by-tests", action='store_true', help="Split test execution by tests instead of suites", default=False)
     parser.addoption("--project-path", action="store", default="", help="path to CMakeList where test is declared")
     parser.addoption("--build-type", action="store", default="", help="build type")
-    parser.addoption("--flags", action="append", dest="flags", default=None, help="build flags (-D)")
+    parser.addoption("--flags", action="append", dest="flags", default=[], help="build flags (-D)")
     parser.addoption("--sanitize", action="store", default="", help="sanitize mode")
     parser.addoption("--test-stderr", action="store_true", default=False, help="test stderr")
     parser.addoption("--test-debug", action="store_true", default=False, help="test debug mode")

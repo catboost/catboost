@@ -119,7 +119,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             testCase.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                metaInfo.FeaturesLayout,
+                *metaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -133,7 +134,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -219,7 +221,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             testCase.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                metaInfo.FeaturesLayout,
+                *metaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -232,7 +235,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -317,7 +321,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             testCase.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                metaInfo.FeaturesLayout,
+                *metaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -330,7 +335,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -425,7 +431,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             testCase.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                metaInfo.FeaturesLayout,
+                *metaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -439,7 +446,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -546,10 +554,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             testCase.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                metaInfo.FeaturesLayout,
+                *metaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
-
 
             TExpectedQuantizedData expectedData;
             expectedData.MetaInfo = metaInfo;
@@ -564,7 +572,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -688,7 +697,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             testCase.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                metaInfo.FeaturesLayout,
+                *metaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 
@@ -738,7 +748,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
             };
 
             expectedData.Objects.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                expectedData.MetaInfo.FeaturesLayout,
+                *expectedData.MetaInfo.FeaturesLayout,
+                TConstArrayRef<ui32>(),
                 binarizationOptions
             );
 

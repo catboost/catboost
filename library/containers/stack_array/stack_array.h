@@ -3,7 +3,7 @@
 #include "range_ops.h"
 
 #include <util/generic/array_ref.h>
-#include <util/system/compat.h> /* For alloca. */
+#include <util/system/defaults.h> /* For alloca. */
 
 namespace NStackArray {
     /**

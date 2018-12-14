@@ -2,14 +2,10 @@
 
 PYTEST()
 
-TEST_SRCS(
-    test_strings.py
-)
+TEST_SRCS(test_strings.py)
 
 PEERDIR(
     library/python/strings
 )
 
 END()
-
-NEED_CHECK()

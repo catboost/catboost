@@ -25,8 +25,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
     weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
 
-    targets.Write(learnLoadBalancingPermutation.Gather(DataProvider.GetTargets()));
-    weights.Write(learnLoadBalancingPermutation.Gather(DataProvider.GetWeights()));
+    targets.Write(learnLoadBalancingPermutation.Gather(GetTarget(DataProvider.TargetData)));
+    weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(DataProvider.TargetData)));
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
         dataSetsHolder.PermutationDataSets[permutationId] = new TDocParallelDataSet(DataProvider,
@@ -47,8 +47,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
         testWeights.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
 
-        testTargets.Write(testLoadBalancingPermutation.Gather(LinkedTest->GetTargets()));
-        testWeights.Write(testLoadBalancingPermutation.Gather(LinkedTest->GetWeights()));
+        testTargets.Write(testLoadBalancingPermutation.Gather(GetTarget(LinkedTest->TargetData)));
+        testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(LinkedTest->TargetData)));
 
         dataSetsHolder.TestDataSet = new TDocParallelDataSet(*LinkedTest,
                                                              dataSetsHolder.CompressedIndex,
@@ -139,9 +139,9 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
 
     TMirrorBuffer<ui32> ctrEstimationOrder;
     TMirrorBuffer<ui32> testIndices;
-    ctrEstimationOrder.Reset(NCudaLib::TMirrorMapping(DataProvider.GetSampleCount()));
+    ctrEstimationOrder.Reset(NCudaLib::TMirrorMapping(DataProvider.GetObjectCount()));
     if (LinkedTest) {
-        testIndices.Reset(NCudaLib::TMirrorMapping(LinkedTest->GetSampleCount()));
+        testIndices.Reset(NCudaLib::TMirrorMapping(LinkedTest->GetObjectCount()));
     }
 
     {
@@ -172,7 +172,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
             ctrsEstimationPermutation.WriteOrder(ctrEstimationOrder);
 
             {
-                const TDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
+                const NCB::TTrainingDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
                 const TMirrorBuffer<ui32>* testIndicesPtr = (permutationId == 0 && linkedTest)
                                                                 ? &testIndices
                                                                 : nullptr;

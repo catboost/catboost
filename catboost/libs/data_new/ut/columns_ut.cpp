@@ -17,7 +17,7 @@ Y_UNIT_TEST_SUITE(Columns) {
 
         TFloatValuesHolder floatValuesHolder(
             10,
-            TMaybeOwningArrayHolder<float>::CreateOwning(std::move(v)),
+            TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(v)),
             &vSubsetIndexing
         );
 

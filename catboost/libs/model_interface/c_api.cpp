@@ -159,12 +159,12 @@ EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
 }
 
 EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
-    return FULL_MODEL_PTR(modelHandle)->ModelInfo.has(TStringBuf(keyPtr, keySize));
+    return FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(TStringBuf(keyPtr, keySize));
 }
 
 EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
     TStringBuf key(keyPtr, keySize);
-    if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.has(key)) {
+    if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(key)) {
         return 0;
     }
     return FULL_MODEL_PTR(modelHandle)->ModelInfo.at(key).size();
@@ -172,7 +172,7 @@ EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* 
 
 EXPORT const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
     TStringBuf key(keyPtr, keySize);
-    if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.has(key)) {
+    if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(key)) {
         return nullptr;
     }
     return FULL_MODEL_PTR(modelHandle)->ModelInfo.at(key).c_str();

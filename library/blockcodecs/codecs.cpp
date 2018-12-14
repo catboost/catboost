@@ -48,7 +48,7 @@ namespace {
         }
 
         inline size_t DoCompress(const TData& in, void* buf) const {
-            return Methods->LZ4CompressLimited(~in, (char*)buf, +in, LZ4_compressBound(+in));
+            return Methods->LZ4CompressLimited(in.data(), (char*)buf, in.size(), LZ4_compressBound(in.size()));
         }
 
         inline TString CPrefix() {
@@ -61,7 +61,7 @@ namespace {
 
     struct TLz4BestCompress {
         inline size_t DoCompress(const TData& in, void* buf) const {
-            return LZ4_compress_HC(~in, (char*)buf, +in, LZ4_compressBound(+in), 0);
+            return LZ4_compress_HC(in.data(), (char*)buf, in.size(), LZ4_compressBound(in.size()), 0);
         }
 
         static inline TString CPrefix() {
@@ -71,7 +71,7 @@ namespace {
 
     struct TLz4FastDecompress {
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
-            ssize_t res = LZ4_decompress_fast(~in, (char*)out, len);
+            ssize_t res = LZ4_decompress_fast(in.data(), (char*)out, len);
             if (res < 0) {
                 ythrow TDecompressError(res);
             }
@@ -84,7 +84,7 @@ namespace {
 
     struct TLz4SafeDecompress {
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
-            ssize_t res = LZ4_decompress_safe(~in, (char*)out, +in, len);
+            ssize_t res = LZ4_decompress_safe(in.data(), (char*)out, in.size(), len);
             if (res < 0) {
                 ythrow TDecompressError(res);
             }
@@ -134,14 +134,14 @@ namespace {
 
         inline size_t DoCompress(const TData& in, void* buf) const {
             if (Level) {
-                return fastlz_compress_level(Level, ~in, +in, buf);
+                return fastlz_compress_level(Level, in.data(), in.size(), buf);
             }
 
-            return fastlz_compress(~in, +in, buf);
+            return fastlz_compress(in.data(), in.size(), buf);
         }
 
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
-            const int ret = fastlz_decompress(~in, +in, out, len);
+            const int ret = fastlz_decompress(in.data(), in.size(), out, len);
 
             if (ret < 0 || (size_t)ret != len) {
                 ythrow TDataError() << AsStringBuf("can not decompress");
@@ -157,7 +157,7 @@ namespace {
         size_t DecompressedLength(const TData& in) const override {
             size_t ret;
 
-            if (snappy::GetUncompressedLength(~in, +in, &ret)) {
+            if (snappy::GetUncompressedLength(in.data(), in.size(), &ret)) {
                 return ret;
             }
 
@@ -165,19 +165,19 @@ namespace {
         }
 
         size_t MaxCompressedLength(const TData& in) const override {
-            return snappy::MaxCompressedLength(+in);
+            return snappy::MaxCompressedLength(in.size());
         }
 
         size_t Compress(const TData& in, void* out) const override {
             size_t ret;
 
-            snappy::RawCompress(~in, +in, (char*)out, &ret);
+            snappy::RawCompress(in.data(), in.size(), (char*)out, &ret);
 
             return ret;
         }
 
         size_t Decompress(const TData& in, void* out) const override {
-            if (snappy::RawUncompress(~in, +in, (char*)out)) {
+            if (snappy::RawUncompress(in.data(), in.size(), (char*)out)) {
                 return DecompressedLength(in);
             }
 
@@ -209,7 +209,7 @@ namespace {
             //TRASH detected
             uLong ret = Max<unsigned int>();
 
-            int cres = compress2((Bytef*)buf, &ret, (const Bytef*)~in, +in, Level);
+            int cres = compress2((Bytef*)buf, &ret, (const Bytef*)in.data(), in.size(), Level);
 
             if (cres != Z_OK) {
                 ythrow TCompressError(cres);
@@ -221,7 +221,7 @@ namespace {
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
             uLong ret = len;
 
-            int uncres = uncompress((Bytef*)out, &ret, (const Bytef*)~in, +in);
+            int uncres = uncompress((Bytef*)out, &ret, (const Bytef*)in.data(), in.size());
             if (uncres != Z_OK) {
                 ythrow TDecompressError(uncres);
             }
@@ -257,7 +257,7 @@ namespace {
             size_t destLen = Max<size_t>();
             size_t outPropsSize = LZMA_PROPS_SIZE;
 
-            const int ret = LzmaCompress(data, &destLen, (const unsigned char*)~in, +in, props, &outPropsSize, Level, 0, -1, -1, -1, -1, -1);
+            const int ret = LzmaCompress(data, &destLen, (const unsigned char*)in.data(), in.size(), props, &outPropsSize, Level, 0, -1, -1, -1, -1, -1);
 
             if (ret != SZ_OK) {
                 ythrow TCompressError(ret);
@@ -267,14 +267,14 @@ namespace {
         }
 
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
-            if (+in <= LZMA_PROPS_SIZE) {
+            if (in.size() <= LZMA_PROPS_SIZE) {
                 ythrow TDataError() << AsStringBuf("broken lzma stream");
             }
 
-            const unsigned char* props = (const unsigned char*)~in;
+            const unsigned char* props = (const unsigned char*)in.data();
             const unsigned char* data = props + LZMA_PROPS_SIZE;
             size_t destLen = len;
-            SizeT srcLen = +in - LZMA_PROPS_SIZE;
+            SizeT srcLen = in.size() - LZMA_PROPS_SIZE;
 
             const int res = LzmaUncompress((unsigned char*)out, &destLen, data, &srcLen, props, LZMA_PROPS_SIZE);
 
@@ -309,8 +309,8 @@ namespace {
         }
 
         inline size_t DoCompress(const TData& in, void* buf) const {
-            unsigned int ret = DoMaxCompressedLength(+in);
-            const int res = BZ2_bzBuffToBuffCompress((char*)buf, &ret, (char*)~in, +in, Level, 0, 0);
+            unsigned int ret = DoMaxCompressedLength(in.size());
+            const int res = BZ2_bzBuffToBuffCompress((char*)buf, &ret, (char*)in.data(), in.size(), Level, 0, 0);
             if (res != BZ_OK) {
                 ythrow TCompressError(res);
             }
@@ -320,7 +320,7 @@ namespace {
 
         inline void DoDecompress(const TData& in, void* out, size_t len) const {
             unsigned int tmp = SafeIntegerCast<unsigned int>(len);
-            const int res = BZ2_bzBuffToBuffDecompress((char*)out, &tmp, (char*)~in, +in, 0, 0);
+            const int res = BZ2_bzBuffToBuffDecompress((char*)out, &tmp, (char*)in.data(), in.size(), 0, 0);
 
             if (res != BZ_OK) {
                 ythrow TDecompressError(res);
@@ -355,11 +355,11 @@ namespace {
         }
 
         inline size_t DoCompress(const TData& in, void* out) const {
-            return CheckError(ZSTD_compress(out, DoMaxCompressedLength(+in), ~in, +in, Level), "compress");
+            return CheckError(ZSTD_compress(out, DoMaxCompressedLength(in.size()), in.data(), in.size(), Level), "compress");
         }
 
         inline void DoDecompress(const TData& in, void* out, size_t dsize) const {
-            const size_t res = CheckError(ZSTD_decompress(out, dsize, ~in, +in), "decompress");
+            const size_t res = CheckError(ZSTD_decompress(out, dsize, in.data(), in.size()), "decompress");
 
             if (res != dsize) {
                 ythrow TDecompressError(dsize, res);
@@ -424,7 +424,7 @@ namespace {
                 Codecs.push_back(new TZStd08Codec(i));
             }
 
-            for (size_t i = 0; i < +Codecs; ++i) {
+            for (size_t i = 0; i < Codecs.size(); ++i) {
                 Add(Codecs[i].Get());
             }
 

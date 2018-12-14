@@ -9,7 +9,7 @@ pattern = re.compile("#include\s*[<\"](?P<INDUCED>[^>\"]+)[>\"]|(?:@|{@)\s*(?:im
 class CodeGeneratorTemplateParser(object):
     def __init__(self, path, unit):
         self._path = path
-        retargeted = os.path.join(unit.path(), os.path.basename(path))
+        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
         with open(path, 'rb') as f:
             includes, induced = CodeGeneratorTemplateParser.parse_includes(f.readlines())
         self._includes = unit.resolve_include([retargeted] + includes) if includes else []

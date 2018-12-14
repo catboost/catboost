@@ -125,7 +125,7 @@ public:
      * @returns                         Whether the split was actually performed.
      */
     inline bool TrySplit(TdSelf delim, TdSelf& l, TdSelf& r) const noexcept {
-        return TrySplitOn(TBase::find(delim), l, r, +delim);
+        return TrySplitOn(TBase::find(delim), l, r, delim.size());
     }
 
     /**
@@ -140,7 +140,7 @@ public:
      * @returns                         Whether the split was actually performed.
      */
     inline bool TryRSplit(TdSelf delim, TdSelf& l, TdSelf& r) const noexcept {
-        return TrySplitOn(TBase::rfind(delim), l, r, +delim);
+        return TrySplitOn(TBase::rfind(delim), l, r, delim.size());
     }
 
     inline void Split(TChar delim, TdSelf& l, TdSelf& r) const noexcept {
@@ -402,12 +402,6 @@ public: // string subsequences
     Y_PURE_FUNCTION
     inline TdSelf Last(size_t len) const noexcept {
         return TdSelf(*this).RSeek(len);
-    }
-
-    // defined in a parent, but repeat for overload above
-    Y_PURE_FUNCTION
-    inline size_t operator+() const noexcept {
-        return length();
     }
 
     TGenericString<TChar> ToString() const {

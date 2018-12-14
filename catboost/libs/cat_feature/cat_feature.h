@@ -1,13 +1,20 @@
 #pragma once
 
-#include <util/generic/fwd.h>
+#include <util/generic/strbuf.h>
+#include <util/system/types.h>
 
-int CalcCatFeatureHash(TStringBuf feature) noexcept;
+ui32 CalcCatFeatureHash(const TStringBuf feature) noexcept;
 
-inline float ConvertCatFeatureHashToFloat(int hashVal) {
+// deprecated, for compatibility, prefer CalcCatFeatureHash in new code
+inline int CalcCatFeatureHashInt(const TStringBuf feature) noexcept {
+    ui32 hashVal = CalcCatFeatureHash(feature);
+    return *reinterpret_cast<int*>(&hashVal);
+}
+
+inline float ConvertCatFeatureHashToFloat(ui32 hashVal) {
     return *reinterpret_cast<const float*>(&hashVal);
 }
 
-inline int ConvertFloatCatFeatureToIntHash(float feature)  {
-    return *reinterpret_cast<const int*>(&feature);
+inline ui32 ConvertFloatCatFeatureToIntHash(float feature)  {
+    return *reinterpret_cast<const ui32*>(&feature);
 }

@@ -7,11 +7,10 @@ PEERDIR(
 )
 
 PY_SRCS(
-    MAIN __main__.py=main
+    MAIN
+    __main__.py=main
     crash.py
     mod/__init__.py
 )
 
 END()
-
-NEED_CHECK()

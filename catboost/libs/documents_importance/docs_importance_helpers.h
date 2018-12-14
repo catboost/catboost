@@ -3,12 +3,15 @@
 #include "enums.h"
 #include "tree_statistics.h"
 
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/json_helper.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
 #include <util/system/types.h>
 #include <util/system/yassert.h>
@@ -39,16 +42,16 @@ class TDocumentImportancesEvaluator {
 public:
     TDocumentImportancesEvaluator(
         const TFullModel& model,
-        const TPool& pool,
+        const NCB::TProcessedDataProvider& processedData,
         const TUpdateMethod& updateMethod,
-        int threadCount,
+        TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor
         int logPeriod
     )
         : Model(model)
         , UpdateMethod(updateMethod)
         , TreeCount(model.ObliviousTrees.GetTreeCount())
-        , DocCount(pool.Docs.GetDocCount())
-        , ThreadCount(threadCount)
+        , DocCount(processedData.GetObjectCount())
+        , LocalExecutor(std::move(localExecutor))
     {
         NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
         LossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
@@ -64,15 +67,15 @@ public:
         Y_ASSERT(leavesEstimationMethod == ELeavesEstimation::Newton);
             treeStatisticsEvaluator = MakeHolder<TNewtonTreeStatisticsEvaluator>(DocCount);
         }
-        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, pool, logPeriod);
+        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, processedData, logPeriod);
     }
 
     // Getting the importance of all train objects for all objects from pool.
-    TVector<TVector<double>> GetDocumentImportances(const TPool& pool, int logPeriod = 0);
+    TVector<TVector<double>> GetDocumentImportances(const NCB::TProcessedDataProvider& processedData, int logPeriod = 0);
 
 private:
     // Evaluate first derivatives at the final approxes
-    void UpdateFinalFirstDerivatives(const TVector<TVector<ui32>>& leafIndices, const TPool& pool);
+    void UpdateFinalFirstDerivatives(const TVector<TVector<ui32>>& leafIndices, TConstArrayRef<float> target);
     // Leaves derivatives will be updated based on objects from these leaves.
     TVector<ui32> GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian);
     // Algorithm 4 from paper.
@@ -104,5 +107,5 @@ private:
     float LearningRate;
     ui32 TreeCount;
     ui32 DocCount;
-    int ThreadCount;
+    TAtomicSharedPtr<NPar::TLocalExecutor> LocalExecutor;
 };

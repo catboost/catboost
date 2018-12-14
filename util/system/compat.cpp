@@ -18,7 +18,7 @@
 
 #ifndef HAVE_NATIVE_GETPROGNAME
 const char* getprogname() {
-    return ~GetProgramName();
+    return GetProgramName().data();
 }
 #endif
 

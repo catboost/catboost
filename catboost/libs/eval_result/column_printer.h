@@ -3,12 +3,15 @@
 #include "pool_printer.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/weights.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/labels/external_label_helper.h>
 #include <catboost/libs/options/enums.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
 #include <util/generic/ptr.h>
@@ -34,18 +37,23 @@ namespace NCB {
     };
 
 
-
     template <typename T>
-    class TVectorPrinter: public IColumnPrinter {
+    class TArrayPrinter: public IColumnPrinter {
     public:
-        TVectorPrinter(const TVector<T>& targetRef, const TString& header)
-            : Ref(targetRef)
+        TArrayPrinter(TConstArrayRef<T> array, const TString& header)
+            : Array(NCB::TMaybeOwningConstArrayHolder<T>::CreateNonOwning(array))
+            , Header(header)
+        {
+        }
+
+        TArrayPrinter(TVector<T>&& array, const TString& header)
+            : Array(NCB::TMaybeOwningConstArrayHolder<T>::CreateOwning(std::move(array)))
             , Header(header)
         {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
-            *outStream << Ref[docIndex];
+            *outStream << (*Array)[docIndex];
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -53,10 +61,30 @@ namespace NCB {
         }
 
     private:
-        const TVector<T>& Ref;
+        const NCB::TMaybeOwningConstArrayHolder<T> Array;
         const TString Header;
     };
 
+    class TWeightsPrinter: public IColumnPrinter {
+    public:
+        TWeightsPrinter(const TWeights<float>& weights, const TString& header)
+            : Weights(weights)
+            , Header(header)
+        {
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            *outStream << Weights[docIndex];
+        }
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << Header;
+        }
+
+    private:
+        const TWeights<float>& Weights;
+        const TString Header;
+    };
 
 
     template <typename T>
@@ -117,10 +145,10 @@ namespace NCB {
 
     class TCatFeaturePrinter: public IColumnPrinter {
     public:
-        TCatFeaturePrinter(const TVector<float>& hashedValues,
-                           const THashMap<int, TString>& hashToString,
+        TCatFeaturePrinter(TVector<ui32>&& hashedValues,
+                           const THashMap<ui32, TString>& hashToString,
                            const TString& header)
-            : HashedValues(hashedValues)
+            : HashedValues(std::move(hashedValues))
             , HashToString(hashToString)
             , Header(header)
         {
@@ -135,8 +163,8 @@ namespace NCB {
         }
 
     private:
-        const TVector<float>& HashedValues;
-        const THashMap<int, TString>& HashToString;
+        const TVector<ui32> HashedValues;
+        const THashMap<ui32, TString>& HashToString;
         const TString Header;
     };
 

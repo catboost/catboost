@@ -52,8 +52,7 @@ namespace NCB {
             // catboost/libs/algo/quantization.cpp:128 at r3969212
             return (nanMode == ENanMode::Max) ? borders.size() : 0;
         } else {
-            TBinType bin = GetBinFromBorders<TBinType>(borders, value);
-            return (nanMode == ENanMode::Min) ? (bin + 1) : bin;
+            return GetBinFromBorders<TBinType>(borders, value);
         }
     }
 

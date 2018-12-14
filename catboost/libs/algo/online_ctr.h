@@ -1,10 +1,11 @@
 #pragma once
 
+#include "index_hash_calcer.h"
 #include "projection.h"
 #include "target_classifier.h"
 
-#include <catboost/libs/data/dataset.h>
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/online_ctr.h>
@@ -12,12 +13,16 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
+#include <util/system/types.h>
 
 #include <functional>
 
 struct TFold;
 
 const int SIMPLE_CLASSES_COUNT = 2;
+
+
+bool HasFeaturesForCtrs(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 oneHotMaxSize);
 
 
 struct TOnlineCTR {
@@ -47,10 +52,8 @@ inline ui8 CalcCTR(float countInClass, int totalCount, float prior, float shift,
 void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVector<float>* norm);
 
 class TLearnContext;
-class TDataset;
 
-void ComputeOnlineCTRs(const TDataset& learnData,
-                       const TDatasetPtrs& testDataPtrs,
+void ComputeOnlineCTRs(const NCB::TTrainingForCPUDataProviders& data,
                        const TFold& fold,
                        const TProjection& proj,
                        const TLearnContext* ctx,
@@ -60,13 +63,12 @@ class TCtrValueTable;
 
 
 struct TDatasetDataForFinalCtrs {
-    const TDataset* LearnData = nullptr;
-    const TDatasetPtrs* TestDataPtrs = nullptr;
+    NCB::TTrainingForCPUDataProviders Data;
 
-    TMaybe<const TVector<ui32>*> LearnPermutation;
+    TMaybe<const NCB::TArraySubsetIndexing<ui32>*> LearnPermutation;
 
     // permuted according to LearnPermutation if it is defined
-    const TVector<float>* Targets = nullptr;
+    TMaybe<TConstArrayRef<float>> Targets;
 
     // class data needed only if any of used ctrs need target classifier
 
@@ -80,10 +82,10 @@ void CalcFinalCtrsAndSaveToModel(
     NPar::TLocalExecutor& localExecutor,
     const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
     const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+    const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
     ui64 ctrLeafCountLimit,
     bool storeAllSimpleCtrs,
     ECounterCalc counterCalcMethod,
-    const NCB::TFeaturesLayout& layout,
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
 );

@@ -1,31 +1,18 @@
 #include "model_converter.h"
 
+#include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/projection.h>
 #include <catboost/libs/algo/split.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model_build_helper.h>
+
+#include <util/generic/cast.h>
+
 #include <limits>
 
-TVector<TVector<int>> NCatboostCuda::MakeInverseCatFeatureIndexForDataProviderIds(
-        const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
-        const TVector<ui32>& catFeaturesDataProviderIds, bool clearFeatureManagerRamCache) {
-    TVector<TVector<int>> result(catFeaturesDataProviderIds.size());
-    for (ui32 i = 0; i < catFeaturesDataProviderIds.size(); ++i) {
-        const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForCatFeature(
-                catFeaturesDataProviderIds[i]);
-        const auto& perfectHash = featuresManager.GetCategoricalFeaturesPerfectHash(featureManagerId);
 
-        if (!perfectHash.empty()) {
-            result[i].resize(perfectHash.size());
-            for (const auto& entry : perfectHash) {
-                result[i][entry.second] = entry.first;
-            }
-        }
-    }
-    if (clearFeatureManagerRamCache) {
-        featuresManager.UnloadCatFeaturePerfectHashFromRam();
-    }
-    return result;
-}
+using namespace NCB;
+
 
 TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager)  {
     TTargetClassifier targetClassifier(featuresManager.GetTargetBorders());
@@ -37,83 +24,40 @@ TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboos
 namespace NCatboostCuda {
 
     TModelConverter::TModelConverter(const TBinarizedFeaturesManager& manager,
-                                     const TDataProvider& dataProvider)
+                                     const TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+                                     const TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
+                                     const TClassificationTargetHelper& targetHelper)
             : FeaturesManager(manager)
-            , DataProvider(dataProvider)
+            , QuantizedFeaturesInfo(quantizedFeaturesInfo)
+            , FeaturesLayout(*quantizedFeaturesInfo->GetFeaturesLayout())
+            , CatFeatureBinToHashIndex(perfectHashedToHashedCatValuesMap)
+            , TargetHelper(targetHelper)
     {
-        auto& allFeatures = dataProvider.GetFeatureNames();
-        auto& catFeatureIds = dataProvider.GetCatFeatureIds();
+        Borders.resize(FeaturesLayout.GetFloatFeatureCount());
+        FloatFeaturesNanMode.resize(FeaturesLayout.GetFloatFeatureCount(), ENanMode::Forbidden);
 
-        {
-            for (ui32 featureId = 0; featureId < allFeatures.size(); ++featureId) {
-                if (catFeatureIds.has(featureId)) {
-                    CatFeaturesRemap[featureId] = static_cast<ui32>(CatFeaturesRemap.size());
-                } else {
-                    if (dataProvider.HasFeatureId(featureId)) {
-                        const auto featureIdInFeaturesManager = manager.GetFeatureManagerIdForFloatFeature(featureId);
-                        TVector<float> borders = manager.GetBorders(featureIdInFeaturesManager);
-                        Borders.push_back(std::move(borders));
-                        FloatFeaturesNanMode.push_back(manager.GetNanMode(featureIdInFeaturesManager));
-                    } else {
-                        Borders.push_back(TVector<float>());
-                        FloatFeaturesNanMode.push_back(ENanMode::Forbidden);
-                    }
-                    FloatFeaturesRemap[featureId] = static_cast<ui32>(FloatFeaturesRemap.size());
-                }
+        FeaturesLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+            [&] (const TFloatFeatureIdx floatFeatureIdx) {
+                Borders[*floatFeatureIdx] = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
+                FloatFeaturesNanMode[*floatFeatureIdx] = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
             }
-        }
-        {
-            TVector<ui32> catFeatureVec(catFeatureIds.begin(), catFeatureIds.end());
-            CatFeatureBinToHashIndex = MakeInverseCatFeatureIndexForDataProviderIds(manager,
-                                                                                    catFeatureVec);
-        }
+        );
     }
 
-    TFullModel TModelConverter::Convert(const TAdditiveModel<TObliviousTreeModel>& src) const {
-        const auto& featureNames = DataProvider.GetFeatureNames();
-        const auto& catFeatureIds = DataProvider.GetCatFeatureIds();
+    TFullModel TModelConverter::Convert(const TAdditiveModel<TObliviousTreeModel>& src,
+                                        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TFullModel coreModel;
         coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
 
         ui32 cpuApproxDim = 1;
 
-        if (DataProvider.IsMulticlassificationPool()) {
-            coreModel.ModelInfo["multiclass_params"] = DataProvider.GetTargetHelper().Serialize();
-            cpuApproxDim = DataProvider.GetTargetHelper().GetNumClasses();
+        if (TargetHelper.IsMultiClass()) {
+            coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
+            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
         }
 
-        auto featureCount = featureNames.ysize();
-        TVector<TFloatFeature> floatFeatures;
-        TVector<TCatFeature> catFeatures;
-
-        for (int i = 0; i < featureCount; ++i) {
-            if (catFeatureIds.has(i)) {
-                auto catFeatureIdx = catFeatures.size();
-                auto& catFeature = catFeatures.emplace_back();
-                catFeature.FeatureIndex = catFeatureIdx;
-                catFeature.FlatFeatureIndex = i;
-                catFeature.FeatureId = featureNames[catFeature.FlatFeatureIndex];
-                Y_ASSERT((ui32)catFeature.FeatureIndex == CatFeaturesRemap.at(i));
-            } else {
-                auto floatFeatureIdx = floatFeatures.size();
-                auto& floatFeature = floatFeatures.emplace_back();
-                const bool hasNans = FloatFeaturesNanMode.at(floatFeatureIdx) != ENanMode::Forbidden;
-                floatFeature.FeatureIndex = floatFeatureIdx;
-                floatFeature.FlatFeatureIndex = i;
-                floatFeature.Borders = Borders[floatFeatureIdx];
-                floatFeature.FeatureId = featureNames[i];
-                floatFeature.HasNans = hasNans;
-                if (hasNans) {
-                    if (FloatFeaturesNanMode.at(floatFeatureIdx) == ENanMode::Min) {
-                        floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsFalse;
-                    } else {
-                        floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsTrue;
-                    }
-                }
-                Y_ASSERT((ui32)floatFeature.FeatureIndex == FloatFeaturesRemap.at(i));
-            }
-        }
-
+        TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(*QuantizedFeaturesInfo);
+        TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
 
         TObliviousTreeBuilder obliviousTreeBuilder(
                 floatFeatures,
@@ -144,9 +88,8 @@ namespace NCatboostCuda {
                 }
             }
 
-
             const auto& structure = model.GetStructure();
-            auto treeStructure = ConvertStructure(structure);
+            auto treeStructure = ConvertStructure(structure, featureCombinationToProjection);
             obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
         }
         coreModel.ObliviousTrees = obliviousTreeBuilder.Build();
@@ -159,29 +102,10 @@ namespace NCatboostCuda {
         TModelSplit modelSplit;
         modelSplit.Type = ESplitType::FloatFeature;
         auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
-        CB_ENSURE(FloatFeaturesRemap.has(dataProviderId));
-        auto remapId = FloatFeaturesRemap.at(dataProviderId);
+        auto remapId = FeaturesLayout.GetInternalFeatureIdx<EFeatureType::Float>(dataProviderId);
 
-        float border = 0;
-        const auto nanMode = FloatFeaturesNanMode.at(remapId);
-        switch (nanMode) {
-            case ENanMode::Forbidden: {
-                border = Borders.at(remapId).at(split.BinIdx);
-                break;
-            }
-            case ENanMode::Min: {
-                border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : std::numeric_limits<float>::lowest();
-                break;
-            }
-            case ENanMode::Max: {
-                border = split.BinIdx != Borders.at(remapId).size() ? Borders.at(remapId).at(split.BinIdx) : std::numeric_limits<float>::max();
-                break;
-            }
-            default: {
-                ythrow TCatboostException() << "Unknown NaN mode " << nanMode;
-            };
-        }
-        modelSplit.FloatFeature = TFloatSplit{(int)remapId, border};
+        float border = Borders.at(*remapId).at(split.BinIdx);
+        modelSplit.FloatFeature = TFloatSplit{(int)*remapId, border};
         return modelSplit;
     }
 
@@ -191,14 +115,14 @@ namespace NCatboostCuda {
         TModelSplit modelSplit;
         modelSplit.Type = ESplitType::OneHotFeature;
         auto dataProviderId = FeaturesManager.GetDataProviderId(split.FeatureId);
-        CB_ENSURE(CatFeaturesRemap.has(dataProviderId));
-        auto remapId = CatFeaturesRemap.at(dataProviderId);
-        CB_ENSURE(CatFeatureBinToHashIndex[remapId].size(),
+        auto remapId = FeaturesLayout.GetInternalFeatureIdx<EFeatureType::Categorical>(dataProviderId);
+
+        CB_ENSURE(CatFeatureBinToHashIndex[*remapId].size(),
                   TStringBuilder() << "Error: no catFeature perfect hash for feature " << dataProviderId);
-        CB_ENSURE(split.BinIdx < CatFeatureBinToHashIndex[remapId].size(),
+        CB_ENSURE(split.BinIdx < CatFeatureBinToHashIndex[*remapId].size(),
                   TStringBuilder() << "Error: no hash for feature " << split.FeatureId << " " << split.BinIdx);
-        const int hash = CatFeatureBinToHashIndex[remapId][split.BinIdx];
-        modelSplit.OneHotFeature = TOneHotSplit(remapId,
+        const int hash = CatFeatureBinToHashIndex[*remapId][split.BinIdx];
+        modelSplit.OneHotFeature = TOneHotSplit(*remapId,
                                                 hash);
         return modelSplit;
     }
@@ -206,36 +130,50 @@ namespace NCatboostCuda {
     ui32 TModelConverter::GetRemappedIndex(ui32 featureId) const {
         CB_ENSURE(FeaturesManager.IsCat(featureId) || FeaturesManager.IsFloat(featureId));
         ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);
-        if (FeaturesManager.IsFloat(featureId)) {
-            return FloatFeaturesRemap.at(dataProviderId);
-        } else {
-            return CatFeaturesRemap.at(dataProviderId);
-        }
+        return FeaturesLayout.GetInternalFeatureIdx(dataProviderId);
     }
 
-    TFeatureCombination TModelConverter::ExtractProjection(const TCtr& ctr) const  {
-        TFeatureCombination projection;
+    void TModelConverter::ExtractProjection(const TCtr& ctr,
+                                            TFeatureCombination* dstFeatureCombination,
+                                            TProjection* dstProjection) const {
+        TFeatureCombination featureCombination;
+
+        TVector<TBinFeature> binFeatures;
+        TVector<TOneHotSplit> oneHotFeatures;
+
         for (auto split : ctr.FeatureTensor.GetSplits()) {
             if (FeaturesManager.IsFloat(split.FeatureId)) {
                 auto floatSplit = CreateFloatSplit(split);
-                projection.BinFeatures.push_back(floatSplit.FloatFeature);
+                featureCombination.BinFeatures.push_back(floatSplit.FloatFeature);
+                binFeatures.push_back(TBinFeature(floatSplit.FloatFeature.FloatFeature, split.BinIdx));
             } else if (FeaturesManager.IsCat(split.FeatureId)) {
-                projection.OneHotFeatures.push_back(CreateOneHotSplit(split).OneHotFeature);
+                auto oneHotSplit = CreateOneHotSplit(split);
+                featureCombination.OneHotFeatures.push_back(oneHotSplit.OneHotFeature);
+                oneHotFeatures.push_back(TOneHotSplit(oneHotSplit.OneHotFeature.CatFeatureIdx, split.BinIdx));
             } else {
                 CB_ENSURE(false, "Error: unknown split type");
             }
         }
         for (auto catFeature : ctr.FeatureTensor.GetCatFeatures()) {
-            projection.CatFeatures.push_back(GetRemappedIndex(catFeature));
+            featureCombination.CatFeatures.push_back(GetRemappedIndex(catFeature));
         }
+
         //just for more more safety
-        Sort(projection.BinFeatures.begin(), projection.BinFeatures.end());
-        Sort(projection.CatFeatures.begin(), projection.CatFeatures.end());
-        Sort(projection.OneHotFeatures.begin(), projection.OneHotFeatures.end());
-        return projection;
+        Sort(featureCombination.BinFeatures);
+        Sort(featureCombination.CatFeatures);
+        Sort(featureCombination.OneHotFeatures);
+
+        Sort(binFeatures);
+        Sort(oneHotFeatures);
+        dstProjection->BinFeatures = std::move(binFeatures);
+        dstProjection->OneHotFeatures = std::move(oneHotFeatures);
+        dstProjection->CatFeatures = featureCombination.CatFeatures;
+
+        *dstFeatureCombination = std::move(featureCombination);
     }
 
-    TModelSplit TModelConverter::CreateCtrSplit(const TBinarySplit& split) const  {
+    TModelSplit TModelConverter::CreateCtrSplit(const TBinarySplit& split,
+                                                THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const  {
         TModelSplit modelSplit;
         CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId));
         const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
@@ -246,7 +184,11 @@ namespace NCatboostCuda {
         modelSplit.OnlineCtr.Border = borders[split.BinIdx];
 
         TModelCtr& modelCtr = modelSplit.OnlineCtr.Ctr;
-        modelCtr.Base.Projection = ExtractProjection(ctr);
+
+        TProjection projection;
+        ExtractProjection(ctr, &modelCtr.Base.Projection, &projection);
+        featureCombinationToProjection->insert({modelCtr.Base.Projection, std::move(projection)});
+
         modelCtr.Base.CtrType = ctr.Configuration.Type;
         modelCtr.Base.TargetBorderClassifierIdx = 0; // TODO(kirillovs): remove me
 
@@ -258,7 +200,8 @@ namespace NCatboostCuda {
         return modelSplit;
     }
 
-    TVector<TModelSplit> TModelConverter::ConvertStructure(const TObliviousTreeStructure& structure) const {
+    TVector<TModelSplit> TModelConverter::ConvertStructure(const TObliviousTreeStructure& structure,
+                                                           THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TVector<TModelSplit> structure3;
         for (auto split : structure.Splits) {
             TModelSplit modelSplit;
@@ -267,7 +210,7 @@ namespace NCatboostCuda {
             } else if (FeaturesManager.IsCat(split.FeatureId)) {
                 modelSplit = CreateOneHotSplit(split);
             } else {
-                modelSplit = CreateCtrSplit(split);
+                modelSplit = CreateCtrSplit(split, featureCombinationToProjection);
             }
             structure3.push_back(modelSplit);
         }

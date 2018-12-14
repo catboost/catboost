@@ -43,16 +43,25 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                   \
-    template <>                                                                            \
-    void PoissonRand<TMapping>(                                                            \
-        TCudaBuffer<ui64, TMapping>& seeds,                                                \
-        const TCudaBuffer<float, TMapping>& alphas,                                        \
-        TCudaBuffer<int, TMapping>& result,                                                \
-        ui64 streamId)                                                                     \
-    {                                                                                      \
-        using TKernel = TPoissonKernel;                                                    \
-        LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, alphas, result); \
+template <typename TMapping>
+static void PoissonRandImpl(
+    TCudaBuffer<ui64, TMapping>& seeds,
+    const TCudaBuffer<float, TMapping>& alphas,
+    TCudaBuffer<int, TMapping>& result,
+    ui64 streamId)
+{
+    using TKernel = TPoissonKernel;
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, alphas, result);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                    \
+    template <>                                             \
+    void PoissonRand<TMapping>(                             \
+        TCudaBuffer<ui64, TMapping> & seeds,                \
+        const TCudaBuffer<float, TMapping>& alphas,         \
+        TCudaBuffer<int, TMapping>& result,                 \
+        ui64 streamId) {                                    \
+        ::PoissonRandImpl(seeds, alphas, result, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -91,15 +100,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                           \
-    template <>                                                                    \
-    void GaussianRand<TMapping>(                                                   \
-        TCudaBuffer<ui64, TMapping>& seeds,                                        \
-        TCudaBuffer<float, TMapping>& result,                                      \
-        ui64 streamId)                                                             \
-    {                                                                              \
-        using TKernel = TGaussianRandKernel;                                       \
-        LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result); \
+template <typename TMapping>
+static void GaussianRandImpl(
+    TCudaBuffer<ui64, TMapping>& seeds,
+    TCudaBuffer<float, TMapping>& result,
+    ui64 streamId)
+{
+    using TKernel = TGaussianRandKernel;
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)             \
+    template <>                                      \
+    void GaussianRand<TMapping>(                     \
+        TCudaBuffer<ui64, TMapping> & seeds,         \
+        TCudaBuffer<float, TMapping> & result,       \
+        ui64 streamId) {                             \
+        ::GaussianRandImpl(seeds, result, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -138,15 +155,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                           \
-    template <>                                                                    \
-    void UniformRand(                                                              \
-        TCudaBuffer<ui64, TMapping>& seeds,                                        \
-        TCudaBuffer<float, TMapping>& result,                                      \
-        ui64 streamId)                                                             \
-    {                                                                              \
-        using TKernel = TUniformRandKernel;                                        \
-        LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result); \
+template <typename TMapping>
+static void UniformRandImpl(
+    TCudaBuffer<ui64, TMapping>& seeds,
+    TCudaBuffer<float, TMapping>& result,
+    ui64 streamId)
+{
+    using TKernel = TUniformRandKernel;
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)            \
+    template <>                                     \
+    void UniformRand(                               \
+        TCudaBuffer<ui64, TMapping>& seeds,         \
+        TCudaBuffer<float, TMapping>& result,       \
+        ui64 streamId) {                            \
+        ::UniformRandImpl(seeds, result, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -183,15 +208,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                            \
-    template <>                                                                     \
-    void GenerateSeedsOnGpu<TMapping>(                                              \
-        const NCudaLib::TDistributedObject<ui64>& baseSeed,                         \
-        TCudaBuffer<ui64, TMapping>& seeds,                                         \
-        ui64 streamId)                                                              \
-    {                                                                               \
-        using TKernel = TGenerateSeeds;                                             \
-        LaunchKernels<TKernel>(seeds.NonEmptyDevices(), streamId, seeds, baseSeed); \
+template <typename TMapping>
+static void GenerateSeedsOnGpuImpl(
+    const NCudaLib::TDistributedObject<ui64>& baseSeed,
+    TCudaBuffer<ui64, TMapping>& seeds,
+    ui64 streamId)
+{
+    using TKernel = TGenerateSeeds;
+    LaunchKernels<TKernel>(seeds.NonEmptyDevices(), streamId, seeds, baseSeed);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                     \
+    template <>                                              \
+    void GenerateSeedsOnGpu<TMapping>(                       \
+        const NCudaLib::TDistributedObject<ui64>& baseSeed,  \
+        TCudaBuffer<ui64, TMapping>& seeds,                  \
+        ui64 streamId) {                                     \
+        ::GenerateSeedsOnGpuImpl(baseSeed, seeds, streamId); \
     }
 
 Y_MAP_ARGS(
@@ -204,12 +237,17 @@ Y_MAP_ARGS(
 
 // TGpuAwareRandom::CreateSeedsBuffer
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                                         \
-    template <>                                                                                                  \
-    NCudaLib::TCudaBuffer<ui64, TMapping> TGpuAwareRandom::CreateSeedsBuffer<TMapping>(ui32 maxCountPerDevice) { \
-        NCudaLib::TDistributedObject<ui64> maxSeedCount = CreateDistributedObject<ui64>(maxCountPerDevice);      \
-        auto mapping = CreateMapping<TMapping>(maxSeedCount);                                                    \
-        return TCudaBuffer<ui64, TMapping>::Create(mapping);                                                     \
+template <typename TMapping>
+static TCudaBuffer<ui64, TMapping> CreateSeedsBufferImpl(ui32 maxCountPerDevice) {
+    auto maxSeedCount = CreateDistributedObject<ui64>(maxCountPerDevice);
+    auto mapping = CreateMapping<TMapping>(maxSeedCount);
+    return TCudaBuffer<ui64, TMapping>::Create(mapping);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                               \
+    template <>                                                                                        \
+    TCudaBuffer<ui64, TMapping> TGpuAwareRandom::CreateSeedsBuffer<TMapping>(ui32 maxCountPerDevice) { \
+        return ::CreateSeedsBufferImpl<TMapping>(maxCountPerDevice);                                   \
     }
 
 Y_MAP_ARGS(

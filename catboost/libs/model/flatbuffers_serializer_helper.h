@@ -13,7 +13,7 @@ public:
 #define GENERATE_OFFSET_HELPER(TNativeType, TFlatbuffersType)\
     public:\
     flatbuffers::Offset<TFlatbuffersType> GetOffset(const TNativeType& value) {\
-        if (OffsetsFor##TNativeType.has(value)) {\
+        if (OffsetsFor##TNativeType.contains(value)) {\
             return OffsetsFor##TNativeType.at(value);\
         }\
         auto result = value.FBSerialize(*this);\

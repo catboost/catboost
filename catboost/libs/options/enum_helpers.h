@@ -21,6 +21,11 @@ bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction);
 
 bool IsBinaryClassMetric(ELossFunction lossFunction);
 
+// some metrics are both binclass and multiclass (e.g. HingeLoss)
+bool IsBinaryClassOnlyMetric(ELossFunction lossFunction);
+
+bool IsClassificationMetric(ELossFunction lossFunction);
+
 bool IsClassificationObjective(ELossFunction lossFunction);
 
 bool IsClassificationObjective(TStringBuf lossDescription);
@@ -29,11 +34,15 @@ bool IsRegressionObjective(ELossFunction lossFunction);
 
 bool IsRegressionObjective(TStringBuf lossDescription);
 
+bool IsRegressionMetric(ELossFunction lossFunction);
+
 bool IsMultiClassMetric(ELossFunction lossFunction);
 
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 
-bool IsPairwiseError(ELossFunction lossFunction);
+bool IsPairwiseMetric(ELossFunction lossFunction);
+
+bool UsesPairsForCalculation(ELossFunction lossFunction);
 
 bool IsPlainMode(EBoostingType boostingType);
 

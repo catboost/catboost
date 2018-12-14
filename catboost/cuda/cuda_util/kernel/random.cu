@@ -67,7 +67,7 @@ namespace NKernel {
     {
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < seedSize) {
-            ui64 s = seeds[i];
+            ui64 s = __ldg(seeds + i);
             result[i] = NextGamma(&s, alphas[i], scale[i]);
             seeds[i] = s;
             i += gridDim.x * blockDim.x;

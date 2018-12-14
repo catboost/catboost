@@ -6,7 +6,6 @@
 #include <util/generic/string.h>
 
 namespace NCB {
-    // TODO(yazevnul): replace `NCatboostCuda::TBinarizedFloatFeaturesMetaInfo` with this struct
     struct TPoolQuantizationSchema {
         // Flat indices of non-ignored features
         // Sorted from min to max

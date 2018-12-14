@@ -1,3 +1,5 @@
+
+#include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/unittest/registar.h>
@@ -5,37 +7,93 @@
 
 #include <util/random/fast.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
+
+
+using namespace NCB;
+
 
 Y_UNIT_TEST_SUITE(TTrainTest) {
     Y_UNIT_TEST(TestRepeatableTrain) {
         const size_t TestDocCount = 1000;
-        const size_t FactorCount = 10;
+        const ui32 FactorCount = 10;
 
         TReallyFastRng32 rng(123);
-        TPool pool;
-        pool.Docs.Resize(TestDocCount, FactorCount, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
+
+        TVector<float> target(TestDocCount);
+        TVector<TVector<float>> features(FactorCount); // [featureIdx][objectIdx]
+
+        for (size_t j = 0; j < FactorCount; ++j) {
+            features[j].yresize(TestDocCount);
+        }
+
         for (size_t i = 0; i < TestDocCount; ++i) {
-            pool.Docs.Target[i] = rng.GenRandReal2();
+            target[i] = rng.GenRandReal2();
             for (size_t j = 0; j < FactorCount; ++j) {
-                pool.Docs.Factors[j][i] = rng.GenRandReal2();
+                features[j][i] = rng.GenRandReal2();
             }
         }
-        TPool poolCopy(pool);
+
+        TDataProviders dataProviders;
+        dataProviders.Learn = CreateDataProvider(
+            [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                TDataMetaInfo metaInfo;
+                metaInfo.HasTarget = true;
+                metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                    FactorCount,
+                    TVector<ui32>{},
+                    TVector<TString>{}
+                );
+
+                visitor->Start(metaInfo, TestDocCount, EObjectsOrder::Undefined, {});
+
+                for (auto factorId : xrange(FactorCount)) {
+                    visitor->AddFloatFeature(
+                        factorId,
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>(features[factorId]))
+                    );
+                }
+                visitor->AddTarget(target);
+
+                visitor->Finish();
+            }
+        );
+        dataProviders.Test.push_back(
+            CreateDataProvider(
+                [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                    TDataMetaInfo metaInfo = dataProviders.Learn->MetaInfo;
+                    visitor->Start(metaInfo, 0, EObjectsOrder::Undefined, {});
+
+                    for (auto factorId : xrange(FactorCount)) {
+                        visitor->AddFloatFeature(
+                            factorId,
+                            TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>())
+                        );
+                    }
+
+                    visitor->AddTarget(TConstArrayRef<TString>());
+
+                    visitor->Finish();
+                }
+            )
+        );
+
         NJson::TJsonValue plainFitParams;
         plainFitParams.InsertValue("random_seed", 5);
         plainFitParams.InsertValue("iterations", 1);
         plainFitParams.InsertValue("train_dir", ".");
+        plainFitParams.InsertValue("thread_count", 1);
         NJson::TJsonValue metadata;
         metadata["a"] = "b";
         plainFitParams.InsertValue("metadata", metadata);
         TEvalResult testApprox;
-        TPool testPool;
         TFullModel model;
         TrainModel(
             plainFitParams,
+            nullptr,
             Nothing(),
             Nothing(),
-            TClearablePoolPtrs(pool, {&testPool}),
+            dataProviders,
             "",
             &model,
             {&testApprox}
@@ -43,26 +101,28 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         {
             TrainModel(
                 plainFitParams,
+                nullptr,
                 Nothing(),
                 Nothing(),
-                TClearablePoolPtrs(pool, {&testPool}),
+                dataProviders,
                 "model_for_test.cbm",
                 nullptr,
                 {&testApprox}
             );
             TFullModel otherCallVariant = ReadModel("model_for_test.cbm");
-            UNIT_ASSERT(model.ModelInfo.has("a"));
+            UNIT_ASSERT(model.ModelInfo.contains("a"));
             UNIT_ASSERT_VALUES_EQUAL(model.ModelInfo["a"], "b");
             UNIT_ASSERT_EQUAL(model, otherCallVariant);
         }
-        UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), poolCopy.Docs.GetDocCount());
-        UNIT_ASSERT_EQUAL(pool.Docs.GetEffectiveFactorCount(), poolCopy.Docs.GetEffectiveFactorCount());
-        for (int j = 0; j < pool.Docs.GetEffectiveFactorCount(); ++j) {
-            const auto& factors = pool.Docs.Factors[j];
-            const auto& factorsCopy = poolCopy.Docs.Factors[j];
-            for (size_t i = 0; i < pool.Docs.GetDocCount(); ++i) {
-                UNIT_ASSERT_EQUAL(factors[i], factorsCopy[i]);
-            }
+
+        UNIT_ASSERT_EQUAL((size_t)dataProviders.Learn->ObjectsData->GetObjectCount(), TestDocCount);
+        UNIT_ASSERT_EQUAL((size_t)dataProviders.Learn->MetaInfo.GetFeatureCount(), FactorCount);
+
+        const auto& rawObjectsData = dynamic_cast<TRawObjectsDataProvider&>(
+            *(dataProviders.Learn->ObjectsData)
+        );
+        for (size_t j = 0; j < FactorCount; ++j) {
+            UNIT_ASSERT( Equal<float>(features[j], (**rawObjectsData.GetFloatFeature(j)).GetArrayData()) );
         }
     }
 }

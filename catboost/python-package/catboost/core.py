@@ -582,7 +582,6 @@ class Pool(_PoolBase):
         """
         if isinstance(data, DataFrame):
             feature_names = list(data.columns)
-            data = data.values
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
@@ -1877,10 +1876,17 @@ class CatBoostClassifier(CatBoost):
         The given integer should be greater than any of the target values.
         If this parameter is specified the labels for all classes in the input dataset
         should be smaller than the given value.
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
     class_weights : list of floats, [default=None]
         Classes weights. The values are used as multipliers for the object weights.
         If None, all classes are supposed to have weight one.
-        Number of classes indicated by classes_count and class_weights should be the same.
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
+    class_names: list of strings, [default=None]
+        Class names. Allows to redefine the default values for class labels (integer numbers).
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
     one_hot_max_size : int, [default=None]
         Convert the feature to float
         if the number of different values that it takes exceeds the specified value.
@@ -2020,6 +2026,7 @@ class CatBoostClassifier(CatBoost):
         allow_const_label=None,
         classes_count=None,
         class_weights=None,
+        class_names=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
@@ -2328,9 +2335,9 @@ class CatBoostClassifier(CatBoost):
         elif y is None:
             raise CatboostError("y should be specified.")
         correct = []
-        y = np.array(y)
+        y = np.array(y, dtype=np.int32)
         for i, val in enumerate(self.predict(X)):
-            correct.append(1 * (y[i] == val))
+            correct.append(1 * (y[i] == np.int32(val)))
         return np.mean(correct)
 
     def _check_is_classification_objective(self, loss_function):
@@ -2345,8 +2352,7 @@ class CatBoostRegressor(CatBoost):
 
     Parameters
     ----------
-    Like in CatBoostClassifier, except loss_function, class_weights and
-    classes_count
+    Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
 
     loss_function : string, [default='RMSE']
         'RMSE'
@@ -2355,6 +2361,7 @@ class CatBoostRegressor(CatBoost):
         'LogLinQuantile:alpha=value'
         'Poisson'
         'MAPE'
+        'Lq:q=value'
     """
     def __init__(
         self,
@@ -2615,7 +2622,7 @@ class CatBoostRegressor(CatBoost):
         elif y is None:
             raise CatboostError("y should be specified.")
         error = []
-        y = np.array(y)
+        y = np.array(y, dtype=np.float64)
         for i, val in enumerate(self.predict(X)):
             error.append(pow(y[i] - val, 2))
         return np.sqrt(np.mean(error))
@@ -2623,7 +2630,7 @@ class CatBoostRegressor(CatBoost):
     def _check_is_regressor_loss(self, loss_function):
         if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE or custom objective object".format(loss_function))
+                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
@@ -2743,10 +2750,10 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
-       fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
+       fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, iterations_batch_size=100):
     """
     Cross-validate the CatBoost model.
 
@@ -2834,6 +2841,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     snapshot_interval: int, [default=600]
         Interval beetween saving snapshots (seconds)
 
+    iterations_batch_size: int [default:100]
+        Number of iterations to compute for each fold before aggregating results.
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2901,8 +2911,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if snapshot_interval is not None:
         params['snapshot_interval'] = snapshot_interval
 
+    if nfold is None and fold_count is None:
+        fold_count = 3
+    elif fold_count is None:
+        fold_count = nfold
+    else:
+        assert nfold is None or nfold == fold_count
+
     with log_fixup(), plot_wrapper(plot, params):
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
+                   as_pandas, iterations_batch_size)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

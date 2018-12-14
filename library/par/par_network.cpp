@@ -305,12 +305,12 @@ namespace NPar {
             messageStream << GetGuidAsString(requestId) << '\xff';
             messageStream << url << '\xff';
             if (data) {
-                const size_t origLen = +*data;
+                const size_t origLen = data->size();
                 QuickLZCompress(data);
-                const size_t compressedLen = +*data;
-                auto val = Crc32c(~*data, +*data);
+                const size_t compressedLen = data->size();
+                auto val = Crc32c(data->data(), data->size());
                 messageStream << val << '\xff';
-                msg.Data.AppendNoAlias(~*data, +*data);
+                msg.Data.AppendNoAlias(data->data(), data->size());
 
                 TVector<char>().swap(*data);
                 PAR_DEBUG_LOG << "From " << GetHostAndPort() << " sending request " << GetGuidAsString(requestId) << " to " << address.GetNehAddr() << " service " << url << " data len: " << origLen << " (compressed: " << compressedLen << ")" << Endl;
@@ -413,7 +413,7 @@ namespace NPar {
                 THolder<NNetliba_v12::TUdpHttpRequest> nlReq = Requester->GetRequest();
                 if (nlReq) {
                     QuickLZDecompress(&nlReq->Data);
-                    PAR_DEBUG_LOG << "Got request " << ~nlReq->Url << Endl;
+                    PAR_DEBUG_LOG << "Got request " << nlReq->Url.data() << Endl;
                     TAutoPtr<TNetworkRequest> netReq = new TNetworkRequest;
                     netReq->ReqId = nlReq->ReqId;
                     netReq->Url = nlReq->Url;

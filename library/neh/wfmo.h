@@ -62,7 +62,7 @@ namespace NNeh {
         };
 
         inline ~TWaitQueue() {
-            for (size_t i = 0; i < +H_; ++i) {
+            for (size_t i = 0; i < H_.size(); ++i) {
                 H_[i]->Register(nullptr);
             }
         }

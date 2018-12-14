@@ -111,13 +111,13 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         {
             auto allNames = GetEnumAllCppNames<EDuplicateKeys>();
             UNIT_ASSERT(!!allNames);
-            UNIT_ASSERT_VALUES_EQUAL(+allNames, 5u);
+            UNIT_ASSERT_VALUES_EQUAL(allNames.size(), 5u);
             UNIT_ASSERT_VALUES_EQUAL(allNames[4], "Key3");
         }
         {
             auto allNames = GetEnumAllCppNames<ESimpleWithComma>();
             UNIT_ASSERT(!!allNames);
-            UNIT_ASSERT_VALUES_EQUAL(+allNames, 4u);
+            UNIT_ASSERT_VALUES_EQUAL(allNames.size(), 4u);
             UNIT_ASSERT_VALUES_EQUAL(allNames[1], "ESimpleWithComma::Http2");
         }
     }

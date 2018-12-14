@@ -1328,7 +1328,9 @@
 #define SIZEOF_SHORT 2
 
 /* The size of `size_t', as computed by sizeof. */
+#if !defined(SIZEOF_SIZE_T)
 #define SIZEOF_SIZE_T 8
+#endif
 
 /* The size of `time_t', as computed by sizeof. */
 #define SIZEOF_TIME_T 8
@@ -1417,7 +1419,9 @@
 /* #undef WITH_NEXT_FRAMEWORK */
 
 /* Define if you want to compile in Python-specific mallocs */
+#ifndef address_sanitizer_enabled
 #define WITH_PYMALLOC 1
+#endif
 
 /* Define if you want to compile in rudimentary thread support */
 #define WITH_THREAD 1

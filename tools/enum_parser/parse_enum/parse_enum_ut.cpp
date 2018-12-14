@@ -11,7 +11,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
     Y_UNIT_TEST(MainTest) {
         TString text = NResource::Find("/enums");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         TEnumParser parser(input);
         const TEnums& enums = parser.Enums;
 
@@ -235,7 +235,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
     Y_UNIT_TEST(BadCodeParseTest) {
         TString text = NResource::Find("/badcode");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         TEnumParser parser(input);
         const TEnums& enums = parser.Enums;
 
@@ -257,7 +257,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
     Y_UNIT_TEST(UnbalancedCodeParseTest) {
         // Thanks gotmanov@ for providing this example
         TString text = NResource::Find("/unbalanced");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         try {
             TEnumParser parser(input);
             UNIT_ASSERT(false);
@@ -268,7 +268,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
     Y_UNIT_TEST(AliasBeforeNameTest) {
         TString text = NResource::Find("/alias_before_name");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         try {
             TEnumParser parser(input);
             UNIT_ASSERT(false);

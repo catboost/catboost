@@ -24,6 +24,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         'flask.ext.__init__',
         'future.backports.email.policy',  # email backport is incomplete in v0.16.0.
+        'future.moves.dbm.ndbm',
 
         'gensim.models.lda_worker',
         'gensim.models.lda_dispatcher',
@@ -93,6 +94,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "coloredlogs.cli",
 
         "dateutil.tzwin",
+        "dateutil.tz.win",
 
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
@@ -114,6 +116,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "pandas.io.s3",
         "pandas.io.wb",
         "pandas.rpy.base",
+        "pandas.rpy.common",
         "pandas.rpy.vars",
         "pandas.util.clipboard",
 
@@ -162,15 +165,26 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "gevent.win32util",
 
         "library.python.ctypes.__init__",
-	"celery.events.cursesmon",
-	"billiard.popen_forkserver",
-	"billiard.forkserver",
-	"celery.contrib.sphinx",
+        "celery.events.cursesmon",
+        "billiard.popen_forkserver",
+        "billiard.forkserver",
+        "celery.contrib.sphinx",
+
+        "flask_wtf.i18n",
+        "playhouse.apsw_ext",
+        "botocore.vendored.requests.packages.urllib3.contrib.pyopenssl",
+        "cssutils._fetchgae",
+
+        "catboost.widget.*",
+        "kubiki.geobase",
+
     ] + list(no_check or [])
 
     if sys.version_info.major == 3:
         exceptions += [
             "antigravity",
+            "lzma",
+            "dbm.ndbm",
             "tkinter",
             "msvcrt",
             "msilib.*",
@@ -192,6 +206,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
             "encodings.cp65001",
             "curses.*",
             "distutils.command.bdist_msi",
+            "yaml.cyaml",
+            "vh.ext.nirvana.nirvana_api_bridge",
         ]
 
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]

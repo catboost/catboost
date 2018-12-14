@@ -6,6 +6,9 @@
 
 #include <util/generic/vector.h>
 
+#include <functional>
+
+
 namespace NJson {
     class TJsonValue;
 }
@@ -26,4 +29,24 @@ namespace NCatboostOptions {
     };
 }
 
-bool IsMultiClass(ELossFunction lossFunction, const NCatboostOptions::TMetricOptions& metricOptions);
+bool IsValidForObjectiveOrEvalMetric(
+    const ELossFunction objective,
+    const NCatboostOptions::TMetricOptions& metricOptions,
+    std::function<bool(ELossFunction)> predicate);
+
+
+bool IsMultiClass(
+    const ELossFunction lossFunction,
+    const NCatboostOptions::TMetricOptions& metricOptions);
+
+
+void IterateOverObjectiveAndMetrics(
+    const NCatboostOptions::TLossDescription& objective,
+    const NCatboostOptions::TMetricOptions& metricOptions,
+    std::function<void(const NCatboostOptions::TLossDescription&)>&& visitor);
+
+
+bool IsAnyOfObjectiveOrMetrics(
+    const NCatboostOptions::TLossDescription& objective,
+    const NCatboostOptions::TMetricOptions& metricOptions,
+    std::function<bool(ELossFunction)> predicate);

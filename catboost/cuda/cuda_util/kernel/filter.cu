@@ -16,7 +16,7 @@ namespace NKernel {
         const int i = blockIdx.x * blockDim.x + threadIdx.x;
         Filter filter;
         if (i < size) {
-            result[i] = filter(weights[i]);
+            result[i] = filter(__ldg(weights + i));
         }
     }
 

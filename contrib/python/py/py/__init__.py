@@ -1,5 +1,5 @@
 """
-py.test and pylib: rapid testing and development utils
+pylib: rapid testing and development utils
 
 this module uses apipkg.py for lazy-loading sub modules
 and classes.  The initpkg-dictionary  below specifies
@@ -8,19 +8,27 @@ dictionary or an import path.
 
 (c) Holger Krekel and others, 2004-2014
 """
-__version__ = '1.4.30'
+from py._error import error
 
-from py import _apipkg
+try:
+    from py._vendored_packages import apipkg
+    lib_not_mangled_by_packagers = True
+    vendor_prefix = '._vendored_packages.'
+except ImportError:
+    import apipkg
+    lib_not_mangled_by_packagers = False
+    vendor_prefix = ''
 
-# so that py.error.* instances are picklable
-import sys
-sys.modules['py.error'] = _apipkg.AliasModule("py.error", "py._error", 'error')
+try:
+    from ._version import version as __version__
+except ImportError:
+    # broken installation, we don't even try
+    __version__ = "unknown"
 
-_apipkg.initpkg(__name__, attr={'_apipkg': _apipkg}, exportdefs={
+
+apipkg.initpkg(__name__, attr={'_apipkg': apipkg, 'error': error}, exportdefs={
     # access to all standard lib modules
     'std': '._std:std',
-    # access to all posix errno's as classes
-    'error': '._error:error',
 
     '_pydir' : '.__metainfo:pydir',
     'version': 'py:__version__', # backward compatibility
@@ -28,8 +36,6 @@ _apipkg.initpkg(__name__, attr={'_apipkg': _apipkg}, exportdefs={
     # pytest-2.0 has a flat namespace, we use alias modules
     # to keep old references compatible
     'test' : 'pytest',
-    'test.collect' : 'pytest',
-    'test.cmdline' : 'pytest',
 
     # hook into the top-level standard library
     'process' : {
@@ -40,13 +46,13 @@ _apipkg.initpkg(__name__, attr={'_apipkg': _apipkg}, exportdefs={
     },
 
     'apipkg' : {
-        'initpkg'   : '._apipkg:initpkg',
-        'ApiModule' : '._apipkg:ApiModule',
+        'initpkg'   : vendor_prefix + 'apipkg:initpkg',
+        'ApiModule' : vendor_prefix + 'apipkg:ApiModule',
     },
 
     'iniconfig' : {
-        'IniConfig'      : '._iniconfig:IniConfig',
-        'ParseError'     : '._iniconfig:ParseError',
+        'IniConfig'      : vendor_prefix + 'iniconfig:IniConfig',
+        'ParseError'     : vendor_prefix + 'iniconfig:ParseError',
     },
 
     'path' : {

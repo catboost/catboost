@@ -228,14 +228,14 @@ struct TCIEqualTo<const char*> {
 template <>
 struct TCIEqualTo<TStringBuf> {
     inline bool operator()(const TStringBuf a, const TStringBuf b) const {
-        return +a == +b && strnicmp(~a, ~b, +a) == 0;
+        return a.size() == b.size() && strnicmp(a.data(), b.data(), a.size()) == 0;
     }
 };
 
 template <>
 struct TCIEqualTo<TString> {
     inline bool operator()(const TString& a, const TString& b) const {
-        return +a == +b && strnicmp(~a, ~b, +a) == 0;
+        return a.size() == b.size() && strnicmp(a.data(), b.data(), a.size()) == 0;
     }
 };
 

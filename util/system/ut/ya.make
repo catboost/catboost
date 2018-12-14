@@ -2,8 +2,6 @@ UNITTEST_FOR(util)
 
 
 
-NEED_CHECK()
-
 FORK_TESTS()
 
 FORK_SUBTESTS()

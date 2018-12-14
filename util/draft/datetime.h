@@ -145,7 +145,7 @@ inline TString date2str(const time_t date) {
 inline time_t str2date(const TString& dateStr) {
     struct tm dateTm;
     memset(&dateTm, 0, sizeof(tm));
-    strptime(~dateStr, "%Y%m%d", &dateTm);
+    strptime(dateStr.data(), "%Y%m%d", &dateTm);
     return mktime(&dateTm);
 }
 

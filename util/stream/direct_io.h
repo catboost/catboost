@@ -25,7 +25,7 @@ public:
     TRandomAccessFileOutput& operator=(TRandomAccessFileOutput&&) noexcept = default;
 
 protected:
-    TDirectIOBufferedFile& File;
+    TDirectIOBufferedFile* File;
 
 private:
     void DoWrite(const void* buf, size_t len) override;

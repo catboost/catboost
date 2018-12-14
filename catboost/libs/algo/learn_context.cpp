@@ -1,6 +1,7 @@
 #include "calc_score_cache.h"
 #include "learn_context.h"
 #include "error_functions.h"
+#include "online_ctr.h"
 
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/progress_helper.h>
@@ -10,11 +11,17 @@
 #include <library/digest/crc32c/crc32c.h>
 #include <library/digest/md5/md5.h>
 
-#include <util/folder/path.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/guid.h>
-#include <util/stream/file.h>
-#include <util/stream/labeled.h>
+#include <util/generic/xrange.h>
+#include <util/folder/path.h>
 #include <util/system/fs.h>
+#include <util/stream/file.h>
+
+
+using namespace NCB;
+
+
 
 TLearnContext::~TLearnContext() {
     if (Params.SystemOptions->IsMaster()) {
@@ -33,23 +40,6 @@ void TLearnContext::OutputMeta() {
     CreateMetaFile(Files, OutputOptions, GetConstPointers(losses), Params.BoostingOptions->IterationCount);
 }
 
-template <typename T>
-static ui32 CalcMatrixCheckSum(ui32 init, const TVector<TVector<T>>& matrix) {
-    ui32 checkSum = init;
-    for (const auto& row : matrix) {
-        checkSum = Crc32cExtend(checkSum, row.data(), row.size() * sizeof(T));
-    }
-    return checkSum;
-}
-
-static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
-    ui32 checkSum = 0;
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.FloatHistograms);
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.CatFeaturesRemapped);
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.OneHotValues);
-    return checkSum;
-}
-
 static bool IsPermutationNeeded(bool hasTime, bool hasCtrs, bool isOrderedBoosting, bool isAveragingFold) {
     if (hasTime) {
         return false;
@@ -64,16 +54,20 @@ static int CountLearningFolds(int permutationCount, bool isPermutationNeededForL
     return isPermutationNeededForLearning ? Max<ui32>(1, permutationCount - 1) : 1;
 }
 
-void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
+void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
     LearnProgress.EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
-    LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
-    for (const TDataset* testData : testDataPtrs) {
-        LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData->AllFeatures);
+    LearnProgress.PoolCheckSum = data.Learn->ObjectsData->CalcFeaturesCheckSum(LocalExecutor);
+    for (const auto& testData : data.Test) {
+        LearnProgress.PoolCheckSum += testData->ObjectsData->CalcFeaturesCheckSum(LocalExecutor);
     }
 
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
-    const bool hasCtrs = !IsCategoricalFeaturesEmpty(learnData.AllFeatures);
-    const bool hasTime = Params.DataProcessingOptions->HasTimeFlag;
+    const bool hasCtrs = HasFeaturesForCtrs(
+        *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
+        Params.CatFeatureParams->OneHotMaxSize.Get()
+    );
+    const bool hasTime = Params.DataProcessingOptions->HasTimeFlag
+        || (data.Learn->ObjectsData->GetOrder() == EObjectsOrder::Ordered);
     const bool isOrderedBoosting = !IsPlainMode(Params.BoostingOptions->BoostingType);
     const bool isLearnFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ false);
     const int learningFoldCount = CountLearningFolds(Params.BoostingOptions->PermutationCount, isLearnFoldPermuted);
@@ -82,36 +76,38 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
 
     CtrsHelper.InitCtrHelper(Params.CatFeatureParams,
-                             Layout,
-                             learnData.Target,
+                             *Layout,
+                             GetMaybeTarget(data.Learn->TargetData),
                              lossFunction,
                              ObjectiveDescriptor,
                              Params.DataProcessingOptions->AllowConstLabel);
 
     //Todo(noxoomo): check and init
     const auto& boostingOptions = Params.BoostingOptions.Get();
+    const ui32 learnSampleCount = data.Learn->GetObjectCount();
     ui32 foldPermutationBlockSize = boostingOptions.PermutationBlockSize;
     if (foldPermutationBlockSize == FoldPermutationBlockSizeNotSet) {
-        foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnData.GetSampleCount());
+        foldPermutationBlockSize = DefaultFoldPermutationBlockSize(learnSampleCount);
     }
     if (!isLearnFoldPermuted) {
-        foldPermutationBlockSize = learnData.GetSampleCount();
+        foldPermutationBlockSize = learnSampleCount;
     }
     const auto storeExpApproxes = IsStoreExpApprox(Params.LossFunctionDescription->GetLossFunction());
-    const bool hasPairwiseWeights = IsPairwiseError(Params.LossFunctionDescription->GetLossFunction());
+    const bool hasPairwiseWeights = UsesPairsForCalculation(Params.LossFunctionDescription->GetLossFunction());
 
     if (IsPlainMode(Params.BoostingOptions->BoostingType)) {
         for (int foldIdx = 0; foldIdx < learningFoldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 TFold::BuildPlainFold(
-                    learnData,
+                    *data.Learn,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
-                    (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
+                    (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnSampleCount),
                     LearnProgress.ApproxDimension,
                     storeExpApproxes,
                     hasPairwiseWeights,
-                    Rand
+                    Rand,
+                    LocalExecutor
                 )
             );
         }
@@ -119,7 +115,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
         for (int foldIdx = 0; foldIdx < learningFoldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
                 TFold::BuildDynamicFold(
-                    learnData,
+                    *data.Learn,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
                     foldPermutationBlockSize,
@@ -127,7 +123,8 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
                     boostingOptions.FoldLenMultiplier,
                     storeExpApproxes,
                     hasPairwiseWeights,
-                    Rand
+                    Rand,
+                    LocalExecutor
                 )
             );
         }
@@ -135,32 +132,35 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
 
     const bool isAverageFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ true);
     LearnProgress.AveragingFold = TFold::BuildPlainFold(
-        learnData,
+        *data.Learn,
         CtrsHelper.GetTargetClassifiers(),
         isAverageFoldPermuted,
-        /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
+        /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnSampleCount),
         LearnProgress.ApproxDimension,
         storeExpApproxes,
         hasPairwiseWeights,
-        Rand
+        Rand,
+        LocalExecutor
     );
 
-    LearnProgress.AvrgApprox.resize(LearnProgress.ApproxDimension, TVector<double>(learnData.GetSampleCount()));
-    if (!learnData.Baseline.empty()) {
-        LearnProgress.AvrgApprox = learnData.Baseline;
+    LearnProgress.AvrgApprox.resize(LearnProgress.ApproxDimension, TVector<double>(learnSampleCount));
+    const TVector<TConstArrayRef<float>> learnBaseline = GetBaseline(data.Learn->TargetData);
+    if (!learnBaseline.empty()) {
+        AssignRank2<float>(learnBaseline, &LearnProgress.AvrgApprox);
     }
-    ResizeRank2(testDataPtrs.size(), LearnProgress.ApproxDimension, LearnProgress.TestApprox);
-    for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-        const auto* testData = testDataPtrs[testIdx];
-        if (testData == nullptr || testData->GetSampleCount() == 0) {
+    ResizeRank2(data.Test.size(), LearnProgress.ApproxDimension, LearnProgress.TestApprox);
+    for (size_t testIdx = 0; testIdx < data.Test.size(); ++testIdx) {
+        const auto* testData = data.Test[testIdx].Get();
+        if (testData == nullptr || testData->GetObjectCount() == 0) {
             continue;
         }
-        if (testData->Baseline.empty()) {
+        const TVector<TConstArrayRef<float>> testBaseline = GetBaseline(testData->TargetData);
+        if (testBaseline.empty()) {
             for (auto& approxDim : LearnProgress.TestApprox[testIdx]) {
-                approxDim.resize(testData->GetSampleCount());
+                approxDim.resize(testData->GetObjectCount());
             }
         } else {
-            LearnProgress.TestApprox[testIdx] = testData->Baseline;
+            AssignRank2<float>(testBaseline, &LearnProgress.TestApprox[testIdx]);
         }
     }
 

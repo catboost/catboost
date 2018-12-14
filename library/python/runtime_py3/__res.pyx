@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 from _codecs import utf_8_decode, utf_8_encode
 
 from libcpp cimport bool

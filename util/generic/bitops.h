@@ -449,3 +449,11 @@ void SetBits(T& value, T bits) {
     value &= ~(maxValue << Offset);
     value |= bits << Offset;
 }
+
+inline constexpr ui64 NthBit64(int bit) {
+    return ui64(1) << bit;
+}
+
+inline constexpr ui64 Mask64(int bits) {
+    return NthBit64(bits) - 1;
+}

@@ -27,5 +27,9 @@
 #endif // __APPLE__
 
 #if defined(_MSC_VER)
-#include "fficonfig-win.h"
+#   if defined(_M_IX86)
+#       include "fficonfig-win32.h"
+#   else
+#       include "fficonfig-win.h"
+#   endif
 #endif

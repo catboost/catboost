@@ -10,27 +10,10 @@ import py
 from py._code.assertion import _format_explanation, BuiltinAssertionError
 
 
-if sys.platform.startswith("java") and sys.version_info < (2, 5, 2):
-    # See http://bugs.jython.org/issue1497
-    _exprs = ("BoolOp", "BinOp", "UnaryOp", "Lambda", "IfExp", "Dict",
-              "ListComp", "GeneratorExp", "Yield", "Compare", "Call",
-              "Repr", "Num", "Str", "Attribute", "Subscript", "Name",
-              "List", "Tuple")
-    _stmts = ("FunctionDef", "ClassDef", "Return", "Delete", "Assign",
-              "AugAssign", "Print", "For", "While", "If", "With", "Raise",
-              "TryExcept", "TryFinally", "Assert", "Import", "ImportFrom",
-              "Exec", "Global", "Expr", "Pass", "Break", "Continue")
-    _expr_nodes = set(getattr(ast, name) for name in _exprs)
-    _stmt_nodes = set(getattr(ast, name) for name in _stmts)
-    def _is_ast_expr(node):
-        return node.__class__ in _expr_nodes
-    def _is_ast_stmt(node):
-        return node.__class__ in _stmt_nodes
-else:
-    def _is_ast_expr(node):
-        return isinstance(node, ast.expr)
-    def _is_ast_stmt(node):
-        return isinstance(node, ast.stmt)
+def _is_ast_expr(node):
+    return isinstance(node, ast.expr)
+def _is_ast_stmt(node):
+    return isinstance(node, ast.stmt)
 
 
 class Failure(Exception):

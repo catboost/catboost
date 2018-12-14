@@ -16,11 +16,13 @@ ENDIF()
 
 # Apple C++ standard library headers are not in OS SDK but in Xcode toolchain
 IF (USE_STL_SYSTEM)
-    DECLARE_EXTERNAL_RESOURCE(XCODE_TOOLCHAIN_ROOT sbr:498971125)
+    SET(__XCODE_RESOURCE_NAME CPP_XCODE_TOOLCHAIN_ROOT)
+    SET(__XCODE_TOOLCHAIN_VERSION ${CPP_XCODE_TOOLCHAIN_VERSION})
+    INCLUDE(${ARCADIA_ROOT}/build/platform/xcode/ya.make.inc)
     IF (OS_IOS)
         CFLAGS(
-            GLOBAL -cxx-isystem GLOBAL $XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/include/c++/v1
-            GLOBAL -cxx-isystem GLOBAL $XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/include
+            GLOBAL -cxx-isystem GLOBAL $CPP_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/include/c++/v1
+            GLOBAL -cxx-isystem GLOBAL $CPP_XCODE_TOOLCHAIN_ROOT_RESOURCE_GLOBAL/usr/include
         )
     ENDIF()
 ENDIF()

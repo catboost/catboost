@@ -84,7 +84,7 @@ void TBufferInput::Rewind() noexcept {
 
 size_t TBufferInput::DoNext(const void** ptr, size_t len) {
     len = Min(Buf_.Size() - Readed_, len);
-    *ptr = ~Buf_ + Readed_;
+    *ptr = Buf_.data() + Readed_;
     Readed_ += len;
     return len;
 }

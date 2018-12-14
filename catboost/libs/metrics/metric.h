@@ -1,16 +1,17 @@
 #pragma once
 
 #include "metric_holder.h"
-#include "ders_holder.h"
+#include "pfound.h"
 
-#include <catboost/libs/algo/hessian.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/options/metric_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
+#include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
 
@@ -77,8 +78,8 @@ private:
 struct TCustomMetricDescriptor {
     using TEvalFuncPtr = TMetricHolder (*)(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
         int begin,
         int end,
         void* customData);
@@ -93,33 +94,12 @@ struct TCustomMetricDescriptor {
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
 };
 
-struct TCustomObjectiveDescriptor {
-    using TCalcDersRangePtr = void (*)(
-        int count,
-        const double* approxes,
-        const float* targets,
-        const float* weights,
-        TDers* ders,
-        void* customData);
-    using TCalcDersMultiPtr = void (*)(
-        const TVector<double>& approx,
-        float target,
-        float weight,
-        TVector<double>* ders,
-        THessianInfo* der2,
-        void* customData);
-
-    void* CustomData = nullptr;
-    TCalcDersRangePtr CalcDersRange = nullptr;
-    TCalcDersMultiPtr CalcDersMulti = nullptr;
-};
-
 struct IMetric {
     virtual TMetricHolder Eval(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         int begin,
         int end,
         NPar::TLocalExecutor& executor
@@ -152,9 +132,9 @@ template <class TImpl>
 struct TAdditiveMetric: public TMetric {
     TMetricHolder Eval(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         int begin,
         int end,
         NPar::TLocalExecutor& executor
@@ -315,6 +295,10 @@ TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& d
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetrics(
+    TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+    int approxDim);
+
+TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
     const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
@@ -328,11 +312,12 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
 
 TMetricHolder EvalErrors(
     const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
     const THolder<IMetric>& error,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::TLocalExecutor* localExecutor
+);
 
 inline bool IsMaxOptimal(const IMetric& metric) {
     EMetricBestValue bestValueType;
@@ -341,6 +326,11 @@ inline bool IsMaxOptimal(const IMetric& metric) {
     return bestValueType == EMetricBestValue::Max;
 }
 
-void CheckTarget(const TVector<float>& target, ELossFunction lossFunction);
+void CheckPreprocessedTarget(
+    TConstArrayRef<float> target,
+    ELossFunction lossFunction,
+    bool isLearnData,
+    bool allowConstLabel = false
+);
 
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);

@@ -49,19 +49,28 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, EPtrType Type>
+static void DecompressImpl(
+    const TCudaBuffer<T, TMapping, Type>& src,
+    TCudaBuffer<ui32, TMapping>& dst,
+    ui32 uniqueValues,
+    ui32 stream)
+{
+    using TKernel = TDecompressKernel<T, Type>;
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues));
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, Type)                                                    \
-    template <>                                                                                      \
-    void Decompress<T, TMapping, Type>(                                                              \
-        const TCudaBuffer<T, TMapping, Type>& src,                                                   \
-        TCudaBuffer<ui32, TMapping>& dst,                                                            \
-        ui32 uniqueValues,                                                                           \
-        ui32 stream)                                                                                 \
-    {                                                                                                \
-        using TKernel = TDecompressKernel<T, Type>;                                                  \
-        LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues)); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, Type)         \
+    template <>                                           \
+    void Decompress<T, TMapping, Type>(                   \
+        const TCudaBuffer<T, TMapping, Type>& src,        \
+        TCudaBuffer<ui32, TMapping>& dst,                 \
+        ui32 uniqueValues,                                \
+        ui32 stream) {                                    \
+        ::DecompressImpl(src, dst, uniqueValues, stream); \
     }
 
 Y_MAP_ARGS(
@@ -85,7 +94,7 @@ Y_MAP_ARGS(
 // Compress
 
 namespace {
-    template <class TStorageType, NCudaLib::EPtrType Type>
+    template <class TStorageType, EPtrType Type>
     class TCompressKernel: public TStatelessKernel {
     private:
         using TDstBufferPtr = TDeviceBuffer<TStorageType, Type>;
@@ -113,19 +122,28 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, EPtrType Type>
+static void CompressImpl(
+    const TCudaBuffer<ui32, TMapping>& src,
+    TCudaBuffer<T, TMapping, Type>& dst,
+    ui32 uniqueValues,
+    ui32 stream)
+{
+    using TKernel = TCompressKernel<T, Type>;
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues));
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, Type)                                                    \
-    template <>                                                                                      \
-    void Compress(                                                                                   \
-        const TCudaBuffer<ui32, TMapping>& src,                                                      \
-        TCudaBuffer<T, TMapping, Type>& dst,                                                         \
-        ui32 uniqueValues,                                                                           \
-        ui32 stream)                                                                                 \
-    {                                                                                                \
-        using TKernel = TCompressKernel<T, Type>;                                                    \
-        LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues)); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, Type)       \
+    template <>                                         \
+    void Compress(                                      \
+        const TCudaBuffer<ui32, TMapping>& src,         \
+        TCudaBuffer<T, TMapping, Type>& dst,            \
+        ui32 uniqueValues,                              \
+        ui32 stream) {                                  \
+        ::CompressImpl(src, dst, uniqueValues, stream); \
     }
 
 Y_MAP_ARGS(
@@ -149,7 +167,7 @@ Y_MAP_ARGS(
 // GatherFromCompressed
 
 namespace {
-    template <class TStorageType, NCudaLib::EPtrType Type>
+    template <class TStorageType, EPtrType Type>
     class TGatherFromCompressedKernel: public TStatelessKernel {
     private:
         using TSrcBufferPtr = TDeviceBuffer<const TStorageType, Type>;
@@ -183,21 +201,32 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, EPtrType Type, typename TUi32>
+static void GatherFromCompressedImpl(
+    const TCudaBuffer<T, TMapping, Type>& src,
+    const ui32 uniqueValues,
+    const TCudaBuffer<TUi32, TMapping>& map,
+    const ui32 mask,
+    TCudaBuffer<ui32, TMapping>& dst,
+    ui32 stream)
+{
+    using TKernel = TGatherFromCompressedKernel<T, Type>;
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, map, mask, dst, NCB::IntLog2(uniqueValues));
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, Type, TUi32)                                                        \
-    template <>                                                                                                 \
-    void GatherFromCompressed<T, TMapping, Type, TUi32>(                                                        \
-        const TCudaBuffer<T, TMapping, Type>& src,                                                              \
-        const ui32 uniqueValues,                                                                                \
-        const TCudaBuffer<TUi32, TMapping>& map,                                                                \
-        const ui32 mask,                                                                                        \
-        TCudaBuffer<ui32, TMapping>& dst,                                                                       \
-        ui32 stream)                                                                                            \
-    {                                                                                                           \
-        using TKernel = TGatherFromCompressedKernel<T, Type>;                                                   \
-        LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, map, mask, dst, NCB::IntLog2(uniqueValues)); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, Type, TUi32)                       \
+    template <>                                                                \
+    void GatherFromCompressed<T, TMapping, Type, TUi32>(                       \
+        const TCudaBuffer<T, TMapping, Type>& src,                             \
+        const ui32 uniqueValues,                                               \
+        const TCudaBuffer<TUi32, TMapping>& map,                               \
+        const ui32 mask,                                                       \
+        TCudaBuffer<ui32, TMapping>& dst,                                      \
+        ui32 stream) {                                                         \
+        ::GatherFromCompressedImpl(src, uniqueValues, map, mask, dst, stream); \
     }
 
 Y_MAP_ARGS(
@@ -220,12 +249,17 @@ Y_MAP_ARGS(
 
 // CompressedSize
 
-#define Y_CATBOOST_CUDA_F_IMPL(TStorageType)                                                   \
-    template <>                                                                                \
-    ui32 CompressedSize<TStorageType>(ui32 count, ui32 uniqueValues) {                         \
-        const ui32 bitsPerKey = NCB::IntLog2(uniqueValues);                                    \
-        const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);             \
-        return ::NHelpers::CeilDivide(count, keysPerBlock) * NKernel::CompressCudaBlockSize(); \
+template <typename TStorageType>
+static ui32 CompressedSizeImpl(ui32 count, ui32 uniqueValues) {
+    const ui32 bitsPerKey = NCB::IntLog2(uniqueValues);
+    const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);
+    return ::NHelpers::CeilDivide(count, keysPerBlock) * NKernel::CompressCudaBlockSize();
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TStorageType)                            \
+    template <>                                                         \
+    ui32 CompressedSize<TStorageType>(ui32 count, ui32 uniqueValues) {  \
+        return ::CompressedSizeImpl<TStorageType>(count, uniqueValues); \
     }
 
 Y_MAP_ARGS(
@@ -237,17 +271,22 @@ Y_MAP_ARGS(
 
 // CompressedSize
 
+template <typename TStorageType, typename TMapping>
+static TMapping CompressedSizeImpl(const TCudaBuffer<ui32, TMapping>& src, ui32 uniqueValues) {
+    const ui32 bitsPerKey = NCB::IntLog2(uniqueValues);
+    return src.GetMapping().Transform([&](const TSlice& devSlice) -> ui64 {
+        const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);
+        return ::NHelpers::CeilDivide((ui32)devSlice.Size(), keysPerBlock) * NKernel::CompressCudaBlockSize();
+    });
+};
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(TStorageType, TMapping)                                                             \
-    template <>                                                                                                    \
-    TMapping CompressedSize<TStorageType, TMapping>(const TCudaBuffer<ui32, TMapping>& src, ui32 uniqueValues) {   \
-        const ui32 bitsPerKey = NCB::IntLog2(uniqueValues);                                                        \
-        return src.GetMapping().Transform([&](const TSlice& devSlice) -> ui64 {                                    \
-            const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);                             \
-            return ::NHelpers::CeilDivide((ui32)devSlice.Size(), keysPerBlock) * NKernel::CompressCudaBlockSize(); \
-        });                                                                                                        \
+#define Y_CATBOOST_CUDA_F_IMPL(TStorageType, TMapping)                                                           \
+    template <>                                                                                                  \
+    TMapping CompressedSize<TStorageType, TMapping>(const TCudaBuffer<ui32, TMapping>& src, ui32 uniqueValues) { \
+        return ::CompressedSizeImpl<TStorageType>(src, uniqueValues);                                            \
     };
 
 Y_MAP_ARGS(

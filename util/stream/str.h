@@ -30,7 +30,7 @@ public:
      * @param s                         String to read from.
      */
     inline TStringInput(const TString& s) noexcept
-        : S_(s)
+        : S_(&s)
         , Pos_(0)
     {
     }
@@ -47,7 +47,7 @@ protected:
     void DoUndo(size_t len) override;
 
 private:
-    const TString& S_;
+    const TString* S_;
     size_t Pos_;
 
     friend class TStringStream;

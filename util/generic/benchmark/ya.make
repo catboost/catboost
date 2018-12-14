@@ -1,7 +1,5 @@
 
 
-NEED_CHECK()
-
 RECURSE(
     fastclp2
     fastclp2/metrics

@@ -29,7 +29,6 @@ namespace NKernel {
 
         int matrixIdx = blockIdx.x * matricesPerBlock + threadIdx.x / logicalWarpSize;
         int localTid = threadIdx.x & (logicalWarpSize - 1);
-        const int inBlockOffset = threadIdx.x / logicalWarpSize;
 
         if (matrixIdx >= matCount)
             return;
@@ -41,12 +40,8 @@ namespace NKernel {
         }
         pairwiseHistogram += (matrixOffset + matrixIdx) * 4;
 
-        __shared__ float lineData[BLOCK_SIZE * 2];
-
 
         const int N = PartCount / logicalWarpSize;
-        const int logicalWarpId = threadIdx.x / logicalWarpSize;
-        const int logicalWarpCount = BLOCK_SIZE / logicalWarpSize;
         thread_block_tile<logicalWarpSize> groupTile = tiled_partition<logicalWarpSize>(this_thread_block());
 
         float sum0[N];
@@ -322,8 +317,8 @@ namespace NKernel {
             if (bestIdx != -1) {
                 bestFeature = binFeature[bestIdx];
             } else {
-                bestFeature.BinId = -1;
-                bestFeature.FeatureId = -1;
+                bestFeature.BinId = static_cast<ui32>(-1);
+                bestFeature.FeatureId = static_cast<ui32>(-1);
             }
             best->Index = bestIndexBias + bestIdx;
             best->Score = -bestScore;

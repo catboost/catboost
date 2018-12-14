@@ -7,8 +7,10 @@
 
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_lib/cache.h>
-#include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/data/permutation.h>
+
+#include <catboost/libs/data_new/data_provider.h>
+
 #include <util/system/env.h>
 
 namespace NCatboostCuda {
@@ -18,21 +20,24 @@ namespace NCatboostCuda {
         TAtomicSharedPtr<IQueriesGrouping> SamplesGrouping;
         NCudaLib::TStripeMapping Mapping;
 
-        explicit TDocParallelSplit(const TDataProvider& dataProvider,
+        explicit TDocParallelSplit(const NCB::TTrainingDataProvider& dataProvider,
                                    const TDataPermutation& permutation)
             : Permutation(permutation)
         {
-            if (dataProvider.HasQueries()) {
-                auto permutedQids = Permutation.Gather(dataProvider.GetQueryIds());
-                auto samplesGrouping = MakeHolder<TQueriesGrouping>(std::move(permutedQids),
-                                                                    dataProvider.GetPairs());
-                if (dataProvider.HasSubgroupIds()) {
-                    auto permutedGids = permutation.Gather(dataProvider.GetSubgroupIds());
+            if (dataProvider.MetaInfo.HasGroupId) {
+                TVector<ui32> objectsOrder;
+                Permutation.FillOrder(objectsOrder);
+                auto samplesGrouping = MakeHolder<TQueriesGrouping>(objectsOrder,
+                                                                    *dataProvider.ObjectsGrouping,
+                                                                    NCB::GetGroupInfo(dataProvider.TargetData),
+                                                                    dataProvider.MetaInfo.HasPairs);
+                if (dataProvider.MetaInfo.HasSubgroupIds) {
+                    auto permutedGids = permutation.Gather(*dataProvider.ObjectsData->GetSubgroupIds());
                     samplesGrouping->SetSubgroupIds(std::move(permutedGids));
                 }
                 SamplesGrouping = std::move(samplesGrouping);
             } else {
-                SamplesGrouping.Reset(new TWithoutQueriesGrouping(dataProvider.GetSampleCount()));
+                SamplesGrouping.Reset(new TWithoutQueriesGrouping(dataProvider.GetObjectCount()));
             }
 
             auto queriesSplit = NCudaLib::TStripeMapping::SplitBetweenDevices((ui64)SamplesGrouping->GetQueryCount());
@@ -69,7 +74,7 @@ namespace NCatboostCuda {
         };
 
     private:
-        TDocParallelDataSet(const TDataProvider& dataProvider,
+        TDocParallelDataSet(const NCB::TTrainingDataProvider& dataProvider,
                             TAtomicSharedPtr<TCompressedIndex> compressedIndex,
                             const TDataPermutation& ctrsEstimationPermutation,
                             const TDataPermutation& loadBalancingPermutation,
@@ -101,12 +106,12 @@ namespace NCatboostCuda {
             return *dataSetPtr;
         }
 
-        const TDataProvider& GetDataProvider() const {
+        const NCB::TTrainingDataProvider& GetDataProvider() const {
             CB_ENSURE(DataProvider);
             return *DataProvider;
         }
 
-        const TDataProvider& GetTestDataProvider() const {
+        const NCB::TTrainingDataProvider& GetTestDataProvider() const {
             CB_ENSURE(TestDataProvider);
             return *TestDataProvider;
         }
@@ -135,9 +140,9 @@ namespace NCatboostCuda {
 
         TDocParallelDataSetsHolder() = default;
 
-        TDocParallelDataSetsHolder(const TDataProvider& dataProvider,
+        TDocParallelDataSetsHolder(const NCB::TTrainingDataProvider& dataProvider,
                                    const TBinarizedFeaturesManager& featuresManager,
-                                   const TDataProvider* testProvider = nullptr)
+                                   const NCB::TTrainingDataProvider* testProvider = nullptr)
             : DataProvider(&dataProvider)
             , TestDataProvider(testProvider)
             , FeaturesManager(&featuresManager)
@@ -147,12 +152,12 @@ namespace NCatboostCuda {
             const ui32 loadBalancingPermutationId = FromString<ui32>(GetEnv("CB_LOAD_BALANCE_PERMUTATION", "42"));
 
             LearnDocPerDevicesSplit = new TDocParallelSplit(*DataProvider,
-                                                            DataProvider->HasQueries()
+                                                            DataProvider->MetaInfo.HasGroupId
                                                             ? GetPermutation(dataProvider, loadBalancingPermutationId)
                                                             : GetPermutation(dataProvider, TDataPermutation::IdentityPermutationId()));
             if (TestDataProvider) {
                 TestDocPerDevicesSplit = new TDocParallelSplit(*TestDataProvider,
-                                                               DataProvider->HasQueries()
+                                                               DataProvider->MetaInfo.HasGroupId
                                                                ? GetPermutation(*TestDataProvider, loadBalancingPermutationId)
                                                                : GetPermutation(*TestDataProvider, TDataPermutation::IdentityPermutationId()));
             }
@@ -172,8 +177,8 @@ namespace NCatboostCuda {
         }
 
     private:
-        const TDataProvider* DataProvider = nullptr;
-        const TDataProvider* TestDataProvider = nullptr;
+        const NCB::TTrainingDataProvider* DataProvider = nullptr;
+        const NCB::TTrainingDataProvider* TestDataProvider = nullptr;
         const TBinarizedFeaturesManager* FeaturesManager = nullptr;
         //learn target and weights
         TStripeBuffer<float> Target;

@@ -29,12 +29,12 @@ namespace {
 }
 
 TString THttpParser::GetBestCompressionScheme() const {
-    if (AcceptEncodings_.has("*")) {
+    if (AcceptEncodings_.contains("*")) {
         return BestCodings[0];
     }
 
     for (auto& coding : BestCodings) {
-        if (AcceptEncodings_.has(coding)) {
+        if (AcceptEncodings_.contains(coding)) {
             return coding;
         }
     }
@@ -64,7 +64,7 @@ bool THttpParser::FirstLineParser() {
             ParseHttpVersion(httpVersion);
         }
     } catch (...) {
-        throw THttpParseException() << "Cannot parse first line: " << CurrentExceptionMessage() << " First 80 chars of line: " << FirstLine_.substr(0, Min<size_t>(80ull, +FirstLine_)).Quote();
+        throw THttpParseException() << "Cannot parse first line: " << CurrentExceptionMessage() << " First 80 chars of line: " << FirstLine_.substr(0, Min<size_t>(80ull, FirstLine_.size())).Quote();
     }
 
     return HeadersParser();
@@ -153,7 +153,7 @@ bool THttpParser::ChunkedContentParser() {
                     break;
                 }
             }
-            Y_ENSURE(+CurrentLine_, "NEH: LeftBytes hex number cannot be empty. ");
+            Y_ENSURE(CurrentLine_.size(), "NEH: LeftBytes hex number cannot be empty. ");
             size_t size = CurrentLine_.find_first_of(" \t;");
             if (size == TString::npos) {
                 size = CurrentLine_.size();
@@ -197,7 +197,7 @@ bool THttpParser::ReadLine() {
         return false;
     }
 
-    CurrentLine_.append(~in, endl);
+    CurrentLine_.append(in.data(), endl);
     if (Y_LIKELY(CurrentLine_.Size())) {
         //remove '\r' from tail
         size_t withoutCR = CurrentLine_.Size() - 1;
@@ -266,7 +266,7 @@ bool THttpParser::DecodeContent() {
         return false;
     }
 
-    TMemoryInput in(~Content_, +Content_);
+    TMemoryInput in(Content_.data(), Content_.size());
     if (ContentEncoding_ == "gzip") {
         DecodedContent_ = TZLibDecompress(&in, ZLib::GZip).ReadAll();
     } else if (ContentEncoding_ == "deflate") {
@@ -288,7 +288,7 @@ bool THttpParser::DecodeContent() {
             if (definitelyNoZlibHeader) {
                 throw;
             }
-            TMemoryInput retryInput(~Content_, +Content_);
+            TMemoryInput retryInput(Content_.data(), Content_.size());
             DecodedContent_ = TZLibDecompress(&retryInput, ZLib::Raw).ReadAll();
         }
     } else if (ContentEncoding_.StartsWith("z-")) {
@@ -315,7 +315,7 @@ void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val)
     if (name == AsStringBuf("connection")) {
         KeepAlive_ = val == AsStringBuf("keep-alive");
     } else if (name == AsStringBuf("content-length")) {
-        Y_ENSURE(+val, "NEH: Content-Length cannot be empty string. ");
+        Y_ENSURE(val.size(), "NEH: Content-Length cannot be empty string. ");
         ContentLength_ = FromString<ui64>(val);
         HasContentLength_ = true;
     } else if (name == AsStringBuf("transfer-encoding")) {
@@ -324,7 +324,7 @@ void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val)
         }
     } else if (name == AsStringBuf("accept-encoding")) {
         TStringBuf encodings(val);
-        while (+encodings) {
+        while (encodings.size()) {
             TStringBuf enc = encodings.NextTok(',').After(' ').Before(' ');
             if (!enc) {
                 continue;

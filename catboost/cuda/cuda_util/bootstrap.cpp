@@ -43,16 +43,25 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                   \
-    template <>                                                                            \
-    void PoissonBootstrap<TMapping>(                                                       \
-        TCudaBuffer<ui64, TMapping>& seeds,                                                \
-        TCudaBuffer<float, TMapping>& weights,                                             \
-        float lambda,                                                                      \
-        ui32 stream)                                                                       \
-    {                                                                                      \
-        using TKernel = TPoissonBootstrapKernel;                                           \
-        LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, lambda, seeds, weights); \
+template <typename TMapping>
+static void PoissonBootstrapImpl(
+        TCudaBuffer<ui64, TMapping>& seeds,
+        TCudaBuffer<float, TMapping>& weights,
+        float lambda,
+        ui32 stream)
+{
+    using TKernel = TPoissonBootstrapKernel;
+    LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, lambda, seeds, weights);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                        \
+    template <>                                                 \
+    void PoissonBootstrap<TMapping>(                            \
+        TCudaBuffer<ui64, TMapping> & seeds,                    \
+        TCudaBuffer<float, TMapping> & weights,                 \
+        float lambda,                                           \
+        ui32 stream) {                                          \
+        ::PoissonBootstrapImpl(seeds, weights, lambda, stream); \
     }
 
 Y_MAP_ARGS(
@@ -95,16 +104,25 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                          \
-    template <>                                                                                   \
-    void UniformBootstrap<TMapping>(                                                              \
-        TCudaBuffer<ui64, TMapping>& seeds,                                                       \
-        TCudaBuffer<float, TMapping>& weights,                                                    \
-        float takenFraction,                                                                      \
-        ui32 stream)                                                                              \
-    {                                                                                             \
-        using TKernel = TUniformBootstrapKernel;                                                  \
-        LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, takenFraction, seeds, weights); \
+template <typename TMapping>
+static void UniformBootstrapImpl(
+    TCudaBuffer<ui64, TMapping>& seeds,
+    TCudaBuffer<float, TMapping>& weights,
+    float takenFraction,
+    ui32 stream)
+{
+    using TKernel = TUniformBootstrapKernel;
+    LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, takenFraction, seeds, weights);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                               \
+    template <>                                                        \
+    void UniformBootstrap<TMapping>(                                   \
+        TCudaBuffer<ui64, TMapping> & seeds,                           \
+        TCudaBuffer<float, TMapping> & weights,                        \
+        float takenFraction,                                           \
+        ui32 stream) {                                                 \
+        ::UniformBootstrapImpl(seeds, weights, takenFraction, stream); \
     }
 
 Y_MAP_ARGS(
@@ -146,16 +164,25 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                        \
-    template <>                                                                                 \
-    void BayesianBootstrap<TMapping>(                                                           \
-        TCudaBuffer<ui64, TMapping>& seeds,                                                     \
-        TCudaBuffer<float, TMapping>& weights,                                                  \
-        float temperature,                                                                      \
-        ui32 stream)                                                                            \
-    {                                                                                           \
-        using TKernel = TBayesianBootstrapKernel;                                               \
-        LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, seeds, weights, temperature); \
+template <typename TMapping>
+static void BayesianBootstrapImpl(
+    TCudaBuffer<ui64, TMapping>& seeds,
+    TCudaBuffer<float, TMapping>& weights,
+    float temperature,
+    ui32 stream)
+{
+    using TKernel = TBayesianBootstrapKernel;
+    LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, seeds, weights, temperature);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                              \
+    template <>                                                       \
+    void BayesianBootstrap<TMapping>(                                 \
+        TCudaBuffer<ui64, TMapping>& seeds,                           \
+        TCudaBuffer<float, TMapping>& weights,                        \
+        float temperature,                                            \
+        ui32 stream) {                                                \
+        ::BayesianBootstrapImpl(seeds, weights, temperature, stream); \
     }
 
 Y_MAP_ARGS(

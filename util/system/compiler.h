@@ -507,6 +507,42 @@ Y_HIDDEN void _YandexAbort();
 #define Y_PRAGMA_NO_UNUSED_PARAMETER
 #endif
 
+/**
+ * @def Y_PRAGMA_NO_DEPRECATED
+ *
+ * Cross compiler pragma to disable warnings and errors about deprecated
+ *
+ * @see
+ *     GCC: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+ *     Clang: https://clang.llvm.org/docs/DiagnosticsReference.html#wdeprecated
+ *     MSVC: https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4996?view=vs-2017
+ *
+ * @code
+ * Y_PRAGMA_DIAGNOSTIC_PUSH
+ * Y_PRAGMA_NO_DEPRECATED
+ *
+ * [deprecated] void foo() {
+ *     // ...
+ * }
+ *
+ * int main() {
+ *     foo();
+ *     return 0;
+ * }
+ *
+ * Y_PRAGMA_DIAGNOSTIC_POP
+ * @endcode
+ */
+#if defined(__clang__) || defined(__GNUC__)
+#define Y_PRAGMA_NO_DEPRECATED \
+    Y_PRAGMA("GCC diagnostic ignored \"-Wdeprecated\"")
+#elif defined(_MSC_VER)
+#define Y_PRAGMA_NO_DEPRECATED \
+    Y_PRAGMA(warning(disable : 4996))
+#else
+#define Y_PRAGMA_NO_DEPRECATED
+#endif
+
 #if defined(__clang__) || defined(__GNUC__)
 /**
  * @def Y_CONST_FUNCTION

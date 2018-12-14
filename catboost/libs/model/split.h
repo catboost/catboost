@@ -10,7 +10,7 @@ inline bool IsTrueHistogram(ui8 bucket, ui8 splitIdx) {
     return bucket > splitIdx;
 }
 
-inline bool IsTrueOneHotFeature(int featureValue, int splitValue) {
+inline bool IsTrueOneHotFeature(ui32 featureValue, ui32 splitValue) {
     return featureValue == splitValue;
 }
 

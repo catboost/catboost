@@ -212,17 +212,18 @@ class ResourceImporter(object):
         else:
             mod.__package__ = mod_name.rpartition('.')[0]
 
-        sys.modules[mod_name] = mod
-
         if fix_name:
             mod.__name__ = fix_name
             self._source_name = dict(source_name, **{fix_name: mod_name})
 
-        exec code in mod.__dict__
+        old_mod = sys.modules.get(mod_name, None)
+        sys.modules[mod_name] = mod
 
-        if fix_name:
-            mod.__name__ = mod_name
-            self._source_name = source_name
+        try:
+            exec code in mod.__dict__
+            old_mod = sys.modules[mod_name]
+        finally:
+            sys.modules[mod_name] = old_mod
 
         # Some hacky modules (e.g. pygments.lexers) replace themselves in
         # `sys.modules` with proxies.

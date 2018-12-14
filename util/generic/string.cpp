@@ -59,7 +59,7 @@ namespace NDetail {
 }
 
 TOStream& operator<<(TOStream& os, const TString& s) {
-    return os.write(~s, +s);
+    return os.write(s.data(), s.size());
 }
 
 bool TString::to_lower(size_t pos, size_t n) {

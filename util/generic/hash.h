@@ -602,10 +602,6 @@ public:
         return *this;
     }
 
-    size_t operator+() const {
-        return size();
-    }
-
     ~THashTable() {
         basic_clear();
         deinitialize_buckets(buckets);
@@ -1520,9 +1516,6 @@ public:
     yssize_t ysize() const noexcept {
         return (yssize_t)rep.size();
     }
-    size_t operator+() const {
-        return +rep;
-    }
     size_type max_size() const noexcept {
         return rep.max_size();
     }
@@ -1607,15 +1600,15 @@ public:
     }
 
     template <class TheKey>
-    bool has(const TheKey& key) const {
+    bool contains(const TheKey& key) const {
         return rep.find(key) != rep.end();
     }
-    bool has(const key_type& key) const {
+    bool contains(const key_type& key) const {
         return rep.find(key) != rep.end();
     }
 
     template <class TheKey>
-    bool has(const TheKey& key, insert_ctx& ins) {
+    bool contains(const TheKey& key, insert_ctx& ins) {
         return rep.find_i(key, ins) != rep.end();
     }
 
@@ -1923,7 +1916,7 @@ public:
     }
 
     template <class TheKey>
-    bool has(const TheKey& key) const {
+    bool contains(const TheKey& key) const {
         return rep.find(key) != rep.end();
     }
 

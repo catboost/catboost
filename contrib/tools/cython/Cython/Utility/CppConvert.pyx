@@ -336,3 +336,49 @@ cdef dict {{cname}}(const THashMap[X,Y]& s):
         result[key_value.first] = key_value.second
         cython.operator.preincrement(iter)
     return result
+
+
+#################### arcadia_TMap.from_py ####################
+
+cdef extern from *:
+    cdef cppclass pair "std::pair" [T, U]:
+        pair(T&, U&)
+    cdef cppclass TMap [T, U]:
+        void insert(pair[T, U]&)
+
+
+@cname("{{cname}}")
+cdef TMap[X,Y] {{cname}}(object o) except *:
+    cdef dict d = o
+    cdef TMap[X,Y] m
+    for key, value in d.iteritems():
+        m.insert(pair[X,Y](<X>key, <Y>value))
+    return m
+
+
+#################### arcadia_TMap.to_py ####################
+
+cimport cython
+
+cdef extern from *:
+    cdef cppclass TMap [T, U]:
+        cppclass value_type:
+            T first
+            U second
+        cppclass const_iterator:
+            value_type& operator*()
+            const_iterator operator++()
+            bint operator!=(const_iterator)
+        const_iterator begin()
+        const_iterator end()
+
+@cname("{{cname}}")
+cdef dict {{cname}}(const TMap[X,Y]& s):
+    cdef dict result = {}
+    cdef const TMap[X,Y].value_type *key_value
+    cdef TMap[X,Y].const_iterator iter = s.begin()
+    while iter != s.end():
+        key_value = &cython.operator.dereference(iter)
+        result[key_value.first] = key_value.second
+        cython.operator.preincrement(iter)
+    return result

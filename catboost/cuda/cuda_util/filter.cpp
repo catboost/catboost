@@ -39,15 +39,23 @@ namespace {
     };
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                            \
-    template <>                                                                     \
-    void NonZeroFilter<TMapping>(                                                   \
-        const TCudaBuffer<float, TMapping>& weights,                                \
-        TCudaBuffer<ui32, TMapping>& status,                                        \
-        ui32 stream)                                                                \
-    {                                                                               \
-        using TKernel = TFilterKernel;                                              \
-        LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, weights, status); \
+template <typename TMapping>
+static void NonZeroFilterImpl(
+    const TCudaBuffer<float, TMapping>& weights,
+    TCudaBuffer<ui32, TMapping>& status,
+    ui32 stream)
+{
+    using TKernel = TFilterKernel;
+    LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, weights, status);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)              \
+    template <>                                       \
+    void NonZeroFilter<TMapping>(                     \
+        const TCudaBuffer<float, TMapping>& weights,  \
+        TCudaBuffer<ui32, TMapping>& status,          \
+        ui32 stream) {                                \
+        ::NonZeroFilterImpl(weights, status, stream); \
     }
 
 Y_MAP_ARGS(

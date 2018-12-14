@@ -1,12 +1,10 @@
 #include "full_model_saver.h"
 
-#include "online_ctr.h"
-#include "quantization.h"
-
-#include <catboost/libs/data/load_data.h>
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/system_options.h>
 
 #include <library/svnversion/svnversion.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -22,7 +20,7 @@ namespace NCB {
 
     static void CreateTargetClasses(
         NPar::TLocalExecutor& localExecutor,
-        const TVector<float>& targets,
+        TConstArrayRef<float> targets,
         const TVector<TTargetClassifier>& targetClassifiers,
         TVector<TVector<int>>* learnTargetClasses,
         TVector<int>* targetClassesCount
@@ -48,101 +46,24 @@ namespace NCB {
         });
     }
 
-    static void GetFeatureCombinationsToProjection(
-        const TFullModel& coreModel,
-        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection
-    ) {
-        featureCombinationToProjection->clear();
-
-        THashMap<TFloatSplit, int> floatSplitToBinIndex;
-        for (const auto& floatFeature: coreModel.ObliviousTrees.FloatFeatures) {
-            for (int binIndex : xrange(floatFeature.Borders.size())) {
-                floatSplitToBinIndex.emplace(
-                    TFloatSplit(floatFeature.FeatureIndex, floatFeature.Borders[binIndex]),
-                    binIndex
-                );
-            }
-        }
-
-        THashMap<TOneHotSplit, int> oneHotSplitToBinIndex;
-        for (const auto& oneHotFeature: coreModel.ObliviousTrees.OneHotFeatures) {
-            for (int binIndex : xrange(oneHotFeature.Values.size())) {
-                oneHotSplitToBinIndex.emplace(
-                    TOneHotSplit(oneHotFeature.CatFeatureIndex, oneHotFeature.Values[binIndex]),
-                    binIndex
-                );
-            }
-        }
-
-        for (const auto& ctrFeature : coreModel.ObliviousTrees.CtrFeatures) {
-            const TFeatureCombination& featureCombination = ctrFeature.Ctr.Base.Projection;
-
-            TProjection projection;
-            projection.CatFeatures = featureCombination.CatFeatures;
-
-            projection.BinFeatures.reserve(featureCombination.BinFeatures.size());
-            for (const auto& floatSplit : featureCombination.BinFeatures) {
-                projection.BinFeatures.emplace_back(
-                    floatSplit.FloatFeature,
-                    floatSplitToBinIndex[floatSplit]
-                );
-            }
-
-            projection.OneHotFeatures.reserve(featureCombination.OneHotFeatures.size());
-            for (const auto& oneHotSplit : featureCombination.OneHotFeatures) {
-                projection.OneHotFeatures.emplace_back(
-                    oneHotSplit.CatFeatureIdx,
-                    oneHotSplitToBinIndex[oneHotSplit]
-                );
-            }
-
-            featureCombinationToProjection->emplace(featureCombination, std::move(projection));
-        }
-    }
-
 
     namespace {
-        class TQuantizedPools {
+        class TIncompleteData {
         public:
-            TQuantizedPools(
-                const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
-                const TVector<TString>& classNames,
+            TIncompleteData(
+                TTrainingForCPUDataProviders&& trainingData,
+                THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
                 const TVector<TTargetClassifier>& targetClassifiers,
                 ECounterCalc counterCalcMethod,
-                size_t oneHotMaxSize,
                 ui32 numThreads
             )
-                : TargetClassifiers(targetClassifiers)
-                , OneHotMaxSize(oneHotMaxSize)
-                , NumThreads(numThreads)
-            {
-                OwnedPools.Reset(new TTrainPools);
-                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(classNames);
-                NCB::ReadTrainPools(
-                    poolLoadOptions,
-                    counterCalcMethod != ECounterCalc::SkipTest,
-                    NumThreads,
-                    &targetConverter,
-                    Nothing(),
-                    OwnedPools.Get()
-                );
-                Pools = TClearablePoolPtrs(*OwnedPools, true);
-            }
-
-            TQuantizedPools(
-                const TClearablePoolPtrs& pools,
-                const TVector<TTargetClassifier>& targetClassifiers,
-                ECounterCalc counterCalcMethod,
-                size_t oneHotMaxSize,
-                ui32 numThreads
-            )
-                : Pools(pools)
+                : TrainingData(std::move(trainingData))
                 , TargetClassifiers(targetClassifiers)
-                , OneHotMaxSize(oneHotMaxSize)
                 , NumThreads(numThreads)
+                , FeatureCombinationToProjection(std::move(featureCombinationToProjection))
             {
                 if (counterCalcMethod == ECounterCalc::SkipTest) {
-                    Pools.Test.clear();
+                    TrainingData.Test.clear();
                 }
             }
 
@@ -151,13 +72,21 @@ namespace NCB {
                 TDatasetDataForFinalCtrs* outDatasetDataForFinalCtrs,
                 const THashMap<TFeatureCombination, TProjection>** outFeatureCombinationToProjection
             ) {
-                NPar::TLocalExecutor localExecutor;
-                localExecutor.RunAdditionalThreads(NumThreads - 1);
+                outDatasetDataForFinalCtrs->Data = std::move(TrainingData);
+                outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
+                outDatasetDataForFinalCtrs->Targets = GetTarget(
+                    outDatasetDataForFinalCtrs->Data.Learn->TargetData
+                );
+
+                *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
 
                 if (NeedTargetClasses(coreModel)) {
+                    NPar::TLocalExecutor localExecutor;
+                    localExecutor.RunAdditionalThreads(NumThreads - 1);
+
                     CreateTargetClasses(
                         localExecutor,
-                        Pools.Learn->Docs.Target,
+                        *outDatasetDataForFinalCtrs->Targets,
                         TargetClassifiers,
                         &LearnTargetClasses,
                         &TargetClassesCount
@@ -168,76 +97,13 @@ namespace NCB {
                     outDatasetDataForFinalCtrs->LearnTargetClass = Nothing();
                     outDatasetDataForFinalCtrs->TargetClassesCount = Nothing();
                 }
-
-                THashSet<int> usedFeatures;
-
-                /*
-                 *  need to have vector for all float features in pool,
-                 *   but only used in model will be binarized
-                 */
-                TVector<TFloatFeature> floatFeatures(
-                    Pools.Learn->Docs.GetEffectiveFactorCount() - Pools.Learn->CatFeatures.size()
-                );
-
-                for (const auto& modelFloatFeature : coreModel.ObliviousTrees.FloatFeatures) {
-                    floatFeatures.at(modelFloatFeature.FeatureIndex) = modelFloatFeature;
-                    usedFeatures.insert(modelFloatFeature.FlatFeatureIndex);
-                }
-                for (const auto& modelCatFeature : coreModel.ObliviousTrees.CatFeatures) {
-                    usedFeatures.insert(modelCatFeature.FlatFeatureIndex);
-                }
-
-                TVector<int> ignoredFeatures;
-
-                for (auto flatFeatureIndex : xrange(Pools.Learn->Docs.GetEffectiveFactorCount())) {
-                    if (!usedFeatures.has(flatFeatureIndex)) {
-                        ignoredFeatures.push_back(flatFeatureIndex);
-                    }
-                }
-
-                LearnDataset = BuildDataset(*Pools.Learn);
-                TestDatasets.clear();
-                for (const TPool* testPoolPtr : Pools.Test) {
-                    TestDatasets.push_back(BuildDataset(*testPoolPtr));
-                }
-
-                QuantizeTrainPools(
-                    Pools,
-                    floatFeatures,
-                    &coreModel.ObliviousTrees.OneHotFeatures,
-                    ignoredFeatures,
-                    OneHotMaxSize,
-                    localExecutor,
-                    &LearnDataset,
-                    &TestDatasets
-                );
-                TestDataPtrs = GetConstPointers(TestDatasets);
-
-                outDatasetDataForFinalCtrs->LearnData = &LearnDataset;
-                outDatasetDataForFinalCtrs->TestDataPtrs = &TestDataPtrs;
-                outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
-                outDatasetDataForFinalCtrs->Targets = &Pools.Learn->Docs.Target;
-
-                GetFeatureCombinationsToProjection(coreModel, &FeatureCombinationToProjection);
-                *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
             }
 
         private:
-            /* used only if read,
-               sharedPtr because of possible copying to GetBinarizedDataFunc after construction
-            */
-            TAtomicSharedPtr<TTrainPools> OwnedPools;
-
-            // used if inited from external data
-            TClearablePoolPtrs Pools;
+            TTrainingForCPUDataProviders TrainingData;
 
             const TVector<TTargetClassifier>& TargetClassifiers;
-            size_t OneHotMaxSize;
             ui32 NumThreads;
-
-            TDataset LearnDataset;
-            TVector<TDataset> TestDatasets;
-            TDatasetPtrs TestDataPtrs; // for interface compatibility
 
             TVector<TVector<int>> LearnTargetClasses;
             TVector<int> TargetClassesCount;
@@ -247,47 +113,43 @@ namespace NCB {
     }
 
     TCoreModelToFullModelConverter::TCoreModelToFullModelConverter(
-        ui32 numThreads,
-        EFinalCtrComputationMode finalCtrComputationMode,
-        ui64 cpuRamLimit,
+        const NCatboostOptions::TCatBoostOptions& options,
+        const TClassificationTargetHelper& classificationTargetHelper,
         ui64 ctrLeafCountLimit,
         bool storeAllSimpleCtrs,
-        const NCatboostOptions::TCatFeatureParams& catFeatureParams
+        EFinalCtrComputationMode finalCtrComputationMode
     )
-        : NumThreads(numThreads)
+        : NumThreads(options.SystemOptions->NumThreads)
         , FinalCtrComputationMode(finalCtrComputationMode)
-        , CpuRamLimit(cpuRamLimit)
+        , CpuRamLimit(ParseMemorySizeDescription(options.SystemOptions->CpuUsedRamLimit.Get()))
         , CtrLeafCountLimit(ctrLeafCountLimit)
         , StoreAllSimpleCtrs(storeAllSimpleCtrs)
-        , CatFeatureParams(catFeatureParams)
+        , Options(options)
+        , ClassificationTargetHelper(classificationTargetHelper)
     {}
 
     TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithCoreModelFrom(
          TFullModel* coreModel
     ) {
-        GetCoreModelFunc = [coreModel]() -> TFullModel& { return *coreModel; };
+        CoreModel = coreModel;
         return *this;
     }
 
-    TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithCoreModelFrom(
-        const TString& coreModelPath
+    TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithObjectsDataFrom(
+        TObjectsDataProviderPtr learnObjectsData
     ) {
-        GetCoreModelFunc = [coreModelPath, coreModel = TFullModel()]() mutable -> TFullModel& {
-            TIFStream modelInput(coreModelPath);
-            coreModel.Load(&modelInput);
-            return coreModel;
-        };
+        LearnObjectsData = learnObjectsData;
         return *this;
     }
 
     TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithBinarizedDataComputedFrom(
-         const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
-         const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjection
+         TDatasetDataForFinalCtrs&& datasetDataForFinalCtrs,
+         THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection
     ) {
         if (FinalCtrComputationMode != EFinalCtrComputationMode::Skip) {
             GetBinarizedDataFunc = [
-                &datasetDataForFinalCtrs = datasetDataForFinalCtrs,
-                &featureCombinationToProjection = featureCombinationToProjection
+                datasetDataForFinalCtrs = std::move(datasetDataForFinalCtrs),
+                featureCombinationToProjection = std::move(featureCombinationToProjection)
             ] (
                 const TFullModel& /*coreModel*/,
                 TDatasetDataForFinalCtrs* outDatasetDataForFinalCtrs,
@@ -301,46 +163,95 @@ namespace NCB {
     }
 
     TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithBinarizedDataComputedFrom(
-        const TClearablePoolPtrs& pools,
+        TTrainingForCPUDataProviders&& trainingData,
+        THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
         const TVector<TTargetClassifier>& targetClassifiers
     ) {
         if (FinalCtrComputationMode != EFinalCtrComputationMode::Skip) {
-            GetBinarizedDataFunc = TQuantizedPools(
-                pools,
+            GetBinarizedDataFunc = TIncompleteData(
+                std::move(trainingData),
+                std::move(featureCombinationToProjection),
                 targetClassifiers,
-                CatFeatureParams.CounterCalcMethod,
-                CatFeatureParams.OneHotMaxSize,
+                Options.CatFeatureParams.Get().CounterCalcMethod,
                 NumThreads
             );
         }
         return *this;
     }
 
-    TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithBinarizedDataComputedFrom(
-        const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
-        const TVector<TString>& classNames,
-        const TVector<TTargetClassifier>& targetClassifiers
-    ){
+    TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithPerfectHashedToHashedCatValuesMap(
+        const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap
+    ) {
         if (FinalCtrComputationMode != EFinalCtrComputationMode::Skip) {
-            GetBinarizedDataFunc = TQuantizedPools(
-                poolLoadOptions,
-                classNames,
-                targetClassifiers,
-                CatFeatureParams.CounterCalcMethod,
-                CatFeatureParams.OneHotMaxSize,
-                NumThreads
-            );
+            PerfectHashedToHashedCatValuesMap = perfectHashedToHashedCatValuesMap;
         }
         return *this;
     }
 
-    void TCoreModelToFullModelConverter::Do(TFullModel* dstModel, bool requiresStaticCtrProvider) {
-        TFullModel& coreModel = GetCoreModelFunc();
-        if (&coreModel != dstModel) {
-            *dstModel = std::move(coreModel);
+    void TCoreModelToFullModelConverter::Do(bool requiresStaticCtrProvider, TFullModel* dstModel) {
+        DoImpl(requiresStaticCtrProvider, dstModel);
+    }
+
+    void TCoreModelToFullModelConverter::Do(
+        const TString& fullModelPath,
+        const TVector<EModelType>& formats,
+        bool addFileFormatExtension
+    ) {
+        TFullModel fullModel;
+
+        DoImpl(
+            AnyOf(
+                formats,
+                [](EModelType format) {
+                    return format == EModelType::Python || format == EModelType::Cpp || format == EModelType::Json;
+                }
+            ),
+            &fullModel
+        );
+
+        const auto& featuresLayout = *LearnObjectsData->GetFeaturesLayout();
+        TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
+
+        THashMap<ui32, TString> catFeaturesHashToString;
+        bool haveAvailableCatFeatures = false;
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+            [&] (TCatFeatureIdx catFeatureIdx) {
+                Y_UNUSED(catFeatureIdx);
+                haveAvailableCatFeatures = true;
+            }
+        );
+        if (haveAvailableCatFeatures) {
+            catFeaturesHashToString = MergeCatFeaturesHashToString(*LearnObjectsData);
+        }
+
+        for (const auto& format: formats) {
+            ExportModel(fullModel, fullModelPath, format, "", addFileFormatExtension, &featureIds, &catFeaturesHashToString);
+        }
+    }
+
+    void TCoreModelToFullModelConverter::DoImpl(bool requiresStaticCtrProvider, TFullModel* dstModel) {
+        CB_ENSURE_INTERNAL(CoreModel, "CoreModel has not been specified");
+
+        if (CoreModel != dstModel) {
+            *dstModel = std::move(*CoreModel);
         }
         dstModel->ModelInfo["train_finish_time"] = TInstant::Now().ToStringUpToSeconds();
         dstModel->ModelInfo["catboost_version_info"] = GetProgramSvnVersion();
+
+        {
+            NJson::TJsonValue jsonOptions(NJson::EJsonValueType::JSON_MAP);
+            Options.Save(&jsonOptions);
+            dstModel->ModelInfo["params"] = ToString(jsonOptions);
+            for (const auto& keyValue : Options.Metadata.Get().GetMap()) {
+                dstModel->ModelInfo[keyValue.first] = keyValue.second.GetString();
+            }
+        }
+
+        ELossFunction lossFunction = Options.LossFunctionDescription.Get().GetLossFunction();
+        if (IsMultiClassMetric(lossFunction)) {
+            dstModel->ModelInfo["multiclass_params"] = ClassificationTargetHelper.Serialize();
+        }
+
         if (FinalCtrComputationMode == EFinalCtrComputationMode::Skip) {
             return;
         }
@@ -350,7 +261,19 @@ namespace NCB {
             // after implementing non-storing ctr providers
             return;
         }
-        CB_ENSURE(GetBinarizedDataFunc, "Need dataset data specified for final CTR calculation");
+
+        CB_ENSURE_INTERNAL(GetBinarizedDataFunc, "Need BinarizedDataFunc data specified");
+
+        TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
+        const THashMap<TFeatureCombination, TProjection>* featureCombinationToProjectionMap;
+
+        GetBinarizedDataFunc(*dstModel, &datasetDataForFinalCtrs, &featureCombinationToProjectionMap);
+
+
+        CB_ENSURE_INTERNAL(
+            PerfectHashedToHashedCatValuesMap,
+            "PerfectHashedToHashedCatValuesMap has not been specified"
+        );
 
         if (requiresStaticCtrProvider) {
             dstModel->CtrProvider = new TStaticCtrProvider;
@@ -358,7 +281,8 @@ namespace NCB {
             TMutex lock;
 
             CalcFinalCtrs(
-                *dstModel,
+                datasetDataForFinalCtrs,
+                *featureCombinationToProjectionMap,
                 dstModel->ObliviousTrees.GetUsedModelCtrBases(),
                 [&dstModel, &lock](TCtrValueTable&& table) {
                     with_lock(lock) {
@@ -370,13 +294,16 @@ namespace NCB {
             dstModel->UpdateDynamicData();
         } else {
             dstModel->CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                coreModel.ObliviousTrees.GetUsedModelCtrBases(),
-                [this, &coreModel] (
+                dstModel->ObliviousTrees.GetUsedModelCtrBases(),
+                [this,
+                 datasetDataForFinalCtrs = std::move(datasetDataForFinalCtrs),
+                 featureCombinationToProjectionMap] (
                     const TVector<TModelCtrBase>& ctrBases,
                     TCtrDataStreamWriter* streamWriter
                 ) {
                     CalcFinalCtrs(
-                        coreModel,
+                        datasetDataForFinalCtrs,
+                        *featureCombinationToProjectionMap,
                         ctrBases,
                         [&streamWriter](TCtrValueTable&& table) {
                             // there's lock inside, so it is thread-safe
@@ -388,42 +315,24 @@ namespace NCB {
         }
     }
 
-    void TCoreModelToFullModelConverter::Do(
-        const TString& fullModelPath,
-        const TVector<EModelType>& formats,
-        bool addFileFormatExtension,
-        const TVector<TString>* featureId,
-        const THashMap<int, TString>* catFeaturesHashToString
-    ) {
-        TFullModel& model = GetCoreModelFunc();
-        Do(&model, false);
-        for (const auto& format: formats) {
-            ExportModel(model, fullModelPath, format, "", addFileFormatExtension, featureId, catFeaturesHashToString);
-        }
-        model.CtrProvider.Reset();
-    }
-
     void TCoreModelToFullModelConverter::CalcFinalCtrs(
-        const TFullModel& coreModel,
+        const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+        const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
         const TVector<TModelCtrBase>& ctrBases,
         std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
     ) {
-        TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
-        const THashMap<TFeatureCombination, TProjection>* featureCombinationToProjectionMap;
-        GetBinarizedDataFunc(coreModel, &datasetDataForFinalCtrs, &featureCombinationToProjectionMap);
-
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(NumThreads - 1);
 
         CalcFinalCtrsAndSaveToModel(
             CpuRamLimit,
             localExecutor,
-            *featureCombinationToProjectionMap,
+            featureCombinationToProjectionMap,
             datasetDataForFinalCtrs,
+            *PerfectHashedToHashedCatValuesMap,
             CtrLeafCountLimit,
             StoreAllSimpleCtrs,
-            CatFeatureParams.CounterCalcMethod,
-            NCB::TFeaturesLayout(coreModel.ObliviousTrees.FloatFeatures, coreModel.ObliviousTrees.CatFeatures),
+            Options.CatFeatureParams.Get().CounterCalcMethod,
             ctrBases,
             std::move(asyncCtrValueTableCallback)
         );

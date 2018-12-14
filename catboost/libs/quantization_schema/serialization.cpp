@@ -8,14 +8,16 @@
 
 #include <util/generic/algorithm.h>
 #include <util/generic/hash.h>
+#include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
+#include <util/stream/labeled.h>
+#include <util/string/escape.h>
 #include <util/string/iterator.h>
 #include <util/string/split.h>
-#include <util/generic/maybe.h>
 
 #include <contrib/libs/protobuf/messagext.h>
 
@@ -43,17 +45,17 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
 
         size_t index;
         if (!TryFromString(columns[0], index)) {
-            ythrow TCatboostException() << "failed to parse feature index at line " << lineIndex;
+            ythrow TCatboostException() << "failed to parse feature index; " << LabeledOutput(lineIndex, EscapeC(columns[0]));
         }
 
         float border;
         if (!TryFromString(columns[1], border)) {
-            ythrow TCatboostException() << "failed to parse border value at line " << lineIndex;
+            ythrow TCatboostException() << "failed to parse border value; " << LabeledOutput(lineIndex, EscapeC(columns[1]));
         }
 
         ENanMode nanMode = ENanMode::Forbidden;
-        if (columns.size() >= 3 && !TryFromString(columns[2], border)) {
-            ythrow TCatboostException() << "failed to parse NaN mode value at line " << lineIndex;
+        if (columns.size() >= 3 && !TryFromString(columns[2], nanMode)) {
+            ythrow TCatboostException() << "failed to parse NaN mode value; " << LabeledOutput(lineIndex, EscapeC(columns[2]));
         }
 
         const auto localIndex = remapping.emplace(index, remapping.size()).first->second;

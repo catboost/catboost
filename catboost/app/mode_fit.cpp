@@ -21,6 +21,9 @@
 #include <util/system/fs.h>
 
 
+using namespace NCB;
+
+
 int mode_fit(int argc, const char* argv[]) {
     ConfigureMalloc();
 
@@ -56,20 +59,14 @@ int mode_fit(int argc, const char* argv[]) {
     poolLoadOptions.Validate(taskType);
 
     THolder<IModelTrainer> modelTrainerHolder;
-    NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
+    NCatboostOptions::TOutputFilesOptions outputOptions;
     if (!outputOptionsJson.Has("train_dir")) {
         outputOptionsJson["train_dir"] = ".";
     }
     outputOptions.Load(outputOptionsJson);
+    //Cout << LabeledOutput(outputOptions.UseBestModel.IsSet()) << Endl;
 
-    const bool isGpuDeviceType = taskType == ETaskType::GPU;
-    if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
-        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
-    } else {
-        CB_ENSURE(!isGpuDeviceType, "GPU support was not compiled");
-        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
-    }
-    modelTrainerHolder->TrainModel(poolLoadOptions, outputOptions, catBoostJsonOptions);
+    TrainModel(poolLoadOptions, outputOptions, catBoostJsonOptions);
 
     #if defined(USE_MPI)
     if (mpiManager.IsMaster()) {

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/data/pool.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -62,7 +62,7 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 // returned: ShapValues[documentIdx][dimenesion][feature]
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor
 );
@@ -70,7 +70,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 // returned: ShapValues[documentIdx][feature]
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor
 );
@@ -78,8 +78,8 @@ TVector<TVector<double>> CalcShapValues(
 // outputs for each document in order for each dimension in order an array of feature contributions
 void CalcAndOutputShapValues(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& dataset,
     const TString& outputPath,
-    int threadCount,
-    int logPeriod = 0
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 );

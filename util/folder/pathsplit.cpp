@@ -31,7 +31,7 @@ void TPathSplitTraitsUnix::DoParseFirstPart(const TStringBuf part) {
 }
 
 void TPathSplitTraitsUnix::DoParsePart(const TStringBuf part0) {
-    DoAppendHint(+part0 / 8);
+    DoAppendHint(part0.size() / 8);
 
     TStringBuf next(part0);
     TStringBuf part;
@@ -55,7 +55,7 @@ void TPathSplitTraitsWindows::DoParseFirstPart(const TStringBuf part0) {
     if (IsAbsolutePath(part)) {
         IsAbsolute = true;
 
-        if (+part > 1 && part[1] == ':') {
+        if (part.size() > 1 && part[1] == ':') {
             Drive = part.SubStr(0, 2);
             part = part.SubStr(2);
         }
@@ -65,23 +65,23 @@ void TPathSplitTraitsWindows::DoParseFirstPart(const TStringBuf part0) {
 }
 
 void TPathSplitTraitsWindows::DoParsePart(const TStringBuf part0) {
-    DoAppendHint(+part0 / 8);
+    DoAppendHint(part0.size() / 8);
 
     size_t pos = 0;
     TStringBuf part(part0);
 
-    while (pos < +part) {
-        while (pos < +part && this->IsPathSep(part[pos])) {
+    while (pos < part.size()) {
+        while (pos < part.size() && this->IsPathSep(part[pos])) {
             ++pos;
         }
 
-        const char* begin = ~part + pos;
+        const char* begin = part.data() + pos;
 
-        while (pos < +part && !this->IsPathSep(part[pos])) {
+        while (pos < part.size() && !this->IsPathSep(part[pos])) {
             ++pos;
         }
 
-        AppendComponent(TStringBuf(begin, ~part + pos));
+        AppendComponent(TStringBuf(begin, part.data() + pos));
     }
 }
 

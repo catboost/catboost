@@ -1,6 +1,8 @@
 
 #include <catboost/libs/data_new/features_layout.h>
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <library/unittest/registar.h>
 
 
@@ -210,6 +212,58 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
             );
 
             UNIT_ASSERT_UNEQUAL(layout, layoutWithNames);
+        }
+    }
+
+    Y_UNIT_TEST(CheckCompatibleForApply) {
+        TVector<ui32> catFeatures = {1, 5, 9};
+        ui32 featuresCount = 10;
+        auto featureNames = TVector<TString>{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+
+        NCB::TFeaturesLayout layout(featuresCount, catFeatures, featureNames);
+
+        NCB::CheckCompatibleForApply(layout, layout, "test data");
+
+        {
+            NCB::TFeaturesLayout layoutWithoutNames(featuresCount, catFeatures, TVector<TString>());
+            NCB::CheckCompatibleForApply(layout, layoutWithoutNames, "test data");
+        }
+        {
+            TVector<ui32> catFeatures2 = {1, 5};
+            ui32 featuresCount2 = 9;
+            NCB::TFeaturesLayout layout2(featuresCount2, catFeatures2, TVector<TString>());
+
+            UNIT_ASSERT_EXCEPTION(
+                NCB::CheckCompatibleForApply(layout, layout2, "test data"),
+                TCatboostException
+            );
+        }
+        {
+            NCB::TFeaturesLayout layoutWithIgnored(featuresCount, catFeatures, TVector<TString>());
+            layoutWithIgnored.IgnoreExternalFeature(0);
+            layoutWithIgnored.IgnoreExternalFeature(2);
+
+            NCB::CheckCompatibleForApply(layoutWithIgnored, layout, "test data");
+        }
+        {
+            NCB::TFeaturesLayout shorterLayout(ui32(5), TVector<ui32>{1}, TVector<TString>());
+            NCB::CheckCompatibleForApply(shorterLayout, layout, "test data");
+        }
+        {
+            NCB::TFeaturesLayout longerLayout(ui32(12), catFeatures, TVector<TString>());
+            NCB::CheckCompatibleForApply(layout, longerLayout, "test data");
+
+            UNIT_ASSERT_EXCEPTION(
+                NCB::CheckCompatibleForApply(longerLayout, layout, "test data"),
+                TCatboostException
+            );
+        }
+        {
+            NCB::TFeaturesLayout longerLayoutWithIgnored(ui32(12), catFeatures, TVector<TString>());
+            longerLayoutWithIgnored.IgnoreExternalFeature(10);
+            longerLayoutWithIgnored.IgnoreExternalFeature(11);
+            NCB::CheckCompatibleForApply(longerLayoutWithIgnored, layout, "test data");
+            NCB::CheckCompatibleForApply(layout, longerLayoutWithIgnored, "test data");
         }
     }
 }

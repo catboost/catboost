@@ -14,6 +14,9 @@
 #include <util/generic/ymath.h>
 
 
+using namespace NCB;
+
+
 namespace {
     struct TFeaturePathElement {
         int Feature;
@@ -408,19 +411,22 @@ void CalcShapValuesForDocumentMulti(
 
 static void CalcShapValuesForDocumentBlockMulti(
     const TFullModel& model,
-    const TPool& pool,
+    const TObjectsDataProvider& objectsData,
     const TShapPreparedTrees& preparedTrees,
     size_t start,
     size_t end,
     NPar::TLocalExecutor* localExecutor,
     TVector<TVector<TVector<double>>>* shapValuesForAllDocuments
 ) {
+    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
+    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
+
     const TObliviousTrees& forest = model.ObliviousTrees;
     const size_t documentCount = end - start;
 
-    TVector<ui8> binarizedFeaturesForBlock = BinarizeFeatures(model, pool, start, end);
+    TVector<ui8> binarizedFeaturesForBlock = BinarizeFeatures(model, *rawObjectsData, start, end);
 
-    const int flatFeatureCount = pool.Docs.GetEffectiveFactorCount();
+    const int flatFeatureCount = objectsData.GetFeaturesLayout()->GetExternalFeatureCount();
 
     const int oldShapValuesSize = shapValuesForAllDocuments->size();
     shapValuesForAllDocuments->resize(oldShapValuesSize + end - start);
@@ -493,7 +499,7 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
 
 static TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
-    const TPool& pool,
+    const TDataProvider* dataset, // can be nullptr if model has LeafWeights
     int logPeriod,
     NPar::TLocalExecutor* localExecutor
 ) {
@@ -507,7 +513,13 @@ static TShapPreparedTrees PrepareTrees(
     // use only if model.ObliviousTrees.LeafWeights is empty
     TVector<TVector<double>> leafWeights;
     if (model.ObliviousTrees.LeafWeights.empty()) {
-        leafWeights = CollectLeavesStatistics(pool, model);
+        CB_ENSURE(
+            dataset,
+            "PrepareTrees requires either non-empty LeafWeights in model or provided dataset"
+        );
+        CB_ENSURE(dataset->ObjectsGrouping->GetObjectCount() != 0, "no docs in pool");
+        CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
+        leafWeights = CollectLeavesStatistics(*dataset, model, localExecutor);
     }
 
     TShapPreparedTrees preparedTrees;
@@ -544,23 +556,23 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
         !model.ObliviousTrees.LeafWeights.empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    return PrepareTrees(model, TPool(), 0, localExecutor);
+    return PrepareTrees(model, nullptr, 0, localExecutor);
 }
 
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
-    const TPool& pool,
+    const TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
-        pool,
+        &dataset,
         logPeriod,
         localExecutor
     );
 
-    const size_t documentCount = pool.Docs.GetDocCount();
+    const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
     TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
@@ -577,7 +589,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 
         CalcShapValuesForDocumentBlockMulti(
             model,
-            pool,
+            *dataset.ObjectsData,
             preparedTrees,
             start,
             end,
@@ -595,18 +607,18 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
-    const TPool& pool,
+    const TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
         model,
-        pool,
+        dataset,
         logPeriod,
         localExecutor
     );
-    size_t documentsCount = pool.Docs.GetDocCount();
+    size_t documentsCount = dataset.ObjectsGrouping->GetObjectCount();
     TVector<TVector<double>> shapValues(documentsCount);
     for (size_t documentIdx = 0; documentIdx < documentsCount; ++documentIdx) {
         shapValues[documentIdx] = std::move(shapValuesMulti[documentIdx][0]);
@@ -627,22 +639,19 @@ static void OutputShapValuesMulti(const TVector<TVector<TVector<double>>>& shapV
 
 void CalcAndOutputShapValues(
     const TFullModel& model,
-    const TPool& pool,
+    const TDataProvider& dataset,
     const TString& outputPath,
-    int threadCount,
-    int logPeriod
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount - 1);
-
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
-        pool,
+        &dataset,
         logPeriod,
-        &localExecutor
+        localExecutor
     );
 
-    const size_t documentCount = pool.Docs.GetDocCount();
+    const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
     TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
@@ -651,7 +660,7 @@ void CalcAndOutputShapValues(
 
     TFileOutput out(outputPath);
     for (size_t start = 0; start < documentCount; start += documentBlockSize) {
-        size_t end = Min(start + documentBlockSize, pool.Docs.GetDocCount());
+        size_t end = Min(start + documentBlockSize, documentCount);
         processDocumentsProfile.StartIterationBlock();
 
         TVector<TVector<TVector<double>>> shapValuesForBlock;
@@ -659,11 +668,11 @@ void CalcAndOutputShapValues(
 
         CalcShapValuesForDocumentBlockMulti(
             model,
-            pool,
+            *dataset.ObjectsData,
             preparedTrees,
             start,
             end,
-            &localExecutor,
+            localExecutor,
             &shapValuesForBlock
         );
 

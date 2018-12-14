@@ -426,7 +426,7 @@ inline size_t Split(const TStringBuf s, const TSetDelimiter<const char>& delim, 
     res.clear();
     TContainerConsumer<TVector<TStringBuf>> res1(&res);
     TSkipEmptyTokens<TContainerConsumer<TVector<TStringBuf>>> consumer(&res1);
-    SplitString(~s, ~s + +s, delim, consumer);
+    SplitString(s.data(), s.data() + s.size(), delim, consumer);
     return res.size();
 }
 

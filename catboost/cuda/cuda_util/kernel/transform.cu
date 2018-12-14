@@ -12,10 +12,10 @@ namespace NKernel {
     __global__ void AddVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T y0 = y[i];
-            const T x0 = x[i];
+            const T y0 = __ldg(y + i);
+            const T x0 = __ldg(x + i);
             const T r0 = y0 + x0;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -33,9 +33,9 @@ namespace NKernel {
     __global__ void AddVectorImpl(T *x, const T y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T x0 = x[i];
+            const T x0 = __ldg(x + i);
             const T r0 = y + x0;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -52,10 +52,10 @@ namespace NKernel {
     __global__ void SubtractVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T y0 = y[i];
-            const T x0 = x[i];
+            const T y0 = __ldg(y + i);
+            const T x0 = __ldg(x + i);
             const T r0 = x0 - y0;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -64,9 +64,9 @@ namespace NKernel {
     __global__ void SubtractVectorImpl(T *x, const T y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            const T x0 = x[i];
+            const T x0 = __ldg(x + i);
             const T r0 = x0 - y;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -92,10 +92,10 @@ namespace NKernel {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
 
         while (i < size) {
-            const T y0 = y[i];
-            const T x0 = x[i];
+            const T y0 = __ldg(y + i);
+            const T x0 = __ldg(x + i);
             const T r0 = y0 * x0;
-            x[i] = r0;
+            WriteThrough(x + i,  r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -112,9 +112,9 @@ namespace NKernel {
     __global__ void MultiplyVectorImpl(T *x, const T c, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            T x0 = x[i];
+            T x0 = __ldg(x + i);
             T r0 = x0 * c;
-            x[i] = r0;
+            WriteThrough(x + i, r0);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -171,8 +171,8 @@ namespace NKernel {
     __global__ void ExpVectorImpl(T *x, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            T val = x[i];
-            x[i] = exp(val);
+            T val = __ldg(x + i);
+            x[i] = __expf(val);
             i += gridDim.x * blockDim.x;
         }
     }
@@ -189,7 +189,7 @@ namespace NKernel {
                                int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            Index m = StreamLoad(map + i);
+            Index m = __ldg(map + i);
             for (int column = 0; column < columnCount; ++column) {
                 WriteThrough(dst + i + column * dstColumnAlignSize, StreamLoad(src + m + column * srcColumnAlignSize));
             }
@@ -233,7 +233,7 @@ namespace NKernel {
     __global__ void ScatterImpl(T* dst, const T* src, const Index* map, Index size, int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnALignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            Index m = StreamLoad(map + i);
+            Index m = __ldg(map + i);
             for (int column = 0; column < columnCount; ++column) {
                 WriteThrough(dst + m + dstColumnAlignSize * column, StreamLoad(src + i + srcColumnALignSize * column));
             }
@@ -366,6 +366,35 @@ namespace NKernel {
 
 #define Y_CATBOOST_CUDA_F_IMPL(T) \
         template void PowVector<T>(T* x, ui64 size, T base, TCudaStream stream);
+
+    Y_MAP_ARGS(
+        Y_CATBOOST_CUDA_F_IMPL,
+        float);
+
+#undef Y_CATBOOST_CUDA_F_IMPL
+
+    // PowVector
+
+    template <typename T>
+    __global__ void PowVectorImpl(const T* const x, const T base, const ui64 size, T* y) {
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
+        while (i < size) {
+            y[i] = pow(base, x[i]);
+            i += gridDim.x * blockDim.x;
+        }
+    }
+
+    template <typename T>
+    void PowVector(const T* x, const ui64 size, const T base, T* y, const TCudaStream stream) {
+        const ui32 blockSize = 512;
+        const ui64 numBlocks = Min(
+            (size + blockSize - 1) / blockSize,
+            (ui64)TArchProps::MaxBlockCount());
+        PowVectorImpl<T><<<numBlocks, blockSize, 0, stream>>>(x, base, size, y);
+    }
+
+#define Y_CATBOOST_CUDA_F_IMPL(T) \
+        template void PowVector<T>(const T* x, ui64 size, T base, T* y, TCudaStream stream);
 
     Y_MAP_ARGS(
         Y_CATBOOST_CUDA_F_IMPL,
