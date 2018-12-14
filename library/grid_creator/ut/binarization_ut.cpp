@@ -3,6 +3,7 @@
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/serialized_enum.h>
 #include <util/generic/vector.h>
 
