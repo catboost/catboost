@@ -131,16 +131,9 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    if pytest.__version__ != "2.7.2":
-        from _pytest.monkeypatch import monkeypatch
-        try:
-            from . import reinterpret
-        except ValueError:
-            import reinterpret
-        m = next(monkeypatch())
-        m.setattr(py.builtin.builtins, 'AssertionError', reinterpret.AssertionError)  # noqa
+    pytest.register_assert_rewrite('__tests__')
 
-        config.option.continue_on_collection_errors = True
+    config.option.continue_on_collection_errors = True
 
     # XXX Strip java contrib from dep_roots - it's python-irrelevant code,
     # The number of such deps may lead to problems - see https://st.yandex-team.ru/DEVTOOLS-4627

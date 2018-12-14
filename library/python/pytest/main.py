@@ -17,6 +17,12 @@ def main():
     import library.python.pytest.plugins.ya as ya
     import library.python.pytest.plugins.conftests as conftests
 
+    import _pytest.assertion
+    from _pytest.monkeypatch import MonkeyPatch
+    import rewrite
+    m = MonkeyPatch()
+    m.setattr(_pytest.assertion.rewrite, "AssertionRewritingHook", rewrite.AssertionRewritingHook)
+
     prefix = '__tests__.'
 
     test_modules = [

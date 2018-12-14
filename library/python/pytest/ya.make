@@ -4,6 +4,7 @@ PY23_LIBRARY()
 
 PY_SRCS(
     main.py
+    rewrite.py
     yatest_tools.py
 )
 
