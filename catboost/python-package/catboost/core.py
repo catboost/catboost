@@ -582,7 +582,6 @@ class Pool(_PoolBase):
         """
         if isinstance(data, DataFrame):
             feature_names = list(data.columns)
-            data = data.values
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):

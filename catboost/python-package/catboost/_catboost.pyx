@@ -13,6 +13,8 @@ import functools
 import numpy as np
 cimport numpy as np
 
+import pandas as pd
+
 np.import_array()
 
 cimport cython
@@ -139,7 +141,14 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
         )
 
     cdef cppclass TMaybeOwningConstArrayHolder[T]:
-        pass
+        @staticmethod
+        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef)
+        
+        @staticmethod
+        TMaybeOwningConstArrayHolder[T] CreateOwning(
+            TConstArrayRef[T] arrayRef,
+            TIntrusivePtr[IResourceHolder] resourceHolder
+        )
 
 
 cdef extern from "catboost/libs/options/enums.h":
@@ -444,6 +453,8 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         void AddWeights(TConstArrayRef[float] value) except +ProcessException
         void AddGroupWeights(TConstArrayRef[float] value) except +ProcessException
 
+        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+
         void Finish() except +ProcessException
 
 
@@ -454,10 +465,10 @@ cdef extern from "catboost/libs/data_new/data_provider_builders.h" namespace "NC
     cdef cppclass TDataProviderBuilderOptions:
         pass
 
-    cdef void CreateDataProviderBuilderAndVisitor(
+    cdef void CreateDataProviderBuilderAndVisitor[IVisitor](
         const TDataProviderBuilderOptions& options,
         THolder[IDataProviderBuilder]* dataProviderBuilder,
-        IRawObjectsOrderDataVisitor** loader
+        IVisitor** loader
     ) except +ProcessException
 
 
@@ -1288,9 +1299,192 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
         feature_names_vector
     )
 
+cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
+    cdef TVector[bool_t] mask
+    mask.resize(featuresLayout.GetExternalFeatureCount(), False)
+
+    cdef ui32 idx
+    for idx in range(featuresLayout.GetExternalFeatureCount()):
+        if featuresLayout[0].GetExternalFeatureType(idx) == EFeatureType_Categorical:
+            mask[idx] = True
+
+    return mask
+
+cdef _get_object_count(data):
+    if isinstance(data, FeaturesData):
+        return data.get_object_count()
+    else:
+        return np.shape(data)[0]
+
+cdef _set_features_order_data_np(
+    const float [:,:] num_feature_values,
+    object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    if (num_feature_values is None) and (cat_feature_values is None):
+        raise CatboostError('both num_feature_values and cat_feature_values are empty')
+
+    cdef ui32 doc_count = <ui32>(
+        num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
+    )
+
+    cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
+    cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+
+    cdef bytes factor_bytes
+    cdef TString factor_string
+    cdef TVector[TString] cat_factor_data
+    cdef ui32 doc_idx
+    cdef ui32 num_feature_idx
+    cdef ui32 cat_feature_idx
+
+    cdef ui32 dst_feature_idx
+    
+    cat_factor_data.reserve(doc_count)
+    dst_feature_idx = <ui32>0
+    
+    dst_feature_idx = 0
+    for num_feature_idx in range(num_feature_count):
+        builder_visitor[0].AddFloatFeature(
+            dst_feature_idx,
+            TMaybeOwningConstArrayHolder[float].CreateNonOwning(
+                TConstArrayRef[float](&num_feature_values[0, num_feature_idx], doc_count)
+                if doc_count > 0
+                else TConstArrayRef[float]()
+            )
+        )
+        dst_feature_idx += 1
+    for cat_feature_idx in range(cat_feature_count):
+        cat_factor_data.clear()
+        for doc_idx in range(doc_count):
+            factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
+            factor_string = TString(<char*>factor_bytes, len(factor_bytes))
+            cat_factor_data.push_back(factor_string)
+        builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+        dst_feature_idx += 1
+
+
+cdef float get_float_feature(ui32 doc_idx, ui32 flat_feature_idx, src_value) except*:
+    try:
+        return _FloatOrNan(src_value)
+    except TypeError as e:
+        raise CatboostError(
+            'Bad value for num_feature[{},{}]="{}": {}'.format(
+                doc_idx,
+                flat_feature_idx,
+                src_value,
+                e
+            )
+        )
+
+
+cdef TIntrusivePtr[TVectorHolder[float]] create_num_factor_data(
+    ui32 flat_feature_idx,
+    np.ndarray column_values
+) except*:
+    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data = new TVectorHolder[float]()
+    cdef ui32 doc_idx
+    
+    num_factor_data.Get()[0].Data.resize(len(column_values))
+    for doc_idx in range(len(column_values)):
+        num_factor_data.Get()[0].Data[doc_idx] = get_float_feature(
+            doc_idx,
+            flat_feature_idx,
+            column_values[doc_idx]
+        )
+        
+    return num_factor_data
+
+
+cdef get_cat_factor_bytes_representation(
+    ui32 doc_idx, 
+    ui32 feature_idx,
+    object factor,
+    TStringBuf* factor_strbuf
+):
+    try:
+        return get_id_object_bytes_string_representation(factor, factor_strbuf)
+    except CatboostError:
+        raise CatboostError(
+            'Invalid type for cat_feature[{},{}]={} :'
+            ' cat_features must be integer or string, real number values and NaN values'
+            ' should be converted to string.'.format(doc_idx, feature_idx, factor)
+        )
+
+
+# returns new data holders array
+cdef object _set_features_order_data_pd_data_frame(
+    data_frame,
+    const TFeaturesLayout* features_layout,
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef ui32 doc_count = data_frame.shape[0]
+
+    cdef bytes factor_bytes
+    cdef TStringBuf factor_strbuf
+    cdef TString factor_string
+
+    # two pointers are needed as a workaround for Cython assignment of derived types restrictions
+    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
+    cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
+
+    cdef TVector[TString] cat_factor_data
+    cdef ui32 doc_idx
+    cdef ui32 flat_feature_idx
+    cdef np.ndarray column_values
+
+    cat_factor_data.reserve(doc_count)
+
+    new_data_holders = []
+
+    for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
+        column_values = column_data.values
+        if is_cat_feature_mask[flat_feature_idx]:
+            cat_factor_data.clear()
+            for doc_idx in range(doc_count):
+                factor_bytes = get_cat_factor_bytes_representation(
+                    doc_idx,
+                    flat_feature_idx,
+                    column_values[doc_idx],
+                    &factor_strbuf
+                )
+                factor_string.assign(<char*>factor_strbuf.Data(), factor_strbuf.Size())
+                cat_factor_data.push_back(factor_string)
+            builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+        elif ((column_values.dtype == np.float32) and
+              column_values.flags.aligned and
+              column_values.flags.c_contiguous
+            ):
+
+            new_data_holders.append(column_values)
+            column_values.setflags(write=0)
+            
+            builder_visitor[0].AddFloatFeature(
+                flat_feature_idx,
+                TMaybeOwningConstArrayHolder[float].CreateNonOwning(
+                    TConstArrayRef[float](<float*>column_values.data, doc_count)
+                    if doc_count > 0
+                    else TConstArrayRef[float]()
+                )
+            )
+        else:
+            num_factor_data = create_num_factor_data(flat_feature_idx, column_values)
+            num_factor_data_holder.Reset(num_factor_data.Get())
+            builder_visitor[0].AddFloatFeature(
+                flat_feature_idx,
+                TMaybeOwningConstArrayHolder[float].CreateOwning(
+                    <TConstArrayRef[float]>num_factor_data.Get()[0].Data,
+                    num_factor_data_holder
+                )
+            )
+
+    return new_data_holders
+
+
 cdef _set_data_np(
-    np.float32_t [:,:] num_feature_values,
-    object [:,:] cat_feature_values,
+    const float [:,:] num_feature_values,
+    object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
     IRawObjectsOrderDataVisitor* builder_visitor
 ):
     if (num_feature_values is None) and (cat_feature_values is None):
@@ -1325,17 +1519,6 @@ cdef _set_data_np(
             builder_visitor[0].AddCatFeature(doc_idx, dst_feature_idx, factor_strbuf)
             dst_feature_idx += 1
 
-cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
-    cdef TVector[bool_t] mask
-    mask.resize(featuresLayout.GetExternalFeatureCount(), False)
-
-    cdef ui32 idx
-    for idx in range(featuresLayout.GetExternalFeatureCount()):
-        if featuresLayout[0].GetExternalFeatureType(idx) == EFeatureType_Categorical:
-            mask[idx] = True
-
-    return mask
-
 cdef _set_data_from_generic_matrix(
     data,
     const TFeaturesLayout* features_layout,
@@ -1361,17 +1544,19 @@ cdef _set_data_from_generic_matrix(
         for feature_idx in range(feature_count):
             factor = doc_data[feature_idx]
             if is_cat_feature_mask[feature_idx]:
-                try:
-                    factor_bytes = get_id_object_bytes_string_representation(factor, &factor_strbuf)
-                except CatboostError:
-                    raise CatboostError(
-                        'Invalid type for cat_feature[{},{}]={} :'
-                        ' cat_features must be integer or string, real number values and NaN values'
-                        ' should be converted to string.'.format(doc_idx, feature_idx, factor)
-                    )
+                factor_bytes = get_cat_factor_bytes_representation(
+                    doc_idx,
+                    feature_idx,
+                    factor,
+                    &factor_strbuf
+                )
                 builder_visitor[0].AddCatFeature(doc_idx, feature_idx, factor_strbuf)
             else:
-                builder_visitor[0].AddFloatFeature(doc_idx, feature_idx, _FloatOrNan(factor))
+                builder_visitor[0].AddFloatFeature(
+                    doc_idx,
+                    feature_idx,
+                    get_float_feature(doc_idx, feature_idx, factor)
+                )
 
 cdef _set_data(data, const TFeaturesLayout* features_layout, IRawObjectsOrderDataVisitor* builder_visitor):
     if isinstance(data, FeaturesData):
@@ -1395,6 +1580,22 @@ cdef _set_label(label, IRawObjectsOrderDataVisitor* builder_visitor):
             TString(<char*>bytes_string_representation, len(bytes_string_representation))
         )
 
+cdef _set_label_features_order(label, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef TVector[TString] labelVector
+    labelVector.reserve(len(label))
+    for i in range(len(label)):
+        if isinstance(label[i], string_types + (bytes,)):
+            bytes_string_representation = to_binary_str(label[i])
+        else:
+            bytes_string_representation = to_binary_str(str(label[i]))
+        labelVector.push_back(TString(<char*>bytes_string_representation, len(bytes_string_representation)))
+    builder_visitor[0].AddTarget(<TConstArrayRef[TString]>labelVector)
+
+
+ctypedef fused IBuilderVisitor:
+    IRawObjectsOrderDataVisitor
+    IRawFeaturesOrderDataVisitor
+
 
 cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None):
     if pairs_weight:
@@ -1415,13 +1616,20 @@ cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None):
     return pairs_vector
 
 
-cdef _set_pairs(pairs, pairs_weight, IRawObjectsOrderDataVisitor* builder_visitor):
+cdef _set_pairs(pairs, pairs_weight, IBuilderVisitor* builder_visitor):
     cdef TVector[TPair] pairs_vector = _make_pairs_vector(pairs, pairs_weight)
     builder_visitor[0].SetPairs(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
 
 cdef _set_weight(weight, IRawObjectsOrderDataVisitor* builder_visitor):
     for i in range(len(weight)):
         builder_visitor[0].AddWeight(i, float(weight[i]))
+        
+cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef TVector[float] weightVector
+    weightVector.reserve(len(weight))
+    for i in range(len(weight)):
+        weightVector.push_back(float(weight[i]))
+    builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
 
 cdef TGroupId _calc_group_id_for(i, py_group_ids):
     cdef object id_as_bytes
@@ -1437,13 +1645,20 @@ cdef TGroupId _calc_group_id_for(i, py_group_ids):
         )
     return CalcGroupIdFor(id_as_strbuf)
 
-cdef _set_group_id(group_id, IRawObjectsOrderDataVisitor* builder_visitor):
+cdef _set_group_id(group_id, IBuilderVisitor* builder_visitor):
     for i in range(len(group_id)):
         builder_visitor[0].AddGroupId(i, _calc_group_id_for(i, group_id))
 
 cdef _set_group_weight(group_weight, IRawObjectsOrderDataVisitor* builder_visitor):
     for i in range(len(group_weight)):
         builder_visitor[0].AddGroupWeight(i, float(group_weight[i]))
+        
+cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef TVector[float] groupWeightVector
+    groupWeightVector.reserve(len(group_weight))
+    for i in range(len(group_weight)):
+        groupWeightVector.push_back(float(group_weight[i]))
+    builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
 
 cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids):
     cdef object id_as_bytes
@@ -1459,7 +1674,7 @@ cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids):
         )
     return CalcSubgroupIdFor(id_as_strbuf)
 
-cdef _set_subgroup_id(subgroup_id, IRawObjectsOrderDataVisitor* builder_visitor):
+cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
     for i in range(len(subgroup_id)):
         builder_visitor[0].AddSubgroupId(i, _calc_subgroup_id_for(i, subgroup_id))
 
@@ -1467,21 +1682,30 @@ cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
     for i in range(len(baseline)):
         for j, value in enumerate(baseline[i]):
             builder_visitor[0].AddBaseline(i, j, float(value))
-
-cdef _get_object_count(data):
-    if isinstance(data, FeaturesData):
-        return data.get_object_count()
-    else:
-        return np.shape(data)[0]
+            
+cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef ui32 baseline_count = len(baseline[0])
+    cdef TVector[float] one_dim_baseline
+        
+    for baseline_idx in range(baseline_count):
+        one_dim_baseline.clear()
+        one_dim_baseline.reserve(len(baseline))
+        for i in range(len(baseline)):
+            one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
+        builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
 
 cdef class _PoolBase:
     cdef TDataProviderPtr __pool
     cdef object target_type
+    
+    # possibly hold reference or list of references to data to allow using views to them in __pool
+    cdef object __data_holders 
 
     def __cinit__(self):
         self.__pool = TDataProviderPtr()
         self.target_type = None
+        self.__data_holders = None
 
     def __dealloc__(self):
         self.__pool.Drop()
@@ -1491,6 +1715,7 @@ cdef class _PoolBase:
 
     def __eq__(self, _PoolBase other):
         return dereference(self.__pool.Get()) == dereference(other.__pool.Get())
+    
 
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
         pool_file = to_binary_str(pool_file)
@@ -1523,30 +1748,117 @@ cdef class _PoolBase:
             thread_count,
             False
         )
+        self.__data_holders = None # free previously used resources
         self.target_type = str
 
 
-    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
-        if group_weight is not None and weight is not None:
-            raise CatboostError('Pool must have either weight or group_weight.')
+    cdef _init_features_order_layout_pool(
+        self,
+        data,
+        const TDataMetaInfo& data_meta_info,
+        label,
+        pairs,
+        weight,
+        group_id,
+        group_weight,
+        subgroup_id,
+        pairs_weight,
+        baseline):
+
+        cdef TDataProviderBuilderOptions options
+        cdef THolder[IDataProviderBuilder] data_provider_builder
+        cdef IRawFeaturesOrderDataVisitor* builder_visitor
+
+        CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
+
+        cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
+        builder_visitor[0].Start(
+            data_meta_info,
+            _get_object_count(data),
+            EObjectsOrder_Undefined,
+            resource_holders
+        )
+        
+        if isinstance(data, FeaturesData):
+            new_data_holders = data
+         
+            # needed because of https://github.com/cython/cython/issues/2485   
+            if data.cat_feature_data is not None:
+                data.cat_feature_data.setflags(write=1)
+            
+            _set_features_order_data_np(
+                data.num_feature_data,
+                data.cat_feature_data,
+                builder_visitor)
+            
+            # set after _set_features_order_data_np call because we can't pass const cat_feature_data to it
+            # https://github.com/cython/cython/issues/2485
+            if data.num_feature_data is not None:
+                data.num_feature_data.setflags(write=0)
+            if data.cat_feature_data is not None:
+                data.cat_feature_data.setflags(write=0)
+        elif isinstance(data, pd.DataFrame):
+            new_data_holders = _set_features_order_data_pd_data_frame(
+                data,
+                data_meta_info.FeaturesLayout.Get(),
+                builder_visitor
+            )
+        elif isinstance(data, np.ndarray) and data.dtype == np.float32:
+            new_data_holders = data
+            data.setflags(write=0)
+            _set_features_order_data_np(data, None, builder_visitor)
+        else:
+            raise CatboostError(
+                '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
+            )
+
+        num_class = 2
+        if label is not None:
+            _set_label_features_order(label, builder_visitor)
+            num_class = len(set(list(label)))
+            if len(label) > 0:
+                self.target_type = type(label[0])
+        if pairs is not None:
+            _set_pairs(pairs, pairs_weight, builder_visitor)
+        elif pairs_weight is not None:
+            raise CatboostError('"pairs_weight" is specified but "pairs" is not')
+        if baseline is not None:
+            _set_baseline_features_order(baseline, builder_visitor)
+        if weight is not None:
+            _set_weight_features_order(weight, builder_visitor)
+        if group_id is not None:
+            _set_group_id(group_id, builder_visitor)
+        if group_weight is not None:
+            _set_group_weight_features_order(group_weight, builder_visitor)
+        if subgroup_id is not None:
+            _set_subgroup_id(subgroup_id, builder_visitor)
+
+        builder_visitor[0].Finish()
+
+        self.__pool = data_provider_builder.Get()[0].GetResult()
+        self.__data_holders = new_data_holders
+
+    
+    cdef _init_objects_order_layout_pool(
+        self,
+        data,
+        const TDataMetaInfo& data_meta_info,
+        label,
+        pairs,
+        weight,
+        group_id,
+        group_weight,
+        subgroup_id,
+        pairs_weight,
+        baseline):
+        
+        self.__data_holder = None # free previously used resources
 
         cdef TDataProviderBuilderOptions options
         cdef THolder[IDataProviderBuilder] data_provider_builder
         cdef IRawObjectsOrderDataVisitor* builder_visitor
 
         CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
-
-        cdef TDataMetaInfo data_meta_info
-        data_meta_info.HasTarget = label is not None
-        data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
-        data_meta_info.HasGroupId = group_id is not None
-        data_meta_info.HasGroupWeight = group_weight is not None
-        data_meta_info.HasSubgroupIds = subgroup_id is not None
-        data_meta_info.HasWeights = weight is not None
-        data_meta_info.HasTimestamp = False
-        data_meta_info.HasPairs = pairs is not None
-
-        data_meta_info.FeaturesLayout = _init_features_layout(data, cat_features, feature_names)
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
@@ -1584,6 +1896,64 @@ cdef class _PoolBase:
         builder_visitor[0].Finish()
 
         self.__pool = data_provider_builder.Get()[0].GetResult()
+
+
+    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
+        if group_weight is not None and weight is not None:
+            raise CatboostError('Pool must have either weight or group_weight.')
+        
+        cdef TDataMetaInfo data_meta_info
+        data_meta_info.HasTarget = label is not None
+        data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
+        data_meta_info.HasGroupId = group_id is not None
+        data_meta_info.HasGroupWeight = group_weight is not None
+        data_meta_info.HasSubgroupIds = subgroup_id is not None
+        data_meta_info.HasWeights = weight is not None
+        data_meta_info.HasTimestamp = False
+        data_meta_info.HasPairs = pairs is not None
+        
+        data_meta_info.FeaturesLayout = _init_features_layout(data, cat_features, feature_names)
+
+        do_use_raw_data_in_features_order = False
+        if isinstance(data, FeaturesData):
+            if ((data.num_feature_data is not None) and
+                data.num_feature_data.flags.aligned and
+                data.num_feature_data.flags.f_contiguous
+               ):
+                do_use_raw_data_in_features_order = True
+        elif isinstance(data, pd.DataFrame):
+            do_use_raw_data_in_features_order = True
+        else:
+            if isinstance(data, np.ndarray) and data.dtype == np.float32:
+                if data.flags.aligned and data.flags.f_contiguous:
+                    do_use_raw_data_in_features_order = True
+        
+        if do_use_raw_data_in_features_order:
+            self._init_features_order_layout_pool(
+                data,
+                data_meta_info,
+                label,
+                pairs,
+                weight,
+                group_id,
+                group_weight,
+                subgroup_id,
+                pairs_weight,
+                baseline
+            )
+        else:
+            self._init_objects_order_layout_pool(
+                data,
+                data_meta_info,
+                label,
+                pairs,
+                weight,
+                group_id,
+                group_weight,
+                subgroup_id,
+                pairs_weight,
+                baseline
+            )
 
 
     cpdef _set_pairs(self, pairs):
@@ -2306,11 +2676,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
             result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
 
     if as_pandas:
-        try:
-            from pandas import DataFrame
-            return DataFrame.from_dict(result)
-        except ImportError:
-            pass
+        return pd.DataFrame.from_dict(result)
     return result
 
 
