@@ -34,7 +34,7 @@ public:
 
     TVector<TTreeStatistics> EvaluateTreeStatistics(
         const TFullModel& model,
-        const NCB::TProcessedDataProvider& processedData
+        const NCB::TProcessedDataProvider& processedData,
         int logPeriod = 0
     );
 

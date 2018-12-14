@@ -14,7 +14,7 @@ using namespace NCB;
 
 TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const TFullModel& model,
-    const NCB::TProcessedDataProvider& processedData
+    const NCB::TProcessedDataProvider& processedData,
     int logPeriod
 ) {
     const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());

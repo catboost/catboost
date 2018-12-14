@@ -44,7 +44,7 @@ public:
         const TFullModel& model,
         const NCB::TProcessedDataProvider& processedData,
         const TUpdateMethod& updateMethod,
-        TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor
+        TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor,
         int logPeriod
     )
         : Model(model)

@@ -32,7 +32,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
 
 
     UpdateFinalFirstDerivatives(leafIndices, GetTarget(processedData.TargetData));
-    TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
+    TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
     const size_t docBlockSize = 1000;
     TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
     TProfileInfo processDocumentsProfile(DocCount);
@@ -41,7 +41,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
         const size_t end = Min<size_t>(start + docBlockSize, DocCount);
         processDocumentsProfile.StartIterationBlock();
 
-        localExecutor.ExecRange([&] (int docId) {
+        LocalExecutor->ExecRange([&] (int docId) {
             // The derivative of leaf values with respect to train doc weight.
             TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
             UpdateLeavesDerivatives(docId, &leafDerivatives);
