@@ -34,9 +34,13 @@ static ui32 GetModelFormatDescriptor() {
 
 static const char* CURRENT_CORE_FORMAT_STRING = "FlabuffersModel_v1";
 
-void OutputModel(const TFullModel& model, const TString& modelFile) {
-    TOFStream f(modelFile);
-    Save(&f, model);
+void OutputModel(const TFullModel& model, IOutputStream* const out) {
+    Save(out, model);
+}
+
+void OutputModel(const TFullModel& model, const TStringBuf modelFile) {
+    TOFStream f(TString{modelFile});  // {} because of the most vexing parse
+    OutputModel(model, &f);
 }
 
 static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
@@ -160,7 +164,7 @@ void ExportModel(
 
 TString SerializeModel(const TFullModel& model) {
     TStringStream ss;
-    Save(&ss, model);
+    OutputModel(model, &ss);
     return ss.Str();
 }
 
