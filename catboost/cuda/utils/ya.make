@@ -1,7 +1,6 @@
+
+
 LIBRARY()
-
-
-
 
 SRCS(
    countdown_latch.cpp
@@ -12,7 +11,5 @@ SRCS(
 PEERDIR(
     catboost/libs/helpers
 )
-
-
 
 END()

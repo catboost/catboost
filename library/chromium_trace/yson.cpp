@@ -132,7 +132,7 @@ void TYsonTraceConsumer::WriteArgs(const TEventArgs& args) {
     Yson.OnBeginMap();
     for (const auto& item : args.Items) {
         Yson.OnKeyedItem(item.Name);
-        item.Value.Visit(TWriteArg{&Yson});
+        Visit(TWriteArg{&Yson}, item.Value);
     }
     Yson.OnEndMap();
 }

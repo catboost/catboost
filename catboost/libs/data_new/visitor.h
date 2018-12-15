@@ -34,6 +34,8 @@ namespace NCB {
     public:
         virtual ~IDatasetVisitor() = default;
 
+        virtual EDatasetVisitorType GetType() const = 0;
+
         // separate method because they can be loaded from a separate data source
         virtual void SetGroupWeights(TVector<float>&& groupWeights) = 0;
 
@@ -59,6 +61,13 @@ namespace NCB {
 
     class IRawObjectsOrderDataVisitor : public IDatasetVisitor {
     public:
+        constexpr static EDatasetVisitorType Type = EDatasetVisitorType::RawObjectsOrder;
+
+    public:
+        EDatasetVisitorType GetType() const override {
+            return Type;
+        }
+
         virtual void Start(
             bool inBlock, // subset processing - Start/Finish is called for each block
             const TDataMetaInfo& metaInfo,
@@ -104,6 +113,13 @@ namespace NCB {
 
     class IRawFeaturesOrderDataVisitor : public IDatasetVisitor {
     public:
+        constexpr static EDatasetVisitorType Type = EDatasetVisitorType::RawFeaturesOrder;
+
+    public:
+        EDatasetVisitorType GetType() const override {
+            return Type;
+        }
+
         virtual void Start(
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
@@ -114,9 +130,9 @@ namespace NCB {
         ) = 0;
 
         // TCommonObjectsData
-        virtual void AddGroupId(ui32 localObjectIdx, TGroupId value) = 0;
-        virtual void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) = 0;
-        virtual void AddTimestamp(ui32 localObjectIdx, ui64 value) = 0;
+        virtual void AddGroupId(ui32 objectIdx, TGroupId value) = 0;
+        virtual void AddSubgroupId(ui32 objectIdx, TSubgroupId value) = 0;
+        virtual void AddTimestamp(ui32 objectIdx, ui64 value) = 0;
 
         // TRawObjectsData
 
@@ -146,6 +162,13 @@ namespace NCB {
 
     class IQuantizedFeaturesDataVisitor : public IDatasetVisitor {
     public:
+        constexpr static EDatasetVisitorType Type = EDatasetVisitorType::QuantizedFeatures;
+
+    public:
+        EDatasetVisitorType GetType() const override {
+            return Type;
+        }
+
         virtual ~IQuantizedFeaturesDataVisitor() = default;
 
         virtual void Start(

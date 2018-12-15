@@ -225,7 +225,7 @@ namespace NCatboostOptions {
 
         void CheckForUnseenKeys() {
             for (const auto& keyVal : Source.GetMap()) {
-                CB_ENSURE(ValidKeys.has(keyVal.first) || UnimplementedKeys.has(keyVal.first), "Invalid parameter: " << keyVal.first << Endl << Source);
+                CB_ENSURE(ValidKeys.contains(keyVal.first) || UnimplementedKeys.contains(keyVal.first), "Invalid parameter: " << keyVal.first << Endl << Source);
             }
         }
 

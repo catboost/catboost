@@ -33,6 +33,7 @@ linux/vhost.h
 linux/virtio_ids.h
 linux/virtio_net.h
 linux/virtio_ring.h
+linux/vm_sockets.h
 linux/quota.h
 linux/dqblk_xfs.h
 linux/securebits.h
@@ -69,7 +70,6 @@ extern.h
 reentrant.h
 #if defined(__FreeBSD__)
 Block.h
-FlexLexer.h
 _ctype.h
 a.out.h
 alias.h
@@ -921,6 +921,7 @@ PdhMsg.h
 perflib.h
 persist.h
 powerbase.h
+PowrProf.h
 processenv.h
 processthreadsapi.h
 processtopologyapi.h
@@ -1206,6 +1207,7 @@ ConditionalMacros.h
 Files.h
 Gestalt.h
 ImageCompression.h
+MacTypes.h
 Palettes.h
 PictUtils.h
 Processes.h
@@ -1243,8 +1245,12 @@ mach/vm_statistics.h
 sys/kauth.h
 sys/proc_info.h
 sys/statfs.h
+Cocoa/Cocoa.h
+CommonCrypto/CommonCrypto.h
 CoreFoundation/CoreFoundation.h
 CoreFoundation/CFRunLoop.h
+CoreGraphics/CoreGraphics.h
+CoreText/CoreText.h
 IOKit/ps/IOPSKeys.h
 IOKit/ps/IOPowerSources.h 
 IOKit/ps/IOPowerSources.h
@@ -1255,6 +1261,8 @@ IOKit/IOBSD.h
 IOKit/ps/IOPowerSources.h
 IOKit/ps/IOPSKeys.h
 IOKit/kext/KextManager.h
+QuartzCore/QuartzCore.h
+asl.h
 System/pthread_machdep.h
 util.h
 #endif
@@ -2281,10 +2289,12 @@ CoreMotion/CoreMotion.h
 CoreTelephony/CTCarrier.h
 CoreTelephony/CTTelephonyNetworkInfo.h
 Foundation/Foundation.h
+Foundation/NSException.h
 Foundation/NSString.h
 GLKit/GLKit.h
 UIKit/UIImage.h
 UIKit/UIKit.h
+UIKit/UIWebView.h
 XCTest/XCTest.h
 objc/runtime.h
 # end objc

@@ -13,12 +13,9 @@ ELSE()
         library/malloc/api
         contrib/libs/jemalloc
     )
-
     SRCS(
         malloc-info.cpp
     )
 ENDIF()
 
 END()
-
-NEED_CHECK()

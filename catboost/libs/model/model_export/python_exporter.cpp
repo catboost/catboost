@@ -139,7 +139,7 @@ namespace NCatboost {
     };
 
 
-    void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) {
+    void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
 
         if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
@@ -231,7 +231,7 @@ namespace NCatboost {
                 ordered_keys.insert(key_value.first);
             }
             for (const auto& key_value: ordered_keys) {
-                Out << indent << "\"" << catFeaturesHashToString->at(key_value) << "\": "  << key_value << ",\n";
+                Out << indent << catFeaturesHashToString->at(key_value).Quote() << ": "  << key_value << ",\n";
             }
         }
         Out << --indent << "}" << '\n';

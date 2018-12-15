@@ -160,6 +160,16 @@ def get_hg_field(hg_info, field):
 
 
 def get_hg_dict(arc_root, python_cmd=[sys.executable]):
+    hg_info_file = os.path.join(arc_root, '__SVNVERSION__')  # use on fuse mounted repository
+    if os.path.exists(hg_info_file) and os.path.isfile(hg_info_file):
+        with open(hg_info_file) as fp:
+            hg_info = json.load(fp)
+            return {
+                'branch': str(hg_info.get('branch')),
+                'hash': str(hg_info.get('hash')),
+                'author': str(hg_info.get('author')),
+                'date': str(hg_info.get('date')),
+            }
     info = {}
     hg_info = system_command_call(get_hg_info_cmd(arc_root, python_cmd=python_cmd))
     if hg_info:
@@ -304,12 +314,23 @@ def get_other_data(src_dir, build_dir, data_file):
     return other_data
 
 
+def get_scm(svnversion_file):
+    try:
+        svnversion = json.load(open(svnversion_file))
+    except Exception:
+        return 'subversion'
+
+    return svnversion.get('repository_vcs', 'subversion')
+
+
 def is_svn(arc_root):
-    return os.path.exists(os.path.join(arc_root, '__SVNVERSION__')) or os.path.isdir(os.path.join(arc_root, '.svn'))
+    sv = os.path.join(arc_root, '__SVNVERSION__')
+    return os.path.exists(sv) and get_scm(sv) == 'subversion' or os.path.isdir(os.path.join(arc_root, '.svn'))
 
 
 def is_hg(arc_root):
-    return os.path.isdir(os.path.join(arc_root, '.hg'))
+    sv = os.path.join(arc_root, '__SVNVERSION__')
+    return os.path.exists(sv) and get_scm(sv) == 'mercurial' or os.path.isdir(os.path.join(arc_root, '.hg'))
 
 
 def is_git(arc_root):

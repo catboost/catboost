@@ -18,7 +18,6 @@ PEERDIR(
     catboost/libs/data_new
     catboost/libs/data_util
     catboost/libs/helpers
-    catboost/libs/pool_builder
     catboost/libs/quantization_schema
     catboost/libs/validate_fb
     contrib/libs/flatbuffers

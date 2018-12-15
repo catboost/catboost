@@ -14,13 +14,11 @@ SRCS(
     static_ctr_provider.cpp
     formula_evaluator.cpp
     model_build_helper.cpp
-    model_pool_compatibility.cpp
 )
 
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/ctr_description
-    #catboost/libs/data # TODO(akhropov): circular dependency will be fixed in MLTOOLS-2450
     catboost/libs/data_util
     catboost/libs/helpers
     catboost/libs/logging

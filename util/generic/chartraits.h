@@ -319,13 +319,13 @@ private:
 
 template <typename TCharType>
 struct THashCharTraits {
-    static size_t GetHash(const TCharType* s, size_t n) {
+    static size_t GetHash(const TCharType* s, size_t n) noexcept {
 // reduce code bloat and cycled includes, declare functions here
 #if defined(_64_) && !defined(NO_CITYHASH)
         extern ui64 CityHash64(const char* buf, size_t len) noexcept;
         return CityHash64((const char*)s, n * sizeof(TCharType));
 #else
-        extern size_t MurmurHashSizeT(const char* buf, size_t len);
+        extern size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
         return MurmurHashSizeT((const char*)s, n * sizeof(TCharType));
 #endif
     }

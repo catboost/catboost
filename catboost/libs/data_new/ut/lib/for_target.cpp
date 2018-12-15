@@ -26,6 +26,7 @@ namespace NCB {
     void CompareTargets(const TMultiClassTarget& lhs, const TMultiClassTarget& rhs) {
         UNIT_ASSERT_EQUAL(*lhs.GetObjectsGrouping(), *rhs.GetObjectsGrouping());
 
+        COMPARE_TARGET_FIELD(ClassCount);
         COMPARE_TARGET_FIELD(Target);
         COMPARE_TARGET_FIELD(Weights);
         COMPARE_TARGET_FIELD(Baseline);

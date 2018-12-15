@@ -352,8 +352,7 @@ class ExceptionInfo(object):
         help for navigating the traceback.
     """
     _striptext = ''
-    _assert_start_repr = "assert " "AssertionError(u\'assert " if sys.version_info[0] < 3 else "AssertionError(\'assert "
-    _assert_start_repr_2 = "assert "
+    _assert_start_repr = "AssertionError(u\'assert " if sys.version_info[0] < 3 else "AssertionError(\'assert "
 
     def __init__(self, tup=None, exprinfo=None):
         import _pytest._code
@@ -363,7 +362,7 @@ class ExceptionInfo(object):
                 exprinfo = getattr(tup[1], 'msg', None)
                 if exprinfo is None:
                     exprinfo = py.io.saferepr(tup[1])
-                if exprinfo and (exprinfo.startswith(self._assert_start_repr) or exprinfo.startswith(self._assert_start_repr_2)):
+                if exprinfo and exprinfo.startswith(self._assert_start_repr):
                     self._striptext = 'AssertionError: '
         self._excinfo = tup
         #: the exception class

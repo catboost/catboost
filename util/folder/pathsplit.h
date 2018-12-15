@@ -52,7 +52,7 @@ struct TPathSplitTraitsWindows: public TPathSplitStore {
     }
 
     static inline bool IsAbsolutePath(const TStringBuf path) noexcept {
-        return path && (IsPathSep(path[0]) || (+path > 1 && path[1] == ':' && IsAsciiAlpha(path[0]) && (+path == 2 || IsPathSep(path[2]))));
+        return path && (IsPathSep(path[0]) || (path.size() > 1 && path[1] == ':' && IsAsciiAlpha(path[0]) && (path.size() == 2 || IsPathSep(path[2]))));
     }
 
     void DoParseFirstPart(const TStringBuf part);

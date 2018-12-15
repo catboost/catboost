@@ -30,11 +30,11 @@ TContRep::TContRep(TContStackAllocator* alloc)
 
 void TContRep::DoRun() {
     try {
-        DBGOUT(PCORO(ContPtr()) << " execute");
+        Y_CORO_DBGOUT(Y_CORO_PRINT(ContPtr()) << " execute");
         ContPtr()->Execute();
     } catch (...) {
         try {
-            DBGOUT(CurrentExceptionMessage());
+            Y_CORO_DBGOUT(CurrentExceptionMessage());
         } catch (...) {
         }
 
@@ -89,7 +89,7 @@ void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
 }
 
 void TContExecutor::WaitForIO() {
-    DBGOUT("scheduler: WaitForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
+    Y_CORO_DBGOUT("scheduler: WaitForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 
     while (Ready_.Empty() && !WaitQueue_.Empty()) {
         const auto now = TInstant::Now();
@@ -109,7 +109,7 @@ void TContExecutor::WaitForIO() {
         Ready_.Append(ReadyNext_);
     }
 
-    DBGOUT("scheduler: Done WaitForIO R,RN,WQ="
+    Y_CORO_DBGOUT("scheduler: Done WaitForIO R,RN,WQ="
            << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 }
 
@@ -145,7 +145,8 @@ void TCont::PrintMe(IOutputStream& out) const noexcept {
 }
 
 int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstant deadline) {
-    DBGOUT(PCORO(this) << " prepare select");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " prepare select");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     if (Cancelled()) {
         return ECANCELED;
@@ -180,7 +181,8 @@ int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstan
 }
 
 TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept {
-    DBGOUT(PCORO(this) << " do read");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do read");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     while (true) {
         ssize_t res = DoRead(fd, (char*)buf, len);
@@ -204,7 +206,8 @@ TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) 
 }
 
 TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
-    DBGOUT(PCORO(this) << " do writev");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do writev");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     size_t written = 0;
 
@@ -234,7 +237,8 @@ TContIOStatus TCont::WriteVectorD(SOCKET fd, TContIOVector* vec, TInstant deadli
 }
 
 TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant deadline) noexcept {
-    DBGOUT(PCORO(this) << " do write");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do write");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     size_t written = 0;
 
@@ -264,7 +268,8 @@ TContIOStatus TCont::WriteD(SOCKET fd, const void* buf, size_t len, TInstant dea
 }
 
 int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TInstant deadline) noexcept {
-    DBGOUT(PCORO(this) << " do connect");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do connect");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     if (connect(s, name, namelen)) {
         const int err = LastSystemError();
@@ -299,7 +304,8 @@ int TCont::ConnectD(SOCKET s, const struct sockaddr* name, socklen_t namelen, TI
 }
 
 int TCont::AcceptD(SOCKET s, struct sockaddr* addr, socklen_t* addrlen, TInstant deadline) noexcept {
-    DBGOUT(PCORO(this) << " do accept");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do accept");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     SOCKET ret;
 
@@ -349,7 +355,8 @@ ssize_t TCont::DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept {
 }
 
 int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLine) noexcept {
-    DBGOUT(PCORO(this) << " do connect");
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do connect addrinfo");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
 
     TSocketHolder res(Socket(ai));
 
@@ -367,6 +374,9 @@ int TCont::Connect(TSocketHolder& s, const struct addrinfo& ai, TInstant deadLin
 }
 
 int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadLine) noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do connect netaddr");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+
     int ret = EHOSTUNREACH;
 
     for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
@@ -401,7 +411,7 @@ TContExecutor::~TContExecutor() {
 }
 
 void TContExecutor::RunScheduler() noexcept {
-    DBGOUT("scheduler: started");
+    Y_CORO_DBGOUT("scheduler: started");
 
     try {
         while (true) {
@@ -413,7 +423,7 @@ void TContExecutor::RunScheduler() noexcept {
 
             TContRep* cont = Ready_.PopFront();
 
-            DBGOUT(PCORO(cont->ContPtr()) << " prepare for activate");
+            Y_CORO_DBGOUT(Y_CORO_PRINT(cont->ContPtr()) << " prepare for activate");
             Activate(cont);
 
             WaitForIO();
@@ -423,7 +433,7 @@ void TContExecutor::RunScheduler() noexcept {
         Y_FAIL("Uncaught exception in scheduler: %s", CurrentExceptionMessage().c_str());
     }
 
-    DBGOUT("scheduler: stopped");
+    Y_CORO_DBGOUT("scheduler: stopped");
 }
 
 TContPollEventHolder::TContPollEventHolder(void* memory, TCont* rep, SOCKET fds[], int what[], size_t nfds, TInstant deadline)

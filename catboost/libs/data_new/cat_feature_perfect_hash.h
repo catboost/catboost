@@ -83,6 +83,15 @@ namespace NCB {
             HasHashInRam = false;
         }
 
+        void Load() const {
+            if (NFs::Exists(StorageTempFile.Name()) && !HasHashInRam) {
+                TIFStream inputStream(StorageTempFile.Name());
+                FeaturesPerfectHash.clear();
+                ::Load(&inputStream, FeaturesPerfectHash);
+                HasHashInRam = true;
+            }
+        }
+
         Y_SAVELOAD_DEFINE(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash, HasHashInRam);
 
         int operator&(IBinSaver& binSaver);
@@ -93,15 +102,6 @@ namespace NCB {
         void Save() const {
             TOFStream out(StorageTempFile.Name());
             ::Save(&out, FeaturesPerfectHash);
-        }
-
-        void Load() const {
-            if (NFs::Exists(StorageTempFile.Name()) && !HasHashInRam) {
-                TIFStream inputStream(StorageTempFile.Name());
-                FeaturesPerfectHash.clear();
-                ::Load(&inputStream, FeaturesPerfectHash);
-                HasHashInRam = true;
-            }
         }
 
     private:

@@ -1171,7 +1171,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [335714946],
+                "sandbox_id": [345999776],
                 "match": "ymake"
             },
             "executable": {
@@ -1189,7 +1189,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": [336672040],
+                "sandbox_id": [345471650],
                 "match": "test_tool"
             },
             "executable": {
@@ -1216,7 +1216,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [337180803],
+                "sandbox_id": [346556835],
                 "match": "arc"
             },
             "executable": {
@@ -1225,7 +1225,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [302223618, 302223634, 74450064],
+                "sandbox_id": [335981402, 338054175, 74450064],
                 "match": "Hg"
             },
             "executable": {
@@ -1853,7 +1853,7 @@
         },
         "horadric":{
             "formula": {
-                "sandbox_id": 334563622,
+                "sandbox_id": 347723612,
                 "match": "horadric"
             },
             "executable": {
@@ -1916,7 +1916,7 @@
         },
         "crypta": {
             "formula": {
-                "sandbox_id": 334422043,
+                "sandbox_id": 338864172,
                 "match": "crypta"
             },
             "executable": {

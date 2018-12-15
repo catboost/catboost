@@ -7,6 +7,7 @@
 
 #include <util/system/types.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 
@@ -15,17 +16,15 @@
 
 namespace NCatboostCuda {
 
-    void GroupSamples(const TVector<TGroupId>& qid, TVector<TVector<ui32>>* qdata);
+    void GroupSamples(TConstArrayRef<TGroupId> qid, TVector<TVector<ui32>>* qdata);
 
-    inline TVector<TVector<ui32>> GroupSamples(const TVector<TGroupId>& qid) {
+    inline TVector<TVector<ui32>> GroupSamples(TConstArrayRef<TGroupId> qid) {
         TVector<TVector<ui32>> qdata;
         GroupSamples(qid, &qdata);
         return qdata;
     }
 
     TVector<ui32> ComputeGroupOffsets(const TVector<TVector<ui32>>& queries);
-
-    TVector<ui32> ComputeGroupSizes(const TVector<TVector<ui32>>& gdata);
 
     template <class TIndicesType>
     inline void Shuffle(ui64 seed, ui32 blockSize, ui32 sampleCount, TVector<TIndicesType>* orderPtr) {
@@ -55,7 +54,7 @@ namespace NCatboostCuda {
     }
 
     template <class TIndicesType>
-    inline void QueryConsistentShuffle(ui64 seed, ui32 blockSize, const TVector<TGroupId>& queryIds, TVector<TIndicesType>* orderPtr) {
+    inline void QueryConsistentShuffle(ui64 seed, ui32 blockSize, TConstArrayRef<TGroupId> queryIds, TVector<TIndicesType>* orderPtr) {
         auto grouppedQueries = GroupSamples(queryIds);
         auto offsets = ComputeGroupOffsets(grouppedQueries);
         TVector<ui32> order;

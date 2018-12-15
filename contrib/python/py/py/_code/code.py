@@ -1,6 +1,6 @@
 import py
 import sys
-from inspect import CO_VARARGS, CO_VARKEYWORDS
+from inspect import CO_VARARGS, CO_VARKEYWORDS, isclass
 
 builtin_repr = repr
 
@@ -10,6 +10,9 @@ if sys.version_info[0] >= 3:
     from traceback import format_exception_only
 else:
     from py._code._py2traceback import format_exception_only
+
+import traceback
+
 
 class Code(object):
     """ wrapper around Python code objects """
@@ -21,7 +24,7 @@ class Code(object):
             self.firstlineno = rawcode.co_firstlineno - 1
             self.name = rawcode.co_name
         except AttributeError:
-            raise TypeError("not a code object: %r" %(rawcode,))
+            raise TypeError("not a code object: %r" % (rawcode,))
         self.raw = rawcode
 
     def __eq__(self, other):
@@ -106,7 +109,7 @@ class Frame(object):
         """
         f_locals = self.f_locals.copy()
         f_locals.update(vars)
-        py.builtin.exec_(code, self.f_globals, f_locals )
+        py.builtin.exec_(code, self.f_globals, f_locals)
 
     def repr(self, object):
         """ return a 'safe' (non-recursive, one-line) string repr for 'object'
@@ -129,6 +132,7 @@ class Frame(object):
             except KeyError:
                 pass     # this can occur when using Psyco
         return retval
+
 
 class TracebackEntry(object):
     """ a single entry in a traceback """
@@ -153,7 +157,7 @@ class TracebackEntry(object):
         return self.lineno - self.frame.code.firstlineno
 
     def __repr__(self):
-        return "<TracebackEntry %s:%d>" %(self.frame.code.path, self.lineno+1)
+        return "<TracebackEntry %s:%d>" % (self.frame.code.path, self.lineno+1)
 
     @property
     def statement(self):
@@ -237,17 +241,19 @@ class TracebackEntry(object):
             raise
         except:
             line = "???"
-        return "  File %r:%d in %s\n  %s\n" %(fn, self.lineno+1, name, line)
+        return "  File %r:%d in %s\n  %s\n" % (fn, self.lineno+1, name, line)
 
     def name(self):
         return self.frame.code.raw.co_name
     name = property(name, None, None, "co_name of underlaying code")
+
 
 class Traceback(list):
     """ Traceback objects encapsulate and offer higher level
         access to Traceback entries.
     """
     Entry = TracebackEntry
+
     def __init__(self, tb):
         """ initialize from given python traceback object. """
         if hasattr(tb, 'tb_next'):
@@ -362,7 +368,8 @@ class ExceptionInfo(object):
         self.traceback = py.code.Traceback(self.tb)
 
     def __repr__(self):
-        return "<ExceptionInfo %s tblen=%d>" % (self.typename, len(self.traceback))
+        return "<ExceptionInfo %s tblen=%d>" % (
+            self.typename, len(self.traceback))
 
     def exconly(self, tryshort=False):
         """ return the exception as a string
@@ -391,7 +398,7 @@ class ExceptionInfo(object):
         return ReprFileLocation(path, lineno+1, exconly)
 
     def getrepr(self, showlocals=False, style="long",
-            abspath=False, tbfilter=True, funcargs=False):
+                abspath=False, tbfilter=True, funcargs=False):
         """ return str()able representation of this exception info.
             showlocals: show locals per traceback entry
             style: long|short|no|native traceback style
@@ -401,13 +408,14 @@ class ExceptionInfo(object):
         """
         if style == 'native':
             return ReprExceptionInfo(ReprTracebackNative(
-                py.std.traceback.format_exception(
+                traceback.format_exception(
                     self.type,
                     self.value,
                     self.traceback[0]._rawentry,
                 )), self._getreprcrash())
 
-        fmt = FormattedExcinfo(showlocals=showlocals, style=style,
+        fmt = FormattedExcinfo(
+            showlocals=showlocals, style=style,
             abspath=abspath, tbfilter=tbfilter, funcargs=funcargs)
         return fmt.repr_excinfo(self)
 
@@ -419,7 +427,7 @@ class ExceptionInfo(object):
     def __unicode__(self):
         entry = self.traceback[-1]
         loc = ReprFileLocation(entry.path, entry.lineno + 1, self.exconly())
-        return unicode(loc)
+        return loc.__unicode__()
 
 
 class FormattedExcinfo(object):
@@ -428,7 +436,8 @@ class FormattedExcinfo(object):
     flow_marker = ">"
     fail_marker = "E"
 
-    def __init__(self, showlocals=False, style="long", abspath=True, tbfilter=True, funcargs=False):
+    def __init__(self, showlocals=False, style="long",
+                 abspath=True, tbfilter=True, funcargs=False):
         self.showlocals = showlocals
         self.style = style
         self.tbfilter = tbfilter
@@ -521,7 +530,7 @@ class FormattedExcinfo(object):
                     #else:
                     #    self._line("%-10s =\\" % (name,))
                     #    # XXX
-                    #    py.std.pprint.pprint(value, stream=self.excinfowriter)
+                    #    pprint.pprint(value, stream=self.excinfowriter)
             return ReprLocals(lines)
 
     def repr_traceback_entry(self, entry, excinfo=None):
@@ -779,7 +788,7 @@ def getrawcode(obj, trycall=True):
         obj = getattr(obj, 'f_code', obj)
         obj = getattr(obj, '__code__', obj)
         if trycall and not hasattr(obj, 'co_firstlineno'):
-            if hasattr(obj, '__call__') and not py.std.inspect.isclass(obj):
+            if hasattr(obj, '__call__') and not isclass(obj):
                 x = getrawcode(obj.__call__, trycall=False)
                 if hasattr(x, 'co_firstlineno'):
                     return x

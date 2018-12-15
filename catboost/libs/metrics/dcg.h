@@ -1,8 +1,10 @@
 #pragma once
 
+#include <catboost/libs/options/enums.h>
+
 #include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
-#include <catboost/libs/options/enums.h>
+#include <util/generic/utility.h>
 
 // TODO(yazevnul): add fwd header for NMetrics
 namespace NMetrics {
@@ -11,14 +13,17 @@ namespace NMetrics {
 
 double CalcNdcg(
     TConstArrayRef<NMetrics::TSample> samples,
-    ENdcgMetricType type = ENdcgMetricType::Base);
+    ENdcgMetricType type = ENdcgMetricType::Base,
+    ui32 topSize = Max<ui32>());
 
 double CalcDcg(
-        TConstArrayRef<NMetrics::TSample> samplesRef,
-        ENdcgMetricType type = ENdcgMetricType::Base,
-        TMaybe<double> expDecay = Nothing());
+    TConstArrayRef<NMetrics::TSample> samples,
+    ENdcgMetricType type = ENdcgMetricType::Base,
+    TMaybe<double> expDecay = Nothing(),
+    ui32 topSize = Max<ui32>());
 
 double CalcIDcg(
-        TConstArrayRef<NMetrics::TSample> samplesRef,
-        ENdcgMetricType type = ENdcgMetricType::Base,
-        TMaybe<double> expDecay = Nothing());
+    TConstArrayRef<NMetrics::TSample> samples,
+    ENdcgMetricType type = ENdcgMetricType::Base,
+    TMaybe<double> expDecay = Nothing(),
+    ui32 topSize = Max<ui32>());

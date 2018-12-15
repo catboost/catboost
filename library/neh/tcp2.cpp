@@ -253,7 +253,7 @@ namespace {
             }
 
             size_t LoadContent(const char* buf, size_t len) {
-                size_t curContentSize = +Content_ - RequireBytesForComplete_;
+                size_t curContentSize = Content_.size() - RequireBytesForComplete_;
                 size_t useBytes = Min<size_t>(RequireBytesForComplete_, len);
                 memcpy(Content_.begin() + curContentSize, buf, useBytes);
                 RequireBytesForComplete_ -= useBytes;
@@ -615,23 +615,23 @@ namespace {
                 public:
                     void AddRequest(const TRequestRef& req) {
                         Requests_.push_back(req);
-                        if (+req->Service() > MemPoolReserve_) {
-                            TRequestHeader* hdr = new (Allocate<TRequestHeader>()) TRequestHeader(req->ReqId(), +req->Service(), +req->Data());
+                        if (req->Service().size() > MemPoolReserve_) {
+                            TRequestHeader* hdr = new (Allocate<TRequestHeader>()) TRequestHeader(req->ReqId(), req->Service().size(), req->Data().size());
                             AddPart(hdr, sizeof(TRequestHeader));
-                            AddPart(~req->Service(), +req->Service());
+                            AddPart(req->Service().data(), req->Service().size());
                         } else {
-                            TRequestHeader* hdr = new (AllocatePlus<TRequestHeader>(+req->Service())) TRequestHeader(req->ReqId(), +req->Service(), +req->Data());
-                            AddPart(hdr, sizeof(TRequestHeader) + +req->Service());
-                            memmove(++hdr, ~req->Service(), +req->Service());
+                            TRequestHeader* hdr = new (AllocatePlus<TRequestHeader>(req->Service().size())) TRequestHeader(req->ReqId(), req->Service().size(), req->Data().size());
+                            AddPart(hdr, sizeof(TRequestHeader) + req->Service().size());
+                            memmove(++hdr, req->Service().data(), req->Service().size());
                         }
-                        AddPart(~req->Data(), +req->Data());
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        AddPart(req->Data().data(), req->Data().size());
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void AddCancelRequest(TRequestId reqId) {
                         TCancelHeader* hdr = new (Allocate<TCancelHeader>()) TCancelHeader(reqId);
                         AddPart(hdr, sizeof(TCancelHeader));
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void Clear() {
@@ -1217,19 +1217,19 @@ namespace {
                 class TOutputBuffers: public TMultiBuffers {
                 public:
                     void AddResponse(TRequestId reqId, TData& data) {
-                        TResponseHeader* hdr = new (Allocate<TResponseHeader>()) TResponseHeader(reqId, TResponseHeader::Success, +data);
+                        TResponseHeader* hdr = new (Allocate<TResponseHeader>()) TResponseHeader(reqId, TResponseHeader::Success, data.size());
                         ResponseData_.push_back(TAutoPtr<TData>(new TData()));
                         TData& movedData = *ResponseData_.back();
                         movedData.swap(data);
                         AddPart(hdr, sizeof(TResponseHeader));
-                        AddPart(~movedData, +movedData);
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        AddPart(movedData.data(), movedData.size());
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void AddError(TRequestId reqId, TResponseHeader::TErrorCode errCode) {
                         TResponseHeader* hdr = new (Allocate<TResponseHeader>()) TResponseHeader(reqId, errCode, 0);
                         AddPart(hdr, sizeof(TResponseHeader));
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void Clear() {

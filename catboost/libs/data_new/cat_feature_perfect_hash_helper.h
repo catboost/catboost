@@ -28,7 +28,7 @@ namespace NCB {
         // thread-safe w.r.t. QuantizedFeaturesInfo
         void UpdatePerfectHashAndMaybeQuantize(
             const TCatFeatureIdx catFeatureIdx,
-            TConstMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
+            TMaybeOwningConstArraySubset<ui32, ui32> hashedCatArraySubset,
             TMaybe<TArrayRef<ui32>*> dstBins
         );
 

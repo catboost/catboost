@@ -6,6 +6,8 @@
 #   include "buildinf-linux_aarch64.h"
 #elif defined(_MSC_VER) && defined(_M_X64)
 #   include "buildinf-win.h"
+#elif defined(_MSC_VER) && defined(_M_IX86)
+#   include "buildinf-win32.h"
 #else
 #   include "buildinf-linux.h"
 #endif

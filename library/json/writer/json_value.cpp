@@ -926,7 +926,7 @@ namespace NJson {
     }
 
     bool TJsonValue::Has(const TStringBuf& key) const noexcept {
-        return Type == JSON_MAP && Value.Map->has(key);
+        return Type == JSON_MAP && Value.Map->contains(key);
     }
 
     bool TJsonValue::Has(size_t key) const noexcept {

@@ -9,7 +9,7 @@ namespace NCB {
     class TExternalFloatValuesHolder: public IQuantizedFloatValuesHolder {
     public:
         TExternalFloatValuesHolder(ui32 featureId,
-                                   NCB::TMaybeOwningArrayHolder<float> srcData,
+                                   NCB::TMaybeOwningConstArrayHolder<float> srcData,
                                    const TFeaturesArraySubsetIndexing* subsetIndexing,
                                    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : IQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
@@ -27,7 +27,7 @@ namespace NCB {
         NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
     private:
-        NCB::TMaybeOwningArrayHolder<float> SrcData;
+        NCB::TMaybeOwningConstArrayHolder<float> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
@@ -37,7 +37,7 @@ namespace NCB {
     class TExternalCatValuesHolder: public IQuantizedCatValuesHolder {
     public:
         TExternalCatValuesHolder(ui32 featureId,
-                                 NCB::TMaybeOwningArrayHolder<ui32> srcData,
+                                 NCB::TMaybeOwningConstArrayHolder<ui32> srcData,
                                  const TFeaturesArraySubsetIndexing* subsetIndexing,
                                  TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : IQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
@@ -55,7 +55,7 @@ namespace NCB {
         NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
     private:
-        NCB::TMaybeOwningArrayHolder<ui32> SrcData;
+        NCB::TMaybeOwningConstArrayHolder<ui32> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;

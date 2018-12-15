@@ -31,7 +31,7 @@
 namespace NCB {
     static bool NeedToCalcBorders(const TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
         bool needToCalcBorders = false;
-        quantizedFeaturesInfo.GetFeaturesLayout().IterateOverAvailableFeatures<EFeatureType::Float>(
+        quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Float>(
             [&] (TFloatFeatureIdx floatFeatureIdx) {
                 if (!quantizedFeaturesInfo.HasBorders(floatFeatureIdx)) {
                     needToCalcBorders = true;
@@ -89,6 +89,7 @@ namespace NCB {
         ui32 objectCount,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TQuantizationOptions& options,
+        bool doQuantization, // if false - only calc borders
         bool clearSrcData
     ) {
         ui64 result = 0;
@@ -112,7 +113,7 @@ namespace NCB {
             );
         }
 
-        if (options.CpuCompatibleFormat || clearSrcData) {
+        if (doQuantization && (options.CpuCompatibleFormat || clearSrcData)) {
             // for storing quantized data
             // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
             result += sizeof(ui8) * objectCount;
@@ -131,9 +132,11 @@ namespace NCB {
     ) {
         const auto& binarizationOptions = quantizedFeaturesInfo.GetFloatFeatureBinarization();
 
-        TConstMaybeOwningArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
+        Y_VERIFY(binarizationOptions.BorderCount > 0);
 
-        TConstMaybeOwningArraySubset<float, ui32> srcDataForBuildBorders(
+        TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
+
+        TMaybeOwningConstArraySubset<float, ui32> srcDataForBuildBorders(
             srcFeatureData.GetSrc(),
             subsetForBuildBorders
         );
@@ -161,21 +164,27 @@ namespace NCB {
             " float features are not allowed. Set nan_mode != Forbidden."
         );
 
+        int nonNanValuesBorderCount = binarizationOptions.BorderCount;
         if (hasNans) {
             *nanMode = binarizationOptions.NanMode;
+            --nonNanValuesBorderCount;
         } else {
             *nanMode = ENanMode::Forbidden;
         }
 
-        THashSet<float> borderSet = BestSplit(
-            srcFeatureValuesForBuildBorders,
-            binarizationOptions.BorderCount,
-            binarizationOptions.BorderSelectionType
-        );
+        THashSet<float> borderSet;
 
-        if (borderSet.has(-0.0f)) { // BestSplit might add negative zeros
-            borderSet.erase(-0.0f);
-            borderSet.insert(0.0f);
+        if (nonNanValuesBorderCount > 0) {
+            borderSet = BestSplit(
+                srcFeatureValuesForBuildBorders,
+                nonNanValuesBorderCount,
+                binarizationOptions.BorderSelectionType
+            );
+
+            if (borderSet.contains(-0.0f)) { // BestSplit might add negative zeros
+                borderSet.erase(-0.0f);
+                borderSet.insert(0.0f);
+            }
         }
 
         borders->assign(borderSet.begin(), borderSet.end());
@@ -197,14 +206,16 @@ namespace NCB {
         const TFeaturesArraySubsetIndexing* subsetForBuildBorders,
         const TQuantizationOptions& options,
         bool clearSrcData,
-        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        bool calcBordersAndNanModeOnly,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,  // can be nullptr if generateBordersOnly
         NPar::TLocalExecutor* localExecutor,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        THolder<IQuantizedFloatValuesHolder>* dstQuantizedFeature
+        THolder<IQuantizedFloatValuesHolder>* dstQuantizedFeature // can be nullptr if generateBordersOnly
     ) {
         bool calculateNanMode = true;
         ENanMode nanMode = ENanMode::Forbidden;
 
+        bool calculateBorders = true;
         TConstArrayRef<float> borders;
         TVector<float> calculatedBorders;
 
@@ -215,12 +226,13 @@ namespace NCB {
                 nanMode = quantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
             }
             if (quantizedFeaturesInfo->HasBorders(floatFeatureIdx)) {
+                calculateBorders = false;
                 borders = quantizedFeaturesInfo->GetBorders(floatFeatureIdx);
             }
         }
 
         CB_ENSURE_INTERNAL(
-            calculateNanMode == !borders,
+            calculateNanMode == calculateBorders,
             "Feature #" << srcFeature.GetId()
             << ": NanMode and borders must be specified or not specified together"
         );
@@ -228,72 +240,80 @@ namespace NCB {
         auto borderSelectionType =
             quantizedFeaturesInfo->GetFloatFeatureBinarization().BorderSelectionType;
 
-        if (calculateNanMode || !borders) {
+        if (calculateNanMode || calculateBorders) {
             CalcBordersAndNanMode(
                 srcFeature,
                 subsetForBuildBorders,
                 *quantizedFeaturesInfo,
                 &nanMode,
                 &calculatedBorders
-           );
+            );
 
             borders = calculatedBorders;
         }
 
-        TConstMaybeOwningArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
+        if (!calcBordersAndNanModeOnly && !borders.Empty()) {
+            TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
 
-        if (!options.CpuCompatibleFormat && !clearSrcData) {
-            // use GPU-only external columns
-            *dstQuantizedFeature = MakeHolder<TExternalFloatValuesHolder>(
-                srcFeature.GetId(),
-                *srcFeatureData.GetSrc(),
-                dstSubsetIndexing,
-                quantizedFeaturesInfo
-            );
-        } else {
-            // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
-            const ui32 bitsPerKey = 8;
-            TIndexHelper<ui64> indexHelper(bitsPerKey);
-            TVector<ui64> quantizedDataStorage;
-            quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
+            if (!options.CpuCompatibleFormat && !clearSrcData) {
+                // use GPU-only external columns
+                *dstQuantizedFeature = MakeHolder<TExternalFloatValuesHolder>(
+                    srcFeature.GetId(),
+                    *srcFeatureData.GetSrc(),
+                    dstSubsetIndexing,
+                    quantizedFeaturesInfo
+                );
+            } else {
+                // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
+                const ui32 bitsPerKey = 8;
+                TIndexHelper<ui64> indexHelper(bitsPerKey);
+                TVector<ui64> quantizedDataStorage;
+                quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
 
-            TArrayRef<ui8> quantizedData(
-                reinterpret_cast<ui8*>(quantizedDataStorage.data()),
-                srcFeatureData.Size()
-            );
+                TArrayRef<ui8> quantizedData(
+                    reinterpret_cast<ui8*>(quantizedDataStorage.data()),
+                    srcFeatureData.Size()
+                );
 
-            // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
-            bool allowNans = (nanMode != ENanMode::Forbidden) ||
-                quantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
+                // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
+                bool allowNans = (nanMode != ENanMode::Forbidden) ||
+                    quantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
 
-            Quantize(
-                srcFeatureData,
-                allowNans,
-                nanMode,
-                srcFeature.GetId(),
-                borders,
-                localExecutor,
-                &quantizedData
-            );
+                Quantize(
+                    srcFeatureData,
+                    allowNans,
+                    nanMode,
+                    srcFeature.GetId(),
+                    borders,
+                    localExecutor,
+                    &quantizedData
+                );
 
-            *dstQuantizedFeature = MakeHolder<TQuantizedFloatValuesHolder>(
-                srcFeature.GetId(),
-                TCompressedArray(
-                    srcFeatureData.Size(),
-                    indexHelper.GetBitsPerKey(),
-                    TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-                ),
-                dstSubsetIndexing
-            );
+                *dstQuantizedFeature = MakeHolder<TQuantizedFloatValuesHolder>(
+                    srcFeature.GetId(),
+                    TCompressedArray(
+                        srcFeatureData.Size(),
+                        indexHelper.GetBitsPerKey(),
+                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
+                    ),
+                    dstSubsetIndexing
+                );
+            }
         }
 
-        if (calculateNanMode || !calculatedBorders.empty()) {
+        if (calculateNanMode || calculateBorders) {
             TWriteGuard writeGuard(quantizedFeaturesInfo->GetRWMutex());
 
             if (calculateNanMode) {
                 quantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanMode);
             }
-            if (!calculatedBorders.empty()) {
+            if (calculateBorders) {
+                if (calculatedBorders.empty()) {
+                    CATBOOST_DEBUG_LOG << "Float Feature #" << srcFeature.GetId() << " is empty" << Endl;
+
+                    quantizedFeaturesInfo->GetFeaturesLayout()->IgnoreExternalFeature(srcFeature.GetId());
+                }
+
                 quantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(calculatedBorders));
             }
         }
@@ -331,7 +351,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         THolder<IQuantizedCatValuesHolder>* dstQuantizedFeature
     ) {
-        TConstMaybeOwningArraySubset<ui32, ui32> srcFeatureData = srcFeature.GetArrayData();
+        TMaybeOwningConstArraySubset<ui32, ui32> srcFeatureData = srcFeature.GetArrayData();
 
         // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
         const ui32 bitsPerKey = 32;
@@ -360,23 +380,29 @@ namespace NCB {
             );
         }
 
-        if (storeAsExternalValuesHolder) {
-            *dstQuantizedFeature = MakeHolder<TExternalCatValuesHolder>(
-                srcFeature.GetId(),
-                *srcFeatureData.GetSrc(),
-                dstSubsetIndexing,
-                quantizedFeaturesInfo
-            );
+        if (quantizedFeaturesInfo->GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly > 1) {
+            if (storeAsExternalValuesHolder) {
+                *dstQuantizedFeature = MakeHolder<TExternalCatValuesHolder>(
+                    srcFeature.GetId(),
+                    *srcFeatureData.GetSrc(),
+                    dstSubsetIndexing,
+                    quantizedFeaturesInfo
+                );
+            } else {
+                *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
+                    srcFeature.GetId(),
+                    TCompressedArray(
+                        srcFeatureData.Size(),
+                        indexHelper.GetBitsPerKey(),
+                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
+                    ),
+                    dstSubsetIndexing
+                );
+            }
         } else {
-            *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
-                srcFeature.GetId(),
-                TCompressedArray(
-                    srcFeatureData.Size(),
-                    indexHelper.GetBitsPerKey(),
-                    TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-                ),
-                dstSubsetIndexing
-            );
+            CATBOOST_DEBUG_LOG << "Categorical Feature #" << srcFeature.GetId() << " is constant" << Endl;
+
+            quantizedFeaturesInfo->GetFeaturesLayout()->IgnoreExternalFeature(srcFeature.GetId());
         }
     }
 
@@ -384,10 +410,12 @@ namespace NCB {
     // this is a helper class needed for friend declarations
     class TQuantizationImpl {
     public:
+        // returns nullptr if generateBordersOnly
         static TQuantizedDataProviderPtr Do(
             const TQuantizationOptions& options,
             TRawDataProviderPtr rawDataProvider,
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+            bool calcBordersAndNanModeOnly,
             TRestorableFastRng64* rand,
             NPar::TLocalExecutor* localExecutor
         ) {
@@ -397,18 +425,21 @@ namespace NCB {
                 "options must be true"
             );
 
-            const bool clearSrcData = rawDataProvider->RefCount() == 1;
-            TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
-
-            TQuantizedBuilderData data;
-
-            auto subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
-                TFullSubset<ui32>(objectsGrouping->GetObjectCount())
-            );
-
             auto& srcObjectsCommonData = rawDataProvider->ObjectsData->CommonData;
 
-            const TFeaturesLayout& featuresLayout = *(srcObjectsCommonData.FeaturesLayout);
+            auto featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
+
+            CheckCompatibleForApply(
+                *featuresLayout,
+                *(srcObjectsCommonData.FeaturesLayout),
+                "data to quantize"
+            );
+
+            const bool clearSrcData = rawDataProvider->RefCount() <= 1;
+            const bool clearSrcObjectsData = clearSrcData &&
+                (rawDataProvider->ObjectsData->RefCount() <= 1);
+
+            TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
 
             // already composed with rawDataProvider's Subset
             TMaybe<TArraySubsetIndexing<ui32>> subsetForBuildBorders = GetSubsetForBuildBorders(
@@ -418,6 +449,18 @@ namespace NCB {
                 options,
                 rand
             );
+
+            TMaybe<TQuantizedBuilderData> data;
+            TAtomicSharedPtr<TArraySubsetIndexing<ui32>> subsetIndexing;
+
+            if (!calcBordersAndNanModeOnly) {
+                data.ConstructInPlace();
+                data->ObjectsData.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
+
+                subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+                    TFullSubset<ui32>(objectsGrouping->GetObjectCount())
+                );
+            }
 
             {
                 ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
@@ -436,16 +479,15 @@ namespace NCB {
                     true
                 );
 
-
-                data.ObjectsData.FloatFeatures.resize(featuresLayout.GetFloatFeatureCount());
                 const ui64 maxMemUsageForFloatFeature = EstimateMaxMemUsageForFloatFeature(
                     objectsGrouping->GetObjectCount(),
                     *quantizedFeaturesInfo,
                     options,
-                    clearSrcData
+                    !calcBordersAndNanModeOnly,
+                    clearSrcObjectsData
                 );
 
-                featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+                featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
                     [&] (TFloatFeatureIdx floatFeatureIdx) {
                         resourceConstrainedExecutor.Add(
                             {
@@ -461,13 +503,16 @@ namespace NCB {
                                             subsetForBuildBorders.Get()
                                             : srcObjectsCommonData.SubsetIndexing.Get(),
                                         options,
-                                        clearSrcData,
+                                        clearSrcObjectsData,
+                                        calcBordersAndNanModeOnly,
                                         subsetIndexing.Get(),
                                         localExecutor,
                                         quantizedFeaturesInfo,
-                                        &(data.ObjectsData.FloatFeatures[*floatFeatureIdx])
+                                        calcBordersAndNanModeOnly ?
+                                            nullptr
+                                            : &(data->ObjectsData.FloatFeatures[*floatFeatureIdx])
                                     );
-                                    if (clearSrcData) {
+                                    if (clearSrcObjectsData) {
                                         srcFloatFeatureHolder.Destroy();
                                     }
                                 }
@@ -476,74 +521,141 @@ namespace NCB {
                     }
                 );
 
+                if (!calcBordersAndNanModeOnly) {
+                    data->ObjectsData.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
+                    const ui64 maxMemUsageForCatFeature = EstimateMaxMemUsageForCatFeature(
+                        objectsGrouping->GetObjectCount(),
+                        options,
+                        clearSrcObjectsData
+                    );
 
-                data.ObjectsData.CatFeatures.resize(featuresLayout.GetCatFeatureCount());
-                const ui64 maxMemUsageForCatFeature = EstimateMaxMemUsageForCatFeature(
-                    objectsGrouping->GetObjectCount(),
-                    options,
-                    clearSrcData
-                );
+                    featuresLayout->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+                         [&] (TCatFeatureIdx catFeatureIdx) {
+                            resourceConstrainedExecutor.Add(
+                                {
+                                    maxMemUsageForCatFeature,
+                                    [&, catFeatureIdx]() {
+                                        auto& srcCatFeatureHolder =
+                                            rawDataProvider->ObjectsData->Data.CatFeatures[*catFeatureIdx];
 
-                featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
-                     [&] (TCatFeatureIdx catFeatureIdx) {
-                        resourceConstrainedExecutor.Add(
-                            {
-                                maxMemUsageForCatFeature,
-                                [&, catFeatureIdx]() {
-                                    auto& srcCatFeatureHolder =
-                                        rawDataProvider->ObjectsData->Data.CatFeatures[*catFeatureIdx];
-
-                                    ProcessCatFeature(
-                                        catFeatureIdx,
-                                        *srcCatFeatureHolder,
-                                        options,
-                                        clearSrcData,
-                                        subsetIndexing.Get(),
-                                        quantizedFeaturesInfo,
-                                        &(data.ObjectsData.CatFeatures[*catFeatureIdx])
-                                    );
-                                    if (clearSrcData) {
-                                        srcCatFeatureHolder.Destroy();
+                                        ProcessCatFeature(
+                                            catFeatureIdx,
+                                            *srcCatFeatureHolder,
+                                            options,
+                                            clearSrcObjectsData,
+                                            subsetIndexing.Get(),
+                                            quantizedFeaturesInfo,
+                                            &(data->ObjectsData.CatFeatures[*catFeatureIdx])
+                                        );
+                                        if (clearSrcObjectsData) {
+                                            srcCatFeatureHolder.Destroy();
+                                        }
                                     }
                                 }
-                            }
-                        );
-                    }
-                );
+                            );
+                        }
+                    );
+                }
 
                 resourceConstrainedExecutor.ExecTasks();
             }
 
-            data.ObjectsData.QuantizedFeaturesInfo = quantizedFeaturesInfo;
+            if (calcBordersAndNanModeOnly) {
+                return nullptr;
+            }
+
+            CB_ENSURE(
+                featuresLayout->HasAvailableAndNotIgnoredFeatures(),
+                "All features are either constant or ignored."
+            );
+
+            data->ObjectsData.QuantizedFeaturesInfo = quantizedFeaturesInfo;
 
             if (clearSrcData) {
-                data.MetaInfo = std::move(rawDataProvider->MetaInfo);
-                data.TargetData = std::move(rawDataProvider->RawTargetData.Data);
-                data.CommonObjectsData = std::move(rawDataProvider->ObjectsData->CommonData);
+                data->MetaInfo = std::move(rawDataProvider->MetaInfo);
+                data->TargetData = std::move(rawDataProvider->RawTargetData.Data);
+                if (clearSrcObjectsData) {
+                    data->CommonObjectsData = std::move(rawDataProvider->ObjectsData->CommonData);
+                } else {
+                    data->CommonObjectsData = rawDataProvider->ObjectsData->CommonData;
+                }
             } else {
-                data.MetaInfo = rawDataProvider->MetaInfo;
-                data.TargetData = rawDataProvider->RawTargetData.Data;
-                data.CommonObjectsData = rawDataProvider->ObjectsData->CommonData;
+                data->MetaInfo = rawDataProvider->MetaInfo;
+                data->TargetData = rawDataProvider->RawTargetData.Data;
+                data->CommonObjectsData = rawDataProvider->ObjectsData->CommonData;
             }
-            data.CommonObjectsData.SubsetIndexing = std::move(subsetIndexing);
+            data->MetaInfo.FeaturesLayout = featuresLayout;
+            data->CommonObjectsData.FeaturesLayout = featuresLayout;
+            data->CommonObjectsData.SubsetIndexing = std::move(subsetIndexing);
 
             if (options.CpuCompatibleFormat) {
                 return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
                     objectsGrouping,
-                    std::move(data),
+                    std::move(*data),
                     false,
                     localExecutor
                 )->CastMoveTo<TQuantizedObjectsDataProvider>();
             } else {
                 return MakeDataProvider<TQuantizedObjectsDataProvider>(
                     objectsGrouping,
-                    std::move(data),
+                    std::move(*data),
                     false,
                     localExecutor
                 );
             }
         }
     };
+
+
+    void CalcBordersAndNanMode(
+        const TQuantizationOptions& options,
+        TRawDataProviderPtr rawDataProvider,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TQuantizationImpl::Do(
+            options,
+            std::move(rawDataProvider),
+            quantizedFeaturesInfo,
+            true,
+            rand,
+            localExecutor
+        );
+    }
+
+    TQuantizedObjectsDataProviderPtr Quantize(
+        const TQuantizationOptions& options,
+        TRawObjectsDataProviderPtr rawObjectsDataProvider,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TDataMetaInfo dataMetaInfo;
+        dataMetaInfo.FeaturesLayout = rawObjectsDataProvider->GetFeaturesLayout();
+
+        auto objectsGrouping = rawObjectsDataProvider->GetObjectsGrouping();
+
+        TRawTargetData dummyData;
+        dummyData.SetTrivialWeights(rawObjectsDataProvider->GetObjectCount());
+
+        auto rawDataProvider = MakeIntrusive<TRawDataProvider>(
+            std::move(dataMetaInfo),
+            std::move(rawObjectsDataProvider),
+            objectsGrouping,
+            TRawTargetDataProvider(objectsGrouping, std::move(dummyData), true, nullptr)
+        );
+
+        auto quantizedDataProvider = Quantize(
+            options,
+            std::move(rawDataProvider),
+            quantizedFeaturesInfo,
+            rand,
+            localExecutor
+        );
+
+        return quantizedDataProvider->ObjectsData;
+    }
 
 
     TQuantizedDataProviderPtr Quantize(
@@ -557,9 +669,45 @@ namespace NCB {
             options,
             std::move(rawDataProvider),
             quantizedFeaturesInfo,
+            false,
             rand,
             localExecutor
         );
+    }
+
+    TQuantizedDataProviders Quantize(
+        const TQuantizationOptions& options,
+        const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+        bool floatFeaturesAllowNansInTestOnly,
+        TConstArrayRef<ui32> ignoredFeatures,
+        TRawDataProviders rawDataProviders,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TQuantizedDataProviders result;
+        auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *rawDataProviders.Learn->MetaInfo.FeaturesLayout,
+            ignoredFeatures,
+            floatFeaturesBinarization,
+            floatFeaturesAllowNansInTestOnly
+        );
+
+        result.Learn = Quantize(
+            options,
+            std::move(rawDataProviders.Learn),
+            quantizedFeaturesInfo,
+            rand,
+            localExecutor
+        );
+
+        // TODO(akhropov): quantize test data in parallel
+        for (auto& rawTestData : rawDataProviders.Test) {
+            result.Test.push_back(
+                Quantize(options, std::move(rawTestData), quantizedFeaturesInfo, rand, localExecutor)
+            );
+        }
+
+        return result;
     }
 
 }

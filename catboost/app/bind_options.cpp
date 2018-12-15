@@ -100,7 +100,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
 
     parser->AddLongOption("cv-rand", "cross-validation random seed")
         .RequiredArgument("seed")
-        .StoreResult(&loadParamsPtr->CvParams.RandSeed);
+        .StoreResult(&loadParamsPtr->CvParams.PartitionRandSeed);
 
     parser->AddLongOption("input-borders-file", "file with borders")
             .RequiredArgument("PATH")

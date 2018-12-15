@@ -32,7 +32,7 @@ namespace NCB {
             QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
 
         Quantize(
-            TConstMaybeOwningArraySubset<float, ui32>(&SrcData, SubsetIndexing),
+            TMaybeOwningConstArraySubset<float, ui32>(&SrcData, SubsetIndexing),
             allowNans,
             nanMode,
             GetId(),
@@ -67,7 +67,7 @@ namespace NCB {
         );
         const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        TConstMaybeOwningArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
+        TMaybeOwningConstArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
             [&] (ui32 idx, ui32 srcValue) {
                 auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
 

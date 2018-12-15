@@ -5,12 +5,18 @@
 #include "online_ctr.h"
 #include "projection.h"
 
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/clear_array.h>
+#include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/options/defaults_helper.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 #include <util/generic/ymath.h>
@@ -50,13 +56,30 @@ struct TFold {
     };
 
     TVector<TQueryInfo> LearnQueriesInfo;
-    TVector<ui32> LearnPermutation; // index in original array
+
+    /*
+     * TMaybe is used because of delayed initialization and lack of default constructor in
+     * TObjectsGroupingSubset
+     */
+    TMaybe<NCB::TObjectsGroupingSubset> LearnPermutation; // use for non-features data
+
+    /* indexing in features buckets arrays, always TIndexedSubset
+     * initialized to some default value because TArraySubsetIndexing has no default constructor
+     */
+    NCB::TFeaturesArraySubsetIndexing LearnPermutationFeaturesSubset
+        = NCB::TFeaturesArraySubsetIndexing(NCB::TIndexedSubset<ui32>());
+
+    /* begin of subset of data in features buckets arrays, used only for permutation block index calculation
+     * if (PermutationBlockSize != 1) && (PermutationBlockSize != learnSampleCount))
+     */
+    ui32 FeaturesSubsetBegin;
+
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;
     TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.
     TVector<TVector<int>> LearnTargetClass;
     TVector<int> TargetClassesCount;
-    int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    ui32 PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
     TOnlineCTRHash& GetCtrs(const TProjection& proj) {
         return proj.HasSingleFeature() ? OnlineSingleCtrs : OnlineCTR;
@@ -81,13 +104,14 @@ struct TFold {
     }
 
     template <typename T>
-    void AssignPermuted(const TVector<T>& source, TVector<T>* dest) const {
-        int learnSampleCount = LearnPermutation.ysize();
-        TVector<T>& destination = *dest;
-        destination.yresize(learnSampleCount);
-        for (int z = 0; z < learnSampleCount; ++z) {
-            int i = LearnPermutation[z];
-            destination[z] = source[i];
+    void AssignPermuted(TConstArrayRef<T> source, TVector<T>* dest) const {
+        *dest = NCB::GetSubset<T>(source, LearnPermutation->GetObjectsIndexing());
+    }
+
+    template <typename T>
+    void AssignPermutedIfDefined(NCB::TMaybeData<TConstArrayRef<T>> source, TVector<T>* dest) const {
+        if (source) {
+            AssignPermuted(*source, dest);
         }
     }
 
@@ -107,30 +131,36 @@ struct TFold {
     void LoadApproxes(IInputStream* s);
 
     static TFold BuildDynamicFold(
-        const TDataset& learnData,
+        const NCB::TTrainingForCPUDataProvider& learnData,
         const TVector<TTargetClassifier>& targetClassifiers,
         bool shuffle,
-        int permuteBlockSize,
+        ui32 permuteBlockSize,
         int approxDimension,
         double multiplier,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
-        TRestorableFastRng64& rand
+        TRestorableFastRng64& rand,
+        NPar::TLocalExecutor* localExecutor
     );
 
     static TFold BuildPlainFold(
-        const TDataset& learnData,
+        const NCB::TTrainingForCPUDataProvider& learnData,
         const TVector<TTargetClassifier>& targetClassifiers,
         bool shuffle,
-        int permuteBlockSize,
+        ui32 permuteBlockSize,
         int approxDimension,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
-        TRestorableFastRng64& rand
+        TRestorableFastRng64& rand,
+        NPar::TLocalExecutor* localExecutor
     );
 
     double GetSumWeight() const { return SumWeight; }
-    int GetLearnSampleCount() const { return LearnPermutation.ysize(); }
+    ui32 GetLearnSampleCount() const { return LearnPermutation->GetSubsetGrouping()->GetObjectCount(); }
+
+    TConstArrayRef<ui32> GetLearnPermutationArray() const {
+        return LearnPermutation->GetObjectsIndexing().Get<NCB::TIndexedSubset<ui32>>();
+    }
 
 private:
     TVector<float> LearnWeights;  // Initial document weights. Empty if no weights present.
@@ -140,9 +170,9 @@ private:
     TOnlineCTRHash OnlineCTR;
 
 
-    void AssignTarget(const TVector<float>& target,
+    void AssignTarget(NCB::TMaybeData<TConstArrayRef<float>> target,
                       const TVector<TTargetClassifier>& targetClassifiers);
-    void SetWeights(const TVector<float>& weights, int learnSampleCount);
+    void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
 };
 
 class TDataset;

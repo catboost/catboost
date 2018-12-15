@@ -22,9 +22,6 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
         if (taskType.GetRef() == ETaskType::GPU) {
             CB_ENSURE(TestSetPaths.size() < 2, "Multiple eval sets are not supported on GPU");
         }
-        if (taskType.GetRef() == ETaskType::CPU) {
-            CB_ENSURE(BordersFile.empty(), "Borders file is not supported on CPU");
-        }
     }
     for (const auto& testFile : TestSetPaths) {
         CB_ENSURE(CheckExists(testFile), "Error: test file '" << testFile << "' doesn't exist");

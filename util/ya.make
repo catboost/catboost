@@ -244,11 +244,6 @@ JOIN_SRCS(
     string/vector.cpp
 )
 
-# system
-IF (OS_DARWIN)
-    CFLAGS(-Wno-deprecated-declarations)
-ENDIF()
-
 IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)
 ENDIF()

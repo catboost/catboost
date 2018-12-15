@@ -2,14 +2,10 @@
 
 PYTEST()
 
-TEST_SRCS(
-    test_windows.py
-)
+TEST_SRCS(test_windows.py)
 
 PEERDIR(
     library/python/windows
 )
 
 END()
-
-NEED_CHECK()

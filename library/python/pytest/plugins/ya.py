@@ -112,7 +112,7 @@ def pytest_addoption(parser):
     parser.addoption("--split-by-tests", action='store_true', help="Split test execution by tests instead of suites", default=False)
     parser.addoption("--project-path", action="store", default="", help="path to CMakeList where test is declared")
     parser.addoption("--build-type", action="store", default="", help="build type")
-    parser.addoption("--flags", action="append", dest="flags", default=None, help="build flags (-D)")
+    parser.addoption("--flags", action="append", dest="flags", default=[], help="build flags (-D)")
     parser.addoption("--sanitize", action="store", default="", help="sanitize mode")
     parser.addoption("--test-stderr", action="store_true", default=False, help="test stderr")
     parser.addoption("--test-debug", action="store_true", default=False, help="test debug mode")
@@ -131,16 +131,9 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    if pytest.__version__ != "2.7.2":
-        from _pytest.monkeypatch import monkeypatch
-        try:
-            from . import reinterpret
-        except ValueError:
-            import reinterpret
-        m = next(monkeypatch())
-        m.setattr(py.builtin.builtins, 'AssertionError', reinterpret.AssertionError)  # noqa
+    pytest.register_assert_rewrite('__tests__')
 
-        config.option.continue_on_collection_errors = True
+    config.option.continue_on_collection_errors = True
 
     # XXX Strip java contrib from dep_roots - it's python-irrelevant code,
     # The number of such deps may lead to problems - see https://st.yandex-team.ru/DEVTOOLS-4627

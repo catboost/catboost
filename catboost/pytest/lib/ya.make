@@ -8,4 +8,8 @@ PY_SRCS(
     common_helpers.py
 )
 
+PEERDIR(
+    contrib/python/numpy
+)
+
 END()

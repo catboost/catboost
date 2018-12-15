@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/meta_info.h>
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/quantized_pool/pool.h>
@@ -18,7 +19,7 @@ namespace NCB {
     public:
         virtual void OutputColumnByType(IOutputStream* outstream, ui64 docId, EColumn columnType) = 0;
         virtual void OutputColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 columnId) = 0;
-        virtual void UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& /*columnsMetaInfo*/) {}
+        virtual void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& /*columnsMetaInfo*/) {}
         virtual ~IPoolColumnsPrinter() = default;
         bool HasDocIdColumn = false;
     private:
@@ -31,11 +32,11 @@ namespace NCB {
         TDSVPoolColumnsPrinter(
             const TPathWithScheme& testSetPath,
             const TDsvFormatOptions& format,
-            const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
+            const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
         );
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) override;
-        void UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo) override;
+        void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) override;
 
     private:
         const TString& GetCell(ui64 docId, ui32 colId);

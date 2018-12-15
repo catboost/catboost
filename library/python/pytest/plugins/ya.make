@@ -7,8 +7,6 @@ PY_SRCS(
     collection.py
     conftests.py
     fixtures.py
-    newinterpret.py
-    reinterpret.py
 )
 
 PEERDIR(
@@ -16,5 +14,3 @@ PEERDIR(
 )
 
 END()
-
-NEED_CHECK()

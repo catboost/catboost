@@ -2,8 +2,6 @@ PYTEST()
 
 
 
-NEED_CHECK()
-
 TEST_SRCS(test_glibc.py)
 
 PEERDIR(

@@ -51,7 +51,8 @@ static void CheckMaybeEmptyBaseline(TSharedVector<float> baseline, ui32 objectCo
 }
 
 
-static void CheckBaseline(const TVector<TSharedVector<float>>& baseline, ui32 objectCount) {
+static void CheckBaseline(const TVector<TSharedVector<float>>& baseline, ui32 objectCount, ui32 classCount) {
+    CheckDataSize(baseline.size(), (size_t)classCount, "Baseline", true, "class count");
     for (auto i : xrange(baseline.size())) {
         CheckOneBaseline(*(baseline[i]), i, objectCount);
     }
@@ -269,6 +270,21 @@ void TRawTargetData::PrepareForInitialization(
 }
 
 
+void TRawTargetDataProvider::SetObjectsGrouping(TObjectsGroupingPtr objectsGrouping) {
+    CheckDataSize(objectsGrouping->GetObjectCount(), GetObjectCount(), "new objects grouping objects'");
+    CB_ENSURE(
+        Data.GroupWeights.IsTrivial(),
+        "Cannot update objects grouping if target data already has non-trivial group weights"
+    );
+    CB_ENSURE(
+        Data.Pairs.empty(),
+        "Cannot update objects grouping if target data already has pairs"
+    );
+    ObjectsGrouping = objectsGrouping;
+}
+
+
+
 void TRawTargetDataProvider::SetBaseline(TConstArrayRef<TConstArrayRef<float>> baseline) {
     ui32 objectCount = GetObjectCount();
     TVector<TVector<float>> newBaselineStorage(baseline.size());
@@ -316,29 +332,22 @@ static void GetPairsSubset(
         return;
     }
 
-    THashMap<ui32, ui32> srcToDstGroupIndices;
-    objectsGroupingSubset.GetGroupsIndexing().ForEach(
-        [&srcToDstGroupIndices] (ui32 idx, ui32 srcIdx) { srcToDstGroupIndices[srcIdx] = idx; }
+    TVector<TMaybe<ui32>> srcToDstIndices(objectsGrouping.GetObjectCount());
+    objectsGroupingSubset.GetObjectsIndexing().ForEach(
+        [&srcToDstIndices] (ui32 idx, ui32 srcIdx) { srcToDstIndices[srcIdx] = idx; }
     );
-
-    // CB_ENSURE inside is ok, groups must be nontrivial if there is pairs data
-    TConstArrayRef<TGroupBounds> srcGroupsBounds = objectsGrouping.GetNonTrivialGroups();
-    TConstArrayRef<TGroupBounds> subsetGroupsBounds =
-        objectsGroupingSubset.GetSubsetGrouping()->GetNonTrivialGroups();
 
     result->clear();
     for (const auto& pair : pairs) {
-        ui32 srcGroupIdx = objectsGrouping.GetGroupIdxForObject(pair.WinnerId);
-        TGroupBounds srcGroupBounds = srcGroupsBounds[srcGroupIdx];
-        auto* subsetGroupIdx = MapFindPtr(srcToDstGroupIndices, srcGroupIdx);
-        if (subsetGroupIdx) {
-            TGroupBounds subsetGroupBounds = subsetGroupsBounds[*subsetGroupIdx];
-            result->emplace_back(
-                subsetGroupBounds.Begin + (pair.WinnerId - srcGroupBounds.Begin),
-                subsetGroupBounds.Begin + (pair.LoserId - srcGroupBounds.Begin),
-                pair.Weight
-            );
+        const auto& maybeDstWinnerId = srcToDstIndices[pair.WinnerId];
+        if (!maybeDstWinnerId) {
+            continue;
         }
+        const auto& maybeDstLoserId = srcToDstIndices[pair.LoserId];
+        if (!maybeDstLoserId) {
+            continue;
+        }
+        result->emplace_back(*maybeDstWinnerId, *maybeDstLoserId, pair.Weight);
     }
 }
 
@@ -448,39 +457,96 @@ void GetObjectWeightsSubsetImpl(
     );
 }
 
-void GetGroupInfosSubsetImpl(
-    const TSharedVector<TQueryInfo> src,
+
+void NCB::GetGroupInfosSubset(
+    TConstArrayRef<TQueryInfo> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
     NPar::TLocalExecutor* localExecutor,
-    TSharedVector<TQueryInfo>* dstSubset
+    TVector<TQueryInfo>* dstSubset
 ) {
     const TObjectsGrouping& dstSubsetGrouping = *(objectsGroupingSubset.GetSubsetGrouping());
 
-    TVector<TQueryInfo> dstSubsetData;
-
     // resize, not yresize because TQueryInfo is not POD type
-    dstSubsetData.resize(dstSubsetGrouping.GetGroupCount());
+    dstSubset->resize(dstSubsetGrouping.GetGroupCount());
 
     if (dstSubsetGrouping.GetGroupCount() != 0) {
-        const TVector<TQueryInfo>& srcData = *src;
+        const auto& subsetObjectsIndexing = objectsGroupingSubset.GetObjectsIndexing();
+
+        TConstArrayRef<ui32> indexedSubset;
+        TVector<ui32> indexedSubsetStorage;
+        if (HoldsAlternative<TIndexedSubset<ui32>>(subsetObjectsIndexing)) {
+            indexedSubset = subsetObjectsIndexing.Get<TIndexedSubset<ui32>>();
+        } else {
+            indexedSubsetStorage.yresize(subsetObjectsIndexing.Size());
+            subsetObjectsIndexing.ParallelForEach(
+                [&](ui32 idx, ui32 srcIdx) { indexedSubsetStorage[idx] = srcIdx; },
+                localExecutor
+            );
+            indexedSubset = indexedSubsetStorage;
+        }
+
 
         // CB_ENSURE inside is ok, groups must be nontrivial if there is groupInfo data in some targets
         TConstArrayRef<TGroupBounds> dstSubsetGroupBounds = dstSubsetGrouping.GetNonTrivialGroups();
 
         objectsGroupingSubset.GetGroupsIndexing().ParallelForEach(
             [&] (ui32 dstGroupIdx, ui32 srcGroupIdx) {
-                const auto& srcGroupData = srcData[srcGroupIdx];
-                auto& dstGroupData = dstSubsetData[dstGroupIdx];
+                const auto& srcGroupData = src[srcGroupIdx];
+                auto& dstGroupData = (*dstSubset)[dstGroupIdx];
                 ((TGroupBounds&)dstGroupData) = dstSubsetGroupBounds[dstGroupIdx];
 
                 dstGroupData.Weight = srcGroupData.Weight;
-                dstGroupData.SubgroupId = srcGroupData.SubgroupId;
-                dstGroupData.Competitors = srcGroupData.Competitors;
+
+                auto getSrcIdxInGroup = [&](ui32 dstIdxInGroup) {
+                    return indexedSubset[dstGroupData.Begin + dstIdxInGroup] - srcGroupData.Begin;
+                };
+
+                if (!srcGroupData.SubgroupId.empty()) {
+                    dstGroupData.SubgroupId.yresize(dstGroupData.GetSize());
+                    for (auto dstIdxInGroup : xrange(dstGroupData.GetSize())) {
+                        dstGroupData.SubgroupId[dstIdxInGroup] =
+                            srcGroupData.SubgroupId[getSrcIdxInGroup(dstIdxInGroup)];
+                    }
+                }
+                if (!srcGroupData.Competitors.empty()) {
+                    // srcIdxInGroup -> dstIdxInGroup
+                    TVector<ui32> invertedGroupPermutation;
+                    invertedGroupPermutation.yresize(dstGroupData.GetSize());
+                    for (auto dstIdxInGroup : xrange(dstGroupData.GetSize())) {
+                        invertedGroupPermutation[getSrcIdxInGroup(dstIdxInGroup)] = dstIdxInGroup;
+                    }
+
+                    dstGroupData.Competitors.resize(dstGroupData.GetSize());
+                    for (auto dstIdxInGroup : xrange(dstGroupData.GetSize())) {
+                        auto& dstCompetitors = dstGroupData.Competitors[dstIdxInGroup];
+                        const auto& srcCompetitors = srcGroupData.Competitors[
+                            getSrcIdxInGroup(dstIdxInGroup)
+                        ];
+                        dstCompetitors.yresize(srcCompetitors.size());
+                        for (auto competitorIdx : xrange(dstCompetitors.size())) {
+                            auto& dstCompetitor = dstCompetitors[competitorIdx];
+                            const auto& srcCompetitor = srcCompetitors[competitorIdx];
+                            dstCompetitor.Id = invertedGroupPermutation[srcCompetitor.Id];
+                            dstCompetitor.Weight = srcCompetitor.Weight;
+                            dstCompetitor.SampleWeight = srcCompetitor.SampleWeight;
+                        }
+                    }
+                }
             },
             localExecutor
         );
     }
+}
 
+
+void GetGroupInfosSubsetImpl(
+    const TSharedVector<TQueryInfo> src,
+    const TObjectsGroupingSubset& objectsGroupingSubset,
+    NPar::TLocalExecutor* localExecutor,
+    TSharedVector<TQueryInfo>* dstSubset
+) {
+    TVector<TQueryInfo> dstSubsetData;
+    GetGroupInfosSubset(*src, objectsGroupingSubset, localExecutor, &dstSubsetData);
     *dstSubset = MakeAtomicShared<TVector<TQueryInfo>>(
         std::move(dstSubsetData)
     );
@@ -792,6 +858,7 @@ TBinClassTarget TBinClassTarget::Load(
 TMultiClassTarget::TMultiClassTarget(
     const TString& description,
     TObjectsGroupingPtr objectsGrouping,
+    ui32 classCount,
     TSharedVector<float> target,
     TSharedWeights<float> weights,
     TVector<TSharedVector<float>>&& baseline,
@@ -801,11 +868,16 @@ TMultiClassTarget::TMultiClassTarget(
         TTargetDataSpecification(ETargetType::MultiClass, description),
         std::move(objectsGrouping)
       )
+    , ClassCount(classCount)
 {
     if (!skipCheck) {
+        CB_ENSURE(
+            classCount >= 2,
+            "MultiClass target data must have at least two classes (got " << classCount <<")"
+        );
         CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
         CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
-        CheckBaseline(baseline, GetObjectCount());
+        CheckBaseline(baseline, GetObjectCount(), classCount);
     }
     Target = std::move(target);
     Weights = std::move(weights);
@@ -840,6 +912,7 @@ TTargetDataProviderPtr TMultiClassTarget::GetSubset(
     return MakeIntrusive<TMultiClassTarget>(
         GetSpecification().Description,
         std::move(objectsGrouping),
+        ClassCount,
         subsetTargetDataCache.Targets.at(Target),
         subsetTargetDataCache.Weights.at(Weights),
         std::move(subsetBaseline),
@@ -853,6 +926,7 @@ void TMultiClassTarget::SaveWithCache(
     TSerializationTargetDataCache* cache
 ) const {
     SaveCommon(binSaver);
+    SaveMulti(binSaver, ClassCount);
     AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
     AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
 
@@ -868,6 +942,8 @@ TMultiClassTarget TMultiClassTarget::Load(
     const TSerializationTargetDataCache& cache,
     IBinSaver* binSaver
 ) {
+    ui32 classCount = 0;
+    LoadMulti(binSaver, &classCount);
     auto target = LoadById(cache.Targets, binSaver);
     auto weights = LoadById(cache.Weights, binSaver);
 
@@ -879,7 +955,15 @@ TMultiClassTarget TMultiClassTarget::Load(
         baseline.emplace_back(LoadById(cache.Baselines, binSaver));
     }
 
-    return TMultiClassTarget(description, objectsGrouping, target, weights, std::move(baseline), true);
+    return TMultiClassTarget(
+        description,
+        objectsGrouping,
+        classCount,
+        target,
+        weights,
+        std::move(baseline),
+        true
+    );
 }
 
 
@@ -1105,7 +1189,7 @@ TGroupPairwiseRankingTarget TGroupPairwiseRankingTarget::Load(
 }
 
 
-TConstArrayRef<float> NCB::GetTarget(const TTargetDataProviders& targetDataProviders) {
+TMaybeData<TConstArrayRef<float>> NCB::GetMaybeTarget(const TTargetDataProviders& targetDataProviders) {
     for (const auto& specAndDataProvider : targetDataProviders) {
         switch (specAndDataProvider.first.Type) {
 
@@ -1125,8 +1209,13 @@ TConstArrayRef<float> NCB::GetTarget(const TTargetDataProviders& targetDataProvi
         }
     }
 
-    CB_ENSURE_INTERNAL(false, "no Target data in targetDataProviders");
-    return {}; // to keep compiler happy
+    return Nothing();
+}
+
+TConstArrayRef<float> NCB::GetTarget(const TTargetDataProviders& targetDataProviders) {
+    auto maybeTarget = GetMaybeTarget(targetDataProviders);
+    CB_ENSURE_INTERNAL(maybeTarget, "no Target data in targetDataProviders");
+    return *maybeTarget;
 }
 
 TConstArrayRef<float> NCB::GetWeights(const TTargetDataProviders& targetDataProviders) {

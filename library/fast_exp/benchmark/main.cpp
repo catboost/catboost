@@ -50,7 +50,7 @@ Y_CPU_BENCHMARK(FastExpPure, iface) {
     const auto& data = *Singleton<TData>();
 
     for (size_t x = 0; x < iface.Iterations(); ++x) {
-        Y_DO_NOT_OPTIMIZE_AWAY(fast_exp(data[x % +data]));
+        Y_DO_NOT_OPTIMIZE_AWAY(fast_exp(data[x % data.size()]));
     }
 }
 
@@ -86,6 +86,6 @@ Y_CPU_BENCHMARK(LibcPure, iface) {
     const auto& data = *Singleton<TData>();
 
     for (size_t x = 0; x < iface.Iterations(); ++x) {
-        Y_DO_NOT_OPTIMIZE_AWAY(std::exp(data[x % +data]));
+        Y_DO_NOT_OPTIMIZE_AWAY(std::exp(data[x % data.size()]));
     }
 }

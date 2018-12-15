@@ -475,7 +475,7 @@ namespace NPar {
                         callback->OnCancel();
                     }
                 } else if (netEvent.EventType == TNetworkEvent::EType::IncomingQuery) {
-                    if (!CmdProcessors.has(netEvent.Request->Url)) {
+                    if (!CmdProcessors.contains(netEvent.Request->Url)) {
                         if (netEvent.Request->Url == "check_stop") {
                             TVector<char> tmp;
                             tmp.push_back(RequestsData.Empty());

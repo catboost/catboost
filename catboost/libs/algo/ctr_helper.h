@@ -2,10 +2,14 @@
 
 #include "target_classifier.h"
 #include "projection.h"
+#include "custom_objective_descriptor.h"
 
 #include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data_new/util.h>
 #include <catboost/libs/options/cat_feature_options.h>
-#include <catboost/libs/metrics/metric.h>
+
+#include <util/generic/array_ref.h>
+
 
 //TODO(kirillovs, noxoomo): remove dirty hack. targetClassifier id = 0 is fake classifier for counter cause almost all catboost code needs target classes
 struct TCtrInfo {
@@ -30,7 +34,7 @@ class TCtrHelper {
 public:
     void InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
                        const NCB::TFeaturesLayout& layout,
-                       const TVector<float>& target,
+                       NCB::TMaybeData<TConstArrayRef<float>> target,
                        ELossFunction loss,
                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                        bool allowConstLabel);
@@ -38,7 +42,7 @@ public:
     const TVector<TCtrInfo>& GetCtrInfo(const TProjection& projection) const {
         if (projection.IsSingleCatFeature()) {
             const int featureId = projection.CatFeatures[0];
-            if (PerFeatureCtrs.has(featureId)) {
+            if (PerFeatureCtrs.contains(featureId)) {
                 return PerFeatureCtrs.at(featureId);
             } else {
                 return SimpleCtrs;

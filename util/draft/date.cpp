@@ -34,7 +34,7 @@ static time_t ParseDate(const char* dateStr) {
 
 template <>
 TDate FromStringImpl<TDate>(const char* data, size_t len) {
-    return TDate(ParseDate(~TString(data, len)));
+    return TDate(ParseDate(TString(data, len).data()));
 }
 
 TDate::TDate(const char* yyyymmdd)
@@ -53,7 +53,7 @@ TDate::TDate(time_t ts)
 }
 
 TDate::TDate(const TString& date, const TString& format)
-    : Timestamp(GetDateStart(ParseDate(~date, ~format)))
+    : Timestamp(GetDateStart(ParseDate(date.data(), format.data())))
 {
 }
 

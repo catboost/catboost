@@ -23,7 +23,7 @@
 
 TString GetEnv(const TString& key, const TString& def) {
 #ifdef _win_
-    size_t len = GetEnvironmentVariableA(~key, nullptr, 0);
+    size_t len = GetEnvironmentVariableA(key.data(), nullptr, 0);
 
     if (len == 0) {
         if (GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
@@ -36,7 +36,7 @@ TString GetEnv(const TString& key, const TString& def) {
     size_t bufferSize;
     do {
         bufferSize = buffer.size();
-        len = GetEnvironmentVariableA(~key, buffer.data(), static_cast<DWORD>(bufferSize));
+        len = GetEnvironmentVariableA(key.data(), buffer.data(), static_cast<DWORD>(bufferSize));
         if (len > bufferSize) {
             buffer.resize(len);
         }
@@ -44,7 +44,7 @@ TString GetEnv(const TString& key, const TString& def) {
 
     return TString(buffer.data(), len);
 #else
-    const char* env = getenv(~key);
+    const char* env = getenv(key.data());
     return env ? TString(env) : def;
 #endif
 }
@@ -53,12 +53,12 @@ void SetEnv(const TString& key, const TString& value) {
     bool isOk = false;
     int errorCode = 0;
 #ifdef _win_
-    isOk = SetEnvironmentVariable(~key, ~value);
+    isOk = SetEnvironmentVariable(key.data(), value.data());
     if (!isOk) {
         errorCode = GetLastError();
     }
 #else
-    isOk = (0 == setenv(~key, ~value, true /*replace*/));
+    isOk = (0 == setenv(key.data(), value.data(), true /*replace*/));
     if (!isOk) {
         errorCode = errno;
     }

@@ -9,7 +9,7 @@ static const char* Argv0;
 namespace {
     struct TProgramNameHolder {
         inline TProgramNameHolder()
-            : ProgName(GetFileNameComponent(Argv0 ? Argv0 : ~GetExecPath()))
+            : ProgName(GetFileNameComponent(Argv0 ? Argv0 : GetExecPath().data()))
         {
         }
 

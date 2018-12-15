@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <library/containers/2d_array/2d_array.h>
 
@@ -17,7 +18,7 @@ namespace NCatboostCuda {
     struct TCpuTargetClassCtrCalcer {
         TCpuTargetClassCtrCalcer(ui32 uniqueValues,
                                  const TVector<ui32>& bins,
-                                 const TVector<float>& weights,
+                                 TConstArrayRef<float> weights,
                                  float prior,
                                  float priorDenum = 1.0)
             : UniqueValues(uniqueValues)
@@ -32,7 +33,7 @@ namespace NCatboostCuda {
         float PriorNum;
         float PriorDenum;
         const TVector<ui32>& Bins;
-        const TVector<float>& Weights;
+        TConstArrayRef<float> Weights;
 
         template <class T>
         TArray2D<float> Calc(const TVector<ui32>& cpuIndices,

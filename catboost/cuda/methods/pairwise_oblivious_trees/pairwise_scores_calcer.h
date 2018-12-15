@@ -61,16 +61,16 @@ namespace NCatboostCuda {
         }
 
         bool HasHelperForPolicy(EFeaturesGroupingPolicy policy) const {
-            return Helpers.has(policy);
+            return Helpers.contains(policy);
         }
 
         const TComputePairwiseScoresHelper& GetHelperForPolicy(EFeaturesGroupingPolicy policy) const {
-            CB_ENSURE(Helpers.has(policy));
+            CB_ENSURE(Helpers.contains(policy));
             return *Helpers.at(policy);
         }
 
         const TBinaryFeatureSplitResults& GetResultsForPolicy(EFeaturesGroupingPolicy policy) const {
-            CB_ENSURE(Helpers.has(policy));
+            CB_ENSURE(Helpers.contains(policy));
             return *Solutions.at(policy);
         }
 

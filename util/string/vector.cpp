@@ -95,8 +95,8 @@ TUtf16String JoinStrings(const TVector<TUtf16String>& v, const TWtringBuf delim)
 }
 
 TUtf16String JoinStrings(const TVector<TUtf16String>& v, size_t index, size_t count, const TWtringBuf delim) {
-    const size_t f = Min(index, +v);
-    const size_t l = f + Min(count, +v - f);
+    const size_t f = Min(index, v.size());
+    const size_t l = f + Min(count, v.size() - f);
 
     return JoinStrings(v.begin() + f, v.begin() + l, delim);
 }

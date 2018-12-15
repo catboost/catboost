@@ -30,7 +30,7 @@ NCatboostCuda::TCtr NCatboostCuda::MigrateCtr(TBinarizedFeaturesManager& feature
 ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
                                     const TModelFeaturesMap& map,
                                     const ui32 featureId) {
-    if (map.Ctrs.has(featureId)) {
+    if (map.Ctrs.contains(featureId)) {
         const auto& info = map.Ctrs.at(featureId);
         TCtr remapedCtr = MigrateCtr(featuresManager, map, info.Ctr);
 
@@ -45,13 +45,13 @@ ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
             return featuresManager.AddCtr(remapedCtr,
                                           TVector<float>(info.Borders));
         }
-    } else if (map.FloatFeatures.has(featureId)) {
+    } else if (map.FloatFeatures.contains(featureId)) {
         auto& floatInfo = map.FloatFeatures.at(featureId);
         const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForFloatFeature(floatInfo.DataProviderId);
         CB_ENSURE(floatInfo.Borders == featuresManager.GetBorders(featureManagerId),
                   "Error: progress borders should be consistent");
         return featureManagerId;
-    } else if (map.CatFeaturesMap.has(featureId)) {
+    } else if (map.CatFeaturesMap.contains(featureId)) {
         const ui32 dataProviderId = map.CatFeaturesMap.at(featureId);
         return featuresManager.GetFeatureManagerIdForCatFeature(dataProviderId);
     } else {

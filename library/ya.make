@@ -7,6 +7,7 @@ RECURSE(
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut
+    build_info
     charset
     charset/ut
     chromium_trace
@@ -35,7 +36,9 @@ RECURSE(
     float16
     float16/ut
     getopt
+    getopt/last_getopt_demo
     getopt/small
+    getopt/ut
     grid_creator
     grid_creator/fuzz
     grid_creator/ut

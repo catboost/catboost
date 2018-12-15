@@ -8,6 +8,8 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/stream/labeled.h>
+
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
@@ -120,15 +122,15 @@ namespace {
 
         inline void MakeTempKeysAndValuesPtrs(NKernel::TRadixSortContext& context) const {
             CB_ENSURE(context.UseExternalBufferForTempKeysAndValues);
-            CB_ENSURE(TmpKeys.Size() == Keys.Size());
-            CB_ENSURE(TmpValues.Size() == Values.Size());
+            CB_ENSURE(TmpKeys.Size() == Keys.Size(), LabeledOutput(TmpKeys.Size(), Keys.Size()));
+            CB_ENSURE(TmpValues.Size() == Values.Size(), LabeledOutput(TmpValues.Size(), Values.Size()));
             context.TempKeys = TmpKeys.GetData().GetRawHandleBasedPtr();
             context.TempValues = TmpValues.GetData().GetRawHandleBasedPtr();
         }
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& manager) const {
-            CB_ENSURE(Keys.Size() == Keys.ObjectCount());
-            CB_ENSURE(Keys.Size() < (static_cast<ui64>(1) << 32));
+            CB_ENSURE(Keys.Size() == Keys.ObjectCount(), LabeledOutput(Keys.Size(), Keys.ObjectCount()));
+            CB_ENSURE(Keys.Size() < (static_cast<ui64>(1) << 32), LabeledOutput(Keys.Size()));
 
             const ui32 size = Keys.Size();
             const ui32 valueSize = Values.Size() ? sizeof(V) : 0;
@@ -169,14 +171,20 @@ namespace {
 
 // RadixSort
 
+template <typename K, typename TMapping>
+static void RadixSortImpl(TCudaBuffer<K, TMapping>& keys, bool compareGreater, ui32 stream) {
+    using TKernel = TRadixSortKernel<K, char>;
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, compareGreater);
+}
+
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(K, TMapping)                                                         \
-    template <>                                                                                     \
-    void RadixSort<K, TMapping>(TCudaBuffer<K, TMapping>& keys, bool compareGreater, ui32 stream) { \
-        using TKernel = TRadixSortKernel<K, char>;                                                  \
-        LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, compareGreater);               \
+#define Y_CATBOOST_CUDA_F_IMPL(K, TMapping)                                                          \
+    template <>                                                                                      \
+    void RadixSort<K, TMapping>(TCudaBuffer<K, TMapping> & keys, bool compareGreater, ui32 stream) { \
+        ::RadixSortImpl(keys, compareGreater, stream);                                               \
     }
 
 Y_MAP_ARGS(
@@ -199,19 +207,28 @@ Y_MAP_ARGS(
 
 // RadixSort
 
+template <typename K, typename V, typename TMapping>
+static void RadixSortImpl(
+    TCudaBuffer<K, TMapping>& keys,
+    TCudaBuffer<V, TMapping>& values,
+    bool compareGreater,
+    ui32 stream)
+{
+    using TKernel = TRadixSortKernel<K, V>;
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                \
-    template <>                                                                               \
-    void RadixSort<K, V, TMapping>(                                                           \
-        TCudaBuffer<K, TMapping>& keys,                                                       \
-        TCudaBuffer<V, TMapping>& values,                                                     \
-        bool compareGreater,                                                                  \
-        ui32 stream)                                                                          \
-    {                                                                                         \
-        using TKernel = TRadixSortKernel<K, V>;                                               \
-        LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater); \
+#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                 \
+    template <>                                                \
+    void RadixSort<K, V, TMapping>(                            \
+        TCudaBuffer<K, TMapping> & keys,                       \
+        TCudaBuffer<V, TMapping> & values,                     \
+        bool compareGreater,                                   \
+        ui32 stream) {                                         \
+        ::RadixSortImpl(keys, values, compareGreater, stream); \
     }
 
 Y_MAP_ARGS(
@@ -282,21 +299,31 @@ Y_MAP_ARGS(
 
 // RadixSort
 
+template <typename K, typename V, typename TMapping>
+static void RadixSortImpl(
+    TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,
+    TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,
+    ui32 offset,
+    ui32 bits,
+    ui64 stream)
+{
+    using TKernel = TRadixSortKernel<K, V>;
+    CB_ENSURE((offset + bits) <= (sizeof(K) * 8), LabeledOutput(offset + bits, sizeof(K) + 8));
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                                                  \
-    template <>                                                                                                                 \
-    void RadixSort<K, V, TMapping>(                                                                                             \
-        TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,                                                       \
-        TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,                                                 \
-        ui32 offset,                                                                                                            \
-        ui32 bits,                                                                                                              \
-        ui64 stream)                                                                                                            \
-    {                                                                                                                           \
-        using TKernel = TRadixSortKernel<K, V>;                                                                                 \
-        CB_ENSURE((offset + bits) <= (sizeof(K) * 8));                                                                          \
-        LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues); \
+#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                    \
+    template <>                                                                   \
+    void RadixSort<K, V, TMapping>(                                               \
+        TCudaBuffer<K, TMapping> & keys, TCudaBuffer<V, TMapping> & values,       \
+        TCudaBuffer<K, TMapping> & tmpKeys, TCudaBuffer<V, TMapping> & tmpValues, \
+        ui32 offset,                                                              \
+        ui32 bits,                                                                \
+        ui64 stream) {                                                            \
+        ::RadixSortImpl(keys, values, tmpKeys, tmpValues, offset, bits, stream);  \
     }
 
 Y_MAP_ARGS(
@@ -367,21 +394,32 @@ Y_MAP_ARGS(
 
 // RadixSort
 
+template <typename K, typename V, typename TMapping>
+static void RadixSortImpl(
+    TCudaBuffer<K, TMapping>& keys,
+    TCudaBuffer<V, TMapping>& values,
+    bool compareGreater,
+    ui32 offset,
+    ui32 bits,
+    ui32 stream)
+{
+    using TKernel = TRadixSortKernel<K, V>;
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater, offset, bits);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                              \
-    template <>                                                                                             \
-    void RadixSort<K, V, TMapping>(                                                                         \
-        TCudaBuffer<K, TMapping>& keys,                                                                     \
-        TCudaBuffer<V, TMapping>& values,                                                                   \
-        bool compareGreater,                                                                                \
-        ui32 offset,                                                                                        \
-        ui32 bits,                                                                                          \
-        ui32 stream)                                                                                        \
-    {                                                                                                       \
-        using TKernel = TRadixSortKernel<K, V>;                                                             \
-        LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater, offset, bits); \
+#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                               \
+    template <>                                                              \
+    void RadixSort<K, V, TMapping>(                                          \
+        TCudaBuffer<K, TMapping> & keys,                                     \
+        TCudaBuffer<V, TMapping> & values,                                   \
+        bool compareGreater,                                                 \
+        ui32 offset,                                                         \
+        ui32 bits,                                                           \
+        ui32 stream) {                                                       \
+        ::RadixSortImpl(keys, values, compareGreater, offset, bits, stream); \
     }
 
 Y_MAP_ARGS(
@@ -452,18 +490,28 @@ Y_MAP_ARGS(
 
 // ReorderBins
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                                     \
-    template <>                                                                                              \
-    void ReorderBins<TMapping>(                                                                              \
-        TCudaBuffer<ui32, TMapping>& bins,                                                                   \
-        TCudaBuffer<ui32, TMapping>& indices,                                                                \
-        ui32 offset,                                                                                         \
-        ui32 bits,                                                                                           \
-        ui64 stream)                                                                                         \
-    {                                                                                                        \
-        using TKernel = TRadixSortKernel<ui32, ui32>;                                                        \
-        CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8));                                                    \
-        LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits); \
+template <typename TMapping>
+static void ReorderBinsImpl(
+    TCudaBuffer<ui32, TMapping>& bins,
+    TCudaBuffer<ui32, TMapping>& indices,
+    ui32 offset,
+    ui32 bits,
+    ui64 stream)
+{
+    using TKernel = TRadixSortKernel<ui32, ui32>;
+    CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
+    LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                        \
+    template <>                                                 \
+    void ReorderBins<TMapping>(                                 \
+        TCudaBuffer<ui32, TMapping> & bins,                     \
+        TCudaBuffer<ui32, TMapping> & indices,                  \
+        ui32 offset,                                            \
+        ui32 bits,                                              \
+        ui64 stream) {                                          \
+        ::ReorderBinsImpl(bins, indices, offset, bits, stream); \
     }
 
 Y_MAP_ARGS(
@@ -476,20 +524,32 @@ Y_MAP_ARGS(
 
 // ReorderBins
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                                                          \
-    template <>                                                                                                                   \
-    void ReorderBins<TMapping>(                                                                                                   \
-        TCudaBuffer<ui32, TMapping>& bins,                                                                                        \
-        TCudaBuffer<ui32, TMapping>& indices,                                                                                     \
-        ui32 offset,                                                                                                              \
-        ui32 bits,                                                                                                                \
-        TCudaBuffer<ui32, TMapping>& tmpBins,                                                                                     \
-        TCudaBuffer<ui32, TMapping>& tmpIndices,                                                                                  \
-        ui64 stream)                                                                                                              \
-    {                                                                                                                             \
-        using TKernel = TRadixSortKernel<ui32, ui32>;                                                                             \
-        CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8));                                                                         \
-        LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits, tmpBins, tmpIndices); \
+template <typename TMapping>
+static void ReorderBinsImpl(
+    TCudaBuffer<ui32, TMapping>& bins,
+    TCudaBuffer<ui32, TMapping>& indices,
+    ui32 offset,
+    ui32 bits,
+    TCudaBuffer<ui32, TMapping>& tmpBins,
+    TCudaBuffer<ui32, TMapping>& tmpIndices,
+    ui64 stream)
+{
+    using TKernel = TRadixSortKernel<ui32, ui32>;
+    CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
+    LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits, tmpBins, tmpIndices);
+}
+
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                             \
+    template <>                                                                      \
+    void ReorderBins<TMapping>(                                                      \
+        TCudaBuffer<ui32, TMapping> & bins,                                          \
+        TCudaBuffer<ui32, TMapping> & indices,                                       \
+        ui32 offset,                                                                 \
+        ui32 bits,                                                                   \
+        TCudaBuffer<ui32, TMapping> & tmpBins,                                       \
+        TCudaBuffer<ui32, TMapping> & tmpIndices,                                    \
+        ui64 stream) {                                                               \
+        ::ReorderBinsImpl(bins, indices, offset, bits, tmpBins, tmpIndices, stream); \
     }
 
 Y_MAP_ARGS(

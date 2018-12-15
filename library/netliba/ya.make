@@ -7,5 +7,3 @@ RECURSE(
     v12/ut
     v12/with_nalf
 )
-
-NEED_CHECK()

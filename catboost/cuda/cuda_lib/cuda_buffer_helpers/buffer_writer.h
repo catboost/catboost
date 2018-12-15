@@ -8,6 +8,8 @@
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_tasks.h>
 #include <catboost/cuda/cuda_lib/mapping.h>
+
+#include <util/generic/fwd.h>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
@@ -26,9 +28,9 @@ namespace NCudaLib {
         TSlice ColumnWriteSlice;
 
     public:
-        TCudaBufferWriter(const TVector<T>& src,
+        TCudaBufferWriter(TConstArrayRef<T> src,
                           TCudaBuffer& dst)
-            : Src(~src)
+            : Src(src.data())
             , Dst(&dst)
             , SrcMaxSize(src.size())
             , WriteSlice(dst.GetMapping().GetObjectsSlice())

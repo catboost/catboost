@@ -1,8 +1,13 @@
 #pragma once
 
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 
-TVector<TVector<double>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model);
+TVector<TVector<double>> CollectLeavesStatistics(
+    const NCB::TDataProvider& dataset,
+    const TFullModel& model,
+    NPar::TLocalExecutor* localExecutor);

@@ -65,23 +65,34 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, typename TUi32>
+static void SegmentedScanVectorImpl(
+    const TCudaBuffer<T, TMapping>& input,
+    const TCudaBuffer<TUi32, TMapping>& flags,
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
+    bool inclusive,
+    ui32 flagMask,
+    ui32 streamId)
+{
+    using TKernel = TSegmentedScanKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, flags, flagMask, output, inclusive);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, TUi32)                                                            \
-    template <>                                                                                               \
-    void SegmentedScanVector<T, TMapping, TUi32>(                                                             \
-        const TCudaBuffer<T, TMapping>& input,                                                                \
-        const TCudaBuffer<TUi32, TMapping>& flags,                                                            \
-        TCudaBuffer<typename std::remove_const<T>::type, TMapping>& output,                                   \
-        bool inclusive,                                                                                       \
-        ui32 flagMask,                                                                                        \
-        ui32 streamId)                                                                                        \
-    {                                                                                                         \
-        using TNonConstInputType = typename std::remove_const<T>::type;                                       \
-        using TKernel = TSegmentedScanKernel<TNonConstInputType>;                                             \
-        LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, flags, flagMask, output, inclusive); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, TUi32)                                      \
+    template <>                                                                         \
+    void SegmentedScanVector<T, TMapping, TUi32>(                                       \
+        const TCudaBuffer<T, TMapping>& input,                                          \
+        const TCudaBuffer<TUi32, TMapping>& flags,                                      \
+        TCudaBuffer<std::remove_const_t<T>, TMapping>& output,                          \
+        bool inclusive,                                                                 \
+        ui32 flagMask,                                                                  \
+        ui32 streamId) {                                                                \
+        ::SegmentedScanVectorImpl(input, flags, output, inclusive, flagMask, streamId); \
     }
+
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,

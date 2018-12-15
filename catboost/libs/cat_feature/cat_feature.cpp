@@ -3,6 +3,6 @@
 #include <util/digest/city.h>
 #include <util/generic/strbuf.h>
 
-int CalcCatFeatureHash(const TStringBuf feature) noexcept {
+ui32 CalcCatFeatureHash(const TStringBuf feature) noexcept {
     return CityHash64(feature) & 0xffffffff;
 }

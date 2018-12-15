@@ -72,8 +72,9 @@ def recover_core_dump_file(binary_path, cwd, pid):
 
         # widely distributed core dump dir and mask (see DEVTOOLS-4408)
         yandex_pattern = CoreFilePattern('/coredumps', '%e.%p.%s')
+        yandex_market_pattern = CoreFilePattern('/var/tmp/cores', 'core.%..%e.%s.%p.*')
 
-        for pattern in [default_pattern, yandex_pattern]:
+        for pattern in [default_pattern, yandex_pattern, yandex_market_pattern]:
             pattern.mask = resolve_core_mask(pattern.mask)
 
             if not os.path.exists(pattern.path):

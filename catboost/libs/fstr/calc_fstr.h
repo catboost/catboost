@@ -1,10 +1,11 @@
 #pragma once
 
 #include <catboost/libs/algo/split.h>
-#include <catboost/libs/data/pool.h>
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
 #include <util/system/yassert.h>
@@ -98,12 +99,19 @@ public:
     {}
 };
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool);
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset, // can be nullptr
+    NPar::TLocalExecutor* localExecutor);
+
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
     int catFeaturesCount,
     int floatFeaturesCount);
-TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool);
+TVector<double> CalcRegularFeatureEffect(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset, // can be nullptr
+    NPar::TLocalExecutor* localExecutor);
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(
@@ -114,14 +122,14 @@ TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(
     const TString& type,
     const TFullModel& model,
-    const TPool* pool,
+    const NCB::TDataProviderPtr dataset, // can be nullptr
     int threadCount,
     int logPeriod = 0);
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const TString& type,
     const TFullModel& model,
-    const TPool* pool,
+    const NCB::TDataProviderPtr dataset,
     int threadCount,
     int logPeriod = 0);
 
@@ -132,4 +140,6 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
  * for all remaining features without id generated featureIds will be just their external indices
  * (indices in original training dataset)
  */
-TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TPool* pool);
+TVector<TString> GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset); // can be nullptr

@@ -1,6 +1,8 @@
 #include "external_label_helper.h"
 #include "label_converter.h"
 
+#include <util/generic/xrange.h>
+
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/multiclass_label_options.h>
 
@@ -19,11 +21,11 @@ void TExternalLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     if (ExternalApproxDimension == 0) {  // labels extracted from data
         ExternalApproxDimension = classToLabel.ysize();
 
-        int id = 0;
-        for (const auto& label: classToLabel) {
-            VisibleClassNames.push_back(ToString(label));
-            LabelToName.emplace(label, ToString(label));
-            SignificantLabelsIds.push_back(id++);
+        for (auto classId : xrange(ExternalApproxDimension)) {
+            TString className = ToString(classToLabel[classId]);
+            VisibleClassNames.push_back(className);
+            LabelToName.emplace(float(classId), className);
+            SignificantLabelsIds.push_back(classId);
         }
     } else {  // user-defined labels
         SignificantLabelsIds.assign(classToLabel.begin(), classToLabel.end());

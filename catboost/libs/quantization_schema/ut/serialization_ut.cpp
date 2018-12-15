@@ -41,7 +41,7 @@ static bool IsEqual(
 
 static void DoCheck(const google::protobuf::Message& lhs, const google::protobuf::Message& rhs) {
     TString report;
-    UNIT_ASSERT_C(IsEqual(lhs, rhs, &report), ~report);
+    UNIT_ASSERT_C(IsEqual(lhs, rhs, &report), report.data());
 }
 
 Y_UNIT_TEST_SUITE(SerializationTests) {

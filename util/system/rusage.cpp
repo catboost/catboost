@@ -53,7 +53,7 @@ void TRusage::Fill() {
         ythrow TSystemError() << "GetProcessMemoryInfo failed";
     }
 
-    Rss = pmc.PeakWorkingSetSize;
+    MaxRss = pmc.PeakWorkingSetSize;
     MajorPageFaults = pmc.PageFaultCount;
 
 #else
@@ -65,9 +65,9 @@ void TRusage::Fill() {
 
 #if defined(_darwin_)
     // see https://lists.apple.com/archives/darwin-kernel/2009/Mar/msg00005.html
-    Rss = ru.ru_maxrss;
+    MaxRss = ru.ru_maxrss;
 #else
-    Rss = ru.ru_maxrss * 1024LL;
+    MaxRss = ru.ru_maxrss * 1024LL;
 #endif
     MajorPageFaults = ru.ru_majflt;
     Utime = ru.ru_utime;

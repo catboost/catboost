@@ -13,6 +13,8 @@
 #include "cache.h"
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_writer.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_reader.h>
+
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
@@ -347,7 +349,7 @@ namespace NCudaLib {
             return Type;
         }
 
-        TCudaBufferWriter<TCudaBuffer> CreateWriter(const TVector<T>& src) {
+        TCudaBufferWriter<TCudaBuffer> CreateWriter(TConstArrayRef<T> src) {
             return TCudaBufferWriter<TCudaBuffer>(src, *this);
         }
 
@@ -355,7 +357,7 @@ namespace NCudaLib {
             return TCudaBufferReader<TCudaBuffer>(*this);
         }
 
-        void Write(const TVector<T>& src, ui32 stream = 0) {
+        void Write(TConstArrayRef<T> src, ui32 stream = 0) {
             CreateWriter(src).SetCustomWritingStream(stream).Write();
         }
 

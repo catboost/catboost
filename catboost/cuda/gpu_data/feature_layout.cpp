@@ -52,7 +52,9 @@ namespace NCatboostCuda {
         const ui32 binCount = Manager->GetBinCount(featureId);
         if (DataProvider && binCount && IsOneHot(featureId)) {
             ui32 dataProviderId = Manager->GetDataProviderId(featureId);
-            ui32 count = dynamic_cast<const ICatFeatureValuesHolder&>(DataProvider->GetFeatureById(dataProviderId)).GetUniqueValues();
+            auto catFeatureIdx
+                = DataProvider->MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(dataProviderId);
+            ui32 count = DataProvider->ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll;
             return count > 2 ? count : count - 1;
         }
         return binCount ? binCount - 1 : 0;

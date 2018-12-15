@@ -1,15 +1,14 @@
-UNITTEST(ctrs_ut)
-
-NO_WERROR()
 
 
+IF (AUTOCHECK)
+    LIBRARY()
+ELSE()
+    UNITTEST()
+ENDIF()
 
-IF (NOT AUTOCHECK)
 SRCS(
     test_ctrs.cpp
 )
-ENDIF()
-
 
 PEERDIR(
     catboost/cuda/ctrs
@@ -17,8 +16,5 @@ PEERDIR(
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
-
-ALLOCATOR(LF)
-
 
 END()

@@ -17,9 +17,12 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(BordersIo) {
     Y_UNIT_TEST(Save) {
-        auto featuresLayout = MakeIntrusive<TFeaturesLayout>(ui32(3), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
 
-        TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, NCatboostOptions::TBinarizationOptions());
+        TQuantizedFeaturesInfo quantizedFeaturesInfo(
+            featuresLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {0.11f, 0.22f, 0.34f});
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(1), {0.9f, 1.2f});
@@ -63,10 +66,12 @@ Y_UNIT_TEST_SUITE(BordersIo) {
                 "2\t11\tMin\n");
         }
 
-        auto featuresLayout = MakeIntrusive<TFeaturesLayout>(ui32(3), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
 
-        TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, NCatboostOptions::TBinarizationOptions());
-
+        TQuantizedFeaturesInfo quantizedFeaturesInfo(
+            featuresLayout,
+            TConstArrayRef<ui32>(),
+            NCatboostOptions::TBinarizationOptions());
 
         LoadBordersAndNanModesFromFromFileInMatrixnetFormat(bordersFile.Name(), &quantizedFeaturesInfo);
 

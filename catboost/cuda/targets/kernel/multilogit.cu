@@ -22,7 +22,6 @@ namespace NKernel {
         float tmpScore = 0;
 
         float classApprox[ElementsPerThread];
-        float expClassApprox[ElementsPerThread];
         ui8 targetClass[ElementsPerThread];
         float sumExpApproxForAllClasses[ElementsPerThread];
 
@@ -46,7 +45,6 @@ namespace NKernel {
 
                 const float tmp =  targetClass[j] < effectiveClassCount  && idx < size ? __ldg(predictions + loadApproxIndex[j] + targetClass[j] * predictionsAlignSize)  : 0.0f;
                 classApprox[j] = tmp - maxApprox[j];
-                expClassApprox[j] = __expf(classApprox[j]);
 
                 sumExpApproxForAllClasses[j] = 0.0f;
                 for (int k = 0; k < effectiveClassCount; ++k) {
@@ -114,9 +112,6 @@ namespace NKernel {
         ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
         const int effectiveClassCount = numClasses - 1;
 
-        float tmpScore = 0;
-
-        ui8 targetClass[ElementsPerThread];
         float sumExpApproxForAllClasses[ElementsPerThread];
 
         float weight[ElementsPerThread];
@@ -127,7 +122,6 @@ namespace NKernel {
             #pragma unroll
             for (int j = 0; j < ElementsPerThread; ++j) {
                 const int idx = tid + j * BlockSize;
-                targetClass[j] = idx < size ? static_cast<ui8>(__ldg(targetClasses + idx)) : 0;
 
                 maxApprox[j] = 0;
                 for (int k = 0; k < effectiveClassCount; ++k) {
@@ -155,7 +149,6 @@ namespace NKernel {
         #pragma unroll
         for (int j = 0; j < ElementsPerThread; ++j) {
             const int idx = tid + j * BlockSize;
-            const int lastRowToWrite = der2Row;
             if (idx < size) {
                 float pRow = 0;
                 if (der2Row < effectiveClassCount) {
@@ -290,13 +283,11 @@ namespace NKernel {
 
         ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
 
-        ui8 targetClass[ElementsPerThread];
         float weight[ElementsPerThread];
 
         #pragma unroll
         for (int j = 0; j < ElementsPerThread; ++j) {
             const int idx = tid + j * BlockSize;
-            targetClass[j] = idx < size ? static_cast<ui8>(__ldg(targetClasses + idx)) : 0;
             weight[j] = (weights && (idx < size)) ? weights[idx] : 1.0f;
         }
 
@@ -308,7 +299,6 @@ namespace NKernel {
                 const float val = idx < size ? __ldg(predictions + idx + clazz * predictionsAlignSize) : 0.0f;
                 const float expVal = __expf(val);
                 const float p = ClipProb(expVal / (1.0f + expVal));
-                const float c = clazz == targetClass[j] ? 1.0f : 0.0f;
                 if (der2 && idx < size) {
                     der2[idx + clazz * der2AlignSize] = weight[j] * p * (1.0f - p);
                 }

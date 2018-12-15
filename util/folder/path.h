@@ -39,7 +39,7 @@ public:
     }
 
     inline const char* operator~() const {
-        return ~Path_;
+        return Path_.data();
     }
 
     inline operator const TString&() const {
@@ -134,7 +134,7 @@ public:
     // XXX: ino
 
     inline bool Stat(TFileStat& stat) const {
-        stat = TFileStat(~Path_);
+        stat = TFileStat(Path_.data());
 
         return stat.Mode;
     }

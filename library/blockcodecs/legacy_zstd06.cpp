@@ -42,11 +42,11 @@ namespace {
         }
 
         inline size_t DoCompress(const TData& in, void* out) const {
-            return CheckError(ZSTD_compress(out, DoMaxCompressedLength(+in), ~in, +in, Level), "compress");
+            return CheckError(ZSTD_compress(out, DoMaxCompressedLength(in.size()), in.data(), in.size(), Level), "compress");
         }
 
         inline void DoDecompress(const TData& in, void* out, size_t dsize) const {
-            const size_t res = CheckError(ZSTD_decompress(out, dsize, ~in, +in), "decompress");
+            const size_t res = CheckError(ZSTD_decompress(out, dsize, in.data(), in.size()), "decompress");
 
             if (res != dsize) {
                 ythrow TDecompressError(dsize, res);

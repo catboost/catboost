@@ -9,9 +9,12 @@ namespace NCatboostCuda {
     THolder<TAdditiveModel<TObliviousTreeModel>> TrainPairwise(TBinarizedFeaturesManager& featureManager,
                                                                 const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                 const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                const TDataProvider& learn,
-                                                                const TDataProvider* test,
+                                                                const NCB::TTrainingDataProvider& learn,
+                                                                const NCB::TTrainingDataProvider* test,
                                                                 TGpuAwareRandom& random,
+                                                                ui32 approxDimension,
+                                                                const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
                     "NonDiag learning works with doc-parallel learning");
@@ -25,6 +28,9 @@ namespace NCatboostCuda {
                                             learn,
                                             test,
                                             random,
+                                            approxDimension,
+                                            onEndIterationCallback,
+                                            testMultiApprox,
                                             metricsAndTimeHistory);
     };
 
@@ -34,9 +40,12 @@ namespace NCatboostCuda {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                        const TDataProvider& learn,
-                                                                        const TDataProvider* test,
+                                                                        const NCB::TTrainingDataProvider& learn,
+                                                                        const NCB::TTrainingDataProvider* test,
                                                                         TGpuAwareRandom& random,
+                                                                        ui32 approxDimension,
+                                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return TrainPairwise<TTargetTemplate>(featuresManager,
                                                     catBoostOptions,
@@ -44,6 +53,9 @@ namespace NCatboostCuda {
                                                     learn,
                                                     test,
                                                     random,
+                                                    approxDimension,
+                                                    onEndIterationCallback,
+                                                    testMultiApprox,
                                                     metricsAndTimeHistory);
         };
     };

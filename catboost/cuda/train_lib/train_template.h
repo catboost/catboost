@@ -5,16 +5,18 @@
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/cuda/methods/boosting_progress_tracker.h>
-#include <catboost/libs/eval_result/eval_result.h>
 
 namespace NCatboostCuda {
     template <class TBoosting>
     inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                          const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                         const TDataProvider& learn,
-                                                                         const TDataProvider* test,
+                                                                         const NCB::TTrainingDataProvider& learn,
+                                                                         const NCB::TTrainingDataProvider* test,
                                                                          TGpuAwareRandom& random,
+                                                                         ui32 approxDimension,
+                                                                         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
 
@@ -34,15 +36,11 @@ namespace NCatboostCuda {
         boosting.SetDataProvider(learn,
                                  test);
 
-        ui32 approxDim = 1;
-        if (learn.IsMulticlassificationPool()) {
-            approxDim = learn.GetTargetHelper().GetNumClasses();
-        }
         TBoostingProgressTracker progressTracker(catBoostOptions,
                                                  outputOptions,
                                                  test != nullptr,
-                                                 approxDim
-                                                 );
+                                                 approxDimension,
+                                                 onEndIterationCallback);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
@@ -52,28 +50,8 @@ namespace NCatboostCuda {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
-        }
 
-        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
-        if (test && !evalOutputFileName.empty()) {
-            NCB::OutputGpuEvalResultToFile(
-                progressTracker.GetBestTestCursor(),
-                catBoostOptions.SystemOptions->NumThreads,
-                outputOptions.GetOutputColumns(),
-                test ? test->GetPoolPath() : NCB::TPathWithScheme(),
-                test ? test->GetDsvPoolFormatOptions() : NCB::TDsvFormatOptions(),
-                test ? test->GetPoolMetaInfo() : TPoolMetaInfo(),
-                (test && test->IsMulticlassificationPool()) ? test->GetTargetHelper().Serialize() : "",
-                evalOutputFileName
-            );
-        } else if (!test && !evalOutputFileName.empty()) {
-            // TODO(yazevnul): this should be an error in option validation;
-            //
-            // But right now `--eval-file` is always added to `fit` options in Nirvana cubes, thus,
-            // we first must make `--eval-file` conditional (based on presence of `--test-set`),
-            // then roll out new version of Nirvana cube and only after this we can make it an
-            // error.
-            CATBOOST_WARNING_LOG << "can't evaluate model (--eval-file) without test set" << Endl;
+            *testMultiApprox = progressTracker.GetBestTestCursor();
         }
 
         if (outputOptions.ShrinkModelToBestIteration()) {

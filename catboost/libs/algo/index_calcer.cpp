@@ -1,12 +1,17 @@
 #include "index_calcer.h"
+
+#include "features_data_helpers.h"
 #include "score_calcer.h"
 #include "online_ctr.h"
 #include "tree_print.h"
 
+#include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/helpers/dense_hash.h>
-#include <catboost/libs/model/model_pool_compatibility.h>
+
+
+using namespace NCB;
 
 
 static bool GetCtrSplit(const TSplit& split, int idxPermuted,
@@ -23,12 +28,18 @@ static inline ui8 GetFeatureSplitIdx(const TSplit& split) {
     return split.BinBorder;
 }
 
-static inline const TVector<ui8>& GetFloatHistogram(const TSplit& split, const TAllFeatures& features) {
-    return features.FloatHistograms[split.FeatureIdx];
+static inline const ui8* GetFloatHistogram(
+    const TSplit& split,
+    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider
+) {
+    return *(*objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
 }
 
-static inline const TVector<int>& GetRemappedCatFeatures(const TSplit& split, const TAllFeatures& features) {
-    return features.CatFeaturesRemapped[split.FeatureIdx];
+static inline const ui32* GetRemappedCatFeatures(
+    const TSplit& split,
+    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider
+) {
+    return *(*objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
 }
 
 template <typename TCount, bool (*CmpOp)(TCount, TCount), int vectorWidth>
@@ -55,12 +66,11 @@ void BuildIndicesKernel(const ui32* permutation, const TCount* histogram, TCount
 template <typename TCount, bool (*CmpOp)(TCount, TCount)>
 void OfflineCtrBlock(const NPar::TLocalExecutor::TExecRangeParams& params,
                      int blockIdx,
-                     const TFold& fold,
+                     const ui32* permutation,
                      const TCount* histogram,
                      TCount value,
                      int level,
                      TIndexType* indices) {
-    const ui32* permutation = fold.LearnPermutation.data();
     const int blockStart = blockIdx * params.GetBlockSize();
     const int nextBlockStart = Min<ui64>(blockStart + params.GetBlockSize(), params.LastId);
     constexpr int vectorWidth = 4;
@@ -75,7 +85,7 @@ void OfflineCtrBlock(const NPar::TLocalExecutor::TExecRangeParams& params,
 }
 
 void SetPermutedIndices(const TSplit& split,
-                        const TAllFeatures& features,
+                        const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
                         int curDepth,
                         const TFold& fold,
                         TVector<TIndexType>* indices,
@@ -90,8 +100,10 @@ void SetPermutedIndices(const TSplit& split,
     TIndexType* indicesData = indices->data();
     if (split.Type == ESplitType::FloatFeature) {
         localExecutor->ExecRange([&](int blockIdx) {
-            OfflineCtrBlock<ui8, IsTrueHistogram>(blockParams, blockIdx, fold, GetFloatHistogram(split, features).data(),
-                                                  GetFeatureSplitIdx(split), splitWeight, indicesData);
+            OfflineCtrBlock<ui8, IsTrueHistogram>(blockParams, blockIdx,
+                fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
+                GetFloatHistogram(split, objectsDataProvider),
+                GetFeatureSplitIdx(split), splitWeight, indicesData);
         }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     } else if (split.Type == ESplitType::OnlineCtr) {
         auto& ctr = fold.GetCtr(split.Ctr.Projection);
@@ -101,8 +113,10 @@ void SetPermutedIndices(const TSplit& split,
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
         localExecutor->ExecRange([&] (int blockIdx) {
-            OfflineCtrBlock<int, IsTrueOneHotFeature>(blockParams, blockIdx, fold, GetRemappedCatFeatures(split, features).data(),
-                                                      split.BinBorder, splitWeight, indicesData);
+            OfflineCtrBlock<ui32, IsTrueOneHotFeature>(blockParams, blockIdx,
+                fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
+                GetRemappedCatFeatures(split, objectsDataProvider),
+                (ui32)split.BinBorder, splitWeight, indicesData);
         }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
@@ -148,126 +162,131 @@ static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TSplitT
     return onlineCtrs;
 }
 
-static void BuildIndicesForLearn(const TSplitTree& tree,
-                                 const TDataset& learnData,
-                                 int learnSampleCount,
-                                 const TVector<const TOnlineCTR*>& onlineCtrs,
-                                 const TFold& fold,
-                                 NPar::TLocalExecutor* localExecutor,
-                                 TIndexType* indices) {
+static void BuildIndicesForDataset(const TSplitTree& tree,
+                                   const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+                                   const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
+                                   ui32 sampleCount,
+                                   const TVector<const TOnlineCTR*>& onlineCtrs,
+                                   int docOffset,
+                                   NPar::TLocalExecutor* localExecutor,
+                                   TIndexType* indices) {
+    const ui32* permutation = nullptr;
+    TVector<ui32> permutationStorage;
+    if (HoldsAlternative<TIndexedSubset<ui32>>(featuresArraySubsetIndexing)) {
+        permutation = featuresArraySubsetIndexing.Get<TIndexedSubset<ui32>>().data();
+    } else {
+        permutationStorage.yresize(featuresArraySubsetIndexing.Size());
+        featuresArraySubsetIndexing.ParallelForEach(
+            [&](ui32 idx, ui32 srcIdx) { permutationStorage[idx] = srcIdx; },
+            localExecutor
+        );
+        permutation = permutationStorage.data();
+    }
+
     const int blockSize = 1000;
-    NPar::TLocalExecutor::TExecRangeParams learnBlockParams(0, learnSampleCount);
-    learnBlockParams.SetBlockSize(blockSize);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, (int)sampleCount);
+    blockParams.SetBlockSize(blockSize);
 
     auto updateLearnIndex = [&](int blockIdx) {
         for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
             const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
-                OfflineCtrBlock<ui8, IsTrueHistogram>(learnBlockParams, blockIdx, fold,
-                    GetFloatHistogram(split, learnData.AllFeatures).data(),
+                OfflineCtrBlock<ui8, IsTrueHistogram>(blockParams, blockIdx, permutation,
+                    GetFloatHistogram(split, objectsDataProvider),
                     GetFeatureSplitIdx(split), splitWeight, indices);
             } else if (split.Type == ESplitType::OnlineCtr) {
                 const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
-                NPar::TLocalExecutor::BlockedLoopBody(learnBlockParams, [&](int doc) {
-                    indices[doc] += GetCtrSplit(split, doc, splitOnlineCtr) * splitWeight;
+                NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int doc) {
+                    indices[doc] += GetCtrSplit(split, doc + docOffset, splitOnlineCtr) * splitWeight;
                 })(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-                OfflineCtrBlock<int, IsTrueOneHotFeature>(learnBlockParams, blockIdx, fold,
-                    GetRemappedCatFeatures(split, learnData.AllFeatures).data(),
-                    split.BinBorder, splitWeight, indices);
+                OfflineCtrBlock<ui32, IsTrueOneHotFeature>(blockParams, blockIdx, permutation,
+                    GetRemappedCatFeatures(split, objectsDataProvider),
+                    (ui32)split.BinBorder, splitWeight, indices);
             }
         }
     };
 
-    localExecutor->ExecRange(updateLearnIndex, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-}
-
-static void BuildIndicesForTest(const TSplitTree& tree,
-                                const TDataset& testData,
-                                int tailSampleCount,
-                                const TVector<const TOnlineCTR*>& onlineCtrs,
-                                int docOffset,
-                                NPar::TLocalExecutor* localExecutor,
-                                TIndexType* indices) {
-    const int blockSize = 1000;
-    NPar::TLocalExecutor::TExecRangeParams tailBlockParams(0, tailSampleCount);
-    tailBlockParams.SetBlockSize(blockSize);
-
-    auto updateTailIndex = [&](int blockIdx) {
-        TIndexType* tailIndices = indices;
-        for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
-            const auto& split = tree.Splits[splitIdx];
-            const int splitWeight = 1 << splitIdx;
-            if (split.Type == ESplitType::FloatFeature) {
-                const ui8 featureSplitIdx = GetFeatureSplitIdx(split);
-                const ui8* floatHistogramData = GetFloatHistogram(split, testData.AllFeatures).data();
-                NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    tailIndices[doc] += IsTrueHistogram(floatHistogramData[doc], featureSplitIdx) * splitWeight;
-                })(blockIdx);
-            } else if (split.Type == ESplitType::OnlineCtr) {
-                const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
-                NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    tailIndices[doc] += GetCtrSplit(split, doc + docOffset, splitOnlineCtr) * splitWeight;
-                })(blockIdx);
-            } else {
-                Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-                const int featureSplitValue = split.BinBorder;
-                const int* featureValueData = GetRemappedCatFeatures(split, testData.AllFeatures).data();
-                NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    tailIndices[doc] += IsTrueOneHotFeature(featureValueData[doc], featureSplitValue) * splitWeight;
-                })(blockIdx);
-            }
-        }
-    };
-
-    localExecutor->ExecRange(updateTailIndex, 0, tailBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(updateLearnIndex, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TSplitTree& tree,
-                                 const TDataset& learnData,
-                                 const TDatasetPtrs& testDataPtrs,
+                                 NCB::TTrainingForCPUDataProviderPtr learnData, // can be nullptr
+                                 TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
                                  NPar::TLocalExecutor* localExecutor) {
-    int learnSampleCount = learnData.GetSampleCount();
-    int tailSampleCount = GetSampleCount(testDataPtrs);
+    ui32 learnSampleCount = learnData ? learnData->GetObjectCount() : 0;
+    ui32 tailSampleCount = 0;
+    for (const auto& testSet : testData) {
+        tailSampleCount += testSet->GetObjectCount();
+    }
 
     const TVector<const TOnlineCTR*>& onlineCtrs = GetOnlineCtrs(fold, tree);
 
     TVector<TIndexType> indices(learnSampleCount + tailSampleCount);
 
-    BuildIndicesForLearn(tree, learnData, learnSampleCount, onlineCtrs, fold, localExecutor, indices.begin());
-    int docOffset = learnSampleCount;
-    for (int testIdx = 0; testIdx < testDataPtrs.ysize(); ++testIdx) {
-        const TDataset* testData = testDataPtrs[testIdx];
-        BuildIndicesForTest(tree, *testData, testData->GetSampleCount(), onlineCtrs, docOffset, localExecutor, indices.begin() + docOffset);
-        docOffset += testData->GetSampleCount();
+    if (learnData) {
+        BuildIndicesForDataset(
+            tree,
+            *learnData->ObjectsData,
+            fold.LearnPermutationFeaturesSubset,
+            learnSampleCount,
+            onlineCtrs,
+            0,
+            localExecutor,
+            indices.begin());
+    }
+    ui32 docOffset = learnSampleCount;
+    for (size_t testIdx = 0; testIdx < testData.size(); ++testIdx) {
+        const auto& testSet = *testData[testIdx];
+        BuildIndicesForDataset(
+            tree,
+            *testSet.ObjectsData,
+            testSet.ObjectsData->GetFeaturesArraySubsetIndexing(),
+            testSet.GetObjectCount(),
+            onlineCtrs,
+            (int)docOffset,
+            localExecutor,
+            indices.begin() + docOffset);
+        docOffset += testSet.GetObjectCount();
     }
     return indices;
 }
 
 void BinarizeFeatures(const TFullModel& model,
-                      const TPool& pool,
+                      const NCB::TRawObjectsDataProvider& rawObjectsData,
                       size_t start,
                       size_t end,
                       TVector<ui8>* result) {
-    CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
-    THashMap<int, int> columnReorderMap;
-    CheckModelAndPoolCompatibility(model, pool, &columnReorderMap);
+    THashMap<ui32, ui32> columnReorderMap;
+    CheckModelAndDatasetCompatibility(model, rawObjectsData, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TVector<int> transposedHash(docCount * model.GetUsedCatFeaturesCount());
+    TVector<ui32> transposedHash(docCount * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
+
+    const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
+    const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
+    const ui32 flatFeaturesCount = featuresLayout.GetExternalFeatureCount();
+
+    auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx) -> const float* {
+        return GetRawFeatureDataBeginPtr(
+            rawObjectsData,
+            featuresLayout,
+            consecutiveSubsetBegin,
+            flatFeatureIdx);
+    };
 
     TVector<TConstArrayRef<float>> repackedFeatures(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
     if (columnReorderMap.empty()) {
-        for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-            repackedFeatures[i] = MakeArrayRef(pool.Docs.Factors[i].data() + start, docCount);
+        for (ui32 i = 0; i < flatFeaturesCount; ++i) {
+            repackedFeatures[i] = MakeArrayRef(getFeatureDataBeginPtr(i) + start, docCount);
         }
     } else {
         for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
-            repackedFeatures[origIdx] = MakeArrayRef(pool.Docs.Factors[sourceIdx].data() + start, docCount);
+            repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataBeginPtr(sourceIdx) + start, docCount);
         }
     }
 
@@ -275,7 +294,7 @@ void BinarizeFeatures(const TFullModel& model,
         [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return repackedFeatures[floatFeature.FlatFeatureIndex][index];
         },
-        [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> int {
+        [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> ui32 {
             return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
         },
         0,
@@ -285,14 +304,17 @@ void BinarizeFeatures(const TFullModel& model,
         ctrs);
 }
 
-TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t start, size_t end) {
+TVector<ui8> BinarizeFeatures(const TFullModel& model,
+                              const NCB::TRawObjectsDataProvider& rawObjectsData,
+                              size_t start,
+                              size_t end) {
     TVector<ui8> result;
-    BinarizeFeatures(model, pool, start, end, &result);
+    BinarizeFeatures(model, rawObjectsData, start, end, &result);
     return result;
 }
 
-TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {
-    return BinarizeFeatures(model, pool, /*start*/0, pool.Docs.GetDocCount());
+TVector<ui8> BinarizeFeatures(const TFullModel& model, const NCB::TRawObjectsDataProvider& rawObjectsData) {
+    return BinarizeFeatures(model, rawObjectsData, /*start*/0, rawObjectsData.GetObjectCount());
 }
 
 TVector<TIndexType> BuildIndicesForBinTree(const TFullModel& model, const TVector<ui8>& binarizedFeatures, size_t treeId) {

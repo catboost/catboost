@@ -69,7 +69,7 @@ NJson::TJsonValue TStaticCtrProvider::ConvertCtrsToJson(const TVector<TModelCtr>
 
 void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
                                   const TConstArrayRef<ui8>& binarizedFeatures,
-                                  const TConstArrayRef<int>& hashedCatFeatures,
+                                  const TConstArrayRef<ui32>& hashedCatFeatures,
                                   size_t docCount,
                                   TArrayRef<float> result) {
     if (neededCtrs.empty()) {
@@ -184,7 +184,7 @@ void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
 
 bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const {
     for (const auto& ctr : neededCtrs) {
-        if (!CtrData.LearnCtrs.has(ctr.Base)) {
+        if (!CtrData.LearnCtrs.contains(ctr.Base)) {
             return false;
         }
     }

@@ -96,97 +96,107 @@ namespace NCB {
 
             size_t tokenCount = 0;
             TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
-            for (const auto& token : tokens) {
-                switch (columnsDescription[tokenCount].Type) {
-                    case EColumn::Categ: {
-                        if (!FeatureIgnored[featureId]) {
-                            const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
-                            if (IsNanValue(token)) {
-                                catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, "nan");
-                            } else {
-                                catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, token);
-                            }
-                        }
-                        ++featureId;
-                        break;
-                    }
-                    case EColumn::Num: {
-                        if (!FeatureIgnored[featureId]) {
-                            float val;
-                            if (!TryFromString<float>(token, val)) {
-                                if (IsNanValue(token)) {
-                                    val = std::numeric_limits<float>::quiet_NaN();
-                                } else if (token.length() == 0) {
-                                    val = std::numeric_limits<float>::quiet_NaN();
-                                } else {
-                                    CB_ENSURE(false, "Factor " << featureId << " (column " << tokenCount + 1 << ") is declared `Num`," <<
-                                        " but has value '" << token << "' in row "
-                                        << AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1
-                                        << " that cannot be parsed as float. Try correcting column description file.");
+            try {
+                for (const auto& token : tokens) {
+                    try {
+                        switch (columnsDescription[tokenCount].Type) {
+                            case EColumn::Categ: {
+                                if (!FeatureIgnored[featureId]) {
+                                    const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
+                                    if (IsNanValue(token)) {
+                                        catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, "nan");
+                                    } else {
+                                        catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, token);
+                                    }
                                 }
+                                ++featureId;
+                                break;
                             }
-                            floatFeatures[featuresLayout.GetInternalFeatureIdx(featureId)] =
-                                val == 0.0f ? 0.0f : val; // remove negative zeros
+                            case EColumn::Num: {
+                                if (!FeatureIgnored[featureId]) {
+                                    if (!TryParseFloatFeatureValue(
+                                            token,
+                                            &floatFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
+                                         ))
+                                    {
+                                        CB_ENSURE(
+                                            false,
+                                            "Factor " << featureId << " cannot be parsed as float."
+                                            " Try correcting column description file."
+                                        );
+                                    }
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::Label: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Label");
+                                visitor->AddTarget(lineIdx, TString(token));
+                                break;
+                            }
+                            case EColumn::Weight: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for weight");
+                                visitor->AddWeight(lineIdx, FromString<float>(token));
+                                break;
+                            }
+                            case EColumn::Auxiliary: {
+                                break;
+                            }
+                            case EColumn::GroupId: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
+                                visitor->AddGroupId(lineIdx, CalcGroupIdFor(token));
+                                break;
+                            }
+                            case EColumn::GroupWeight: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
+                                visitor->AddGroupWeight(lineIdx, FromString<float>(token));
+                                break;
+                            }
+                            case EColumn::SubgroupId: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
+                                visitor->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
+                                break;
+                            }
+                            case EColumn::Baseline: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
+                                visitor->AddBaseline(lineIdx, baselineIdx, FromString<float>(token));
+                                ++baselineIdx;
+                                break;
+                            }
+                            case EColumn::DocId: {
+                                break;
+                            }
+                            case EColumn::Timestamp: {
+                                CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
+                                visitor->AddTimestamp(lineIdx, FromString<ui64>(token));
+                                break;
+                            }
+                            default: {
+                                CB_ENSURE(false, "wrong column type");
+                            }
                         }
-                        ++featureId;
-                        break;
+                    } catch (yexception& e) {
+                        throw TCatboostException() << "Column " << tokenCount << " (type "
+                            << columnsDescription[tokenCount].Type << ", value = \"" << token
+                            << "\"): " << e.what();
                     }
-                    case EColumn::Label: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Label");
-                        visitor->AddTarget(lineIdx, TString(token));
-                        break;
-                    }
-                    case EColumn::Weight: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for weight");
-                        visitor->AddWeight(lineIdx, FromString<float>(token));
-                        break;
-                    }
-                    case EColumn::Auxiliary: {
-                        break;
-                    }
-                    case EColumn::GroupId: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
-                        visitor->AddGroupId(lineIdx, CalcGroupIdFor(token));
-                        break;
-                    }
-                    case EColumn::GroupWeight: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
-                        visitor->AddGroupWeight(lineIdx, FromString<float>(token));
-                        break;
-                    }
-                    case EColumn::SubgroupId: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
-                        visitor->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
-                        break;
-                    }
-                    case EColumn::Baseline: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
-                        visitor->AddBaseline(lineIdx, baselineIdx, FromString<float>(token));
-                        ++baselineIdx;
-                        break;
-                    }
-                    case EColumn::DocId: {
-                        break;
-                    }
-                    case EColumn::Timestamp: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
-                        visitor->AddTimestamp(lineIdx, FromString<ui64>(token));
-                        break;
-                    }
-                    default: {
-                        CB_ENSURE(false, "wrong column type");
-                    }
+                    ++tokenCount;
                 }
-                ++tokenCount;
+                if (!floatFeatures.empty()) {
+                    visitor->AddAllFloatFeatures(lineIdx, floatFeatures);
+                }
+                if (!catFeatures.empty()) {
+                    visitor->AddAllCatFeatures(lineIdx, catFeatures);
+                }
+                CB_ENSURE(
+                    tokenCount == columnsDescription.size(),
+                    "wrong columns number: expected " << columnsDescription.ysize()
+                    << ", found " << tokenCount
+                );
+            } catch (yexception& e) {
+                throw TCatboostException() << "Error in dsv data. Line " <<
+                    AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": " << e.what();
             }
-            if (!floatFeatures.empty()) {
-                visitor->AddAllFloatFeatures(lineIdx, floatFeatures);
-            }
-            if (!catFeatures.empty()) {
-                visitor->AddAllCatFeatures(lineIdx, catFeatures);
-            }
-            CB_ENSURE(tokenCount == columnsDescription.size(), "wrong columns number in pool line " <<
-                      AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": expected " << columnsDescription.ysize() << ", found " << tokenCount);
         };
 
         AsyncRowProcessor.ProcessBlock(parseBlock);

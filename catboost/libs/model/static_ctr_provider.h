@@ -23,7 +23,7 @@ public:
     void CalcCtrs(
         const TVector<TModelCtr>& neededCtrs,
         const TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features
-        const TConstArrayRef<int>& hashedCatFeatures,
+        const TConstArrayRef<ui32>& hashedCatFeatures,
         size_t docCount,
         TArrayRef<float> result) override;
 
@@ -104,7 +104,7 @@ public:
     void CalcCtrs(
         const TVector<TModelCtr>& ,
         const TConstArrayRef<ui8>& ,
-        const TConstArrayRef<int>& ,
+        const TConstArrayRef<ui32>& ,
         size_t,
         TArrayRef<float>) override {
         ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";

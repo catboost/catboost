@@ -36,7 +36,7 @@ public:
         }
 
         ArgsPtrs_.Get()[Args_.size()] = nullptr;
-        Opt_.Reset(new Opt((int)Args_.size(), ArgsPtrs_.Get(), ~Format_));
+        Opt_.Reset(new Opt((int)Args_.size(), ArgsPtrs_.Get(), Format_.data()));
     }
 
     inline ~TIterImpl() = default;

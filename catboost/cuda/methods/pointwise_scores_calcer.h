@@ -58,12 +58,12 @@ namespace NCatboostCuda {
         }
 
         const TScoreHelper<TLayoutPolicy>& GetHelperForPolicy(EFeaturesGroupingPolicy policy) const {
-            CB_ENSURE(ScoreHelpers.has(policy));
+            CB_ENSURE(ScoreHelpers.contains(policy));
             return *ScoreHelpers.at(policy);
         }
 
         bool HasHelperForPolicy(EFeaturesGroupingPolicy policy) const {
-            return ScoreHelpers.has(policy);
+            return ScoreHelpers.contains(policy);
         }
 
         template <bool IsConst, class TUi32>

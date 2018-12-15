@@ -58,7 +58,7 @@ template <typename S, typename C>
 std::enable_if_t<std::is_same<C, typename S::value_type>::value>
 SplitString(TVector<S>* res, const S& str, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
-    ::NPrivate::SplitStringImpl(res, ~str, +str, delimiter, maxFields, options);
+    ::NPrivate::SplitStringImpl(res, str.data(), str.size(), delimiter, maxFields, options);
 }
 
 template <typename C>
@@ -83,7 +83,7 @@ template <typename C>
 TVector<typename ::NPrivate::TStringDeducer<C>::type>
 SplitString(const typename ::NPrivate::TStringDeducer<C>::type& str, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
-    return SplitString(~str, +str, delimiter, maxFields, options);
+    return SplitString(str.data(), str.size(), delimiter, maxFields, options);
 }
 
 template <class TIter>

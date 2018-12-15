@@ -2,8 +2,6 @@ UNITTEST_FOR(util/charset)
 
 
 
-NEED_CHECK()
-
 DATA(arcadia/util/charset/ut/utf8)
 
 SRCS(

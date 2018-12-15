@@ -3,12 +3,15 @@ import os
 import random
 import shutil
 
+import numpy as np
+
 __all__ = [
     'binary_path',
     'test_output_path',
     'remove_time_from_json',
     'DelayedTee',
     'permute_dataset_columns',
+    'generate_random_labeled_set'
 ]
 
 try:
@@ -29,8 +32,9 @@ def remove_time_from_json(filename):
         log = json.load(f)
     iterations = log['iterations']
     for i, iter_info in enumerate(iterations):
-        del iter_info['remaining_time']
-        del iter_info['passed_time']
+        for key in ['remaining_time', 'passed_time']:
+            if key in iter_info.keys():
+                del iter_info[key]
     with open(filename, 'w') as f:
         json.dump(log, f, sort_keys=True)
     return filename
@@ -77,3 +81,10 @@ def permute_dataset_columns(test_pool_path, cd_path, seed=123):
             permuted_test.write('\t'.join([splitted[i] for i in permutation]) + '\n')
 
     return permuted_test_path, permuted_cd_path
+
+
+def generate_random_labeled_set(nrows, nvals, labels):
+    label = np.random.choice(labels, [nrows, 1])
+    feature = np.random.random([nrows, nvals])
+    return np.concatenate([label, feature], axis=1)
+

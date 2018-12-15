@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
 
             bool Reply(void* /*tsr*/) override {
                 if (!ProcessHeaders()) {
-                    return false;
+                    return true;
                 }
 
                 // Check that function will not hang on
@@ -79,7 +79,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
     };
 
     Y_UNIT_TEST(TestCodings1) {
-        UNIT_ASSERT(+SupportedCodings() > 0);
+        UNIT_ASSERT(SupportedCodings().size() > 0);
     }
 
     Y_UNIT_TEST(TestHttpInput) {
@@ -113,7 +113,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
             r += "\r\n";
             r += "\r\n";
 
-            output.Write(~r, +r);
+            output.Write(r.data(), r.size());
             output.Finish();
         }
 
@@ -159,7 +159,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
             r += "\r\n";
             r += "\r\n";
 
-            output.Write(~r, +r);
+            output.Write(r.data(), r.size());
             output.Finish();
         }
 
@@ -299,12 +299,12 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         const char* header = "GET / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n";
         httpOut << header;
 
-        unsigned curLen = +str;
+        unsigned curLen = str.size();
         const char* body = "<html>Hello</html>";
         httpOut << body;
-        UNIT_ASSERT_VALUES_EQUAL(curLen, +str);
+        UNIT_ASSERT_VALUES_EQUAL(curLen, str.size());
         httpOut.Flush();
-        UNIT_ASSERT_VALUES_EQUAL(curLen + strlen(body), +str);
+        UNIT_ASSERT_VALUES_EQUAL(curLen + strlen(body), str.size());
     }
 
     Y_UNIT_TEST(TestOutputPostFlush) {
@@ -322,14 +322,14 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         const char* header = "POST / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n";
         httpOut << header;
 
-        UNIT_ASSERT_VALUES_EQUAL(+str, 0u);
+        UNIT_ASSERT_VALUES_EQUAL(str.size(), 0u);
 
         const char* body = "<html>Hello</html>";
         httpOut << body;
-        UNIT_ASSERT_VALUES_EQUAL(+str, 0u);
+        UNIT_ASSERT_VALUES_EQUAL(str.size(), 0u);
 
         httpOut.Flush();
-        UNIT_ASSERT_VALUES_EQUAL(+checkStr, +str);
+        UNIT_ASSERT_VALUES_EQUAL(checkStr.size(), str.size());
     }
 
     Y_UNIT_TEST(TestRebuildStreamOnPost) {
@@ -354,7 +354,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
             httpOut << "Content-Encoding: gzip\r\n";
             httpOut << "\r\n";
 
-            UNIT_ASSERT_VALUES_EQUAL(+str, 0u);
+            UNIT_ASSERT_VALUES_EQUAL(str.size(), 0u);
 
             const char* body = "<html>Hello</html>";
             httpOut << body;
@@ -381,12 +381,12 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         const char* header = "GET / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n";
         httpOut << header;
 
-        unsigned curLen = +str;
+        unsigned curLen = str.size();
         const char* body = "<html>Hello</html>";
         httpOut << body;
-        UNIT_ASSERT_VALUES_EQUAL(curLen, +str);
+        UNIT_ASSERT_VALUES_EQUAL(curLen, str.size());
         httpOut.Finish();
-        UNIT_ASSERT_VALUES_EQUAL(curLen + strlen(body), +str);
+        UNIT_ASSERT_VALUES_EQUAL(curLen + strlen(body), str.size());
     }
 
     Y_UNIT_TEST(TestMultilineHeaders) {

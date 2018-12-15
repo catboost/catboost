@@ -110,7 +110,7 @@ namespace {
             }
 
             if (host.length() > 2 && host[0] == '[') {
-                TString unbracedIpV6(~host + 1, +host - 2);
+                TString unbracedIpV6(host.data() + 1, host.size() - 2);
                 host.swap(unbracedIpV6);
             }
 

@@ -29,7 +29,7 @@ namespace NCB {
     {
         CB_ENSURE(NFs::Exists(path), "Borders file at [" << path << "] was not found");
 
-        const auto featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
+        const auto featuresLayout = *quantizedFeaturesInfo->GetFeaturesLayout();
 
         THashMap<TFloatFeatureIdx, TVector<float>> borders;
         THashMap<TFloatFeatureIdx, ENanMode> nanModes;
@@ -57,7 +57,7 @@ namespace NCB {
                 if (tokens.ysize() == 3) {
                     ENanMode nanMode = FromString<ENanMode>(tokens[2]);
 
-                    if (nanModes.has(floatFeatureIdx)) {
+                    if (nanModes.contains(floatFeatureIdx)) {
                         CB_ENSURE(
                             nanModes.at(floatFeatureIdx) == nanMode,
                             "NaN mode should be consistent in borders file");
@@ -84,7 +84,7 @@ namespace NCB {
         const TString& file,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
     {
-        const auto& featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
+        const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
 
         TOFStream out(file);
 

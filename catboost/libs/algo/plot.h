@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
@@ -8,6 +8,7 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -44,12 +45,11 @@ public:
         return ProcessedIterationsCount == Iterations.size();
     }
 
-    TMetricsPlotCalcer& ProceedDataSetForAdditiveMetrics(const TPool& pool, bool isProcessBoundaryGroups);
-    TMetricsPlotCalcer& FinishProceedDataSetForAdditiveMetrics();
-    TMetricsPlotCalcer& ProceedDataSetForNonAdditiveMetrics(const TPool& pool);
+    TMetricsPlotCalcer& ProceedDataSetForAdditiveMetrics(const NCB::TProcessedDataProvider& processedData);
+    TMetricsPlotCalcer& ProceedDataSetForNonAdditiveMetrics(const NCB::TProcessedDataProvider& processedData);
     TMetricsPlotCalcer& FinishProceedDataSetForNonAdditiveMetrics();
 
-    void ComputeNonAdditiveMetrics(const TVector<TPool>& datasetParts);
+    void ComputeNonAdditiveMetrics(const TVector<NCB::TProcessedDataProvider>& datasetParts);
 
     TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats);
     TVector<TVector<double>> GetMetricsScore();
@@ -60,12 +60,15 @@ public:
         }
     }
 
+    const TFullModel& GetModel() const {
+        return Model;
+    }
+
 private:
     TMetricsPlotCalcer& ProceedDataSet(
-        const TPool& rawPool,
+        const NCB::TProcessedDataProvider& processedData,
         ui32 beginIterationIndex,
         ui32 endIterationIndex,
-        bool isProcessBoundaryGroups,
         bool isAdditive
     );
 
@@ -105,9 +108,9 @@ private:
 
     void ComputeAdditiveMetric(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weights,
-        const TVector<TQueryInfo>& queriesInfo,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weights,
+        TConstArrayRef<TQueryInfo> queriesInfo,
         ui32 plotLineIndex
     );
 
@@ -144,8 +147,6 @@ private:
         }
         return *writer;
     }
-
-    TPool ProcessBoundaryGroups(const TPool& rawPool);
 
 private:
 
@@ -185,8 +186,6 @@ private:
     THolder<IInputStream> LastApproxes;
 
     TNonAdditiveMetricData NonAdditiveMetricsData;
-
-    TPool LastGroupPool;
 
     TVector<double> FlatApproxBuffer;
     TVector<TVector<double>> CurApproxBuffer;

@@ -114,7 +114,7 @@ namespace NKernel {
         ui64 seed = (blockIdx.x  * 6364136223846793005 + 1442695040888963407) + (1664525 * threadIdx.x + 1013904223) & 0xFFFFFF;
 
         for (int i = 0; i < valuesPerThread; ++i) {
-            const int idx = static_cast<const int>(AdvanceSeed(&seed) % size);
+            const int idx = static_cast<int>(AdvanceSeed(&seed) % size);
             vals[i] = StreamLoad(values + idx);
         }
 
@@ -196,7 +196,7 @@ namespace NKernel {
 
         #pragma unroll 32
         for (int i = 0; i < 32; ++i) {
-            const int idx = static_cast<const int>(AdvanceSeed(&seed) % size);
+            const int idx = static_cast<int>(AdvanceSeed(&seed) % size);
             float val = StreamLoad(values + idx);
             minValue = val < minValue ? val : minValue;
             maxValue = val > maxValue ? val : maxValue;

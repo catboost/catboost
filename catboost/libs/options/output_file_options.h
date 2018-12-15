@@ -21,7 +21,7 @@ namespace NCatboostOptions {
 
     class TOutputFilesOptions {
     public:
-        explicit TOutputFilesOptions(ETaskType taskType);
+        explicit TOutputFilesOptions();
 
         TOption<TString> ResultModelPath;
         TOption<bool> UseBestModel;
@@ -66,7 +66,8 @@ namespace NCatboostOptions {
 
         const TVector<EPredictionType>& GetPredictionTypes() const;
 
-        const TVector<TString>& GetOutputColumns() const;
+        // default depends on whether dataset has target or not
+        const TVector<TString> GetOutputColumns(bool datasetHasTarget) const;
 
         bool AllowWriteFiles() const;
 
@@ -121,7 +122,7 @@ namespace NCatboostOptions {
         TOption<TString> TrainingOptionsFileName;
 
         TOption<ui64> SnapshotSaveIntervalSeconds;
-        TGpuOnlyOption<TString> OutputBordersFileName;
+        TOption<TString> OutputBordersFileName;
         TOption<int> VerbosePeriod;
         TOption<int> MetricPeriod;
 

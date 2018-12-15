@@ -37,7 +37,7 @@ struct TCollection {
 template <>
 struct TCollection<char>: public TCollectionImpl<char> {
     TCollection(const TStringBuf& str, const TString& delims) {
-        TSetDelimiter<const char> set(~delims);
+        TSetDelimiter<const char> set(delims.data());
         TKeepDelimiters<TCollection<char>> c(this);
         SplitString(str.begin(), str.end(), set, c);
     }
@@ -46,7 +46,7 @@ struct TCollection<char>: public TCollectionImpl<char> {
 template <>
 struct TCollection<TChar>: public TCollectionImpl<TChar> {
     TCollection(const TWtringBuf& str, const TUtf16String& delims) {
-        TSetDelimiter<const TChar> set(~delims);
+        TSetDelimiter<const TChar> set(delims.data());
         TKeepDelimiters<TCollection<TChar>> c(this);
         SplitString(str.begin(), str.end(), set, c);
     }
@@ -54,7 +54,7 @@ struct TCollection<TChar>: public TCollectionImpl<TChar> {
 
 size_t NDiff::InlineDiff(TVector<TChunk<char>>& chunks, const TStringBuf& left, const TStringBuf& right, const TString& delims) {
     if (delims.empty()) {
-        return InlineDiff<char>(chunks, TConstArrayRef<char>(~left, +left), TConstArrayRef<char>(~right, +right));
+        return InlineDiff<char>(chunks, TConstArrayRef<char>(left.data(), left.size()), TConstArrayRef<char>(right.data(), right.size()));
     }
     TCollection<char> c1(left, delims);
     TCollection<char> c2(right, delims);
@@ -68,7 +68,7 @@ size_t NDiff::InlineDiff(TVector<TChunk<char>>& chunks, const TStringBuf& left, 
 
 size_t NDiff::InlineDiff(TVector<TChunk<TChar>>& chunks, const TWtringBuf& left, const TWtringBuf& right, const TUtf16String& delims) {
     if (delims.empty()) {
-        return InlineDiff<TChar>(chunks, TConstArrayRef<TChar>(~left, +left), TConstArrayRef<TChar>(~right, +right));
+        return InlineDiff<TChar>(chunks, TConstArrayRef<TChar>(left.data(), left.size()), TConstArrayRef<TChar>(right.data(), right.size()));
     }
     TCollection<TChar> c1(left, delims);
     TCollection<TChar> c2(right, delims);

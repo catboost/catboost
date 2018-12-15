@@ -20,7 +20,7 @@ namespace {
 
     inline void CheckAllFeaturesPresent(const TVector<TColumn>& columns, const TSet<size_t>& parsedColumns) {
         for (size_t i = 0; i < columns.size(); ++i) {
-            CB_ENSURE(parsedColumns.has(i), "column not present in cd file: " << i);
+            CB_ENSURE(parsedColumns.contains(i), "column not present in cd file: " << i);
         }
     }
 
@@ -59,7 +59,7 @@ namespace {
                         index < columnsCount,
                         "Invalid column index: " LabeledOutput(index, columnsCount));
                 }
-                CB_ENSURE(!parsedColumns.has(index), "column specified twice in cd file: " << index);
+                CB_ENSURE(!parsedColumns.contains(index), "column specified twice in cd file: " << index);
                 parsedColumns.insert(index);
                 columns.resize(Max(columns.size(), index + 1));
 

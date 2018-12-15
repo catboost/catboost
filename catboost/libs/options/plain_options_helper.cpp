@@ -268,7 +268,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
 
     for (const auto& option : plainOptions.GetMap()) {
-        if (!seenKeys.has(option.first)) {
+        if (!seenKeys.contains(option.first)) {
             ythrow TCatboostException() << "Error: unknown option " << option.first << " with value " << option.second;
         }
     }

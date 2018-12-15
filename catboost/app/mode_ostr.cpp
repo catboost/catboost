@@ -1,6 +1,6 @@
 #include "modes.h"
 
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
@@ -58,30 +58,30 @@ int mode_ostr(int argc, const char* argv[]) {
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
 
-    TPool trainPool;
-    NCB::ReadPool(params.LearnSetPath,
-                  /*pairsFilePath=*/NCB::TPathWithScheme(),
-                  /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
-                  params.DsvPoolFormatParams,
-                  /*ignoredFeatures*/ {},
-                  params.ThreadCount,
-                  /*verbose=*/false,
-                  &trainPool);
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(params.ThreadCount - 1);
 
-    TPool testPool;
-    NCB::ReadPool(params.TestSetPath,
-                  /*pairsFilePath=*/NCB::TPathWithScheme(),
-                  /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
-                  params.DsvPoolFormatParams,
-                  /*ignoredFeatures=*/{},
-                  params.ThreadCount,
-                  /*verbose=*/false,
-                  &testPool);
+    NCB::TDataProviderPtr trainPool = NCB::ReadDataset(params.LearnSetPath,
+                                                       /*pairsFilePath=*/NCB::TPathWithScheme(),
+                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                                       params.DsvPoolFormatParams,
+                                                       /*ignoredFeatures*/ {},
+                                                       EObjectsOrder::Undefined,
+                                                       &localExecutor);
+
+    NCB::TDataProviderPtr testPool = NCB::ReadDataset(params.TestSetPath,
+                                                      /*pairsFilePath=*/NCB::TPathWithScheme(),
+                                                      /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                                      params.DsvPoolFormatParams,
+                                                      /*ignoredFeatures*/ {},
+                                                      EObjectsOrder::Undefined,
+                                                      &localExecutor);
+
 
     TDStrResult results = GetDocumentImportances(
         model,
-        trainPool,
-        testPool,
+        *trainPool,
+        *testPool,
         /*dstrTypeStr=*/ToString(EDocumentStrengthType::Raw),
         /*topSize=*/-1,
         params.UpdateMethod,

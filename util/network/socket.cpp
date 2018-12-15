@@ -970,7 +970,7 @@ public:
             }
         }
 
-        const int error = getaddrinfo(host, ~port_st, &hints, &Info_);
+        const int error = getaddrinfo(host, port_st.data(), &hints, &Info_);
 
         if (error) {
             Clear();
@@ -999,12 +999,12 @@ private:
 };
 
 TNetworkAddress::TNetworkAddress(const TString& host, ui16 port, int flags)
-    : Impl_(new TImpl(~host, port, flags))
+    : Impl_(new TImpl(host.data(), port, flags))
 {
 }
 
 TNetworkAddress::TNetworkAddress(const TString& host, ui16 port)
-    : Impl_(new TImpl(~host, port, 0))
+    : Impl_(new TImpl(host.data(), port, 0))
 {
 }
 

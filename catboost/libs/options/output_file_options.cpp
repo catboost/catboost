@@ -56,7 +56,7 @@ TString NCatboostOptions::AddExtension(const EModelType& format, const TString& 
     return modelFileName;
 }
 
-NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions(ETaskType taskType)
+NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions()
     : ResultModelPath("result_model_file", "model")
     , UseBestModel("use_best_model", false)
     , BestModelMinTrees("best_model_min_trees", 1)
@@ -78,7 +78,7 @@ NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions(ETaskType taskType)
     , FstrInternalFileName("fstr_internal_file", "")
     , TrainingOptionsFileName("training_options_file", "")
     , SnapshotSaveIntervalSeconds("snapshot_interval", 10 * 60)
-    , OutputBordersFileName("output_borders", "", taskType)
+    , OutputBordersFileName("output_borders", "")
     , VerbosePeriod("verbose", 1)
     , MetricPeriod("metric_period", 1)
     , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal})
@@ -168,8 +168,16 @@ const TVector<EPredictionType>& NCatboostOptions::TOutputFilesOptions::GetPredic
     return PredictionTypes.Get();
 }
 
-const TVector<TString>& NCatboostOptions::TOutputFilesOptions::GetOutputColumns() const {
-    return OutputColumns.Get();
+const TVector<TString> NCatboostOptions::TOutputFilesOptions::GetOutputColumns(bool datasetHasLabels) const {
+    if (!OutputColumns.IsSet()) {
+        TVector<TString> result{"DocId", "RawFormulaVal"};
+        if (datasetHasLabels) {
+            result.emplace_back("Label");
+        }
+        return result;
+    } else {
+        return OutputColumns;
+    }
 }
 
 bool NCatboostOptions::TOutputFilesOptions::AllowWriteFiles() const {

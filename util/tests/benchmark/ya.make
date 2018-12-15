@@ -1,7 +1,5 @@
 
 
-NEED_CHECK()
-
 RECURSE_ROOT_RELATIVE(
     util/charset/benchmark
     util/generic/benchmark

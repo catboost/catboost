@@ -108,16 +108,18 @@ def add_python_lint_checks(unit, files):
         unit.onadd_check(["PYFLAKES"] + resolved_files)
 
 
-def py_program(unit):
+def is_py3(unit):
+    return unit.get("PYTHON3") == "yes"
+
+
+def py_program(unit, py3):
     """
     Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py_srcs/#modulpyprogramimakrospymain
     """
-    unit.onpeerdir(['library/python/runtime/main'])
-    unit.onadd_check_py_imports()
-
-
-def py3_program(unit):
-    unit.onpeerdir(['library/python/runtime_py3/main'])
+    if py3:
+        unit.onpeerdir(['library/python/runtime_py3/main'])
+    else:
+        unit.onpeerdir(['library/python/runtime/main'])
     unit.onadd_check_py_imports()
 
 
@@ -142,15 +144,24 @@ def onpy_srcs(unit, *args):
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
 
-    if '/contrib/tools/python/src/Lib' not in unit.path():
-        unit.onpeerdir(['contrib/libs/python'])
+    py3 = is_py3(unit)
 
-    if '/library/python/runtime' not in unit.path():
-        unit.onpeerdir(['library/python/runtime'])
+    if py3:
+        if '/contrib/tools/python3/src/Lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/python'])
+
+            if '/library/python/runtime_py3' not in unit.path():
+                unit.onpeerdir(['library/python/runtime_py3'])
+    else:
+        if '/contrib/tools/python/src/Lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/python'])
+
+        if '/library/python/runtime' not in unit.path():
+            unit.onpeerdir(['library/python/runtime'])
 
     is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
     if is_program:
-        py_program(unit)
+        py_program(unit, py3)
 
     py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
     if py_namespace_value == ".":
@@ -176,7 +187,6 @@ def onpy_srcs(unit, *args):
     protos = []
     evs = []
     swigs = []
-    glys = []
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -211,10 +221,12 @@ def onpy_srcs(unit, *args):
                 arg = next(args)
 
             if '=' in arg:
+                main_py = False
                 path, mod = arg.split('=', 1)
             else:
                 path = arg
-                if arg == '__main__.py' or arg.endswith('/__main__.py'):
+                main_py = (path == '__main__.py' or path.endswith('/__main__.py'))
+                if not py3 and main_py:
                     mod = '__main__'
                 else:
                     if arg.startswith('../'):
@@ -224,8 +236,13 @@ def onpy_srcs(unit, *args):
                         continue
                     mod = ns + stripext(arg).replace('/', '.')
 
+            if py3 and mod == '__main__':
+                ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
+
             if main_mod:
-                unit.onpy_main(mod)
+                py_main(unit, mod + ":main")
+            elif py3 and main_py:
+                py_main(unit, mod)
 
             pathmod = (path, mod)
 
@@ -241,9 +258,10 @@ def onpy_srcs(unit, *args):
             elif path.endswith('.ev'):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
-                swigs.append(path)  # ignore mod, use last (and only) ns
-            elif path.endswith('.gly'):
-                glys.append(pathmod)
+                if py3:
+                    ymake.report_configure_error('SWIG is not yet supported for Python 3: https://st.yandex-team.ru/DEVTOOLS-4863')
+                else:
+                    swigs.append(path)  # ignore mod, use last (and only) ns
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -283,7 +301,7 @@ def onpy_srcs(unit, *args):
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
                 ] + cython_includes + cython_directives)
-                unit.onpy_register([mod])
+                py_register(unit, mod, py3)
                 process_pyx(filename, path, out_suffix)
 
         if files2res:
@@ -298,20 +316,33 @@ def onpy_srcs(unit, *args):
 
         res = []
 
-        for path, mod in pys:
-            root_rel_path = rootrel_arc_src(path, unit)
-            src = unit.resolve_arc_path(path) or path
-            dst = tobuilddir(src) + '.yapyc'
-            unit.onpy_compile_bytecode([root_rel_path + '-', src])
-            key = '/py_modules/' + mod
-            res += [
-                path, key,
-                '-', 'resfs/src/{}={}'.format(key, root_rel_path),
-                dst, '/py_code/' + mod,
-            ]
+        if py3:
+            for path, mod in pys:
+                root_rel_path = rootrel_arc_src(path, unit)
+                unit.onpy3_compile_bytecode([root_rel_path + '-', path])
+                dest = 'py/' + mod.replace('.', '/') + '.py'
+                res += [
+                    'DEST', dest, path,
+                    'DEST', dest + '.yapyc3', path + '.yapyc3'
+                ]
 
-        unit.onresource(res)
-        add_python_lint_checks(unit, [path for path, mod in pys])
+            unit.onresource_files(res)
+            #add_python_lint_checks(unit, [path for path, mod in pys])
+        else:
+            for path, mod in pys:
+                root_rel_path = rootrel_arc_src(path, unit)
+                src = unit.resolve_arc_path(path) or path
+                dst = tobuilddir(src) + '.yapyc'
+                unit.onpy_compile_bytecode([root_rel_path + '-', src])
+                key = '/py_modules/' + mod
+                res += [
+                    path, key,
+                    '-', 'resfs/src/{}={}'.format(key, root_rel_path),
+                    dst, '/py_code/' + mod,
+                ]
+
+            unit.onresource(res)
+            add_python_lint_checks(unit, [path for path, mod in pys])
 
     if protos:
         if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
@@ -342,6 +373,7 @@ def onpy_srcs(unit, *args):
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
         if unit.get('GLYCINE_FLAG') == 'yes':
+            unit.onpeerdir(['glycine/gen/runtime'])
             unit.ongenerate_py_glys(proto_paths)
             unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in protos])
 
@@ -367,209 +399,10 @@ def onpy_srcs(unit, *args):
         unit.onsrcs(swigs)
         prefix = unit.get('MODULE_PREFIX')
         project = unit.get('REALPRJNAME')
-        unit.onpy_register([prefix + project])
+        py_register(unit, prefix + project, py3)
         path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(unit.path()[3:], project)
         arg = '{}={}'.format(path, ns + project.replace('/', '.'))
         unit.onpy_srcs([arg])
-
-    if glys:
-        gly_paths = [path for path, mod in glys]
-        unit.ongenerate_py_glys(gly_paths)
-        unit.onpy_srcs([proto_arg(path, mod, unit) for path, mod in glys])
-        unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in glys])
-
-
-def onpy3_srcs(unit, *args):
-    # Each file arg must either be a path, or "${...}/buildpath=modname", where
-    # "${...}/buildpath" part will be used as a file source in a future macro,
-    # and "modname" will be used as a module name.
-
-    if '/contrib/tools/python3/src/Lib' not in unit.path():
-        unit.onpeerdir(['contrib/libs/python'])
-
-        if '/library/python/runtime_py3' not in unit.path():
-            unit.onpeerdir(['library/python/runtime_py3'])
-
-    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
-    if is_program:
-        py3_program(unit)
-
-    py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
-    if py_namespace_value == ".":
-        ns = ""
-    else:
-        ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
-
-    optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
-    cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
-
-    cython_directives = []
-    if cython_coverage:
-        cython_directives += ['-X', 'linetrace=True']
-
-    pyxs_c = []
-    pyxs_cpp = []
-    pyxs = pyxs_cpp
-    pys = []
-    protos = []
-    evs = []
-
-    args = iter(args)
-    for arg in args:
-        # Namespace directives.
-        if arg == 'TOP_LEVEL':
-            ns = ''
-        elif arg == 'NAMESPACE':
-            ns = next(args) + '.'
-        # Cython directives.
-        elif arg == 'CYTHON_C':
-            pyxs = pyxs_c
-        elif arg == 'CYTHON_CPP':
-            pyxs = pyxs_cpp
-        elif arg == 'CYTHON_DIRECTIVE':
-            cython_directives += ['-X', next(args)]
-        # Unsupported but legal PROTO_LIBRARY arguments.
-        elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
-            pass
-        # Sources.
-        elif arg == '__main__.py' or arg.endswith('/__main__.py'):
-            unit.onfix_python_main([arg, '__real_main__.py'])
-            unit.onpy3_srcs(['TOP_LEVEL', '__real_main__.py'])
-            unit.onpy3_main(['__real_main__:real_main_func'])
-        else:
-            main_mod = arg == 'MAIN'
-            if main_mod:
-                arg = next(args)
-
-            if '=' in arg:
-                path, mod = arg.split('=', 1)
-            else:
-                path = arg
-                if arg == '__main__.py' or arg.endswith('/__main__.py'):
-                    mod = '__main__'
-                else:
-                    if arg.startswith('../'):
-                        ymake.report_configure_error('PY3_SRCS item starts with "../": {!r}'.format(arg))
-                    if arg.startswith('/'):
-                        ymake.report_configure_error('PY3_SRCS item starts with "/": {!r}'.format(arg))
-                        continue
-                    mod = ns + stripext(arg).replace('/', '.')
-
-            if main_mod:
-                unit.onpy3_main(mod)
-
-            pathmod = (path, mod)
-
-            if path.endswith('.py'):
-                pys.append(pathmod)
-            elif path.endswith('.pyx'):
-                pyxs.append(pathmod)
-            elif path.endswith('.proto'):
-                protos.append(pathmod)
-            elif path.endswith('.ev'):
-                evs.append(pathmod)
-            else:
-                ymake.report_configure_error('in PY3_SRCS: unrecognized arg {!r}'.format(path))
-
-    if pyxs:
-        files2res = set()
-
-        if cython_coverage:
-            def process_pyx(filename, path, out_suffix):
-                # skip generated files
-                if not is_arc_src(path, unit):
-                    return
-                # source file
-                files2res.add((filename, path))
-                # generated
-                files2res.add((filename + out_suffix, path + out_suffix))
-                # used includes
-                for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
-                    files2res.add(entry)
-        else:
-            def process_pyx(filename, path, out_suffix):
-                pass
-
-        for pyxs, cython, out_suffix in [
-            (pyxs_c, unit.onbuildwith_cython_c, ".c"),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
-        ]:
-            for path, mod in pyxs:
-                filename = rootrel_arc_src(path, unit)
-                cython([
-                    path,
-                    '--module-name', mod,
-                    '--init-suffix', mangle(mod),
-                    '--source-root', '${ARCADIA_ROOT}',
-                    # set arcadia root relative __file__ for generated modules
-                    '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_directives)
-                unit.onpy3_register([mod])
-                process_pyx(filename, path, out_suffix)
-
-        if files2res:
-            # Compile original and generated sources into target for proper cython coverage calculation
-            unit.onresource_files([x for name, path in files2res for x in ('DEST', name, path)])
-
-    if pys:
-        res = []
-
-        for path, mod in pys:
-            root_rel_path = rootrel_arc_src(path, unit)
-            unit.onpy3_compile_bytecode([root_rel_path + '-', path])
-            dest = 'py/' + mod.replace('.', '/') + '.py'
-            res += [
-                'DEST', dest, path,
-                'DEST', dest + '.yapyc3', path + '.yapyc3'
-            ]
-
-        unit.onresource_files(res)
-        #add_python_lint_checks(unit, [path for path, mod in pys])
-
-    if protos:
-        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
-            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
-
-        grpc = unit.get('GRPC_FLAG') == 'yes'
-
-        if grpc:
-            unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
-
-        proto_paths = [path for path, mod in protos]
-        unit.ongenerate_py_protos(proto_paths)
-        unit.onpy3_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
-
-        if grpc:
-            unit.onpy3_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
-
-        if optimize_proto:
-            unit.onsrcs(proto_paths)
-
-            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
-            if grpc:
-                pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
-            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
-                if is_program:
-                    unit.onjoin_srcs(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-                else:
-                    unit.onjoin_srcs_global(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-
-    if evs:
-        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
-            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
-
-        unit.ongenerate_py_evs([path for path, mod in evs])
-        unit.onpy3_srcs([ev_arg(path, mod, unit) for path, mod in evs])
-
-        if optimize_proto:
-            unit.onsrcs([path for path, mod in evs])
-
-            pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
-            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
-                if is_program:
-                    unit.onjoin_srcs(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-                else:
-                    unit.onjoin_srcs_global(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
 
 def _check_test_srcs(*args):
@@ -581,14 +414,15 @@ def _check_test_srcs(*args):
 
 def ontest_srcs(unit, *args):
     _check_test_srcs(*args)
-    if unit.get('PYTEST_BIN') != 'no':
+    if unit.get('PY3TEST_BIN' if is_py3(unit) else 'PYTEST_BIN') != 'no':
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
 
 
-def on_test3_srcs(unit, *args):
-    _check_test_srcs(*args)
-    if unit.get('PY3TEST_BIN') != 'no':
-        unit.onpy3_srcs(["NAMESPACE", "__tests__"] + list(args))
+def py_register(unit, func, py3):
+    if py3:
+        unit.on_py3_register([func])
+    else:
+        unit.on_py_register([func])
 
 
 def onpy_register(unit, *args):
@@ -598,27 +432,26 @@ def onpy_register(unit, *args):
     All modules from the sources listed in PY_SRCS() are registered automatically.
     To register the modules from the sources in the SRCS(), you need to use PY_REGISTER().
     """
+
+    py3 = is_py3(unit)
+
     for name in args:
         if '=' in name:
             fullname, shortname = name.split('=', 1)
             assert '.' not in shortname, shortname
             assert fullname == shortname or fullname.endswith('.' + shortname), fullname
-            unit.on_py_register([fullname])
-            unit.oncflags(['-Dinit{}=init{}'.format(shortname, mangle(fullname))])
+            py_register(unit, fullname, py3)
+            if py3:
+                unit.oncflags(['-DPyInit_{}=PyInit_{}'.format(shortname, mangle(fullname))])
+            else:
+                unit.oncflags(['-Dinit{}=init{}'.format(shortname, mangle(fullname))])
         else:
-            unit.on_py_register([name])
+            py_register(unit, name, py3)
 
 
-def onpy3_register(unit, *args):
-    for name in args:
-        if '=' in name:
-            fullname, shortname = name.split('=', 1)
-            assert '.' not in shortname, shortname
-            assert fullname == shortname or fullname.endswith('.' + shortname), fullname
-            unit.on_py3_register([fullname])
-            unit.oncflags(['-DPyInit_{}=PyInit_{}'.format(shortname, mangle(fullname))])
-        else:
-            unit.on_py3_register([name])
+def py_main(unit, arg):
+    py_program(unit, is_py3(unit))
+    unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
 
 
 def onpy_main(unit, arg):
@@ -632,12 +465,4 @@ def onpy_main(unit, arg):
     if ':' not in arg:
         arg += ':main'
 
-    py_program(unit)
-    unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
-
-def onpy3_main(unit, arg):
-    if ':' not in arg:
-        arg += ':main'
-
-    py3_program(unit)
-    unit.onresource(['-', 'PY_MAIN={}'.format(arg)])
+    py_main(unit, arg)

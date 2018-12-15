@@ -11,6 +11,4 @@ IF (OS_LINUX OR OS_WINDOWS)
     RECURSE(
     
 )
-ENDIF ()
-
-NEED_CHECK()
+ENDIF()

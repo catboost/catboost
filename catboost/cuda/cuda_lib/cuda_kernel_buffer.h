@@ -155,7 +155,7 @@ namespace NKernelHost {
         void AsyncWrite(const TVector<T>& data,
                         const TCudaStream& stream) const {
             CB_ENSURE(data.size() <= Size());
-            NCudaLib::TMemoryCopier<EPtrType::Host, Type>::CopyMemoryAsync(~data, Get(), data.size(), stream);
+            NCudaLib::TMemoryCopier<EPtrType::Host, Type>::CopyMemoryAsync(data.data(), Get(), data.size(), stream);
         }
 
         void Write(const TVector<T>& data, const TCudaStream& stream) const {
@@ -174,7 +174,7 @@ namespace NKernelHost {
             const ui64 size = Size();
             TVector<std::remove_const_t<T>> result;
             result.resize(size);
-            NCudaLib::TMemoryCopier<Type, EPtrType::Host>::CopyMemoryAsync(Get(), ~result, size, stream);
+            NCudaLib::TMemoryCopier<Type, EPtrType::Host>::CopyMemoryAsync(Get(), result.data(), size, stream);
             stream.Synchronize();
             return result;
         }

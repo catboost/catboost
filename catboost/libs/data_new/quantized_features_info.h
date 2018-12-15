@@ -14,6 +14,7 @@
 #include <library/binsaver/bin_saver.h>
 
 #include <library/dbg_output/dump.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/guid.h>
 #include <util/generic/map.h>
@@ -26,21 +27,29 @@
 
 
 namespace NCB {
+    // [catFeatureIdx][perfectHashIdx] -> hashedCatValue
+    using TPerfectHashedToHashedCatValuesMap = TVector<TVector<ui32>>;
+
+
     //stores expression for quantized features calculations and mapping from this expression to unique ids
     //WARNING: not thread-safe, use RWMutex from GetRWMutex for mutable shared access
 
     // TODO(akhropov): try to replace TMap with THashMap - MLTOOLS-2278.
     class TQuantizedFeaturesInfo : public TThrRefBase {
     public:
-        TQuantizedFeaturesInfo(TFeaturesLayoutPtr featuresLayout,
+
+        // featuresLayout copy is needed because some features might become ignored during quantization
+        TQuantizedFeaturesInfo(const TFeaturesLayout& featuresLayout,
+                               TConstArrayRef<ui32> ignoredFeatures,
                                const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
                                bool floatFeaturesAllowNansInTestOnly = true)
-            : FeaturesLayout(featuresLayout)
+            : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
             , FloatFeaturesBinarization(floatFeaturesBinarization)
             , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
-            , CatFeaturesPerfectHash(featuresLayout->GetCatFeatureCount(),
+            , CatFeaturesPerfectHash(featuresLayout.GetCatFeatureCount(),
                                      TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp")
         {
+            FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
         }
 
         bool operator==(const TQuantizedFeaturesInfo& rhs) const;
@@ -50,8 +59,8 @@ namespace NCB {
         }
 
 
-        const TFeaturesLayout& GetFeaturesLayout() const {
-            return *FeaturesLayout;
+        const TFeaturesLayoutPtr GetFeaturesLayout() const {
+            return FeaturesLayout;
         }
 
         template <EFeatureType FeatureType>
@@ -69,7 +78,7 @@ namespace NCB {
 
         bool HasNanMode(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return NanModes.has(*floatFeatureIdx);
+            return NanModes.contains(*floatFeatureIdx);
         }
 
         void SetNanMode(const TFloatFeatureIdx floatFeatureIdx, ENanMode nanMode) {
@@ -84,7 +93,7 @@ namespace NCB {
 
         bool HasBorders(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
-            return Borders.has(*floatFeatureIdx);
+            return Borders.contains(*floatFeatureIdx);
         }
 
         void SetBorders(const TFloatFeatureIdx floatFeatureIdx,
@@ -128,9 +137,17 @@ namespace NCB {
             CatFeaturesPerfectHash.UpdateFeaturePerfectHash(catFeatureIdx, std::move(perfectHash));
         };
 
+        void LoadCatFeaturePerfectHashToRam() const {
+            CatFeaturesPerfectHash.Load();
+        }
+
         void UnloadCatFeaturePerfectHashFromRam() const {
             CatFeaturesPerfectHash.FreeRam();
         }
+
+        TPerfectHashedToHashedCatValuesMap CalcPerfectHashedToHashedCatValuesMap(
+            NPar::TLocalExecutor* localExecutor
+        ) const;
 
         ui32 CalcCheckSum() const;
 
@@ -183,7 +200,7 @@ template <>
 struct TDumper<NCB::TQuantizedFeaturesInfo> {
     template <class S>
     static inline void Dump(S& s, const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
-        const auto& featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
+        const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
 
         s << "FeaturesLayout:\n" << DbgDump(featuresLayout);
 

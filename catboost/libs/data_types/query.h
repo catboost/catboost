@@ -14,13 +14,10 @@ using TGroupBounds = NCB::TIndexRange<ui32>;
 
 
 struct TQueryInfo : public TGroupBounds {
-    TQueryInfo()
-        : TGroupBounds(0)
-    {
-    }
+    TQueryInfo() = default;
 
     TQueryInfo(ui32 begin, ui32 end)
-        : TGroupBounds{begin, end}
+        : TGroupBounds(begin, end)
         , Weight(1.0f)
     {
     }
@@ -32,7 +29,7 @@ struct TQueryInfo : public TGroupBounds {
         return (Weight == rhs.Weight) && (SubgroupId == rhs.SubgroupId) && (Competitors == rhs.Competitors);
     }
 
-    float Weight;
+    float Weight = 0.;
     TVector<ui32> SubgroupId; // can be empty if there's no subgroup data
     TVector<TVector<TCompetitor>> Competitors;
     SAVELOAD(Begin, End, Weight, SubgroupId, Competitors);

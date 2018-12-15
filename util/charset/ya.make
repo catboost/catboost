@@ -2,8 +2,6 @@ LIBRARY()
 
 
 
-NEED_CHECK()
-
 NO_UTIL()
 
 JOIN_SRCS(

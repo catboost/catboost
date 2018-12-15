@@ -185,7 +185,7 @@ public:
             s.append((const char*)p[i].buf, p[i].len);
         }
 
-        DoWrite(~s, +s);
+        DoWrite(s.data(), s.size());
     }
 
 private:
@@ -204,13 +204,13 @@ void TStreamsTest::TestBufferedIO() {
             TString str(" ");
             str += ToString(i % 10);
 
-            bo.Write(~str, +str);
+            bo.Write(str.data(), str.size());
         }
 
         bo.Finish();
     }
 
-    UNIT_ASSERT_EQUAL(+s, 2000);
+    UNIT_ASSERT_EQUAL(s.size(), 2000);
 
     {
         const size_t buflen = 11;
@@ -242,7 +242,7 @@ void TStreamsTest::TestBufferedIO() {
         }
 
         for (size_t i = 0; i < 1000; ++i) {
-            bo.Write(~f, i);
+            bo.Write(f.data(), i);
         }
 
         bo.Finish();
@@ -253,13 +253,13 @@ void TStreamsTest::TestBufferStream() {
     TBufferStream stream;
     TString s = "test";
 
-    stream.Write(~s, +s);
+    stream.Write(s.data(), s.size());
     char buf[5];
     size_t readed = stream.Read(buf, 4);
     UNIT_ASSERT_EQUAL(4, readed);
-    UNIT_ASSERT_EQUAL(0, strncmp(~s, buf, 4));
+    UNIT_ASSERT_EQUAL(0, strncmp(s.data(), buf, 4));
 
-    stream.Write(~s, +s);
+    stream.Write(s.data(), s.size());
     readed = stream.Read(buf, 2);
     UNIT_ASSERT_EQUAL(2, readed);
     UNIT_ASSERT_EQUAL(0, strncmp("te", buf, 2));
@@ -376,9 +376,9 @@ namespace {
     void TestStreamReadTo(const TString& text, T test) {
         TStringInput is(text);
         test(is, "TStringInput");
-        TMemoryInput mi(~text, +text);
+        TMemoryInput mi(text.data(), text.size());
         test(mi, "TMemoryInput");
-        TBuffer b(~text, +text);
+        TBuffer b(text.data(), text.size());
         TBufferInput bi(b);
         test(bi, "TBufferInput");
         TStringInput slave(text);
@@ -403,7 +403,7 @@ void TStreamsTest::TestStrokaInput() {
     TString s;
     for (ui32 i = 0; i < 100000; ++i) {
         TVector<char> d(i % 1000, 'a');
-        s.append(~d, +d);
+        s.append(d.data(), d.size());
         s.append('\n');
     }
     TestStreamReadTo(s, ::TestStrokaInput);

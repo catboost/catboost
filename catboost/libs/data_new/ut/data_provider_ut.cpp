@@ -101,7 +101,8 @@ static void CreateQuantizedObjectsDataProviderTestData(
     );
 
     quantizedObjectsData.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-        metaInfo->FeaturesLayout,
+        *metaInfo->FeaturesLayout,
+        TConstArrayRef<ui32>(),
         binarizationOptions
     );
 
@@ -200,12 +201,12 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
 
 
 
-Y_UNIT_TEST_SUITE(TTrainingDataProviderTemplate) {
+Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
 
     template <class TTObjectsDataProvider>
     void Compare(
-        const TTrainingDataProviderTemplate<TTObjectsDataProvider>& lhs,
-        const TTrainingDataProviderTemplate<TTObjectsDataProvider>& rhs
+        const TProcessedDataProviderTemplate<TTObjectsDataProvider>& lhs,
+        const TProcessedDataProviderTemplate<TTObjectsDataProvider>& rhs
     ) {
         UNIT_ASSERT_EQUAL(lhs.MetaInfo, rhs.MetaInfo);
         UNIT_ASSERT_EQUAL(*lhs.ObjectsGrouping, *rhs.ObjectsGrouping);
@@ -216,7 +217,7 @@ Y_UNIT_TEST_SUITE(TTrainingDataProviderTemplate) {
 
     template <class TTObjectsDataProvider>
     void TestSerialization() {
-        TTrainingDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider;
+        TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider;
 
         CreateQuantizedObjectsDataProviderTestData(
             false,
@@ -277,9 +278,11 @@ Y_UNIT_TEST_SUITE(TTrainingDataProviderTemplate) {
             MakeIntrusive<TMultiClassTarget>(
                 "",
                 trainingDataProvider.ObjectsGrouping,
+                /*classCount*/ ui32(2),
                 targets,
                 weights,
-                TVector<TSharedVector<float>>(baselines)
+                TVector<TSharedVector<float>>(baselines),
+                /*isForGpu*/ false
             )
         );
         trainingDataProvider.TargetData.emplace(
@@ -323,7 +326,7 @@ Y_UNIT_TEST_SUITE(TTrainingDataProviderTemplate) {
             SerializeToStream(out, trainingDataProvider);
         }
 
-        TTrainingDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;
+        TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;
 
         {
             TBufferInput in(buffer);

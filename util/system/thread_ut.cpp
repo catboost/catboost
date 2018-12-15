@@ -57,7 +57,7 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
 
     void* ThreadProc4(void*) {
         const TString setName = "ThreadName";
-        TThread::CurrentThreadSetName(~setName);
+        TThread::CurrentThreadSetName(setName.data());
 
         const auto getName = TThread::CurrentThreadGetName();
 #if defined(_darwin_) || defined(_linux_)
@@ -81,7 +81,7 @@ Y_UNIT_TEST_SUITE(TSysThreadTest) {
 
     void* ThreadProcParent(void*) {
         const TString setName = "Parent";
-        TThread::CurrentThreadSetName(~setName);
+        TThread::CurrentThreadSetName(setName.data());
 
         TThread thread(&ThreadProcChild, nullptr);
 

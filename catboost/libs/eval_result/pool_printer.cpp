@@ -16,7 +16,7 @@ namespace NCB {
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& format,
-        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
+        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     )
         : LineDataReader(GetLineDataReader(testSetPath, format))
         , Delimiter(format.Delimiter)
@@ -26,7 +26,7 @@ namespace NCB {
     }
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(FromColumnTypeToColumnId.has(columnType),
+        CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
             "You can not output " << ToString(columnType) << " column by type");
         *outStream << GetCell(docId, FromColumnTypeToColumnId[columnType]);
     }
@@ -35,7 +35,7 @@ namespace NCB {
         *outStream << GetCell(docId, columnId);
     }
 
-    void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo) {
+    void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) {
         if (columnsMetaInfo.Defined()) {
             for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
                 const auto columnType = columnsMetaInfo->Columns[columnId].Type;
@@ -88,7 +88,7 @@ namespace NCB {
     }
 
     void TQuantizedPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(ColumnsInfo.has(columnType),
+        CB_ENSURE(ColumnsInfo.contains(columnType),
             "Pool doesn't have " << ToString(columnType) << " column.");
 
         TString token;

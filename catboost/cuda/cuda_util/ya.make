@@ -2,8 +2,6 @@
 
 LIBRARY()
 
-NO_WERROR()
-
 SRCS(
    GLOBAL bootstrap.cpp
    GLOBAL compression_helpers_gpu.cpp

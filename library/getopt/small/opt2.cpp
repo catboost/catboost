@@ -106,9 +106,9 @@ void Opt2::EatArgv(const char* optspec, const char* long_alias) {
             // long option always spans one argv (--switch or --option-name=value)
             const char* eq = strchr(s, '=');
             TString lname(s, eq ? (size_t)(eq - s) : (size_t)strlen(s));
-            THashMap<const char*, char>::iterator i = long2short.find(~lname);
+            THashMap<const char*, char>::iterator i = long2short.find(lname.data());
             if (i == long2short.end()) {
-                UnknownLongOption = strdup(~lname); // free'd in AutoUsage()
+                UnknownLongOption = strdup(lname.data()); // free'd in AutoUsage()
                 HasErrors = true;
                 return;
             }
@@ -273,7 +273,7 @@ int Opt2::AutoUsage(const char* free_arg_names) {
             nreq ? " [-" : "", nreq_str, nreq ? "]" : "",
             free_arg_names && *free_arg_names ? " " : "", free_arg_names);
     for (auto& spec : Specs) {
-        const char* hlp = !spec.HelpUsage.Empty() ? ~spec.HelpUsage : spec.HasArg ? "<arg>" : "";
+        const char* hlp = !spec.HelpUsage.Empty() ? spec.HelpUsage.data() : spec.HasArg ? "<arg>" : "";
         if (!spec.HasArg || spec.IsRequired)
             fprintf(where, "  -%c %s\n", spec.opt, hlp);
         else if (!spec.IsNumeric)
@@ -301,7 +301,7 @@ int Opt2::AutoUsage(const char* free_arg_names) {
     if (BadPosCount && MinArgs == MaxArgs)
         fprintf(where, " *** %i free argument(s) supplied, expected %i\n", (int)Pos.size(), MinArgs);
     for (const auto& userErrorMessage : UserErrorMessages)
-        fprintf(where, " *** %s\n", ~userErrorMessage);
+        fprintf(where, " *** %s\n", userErrorMessage.data());
     return UnknownOption == '?' ? 1 : 2;
 }
 

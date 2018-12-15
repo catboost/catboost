@@ -58,15 +58,15 @@ namespace NDetail {
         template <typename TCharType>
         inline TStringBufImpl<TCharType> RecodeSingleByteChar(const TStringBuf src, TCharType* dst, const CodePage& cp) {
             Y_ASSERT(cp.SingleByteCodepage());
-            ::CharToWide(~src, +src, dst, cp);
-            return TStringBufImpl<TCharType>(dst, +src);
+            ::CharToWide(src.data(), src.size(), dst, cp);
+            return TStringBufImpl<TCharType>(dst, src.size());
         }
 
         template <typename TCharType>
         inline TStringBuf RecodeSingleByteChar(const TStringBufImpl<TCharType> src, char* dst, const CodePage& cp) {
             Y_ASSERT(cp.SingleByteCodepage());
-            ::WideToChar(~src, +src, dst, cp.CPEnum);
-            return TStringBuf(dst, +src);
+            ::WideToChar(src.data(), src.size(), dst, cp.CPEnum);
+            return TStringBuf(dst, src.size());
         }
 
         template <typename TCharType>
@@ -74,7 +74,7 @@ namespace NDetail {
             Y_ASSERT(!NCodepagePrivate::NativeCodepage(encoding));
             size_t read = 0;
             size_t written = 0;
-            ::NICONVPrivate::RecodeToUnicode(encoding, ~src, dst, +src, +src, read, written);
+            ::NICONVPrivate::RecodeToUnicode(encoding, src.data(), dst, src.size(), src.size(), read, written);
             return TStringBufImpl<TCharType>(dst, written);
         }
 
@@ -83,14 +83,14 @@ namespace NDetail {
             Y_ASSERT(!NCodepagePrivate::NativeCodepage(encoding));
             size_t read = 0;
             size_t written = 0;
-            ::NICONVPrivate::RecodeFromUnicode(encoding, ~src, dst, +src, +src * 3, read, written);
+            ::NICONVPrivate::RecodeFromUnicode(encoding, src.data(), dst, src.size(), src.size() * 3, read, written);
             return TStringBuf(dst, written);
         }
 
         template <typename TCharType>
         inline TStringBufImpl<TCharType> RecodeUtf8(const TStringBuf src, TCharType* dst) {
             size_t len = 0;
-            if (!::UTF8ToWide(~src, +src, dst, len))
+            if (!::UTF8ToWide(src.data(), src.size(), dst, len))
                 ythrow yexception() << "Invalid UTF8: \"" << src.SubStr(0, 50) << (src.size() > 50 ? "...\"" : "\"");
             return TStringBufImpl<TCharType>(dst, len);
         }
@@ -98,7 +98,7 @@ namespace NDetail {
         template <typename TCharType>
         inline TStringBuf RecodeUtf8(const TStringBufImpl<TCharType> src, char* dst) {
             size_t len = 0;
-            ::WideToUTF8(~src, +src, dst, len);
+            ::WideToUTF8(src.data(), src.size(), dst, len);
             return TStringBuf(dst, len);
         }
 
@@ -190,7 +190,7 @@ namespace NDetail {
 
         // do re-coding
         size_t written = 0;
-        UTF8ToWide<true>(~src, +src, dstbuf, written);
+        UTF8ToWide<true>(src.data(), src.size(), dstbuf, written);
 
         // truncate result back to proper size
         TRecodeResultOps<TResult>::Truncate(dst, written);

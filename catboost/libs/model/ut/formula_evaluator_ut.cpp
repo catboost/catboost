@@ -1,10 +1,15 @@
 #include <library/unittest/registar.h>
 
+#include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <util/folder/tempdir.h>
+
+
+using namespace NCB;
+
 
 static TFullModel SimpleFloatModel() {
     TFullModel model;
@@ -71,22 +76,30 @@ static TFullModel MultiValueFloatModel() {
 // Deterministically train model that has only 3 categoric features.
 static TFullModel TrainCatOnlyModel() {
     TTempDir trainDir;
-    TPool pool;
-    pool.Docs.Resize(/*doc count*/3, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-    pool.Docs.Factors[0] = {
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("a")),
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("b")),
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("c"))};
-    pool.Docs.Factors[1] = {
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("d")),
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("e")),
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("f"))};
-    pool.Docs.Factors[2] = {
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("g")),
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("h")),
-        ConvertCatFeatureHashToFloat(CalcCatFeatureHash("k"))};
-    pool.Docs.Target = {1.0f, 0.0f, 0.2f};
-    pool.CatFeatures = {0, 1, 2};
+
+    TDataProviders dataProviders;
+    dataProviders.Learn = CreateDataProvider(
+        [&] (IRawFeaturesOrderDataVisitor* visitor) {
+            TDataMetaInfo metaInfo;
+            metaInfo.HasTarget = true;
+            metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                (ui32)3,
+                TVector<ui32>{0, 1, 2},
+                TVector<TString>{}
+            );
+
+            visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
+
+            visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "b", "c"});
+            visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "e", "f"});
+            visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"g", "h", "k"});
+
+            visitor->AddTarget({1.0f, 0.0f, 0.2f});
+
+            visitor->Finish();
+        }
+    );
+    dataProviders.Test.push_back(dataProviders.Learn);
 
     TFullModel model;
     TEvalResult evalResult;
@@ -96,9 +109,10 @@ static TFullModel TrainCatOnlyModel() {
     params.InsertValue("train_dir", trainDir.Name());
     TrainModel(
         params,
+        nullptr,
         {},
         {},
-        TClearablePoolPtrs(pool, {&pool}),
+        std::move(dataProviders),
         "",
         &model,
         {&evalResult}

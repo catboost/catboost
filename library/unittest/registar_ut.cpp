@@ -140,7 +140,7 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_TEST_FAILS(valuesUnequal(5, 5));
         UNIT_ASSERT_TEST_FAILS(valuesUnequal(static_cast<char>(5), 5l));
         TString test("test");
-        UNIT_ASSERT_TEST_FAILS(valuesUnequal("test", ~test));
+        UNIT_ASSERT_TEST_FAILS(valuesUnequal("test", test.data()));
 
         UNIT_ASSERT_VALUES_UNEQUAL("UNIT_ASSERT_VALUES_UNEQUAL", "UNIT_ASSERT_VALUES_EQUAL");
         UNIT_ASSERT_VALUES_UNEQUAL(1.0, 1.1);

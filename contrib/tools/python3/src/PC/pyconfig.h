@@ -492,7 +492,9 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 /* #define WITH_READLINE 1 */
 
 /* Use Python's own small-block memory-allocator. */
+#ifndef address_sanitizer_enabled
 #define WITH_PYMALLOC 1
+#endif
 
 /* Define if you have clock.  */
 /* #define HAVE_CLOCK */

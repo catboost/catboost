@@ -41,8 +41,8 @@ void TBaseServerRequestData::AppendQueryString(const char* str, size_t length) {
         ModifiedQueryString.Assign(str, length);
     }
     ModifiedQueryString.Append('\0');
-    Search = ~ModifiedQueryString;
-    SearchLength = +ModifiedQueryString - 1; // ignore terminator
+    Search = ModifiedQueryString.data();
+    SearchLength = ModifiedQueryString.size() - 1; // ignore terminator
 }
 
 void TBaseServerRequestData::SetRemoteAddr(TStringBuf addr) {
@@ -70,7 +70,7 @@ const char* TBaseServerRequestData::HeaderIn(const char* key) const {
         return nullptr;
     }
 
-    return ~it->second;
+    return it->second.data();
 }
 
 TString TBaseServerRequestData::HeaderByIndex(size_t n) const noexcept {
@@ -97,9 +97,9 @@ const char* TBaseServerRequestData::Environment(const char* key) const {
     } else if (stricmp(key, "QUERY_STRING") == 0) {
         return QueryString();
     } else if (stricmp(key, "SERVER_NAME") == 0) {
-        return ~ServerName();
+        return ServerName().data();
     } else if (stricmp(key, "SERVER_PORT") == 0) {
-        return ~ServerPort();
+        return ServerPort().data();
     } else if (stricmp(key, "SCRIPT_NAME") == 0) {
         return ScriptName();
     }
@@ -131,7 +131,7 @@ const char* TBaseServerRequestData::GetCurPage() const {
             CurPage += Search;
         }
     }
-    return ~CurPage;
+    return CurPage.data();
 }
 
 bool TBaseServerRequestData::Parse(const char* origReq) {
@@ -187,6 +187,6 @@ void TBaseServerRequestData::AddHeader(const TString& name, const TString& value
 }
 
 void TBaseServerRequestData::SetPath(const TString& path) {
-    PathStorage = TBuffer(~path, +path + 1);
+    PathStorage = TBuffer(path.data(), path.size() + 1);
     Path = PathStorage.Data();
 }

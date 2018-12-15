@@ -57,6 +57,19 @@ IF (OS_IOS)
             src/x86/darwin64_x86_64.S
         )
     ENDIF()
+ELSEIF (OS_WINDOWS)
+    SRCS(
+        src/x86/ffi.c
+    )
+    IF (ARCH_I386)
+        SRCS(
+            src/x86/win32.masm
+        )
+    ELSE()
+        SRCS(
+            src/x86/win64.masm
+        )
+    ENDIF()
 ELSEIF (ARCH_X86_64)
     SRCS(
         src/x86/ffi.c
@@ -73,12 +86,6 @@ ELSEIF (ARCH_X86_64)
     IF (OS_FREEBSD)
         SRCS(
             src/x86/freebsd.S
-        )
-    ENDIF()
-
-    IF (OS_WINDOWS)
-        SRCS(
-            src/x86/win64.masm
         )
     ENDIF()
 

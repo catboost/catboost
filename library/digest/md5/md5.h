@@ -30,7 +30,7 @@ public:
     }
 
     inline MD5& Update(const TStringBuf& data) {
-        return Update(~data, +data);
+        return Update(data.data(), data.size());
     }
 
     void Pad();

@@ -330,6 +330,79 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         TestGetSubset(v, arraySubsetIndexing, expectedSubset);
     }
 
+    Y_UNIT_TEST(TestGetConsecutiveSubsetBegin) {
+        UNIT_ASSERT_VALUES_EQUAL(
+            NCB::TArraySubsetIndexing<size_t>( NCB::TFullSubset<size_t>(0) ).GetConsecutiveSubsetBegin(),
+            TMaybe<size_t>(0)
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            NCB::TArraySubsetIndexing<size_t>( NCB::TFullSubset<size_t>(10) ).GetConsecutiveSubsetBegin(),
+            TMaybe<size_t>(0)
+        );
+
+        {
+            TVector<NCB::TIndexRange<size_t>> indexRanges{};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            UNIT_ASSERT_VALUES_EQUAL(
+                NCB::TArraySubsetIndexing<size_t>(
+                    NCB::TRangesSubset<size_t>(savedIndexRanges)
+                ).GetConsecutiveSubsetBegin(),
+                TMaybe<size_t>(0)
+            );
+        }
+        {
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{3, 12}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            UNIT_ASSERT_VALUES_EQUAL(
+                NCB::TArraySubsetIndexing<size_t>(
+                    NCB::TRangesSubset<size_t>(savedIndexRanges)
+                ).GetConsecutiveSubsetBegin(),
+                TMaybe<size_t>(3)
+            );
+        }
+        {
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{7, 10}, {10, 10}, {10, 20}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            UNIT_ASSERT_VALUES_EQUAL(
+                NCB::TArraySubsetIndexing<size_t>(
+                    NCB::TRangesSubset<size_t>(savedIndexRanges)
+                ).GetConsecutiveSubsetBegin(),
+                TMaybe<size_t>(7)
+            );
+        }
+        {
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            UNIT_ASSERT_VALUES_EQUAL(
+                NCB::TArraySubsetIndexing<size_t>(
+                    NCB::TRangesSubset<size_t>(savedIndexRanges)
+                ).GetConsecutiveSubsetBegin(),
+                Nothing()
+            );
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{} ).GetConsecutiveSubsetBegin(),
+            TMaybe<size_t>(0)
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{10} ).GetConsecutiveSubsetBegin(),
+            TMaybe<size_t>(10)
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            NCB::TArraySubsetIndexing<size_t>(
+                NCB::TIndexedSubset<size_t>{8, 9, 10, 11, 12}
+            ).GetConsecutiveSubsetBegin(),
+            TMaybe<size_t>(8)
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            NCB::TArraySubsetIndexing<size_t>(
+                NCB::TIndexedSubset<size_t>{6, 5, 2, 0, 1}
+            ).GetConsecutiveSubsetBegin(),
+            Nothing()
+        );
+    }
+
     Y_UNIT_TEST(TestCompose) {
         TVector<NCB::TArraySubsetIndexing<size_t>> srcs;
         {

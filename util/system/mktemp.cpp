@@ -53,7 +53,7 @@ static char* makeTempName(const char* wrkDir, const char* prefix) {
     if (wrkDir && *wrkDir)
         strcpy(buf, wrkDir);
     else
-        strcpy(buf, ~sysTmp);
+        strcpy(buf, sysTmp.data());
 
     if (buf[strlen(buf) - 1] != '/')
         strcat(buf, "/");

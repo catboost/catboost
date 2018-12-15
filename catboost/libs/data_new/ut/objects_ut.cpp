@@ -717,7 +717,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 commonDataCopy.FeaturesLayout = featuresLayoutPtr;
 
                 data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                    featuresLayoutPtr,
+                    featuresLayout,
+                    TConstArrayRef<ui32>(),
                     NCatboostOptions::TBinarizationOptions()
                 );
 
@@ -751,7 +752,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                     for (auto catFeatureIdx : xrange(srcCatFeatures.size())) {
                         const auto& catFeature = srcCatFeatures[catFeatureIdx];
-                        auto hashedCatValues = TMaybeOwningArrayHolder<ui32>::CreateOwning(
+                        auto hashedCatValues = TMaybeOwningConstArrayHolder<ui32>::CreateOwning(
                             GenerateSrcHashedCatData(srcUniqHashedCatValues[catFeatureIdx])
                         );
 
@@ -761,7 +762,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                         catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
                             TCatFeatureIdx(catFeatureIdx),
-                            TConstMaybeOwningArraySubset<ui32, ui32>(
+                            TMaybeOwningConstArraySubset<ui32, ui32>(
                                 &hashedCatValues,
                                 &fullSubsetForUpdatingPerfectHash
                             ),
@@ -929,9 +930,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> catFeatures = {{0x0, 0x02, 0x0F, 0x03}, {0xAB, 0xBF, 0x04, 0x20}};
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 158135301},
+            {{true, false}, 2700874693},
             {{false, true}, 2949642695},
-            {{true, true}, 40769919}
+            {{true, true}, 1758775252}
         };
 
         TestFeatures(
@@ -986,9 +987,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> subsetCatFeatures = {{0x0, 0x01, 0x03, 0x02}, {0xAB, 0x78, 0x20, 0xBF}};
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 4256578815},
+            {{true, false}, 809224437},
             {{false, true}, 448492502},
-            {{true, true}, 1895498490}
+            {{true, true}, 3297385430}
         };
 
 
@@ -1044,9 +1045,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         expectedCommonData.Order = EObjectsOrder::RandomShuffled;
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 4034614194},
+            {{true, false}, 4200673678},
             {{false, true}, 3029707852},
-            {{true, true}, 3612128932}
+            {{true, true}, 656519240}
         };
 
         TestFeatures(
@@ -1117,9 +1118,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         };
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 4168240235},
+            {{true, false}, 517671692},
             {{false, true}, 2005480375},
-            {{true, true}, 3133794874}
+            {{true, true}, 2162462396}
         };
 
         TestFeatures(

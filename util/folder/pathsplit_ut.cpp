@@ -9,11 +9,11 @@
 
 #define VAR(NAME) Y_CAT(NAME, __LINE__)
 
-#define PS_CHECK(input, ...)                                                 \
-    const char* VAR(model)[] = {"", __VA_ARGS__};                            \
-    UNIT_ASSERT_EQUAL(+input, sizeof(VAR(model)) / sizeof(const char*) - 1); \
-    for (size_t n = 0; n < +input; ++n) {                                    \
-        UNIT_ASSERT_STRINGS_EQUAL(input[n], VAR(model)[n + 1]);              \
+#define PS_CHECK(input, ...)                                                       \
+    const char* VAR(model)[] = {"", __VA_ARGS__};                                  \
+    UNIT_ASSERT_EQUAL(input.size(), sizeof(VAR(model)) / sizeof(const char*) - 1); \
+    for (size_t n = 0; n < input.size(); ++n) {                                    \
+        UNIT_ASSERT_STRINGS_EQUAL(input[n], VAR(model)[n + 1]);                    \
     }
 
 #define PS_INCLUDED

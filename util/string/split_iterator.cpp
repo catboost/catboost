@@ -22,8 +22,8 @@ TSplitBase::TSplitBase(const char* str, size_t length)
 }
 
 TSplitBase::TSplitBase(const TString& s)
-    : Str(~s)
-    , Len(+s)
+    : Str(s.data())
+    , Len(s.size())
 {
 }
 
@@ -276,7 +276,7 @@ TCharSplitWithoutTags::TIterator TCharSplitWithoutTags::Iterator() const {
 
 TSubstringSplitDelimiter::TSubstringSplitDelimiter(const TString& s)
     : Matcher(s)
-    , Len(+s)
+    , Len(s.size())
 {
 }
 
