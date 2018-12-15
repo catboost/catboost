@@ -350,6 +350,8 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
                   SEXP stratifiedParam) {
 
     SEXP result = NULL;
+    size_t metricCount;
+
     R_API_BEGIN();
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
@@ -371,7 +373,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         cvParams,
         &cvResults);
 
-    size_t metricCount = cvResults.size();
+    metricCount = cvResults.size();
     result = PROTECT(allocVector(VECSXP, metricCount * 4));
     SEXP columnNames = PROTECT(allocVector(STRSXP, metricCount * 4));
 
@@ -397,7 +399,8 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         SET_VECTOR_ELT(result, metricIdx * 4 + 2, row_train_mean);
         SET_VECTOR_ELT(result, metricIdx * 4 + 3, row_train_std);
 
-        SET_STRING_ELT(columnNames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnN
+            ames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
         SET_STRING_ELT(columnNames, metricIdx * 4 + 1, mkChar(("test-" + metricName + "-std").c_str()));
         SET_STRING_ELT(columnNames, metricIdx * 4 + 2, mkChar(("train-" + metricName + "-mean").c_str()));
         SET_STRING_ELT(columnNames, metricIdx * 4 + 3, mkChar(("train-" + metricName + "-std").c_str()));
@@ -406,7 +409,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     setAttrib(result, R_NamesSymbol, columnNames);
     
     R_API_END();
-    UNPROTECT(2);
+    UNPROTECT(metricCount * 4 + 2);
     return result;
 }
 

@@ -1292,7 +1292,6 @@ catboost.cv <- function(pool, params = list(),
     }
 
     json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
-    message("I am gonna call CatBoostCV_R 2")
     result <- .Call("CatBoostCV_R", json_params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified)
 
     return(data.frame(result))
