@@ -1,5 +1,6 @@
 #include "binarizations_manager.h"
 
+#include <catboost/libs/ctr_description/ctr_type.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>

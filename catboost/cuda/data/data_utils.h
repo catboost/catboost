@@ -6,8 +6,8 @@
 #include <catboost/libs/helpers/cpu_random.h>
 
 #include <util/system/types.h>
-#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 

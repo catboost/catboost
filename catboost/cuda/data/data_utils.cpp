@@ -1,7 +1,8 @@
 #include "data_utils.h"
-#include <catboost/cuda/cuda_lib/helpers.h>
 
 #include <catboost/libs/helpers/exception.h>
+
+#include <util/generic/set.h>
 
 
 void NCatboostCuda::GroupSamples(TConstArrayRef<TGroupId> qid, TVector<TVector<ui32>>* qdata) {

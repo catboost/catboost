@@ -1,5 +1,10 @@
 #include "permutation.h"
 
+#include "data_utils.h"
+
+#include <numeric>
+
+
 void NCatboostCuda::TDataPermutation::FillOrder(TVector<ui32>& order) const  {
     if (Index != IdentityPermutationId()) {
         const auto seed = 1664525 * GetPermutationId() + 1013904223 + BlockSize;
