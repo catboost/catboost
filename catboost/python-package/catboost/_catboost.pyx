@@ -2146,7 +2146,7 @@ cdef class _PoolBase:
 
     cpdef get_cat_feature_hash_to_string(self):
         """
-        Get maping of float hash values to corresponding strings
+        Get mapping of float hash values to corresponding strings
 
         Returns
         -------
