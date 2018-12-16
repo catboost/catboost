@@ -80,6 +80,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\catboost-cuda-methods.vcxproj">
       <Project>B414E7D1-BF71-311C-0E2C-D6B4527D7528</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\ut\catboost-cuda-methods-ut.vcxproj">
+      <Project>4473AB4F-FF95-F56D-D937-DB5070FD536D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
       <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
     </ProjectReference>
