@@ -42,8 +42,8 @@ Y_UNIT_TEST_SUITE(THttpTest) {
                                 "\r\n";
                 } else {
                     Output() << "HTTP/1.1 200 Ok\r\n\r\n";
-                    if (+Buf) {
-                        Output().Write(~Buf, +Buf);
+                    if (Buf.Size()) {
+                        Output().Write(Buf.AsCharPtr(), Buf.Size());
                     } else {
                         Output() << Parent_->Res_;
                     }
