@@ -138,21 +138,6 @@ public:
     }
 
     /*
-     * some helpers...
-     */
-    inline T* operator~() noexcept {
-        return Data();
-    }
-
-    inline const T* operator~() const noexcept {
-        return Data();
-    }
-
-    inline size_t operator+() const noexcept {
-        return Size();
-    }
-
-    /*
      * iterator-like interface
      */
     inline TConstIterator Begin() const noexcept {
@@ -244,10 +229,10 @@ using TMemRegion = TRegion<char>;
 // convert to region containers which follow yandex-style memory access
 template <typename TCont>
 TRegion<const typename TCont::value_type> ToRegion(const TCont& cont) {
-    return TRegion<const typename TCont::value_type>(~cont, +cont);
+    return TRegion<const typename TCont::value_type>(cont.data(), cont.size());
 }
 
 template <typename TCont>
 TRegion<typename TCont::value_type> ToRegion(TCont& cont) {
-    return TRegion<typename TCont::value_type>(~cont, +cont);
+    return TRegion<typename TCont::value_type>(cont.data(), cont.size());
 }

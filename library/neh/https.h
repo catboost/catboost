@@ -41,6 +41,7 @@ namespace NNeh {
         static bool EnableSslClientDebug;
         static TVerifyCallback ClientVerifyCallback;
         static TPasswordCallback KeyPasswdCallback;
+        static bool RedirectionNotError;
         static bool Set(TStringBuf name, TStringBuf value);
     };
 }

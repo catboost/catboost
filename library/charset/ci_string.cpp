@@ -42,5 +42,5 @@ size_t TCiString::hashVal(const char* s, size_t len, const CodePage& cp) {
 
 template <>
 void Out<TCiString>(IOutputStream& o, const TCiString& p) {
-    o.Write(~p, +p);
+    o.Write(p.data(), p.size());
 }

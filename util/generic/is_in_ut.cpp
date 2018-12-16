@@ -91,7 +91,7 @@ Y_UNIT_TEST_SUITE(TIsIn) {
 
         const TStringBuf str = "abc////";
 
-        UNIT_ASSERT(IsIn({"abc", "def"}, TStringBuf{~str, 3}));
+        UNIT_ASSERT(IsIn({"abc", "def"}, TStringBuf{str.data(), 3}));
     }
 
     Y_UNIT_TEST(ConfOfTest) {
@@ -100,8 +100,17 @@ Y_UNIT_TEST_SUITE(TIsIn) {
 
         const TString b = "b";
 
-        UNIT_ASSERT(!IsIn({"a", "b", "c"}, ~b)); // compares pointers by value. Whether it's good or not.
-        UNIT_ASSERT(IsIn(TVector<TStringBuf>({"a", "b", "c"}), ~b));
+        UNIT_ASSERT(!IsIn({"a", "b", "c"}, b.data())); // compares pointers by value. Whether it's good or not.
+        UNIT_ASSERT(IsIn(TVector<TStringBuf>({"a", "b", "c"}), b.data()));
         UNIT_ASSERT(IsIn(TVector<TStringBuf>({"a", "b", "c"}), "b"));
+    }
+
+    Y_UNIT_TEST(IsInArrayTest) {
+        const TString array[] = { "a", "b", "d" };
+
+        UNIT_ASSERT(IsIn(array, "a"));
+        UNIT_ASSERT(IsIn(array, TString("b")));
+        UNIT_ASSERT(!IsIn(array, "c"));
+        UNIT_ASSERT(IsIn(array, AsStringBuf("d")));
     }
 }

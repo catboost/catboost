@@ -68,7 +68,7 @@ public:
 #define INFO_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TRTYLogPreprocessor, TLOG_INFO, "INFO")
 #define DEBUG_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TRTYLogPreprocessor, TLOG_DEBUG, "DEBUG")
 
-#define TEMPLATE_LOG(logLevel) SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TRTYLogPreprocessor, logLevel, ~ToString(logLevel))
+#define TEMPLATE_LOG(logLevel) SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TRTYLogPreprocessor, logLevel, ToString(logLevel).data())
 
 #define IS_LOG_ACTIVE(logLevel) (TLoggerOperator<TGlobalLog>::Log().FiltrationLevel() >= logLevel)
 

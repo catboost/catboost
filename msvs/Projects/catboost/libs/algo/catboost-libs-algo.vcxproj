@@ -56,8 +56,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4164599 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4253902 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4253902 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN  </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,12 +78,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\apply.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_multi.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.cpp"/>
@@ -97,28 +99,12 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\quantization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tensor_search_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_cross_entropy.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_custom.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_log_lin_quantile.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_lq.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_map.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_multi_class_one_vs_all.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_pair_logit.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_poisson.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_quantile.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_query_rmse.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_query_soft_max.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_rmse.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_per_object.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\train_one_iter_user_querywise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\tree_print.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\yetirank_helpers.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\apply.h"/>
@@ -129,8 +115,10 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
@@ -145,7 +133,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\projection.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_bin.h"/>
@@ -154,7 +141,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tensor_search_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\train_templ.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\tree_print.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\yetirank_helpers.h"/>
   </ItemGroup>
@@ -175,9 +161,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
       <Project>{5030F53C-99A3-E919-89CF-5D8DD5FD3717}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
-      <Project>{262F6CF9-EB50-BD91-AC9B-1967CC6B84F7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
       <Project>{2C228BC9-6312-D2CC-3CFB-6F34BAB794C9}</Project>
@@ -227,8 +210,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>{37000E43-2347-88B9-F125-78F4CA4B2776}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
-      <Project>{6A09BF62-AFB5-75EC-A85E-C21BE08BF083}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
+      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
@@ -238,6 +221,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
       <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
+      <Project>{5B13F9C8-8762-C986-5C05-19D08B360E04}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
       <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>

@@ -12,8 +12,8 @@ namespace NCB {
     // represents index range to process: [Begin, End)
     template <class TSize>
     struct TIndexRange {
-        TSize Begin;
-        TSize End;
+        TSize Begin = 0;
+        TSize End = 0;
 
     public:
         // for BinSaver

@@ -75,7 +75,11 @@ namespace {
                     out.Write(&ru, sizeof(ru));
                 }
 
-                Save(&out, GetUsername());
+                try {
+                    Save(&out, GetUsername());
+                } catch (...) {
+                    // May fail e.g. when sssd_be crashes.
+                }
 
                 {
                     ui32 store[12];

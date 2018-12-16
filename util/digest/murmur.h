@@ -17,12 +17,12 @@ namespace NMurmurPrivate {
     template <unsigned N>
     struct TMurHelper;
 
-#define DEF_MUR(t)                                                                \
-    template <>                                                                   \
-    struct TMurHelper<t> {                                                        \
-        static inline ui##t MurmurHash(const void* buf, size_t len, ui##t init) { \
-            return MurmurHash##t(buf, len, init);                                 \
-        }                                                                         \
+#define DEF_MUR(t)                                                                         \
+    template <>                                                                            \
+    struct TMurHelper<t> {                                                                 \
+        static inline ui##t MurmurHash(const void* buf, size_t len, ui##t init) noexcept { \
+            return MurmurHash##t(buf, len, init);                                          \
+        }                                                                                  \
     };
 
     DEF_MUR(32)
@@ -32,26 +32,26 @@ namespace NMurmurPrivate {
 }
 
 template <class T>
-static inline T MurmurHash(const void* buf, size_t len, T init) {
+static inline T MurmurHash(const void* buf, size_t len, T init) noexcept {
     return (T)NMurmurPrivate::TMurHelper<8 * sizeof(T)>::MurmurHash(buf, len, init);
 }
 
 template <class T>
-static inline T MurmurHash(const void* buf, size_t len) {
+static inline T MurmurHash(const void* buf, size_t len) noexcept {
     return MurmurHash<T>(buf, len, (T)0);
 }
 
 //non-inline version
-size_t MurmurHashSizeT(const char* buf, size_t len);
+size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
 
 template <typename TOut = size_t>
 struct TMurmurHash {
-    TOut operator()(const void* buf, size_t len) const {
+    TOut operator()(const void* buf, size_t len) const noexcept {
         return MurmurHash<TOut>(buf, len);
     }
 
     template <typename ElementType>
-    TOut operator()(const TArrayRef<ElementType>& data) const {
+    TOut operator()(const TArrayRef<ElementType>& data) const noexcept {
         return operator()(data.data(), data.size() * sizeof(ElementType));
     }
 };

@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(TBZipTest) {
         TUnbufferedFileOutput o(ZDATA);
         TBZipCompress c(&o);
 
-        c.Write(~data, +data);
+        c.Write(data.data(), data.size());
         c.Finish();
         o.Finish();
     }

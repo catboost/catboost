@@ -132,20 +132,30 @@ namespace {
     };
 }
 
+template <typename K, typename V, typename TMapping>
+static void SegmentedRadixSortImpl(
+    TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,
+    TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,
+    const TCudaBuffer<ui32, TMapping>& offsets, ui32 partCount,
+    ui32 fistBit, ui32 lastBit,
+    bool compareGreater, ui64 stream)
+{
+    using TKernel = TSegmentedRadixSortKernel<K, V>;
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, offsets, partCount, compareGreater, fistBit, lastBit);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                                                                          \
-    template <>                                                                                                                                         \
-    void SegmentedRadixSort<K, V, TMapping>(                                                                                                            \
-        TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,                                                                               \
-        TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,                                                                         \
-        const TCudaBuffer<ui32, TMapping>& offsets, ui32 partCount,                                                                                     \
-        ui32 fistBit, ui32 lastBit,                                                                                                                     \
-        bool compareGreater, ui64 stream)                                                                                                               \
-    {                                                                                                                                                   \
-        using TKernel = TSegmentedRadixSortKernel<K, V>;                                                                                                \
-        LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, offsets, partCount, compareGreater, fistBit, lastBit); \
+#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                                                    \
+    template <>                                                                                                                   \
+    void SegmentedRadixSort<K, V, TMapping>(                                                                                      \
+        TCudaBuffer<K, TMapping> & keys, TCudaBuffer<V, TMapping> & values,                                                       \
+        TCudaBuffer<K, TMapping> & tmpKeys, TCudaBuffer<V, TMapping> & tmpValues,                                                 \
+        const TCudaBuffer<ui32, TMapping>& offsets, ui32 partCount,                                                               \
+        ui32 fistBit, ui32 lastBit,                                                                                               \
+        bool compareGreater, ui64 stream) {                                                                                       \
+        ::SegmentedRadixSortImpl(keys, values, tmpKeys, tmpValues, offsets, partCount, fistBit, lastBit, compareGreater, stream); \
     }
 
 Y_MAP_ARGS(
@@ -158,23 +168,34 @@ Y_MAP_ARGS(
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
 // SegmentedRadixSort
+template <typename K, typename V, typename TMapping>
+static void SegmentedRadixSortImpl(
+    TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,
+    TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,
+    const TCudaBuffer<ui32, TMapping>& segmentStarts,
+    const TCudaBuffer<ui32, TMapping>& segmentEnds,
+    ui32 partCount,
+    ui32 fistBit, ui32 lastBit,
+    bool compareGreater, ui64 stream)
+{
+    using TKernel = TSegmentedRadixSortKernel<K, V>;
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, segmentStarts, segmentEnds, partCount, compareGreater, fistBit, lastBit);
+}
 
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                                                                                             \
-    template <>                                                                                                                                                            \
-    void SegmentedRadixSort<K, V, TMapping>(                                                                                                                               \
-        TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,                                                                                                  \
-        TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,                                                                                            \
-        const TCudaBuffer<ui32, TMapping>& segmentStarts,                                                                                                                  \
-        const TCudaBuffer<ui32, TMapping>& segmentEnds,                                                                                                                    \
-        ui32 partCount,                                                                                                                                                    \
-        ui32 fistBit, ui32 lastBit,                                                                                                                                        \
-        bool compareGreater, ui64 stream)                                                                                                                                  \
-    {                                                                                                                                                                      \
-        using TKernel = TSegmentedRadixSortKernel<K, V>;                                                                                                                   \
-        LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, segmentStarts, segmentEnds, partCount, compareGreater, fistBit, lastBit); \
+#define Y_CATBOOST_CUDA_F_IMPL(K, V, TMapping)                                                                                                       \
+    template <>                                                                                                                                      \
+    void SegmentedRadixSort<K, V, TMapping>(                                                                                                         \
+        TCudaBuffer<K, TMapping> & keys, TCudaBuffer<V, TMapping> & values,                                                                          \
+        TCudaBuffer<K, TMapping> & tmpKeys, TCudaBuffer<V, TMapping> & tmpValues,                                                                    \
+        const TCudaBuffer<ui32, TMapping>& segmentStarts,                                                                                            \
+        const TCudaBuffer<ui32, TMapping>& segmentEnds,                                                                                              \
+        ui32 partCount,                                                                                                                              \
+        ui32 fistBit, ui32 lastBit,                                                                                                                  \
+        bool compareGreater, ui64 stream) {                                                                                                          \
+        ::SegmentedRadixSortImpl(keys, values, tmpKeys, tmpValues, segmentStarts, segmentEnds, partCount, fistBit, lastBit, compareGreater, stream); \
     }
 
 Y_MAP_ARGS(

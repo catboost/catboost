@@ -127,8 +127,8 @@ void GetTotalPositiveStats(
 
 TMetricHolder GetAccuracy(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
         int begin,
         int end,
         double border

@@ -2,102 +2,90 @@
 
 #include "projection.h"
 
-#include <catboost/libs/data/dataset.h>
+#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/helpers/clear_array.h>
 
 #include <library/containers/dense_hash/dense_hash.h>
 
+#include <util/generic/utility.h>
+
+
 /// Calculate document hashes into range [begin,end) for CTR bucket identification.
 /// @param proj - Projection delivering the feature ids to hash
-/// @param allFeatures - Values of features to hash
-/// @param offset - Begin from this offset when accessing `allFeatures`
-/// @param learnPermutation - Use this permutation when accessing `allFeatures`
-/// @param calculateExactCatHashes - Hash original cat features (true) or one-hot-encoded (false)
+/// @param objectsDataProvider - Values of features to hash
+/// @param featuresSubsetIndexing - Use these indices when accessing raw arrays data
+/// @param perfectHashedToHashedCatValuesMap - if not nullptr use it to Hash original hashed cat values
+//                                             if nullptr - used perfectHashed values
 /// @param begin, @param end - Result range
 inline void CalcHashes(const TProjection& proj,
-                       const TAllFeatures& allFeatures,
-                       size_t offset,
-                       const TVector<ui32>* learnPermutation,
-                       bool calculateExactCatHashes,
+                       const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+                       const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
+                       const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
                        ui64* begin,
                        ui64* end) {
     const size_t sampleCount = end - begin;
+    Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);
     if (sampleCount == 0) {
         return;
     }
-    if (learnPermutation != nullptr) {
-        Y_VERIFY(offset == 0);
-        Y_VERIFY(sampleCount == learnPermutation->size());
-    }
 
     ui64* hashArr = begin;
-    if (calculateExactCatHashes) {
-        TVector<int> exactValues;
+    if (perfectHashedToHashedCatValuesMap) {
         for (const int featureIdx : proj.CatFeatures) {
-            const int* featureValues = offset + allFeatures.CatFeaturesRemapped[featureIdx].data();
-            // Calculate hashes for model CTR table
-            exactValues.resize(sampleCount);
-            auto& ohv = allFeatures.OneHotValues[featureIdx];
-            for (size_t i = 0; i < sampleCount; ++i) {
-                exactValues[i] = ohv[featureValues[i]];
-            }
-            if (learnPermutation != nullptr) {
-                const auto& perm = *learnPermutation;
-                for (size_t i = 0; i < sampleCount; ++i) {
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)exactValues[perm[i]]);
+            const auto& ohv = (*perfectHashedToHashedCatValuesMap)[featureIdx];
+
+            NCB::SubsetWithAlternativeIndexing(
+                objectsDataProvider.GetCatFeature((ui32)featureIdx),
+                &featuresSubsetIndexing
+            ).ForEach(
+                [hashArr, &ohv] (ui32 i, ui32 featureValue) {
+                    hashArr[i] = CalcHash(hashArr[i], (ui64)(int)ohv[featureValue]);
                 }
-            } else {
-                for (size_t i = 0; i < sampleCount; ++i) {
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)exactValues[i]);
-                }
-            }
+            );
         }
     } else {
         for (const int featureIdx : proj.CatFeatures) {
-            const int* featureValues = offset + allFeatures.CatFeaturesRemapped[featureIdx].data();
-            if (learnPermutation != nullptr) {
-                const auto& perm = *learnPermutation;
-                for (size_t i = 0; i < sampleCount; ++i) {
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[perm[i]] + 1);
+            NCB::SubsetWithAlternativeIndexing(
+                objectsDataProvider.GetCatFeature((ui32)featureIdx),
+                &featuresSubsetIndexing
+            ).ForEach(
+                [hashArr] (ui32 i, ui32 featureValue) {
+                    hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
                 }
-            } else {
-                for (size_t i = 0; i < sampleCount; ++i) {
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)featureValues[i] + 1);
-                }
-            }
+            );
         }
     }
 
     for (const TBinFeature& feature : proj.BinFeatures) {
-        const ui8* featureValues = offset + allFeatures.FloatHistograms[feature.FloatFeature].data();
-        if (learnPermutation != nullptr) {
-            const auto& perm = *learnPermutation;
-            for (size_t i = 0; i < sampleCount; ++i) {
-                const bool isTrueFeature = IsTrueHistogram(featureValues[perm[i]], feature.SplitIdx);
+        NCB::SubsetWithAlternativeIndexing(
+            objectsDataProvider.GetFloatFeature((ui32)feature.FloatFeature),
+            &featuresSubsetIndexing
+        ).ForEach(
+            [feature, hashArr] (ui32 i, ui8 featureValue) {
+                const bool isTrueFeature = IsTrueHistogram(featureValue, (ui8)feature.SplitIdx);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
             }
-        } else {
-            for (size_t i = 0; i < sampleCount; ++i) {
-                const bool isTrueFeature = IsTrueHistogram(featureValues[i], feature.SplitIdx);
-                hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-            }
-        }
+        );
     }
 
+    const auto& quantizedFeaturesInfo = *objectsDataProvider.GetQuantizedFeaturesInfo();
+
     for (const TOneHotSplit& feature : proj.OneHotFeatures) {
-        const int* featureValues = offset + allFeatures.CatFeaturesRemapped[feature.CatFeatureIdx].data();
-        if (learnPermutation != nullptr) {
-            const auto& perm = *learnPermutation;
-            for (size_t i = 0; i < sampleCount; ++i) {
-                const bool isTrueFeature = IsTrueOneHotFeature(featureValues[perm[i]], feature.Value);
+        auto catFeatureIdx = NCB::TCatFeatureIdx((ui32)feature.CatFeatureIdx);
+        const auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(
+            catFeatureIdx
+        );
+        const ui32 maxBin = uniqueValuesCounts.OnLearnOnly;
+
+        NCB::SubsetWithAlternativeIndexing(
+            objectsDataProvider.GetCatFeature(*catFeatureIdx),
+            &featuresSubsetIndexing
+        ).ForEach(
+            [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
+                const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
             }
-        } else {
-            for (size_t i = 0; i < sampleCount; ++i) {
-                const bool isTrueFeature = IsTrueOneHotFeature(featureValues[i], feature.Value);
-                hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-            }
-        }
+        );
     }
 }
 

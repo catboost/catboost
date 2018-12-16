@@ -3,6 +3,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 
 #include <algorithm>
@@ -49,15 +50,15 @@ inline TMinMax<T> CalcMinMax(TForwardIterator begin, TForwardIterator end) {
 }
 
 template <typename T>
-inline TMinMax<T> CalcMinMax(const TVector<T>& v) {
-    return CalcMinMax(v.begin(), v.end());
+inline TMinMax<T> CalcMinMax(TConstArrayRef<T> array) {
+    return CalcMinMax(array.begin(), array.end());
 }
 
-inline bool IsConst(const TVector<float>& values) {
-    if (values.empty()) {
+inline bool IsConst(TConstArrayRef<float> array) {
+    if (array.empty()) {
         return true;
     }
-    auto bounds = CalcMinMax(values);
+    auto bounds = CalcMinMax(array);
     return bounds.Min == bounds.Max;
 }
 
@@ -69,10 +70,19 @@ inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
     }
 }
 
-template <class T>
-void Assign(TConstArrayRef<T> arrayRef, TVector<T>* v) {
+template <class T1, class T2>
+void Assign(TConstArrayRef<T1> arrayRef, TVector<T2>* v) {
     v->assign(arrayRef.begin(), arrayRef.end());
 }
+
+template <class T1, class T2>
+inline void AssignRank2(TConstArrayRef<TConstArrayRef<T1>> src, TVector<TVector<T2>>* dst) {
+    dst->resize(src.size());
+    for (auto dim1 : xrange(src.size())) {
+        Assign(src[dim1], &((*dst)[dim1]));
+    }
+}
+
 
 template <class T>
 bool Equal(TConstArrayRef<T> arrayRef, const TVector<T>& v) {
@@ -88,4 +98,14 @@ bool ApproximatelyEqual(TConstArrayRef<T> lhs, TConstArrayRef<T> rhs, const T ep
         rhs.end(),
         [eps](T lElement, T rElement) { return Abs(lElement - rElement) < eps; }
     );
+}
+
+template <class T>
+inline bool AreEqualTo(TConstArrayRef<T> entries, const T& value) {
+    for (const auto& entry : entries) {
+        if (entry != value) {
+            return false;
+        }
+    }
+    return true;
 }

@@ -617,7 +617,10 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     // TComparisonFunc must accept two TTargetDataProviders and check their equality
     void TestGetSubsets(
         const TVector<TTargetDataProviders>& targetsVector,
-        const TVector<TTargetDataProviders>& expectedSecondSubsets
+        const TVector<TTargetDataProviders>& expectedSecondSubsets,
+
+        // nondefault values used for checking TObjectsGroupingSubset with permutations inside group
+        TMaybe<TObjectsGroupingSubset> secondObjectsGroupingSubset = Nothing()
     ) {
         TVector<TArraySubsetIndexing<ui32>> subsetVector;
         TVector<EObjectsOrder> subsetOrdersVector;
@@ -638,14 +641,17 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
 
         for (auto targetVectorIdx : xrange(targetsVector.size())) {
             for (auto subsetIdx : xrange(subsetVector.size())) {
-                TObjectsGroupingSubset objectsGroupingSubset = GetSubset(
-                    /* get object grouping from the first element of targetsVector[targetVectorIdx],
-                        they all should be equal in all vector elements
-                    */
-                    targetsVector[targetVectorIdx].begin()->second->GetObjectsGrouping(),
-                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
-                    subsetOrdersVector[subsetIdx]
-                );
+                TObjectsGroupingSubset objectsGroupingSubset =
+                    ((subsetIdx == 1) && secondObjectsGroupingSubset) ?
+                    std::move(*secondObjectsGroupingSubset)
+                    : GetSubset(
+                        /* get object grouping from the first element of targetsVector[targetVectorIdx],
+                            they all should be equal in all vector elements
+                        */
+                        targetsVector[targetVectorIdx].begin()->second->GetObjectsGrouping(),
+                        TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
+                        subsetOrdersVector[subsetIdx]
+                    );
 
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);
@@ -667,7 +673,10 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     template <class TTarget>
     void TestGetSubset(
         const TVector<TTarget>& targetVector,
-        const TVector<TTarget>& expectedSecondSubsets
+        const TVector<TTarget>& expectedSecondSubsets,
+
+        // nondefault values used for checking TObjectsGroupingSubset with permutations inside group
+        TMaybe<TObjectsGroupingSubset> secondObjectsGroupingSubset = Nothing()
     ) {
         // converts to TestGetSubsets format
         TVector<TTargetDataProviders> targetVector2;
@@ -688,7 +697,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             );
         }
 
-        TestGetSubsets(targetVector2, expectedSecondSubsets2);
+        TestGetSubsets(targetVector2, expectedSecondSubsets2, std::move(secondObjectsGroupingSubset));
     }
 
 
@@ -748,18 +757,22 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             TMultiClassTarget(
                 "",
                 MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                /*classCount*/ui32(2),
                 /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
                 /*weights*/ Share(TWeights<float>(6)),
-                /*baseline*/ {}
+                /*baseline*/ {},
+                /*isForGpu*/ false
             )
         );
         expectedSecondSubsets.push_back(
             TMultiClassTarget(
                 "",
                 MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                /*classCount*/ui32(2),
                 /*target*/ ShareVector<float>({1.0f, 0.0f}),
                 /*weights*/ Share(TWeights<float>(2)),
-                /*baseline*/ {}
+                /*baseline*/ {},
+                /*isForGpu*/ false
             )
         );
 
@@ -767,21 +780,25 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             TMultiClassTarget(
                 "",
                 MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                /*classCount*/ ui32(2),
                 /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
                 /*weights*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})),
                 /*baseline*/ {
                     ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f}),
                     ShareVector<float>({1.0f, 2.1f, 1.3f, 2.2f, 3.3f, 4.7f})
-                }
+                },
+                /*isForGpu*/ false
             )
         );
         expectedSecondSubsets.push_back(
             TMultiClassTarget(
                 "",
                 MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                /*classCount*/ ui32(2),
                 /*target*/ ShareVector<float>({1.0f, 0.0f}),
                 /*weights*/ Share(TWeights<float>({2.0f, 3.0f})),
-                /*baseline*/ {ShareVector<float>({0.3f, 0.2f}), ShareVector<float>({1.3f, 2.2f})}
+                /*baseline*/ {ShareVector<float>({0.3f, 0.2f}), ShareVector<float>({1.3f, 2.2f})},
+                /*isForGpu*/ false
             )
         );
 
@@ -1052,6 +1069,135 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         );
     }
 
+    Y_UNIT_TEST(TGroupPairwiseRankingTarget_GetSubsetWithShuffle) {
+        TVector<TGroupPairwiseRankingTarget> targetVector;
+        TVector<TGroupPairwiseRankingTarget> expectedSecondSubsets;
+
+        {
+            TVector<TQueryInfo> groupInfo(6);
+
+            groupInfo[0].Begin = 0;
+            groupInfo[0].End = 1;
+            groupInfo[0].Weight = 2.0f;
+            groupInfo[0].SubgroupId = {0};
+
+            groupInfo[1].Begin = 1;
+            groupInfo[1].End = 2;
+            groupInfo[1].Weight = 1.0f;
+            groupInfo[1].SubgroupId = {1};
+
+            groupInfo[2].Begin = 2;
+            groupInfo[2].End = 6;
+            groupInfo[2].Weight = 3.0f;
+            groupInfo[2].SubgroupId = {2, 2, 3, 3};
+            groupInfo[2].Competitors = {
+                { TCompetitor(1, 1.0f) },
+                { TCompetitor(2, 1.0f), TCompetitor(3, 3.0f) },
+                { TCompetitor(1, 2.0f) },
+                {}
+            };
+
+            groupInfo[3].Begin = 6;
+            groupInfo[3].End = 7;
+            groupInfo[3].Weight = 2.0f;
+            groupInfo[3].SubgroupId = {0};
+
+            groupInfo[4].Begin = 7;
+            groupInfo[4].End = 9;
+            groupInfo[4].Weight = 2.2f;
+            groupInfo[4].SubgroupId = {0, 1};
+            groupInfo[4].Competitors = {
+                { TCompetitor(1, 1.0f) },
+                {}
+            };
+
+            groupInfo[5].Begin = 9;
+            groupInfo[5].End = 11;
+            groupInfo[5].Weight = 1.3f;
+            groupInfo[5].SubgroupId = {0, 0};
+
+
+            targetVector.push_back(
+                TGroupPairwiseRankingTarget(
+                    "",
+                    MakeIntrusive<TObjectsGrouping>(
+                        TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 6}, {6, 7}, {7, 9}, {9, 11}}
+                    ),
+                    /*baseline*/ ShareVector<float>(
+                        {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f, 0.0f, 1.0f}
+                    ),
+                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                )
+            );
+        }
+
+        {
+            TVector<TQueryInfo> groupInfo(6);
+
+            groupInfo[0].Begin = 0;
+            groupInfo[0].End = 4;
+            groupInfo[0].Weight = 3.0f;
+            groupInfo[0].SubgroupId = {3, 2, 2, 3};
+            groupInfo[0].Competitors = {
+                {},
+                { TCompetitor(2, 1.0f) },
+                { TCompetitor(3, 1.0f), TCompetitor(0, 3.0f) },
+                { TCompetitor(2, 2.0f) }
+            };
+
+            groupInfo[1].Begin = 4;
+            groupInfo[1].End = 6;
+            groupInfo[1].Weight = 2.2f;
+            groupInfo[1].SubgroupId = {1, 0};
+            groupInfo[1].Competitors = {
+                {},
+                { TCompetitor(0, 1.0f) }
+            };
+
+            groupInfo[2].Begin = 6;
+            groupInfo[2].End = 8;
+            groupInfo[2].Weight = 1.3f;
+            groupInfo[2].SubgroupId = {0, 0};
+
+            groupInfo[3].Begin = 8;
+            groupInfo[3].End = 9;
+            groupInfo[3].Weight = 2.0f;
+            groupInfo[3].SubgroupId = {0};
+
+            groupInfo[4].Begin = 9;
+            groupInfo[4].End = 10;
+            groupInfo[4].Weight = 2.0f;
+            groupInfo[4].SubgroupId = {0};
+
+            groupInfo[5].Begin = 10;
+            groupInfo[5].End = 11;
+            groupInfo[5].Weight = 1.0f;
+            groupInfo[5].SubgroupId = {1};
+
+
+            expectedSecondSubsets.push_back(
+                TGroupPairwiseRankingTarget(
+                    "",
+                    MakeIntrusive<TObjectsGrouping>(
+                        TVector<TGroupBounds>{{0, 4}, {4, 6}, {6, 8}, {8, 9}, {9, 10}, {10, 11}}
+                    ),
+                    /*baseline*/ ShareVector<float>(
+                        {0.8f, 0.3f, 0.2f, 0.35f, 0.87f, 0.67f, 0.0f, 1.0f, 0.0f, 0.12f, 0.1f}
+                    ),
+                    ShareVector<TQueryInfo>(std::move(groupInfo))
+                )
+            );
+        }
+
+        TRestorableFastRng64 rand(0);
+
+        TestGetSubset(
+            targetVector,
+            expectedSecondSubsets,
+            Shuffle(targetVector.back().GetObjectsGrouping(), 1, &rand)
+        );
+    }
+
 
 
     TWeights<float> CreateWeights() {
@@ -1196,9 +1342,11 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             MakeIntrusive<TMultiClassTarget>(
                 "",
                 objectsGrouping,
+                /*classCount*/ ui32(2),
                 targets,
                 weights,
-                TVector<TSharedVector<float>>(baselines)
+                TVector<TSharedVector<float>>(baselines),
+                /*isForGpu*/ false
             )
         );
         expectedSubsetTargetDataProviders->emplace(
@@ -1206,9 +1354,11 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             MakeIntrusive<TMultiClassTarget>(
                 "",
                 expectedSubsetObjectsGrouping,
+                /*classCount*/ ui32(2),
                 expectedSubsetTargets,
                 expectedSubsetWeights,
-                TVector<TSharedVector<float>>(expectedSubsetBaselines)
+                TVector<TSharedVector<float>>(expectedSubsetBaselines),
+                /*isForGpu*/ false
             )
         );
 

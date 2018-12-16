@@ -31,7 +31,7 @@ char* HexEncode(const void* in, size_t len, char* out);
 TString HexEncode(const void* in, size_t len);
 
 inline TString HexEncode(const TStringBuf h) {
-    return HexEncode(~h, +h);
+    return HexEncode(h.data(), h.size());
 }
 
 //! Convert a hex string @c in of @c len chars (case-insensitive) to array of ints stored at @c ptr and return this array.
@@ -55,5 +55,5 @@ TString HexDecode(const void* in, size_t len);
 
 //! Convert an ASCII hex-string (case-insensitive) to the binary form. Note that h.Size() must be even (+h % 2 == 0).
 inline TString HexDecode(const TStringBuf h) {
-    return HexDecode(~h, +h);
+    return HexDecode(h.data(), h.size());
 }

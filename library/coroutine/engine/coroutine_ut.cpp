@@ -519,7 +519,7 @@ namespace NCoroWaitWakeLivelockBug {
         TState state;
 
         for (auto& subState : state.Subs) {
-            subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
+            subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data())->ContPtr();
         }
 
         cont->Join(
@@ -610,7 +610,7 @@ namespace NCoroTestFastPathWake {
 
             // These guys are to be woken up right away
             for (auto& subState : state.Subs) {
-                subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
+                subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data())->ContPtr();
             }
 
             // Give way

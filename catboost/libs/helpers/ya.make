@@ -4,13 +4,11 @@ LIBRARY()
 
 SRCS(
     array_subset.cpp
-    binarize_target.cpp
     checksum.cpp
     clear_array.cpp
     compare.cpp
     compression.cpp
     cpu_random.cpp
-    data_split.cpp
     dbg_output.cpp
     dense_hash.cpp
     dense_hash_view.cpp

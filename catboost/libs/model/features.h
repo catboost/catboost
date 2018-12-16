@@ -75,11 +75,6 @@ inline TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
     return result;
 }
 
-TVector<TFloatFeature> CreateFloatFeatures(
-    size_t allFeaturesCount,
-    const THashSet<int>& catFeatures,
-    const TVector<TString>& featureIds);
-
 struct TCatFeature {
     bool UsedInModel = true;
     int FeatureIndex = -1;

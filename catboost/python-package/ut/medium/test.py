@@ -32,7 +32,9 @@ from catboost_pytest_lib import (
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
-    test_output_path,)
+    test_output_path,
+    generate_random_labeled_set
+)
 
 if sys.version_info.major == 2:
     import cPickle as pickle
@@ -79,6 +81,7 @@ OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 OUTPUT_JSON_MODEL_PATH = 'model.json'
 PREDS_PATH = 'predictions.npy'
+PREDS_TXT_PATH = 'predictions.txt'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
@@ -109,10 +112,12 @@ def compare_canonical_models(model, diff_limit=0):
 
 
 def map_cat_features(data, cat_features):
-    for i in range(len(data)):
-        for j in cat_features:
-            data[i][j] = str(data[i][j])
-    return data
+    result = []
+    for i in range(data.shape[0]):
+        result.append([])
+        for j in range(data.shape[1]):
+            result[i].append(str(data[i, j]) if j in cat_features else data[i, j])
+    return result
 
 
 def _check_shape(pool, object_count, features_count):
@@ -146,19 +151,15 @@ def _generate_nontrivial_binary_target(num):
     return y
 
 
+def _generate_random_target(num):
+    return np.random.random((num,))
+
+
 def set_random_weight(pool):
     np.random.seed(pool.num_row())
     pool.set_weight(np.random.random(pool.num_row()))
     if pool.num_pairs() > 0:
         pool.set_pairs_weight(np.random.random(pool.num_pairs()))
-
-
-def set_random_target(pool):
-    pool._set_label(np.random.random((pool.num_row(), )))
-
-
-def set_random_target_01(pool):
-    pool._set_label(_generate_nontrivial_binary_target(pool.num_row()))
 
 
 def verify_finite(result):
@@ -170,6 +171,13 @@ def verify_finite(result):
 
 def append_param(metric_name, param):
     return metric_name + (':' if ':' not in metric_name else ';') + param
+
+
+# returns (features DataFrame, cat_feature_indices)
+def load_pool_features_as_df(pool_file, cd_file, target_idx):
+    data = read_table(pool_file, header=None, dtype=str)
+    data.drop([target_idx], axis=1, inplace=True)
+    return (data, Pool(pool_file, column_description=cd_file).get_cat_feature_indices())
 
 # Test cases begin here ########################################################
 
@@ -194,37 +202,34 @@ def test_load_ndarray():
     assert _check_shape(Pool(data, label, cat_features), 101, 17)
 
 
-def test_load_df():
-    pool = Pool(NAN_TRAIN_FILE, column_description=NAN_CD_FILE)
-    data = read_table(NAN_TRAIN_FILE, header=None)
-    label = DataFrame(data.iloc[:, TARGET_IDX])
-    data.drop([TARGET_IDX], axis=1, inplace=True)
-    cat_features = pool.get_cat_feature_indices()
-    pool2 = Pool(data, label, cat_features)
-    assert _check_data(pool.get_features(), pool2.get_features())
-    assert _check_data(pool.get_label(), pool2.get_label())
+@pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise'])
+def test_load_df_vs_load_from_file(dataset):
+    train_file, cd_file, target_idx, other_non_feature_columns = {
+        'adult': (TRAIN_FILE, CD_FILE, TARGET_IDX, []),
+        'adult_nan': (NAN_TRAIN_FILE, NAN_CD_FILE, TARGET_IDX, []),
+        'querywise': (QUERYWISE_TRAIN_FILE, QUERYWISE_CD_FILE, 2, [0, 1, 3, 4])
+    }[dataset]
 
-
-def test_load_df_vs_load_from_file():
-    pool1 = Pool(TRAIN_FILE, column_description=CD_FILE)
-    data = read_table(TRAIN_FILE, header=None, dtype=str)
-    label = DataFrame(data.iloc[:, TARGET_IDX])
-    data.drop([TARGET_IDX], axis=1, inplace=True)
+    pool1 = Pool(train_file, column_description=cd_file)
+    data = read_table(train_file, header=None)
+    labels = DataFrame(data.iloc[:, target_idx], dtype=np.float32)
+    data.drop([target_idx] + other_non_feature_columns, axis=1, inplace=True)
     cat_features = pool1.get_cat_feature_indices()
-    pool2 = Pool(np.array(data), label, cat_features)
-    assert pool1 == pool2
+    pool2 = Pool(data, labels, cat_features)
+    assert _check_data(pool1.get_features(), pool2.get_features())
+    assert _check_data([float(label) for label in pool1.get_label()], pool2.get_label())
 
 
 def test_load_series():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     data = read_table(TRAIN_FILE, header=None)
-    label = Series(data.iloc[:, TARGET_IDX])
+    labels = Series(data.iloc[:, TARGET_IDX])
     data.drop([TARGET_IDX], axis=1, inplace=True)
     data = Series(list(data.values))
     cat_features = pool.get_cat_feature_indices()
-    pool2 = Pool(data, label, cat_features)
+    pool2 = Pool(data, labels, cat_features)
     assert _check_data(pool.get_features(), pool2.get_features())
-    assert _check_data(pool.get_label(), pool2.get_label())
+    assert [int(label) for label in pool.get_label()] == pool2.get_label()
 
 
 def test_pool_cat_features():
@@ -244,29 +249,29 @@ def test_load_generated():
 def test_load_dumps():
     pool_size = (100, 10)
     data = np.random.randint(10, size=pool_size)
-    label = _generate_nontrivial_binary_target(pool_size[0])
-    pool1 = Pool(data, label)
+    labels = _generate_nontrivial_binary_target(pool_size[0])
+    pool1 = Pool(data, labels)
     lines = []
     for i in range(len(data)):
-        line = [str(label[i])] + [str(x) for x in data[i]]
+        line = [str(labels[i])] + [str(x) for x in data[i]]
         lines.append('\t'.join(line))
     text = '\n'.join(lines)
     with open('test_data_dumps', 'w') as f:
         f.write(text)
     pool2 = Pool('test_data_dumps')
     assert _check_data(pool1.get_features(), pool2.get_features())
-    assert _check_data(pool1.get_label(), pool2.get_label())
+    assert pool1.get_label() == [int(label) for label in pool2.get_label()]
 
 
 # feature_matrix is (doc_count x feature_count)
-def get_features_data_from_matrix(feature_matrix, cat_feature_indices):
+def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'):
     object_count = len(feature_matrix)
     feature_count = len(feature_matrix[0])
     cat_feature_count = len(cat_feature_indices)
     num_feature_count = feature_count - cat_feature_count
 
-    result_num = np.empty((object_count, num_feature_count), dtype=np.float32)
-    result_cat = np.empty((object_count, cat_feature_count), dtype=object)
+    result_num = np.empty((object_count, num_feature_count), dtype=np.float32, order=order)
+    result_cat = np.empty((object_count, cat_feature_count), dtype=object, order=order)
 
     for object_idx in xrange(object_count):
         num_feature_idx = 0
@@ -287,10 +292,10 @@ def get_features_data_from_matrix(feature_matrix, cat_feature_indices):
     return FeaturesData(num_feature_data=result_num, cat_feature_data=result_cat)
 
 
-def get_features_data_from_file(data_file, drop_columns, cat_feature_indices):
+def get_features_data_from_file(data_file, drop_columns, cat_feature_indices, order='C'):
     data_matrix_from_file = read_table(data_file, header=None, dtype=str)
     data_matrix_from_file.drop(drop_columns, axis=1, inplace=True)
-    return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices)
+    return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices, order)
 
 
 def compare_flat_index_and_features_data_pools(flat_index_pool, features_data_pool):
@@ -325,13 +330,15 @@ def compare_flat_index_and_features_data_pools(flat_index_pool, features_data_po
                 num_feature_idx += 1
 
 
-def test_from_features_data_vs_load_from_files():
+@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
+def test_from_features_data_vs_load_from_files(order):
     pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
 
     features_data = get_features_data_from_file(
         data_file=TRAIN_FILE,
         drop_columns=[TARGET_IDX],
-        cat_feature_indices=pool_from_files.get_cat_feature_indices()
+        cat_feature_indices=pool_from_files.get_cat_feature_indices(),
+        order=order
     )
     pool_from_features_data = Pool(data=features_data)
 
@@ -416,10 +423,11 @@ def compare_pools_from_features_data_and_generic_matrix(
     assert pool1.get_feature_names() == pool2.get_feature_names()
 
 
-def test_features_data_good():
+@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
+def test_features_data_good(order):
     # 0 objects
     compare_pools_from_features_data_and_generic_matrix(
-        FeaturesData(cat_feature_data=np.empty((0, 4), dtype=object)),
+        FeaturesData(cat_feature_data=np.empty((0, 4), dtype=object, order=order)),
         np.empty((0, 4), dtype=object),
         cat_features_indices=[0, 1, 2, 3]
     )
@@ -427,9 +435,9 @@ def test_features_data_good():
     # 0 objects
     compare_pools_from_features_data_and_generic_matrix(
         FeaturesData(
-            cat_feature_data=np.empty((0, 2), dtype=object),
+            cat_feature_data=np.empty((0, 2), dtype=object, order=order),
             cat_feature_names=['cat0', 'cat1'],
-            num_feature_data=np.empty((0, 3), dtype=np.float32),
+            num_feature_data=np.empty((0, 3), dtype=np.float32, order=order),
         ),
         np.empty((0, 5), dtype=object),
         cat_features_indices=[3, 4],
@@ -437,21 +445,25 @@ def test_features_data_good():
     )
 
     compare_pools_from_features_data_and_generic_matrix(
-        FeaturesData(cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object)),
+        FeaturesData(
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object, order=order)
+        ),
         [[b'amazon', b'bing'], [b'ebay', b'google']],
         cat_features_indices=[0, 1]
     )
 
     compare_pools_from_features_data_and_generic_matrix(
-        FeaturesData(num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32)),
+        FeaturesData(
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32, order=order)
+        ),
         [[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]],
         cat_features_indices=[]
     )
 
     compare_pools_from_features_data_and_generic_matrix(
         FeaturesData(
-            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
-            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32)
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object, order=order),
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32, order=order)
         ),
         [[1.0, 2.0, 3.0, b'amazon', b'bing'], [22.0, 7.1, 10.2, b'ebay', b'google']],
         cat_features_indices=[3, 4]
@@ -459,7 +471,7 @@ def test_features_data_good():
 
     compare_pools_from_features_data_and_generic_matrix(
         FeaturesData(
-            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object, order=order),
             cat_feature_names=['shop', 'search']
         ),
         [[b'amazon', b'bing'], [b'ebay', b'google']],
@@ -469,7 +481,7 @@ def test_features_data_good():
 
     compare_pools_from_features_data_and_generic_matrix(
         FeaturesData(
-            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32, order=order),
             num_feature_names=['weight', 'price', 'volume']
         ),
         [[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]],
@@ -479,9 +491,9 @@ def test_features_data_good():
 
     compare_pools_from_features_data_and_generic_matrix(
         FeaturesData(
-            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object, order=order),
             cat_feature_names=['shop', 'search'],
-            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32, order=order),
             num_feature_names=['weight', 'price', 'volume']
         ),
         [[1.0, 2.0, 3.0, b'amazon', b'bing'], [22.0, 7.1, 10.2, b'ebay', b'google']],
@@ -591,7 +603,6 @@ def test_predict_class_raw(task_type):
     return local_canonical_file(preds_path)
 
 
-@fails_on_gpu(how='model.get_test_eval() returns `bool`')
 def test_raw_predict_equals_to_model_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -599,7 +610,7 @@ def test_raw_predict_equals_to_model_predict(task_type):
     model.fit(train_pool, eval_set=test_pool)
     assert(model.is_fitted())
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
-    assert all(model.get_test_eval() == pred)
+    assert np.all(np.isclose(model.get_test_eval(), pred, rtol=1.e-6))
 
 
 def test_model_pickling(task_type):
@@ -626,7 +637,8 @@ def test_fit_from_file(task_type):
 
 
 @fails_on_gpu(how='assert 0.019921323750168085 < EPS, where 0.019921323750168085 = abs((0.03378972364589572 - 0.053711047396063805))')
-def test_fit_from_features_data(task_type):
+@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
+def test_fit_from_features_data(order, task_type):
     pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(pool_from_files)
@@ -636,7 +648,8 @@ def test_fit_from_features_data(task_type):
     features_data = get_features_data_from_file(
         data_file=TRAIN_FILE,
         drop_columns=[TARGET_IDX],
-        cat_feature_indices=pool_from_files.get_cat_feature_indices()
+        cat_feature_indices=pool_from_files.get_cat_feature_indices(),
+        order=order
     )
     model.fit(X=features_data, y=pool_from_files.get_label())
     predictions_from_features_data = model.predict(Pool(features_data))
@@ -871,7 +884,111 @@ def test_multiclass_classes_count_missed_classes(task_type):
     return local_canonical_file(preds_path)
 
 
-def test_querywise(task_type):
+@pytest.mark.parametrize('label_type', ['string', 'int'])
+def test_multiclass_custom_class_labels(label_type, task_type):
+    if label_type == 'int':
+        train_labels = [1, 2]
+    elif label_type == 'string':
+        train_labels = ['Class1', 'Class2']
+    np.random.seed(0)
+    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(train_labels, size=100))
+    test_pool = Pool(np.random.random(size=(50, 10)))
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(train_pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(test_pool)
+    classes = new_classifier.predict(test_pool)
+    assert pred.shape == (50, 2)
+    assert all(((class1 in train_labels) for class1 in classes))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
+def test_multiclass_custom_class_labels_from_files(task_type):
+    labels = ['a', 'b', 'c', 'd']
+
+    cd_path = test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(25, 10, labels), fmt='%s', delimiter='\t')
+
+    train_pool = Pool(train_path, column_description=cd_path)
+    test_pool = Pool(test_path, column_description=cd_path)
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(train_pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(test_pool)
+    classes = new_classifier.predict(test_pool)
+    assert pred.shape == (25, 4)
+    assert all(((class1 in labels) for class1 in classes))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
+def test_class_names(task_type):
+    class_names = ['Small', 'Medium', 'Large']
+
+    np.random.seed(0)
+    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(class_names, size=100))
+    test_pool = Pool(np.random.random(size=(25, 10)))
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=class_names,
+        thread_count=8,
+        task_type=task_type,
+        devices='0'
+    )
+    classifier.fit(train_pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(test_pool)
+    classes = new_classifier.predict(test_pool)
+    assert pred.shape == (25, 3)
+    assert all(((class1 in class_names) for class1 in classes))
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
+def test_inconsistent_labels_and_class_names():
+    class_names = ['Small', 'Medium', 'Large']
+
+    np.random.seed(0)
+    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([0, 1, 2], size=100))
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=class_names,
+    )
+    with pytest.raises(CatboostError):
+        classifier.fit(train_pool)
+
+
+@pytest.mark.parametrize(
+    'features_dtype',
+    ['str', 'np.float32'],
+    ids=['features_dtype=str', 'features_dtype=np.float32']
+)
+def test_querywise(features_dtype, task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost(params={'loss_function': 'QueryRMSE', 'iterations': 2, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
@@ -881,10 +998,10 @@ def test_querywise(task_type):
     df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_query_id = df.loc[:, 1]
     train_target = df.loc[:, 2]
-    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
     df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
-    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(eval(features_dtype))
 
     model.fit(train_data, train_target, group_id=train_query_id)
     pred2 = model.predict(test_data)
@@ -906,7 +1023,8 @@ def test_group_weight(task_type):
 
     df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_query_weight = df.loc[:, 0]
-    test_data = Pool(df.drop([0, 1, 2, 3, 4], axis=1).astype(str), group_weight=test_query_weight)
+    test_query_id = df.loc[:, 1]
+    test_data = Pool(df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32), group_id=test_query_id, group_weight=test_query_weight)
 
     model.fit(train_data, train_target, group_id=train_query_id, group_weight=train_query_weight)
     pred2 = model.predict(test_data)
@@ -975,10 +1093,10 @@ def test_py_data_group_id(task_type):
     train_df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     train_target = train_df.loc[:, 2]
     raw_train_group_id = train_df.loc[:, 1]
-    train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+    train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     test_df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
-    test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(str))
+    test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for group_id_func in (int, str, lambda id: 'myid_' + str(id)):
         train_group_id = [group_id_func(group_id) for group_id in raw_train_group_id]
@@ -1000,10 +1118,10 @@ def test_py_data_subgroup_id(task_type):
     train_group_id = train_df.loc[:, 1]
     raw_train_subgroup_id = train_df.loc[:, 4]
     train_target = train_df.loc[:, 2]
-    train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+    train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     test_df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
-    test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(str))
+    test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32))
 
     for subgroup_id_func in (int, str, lambda id: 'myid_' + str(id)):
         train_subgroup_id = [subgroup_id_func(subgroup_id) for subgroup_id in raw_train_subgroup_id]
@@ -1372,16 +1490,18 @@ def test_copy_model():
 
 
 def test_cv(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv(pool, {
-        "iterations": 5,
-        "learning_rate": 0.03,
-        "loss_function": "Logloss",
-        "eval_metric": "AUC",
-        "task_type": task_type,
-    })
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        },
+        iterations_batch_size=6
+    )
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
@@ -1392,10 +1512,12 @@ def test_cv(task_type):
 
 
 def test_cv_query(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type})
+    results = cv(
+        pool,
+        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type},
+        iterations_batch_size=6
+    )
     assert "train-QueryRMSE-mean" in results
 
     prev_value = results["train-QueryRMSE-mean"][0]
@@ -1406,10 +1528,40 @@ def test_cv_query(task_type):
 
 
 def test_cv_pairs(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 8, "loss_function": "PairLogit", "task_type": task_type})
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "random_seed": 8,
+            "loss_function": "PairLogit",
+            "task_type": task_type
+        },
+        iterations_batch_size=6
+    )
+    assert "train-PairLogit-mean" in results
+
+    prev_value = results["train-PairLogit-mean"][0]
+    for value in results["train-PairLogit-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_cv_pairs_generated(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 10,
+            "learning_rate": 0.03,
+            "random_seed": 8,
+            "loss_function": "PairLogit",
+            "task_type": task_type
+        },
+        iterations_batch_size=6
+    )
     assert "train-PairLogit-mean" in results
 
     prev_value = results["train-PairLogit-mean"][0]
@@ -1521,20 +1673,29 @@ def test_full_history(task_type):
 
 
 def test_cv_logging(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type})
+    cv(
+        pool,
+        {
+            "iterations": 14,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "task_type": task_type
+        },
+        iterations_batch_size=6
+    )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_cv_with_not_binarized_target(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
-    cv(pool, {"iterations": 5, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type})
+    cv(
+        pool,
+        {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+        iterations_batch_size=6
+    )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -1668,10 +1829,14 @@ def test_verbose_int(verbose, task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
-    if task_type != 'GPU':
-        with LogStdout(open(tmpfile, 'w')):
-            cv(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type}, verbose=verbose)
-        assert(_count_lines(tmpfile) == expected_line_count[verbose])
+    with LogStdout(open(tmpfile, 'w')):
+        cv(
+            pool,
+            {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
+            verbose=verbose,
+            iterations_batch_size=6
+        )
+    assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
     with LogStdout(open(tmpfile, 'w')):
         train(pool, {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type, "devices": '0'}, verbose=verbose)
@@ -2220,7 +2385,7 @@ Value_AcceptableAsEmpty = [
 class TestMissingValues(object):
 
     def assert_expected(self, pool):
-        assert str(pool.get_features()) == str([[1.0], [float('nan')]])
+        assert str(pool.get_features()) == str(np.array([[1.0], [float('nan')]]))
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', [(None, True)] + Value_AcceptableAsEmpty)
     @pytest.mark.parametrize('object', [list, np.array, DataFrame, Series])
@@ -2229,7 +2394,7 @@ class TestMissingValues(object):
             self.assert_expected(Pool(object([[1], [value]])))
             self.assert_expected(Pool(object([1, value])))
         else:
-            with pytest.raises(TypeError):
+            with pytest.raises(CatboostError):
                 Pool(object([1, value]))
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', Value_AcceptableAsEmpty)
@@ -2303,10 +2468,12 @@ def test_learning_rate_auto_set(task_type):
 
 
 def test_learning_rate_auto_set_in_cv(task_type):
-    if task_type == 'GPU':
-        pytest.skip('CV on GPU is not implemented')
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv(pool, {"iterations": 5, "loss_function": "Logloss", "task_type": task_type})
+    results = cv(
+        pool,
+        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type},
+        iterations_batch_size=6
+    )
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
@@ -2369,10 +2536,10 @@ def test_pairs_generation_generated(task_type):
     df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
     df = df.loc[:10, :]
     train_target = df.loc[:, 2]
-    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
-    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
     train_group_id = np.sort(np.random.randint(len(train_target) // 3, size=len(train_target)) + 1)
     pairs = []
@@ -2390,8 +2557,9 @@ def test_pairs_generation_generated(task_type):
     model.fit(train_data, train_target, group_id=train_group_id)
     predictions2 = model.predict(train_data)
     predictions_on_test2 = model.predict(test_data)
-    assert all(predictions1 == predictions2)
-    assert all(predictions_on_test1 == predictions_on_test2)
+
+    assert np.all(np.isclose(predictions1, predictions2, rtol=1.e-8, equal_nan=True))
+    assert np.all(np.isclose(predictions_on_test1, predictions_on_test2, rtol=1.e-8, equal_nan=True))
 
 
 def test_pairs_generation_with_max_pairs(task_type):
@@ -2425,15 +2593,21 @@ def test_early_stopping_rounds(task_type):
 
 
 def test_slice_pool():
-    pool = Pool([[0], [1], [2]], [0, 1, 2], pairs=[(0, 1), (0, 2), (1, 2)])
-    with pytest.raises(CatboostError):
-        pool.slice([0, 3, 1])
+    pool = Pool(
+        [[0], [1], [2], [3], [4], [5]],
+        label=[0, 1, 2, 3, 4, 5],
+        group_id=[0, 0, 0, 1, 1, 2],
+        pairs=[(0, 1), (0, 2), (1, 2), (3, 4)])
+
+    for bad_indices in [[0], [2], [0, 0, 0]]:
+        print bad_indices
+        with pytest.raises(CatboostError):
+            pool.slice(bad_indices)
     rindexes = [
-        [0],
-        [2],
-        [0, 0, 0],
-        [0, 2, 1, 0],
-        np.array([2, 2])
+        [0, 1, 2],
+        [3, 4],
+        np.array([3, 4]),
+        [5]
     ]
     for rindex in rindexes:
         sliced_pool = pool.slice(rindex)
@@ -2460,6 +2634,25 @@ def test_str_eval_metrics_in_eval_features():
     first_result = evaluator.eval_features(learn_config=learn_params, eval_metrics='MAE', features_to_eval=[6, 7, 8])
     second_result = evaluator.eval_features(learn_config=learn_params, eval_metrics=['MAE'], features_to_eval=[6, 7, 8])
     assert first_result.get_results()['MAE'] == second_result.get_results()['MAE']
+
+
+def test_cv_fold_count_alias(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results_fold_count = cv(pool=pool, params={
+        "iterations": 5,
+        "learning_rate": 0.03,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC",
+        "task_type": task_type,
+    }, fold_count=4)
+    results_nfold = cv(pool=pool, params={
+        "iterations": 5,
+        "learning_rate": 0.03,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC",
+        "task_type": task_type,
+    }, nfold=4)
+    assert results_fold_count.equals(results_nfold)
 
 
 # check different sizes as well as passing as int as well as str
@@ -2506,7 +2699,7 @@ def test_permuted_columns_dataset():
     assert all(pred == permuted_pred)
 
 
-def test_roc():
+def test_roc(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     cv(
@@ -2515,8 +2708,10 @@ def test_roc():
             'loss_function': 'Logloss',
             'iterations': 10,
             'roc_file': 'out_cv',
-            'thread_count': 4
-        }
+            'thread_count': 4,
+            'task_type': task_type
+        },
+        iterations_batch_size=6
     )
 
     model = CatBoostClassifier(loss_function='Logloss', iterations=20)
@@ -2668,19 +2863,21 @@ def test_use_loss_if_no_eval_metric():
     assert model_1.tree_count_ == model_2.tree_count_
 
 
-def test_use_loss_if_no_eval_metric_cv():
+def test_use_loss_if_no_eval_metric_cv(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     params = {
         'iterations': 50,
         'loss_function': 'Logloss',
-        'logging_level': 'Silent'
+        'logging_level': 'Silent',
+        'task_type': task_type
     }
 
     cv_params = {
         'params': params,
         'seed': 0,
         'nfold': 3,
-        'early_stopping_rounds': 5
+        'early_stopping_rounds': 5,
+        'iterations_batch_size': 20
     }
 
     results_1 = cv(train_pool, **cv_params)
@@ -2701,13 +2898,14 @@ def test_use_loss_if_no_eval_metric_cv():
     {'custom_metric': ['Accuracy'], 'eval_metric': 'Logloss'},
     {'custom_metric': ['Accuracy'], 'eval_metric': 'Accuracy'},
     {'custom_metric': ['Accuracy', 'Logloss'], 'eval_metric': 'Logloss'}])
-def test_no_fail_if_metric_is_repeated_cv(metrics):
+def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     params = {
         'iterations': 10,
         'loss_function': 'Logloss',
         'custom_metric': metrics['custom_metric'],
-        'logging_level': 'Silent'
+        'logging_level': 'Silent',
+        'task_type': task_type
     }
     if metrics['eval_metric'] is not None:
         params['eval_metric'] = metrics['eval_metric']
@@ -2715,7 +2913,8 @@ def test_no_fail_if_metric_is_repeated_cv(metrics):
     cv_params = {
         'params': params,
         'nfold': 2,
-        'as_pandas': True
+        'as_pandas': True,
+        'iterations_batch_size': 6
     }
 
     cv(train_pool, **cv_params)
@@ -2733,7 +2932,7 @@ def test_use_last_testset_for_best_iteration():
     args = {
         'iterations': 100,
         'loss_function': metric,
-        'random_seed': 5,
+        'random_seed': 6,
     }
 
     model = CatBoostClassifier(**args)
@@ -2926,20 +3125,42 @@ class TestUseWeights(object):
 
     @pytest.fixture
     def a_regression_learner(self, task_type):
-        train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+        train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE, TARGET_IDX)
+        test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE, TARGET_IDX)
+
+        train_pool = Pool(
+            data=train_features_df,
+            label=_generate_random_target(train_features_df.shape[0]),
+            cat_features=cat_features
+        )
+        test_pool = Pool(
+            data=test_features_df,
+            label=_generate_random_target(test_features_df.shape[0]),
+            cat_features=cat_features
+        )
         list(map(set_random_weight, (train_pool, test_pool)))
-        list(map(set_random_target, (train_pool, test_pool)))
+
         cb = CatBoostRegressor(loss_function='RMSE', iterations=3, task_type=task_type, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
 
     @pytest.fixture
     def a_classification_learner(self, task_type):
-        train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+        train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE, TARGET_IDX)
+        test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE, TARGET_IDX)
+
+        train_pool = Pool(
+            data=train_features_df,
+            label=_generate_nontrivial_binary_target(train_features_df.shape[0]),
+            cat_features=cat_features
+        )
+        test_pool = Pool(
+            data=test_features_df,
+            label=_generate_nontrivial_binary_target(test_features_df.shape[0]),
+            cat_features=cat_features
+        )
         list(map(set_random_weight, (train_pool, test_pool)))
-        list(map(set_random_target_01, (train_pool, test_pool)))
+
         cb = CatBoostClassifier(loss_function='Logloss', iterations=3, task_type=task_type, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
@@ -2956,6 +3177,8 @@ class TestUseWeights(object):
     def a_ranking_learner(self, task_type, metric):
         train_pool = Pool(QUERYWISE_TRAIN_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
         test_pool = Pool(QUERYWISE_TEST_FILE, pairs=QUERYWISE_TEST_PAIRS_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+        list(map(set_random_weight, (train_pool, test_pool)))
+
         if metric == 'QueryRMSE':
             loss_function = 'QueryRMSE'
         else:

@@ -6,12 +6,13 @@ LICENSE(
 
 
 
-# Version: 34.3.2
+VERSION(34.3.2)
 
 PEERDIR(
     contrib/python/appdirs
     contrib/python/packaging
     contrib/python/six
+    library/python/resource
 )
 
 NO_LINT()

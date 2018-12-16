@@ -77,7 +77,7 @@ TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
         CB_ENSURE(coreMLModel.ParseFromString(modelStream->ReadAll()), "coreml model deserialization failed");
         NCatboost::NCoreML::ConvertCoreMLToCatboostModel(coreMLModel, &model);
     }
-    if (model.ModelInfo.has("params")) {
+    if (model.ModelInfo.contains("params")) {
         NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
         paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
         model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
@@ -123,7 +123,7 @@ void ExportModel(
         const TString& userParametersJson,
         bool addFileFormatExtension,
         const TVector<TString>* featureId,
-        const THashMap<int, TString>* catFeaturesHashToString
+        const THashMap<ui32, TString>* catFeaturesHashToString
 ) {
     const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
     switch (format) {
@@ -632,10 +632,10 @@ inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& 
 TVector<TString> GetModelClassNames(const TFullModel& model) {
     TVector<TString> classNames;
 
-    if (model.ModelInfo.has("multiclass_params")) {
+    if (model.ModelInfo.contains("multiclass_params")) {
         NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("multiclass_params"));
         classNames = ExtractClassNamesFromJsonArray(paramsJson["class_names"]);
-    } else if (model.ModelInfo.has("params")) {
+    } else if (model.ModelInfo.contains("params")) {
         const TString& modelInfoParams = model.ModelInfo.at("params");
         NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
         if (paramsJson.Has("data_processing_options")

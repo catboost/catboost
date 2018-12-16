@@ -381,7 +381,7 @@ namespace NEnumSerializationRuntime {
             }
 
             bool has(const TEnumType key) const {
-                return Ref.has(this->CastToRepresentationType(key));
+                return Ref.contains(this->CastToRepresentationType(key));
             }
 
             TIterator find(const TEnumType key) const {

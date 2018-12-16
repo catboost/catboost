@@ -16,9 +16,29 @@ namespace NMetrics {
             , Weight(weight)
         {}
 
+        static void FromVectors(
+            TConstArrayRef<float> targets,
+            TConstArrayRef<double> predictions,
+            TVector<TSample>* samples);
+
+        static TVector<TSample> FromVectors(
+            TConstArrayRef<float> targets,
+            TConstArrayRef<double> predictions);
+
+        static void FromVectors(
+            TConstArrayRef<double> targets,
+            TConstArrayRef<double> predictions,
+            TVector<TSample>* samples);
+
         static TVector<TSample> FromVectors(
             TConstArrayRef<double> targets,
             TConstArrayRef<double> predictions);
+
+        static void FromVectors(
+            TConstArrayRef<double> targets,
+            TConstArrayRef<double> predictions,
+            TConstArrayRef<double> weights,
+            TVector<TSample>* samples);
 
         static TVector<TSample> FromVectors(
             TConstArrayRef<double> targets,

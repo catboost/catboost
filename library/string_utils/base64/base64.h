@@ -98,11 +98,11 @@ char* Base64Encode(char* outstr, const unsigned char* instr, size_t len);
 char* Base64EncodeUrl(char* outstr, const unsigned char* instr, size_t len);
 
 inline TStringBuf Base64Encode(const TStringBuf src, void* tmp) {
-    return TStringBuf((const char*)tmp, Base64Encode((char*)tmp, (const unsigned char*)~src, +src));
+    return TStringBuf((const char*)tmp, Base64Encode((char*)tmp, (const unsigned char*)src.data(), src.size()));
 }
 
 inline TStringBuf Base64EncodeUrl(const TStringBuf src, void* tmp) {
-    return TStringBuf((const char*)tmp, Base64EncodeUrl((char*)tmp, (const unsigned char*)~src, +src));
+    return TStringBuf((const char*)tmp, Base64EncodeUrl((char*)tmp, (const unsigned char*)src.data(), src.size()));
 }
 
 inline void Base64Encode(const TStringBuf src, TString& dst) {

@@ -6,22 +6,36 @@ import sys
 import tempfile
 
 
-arcadia_project_prefix = 'a.yandex-team.ru/'
-contrib_go_std_src_prefix = 'contrib/go/_std/src/'
-contrib_go_prefix = 'vendor/'
+arc_project_prefix = 'a.yandex-team.ru/'
+std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
+
+
+def copy_args(args):
+    return copy.copy(args)
+
+
+def get_vendor_index(import_path):
+    index = import_path.rfind('/' + vendor_prefix)
+    if index < 0:
+        index = 0 if import_path.startswith(vendor_prefix) else index
+    else:
+        index = index + 1
+    return index
 
 
 def get_import_path(module_path):
     assert len(module_path) > 0
     import_path = module_path.replace('\\', '/')
-    is_std_module = import_path.startswith(contrib_go_std_src_prefix)
+    is_std_module = import_path.startswith(std_lib_prefix)
     if is_std_module:
-        import_path = import_path[len(contrib_go_std_src_prefix):]
-    elif import_path.startswith(contrib_go_prefix):
-        import_path = import_path[len(contrib_go_prefix):]
-    else:
-        import_path = arcadia_project_prefix + import_path
+        import_path = import_path[len(std_lib_prefix):]
+    index = get_vendor_index(import_path)
+    if index >= 0:
+        index += len(vendor_prefix)
+        import_path = import_path[index:]
+    elif not is_std_module:
+        import_path = arc_project_prefix + import_path
     assert len(import_path) > 0
     return import_path, is_std_module
 
@@ -40,14 +54,14 @@ def classify_srcs(srcs, args):
     args.packages = list(filter(lambda x: x.endswith('.a'), srcs))
 
 
-def create_import_config(peers, remap_vendor, import_map={}, module_map={}):
+def create_import_config(peers, import_map={}, module_map={}):
     content = ''
     for key, value in import_map.items():
         content += 'importmap {}={}\n'.format(key, value)
     for peer in peers:
         peer_import_path, _ = get_import_path(os.path.dirname(peer))
-        index = peer_import_path.find(vendor_prefix) if remap_vendor else -1
-        if index == 0 or index > 0 and peer_import_path[index-1] == '/':
+        index = get_vendor_index(peer_import_path)
+        if index >= 0:
             index += len(vendor_prefix)
             content += 'importmap {}={}\n'.format(peer_import_path[index:], peer_import_path)
         content += 'packagefile {}={}\n'.format(peer_import_path, os.path.join(args.build_root, peer))
@@ -68,7 +82,7 @@ def do_compile_go(args):
         cmd.append('-std')
         if import_path == 'runtime':
             cmd.append('-+')
-    import_config_name = create_import_config(args.peers, True, args.import_map, args.module_map)
+    import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     else:
@@ -92,7 +106,7 @@ def do_compile_asm(args):
 
 def do_link_lib(args):
     if len(args.asm_srcs) > 0:
-        asmargs = copy.deepcopy(args)
+        asmargs = copy_args(args)
         asmargs.asmhdr = os.path.join(asmargs.output_root, 'go_asm.h')
         do_compile_go(asmargs)
         for src in asmargs.asm_srcs:
@@ -109,11 +123,11 @@ def do_link_lib(args):
 
 
 def do_link_exe(args):
-    compile_args = copy.deepcopy(args)
+    compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
     do_link_lib(compile_args)
     cmd = [args.go_link, '-o', args.output]
-    import_config_name = create_import_config(args.peers, False, args.import_map, args.module_map)
+    import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     cmd += ['-buildmode=exe', '-extld=gcc', compile_args.output]
@@ -192,14 +206,14 @@ def do_link_test(args):
 
     test_import_path, _ = get_import_path(args.test_import_path)
 
-    test_lib_args = copy.deepcopy(args)
+    test_lib_args = copy_args(args)
     test_lib_args.output = os.path.join(args.output_root, 'test.a')
     test_lib_args.module_path = test_import_path
     do_link_lib(test_lib_args)
     xtest_lib_args = None
 
     if args.xtest_srcs:
-        xtest_lib_args = copy.deepcopy(args)
+        xtest_lib_args = copy_args(args)
         xtest_lib_args.srcs = xtest_lib_args.xtest_srcs
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
@@ -212,7 +226,7 @@ def do_link_test(args):
     test_main_name = os.path.join(args.output_root, '_test_main.go')
     with open(test_main_name, "w") as f:
         f.write(test_main_content)
-    test_args = copy.deepcopy(args)
+    test_args = copy_args(args)
     test_args.srcs = [test_main_name]
     classify_srcs(test_args.srcs, test_args)
     test_args.module_map[test_import_path] = test_lib_args.output
@@ -236,6 +250,8 @@ if __name__ == '__main__':
     parser.add_argument('++asmhdr', nargs='?', default=None)
     parser.add_argument('++test-import-path', nargs='?')
     parser.add_argument('++test-miner', nargs='?')
+    parser.add_argument('++arc-project-prefix', nargs='?', default=arc_project_prefix)
+    parser.add_argument('++std-lib-prefix', nargs='?', default=std_lib_prefix)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
@@ -249,6 +265,9 @@ if __name__ == '__main__':
     args.output_root = os.path.dirname(args.output)
     args.import_map = {}
     args.module_map = {}
+
+    arc_project_prefix = args.arc_project_prefix
+    std_lib_prefix = args.std_lib_prefix
 
     # compute root relative module dir path
     assert args.output is None or args.output_root == os.path.dirname(args.output)

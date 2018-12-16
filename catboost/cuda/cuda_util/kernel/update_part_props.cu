@@ -117,7 +117,6 @@ namespace NKernel {
         double result = 0;
 
         if (blockIdx.x < effectiveBlockCount) {
-
             const int blockId = blockIdx.x % effectiveBlockCount;
 
             localBuffer[threadIdx.x] = ComputeSum <BlockSize> (source, partOffset, partSize, blockId, effectiveBlockCount);
@@ -229,7 +228,6 @@ namespace NKernel {
                                          double* statSums,
                                          TCudaStream stream
     ) {
-
         const ui32 blockSize = 512;
 
         dim3 numBlocks;

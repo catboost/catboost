@@ -50,6 +50,7 @@ TEST_SRCS(
     pack_jcoverage_resources.py
     perl_wrapper.py
     preprocess.py
+    provides.py
     py_compile.py
     run_javac.py
     run_llvm_dsymutil.py

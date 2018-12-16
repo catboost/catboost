@@ -156,16 +156,16 @@ char* CGIEscape(char* to, const char* from, size_t len) {
 }
 
 void CGIEscape(TString& url) {
-    TTempBuf tempBuf(CgiEscapeBufLen(+url));
+    TTempBuf tempBuf(CgiEscapeBufLen(url.size()));
     char* to = tempBuf.Data();
 
-    url.AssignNoAlias(to, CGIEscape(to, ~url, +url));
+    url.AssignNoAlias(to, CGIEscape(to, url.data(), url.size()));
 }
 
 TString CGIEscapeRet(const TStringBuf url) {
     TString to;
-    to.ReserveAndResize(CgiEscapeBufLen(+url));
-    to.resize(CGIEscape(to.begin(), ~url, +url) - ~to);
+    to.ReserveAndResize(CgiEscapeBufLen(url.size()));
+    to.resize(CGIEscape(to.begin(), url.data(), url.size()) - to.data());
     return to;
 }
 
@@ -197,11 +197,11 @@ char* Quote(char* to, const char* from, const char* safe) {
 }
 
 char* Quote(char* to, const TStringBuf s, const char* safe) {
-    return Quote(to, ~s, ~s + +s, safe);
+    return Quote(to, s.data(), s.data() + s.size(), safe);
 }
 
 void Quote(TString& url, const char* safe) {
-    TTempBuf tempBuf(CgiEscapeBufLen(+url));
+    TTempBuf tempBuf(CgiEscapeBufLen(url.size()));
     char* to = tempBuf.Data();
 
     url.AssignNoAlias(to, Quote(to, url, safe));
@@ -230,8 +230,8 @@ void CGIUnescape(TString& url) {
 
 TString CGIUnescapeRet(const TStringBuf from) {
     TString to;
-    to.ReserveAndResize(CgiUnescapeBufLen(+from));
-    to.resize(CGIUnescape(to.begin(), ~from, +from) - ~to);
+    to.ReserveAndResize(CgiUnescapeBufLen(from.size()));
+    to.resize(CGIUnescape(to.begin(), from.data(), from.size()) - to.data());
     return to;
 }
 
@@ -264,8 +264,8 @@ void UrlUnescape(TString& url) {
 
 TString UrlUnescapeRet(const TStringBuf from) {
     TString to;
-    to.ReserveAndResize(CgiUnescapeBufLen(+from));
-    to.resize(UrlUnescape(to.begin(), from) - ~to);
+    to.ReserveAndResize(CgiUnescapeBufLen(from.size()));
+    to.resize(UrlUnescape(to.begin(), from) - to.data());
     return to;
 }
 
@@ -291,14 +291,14 @@ char* UrlEscape(char* to, const char* from, bool forceEscape) {
 }
 
 void UrlEscape(TString& url, bool forceEscape) {
-    TTempBuf tempBuf(CgiEscapeBufLen(+url));
+    TTempBuf tempBuf(CgiEscapeBufLen(url.size()));
     char* to = tempBuf.Data();
-    url.AssignNoAlias(to, UrlEscape(to, ~url, forceEscape));
+    url.AssignNoAlias(to, UrlEscape(to, url.data(), forceEscape));
 }
 
 TString UrlEscapeRet(const TStringBuf from, bool forceEscape) {
     TString to;
-    to.ReserveAndResize(CgiEscapeBufLen(+from));
-    to.resize(UrlEscape(to.begin(), from.begin(), forceEscape) - ~to);
+    to.ReserveAndResize(CgiEscapeBufLen(from.size()));
+    to.resize(UrlEscape(to.begin(), from.begin(), forceEscape) - to.data());
     return to;
 }

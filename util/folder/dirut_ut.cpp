@@ -36,7 +36,7 @@ Y_UNIT_TEST(TestRealLocation) {
     UNIT_ASSERT_EQUAL(GetDirName(path), base);
 
     pathNotNorm = base + GetDirectorySeparatorS() + "some_dir" + GetDirectorySeparatorS() + ".." + GetDirectorySeparatorS() + "no_such_file";
-    MakeDirIfNotExist(~(base + GetDirectorySeparatorS() + "some_dir"));
+    MakeDirIfNotExist((base + GetDirectorySeparatorS() + "some_dir").data());
     pathNotNorm = RealLocation(pathNotNorm);
     UNIT_ASSERT(NFs::Exists(GetDirName(pathNotNorm)));
     UNIT_ASSERT(!NFs::Exists(pathNotNorm));
@@ -93,18 +93,18 @@ Y_UNIT_TEST(TestResolvePathRelative) {
     {
         TFixedBufferFileOutput file(path);
     }
-    ResolvePath("file", ~base, tempBuf.Data(), false);
+    ResolvePath("file", base.data(), tempBuf.Data(), false);
     UNIT_ASSERT_EQUAL(tempBuf.Data(), path);
 
     // Dir
     path = base + GetDirectorySeparatorS() + "dir";
-    MakeDirIfNotExist(~path);
-    ResolvePath("dir", ~base, tempBuf.Data(), true);
+    MakeDirIfNotExist(path.data());
+    ResolvePath("dir", base.data(), tempBuf.Data(), true);
     UNIT_ASSERT_EQUAL(tempBuf.Data(), path + GetDirectorySeparatorS());
 
     // Absent file in existent dir
     path = base + GetDirectorySeparatorS() + "nofile";
-    ResolvePath("nofile", ~base, tempBuf.Data(), false);
+    ResolvePath("nofile", base.data(), tempBuf.Data(), false);
     UNIT_ASSERT_EQUAL(tempBuf.Data(), path);
 }
 
@@ -118,8 +118,8 @@ Y_UNIT_TEST(TestStripFileComponent) {
     static const TString tmpFile = tmpDir + GetDirectorySeparatorS() + "file";
 
     // creating tmp dir and subdirs
-    MakeDirIfNotExist(~tmpDir);
-    MakeDirIfNotExist(~tmpSubDir);
+    MakeDirIfNotExist(tmpDir.data());
+    MakeDirIfNotExist(tmpSubDir.data());
     {
         TFixedBufferFileOutput file(tmpFile);
     }

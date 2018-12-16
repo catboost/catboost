@@ -156,8 +156,8 @@ namespace NCatboostCuda {
 
 
         for (ui32 taskId = 0; taskId < TaskHelpers.size(); ++taskId) {
-            float* values = ~point + TaskSlices[taskId].Left;
-            double* weights = ~LeafWeights + TaskSlices[taskId].Left;
+            float* values = point.data() + TaskSlices[taskId].Left;
+            double* weights = LeafWeights.data() + TaskSlices[taskId].Left;
 
             TObliviousTreeModel& dst = *WriteDst[taskId];
             const auto taskLeavesCount = TaskSlices[taskId].Size();

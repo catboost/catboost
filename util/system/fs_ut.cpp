@@ -71,10 +71,10 @@ void TFsTest::TestCreateRemove() {
     UNIT_ASSERT(!NFs::MakeDirectoryRecursive(file1, NFs::FP_COMMON_FILE, false));
 
     TString longUtf8Name = "";
-    while (+longUtf8Name < 255) {
+    while (longUtf8Name.size() < 255) {
         longUtf8Name = longUtf8Name + "fф";
     }
-    UNIT_ASSERT_EQUAL(+longUtf8Name, 255);
+    UNIT_ASSERT_EQUAL(longUtf8Name.size(), 255);
     TFsPath longfile = dir1 / longUtf8Name;
     Touch(longfile);
 

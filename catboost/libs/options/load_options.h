@@ -34,7 +34,7 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme GroupWeightsFilePath;
         NCB::TPathWithScheme TestGroupWeightsFilePath;
 
-        TVector<int> IgnoredFeatures;
+        TVector<ui32> IgnoredFeatures;
         TString BordersFile;
 
         TPoolLoadParams() = default;

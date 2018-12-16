@@ -11,26 +11,30 @@
 Сейчас применение модели в cmdline режиме можно делать только из файла и писать в файл.
 Нас просят сделать возможность читать из stdin, писать в stdout.
 
-4. load model from snapshot
-Во время обучение текущее состояние можно сохранять в снепшоты, чтобы если что-то случится (сервер перезагрузится, ноутбук уснет итд), то можно было начинать обучение из той точки, в которой оно оборвалось.
-Иногда хочется иметь возможность из файла со снепшотом получить готовую модель, которую можно применить.
+4. Если learning_rate == 0, то CatBoost должен бросать `TCatBoostException`.
+Добавить в валидацию опций.
 
-5. baseline in eval-metrics
+5. `baseline` in eval-metrics
 Эта функция предполагает, что начальные значения у каждого объекта == 0.
 На самом деле это может быть не правдой, если мы обучаемся из бейзлайна.
 Поэтому в этой функции надо тоже добавить возможность применяться из бейзлайна.
 
-6. Implement FairLoss, HammingLoss, NormalizedGINI metrics
-Нужно имплементировать перечисленные выше метрики. В дальнейшем их можно будет вычислять во время обучения, использовать для детекции переобучения или для обрезания модели по лучшей итерации, а также считать значения этой метрики.
+6. `--name` в режиме eval-metrics
+Нужно заполнять поле `name` в json со значениями метрик строкой, переданной через этот параметр.
 
 7. Считать AUC в несколько потоков
+
 8. Метрики, использующие confusion matrix, должны при вычислении проходить по датасету 1 раз, сейчас для каждой метрики все считается заново
-9. сделать python predict на одном объекте, сейчас обязательно матрицу передавать
+
+9. multiple eval sets on GPU
+На ЦПУ CatBoost умеет считать метрики для нескольких тестовых датасетов.
+Нужно поддержать эту функциональность на GPU.
+
 10. поддержка хидера и делимиторов в эвал фиче
 У нас есть режим для оценивания факторов. Этот режим сейчас работает не с произвольным датасетом, а с датасетом в определенном формате, без хидета и с табами. Хочется, чтобы с любым работал.
-11. Туториал в shap
-У нас есть туториал в своем репозитории.
-Нужно этот туториал дополнить и залить в репозиторий shap
+
+11. Сделать пример использования CatBoost в Goodle Colaboratory.
+
 12. Улучшить `eval_metrics`:
 При указании начальной итерации применять всю модель до этой итерации, и уже из этой точки стартовать оценку метрик.
 И разрешить `eval_metrics` шаг больше, чем длина ансамбля - обрезать по длине ансамбля.
@@ -38,8 +42,7 @@
 13. Добавить новые способы анализа фичей:
 Для каждой флотной фичи строить графики, как от нее зависит таргет и прогноз. Добавить подсчет и отрисовку графиков в cmldine, python.
 
-14. cv in R-package
-Есть в питоне, нужно написать в R
+14. Сделать пример использования CatBoost GPU в качестве Kaggle kernel.
 
 15. Задача, в которой надо разбираться:
 One-hot encoding in CoreML
@@ -48,29 +51,26 @@ One-hot encoding in CoreML
 
 16. Automatic `class_weights`/`scale_pos_weight` 
 
-17. Писать прогресс при вычислении `get_object_importance()`
-Метод очень долго работает, нужно научиться писать, сколько времени прошло и сколько осталось.
+17. Написать режим предсказания, в какой лист попадет объект.
 
-18. Написать режим предсказания, в какой лист попадет объект.
+18. в cv разрешить свойство функций ошибок `skip_train`
 
-19. в cv разрешить свойство функций ошибок `skip_train`
-
-20. shap values on subset
+19. shap values on subset
 Визуализация для shap values работает только на каком-то не очень большом числе объектов. Надо для визуализации сделать семплирование.
 
-21. EvalFeature supports dataframes, not only file
+20. EvalFeature supports dataframes, not only file
 
-22. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
+21. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
 
-23. попарные метрики `mode_eval_metrics`
+22. попарные метрики `mode_eval_metrics`
 
-24. Переименовать Custom в UserDefined
+23. Переименовать Custom в UserDefined
 for user defined objectives.
 ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в названии и описании кастом убрать тоже
 
-25. model.compare - еще один способ визуального сравнения моделей. Сейчас для сраврения моделей надо использовать отдельный класс виджет. Хотелось бы, чтобы можно было сравнивать при помощи функции compare
+24. model.compare - еще один способ визуального сравнения моделей. Сейчас для сраврения моделей надо использовать отдельный класс виджет. Хотелось бы, чтобы можно было сравнивать при помощи функции compare
 
-26. Load progress from snapshot if `thread_count` or max memory are different.
+25. Load progress from snapshot if `thread_count` or max memory are different.
 And if this is the case, then time estimates should be updated: time estimate is made based on previous timings. In case if one of these parameters has changed, previous time estimates become not trustable.
 
-27. AUC for MultiClass
+26. AUC for MultiClass

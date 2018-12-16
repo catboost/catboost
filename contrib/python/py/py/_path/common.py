@@ -1,10 +1,48 @@
 """
 """
-import os, sys, posixpath
+import warnings
+import os
+import sys
+import posixpath
+import fnmatch
 import py
 
 # Moved from local.py.
 iswin32 = sys.platform == "win32" or (getattr(os, '_name', False) == 'nt')
+
+try:
+    from os import fspath
+except ImportError:
+    def fspath(path):
+        """
+        Return the string representation of the path.
+        If str or bytes is passed in, it is returned unchanged.
+        This code comes from PEP 519, modified to support earlier versions of
+        python.
+
+        This is required for python < 3.6.
+        """
+        if isinstance(path, (py.builtin.text, py.builtin.bytes)):
+            return path
+
+        # Work from the object's type to match method resolution of other magic
+        # methods.
+        path_type = type(path)
+        try:
+            return path_type.__fspath__(path)
+        except AttributeError:
+            if hasattr(path_type, '__fspath__'):
+                raise
+            try:
+                import pathlib
+            except ImportError:
+                pass
+            else:
+                if isinstance(path, pathlib.PurePath):
+                    return py.builtin.text(path)
+
+            raise TypeError("expected str, bytes or os.PathLike object, not "
+                            + path_type.__name__)
 
 class Checkers:
     _depend_on_existence = 'exists', 'link', 'dir', 'file'
@@ -89,7 +127,7 @@ class PathBase(object):
     Checkers = Checkers
 
     def __div__(self, other):
-        return self.join(str(other))
+        return self.join(fspath(other))
     __truediv__ = __div__ # py3k
 
     def basename(self):
@@ -135,11 +173,16 @@ class PathBase(object):
     def readlines(self, cr=1):
         """ read and return a list of lines from the path. if cr is False, the
 newline will be removed from the end of each line. """
+        if sys.version_info < (3, ):
+            mode = 'rU'
+        else:  # python 3 deprecates mode "U" in favor of "newline" option
+            mode = 'r'
+
         if not cr:
-            content = self.read('rU')
+            content = self.read(mode)
             return content.split('\n')
         else:
-            f = self.open('rU')
+            f = self.open(mode)
             try:
                 return f.readlines()
             finally:
@@ -149,14 +192,16 @@ newline will be removed from the end of each line. """
         """ (deprecated) return object unpickled from self.read() """
         f = self.open('rb')
         try:
-            return py.error.checked_call(py.std.pickle.load, f)
+            import pickle
+            return py.error.checked_call(pickle.load, f)
         finally:
             f.close()
 
     def move(self, target):
         """ move this path to target. """
         if target.relto(self):
-            raise py.error.EINVAL(target,
+            raise py.error.EINVAL(
+                target,
                 "cannot move path into a subdirectory of itself")
         try:
             self.rename(target)
@@ -186,7 +231,7 @@ newline will be removed from the end of each line. """
                 path.check(file=1, link=1)  # a link pointing to a file
         """
         if not kw:
-            kw = {'exists' : 1}
+            kw = {'exists': 1}
         return self.Checkers(self)._evaluate(kw)
 
     def fnmatch(self, pattern):
@@ -219,7 +264,7 @@ newline will be removed from the end of each line. """
             strrelpath += self.sep
         #assert strrelpath[-1] == self.sep
         #assert strrelpath[-2] != self.sep
-        strself = str(self)
+        strself = self.strpath
         if sys.platform == "win32" or getattr(os, '_name', None) == 'nt':
             if os.path.normcase(strself).startswith(
                os.path.normcase(strrelpath)):
@@ -335,6 +380,9 @@ newline will be removed from the end of each line. """
     def _sortlist(self, res, sort):
         if sort:
             if hasattr(sort, '__call__'):
+                warnings.warn(DeprecationWarning(
+                    "listdir(sort=callable) is deprecated and breaks on python3"
+                ), stacklevel=3)
                 res.sort(sort)
             else:
                 res.sort()
@@ -343,11 +391,14 @@ newline will be removed from the end of each line. """
         """ return True if other refers to the same stat object as self. """
         return self.strpath == str(other)
 
+    def __fspath__(self):
+        return self.strpath
+
 class Visitor:
     def __init__(self, fil, rec, ignore, bf, sort):
-        if isinstance(fil, str):
+        if isinstance(fil, py.builtin._basestring):
             fil = FNMatcher(fil)
-        if isinstance(rec, str):
+        if isinstance(rec, py.builtin._basestring):
             self.rec = FNMatcher(rec)
         elif not hasattr(rec, '__call__') and rec:
             self.rec = lambda path: True
@@ -399,5 +450,4 @@ class FNMatcher:
             name = str(path) # path.strpath # XXX svn?
             if not os.path.isabs(pattern):
                 pattern = '*' + path.sep + pattern
-        return py.std.fnmatch.fnmatch(name, pattern)
-
+        return fnmatch.fnmatch(name, pattern)

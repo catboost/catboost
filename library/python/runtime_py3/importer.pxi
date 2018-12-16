@@ -1,7 +1,7 @@
 import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
-from _frozen_importlib import _new_module, BuiltinImporter
+from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
 from _frozen_importlib_external import _os, _path_isfile, path_sep
 from _io import FileIO
 
@@ -137,13 +137,19 @@ class ResourceImporter(object):
                 if k not in self.memory:
                     self.memory.add(k)
 
-    # PEP-302 finder.
-    def find_module(self, fullname, path=None):
+    def find_spec(self, fullname, path, target=None):
         try:
-            self.is_package(fullname)
+            is_package = self.is_package(fullname)
         except ImportError:
             return None
-        return self
+        return spec_from_loader(fullname, self, is_package=is_package)
+
+    def create_module(self, spec):
+        """Use default semantics for module creation."""
+
+    def exec_module(self, module):
+        code = self.get_code(module.__name__)
+        _call_with_frames_removed(exec, code, module.__dict__)
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
@@ -175,7 +181,8 @@ class ResourceImporter(object):
             abspath = resfs_resolve(relpath)
             if abspath:
                 return utf_8_decode(file_bytes(abspath))[0]
-        return utf_8_decode(resfs_read(mod_path(fullname)))[0]
+        data = resfs_read(mod_path(fullname))
+        return utf_8_decode(data)[0] if data else ""
 
     def get_code(self, fullname):
         modname = fullname
@@ -221,38 +228,6 @@ class ResourceImporter(object):
                 self.source_map[path] = key
 
         return self.source_map.get(filename, '')
-
-    # PEP-302 loader.
-    def load_module(self, mod_name, fix_name=None):
-        code = self.get_code(mod_name)
-        is_package = self.is_package(mod_name)
-        source_name = self._source_name
-
-        mod = _new_module(mod_name)
-        mod.__loader__ = self
-        mod.__file__ = code.co_filename
-
-        if is_package:
-            mod.__path__ = [executable]
-            mod.__package__ = mod_name
-        else:
-            mod.__package__ = mod_name.rpartition('.')[0]
-
-        sys.modules[mod_name] = mod
-
-        if fix_name:
-            mod.__name__ = fix_name
-            self._source_name = dict(source_name, **{fix_name: mod_name})
-
-        exec code in mod.__dict__
-
-        if fix_name:
-            mod.__name__ = mod_name
-            self._source_name = source_name
-
-        # Some hacky modules (e.g. pygments.lexers) replace themselves in
-        # `sys.modules` with proxies.
-        return sys.modules[mod_name]
 
 
 class BuiltinSubmoduleImporter(BuiltinImporter):

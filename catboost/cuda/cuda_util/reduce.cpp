@@ -32,6 +32,8 @@ namespace {
         EOperatorType Type;
 
     public:
+        Y_SAVELOAD_DEFINE(Input, Output, Type);
+
         using TKernelContext = NKernel::TCubKernelContext;
         TReduceKernel() = default;
 
@@ -55,27 +57,34 @@ namespace {
             return context;
         }
 
-        Y_SAVELOAD_DEFINE(Input, Output, Type);
-
         void Run(const TCudaStream& stream, TKernelContext& context) const {
             CUDA_SAFE_CALL(NKernel::Reduce(Input.Get(), Output.Get(), Input.Size(), Type, context, stream.GetStream()));
         }
     };
 }
 
+template <typename T, typename TMapping>
+static void ReduceVectorImpl(
+    const TCudaBuffer<T, TMapping>& input,
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
+    EOperatorType type,
+    ui32 streamId)
+{
+    using TKernel = TReduceKernel<std::remove_const_t<T>>;
+    LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, output, type);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                              \
-    template <>                                                                          \
-    void ReduceVector<T, TMapping>(                                                      \
-        const TCudaBuffer<T, TMapping>& input,                                           \
-        TCudaBuffer<T, TMapping>& output,                                                \
-        EOperatorType type,                                                              \
-        ui32 streamId)                                                                   \
-    {                                                                                    \
-        using TKernel = TReduceKernel<T>;                                                \
-        LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, output, type); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                    \
+    template <>                                                \
+    void ReduceVector<T, TMapping>(                            \
+        const TCudaBuffer<T, TMapping>& input,                 \
+        TCudaBuffer<std::remove_const_t<T>, TMapping>& output, \
+        EOperatorType type,                                    \
+        ui32 streamId) {                                       \
+        ::ReduceVectorImpl(input, output, type, streamId);     \
     }
 
 Y_MAP_ARGS(
@@ -96,19 +105,19 @@ Y_MAP_ARGS(
 // ReduceToHost
 
 template <typename T, class TMapping>
-static T ReduceToHostImpl(
+static std::remove_const_t<T> ReduceToHostImpl(
     const TCudaBuffer<T, TMapping>& input,
     EOperatorType type,
     ui32 streamId)
 {
-    using TKernel = TReduceKernel<T>;
+    using TKernel = TReduceKernel<std::remove_const_t<T>>;
 
     auto tmpMapping = input.GetMapping().Transform([&](const TSlice&) { return 1; });
-    using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaDevice>;
+    using TResultBuffer = NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping, NCudaLib::EPtrType::CudaDevice>;
     TResultBuffer tmp;
     tmp.Reset(tmpMapping);
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, tmp, type);
-    TVector<T> result;
+    TVector<std::remove_const_t<T>> result;
 
     NCudaLib::TCudaBufferReader<TResultBuffer>(tmp)
         .SetFactorSlice(TSlice(0, 1))
@@ -124,7 +133,7 @@ static T ReduceToHostImpl(
 
 #define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)             \
     template <>                                         \
-    T ReduceToHost<T, TMapping>(                       \
+    std::remove_const_t<T> ReduceToHost<T, TMapping>(                       \
         const TCudaBuffer<T, TMapping>& input,          \
         EOperatorType type,                             \
         ui32 streamId)                                  \
@@ -135,12 +144,15 @@ static T ReduceToHostImpl(
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
     (float, TMirrorMapping),
+    (const float, TMirrorMapping),
     (ui32, TMirrorMapping),
     (int, TMirrorMapping),
     (float, TSingleMapping),
+    (const float, TSingleMapping),
     (ui32, TSingleMapping),
     (int, TSingleMapping),
     (float, TStripeMapping),
+    (const float, TStripeMapping),
     (ui32, TStripeMapping),
     (int, TStripeMapping));
 
@@ -203,23 +215,37 @@ namespace {
     };
 }
 
+template <typename T, typename K, typename TMapping>
+static void ReduceByKeyVectorImpl(
+    const TCudaBuffer<T, TMapping>& input,
+    const TCudaBuffer<K, TMapping>& keys,
+    TCudaBuffer<std::remove_const_t<K>, TMapping>& outputKeys,
+    TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
+    TCudaBuffer<ui32, TMapping>& outputSizes,
+    EOperatorType type,
+    ui32 streamId)
+{
+    using TKernel = TReduceByKeyKernel<std::remove_const_t<T>, std::remove_const_t<K>>;
+    LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, keys, output, outputKeys, outputSizes, type);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, K, TMapping)                                                                          \
-    template <>                                                                                                         \
-    void ReduceByKeyVector<T, K, TMapping>(                                                                             \
-        const TCudaBuffer<T, TMapping>& input,                                                                          \
-        const TCudaBuffer<K, TMapping>& keys,                                                                           \
-        TCudaBuffer<K, TMapping>& outputKeys,                                                                           \
-        TCudaBuffer<T, TMapping>& output,                                                                               \
-        TCudaBuffer<ui32, TMapping>& outputSizes,                                                                       \
-        EOperatorType type,                                                                                             \
-        ui32 streamId)                                                                                                  \
-    {                                                                                                                   \
-        using TKernel = TReduceByKeyKernel<T, K>;                                                                       \
-        LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, keys, output, outputKeys, outputSizes, type); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, K, TMapping)                                                 \
+    template <>                                                                                \
+    void ReduceByKeyVector<T, K, TMapping>(                                                    \
+        const TCudaBuffer<T, TMapping>& input,                                                 \
+        const TCudaBuffer<K, TMapping>& keys,                                                  \
+        TCudaBuffer<K, TMapping>& outputKeys,                                                  \
+        TCudaBuffer<T, TMapping>& output,                                                      \
+        TCudaBuffer<ui32, TMapping>& outputSizes,                                              \
+        EOperatorType type,                                                                    \
+        ui32 streamId) {                                                                       \
+        ::ReduceByKeyVectorImpl(input, keys, outputKeys, output, outputSizes, type, streamId); \
     }
+
+
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
@@ -280,21 +306,30 @@ namespace {
     };
 }
 
+template <typename T, typename TMapping, EPtrType OutputPtrType>
+static void SegmentedReduceVectorImpl(
+    const TCudaBuffer<T, TMapping>& input,
+    const TCudaBuffer<ui32, TMapping>& offsets,
+    TCudaBuffer<std::remove_const_t<T>, TMapping, OutputPtrType>& output,
+    EOperatorType type,
+    ui32 streamId)
+{
+    using TKernel = TSegmentedReduceKernel<std::remove_const_t<T>, OutputPtrType>;
+    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type);
+}
+
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, OutputPtrType)                                       \
-    template <>                                                                                  \
-    void SegmentedReduceVector<T, TMapping, OutputPtrType>(                                      \
-        const TCudaBuffer<T, TMapping>& input,                                                   \
-        const TCudaBuffer<ui32, TMapping>& offsets,                                              \
-        TCudaBuffer<typename std::remove_const<T>::type, TMapping, OutputPtrType>& output,       \
-        EOperatorType type,                                                                      \
-        ui32 streamId)                                                                           \
-    {                                                                                            \
-        using TNonConstT = typename std::remove_const<T>::type;                                  \
-        using TKernel = TSegmentedReduceKernel<TNonConstT, OutputPtrType>;                       \
-        LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type); \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping, OutputPtrType)                    \
+    template <>                                                               \
+    void SegmentedReduceVector<T, TMapping, OutputPtrType>(                   \
+        const TCudaBuffer<T, TMapping>& input,                                \
+        const TCudaBuffer<ui32, TMapping>& offsets,                           \
+        TCudaBuffer<std::remove_const_t<T>, TMapping, OutputPtrType>& output, \
+        EOperatorType type,                                                   \
+        ui32 streamId) {                                                      \
+        ::SegmentedReduceVectorImpl(input, offsets, output, type, streamId);  \
     }
 
 Y_MAP_ARGS(

@@ -225,10 +225,6 @@ public:
         return Ptr();
     }
 
-    constexpr inline const TCharType* operator~() const noexcept {
-        return Ptr();
-    }
-
     inline const_iterator begin() const noexcept {
         return Ptr();
     }
@@ -272,10 +268,6 @@ public:
     }
 
     constexpr inline size_t size() const noexcept {
-        return Len();
-    }
-
-    constexpr inline size_t operator+() const noexcept {
         return Len();
     }
 
@@ -611,6 +603,35 @@ public:
                 if (TTraits::Equal(c, *p)) {
                     return static_cast<size_t>(i);
                 }
+            }
+        }
+
+        return npos;
+    }
+
+    inline size_t find_last_not_of(TCharType c, size_t pos = npos) const noexcept {
+        return find_last_not_of(&c, pos, 1);
+    }
+
+    inline size_t find_last_not_of(const TFixedString set, size_t pos = npos) const noexcept {
+        return find_last_not_of(set.Start, pos, set.Length);
+    }
+
+    inline size_t find_last_not_of(const TCharType* set, size_t pos, size_t n) const noexcept {
+        ssize_t startpos = pos >= size() ? static_cast<ssize_t>(size()) - 1 : static_cast<ssize_t>(pos);
+
+        for (ssize_t i = startpos; i >= 0; --i) {
+            const TCharType c = Ptr()[i];
+
+            bool found = true;
+            for (const TCharType* p = set; p < set + n; ++p) {
+                if (TTraits::Equal(c, *p)) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return static_cast<size_t>(i);
             }
         }
 
@@ -1184,14 +1205,14 @@ public:
 
     inline TDerived& append(const TDerived& s) {
         if (&s != This()) {
-            return AppendNoAlias(~s, +s);
+            return AppendNoAlias(s.data(), s.size());
         }
 
-        return append(~s, +s);
+        return append(s.data(), s.size());
     }
 
     inline TDerived& append(const TDerived& s, size_t pos, size_t n) {
-        return append(~s, pos, n, +s);
+        return append(s.data(), pos, n, s.size());
     }
 
     inline TDerived& append(const TCharType* pc) {

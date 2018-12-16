@@ -123,8 +123,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TVector<TString> good(canonic, canonic + 4);
         TCharDelimiter<const char> delim(' ');
 
-        TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
-        TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
+        TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
+        TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
     }
 
     Y_UNIT_TEST(TestWideSingleDelimiter) {
@@ -133,8 +133,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TVector<TUtf16String> good(canonic, canonic + 4);
         TCharDelimiter<const TChar> delim(' ');
 
-        TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
-        TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
+        TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
+        TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
     }
 
     Y_UNIT_TEST(TestConvertToIntCharSingleDelimiter) {
@@ -143,8 +143,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TVector<i32> good(canonic, canonic + 4);
         TCharDelimiter<const char> delim(' ');
 
-        TestDelimiterOnString<TContainerConvertingConsumer>(good, ~data, delim);
-        TestDelimiterOnRange<TContainerConvertingConsumer>(good, ~data, data.end(), delim);
+        TestDelimiterOnString<TContainerConvertingConsumer>(good, data.data(), delim);
+        TestDelimiterOnRange<TContainerConvertingConsumer>(good, data.data(), data.end(), delim);
     }
 
     Y_UNIT_TEST(TestCharSkipEmty) {
@@ -152,8 +152,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TString canonic[] = {"qw", "ab", "qwabcab"};
         TVector<TString> good(canonic, canonic + 3);
 
-        TestConsumerOnString<TSkipEmptyTokens<TStrokaConsumer>>(good, ~data, " ");
-        TestConsumerOnRange<TSkipEmptyTokens<TStrokaConsumer>>(good, ~data, data.end(), " ");
+        TestConsumerOnString<TSkipEmptyTokens<TStrokaConsumer>>(good, data.data(), " ");
+        TestConsumerOnRange<TSkipEmptyTokens<TStrokaConsumer>>(good, data.data(), data.end(), " ");
     }
 
     Y_UNIT_TEST(TestCharKeepDelimiters) {
@@ -161,8 +161,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TString canonic[] = {"qw", " ", "ab", " ", "", " ", "qwabcab", " ", ""};
         TVector<TString> good(canonic, canonic + 9);
 
-        TestConsumerOnString<TKeepDelimiters<TStrokaConsumer>>(good, ~data, " ");
-        TestConsumerOnRange<TKeepDelimiters<TStrokaConsumer>>(good, ~data, data.end(), " ");
+        TestConsumerOnString<TKeepDelimiters<TStrokaConsumer>>(good, data.data(), " ");
+        TestConsumerOnRange<TKeepDelimiters<TStrokaConsumer>>(good, data.data(), data.end(), " ");
     }
 
     Y_UNIT_TEST(TestCharLimit) {
@@ -170,8 +170,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TString canonic[] = {"qw", "ab"};
         TVector<TString> good(canonic, canonic + 2);
 
-        TestLimitingConsumerOnString(good, ~data, " ", 3, " qwabcab ");
-        TestLimitingConsumerOnRange(good, ~data, data.end(), " ", 3, " qwabcab ");
+        TestLimitingConsumerOnString(good, data.data(), " ", 3, " qwabcab ");
+        TestLimitingConsumerOnRange(good, data.data(), data.end(), " ", 3, " qwabcab ");
     }
 
     Y_UNIT_TEST(TestCharStringDelimiter) {
@@ -180,8 +180,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TVector<TString> good(canonic, canonic + 5);
         TStringDelimiter<const char> delim("ab");
 
-        TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
-        TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
+        TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
+        TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
     }
 
     Y_UNIT_TEST(TestWideStringDelimiter) {
@@ -189,10 +189,10 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String canonic[] = {ASCIIToWide("qw "), ASCIIToWide(" qw"), TUtf16String(), ASCIIToWide("c"), TUtf16String()};
         TVector<TUtf16String> good(canonic, canonic + 5);
         TUtf16String wideDelim(ASCIIToWide("ab"));
-        TStringDelimiter<const TChar> delim(~wideDelim);
+        TStringDelimiter<const TChar> delim(wideDelim.data());
 
-        TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
-        TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
+        TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
+        TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
     }
 
     Y_UNIT_TEST(TestCharSetDelimiter) {
@@ -201,8 +201,8 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TVector<TString> good(canonic, canonic + 5);
         TSetDelimiter<const char> delim("wc");
 
-        TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
-        TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
+        TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
+        TestDelimiterOnRange<TContainerConsumer>(good, data.data(), data.end(), delim);
     }
 
     Y_UNIT_TEST(TestWideSetDelimiter) {
@@ -210,9 +210,9 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
         TVector<TUtf16String> good(canonic, canonic + 5);
         TUtf16String wideDelim(ASCIIToWide("wc"));
-        TSetDelimiter<const TChar> delim(~wideDelim);
+        TSetDelimiter<const TChar> delim(wideDelim.data());
 
-        TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
+        TestDelimiterOnString<TContainerConsumer>(good, data.data(), delim);
     }
 
     Y_UNIT_TEST(TestWideSetDelimiterRange) {
@@ -220,17 +220,17 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
         TVector<TUtf16String> good(1);
         TUtf16String wideDelim(ASCIIToWide("wc"));
-        TSetDelimiter<const TChar> delim(~wideDelim);
+        TSetDelimiter<const TChar> delim(wideDelim.data());
 
         TVector<TUtf16String> test;
         TContainerConsumer<TVector<TUtf16String>> consumer(&test);
-        SplitString(~data, ~data, delim, consumer); // Empty string is still inserted into consumer
+        SplitString(data.data(), data.data(), delim, consumer); // Empty string is still inserted into consumer
         Cmp(good, test);
 
         good.assign(canonic, canonic + 4);
         good.push_back(TUtf16String());
         test.clear();
-        SplitString(~data, data.end() - 2, delim, consumer);
+        SplitString(data.data(), data.end() - 2, delim, consumer);
         Cmp(good, test);
     }
 
@@ -244,7 +244,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test);
 
         TVector<TStringBuf> test1;
-        Split(data, ~delim, test1);
+        Split(data, delim.data(), test1);
         Cmp(good, test1);
     }
 

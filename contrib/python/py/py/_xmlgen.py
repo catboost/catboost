@@ -74,16 +74,18 @@ class html(Namespace):
     __tagclass__ = HtmlTag
     __stickyname__ = True
     __tagspec__ = dict([(x,1) for x in (
-        'a,abbr,acronym,address,applet,area,b,bdo,big,blink,'
-        'blockquote,body,br,button,caption,center,cite,code,col,'
-        'colgroup,comment,dd,del,dfn,dir,div,dl,dt,em,embed,'
-        'fieldset,font,form,frameset,h1,h2,h3,h4,h5,h6,head,html,'
-        'i,iframe,img,input,ins,kbd,label,legend,li,link,listing,'
-        'map,marquee,menu,meta,multicol,nobr,noembed,noframes,'
-        'noscript,object,ol,optgroup,option,p,pre,q,s,script,'
-        'select,small,span,strike,strong,style,sub,sup,table,'
-        'tbody,td,textarea,tfoot,th,thead,title,tr,tt,u,ul,xmp,'
-        'base,basefont,frame,hr,isindex,param,samp,var'
+        'a,abbr,acronym,address,applet,area,article,aside,audio,b,'
+        'base,basefont,bdi,bdo,big,blink,blockquote,body,br,button,'
+        'canvas,caption,center,cite,code,col,colgroup,command,comment,'
+        'datalist,dd,del,details,dfn,dir,div,dl,dt,em,embed,'
+        'fieldset,figcaption,figure,footer,font,form,frame,frameset,h1,'
+        'h2,h3,h4,h5,h6,head,header,hgroup,hr,html,i,iframe,img,input,'
+        'ins,isindex,kbd,keygen,label,legend,li,link,listing,map,mark,'
+        'marquee,menu,meta,meter,multicol,nav,nobr,noembed,noframes,'
+        'noscript,object,ol,optgroup,option,output,p,param,pre,progress,'
+        'q,rp,rt,ruby,s,samp,script,section,select,small,source,span,'
+        'strike,strong,style,sub,summary,sup,table,tbody,td,textarea,'
+        'tfoot,th,thead,time,title,tr,track,tt,u,ul,xmp,var,video,wbr'
     ).split(',') if x])
 
     class Style(object):

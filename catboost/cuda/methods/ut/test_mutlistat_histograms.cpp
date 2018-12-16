@@ -2,8 +2,6 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
-#include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/methods/greedy_subsets_searcher/split_properties_helper.h>
@@ -141,7 +139,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                 }
 
                 with_lock(refStatLock){
-                    if (!refStats->has(featureId)) {
+                    if (!refStats->contains(featureId)) {
                         (*refStats)[featureId] = featureHist;
                     } else {
                         auto& dst = (*refStats)[featureId];
@@ -221,7 +219,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
 
                         const float computedOnGpu = resultsGpu[idx];
-                        UNIT_ASSERT(refStats.has(fid));
+                        UNIT_ASSERT(refStats.contains(fid));
                         UNIT_ASSERT(refStats[fid].size() > binId);
                         UNIT_ASSERT(refStats[fid][binId].size() == numStats * numLeaves);
                         const float computedOnCpu = refStats[fid][binId][leaf * numStats + statId];
@@ -576,26 +574,18 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
         NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
         catFeatureParams.MaxTensorComplexity = 3;
         catFeatureParams.OneHotMaxSize = oneHotLimit;
-        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
-        TDataProvider dataProvider;
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
+
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         floatBinarization,
+                         catFeatureParams,
+                         &dataProvider,
+                         &featuresManager);
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                 dataProvider);
-
-        {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
-
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
         {
             NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum,
                                                                        binarization - 1);
@@ -612,8 +602,8 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-        TDocParallelDataSetBuilder dataSetsHolderBuilder(featuresManager,
-                                                         dataProvider,
+        TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
+                                                         *dataProvider,
                                                          nullptr);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
@@ -627,7 +617,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                            127,
                            config.SampleRate,
                            config,
-                           featuresManager);
+                           *featuresManager);
 
             config.LoadPolicyAfterSplit = ELoadFromCompressedIndexPolicy::LoadByIndexBins;
             RunComputeTest(dataSet.GetDataSetForPermutation(i),
@@ -635,7 +625,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                            35,
                            config.SampleRate,
                            config,
-                           featuresManager);
+                           *featuresManager);
 
         }
     }

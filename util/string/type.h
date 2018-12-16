@@ -8,7 +8,7 @@ bool IsSpace(const char* s, size_t len) noexcept;
 /// Checks if a string is a set of only space symbols.
 Y_PURE_FUNCTION
 static inline bool IsSpace(const TStringBuf s) noexcept {
-    return IsSpace(~s, +s);
+    return IsSpace(s.data(), s.size());
 }
 
 /// Returns "true" if the given string is an arabic number ([0-9]+)

@@ -24,7 +24,11 @@
 #endif
 
 #if defined(_MSC_VER)
+#if defined(_M_IX86)
+#define X86_WIN32
+#else
 #define X86_WIN64
+#endif
 #endif
 
 #include "../src/x86/ffitarget.h"

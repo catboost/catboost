@@ -2,9 +2,7 @@ LIBRARY()
 
 
 
-ADDINCL(
-    contrib/libs/flatbuffers/include
-)
+ADDINCL(contrib/libs/flatbuffers/include)
 
 PEERDIR(
     library/json
@@ -16,5 +14,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

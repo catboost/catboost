@@ -27,7 +27,7 @@ namespace NCB {
             dst->emplace_back(
                 MakeHolder<TArrayValuesHolder<T, TType>>(
                     featureIds[i],
-                    TMaybeOwningArrayHolder<T>::CreateOwning( TVector<T>(src[i]) ),
+                    TMaybeOwningConstArrayHolder<T>::CreateOwning( TVector<T>(src[i]) ),
                     &indexing
                 )
             );

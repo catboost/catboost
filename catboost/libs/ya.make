@@ -4,8 +4,6 @@ RECURSE(
     algo
     algo/ut
     app_helpers
-    data
-    data/ut
     data_new
     data_new/ut
     data_types
@@ -33,12 +31,12 @@ RECURSE(
     options
     options/ut
     overfitting_detector
-    pool_builder
     quantization
     quantization_schema
     quantization_schema/ut
     quantized_pool
     quantized_pool/ut
+    target
     train_lib
     train_lib/ut
     validate_fb

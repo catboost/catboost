@@ -51,16 +51,16 @@ namespace NAsio {
         }
 
         inline size_t Size() const noexcept {
-            return +E_;
+            return E_.size();
         }
 
         inline TIOServiceExecutor& GetExecutor() noexcept {
             TAtomicBase next = AtomicIncrement(C_);
-            return *E_[next % +E_];
+            return *E_[next % E_.size()];
         }
 
         void SyncShutdown() {
-            for (size_t i = 0; i < +E_; ++i) {
+            for (size_t i = 0; i < E_.size(); ++i) {
                 E_[i]->SyncShutdown();
             }
         }

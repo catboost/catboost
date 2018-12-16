@@ -106,7 +106,7 @@ void OutItem(IOutputStream& out, const T& value, bool escape = true) {
 static inline void FinishItems(TStringStream& out) {
     TString& s = out.Str();
     if (s.EndsWith(",\n")) {
-        s.remove(+s - 2, 2);
+        s.remove(s.size() - 2, 2);
     }
     if (s.EndsWith(",")) {
         s.pop_back();
@@ -143,7 +143,7 @@ void GenerateEnum(
     TStringStream jEnum;
     OpenMap(jEnum);
 
-    size_t count = +en.Items;
+    size_t count = en.Items.size();
     OutKey(jEnum, "count", count);
     const TString name = TEnumParser::ScopeStr(en.Scope) + en.CppName;
     OutKey(jEnum, "full_name", name);

@@ -6,6 +6,7 @@
 #include <library/unittest/registar.h>
 
 using namespace std;
+using namespace NCB;
 
 Y_UNIT_TEST_SUITE(TModelSummTests) {
 
@@ -35,10 +36,24 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
         TFullModel bigModel;
         TEvalResult evalResult;
 
-        TPool pool = GetAdultPool();
+        TDataProviderPtr dataProvider = GetAdultPool();
 
-        TrainModel(params, Nothing(), Nothing(), TClearablePoolPtrs(pool, {&pool}), "", &bigModel, {&evalResult});
-        auto bigResult = ApplyModel(bigModel, pool);
+        Y_UNUSED(dataProvider);
+        /*TDataProviders dataProviders;
+        dataProviders.Learn = dataProvider;
+        dataProviders.Test.push_back(dataProvider);
+
+
+        TrainModel(
+            params,
+            nullptr,
+            Nothing(),
+            Nothing(),
+            dataProviders,
+            "",
+            &bigModel,
+            {&evalResult});
+        auto bigResult = ApplyModel(bigModel, *(dataProvider->ObjectsData));
         bigModel.ObliviousTrees.DropUnusedFeatures();
         TVector<TFullModel> partModels;
         TVector<const TFullModel*> modelPtrs;
@@ -54,10 +69,10 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
         auto mergedModel = SumModels(modelPtrs, modelWeights);
         UNIT_ASSERT_EQUAL(mergedModel.ObliviousTrees, bigModel.ObliviousTrees);
 
-        auto mergedResult = ApplyModel(mergedModel, pool);
+        auto mergedResult = ApplyModel(mergedModel, *dataProvider->ObjectsData);
         UNIT_ASSERT_VALUES_EQUAL(bigResult.ysize(), mergedResult.ysize());
         for (int idx = 0; idx < bigResult.ysize(); ++idx) {
             UNIT_ASSERT_VALUES_EQUAL(bigResult[idx], mergedResult[idx]);
-        }
+        }*/
     }
 }

@@ -15,7 +15,7 @@ size_t TCIOps::operator()(const char* s) const noexcept {
 bool TCIOps::operator()(const TStringBuf& f, const TStringBuf& s) const noexcept {
     using TIter = TLowerCaseIterator<const char>;
 
-    return (+f == +s) && Equal(TIter(f.begin()), TIter(f.end()), TIter(s.begin()));
+    return (f.size() == s.size()) && Equal(TIter(f.begin()), TIter(f.end()), TIter(s.begin()));
 }
 
 bool TCIOps::operator()(const char* f, const char* s) const noexcept {

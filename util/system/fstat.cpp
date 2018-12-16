@@ -118,11 +118,11 @@ void TFileStat::MakeFromFileName(const char* fileName, bool nofollow) {
 }
 
 TFileStat::TFileStat(const TFsPath& fileName, bool nofollow) {
-    MakeFromFileName(~fileName.GetPath(), nofollow);
+    MakeFromFileName(fileName.GetPath().data(), nofollow);
 }
 
 TFileStat::TFileStat(const TString& fileName, bool nofollow) {
-    MakeFromFileName(~fileName, nofollow);
+    MakeFromFileName(fileName.data(), nofollow);
 }
 
 TFileStat::TFileStat(const char* fileName, bool nofollow) {
@@ -206,5 +206,5 @@ i64 GetFileLength(const char* name) {
 }
 
 i64 GetFileLength(const TString& name) {
-    return GetFileLength(~name);
+    return GetFileLength(name.data());
 }

@@ -526,7 +526,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             expectedData.Target.Target = TVector<TString>{"0.42", "0.01", "0.0"};
             expectedData.Target.Baseline = {{0.17f, 0.2f, 0.1f}, {0.29f, 0.12f, 0.2f}};
             expectedData.Target.Weights = TWeights<float>({0.8f, 1.0f, 0.89f});
-            expectedData.Target.GroupWeights = TWeights<float>({0.0f, 0.0f, 0.0f});
+            expectedData.Target.GroupWeights = TWeights<float>({0.0f, 0.0f, 0.0f}, "GroupWeights", true);
 
             testCase.ExpectedData.push_back(std::move(expectedData));
         }

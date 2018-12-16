@@ -102,7 +102,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
         }
 
         void ServeRequest(const IRequestRef& req) {
-            TData res(~R_, ~R_ + +R_);
+            TData res(R_.data(), R_.data() + R_.size());
             if (req->Data().StartsWith("delay ")) {
                 TStringBuf delay = req->Data();
                 delay.Skip(6);

@@ -9,7 +9,7 @@
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
+#include <catboost/libs/data_new/data_provider.h>
 
 namespace NCatboostCuda {
     //damn proxy for learn set one-hots
@@ -24,14 +24,14 @@ namespace NCatboostCuda {
         }
 
         explicit TBinarizationInfoProvider(const TBinarizedFeaturesManager& manager,
-                                           const TDataProvider* provider = nullptr)
+                                           const NCB::TTrainingDataProvider* provider = nullptr)
                 : Manager(&manager)
                   , DataProvider(provider) {
         }
 
     private:
         const TBinarizedFeaturesManager* Manager;
-        const TDataProvider* DataProvider;
+        const NCB::TTrainingDataProvider* DataProvider;
     };
 
     struct TCpuGrid {
@@ -111,7 +111,7 @@ namespace NCatboostCuda {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
-            CB_ENSURE(Grid.InverseFeatures.has(featureId));
+            CB_ENSURE(Grid.InverseFeatures.contains(featureId));
             return CudaFeaturesHost[Grid.InverseFeatures.at(featureId)];
         }
 

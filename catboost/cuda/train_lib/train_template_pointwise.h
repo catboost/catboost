@@ -12,9 +12,12 @@ namespace NCatboostCuda {
     THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                        const TDataProvider& learn,
-                                                        const TDataProvider* test,
+                                                        const NCB::TTrainingDataProvider& learn,
+                                                        const NCB::TTrainingDataProvider* test,
                                                         TGpuAwareRandom& random,
+                                                        ui32 approxDimension,
+                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
@@ -25,12 +28,23 @@ namespace NCatboostCuda {
                                     learn,
                                     test,
                                     random,
+                                    approxDimension,
+                                    onEndIterationCallback,
+                                    testMultiApprox,
                                     metricsAndTimeHistory);
 
         } else {
             using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
-            return Train<TDocParallelBoosting>(featureManager, catBoostOptions, outputOptions,
-                                                learn, test, random, metricsAndTimeHistory);
+            return Train<TDocParallelBoosting>(featureManager,
+                                               catBoostOptions,
+                                               outputOptions,
+                                               learn,
+                                               test,
+                                               random,
+                                               approxDimension,
+                                               onEndIterationCallback,
+                                               testMultiApprox,
+                                               metricsAndTimeHistory);
         }
     };
 
@@ -40,9 +54,12 @@ namespace NCatboostCuda {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                        const TDataProvider& learn,
-                                                                        const TDataProvider* test,
+                                                                        const NCB::TTrainingDataProvider& learn,
+                                                                        const NCB::TTrainingDataProvider* test,
                                                                         TGpuAwareRandom& random,
+                                                                        ui32 approxDimension,
+                                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return Train<TTargetTemplate>(featuresManager,
                                             catBoostOptions,
@@ -50,6 +67,9 @@ namespace NCatboostCuda {
                                             learn,
                                             test,
                                             random,
+                                            approxDimension,
+                                            onEndIterationCallback,
+                                            testMultiApprox,
                                             metricsAndTimeHistory);
         };
     };

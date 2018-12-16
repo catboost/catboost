@@ -7,7 +7,7 @@ int main() {
     TString s;
     THolder<char, TFree> name;
     while (Cin.ReadLine(s)) {
-        name = llvm_demangle_gnu3(~s);
+        name = llvm_demangle_gnu3(s.data());
         if (name.Get()) {
             Cout << name.Get() << Endl;
         } else {

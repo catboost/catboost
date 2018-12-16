@@ -1,3 +1,8 @@
+# This file is modified version of datasets.py.
+# datasets.py was released by RAMitchell (Copyright (c) 2018 Rory Mitchell) under MIT License
+# and available at https://github.com/RAMitchell/ml_dataset_loader/blob/master/datasets.py
+# License text is available at https://github.com/RAMitchell/ml_dataset_loader/blob/master/LICENSE
+
 """Module for loading preprocessed datasets for machine learning problems"""
 import bz2
 import os

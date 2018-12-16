@@ -4,6 +4,7 @@ PY23_LIBRARY()
 
 PY_SRCS(
     main.py
+    rewrite.py
     yatest_tools.py
 )
 
@@ -17,5 +18,3 @@ PEERDIR(
 )
 
 END()
-
-NEED_CHECK()

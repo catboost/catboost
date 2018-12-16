@@ -413,15 +413,15 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     TString cmd = UseShell ? "cmd /A /Q /S /C \"" + qcmd + "\"" : qcmd;
     // winapi can modify command text, copy it
 
-    Y_ENSURE(+cmd < MAX_COMMAND_LINE, AsStringBuf("Command is too long"));
+    Y_ENSURE(cmd.size() < MAX_COMMAND_LINE, AsStringBuf("Command is too long"));
     TTempArray<wchar_t> cmdcopy(MAX_COMMAND_LINE);
-    Copy(~cmd, ~cmd + +cmd, cmdcopy.Data());
-    *(cmdcopy.Data() + +cmd) = 0;
+    Copy(cmd.data(), cmd.data() + cmd.size(), cmdcopy.Data());
+    *(cmdcopy.Data() + cmd.size()) = 0;
 
     const wchar_t* cwd = NULL;
     std::wstring cwdBuff;
-    if (+WorkDir) {
-        cwdBuff = GetWString(~WorkDir);
+    if (WorkDir.size()) {
+        cwdBuff = GetWString(WorkDir.data());
         cwd = cwdBuff.c_str();
     }
 
@@ -432,7 +432,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
             env += e->first + '=' + e->second + '\0';
         }
         env += '\0';
-        lpEnvironment = const_cast<char*>(~env);
+        lpEnvironment = const_cast<char*>(env.data());
     }
 
 // disable messagebox (may be in debug too)
@@ -454,9 +454,9 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
             &process_info);
     } else {
         res = CreateProcessWithLogonW(
-            GetWString(~User.Name).c_str(),
+            GetWString(User.Name.data()).c_str(),
             nullptr, // domain (if this parameter is NULL, the user name must be specified in UPN format)
-            GetWString(~User.Password).c_str(),
+            GetWString(User.Password.data()).c_str(),
             0,    // logon flags
             NULL, // image name
             cmdcopy.Data(),
@@ -555,7 +555,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         sErr.Release();
         sErrNew.Release();
 
-        if (+WorkDir)
+        if (WorkDir.size())
             NFs::SetCurrentWorkingDirectory(WorkDir);
 
         if (CloseAllFdsOnExec) {
@@ -626,12 +626,12 @@ void TShellCommand::TImpl::Run() {
         qargv.push_back(const_cast<char*>("-c"));
         // two args for 'sh -c -- ',
         // one for program name, and one for NULL at the end
-        qargv.push_back(const_cast<char*>(~shellArg));
+        qargv.push_back(const_cast<char*>(shellArg.data()));
     } else {
         qargv.reserve(Arguments.size() + 2);
-        qargv.push_back(const_cast<char*>(~Command));
+        qargv.push_back(const_cast<char*>(Command.data()));
         for (auto& i : Arguments) {
-            qargv.push_back(const_cast<char*>(~i));
+            qargv.push_back(const_cast<char*>(i.data()));
         }
     }
 
@@ -642,7 +642,7 @@ void TShellCommand::TImpl::Run() {
     if (!Environment.empty()) {
         for (auto& env : Environment) {
             envHolder.emplace_back(env.first + '=' + env.second);
-            envp.push_back(const_cast<char*>(~envHolder.back()));
+            envp.push_back(const_cast<char*>(envHolder.back().data()));
         }
         envp.push_back(nullptr);
     }

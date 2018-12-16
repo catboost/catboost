@@ -1,0 +1,16 @@
+[include]
+path:build
+path:catboost
+path:certs
+path:contrib
+path:devtools
+path:fuzzing
+path:kernel
+path:library
+path:mapreduce
+path:quality
+path:search
+path:tools
+path:util
+path:ysite
+path:yt

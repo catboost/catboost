@@ -67,7 +67,7 @@ static inline size_t SubstGlobalImpl(TStringType& s, const TStringViewType from,
                 result.reserve(s.size() + s.size() / 3);
             }
             result.append(s.begin() + srcPos, s.begin() + off);
-            result.append(~to, +to);
+            result.append(to.data(), to.size());
             srcPos = off + fromSize;
             ++replacementsCount;
         }

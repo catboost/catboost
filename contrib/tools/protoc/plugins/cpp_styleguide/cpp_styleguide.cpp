@@ -178,19 +178,19 @@ namespace NPlugins {
 
                 switch(desc->cpp_type()) {
                     case FieldDescriptor::CPPTYPE_STRING:
-                        printer->Print(~TString::Join("::google::protobuf::io::PrintJSONString(out, ", scopeName , ");\n"));
+                        printer->Print(TString::Join("::google::protobuf::io::PrintJSONString(out, ", scopeName , ");\n").data());
                         break;
                     case FieldDescriptor::CPPTYPE_ENUM:
-                        printer->Print(~TString::Join("out << int(", scopeName, ");\n"));
+                        printer->Print(TString::Join("out << int(", scopeName, ");\n").data());
                         break;
                     case FieldDescriptor::CPPTYPE_MESSAGE:
-                        printer->Print(~TString::Join(scopeName, ".PrintJSON(out);\n"));
+                        printer->Print(TString::Join(scopeName, ".PrintJSON(out);\n").data());
                         break;
                     default:
                         if (isKey) {
-                            printer->Print(~TString::Join("out << '\"' << ", scopeName, " << '\"';\n"));
+                            printer->Print(TString::Join("out << '\"' << ", scopeName, " << '\"';\n").data());
                         } else {
-                            printer->Print(~TString::Join("out << ", scopeName, ";\n"));
+                            printer->Print(TString::Join("out << ", scopeName, ";\n").data());
                         }
                 }
             }

@@ -121,7 +121,7 @@ inline bool Recode(ECharset from, ECharset to, const TStringBuf& in, TString& ou
 
     size_t inRead = 0;
     size_t outWritten = 0;
-    const RECODE_RESULT res = Recode(from, to, ~in, out.begin(), inSize, outSize, inRead, outWritten);
+    const RECODE_RESULT res = Recode(from, to, in.data(), out.begin(), inSize, outSize, inRead, outWritten);
     Y_ENSURE(RECODE_OK == res, "Recode failed. ");
     if (outWritten > outSize)
         ythrow yexception() << "Recode overrun the buffer: size="

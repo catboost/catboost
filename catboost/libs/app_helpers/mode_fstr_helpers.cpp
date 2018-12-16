@@ -1,8 +1,9 @@
 #include "mode_fstr_helpers.h"
 
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/fstr/shap_values.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 
@@ -15,13 +16,15 @@ namespace {
     class TLazyPoolLoader {
     public:
         TLazyPoolLoader(const NCB::TAnalyticalModeCommonParams& params,
-                        const TFullModel& model)
+                        const TFullModel& model,
+                        TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor)
             : Params(params)
             , Model(model)
+            , LocalExecutor(std::move(localExecutor))
         {}
 
-        const TPool& operator()() {
-            if (!Pool) {
+        const NCB::TDataProviderPtr operator()() {
+            if (!Dataset) {
                 /* TODO(akhropov): there's a possibility of pool format with cat features w/o cd file in the future,
                     so these checks might become wrong and cat features spec in pool should be checked instead
                 */
@@ -32,26 +35,24 @@ namespace {
                               "Model has categorical features. Specify column_description file with correct categorical features.");
                 }
 
-                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(Params.ClassNames);
+                TSetLoggingVerboseOrSilent inThisScope(false);
 
-                Pool.Reset(new TPool);
-                NCB::ReadPool(Params.InputPath,
-                              Params.PairsFilePath,
-                              /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
-                              Params.DsvPoolFormatParams,
-                              /*ignoredFeatures*/ {},
-                              Params.ThreadCount,
-                              false,
-                              &targetConverter,
-                              Pool.Get());
+                Dataset = NCB::ReadDataset(Params.InputPath,
+                                           Params.PairsFilePath,
+                                           /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                           Params.DsvPoolFormatParams,
+                                           /*ignoredFeatures*/ {},
+                                           NCB::EObjectsOrder::Undefined,
+                                           LocalExecutor.Get());
             }
-            return *Pool;
+            return Dataset;
         }
     private:
         const NCB::TAnalyticalModeCommonParams& Params;
         const TFullModel& Model;
+        TAtomicSharedPtr<NPar::TLocalExecutor> LocalExecutor;
 
-        THolder<TPool> Pool;
+        NCB::TDataProviderPtr Dataset;
     };
 }
 
@@ -89,18 +90,23 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     }
     // TODO(noxoomo): have ignoredFeatures and const features saved in the model file
 
-    TLazyPoolLoader poolLoader(params, model);
+    auto localExecutor = MakeAtomicShared<NPar::TLocalExecutor>();
+    localExecutor->RunAdditionalThreads(params.ThreadCount - 1);
+
+    TLazyPoolLoader poolLoader(params, model, localExecutor);
 
     switch (params.FstrType) {
         case EFstrType::FeatureImportance:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
+                              model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,
+                              localExecutor.Get(),
                               &params.OutputPath.Path,
                               nullptr);
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
+                              model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,
+                              localExecutor.Get(),
                               nullptr,
                               &params.OutputPath.Path);
             break;
@@ -111,7 +117,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
             CalcAndOutputInteraction(model, nullptr, &params.OutputPath.Path);
             break;
         case EFstrType::ShapValues:
-            CalcAndOutputShapValues(model, poolLoader(), params.OutputPath.Path, params.ThreadCount, params.Verbose);
+            CalcAndOutputShapValues(model, *poolLoader(), params.OutputPath.Path, params.Verbose, localExecutor.Get());
             break;
         default:
             Y_ASSERT(false);

@@ -13,7 +13,7 @@ namespace NBlockCodecs {
 
         template <class T>
         inline TData(const T& t)
-            : TStringBuf(~t, +t)
+            : TStringBuf((const char*)t.Data(), t.Size())
         {
         }
     };

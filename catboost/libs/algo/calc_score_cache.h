@@ -1,13 +1,17 @@
 #pragma once
 
+#include <catboost/libs/helpers/dbg_output.h>
+
 #include "fold.h"
 #include "split.h"
 
+#include <catboost/libs/data_new/columns.h>
 #include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/restrictions.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
 #include <util/memory/pool.h>
 #include <util/system/info.h>
@@ -16,14 +20,28 @@
 
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
-template <typename TData, typename TAlloc>
-static inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
+
+/* both TArrayRef and TVector variants are needed because of no automatic 2-hop casting
+ * TUnsizedVector -> TVector -> TArrayRef
+ */
+template <typename TData>
+static inline TData* GetDataPtr(TArrayRef<TData> data, size_t offset = 0) {
+    return data.empty() ? nullptr : data.data() + offset;
+}
+
+template <typename TData>
+static inline const TData* GetDataPtr(TConstArrayRef<TData> data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
 
 template <typename TData, typename TAlloc>
+static inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
+    return GetDataPtr(TArrayRef<TData>(data), offset);
+}
+
+template <typename TData, typename TAlloc>
 static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t offset = 0) {
-    return data.empty() ? nullptr : data.data() + offset;
+    return GetDataPtr(TConstArrayRef<TData>(data), offset);
 }
 
 static inline float GetBernoulliSampleRate(const NCatboostOptions::TOption<NCatboostOptions::TBootstrapConfig>& samplingConfig) {
@@ -65,17 +83,23 @@ struct TBucketStats {
 
 static_assert(std::is_pod<TBucketStats>::value, "TBucketStats must be pod to avoid memory initialization in yresize");
 
-inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TAllFeatures& allFeatures) {
+inline static int CountNonCtrBuckets(
+    const TVector<int>& splitCounts,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    ui32 oneHotMaxSize
+) {
     int nonCtrBucketCount = 0;
     for (int splitCount : splitCounts) {
         nonCtrBucketCount += splitCount + 1;
     }
-    Y_ASSERT(allFeatures.OneHotValues.size() == allFeatures.IsOneHot.size());
-    for (auto i : xrange(allFeatures.OneHotValues.size())) {
-        if (allFeatures.IsOneHot[i]) {
-            nonCtrBucketCount += allFeatures.OneHotValues[i].ysize() + 1;
+    quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&](NCB::TCatFeatureIdx catFeatureIdx) {
+            const auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx);
+            if (uniqueValuesCounts.OnLearnOnly <= oneHotMaxSize) {
+                nonCtrBucketCount += int(uniqueValuesCounts.OnLearnOnly + 1);
+            }
         }
-    }
+    );
     return nonCtrBucketCount;
 }
 
@@ -135,7 +159,11 @@ struct TCalcScoreFold {
                 return clippedSlice;
             }
             template <typename TData>
-            inline TArrayRef<const TData> GetConstRef(const TVector<TData>& data) const {
+            inline TConstArrayRef<TData> GetConstRef(TConstArrayRef<TData> data) const {
+                return MakeArrayRef(GetDataPtr(data, Offset), Size);
+            }
+            template <typename TData>
+            inline TConstArrayRef<TData> GetConstRef(const TVector<TData>& data) const {
                 return MakeArrayRef(GetDataPtr(data, Offset), Size);
             }
             template <typename TData>
@@ -162,7 +190,18 @@ struct TCalcScoreFold {
         );
     };
     TUnsizedVector<TIndexType> Indices;
-    TUnsizedVector<ui32> LearnPermutation;
+
+    /* indexing in features buckets arrays, always TIndexedSubset
+     * initialized to some default value because TArraySubsetIndexing has no default constructor
+     */
+    NCB::TFeaturesArraySubsetIndexing LearnPermutationFeaturesSubset
+        = NCB::TFeaturesArraySubsetIndexing(NCB::TIndexedSubset<ui32>(0));
+
+    /* begin of subset of data in features buckets arrays, used only for permutation block index calculation
+     * if (PermutationBlockSize != 1) && (PermutationBlockSize != learnSampleCount))
+     */
+    ui32 FeaturesSubsetBegin;
+
     TUnsizedVector<ui32> IndexInFold;
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
@@ -232,3 +271,4 @@ struct TStats3D {
 
     SAVELOAD(Stats, BucketCount, MaxLeafCount);
 };
+

@@ -73,20 +73,20 @@ Y_UNIT_TEST_SUITE(YSetTest) {
 
     Y_UNIT_TEST(TestHas) {
         TSet<int> s;
-        UNIT_ASSERT(!s.has(0));
+        UNIT_ASSERT(!s.contains(0));
 
         TSet<int> const& crs = s;
-        UNIT_ASSERT(!crs.has(0));
+        UNIT_ASSERT(!crs.contains(0));
 
         s.insert(1);
         s.insert(42);
         s.insert(100);
         s.insert(2);
 
-        UNIT_ASSERT(s.has(1));
-        UNIT_ASSERT(s.has(2));
-        UNIT_ASSERT(s.has(42));
-        UNIT_ASSERT(s.has(100));
+        UNIT_ASSERT(s.contains(1));
+        UNIT_ASSERT(s.contains(2));
+        UNIT_ASSERT(s.contains(42));
+        UNIT_ASSERT(s.contains(100));
     }
 
     Y_UNIT_TEST(TestBounds) {
@@ -203,28 +203,28 @@ Y_UNIT_TEST_SUITE(YSetTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(2, c1.size());
             UNIT_ASSERT_VALUES_EQUAL(2, c2.size());
-            UNIT_ASSERT(c1.has(100));
-            UNIT_ASSERT(c2.has(200));
+            UNIT_ASSERT(c1.contains(100));
+            UNIT_ASSERT(c2.contains(200));
 
             container c3(std::move(c1));
 
             UNIT_ASSERT_VALUES_EQUAL(0, c1.size());
             UNIT_ASSERT_VALUES_EQUAL(2, c3.size());
-            UNIT_ASSERT(c3.has(100));
+            UNIT_ASSERT(c3.contains(100));
 
             c2.insert(300);
             c3 = c2;
 
             UNIT_ASSERT_VALUES_EQUAL(3, c2.size());
             UNIT_ASSERT_VALUES_EQUAL(3, c3.size());
-            UNIT_ASSERT(c3.has(300));
+            UNIT_ASSERT(c3.contains(300));
 
             c2.insert(400);
             c3 = std::move(c2);
 
             UNIT_ASSERT_VALUES_EQUAL(0, c2.size());
             UNIT_ASSERT_VALUES_EQUAL(4, c3.size());
-            UNIT_ASSERT(c3.has(400));
+            UNIT_ASSERT(c3.contains(400));
         }
 
         {

@@ -9,8 +9,8 @@ namespace NCatboostCuda {
         using TDataSetLayout = TFeatureParallelLayout;
 
         TFeatureParallelDataSetHoldersBuilder(TBinarizedFeaturesManager& featuresManager,
-                                              const TDataProvider& dataProvider,
-                                              const TDataProvider* linkedTest = nullptr,
+                                              const NCB::TTrainingDataProvider& dataProvider,
+                                              const NCB::TTrainingDataProvider* linkedTest = nullptr,
                                               ui32 blockSize = 1,
                                               EGpuCatFeaturesStorage catFeaturesStorage = EGpuCatFeaturesStorage::GpuRam)
             : FeaturesManager(featuresManager)
@@ -26,13 +26,13 @@ namespace NCatboostCuda {
         void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder& dataSetsHolder,
                                        const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget);
 
-        void BuildCompressedCatFeatures(const TDataProvider& dataProvider,
+        void BuildCompressedCatFeatures(const NCB::TTrainingDataProvider& dataProvider,
                                         TCompressedCatFeatureDataSet& dataset);
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider& DataProvider;
-        const TDataProvider* LinkedTest;
+        const NCB::TTrainingDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider* LinkedTest;
         ui32 DataProviderPermutationBlockSize = 1;
         EGpuCatFeaturesStorage CatFeaturesStorage;
     };

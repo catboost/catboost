@@ -43,8 +43,8 @@ inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::
     }
 }
 
-inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostOptions::TOption<bool>* useBestModel) {
-    if (useBestModel->NotSet() && hasTest && !hasTestConstTarget) {
+inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
+    if (useBestModel->NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
         *useBestModel = true;
     }
     if (!hasTest && *useBestModel) {
@@ -53,7 +53,7 @@ inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostO
     }
 }
 
-inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+inline void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
     auto& learningRate = catBoostOptions->BoostingOptions->LearningRate;
     const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
     const bool doUpdateLearningRate = (
@@ -88,13 +88,14 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
 }
 
 inline void SetDataDependentDefaults(
-    int learnPoolSize,
-    int testPoolSize,
+    ui32 learnPoolSize,
+    ui32 testPoolSize,
     bool hasTestConstTarget,
+    bool hasTestPairs,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
-    UpdateUseBestModel(testPoolSize, hasTestConstTarget, useBestModel);
+    UpdateUseBestModel(testPoolSize, hasTestConstTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
 }

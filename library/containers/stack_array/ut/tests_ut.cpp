@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(TestStackArray) {
             UNIT_ASSERT_VALUES_EQUAL(x, 0xCCCCCCCC);
         }
 
-        for (size_t i = 0; i < +s; ++i) {
+        for (size_t i = 0; i < s.size(); ++i) {
             s[i] = i;
         }
 

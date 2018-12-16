@@ -1,7 +1,5 @@
 
 
-NEED_CHECK()
-
 BENCHMARK()
 
 # to minimize allocations overhead

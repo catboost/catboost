@@ -13,6 +13,7 @@ RECURSE(
     pytest/empty
     pytest/plugins
     reservoir_sampling
+    resource
     runtime
     runtime/main
     runtime/test
@@ -21,6 +22,7 @@ RECURSE(
     runtime_py3/test
     strings
     strings/ut
+    symbols
     testing
     windows
     windows/ut
@@ -31,5 +33,3 @@ IF (NOT MUSL)
     
 )
 ENDIF()
-
-NEED_CHECK()

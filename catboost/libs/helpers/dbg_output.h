@@ -57,4 +57,11 @@ namespace NCB {
         return NPrivate::TDbgDumpWithIndices<T>(v, onSeparateLines);
     }
 
+    template <class T>
+    static inline NPrivate::TDbgDumpWithIndices<T> DbgDumpWithIndices(
+        const TVector<T>& v,
+        bool onSeparateLines = false
+    ) {
+        return NPrivate::TDbgDumpWithIndices<T>(v, onSeparateLines);
+    }
 }

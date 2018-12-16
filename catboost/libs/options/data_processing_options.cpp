@@ -3,7 +3,7 @@
 #include "restrictions.h"
 
 NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
-    : IgnoredFeatures("ignored_features", TVector<int>())
+    : IgnoredFeatures("ignored_features", TVector<ui32>())
       , HasTimeFlag("has_time", false)
       , AllowConstLabel("allow_const_label", false)
       , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(

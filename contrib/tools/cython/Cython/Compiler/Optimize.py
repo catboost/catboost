@@ -1192,9 +1192,9 @@ class SwitchTransform(Visitor.EnvTransform):
             if common_var is None:
                 self.visitchildren(node)
                 return node
-            cases.append(Nodes.SwitchCaseNode(pos = if_clause.pos,
-                                              conditions = conditions,
-                                              body = if_clause.body))
+            cases.append(Nodes.SwitchCaseNode(pos=if_clause.pos,
+                                              conditions=conditions,
+                                              body=if_clause.body))
 
         condition_values = [
             cond for case in cases for cond in case.conditions]
@@ -1205,11 +1205,16 @@ class SwitchTransform(Visitor.EnvTransform):
             self.visitchildren(node)
             return node
 
+        # Recurse into body subtrees that we left untouched so far.
+        self.visitchildren(node, 'else_clause')
+        for case in cases:
+            self.visitchildren(case, 'body')
+
         common_var = unwrap_node(common_var)
-        switch_node = Nodes.SwitchStatNode(pos = node.pos,
-                                           test = common_var,
-                                           cases = cases,
-                                           else_clause = node.else_clause)
+        switch_node = Nodes.SwitchStatNode(pos=node.pos,
+                                           test=common_var,
+                                           cases=cases,
+                                           else_clause=node.else_clause)
         return switch_node
 
     def visit_CondExprNode(self, node):
@@ -1220,10 +1225,11 @@ class SwitchTransform(Visitor.EnvTransform):
         not_in, common_var, conditions = self.extract_common_conditions(
             None, node.test, True)
         if common_var is None \
-               or len(conditions) < 2 \
-               or self.has_duplicate_values(conditions):
+                or len(conditions) < 2 \
+                or self.has_duplicate_values(conditions):
             self.visitchildren(node)
             return node
+
         return self.build_simple_switch_statement(
             node, common_var, conditions, not_in,
             node.true_val, node.false_val)
@@ -1236,8 +1242,8 @@ class SwitchTransform(Visitor.EnvTransform):
         not_in, common_var, conditions = self.extract_common_conditions(
             None, node, True)
         if common_var is None \
-               or len(conditions) < 2 \
-               or self.has_duplicate_values(conditions):
+                or len(conditions) < 2 \
+                or self.has_duplicate_values(conditions):
             self.visitchildren(node)
             node.wrap_operands(self.current_env())  # in case we changed the operands
             return node
@@ -1255,8 +1261,8 @@ class SwitchTransform(Visitor.EnvTransform):
         not_in, common_var, conditions = self.extract_common_conditions(
             None, node, True)
         if common_var is None \
-               or len(conditions) < 2 \
-               or self.has_duplicate_values(conditions):
+                or len(conditions) < 2 \
+                or self.has_duplicate_values(conditions):
             self.visitchildren(node)
             return node
 
@@ -3153,21 +3159,17 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
             may_return_none=True,
             utility_code=load_c_utility('py_dict_pop'))
 
-    Pyx_PyInt_BinopInt_func_type = PyrexTypes.CFuncType(
-        PyrexTypes.py_object_type, [
-            PyrexTypes.CFuncTypeArg("op1", PyrexTypes.py_object_type, None),
-            PyrexTypes.CFuncTypeArg("op2", PyrexTypes.py_object_type, None),
-            PyrexTypes.CFuncTypeArg("intval", PyrexTypes.c_long_type, None),
-            PyrexTypes.CFuncTypeArg("inplace", PyrexTypes.c_bint_type, None),
-        ])
-
-    Pyx_PyFloat_BinopInt_func_type = PyrexTypes.CFuncType(
-        PyrexTypes.py_object_type, [
-            PyrexTypes.CFuncTypeArg("op1", PyrexTypes.py_object_type, None),
-            PyrexTypes.CFuncTypeArg("op2", PyrexTypes.py_object_type, None),
-            PyrexTypes.CFuncTypeArg("fval", PyrexTypes.c_double_type, None),
-            PyrexTypes.CFuncTypeArg("inplace", PyrexTypes.c_bint_type, None),
-        ])
+    Pyx_BinopInt_func_types = dict(
+        ((ctype, ret_type), PyrexTypes.CFuncType(
+            ret_type, [
+                PyrexTypes.CFuncTypeArg("op1", PyrexTypes.py_object_type, None),
+                PyrexTypes.CFuncTypeArg("op2", PyrexTypes.py_object_type, None),
+                PyrexTypes.CFuncTypeArg("cval", ctype, None),
+                PyrexTypes.CFuncTypeArg("inplace", PyrexTypes.c_bint_type, None),
+            ], exception_value=None if ret_type.is_pyobject else ret_type.exception_value))
+        for ctype in (PyrexTypes.c_long_type, PyrexTypes.c_double_type)
+        for ret_type in (PyrexTypes.py_object_type, PyrexTypes.c_bint_type)
+        )
 
     def _handle_simple_method_object___add__(self, node, function, args, is_unbound_method):
         return self._optimise_num_binop('Add', node, function, args, is_unbound_method)
@@ -3178,7 +3180,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
     def _handle_simple_method_object___eq__(self, node, function, args, is_unbound_method):
         return self._optimise_num_binop('Eq', node, function, args, is_unbound_method)
 
-    def _handle_simple_method_object___neq__(self, node, function, args, is_unbound_method):
+    def _handle_simple_method_object___ne__(self, node, function, args, is_unbound_method):
         return self._optimise_num_binop('Ne', node, function, args, is_unbound_method)
 
     def _handle_simple_method_object___and__(self, node, function, args, is_unbound_method):
@@ -3247,7 +3249,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
     def _handle_simple_method_float___eq__(self, node, function, args, is_unbound_method):
         return self._optimise_num_binop('Eq', node, function, args, is_unbound_method)
 
-    def _handle_simple_method_float___neq__(self, node, function, args, is_unbound_method):
+    def _handle_simple_method_float___ne__(self, node, function, args, is_unbound_method):
         return self._optimise_num_binop('Ne', node, function, args, is_unbound_method)
 
     def _optimise_num_binop(self, operator, node, function, args, is_unbound_method):
@@ -3256,7 +3258,12 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
         """
         if len(args) != 2:
             return node
-        if not node.type.is_pyobject:
+
+        if node.type.is_pyobject:
+            ret_type = PyrexTypes.py_object_type
+        elif node.type is PyrexTypes.c_bint_type and operator in ('Eq', 'Ne'):
+            ret_type = PyrexTypes.c_bint_type
+        else:
             return node
 
         # When adding IntNode/FloatNode to something else, assume other operand is also numeric.
@@ -3279,6 +3286,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
             return node
 
         is_float = isinstance(numval, ExprNodes.FloatNode)
+        num_type = PyrexTypes.c_double_type if is_float else PyrexTypes.c_long_type
         if is_float:
             if operator not in ('Add', 'Subtract', 'Remainder', 'TrueDivide', 'Divide', 'Eq', 'Ne'):
                 return node
@@ -3286,26 +3294,37 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
             # mixed old-/new-style division is not currently optimised for integers
             return node
         elif abs(numval.constant_result) > 2**30:
+            # Cut off at an integer border that is still safe for all operations.
             return node
 
         args = list(args)
         args.append((ExprNodes.FloatNode if is_float else ExprNodes.IntNode)(
             numval.pos, value=numval.value, constant_result=numval.constant_result,
-            type=PyrexTypes.c_double_type if is_float else PyrexTypes.c_long_type))
+            type=num_type))
         inplace = node.inplace if isinstance(node, ExprNodes.NumBinopNode) else False
         args.append(ExprNodes.BoolNode(node.pos, value=inplace, constant_result=inplace))
 
         utility_code = TempitaUtilityCode.load_cached(
-            "PyFloatBinop" if is_float else "PyIntBinop", "Optimize.c",
-            context=dict(op=operator, order=arg_order))
+            "PyFloatBinop" if is_float else "PyIntCompare" if operator in ('Eq', 'Ne') else "PyIntBinop",
+            "Optimize.c",
+            context=dict(op=operator, order=arg_order, ret_type=ret_type))
 
-        return self._substitute_method_call(
-            node, function, "__Pyx_Py%s_%s%s" % ('Float' if is_float else 'Int', operator, arg_order),
-            self.Pyx_PyFloat_BinopInt_func_type if is_float else self.Pyx_PyInt_BinopInt_func_type,
+        call_node = self._substitute_method_call(
+            node, function,
+            "__Pyx_Py%s_%s%s%s" % (
+                'Float' if is_float else 'Int',
+                '' if ret_type.is_pyobject else 'Bool',
+                operator,
+                arg_order),
+            self.Pyx_BinopInt_func_types[(num_type, ret_type)],
             '__%s__' % operator[:3].lower(), is_unbound_method, args,
             may_return_none=True,
             with_none_check=False,
             utility_code=utility_code)
+
+        if node.type.is_pyobject and not ret_type.is_pyobject:
+            call_node = ExprNodes.CoerceToPyTypeNode(call_node, self.current_env(), node.type)
+        return call_node
 
     ### unicode type methods
 
@@ -4228,7 +4247,7 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                     string_node.bytes_value.encoding)
         else:
             assert False, "unknown string node type: %s" % type(string_node)
-        string_node.value = build_string(
+        string_node.constant_result = string_node.value = build_string(
             string_node.value * multiplier,
             string_node.value.encoding)
         return string_node
@@ -4292,16 +4311,16 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                 warning(pos, "Too few arguments for format placeholders", level=1)
                 can_be_optimised = False
                 break
-            if format_type in u'srfdoxX':
+            if format_type in u'asrfdoxX':
                 format_spec = s[1:]
                 if format_type in u'doxX' and u'.' in format_spec:
                     # Precision is not allowed for integers in format(), but ok in %-formatting.
                     can_be_optimised = False
-                elif format_type in u'rs':
+                elif format_type in u'ars':
                     format_spec = format_spec[:-1]
                 substrings.append(ExprNodes.FormattedValueNode(
                     arg.pos, value=arg,
-                    conversion_char=format_type if format_type in u'rs' else None,
+                    conversion_char=format_type if format_type in u'ars' else None,
                     format_spec=ExprNodes.UnicodeNode(
                         pos, value=EncodedString(format_spec), constant_result=format_spec)
                         if format_spec else None,
@@ -4704,7 +4723,7 @@ class FinalOptimizePhase(Visitor.EnvTransform, Visitor.NodeRefCleanupMixin):
                 else "optimize.unpack_method_calls")):
             # optimise simple Python methods calls
             if isinstance(node.arg_tuple, ExprNodes.TupleNode) and not (
-                    node.arg_tuple.mult_factor or (node.arg_tuple.is_literal and node.arg_tuple.args)):
+                    node.arg_tuple.mult_factor or (node.arg_tuple.is_literal and len(node.arg_tuple.args) > 1)):
                 # simple call, now exclude calls to objects that are definitely not methods
                 may_be_a_method = True
                 if function.type is Builtin.type_type:

@@ -1,6 +1,7 @@
 LIBRARY()
 
 
+
 PEERDIR(
     library/malloc/api
 )
@@ -12,5 +13,3 @@ SRCS(
 SET(IDE_FOLDER "util")
 
 END()
-
-NEED_CHECK()

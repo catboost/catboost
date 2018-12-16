@@ -11,13 +11,13 @@
 char* CGIEscape(char* to, const char* from);
 char* CGIEscape(char* to, const char* from, size_t len);
 inline char* CGIEscape(char* to, const TStringBuf from) {
-    return CGIEscape(to, ~from, +from);
+    return CGIEscape(to, from.data(), from.size());
 }
 void CGIEscape(TString& url);
 TString CGIEscapeRet(const TStringBuf url);
 
 inline TStringBuf CgiEscapeBuf(char* to, const TStringBuf from) {
-    return TStringBuf(to, CGIEscape(to, ~from, +from));
+    return TStringBuf(to, CGIEscape(to, from.data(), from.size()));
 }
 inline TStringBuf CgiEscape(void* tmp, const TStringBuf s) {
     return CgiEscapeBuf(static_cast<char*>(tmp), s);
@@ -33,7 +33,7 @@ void CGIUnescape(TString& url);
 TString CGIUnescapeRet(const TStringBuf from);
 
 inline TStringBuf CgiUnescapeBuf(char* to, const TStringBuf from) {
-    return TStringBuf(to, CGIUnescape(to, ~from, +from));
+    return TStringBuf(to, CGIUnescape(to, from.data(), from.size()));
 }
 inline TStringBuf CgiUnescape(void* tmp, const TStringBuf s) {
     return CgiUnescapeBuf(static_cast<char*>(tmp), s);

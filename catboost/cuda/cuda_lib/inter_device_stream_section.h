@@ -41,7 +41,7 @@ namespace NCudaLib {
 
         void Leave(ui64 handle) {
             with_lock (Lock) {
-                Y_ASSERT(Current.has(handle));
+                Y_ASSERT(Current.contains(handle));
 
                 auto& state = Current[handle];
                 CB_ENSURE(state->Created == state->Size);
@@ -146,7 +146,7 @@ namespace NCudaLib {
                                        const TCudaStream& stream) {
             TStreamSectionState* state;
             with_lock (Lock) {
-                if (!Current.has(handle)) {
+                if (!Current.contains(handle)) {
                     Current[handle] = MakeHolder<TStreamSectionState>(size);
                     Current[handle]->Created = 1;
                 } else {

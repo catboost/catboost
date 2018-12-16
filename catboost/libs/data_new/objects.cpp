@@ -1,6 +1,7 @@
 #include "objects.h"
 #include "util.h"
 
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/compare.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
@@ -273,6 +274,25 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
     }
 }
 
+void NCB::TObjectsDataProvider::SetGroupIds(TConstArrayRef<TGroupId> groupIds) {
+    ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
+        CreateObjectsGroupingFromGroupIds(GetObjectCount(), groupIds) // groupIds data size is checked inside
+    );
+    if (!CommonData.GroupIds) {
+        CommonData.GroupIds.ConstructInPlace(groupIds.begin(), groupIds.end());
+    } else {
+        CommonData.GroupIds->assign(groupIds.begin(), groupIds.end());
+    }
+}
+
+void NCB::TObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TSubgroupId> subgroupIds) {
+    CheckDataSize(subgroupIds.size(), (size_t)GetObjectCount(), "subgroupIds");
+    if (!CommonData.SubgroupIds) {
+        CommonData.SubgroupIds.ConstructInPlace(subgroupIds.begin(), subgroupIds.end());
+    } else {
+        CommonData.SubgroupIds->assign(subgroupIds.begin(), subgroupIds.end());
+    }
+}
 
 template <class T, EFeatureValuesType TType>
 static bool AreFeaturesValuesEqual(
@@ -411,10 +431,13 @@ void NCB::TRawObjectsData::Check(
             auto* catFeaturePtr = CatFeatures[catFeatureIdx].Get();
             if (catFeaturePtr) {
                 const auto& hashToStringMap = (*catFeaturesHashToString)[catFeatureIdx];
+                if (hashToStringMap.empty()) {
+                    return;
+                }
                 catFeaturePtr->GetArrayData().ParallelForEach(
                     [&] (ui32 objectIdx, ui32 hashValue) {
                         CB_ENSURE_INTERNAL(
-                            hashToStringMap.has(hashValue),
+                            hashToStringMap.contains(hashValue),
                             "catFeature #" << catFeatureIdx << ", object #" << objectIdx << ": value "
                             << Hex(hashValue) << " is missing from CatFeaturesHashToString"
                         );
@@ -516,6 +539,39 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
     CommonData.SubgroupIds = std::move(newSubgroupIds);
 }
 
+TVector<float> NCB::TRawObjectsDataProvider::GetFeatureDataOldFormat(ui32 flatFeatureIdx) const {
+    TVector<float> result;
+
+    const auto& featuresLayout = *GetFeaturesLayout();
+    const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
+    CB_ENSURE(
+        flatFeatureIdx < featuresMetaInfo.size(),
+        "feature #" << flatFeatureIdx << " is not present in pool"
+    );
+    const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
+    if (!featureMetaInfo.IsAvailable) {
+        return result;
+    }
+
+    result.yresize(GetObjectCount());
+
+    if (featureMetaInfo.Type == EFeatureType::Float) {
+        const auto& feature = **GetFloatFeature(featuresLayout.GetInternalFeatureIdx(flatFeatureIdx));
+        feature.GetArrayData().ForEach([&result](ui32 idx, float value) { result[idx] = value; });
+    } else {
+        const auto& feature = **GetCatFeature(featuresLayout.GetInternalFeatureIdx(flatFeatureIdx));
+        feature.GetArrayData().ForEach(
+            [&result](ui32 idx, ui32 value) {
+                result[idx] = ConvertCatFeatureHashToFloat(value);
+            }
+        );
+    }
+
+    return result;
+}
+
+
+
 bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
         AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures);
@@ -536,7 +592,8 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
 
     if (!QuantizedFeaturesInfo) {
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-            metaInfo.FeaturesLayout,
+            *metaInfo.FeaturesLayout,
+            TConstArrayRef<ui32>(),
             binarizationOptions
         );
     }
@@ -608,13 +665,19 @@ static ui32 CalcFeatureValuesCheckSum(
     const ui32 emptyColumnDataForCrc = 0;
     for (auto perTypeFeatureIdx : xrange(featuresLayout.GetFeatureCount(FeatureType))) {
         if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
-            if (auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
-                    featuresData[perTypeFeatureIdx].Get()
-                ))
-            {
-                compressedValuesFeatureData->GetArrayData().ForEach([&](ui32 /*idx*/, T element) {
-                    checkSum = UpdateCheckSum(checkSum, element);
-                });
+            auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
+                featuresData[perTypeFeatureIdx].Get()
+            );
+            if (compressedValuesFeatureData) {
+                if (compressedValuesFeatureData->GetBitsPerKey() == CHAR_BIT*sizeof(T)) {
+                    compressedValuesFeatureData->GetArrayData().ForEach([&](ui32 /*idx*/, T element) {
+                        checkSum = UpdateCheckSum(checkSum, (ui32)element);
+                    });
+                } else {
+                    compressedValuesFeatureData->GetCompressedData().ForEach([&](ui32 /*idx*/, ui32 element) {
+                        checkSum = UpdateCheckSum(checkSum, element);
+                    });
+                }
             } else {
                 const auto valuesFeatureData = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
                 for (auto element : *valuesFeatureData) {
@@ -672,7 +735,8 @@ static void LoadFeatures(
 
             CB_ENSURE_INTERNAL(
                 flatFeatureIdx == id,
-                "deserialized feature id is not equal to expected flatFeatureIdx"
+                "deserialized feature id (" << id << ") is not equal to expected flatFeatureIdx ("
+                << flatFeatureIdx << ")"
             );
             CheckDataSize(size, objectCount, "column data", false, "object count", true);
 
@@ -699,13 +763,13 @@ void NCB::TQuantizedObjectsData::Load(
 ) {
     QuantizedFeaturesInfo = quantizedFeaturesInfo;
     LoadFeatures<EFeatureType::Float>(
-        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        *QuantizedFeaturesInfo->GetFeaturesLayout(),
         subsetIndexing,
         binSaver,
         &FloatFeatures
     );
     LoadFeatures<EFeatureType::Categorical>(
-        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        *QuantizedFeaturesInfo->GetFeaturesLayout(),
         subsetIndexing,
         binSaver,
         &CatFeatures
@@ -754,13 +818,13 @@ void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
     NPar::TLocalExecutor localExecutor;
 
     SaveFeatures<EFeatureType::Float>(
-        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        *QuantizedFeaturesInfo->GetFeaturesLayout(),
         FloatFeatures,
         &localExecutor,
         binSaver
     );
     SaveFeatures<EFeatureType::Categorical>(
-        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        *QuantizedFeaturesInfo->GetFeaturesLayout(),
         CatFeatures,
         &localExecutor,
         binSaver
@@ -792,6 +856,97 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
         CatFeatureUniqueValuesCounts[catFeatureIdx] =
             Data.QuantizedFeaturesInfo->GetUniqueValuesCounts(TCatFeatureIdx(catFeatureIdx));
     }
+}
+
+
+
+template <EFeatureType FeatureType, class IColumnType>
+static void MakeConsecutiveArrayFeatures(
+    const TFeaturesLayout& featuresLayout,
+    ui32 objectCount,
+    const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
+    const TVector<THolder<IColumnType>>& src,
+    NPar::TLocalExecutor* localExecutor,
+    TVector<THolder<IColumnType>>* dst
+) {
+    constexpr ui32 bytesPerKey = sizeof(typename IColumnType::TValueType);
+    constexpr ui32 bitsPerKey = bytesPerKey*8;
+
+    TIndexHelper<ui64> indexHelper(bitsPerKey);
+    const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
+
+    if (&src != dst) {
+        dst->clear();
+        dst->resize(featuresLayout.GetFeatureCount(FeatureType));
+    }
+
+    TVector<std::function<void()>> tasks;
+
+    featuresLayout.IterateOverAvailableFeatures<FeatureType>(
+        [&] (TFeatureIdx<FeatureType> featureIdx) {
+            tasks.emplace_back(
+                [&, featureIdx]() {
+                    auto& srcCompressedValuesHolder = dynamic_cast<TCompressedValuesHolderImpl<IColumnType>&>(
+                        *(src[*featureIdx])
+                    );
+
+                    TVector<ui64> storage;
+                    storage.yresize(dstStorageSize);
+                    auto dstBuffer = (typename IColumnType::TValueType*)(storage.data());
+
+                    srcCompressedValuesHolder.GetArrayData().ParallelForEach(
+                        [&] (ui32 idx, typename IColumnType::TValueType value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+
+                    (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
+                        src[*featureIdx]->GetId(),
+                        TCompressedArray(
+                            objectCount,
+                            bitsPerKey,
+                            TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
+                        ),
+                        newSubsetIndexing
+                    );
+                }
+            );
+        }
+    );
+
+    ExecuteTasksInParallel(&tasks, localExecutor);
+}
+
+void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
+    NPar::TLocalExecutor* localExecutor
+) {
+    if (GetFeaturesArraySubsetIndexing().IsConsecutive()) {
+        return;
+    }
+
+    auto newSubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
+        TFullSubset<ui32>(GetObjectCount())
+    );
+
+    MakeConsecutiveArrayFeatures<EFeatureType::Float>(
+        *GetFeaturesLayout(),
+        GetObjectCount(),
+        newSubsetIndexing.Get(),
+        Data.FloatFeatures,
+        localExecutor,
+        &Data.FloatFeatures
+    );
+    MakeConsecutiveArrayFeatures<EFeatureType::Categorical>(
+        *GetFeaturesLayout(),
+        GetObjectCount(),
+        newSubsetIndexing.Get(),
+        Data.CatFeatures,
+        localExecutor,
+        &Data.CatFeatures
+    );
+
+    CommonData.SubsetIndexing = std::move(newSubsetIndexing);
 }
 
 
@@ -835,4 +990,20 @@ void NCB::TQuantizedForCPUObjectsDataProvider::Check() const {
         // not ythrow to avoid double line info in exception message
         throw TCatboostException() << "Incompatible with TQuantizedForCPUObjectsDataProvider: " << e.what();
     }
+}
+
+
+THashMap<ui32, TString> NCB::MergeCatFeaturesHashToString(const NCB::TObjectsDataProvider& objectsData) {
+    THashMap<ui32, TString> result;
+
+    for (auto catFeatureIdx : xrange(objectsData.GetFeaturesLayout()->GetCatFeatureCount())) {
+        const auto& perFeatureCatFeaturesHashToString
+            = objectsData.GetCatFeaturesHashToString(catFeatureIdx);
+        for (const auto& [hashedCatValue, catValueString] : perFeatureCatFeaturesHashToString) {
+            // TODO(kirillovs): remove this cast, needed only for MSVC 14.12 compiler bug
+            result[(ui32)hashedCatValue] = catValueString;
+        }
+    }
+
+    return result;
 }

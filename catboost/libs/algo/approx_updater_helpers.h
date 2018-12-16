@@ -3,7 +3,7 @@
 #include "learn_context.h"
 
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/data/dataset.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/data_types/query.h>
 
 #include <library/fast_exp/fast_exp.h>
@@ -14,6 +14,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/types.h>
 #include <util/system/yassert.h>
 
 
@@ -22,9 +23,8 @@ static inline double UpdateApprox(double approx, double approxDelta) {
     return StoreExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
-template <bool StoreExpApprox>
-static inline double GetNeutralApprox() {
-    return StoreExpApprox ? 1.0 : 0.0;
+static inline double UpdateApprox(bool storeExpApprox, double approx, double approxDelta) {
+    return storeExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
 template <bool StoreExpApprox>
@@ -34,9 +34,9 @@ static inline double ApplyLearningRate(double approxDelta, double learningRate) 
 
 static inline double GetNeutralApprox(bool storeExpApproxes) {
     if (storeExpApproxes) {
-        return GetNeutralApprox</*StoreExpApprox*/ true>();
+        return 1.0;
     } else {
-        return GetNeutralApprox</*StoreExpApprox*/ false>();
+        return 0.0;
     }
 }
 
@@ -53,7 +53,7 @@ static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* 
 }
 
 
-inline bool IsStoreExpApprox(ELossFunction lossFunction) {
+static inline bool IsStoreExpApprox(ELossFunction lossFunction) {
     return EqualToOneOf(
         lossFunction,
         ELossFunction::Logloss,
@@ -99,10 +99,10 @@ inline void UpdateApprox(
 
 void UpdateAvrgApprox(
     bool storeExpApprox,
-    size_t learnSampleCount,
+    ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    const TDatasetPtrs& testDataPtrs,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 );
@@ -116,12 +116,12 @@ void NormalizeLeafValues(
 
 inline TVector<double> SumLeafWeights(size_t leafCount,
     const TVector<TIndexType>& leafIndices,
-    const TVector<ui32>& learnPermutation,
-    const TVector<float>& learnWeights
+    TConstArrayRef<ui32> learnPermutation,
+    TConstArrayRef<float> learnWeights // can be empty
 ) {
     TVector<double> weightSum(leafCount);
-    for (size_t docIdx = 0; docIdx < learnWeights.size(); ++docIdx) {
-        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights[docIdx];
+    for (size_t docIdx = 0; docIdx < learnPermutation.size(); ++docIdx) {
+        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights.empty() ? 1.0 : learnWeights[docIdx];
     }
     return weightSum;
 }

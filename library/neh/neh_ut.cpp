@@ -53,7 +53,7 @@ Y_UNIT_TEST_SUITE(Neh) {
             } else if (req->Data() == AsStringBuf("test_error_InternalError")) {
                 req->SendError(IRequest::InternalError, INTERNAL_ERROR_DETAILS);
             }
-            TData res(~R_, ~R_ + +R_);
+            TData res(R_.data(), R_.data() + R_.size());
             req->SendReply(res);
         }
 
@@ -104,7 +104,7 @@ Y_UNIT_TEST_SUITE(Neh) {
             svs = CreateLoop();
             try {
                 ui16 port = basePort;
-                for (size_t i = 0; i < +protocols; ++i) {
+                for (size_t i = 0; i < protocols.size(); ++i) {
                     TServiceInfo si(protocols[i].first);
                     si.Addr << si.Protocol << AsStringBuf("://") << protocols[i].second << ("localhost:") << port++ << AsStringBuf("/test");
                     svsInfo.push_back(si);
@@ -119,12 +119,12 @@ Y_UNIT_TEST_SUITE(Neh) {
             }
         }
 
-        UNIT_ASSERT_C(svs.Get(), ~err);
+        UNIT_ASSERT_C(svs.Get(), err.data());
 
         const TString request = "request_data";
 
         //check receiving responses
-        for (size_t i = 0; i < +svsInfo; ++i) {
+        for (size_t i = 0; i < svsInfo.size(); ++i) {
             TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), request))->Wait(TDuration::Seconds(3));
             UNIT_ASSERT_C(!!res, svsInfo[i].Addr.Str());
             UNIT_ASSERT_C(!res->IsError(), svsInfo[i].Addr.Str() + ": " + res->GetErrorText());
@@ -145,7 +145,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         }
 
         //check receiving error
-        for (size_t i = 0; i < +svsInfo; ++i) {
+        for (size_t i = 0; i < svsInfo.size(); ++i) {
             const TString& protocol = svsInfo[i].Protocol;
             if (protocol != AsStringBuf("udp")        //udp can't detect request with unsupported service name (url-path)
                 && protocol != AsStringBuf("netliba") //some for netliba, tcp and inproc
@@ -171,7 +171,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         }
 
         //check receiving http error codes/messages
-        for (size_t i = 0; i < +svsInfo; ++i) {
+        for (size_t i = 0; i < svsInfo.size(); ++i) {
             const TString& protocol = svsInfo[i].Protocol;
             if (protocol != "http") {
                 continue;
@@ -200,7 +200,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         }
 
         //check receiving inproc errors
-        for (size_t i = 0; i < +svsInfo; ++i) {
+        for (size_t i = 0; i < svsInfo.size(); ++i) {
             const TString& protocol = svsInfo[i].Protocol;
             if (protocol != "inproc") {
                 continue;
@@ -217,7 +217,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         }
 
         //check canceling request
-        for (size_t i = 0; i < +svsInfo; ++i) {
+        for (size_t i = 0; i < svsInfo.size(); ++i) {
             const TString& protocol = svsInfo[i].Protocol;
             if (protocol != AsStringBuf("udp") //udp & tcp not support canceling request
                 && protocol != AsStringBuf("tcp")) {
@@ -259,6 +259,8 @@ Y_UNIT_TEST_SUITE(Neh) {
         UNIT_ASSERT_EQUAL(THttp2Options::UseResponseAsErrorMessage, true);
         UNIT_ASSERT(SetProtocolOption("http2/FullHeadersAsErrorMessage", "1"));
         UNIT_ASSERT_EQUAL(THttp2Options::FullHeadersAsErrorMessage, true);
+        UNIT_ASSERT(SetProtocolOption("http2/RedirectionNotError", "1"));
+        UNIT_ASSERT_EQUAL(THttp2Options::RedirectionNotError, true);
         UNIT_ASSERT(SetProtocolOption("tcp2/InputBufferSize", "4999"));
         UNIT_ASSERT_EQUAL(TTcp2Options::InputBufferSize, 4999);
         UNIT_ASSERT(SetProtocolOption("tcp2/InputBufferSize", "4888"));
@@ -273,5 +275,7 @@ Y_UNIT_TEST_SUITE(Neh) {
         UNIT_ASSERT_EQUAL(THttpsOptions::CAPath, "path");
         UNIT_ASSERT(SetProtocolOption("https/CheckCertificateHostname", "yes"));
         UNIT_ASSERT_EQUAL(THttpsOptions::CheckCertificateHostname, true);
+        UNIT_ASSERT(SetProtocolOption("https/RedirectionNotError", "yes"));
+        UNIT_ASSERT_EQUAL(THttpsOptions::RedirectionNotError, true);
     }
 }

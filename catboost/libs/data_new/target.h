@@ -141,7 +141,9 @@ namespace NCB {
            builders should prefer to set fields directly to avoid unnecessary data copying
         */
 
-        void SetBaseline(TConstArrayRef<TConstArrayRef<float>> baseline); // [approxIdx][objectIdx]
+        void SetObjectsGrouping(TObjectsGroupingPtr objectsGrouping);
+
+        void SetBaseline(TBaselineArrayRef baseline); // [approxIdx][objectIdx]
 
         void SetWeights(TConstArrayRef<float> weights) { // [objectIdx]
             CheckWeights(weights, GetObjectCount(), "Weights");
@@ -354,6 +356,13 @@ namespace NCB {
     using TTargetDataProviders = THashMap<TTargetDataSpecification, TTargetDataProviderPtr>;
 
 
+    void GetGroupInfosSubset(
+        TConstArrayRef<TQueryInfo> src,
+        const TObjectsGroupingSubset& objectsGroupingSubset,
+        NPar::TLocalExecutor* localExecutor,
+        TVector<TQueryInfo>* dstSubset
+    );
+
     TTargetDataProviders GetSubsets(
         const TTargetDataProviders& srcTargetDataProviders,
         const TObjectsGroupingSubset& objectsGroupingSubset,
@@ -425,6 +434,7 @@ namespace NCB {
         TMultiClassTarget(
             const TString& description,
             TObjectsGroupingPtr objectsGrouping,
+            ui32 classCount,
             TSharedVector<float> target,
             TSharedWeights<float> weights,
             TVector<TSharedVector<float>>&& baseline,  // сan be empty if baseline not available
@@ -443,6 +453,9 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
 
+        ui32 GetClassCount() const {
+            return ClassCount;
+        }
 
         // after preprocessing - enumerating labels if necessary, etc.
         TConstArrayRef<float> GetTarget() const { // [objectIdx]
@@ -473,6 +486,7 @@ namespace NCB {
         );
 
     protected:
+        ui32 ClassCount;
         TSharedVector<float> Target; // [objectIdx]
         TSharedWeights<float> Weights; // [objectIdx]
         TVector<TSharedVector<float>> Baseline; // [approxIdx][objectIdx], can be empty
@@ -658,6 +672,8 @@ namespace NCB {
      *  This situation will change in the future:
      *    TODO(akhropov): proper support of multiple targets - MLTOOLS-2337
      */
+
+    TMaybeData<TConstArrayRef<float>> GetMaybeTarget(const TTargetDataProviders& targetDataProviders);
 
     /* will fail if only GroupPairwiseRanking targets are in targetDataProviders
      * this case has to be handled for now (e.g. by always adding non-GroupPairwiseRanking provider)

@@ -13,14 +13,17 @@ import functools
 import numpy as np
 cimport numpy as np
 
+import pandas as pd
+
 np.import_array()
 
 cimport cython
-from cython.operator cimport dereference
+from cython.operator cimport dereference, preincrement
 
 from libc.math cimport isnan
 from libc.stdint cimport uint32_t, uint64_t
 from libcpp cimport bool as bool_t
+from libcpp cimport nullptr
 from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
@@ -60,6 +63,44 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
 
+
+# TODO(akhropov): Add necessary methods to util's def
+cdef extern from "util/generic/array_ref.h":
+    cdef cppclass TArrayRef[T]:
+        TArrayRef() except +
+        TArrayRef(T* data, size_t len) except +
+        TArrayRef(T* begin, T* end) except +
+
+        T& operator[](size_t)
+
+        T* data() except +
+        size_t size() except +
+        T* begin() except +
+        T* end() except +
+
+    cdef cppclass TConstArrayRef[T]:
+        TConstArrayRef() except +
+        TConstArrayRef(const T* data, size_t len) except +
+        TConstArrayRef(const T* begin, const T* end) except +
+
+        const T& operator[](size_t)
+
+        const T* data() except +
+        size_t size() except +
+        const T* begin() except +
+        const T* end() except +
+
+# TODO(akhropov): Add to util's def
+cdef extern from "util/generic/ptr.h" nogil:
+    cdef cppclass TIntrusivePtr[T]:
+        TIntrusivePtr()
+        TIntrusivePtr(T*)
+        TIntrusivePtr& operator=(...) except +
+        void Reset(T*)
+        T* Get()
+        T* Release()
+        void Drop()
+
 # TODO(akhropov): Add necessary methods to util's def
 cdef extern from "util/generic/strbuf.h":
     cdef cppclass TStringBuf:
@@ -76,8 +117,104 @@ cdef extern from "catboost/libs/logging/logging.h":
 
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
-    cdef int CalcCatFeatureHash(TStringBuf feature) except +ProcessException
-    cdef float ConvertCatFeatureHashToFloat(int hashVal) except +ProcessException
+    cdef ui32 CalcCatFeatureHash(TStringBuf feature) except +ProcessException
+    cdef float ConvertCatFeatureHashToFloat(ui32 hashVal) except +ProcessException
+
+
+cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
+    cdef cppclass IResourceHolder:
+        pass
+
+    cdef cppclass TVectorHolder[T](IResourceHolder):
+        TVector[T] Data
+
+
+cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "NCB":
+    cdef cppclass TMaybeOwningArrayHolder[T]:
+        @staticmethod
+        TMaybeOwningArrayHolder[T] CreateNonOwning(TArrayRef[T] arrayRef)
+
+        @staticmethod
+        TMaybeOwningArrayHolder[T] CreateOwning(
+            TArrayRef[T] arrayRef,
+            TIntrusivePtr[IResourceHolder] resourceHolder
+        )
+
+    cdef cppclass TMaybeOwningConstArrayHolder[T]:
+        @staticmethod
+        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef)
+        
+        @staticmethod
+        TMaybeOwningConstArrayHolder[T] CreateOwning(
+            TConstArrayRef[T] arrayRef,
+            TIntrusivePtr[IResourceHolder] resourceHolder
+        )
+
+
+cdef extern from "catboost/libs/options/enums.h":
+    cdef cppclass EFeatureType:
+        bool_t operator==(EFeatureType)
+
+    cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
+    cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
+
+
+    cdef cppclass EPredictionType:
+        bool_t operator==(EPredictionType)
+
+    cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
+    cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
+    cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
+
+
+cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
+    cdef cppclass TFeatureMetaInfo:
+        EFeatureType Type
+        TString Name
+        bool_t IsIgnored
+        bool_t IsAvailable
+
+    cdef cppclass TFeaturesLayout:
+        TFeaturesLayout() except +ProcessException
+        TFeaturesLayout(
+            const ui32 featureCount,
+            TVector[ui32] catFeatureIndices,
+            const TVector[TString]& featureId
+        )  except +ProcessException
+
+        TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
+        TVector[TString] GetExternalFeatureIds() except +ProcessException
+        void SetExternalFeatureIds(TConstArrayRef[TString] featureIds) except +ProcessException
+        EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
+        ui32 GetCatFeatureCount() except +ProcessException
+        ui32 GetExternalFeatureCount() except +ProcessException
+        TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
+
+
+cdef extern from "catboost/libs/data_new/meta_info.h" namespace "NCB":
+    cdef cppclass TDataMetaInfo:
+        TIntrusivePtr[TFeaturesLayout] FeaturesLayout
+
+        bool_t HasTarget
+        ui32 BaselineCount
+        bool_t HasGroupId
+        bool_t HasGroupWeight
+        bool_t HasSubgroupIds
+        bool_t HasWeights
+        bool_t HasTimestamp
+        bool_t HasPairs
+
+        # ColumnsInfo is not here because it is not used for now
+
+        ui32 GetFeatureCount() except +ProcessException
+
+cdef extern from "catboost/libs/data_new/order.h" namespace "NCB":
+    cdef cppclass EObjectsOrder:
+        pass
+
+    cdef EObjectsOrder EObjectsOrder_Ordered "NCB::EObjectsOrder::Ordered"
+    cdef EObjectsOrder EObjectsOrder_RandomShuffled "NCB::EObjectsOrder::RandomShuffled"
+    cdef EObjectsOrder EObjectsOrder_Undefined "NCB::EObjectsOrder::Undefined"
 
 
 cdef extern from "catboost/libs/data_types/pair.h":
@@ -93,44 +230,151 @@ cdef extern from "catboost/libs/data_types/groupid.h":
     cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
     cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
 
-cdef extern from "catboost/libs/data/quantized_features.h":
-    cdef cppclass TAllFeatures:
-        TVector[TVector[ui8]] FloatHistograms
-        TVector[TVector[int]] CatFeaturesRemapped
-        TVector[TVector[int]] OneHotValues
-        TVector[bool_t] IsOneHot
 
-    cdef cppclass TPoolMetaInfo:
-        ui32 FeatureCount
-        ui32 BaselineCount
-        bool_t HasGroupId
-        bool_t HasGroupWeight
-        bool_t HasSubgroupIds
-        bool_t HasWeights
-        bool_t HasTimestamp
-        # ColumnsInfo is not here because it is not used for now
+cdef extern from "catboost/libs/data_new/util.h" namespace "NCB":
+    cdef cppclass TMaybeData[T]:
+        TMaybeData(...) except +
 
-    cdef cppclass TPool:
-        TDocumentStorage Docs
-        TVector[int] CatFeatures
-        TVector[TString] FeatureId
-        THashMap[int, TString] CatFeaturesHashToString
-        TVector[TPair] Pairs
-        TPoolMetaInfo MetaInfo
-        bint operator==(TPool)
-        void SetCatFeatureHashWithBackMapUpdate(
-            size_t factorIdx,
-            size_t docIdx,
-            TStringBuf catFeatureString
+        TMaybeData& operator=(...) except +
+
+        void ConstructInPlace(...) except +
+        void Clear() except +
+
+        bint Defined()
+        bint Empty()
+
+        void CheckDefined() except +
+
+        T* Get() except +
+        T& GetRef() except +
+
+        T GetOrElse(T&) except +
+        TMaybeData OrElse(TMaybeData&) except +
+
+
+cdef extern from "catboost/libs/data_new/quantized_features_info.h" namespace "NCB":
+    cdef cppclass TQuantizedFeaturesInfo:
+        pass
+
+    ctypedef TIntrusivePtr[TQuantizedFeaturesInfo] TQuantizedFeaturesInfoPtr
+
+
+cdef extern from "catboost/libs/data_new/objects_grouping.h" namespace "NCB":
+    cdef cppclass TObjectsGrouping:
+        pass
+
+    ctypedef TIntrusivePtr[TObjectsGrouping] TObjectsGroupingPtr
+
+    cdef cppclass TObjectsGroupingSubset:
+        pass
+
+    cdef TObjectsGroupingSubset GetGroupingSubsetFromObjectsSubset(
+        TObjectsGroupingPtr objectsGrouping,
+        TVector[ui32]& objectsSubset,
+        EObjectsOrder subsetOrder
+    ) except +ProcessException
+
+
+cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
+    cdef cppclass TObjectsDataProvider:
+        ui32 GetObjectCount()
+        TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds()
+        TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds()
+        TMaybeData[TConstArrayRef[ui64]] GetTimestamp()
+        const THashMap[ui32, TString]& GetCatFeaturesHashToString(ui32 catFeatureIdx) except +ProcessException
+
+    cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
+        void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
+        void SetSubgroupIds(TConstArrayRef[TStringBuf] subgroupStringIds) except +ProcessException
+        TVector[float] GetFeatureDataOldFormat(ui32 flatFeatureIdx) except +ProcessException
+
+    cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
+
+cdef extern from *:
+    TRawObjectsDataProvider* dynamic_cast_to_TRawObjectsDataProvider "dynamic_cast<NCB::TRawObjectsDataProvider*>" (TObjectsDataProvider*)
+
+
+cdef extern from "catboost/libs/data_new/weights.h" namespace "NCB":
+    cdef cppclass TWeights[T]:
+        T operator[](ui32 idx) except +ProcessException
+        ui32 GetSize()
+        bool_t IsTrivial()
+        TConstArrayRef[T] GetNonTrivialData() except +ProcessException
+
+
+ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
+
+
+cdef extern from "catboost/libs/data_new/target.h" namespace "NCB":
+    cdef cppclass TRawTargetDataProvider:
+        TMaybeData[TConstArrayRef[TString]] GetTarget()
+        TMaybeData[TBaselineArrayRef] GetBaseline()
+        const TWeights[float]& GetWeights()
+        const TWeights[float]& GetGroupWeights()
+        TConstArrayRef[TPair] GetPairs()
+
+    cdef cppclass ETargetType:
+        pass
+
+    cdef cppclass TTargetDataSpecification:
+        ETargetType Type
+        TString Description
+
+    cdef cppclass TTargetDataProvider:
+        pass
+
+ctypedef TIntrusivePtr[TTargetDataProvider] TTargetDataProviderPtr
+ctypedef THashMap[TTargetDataSpecification, TTargetDataProviderPtr] TTargetDataProviders
+
+
+cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
+    cdef cppclass TDataProviderTemplate[TTObjectsDataProvider]:
+        TDataMetaInfo MetaInfo
+        TIntrusivePtr[TTObjectsDataProvider] ObjectsData
+        TObjectsGroupingPtr ObjectsGrouping
+        TRawTargetDataProvider RawTargetData
+
+        bool_t operator==(const TDataProviderTemplate& rhs)
+        TIntrusivePtr[TDataProviderTemplate[TTObjectsDataProvider]] GetSubset(
+            const TObjectsGroupingSubset& objectsGroupingSubset,
+            int threadCount
         ) except +ProcessException
+        ui32 GetObjectCount()
 
-    cdef cppclass TClearablePoolPtrs:
-        TPool* Learn
-        bool_t AllowClearLearn
-        const TVector[const TPool*] Test
-        bool_t AllowClearTest
+        void SetBaseline(TBaselineArrayRef baseline) except +ProcessException
+        void SetGroupIds(TConstArrayRef[TGroupId] groupIds) except +ProcessException
+        void SetGroupWeights(TConstArrayRef[float] groupWeights) except +ProcessException
+        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+        void SetSubgroupIds(TConstArrayRef[TSubgroupId] subgroupIds) except +ProcessException
+        void SetWeights(TConstArrayRef[float] weights) except +ProcessException
 
-    cdef THolder[TPool] SlicePool(const TPool& pool, const TVector[size_t]& indices) except +ProcessException
+    ctypedef TDataProviderTemplate[TObjectsDataProvider] TDataProvider
+    ctypedef TIntrusivePtr[TDataProvider] TDataProviderPtr
+
+
+    cdef cppclass TDataProvidersTemplate[TTObjectsDataProvider]:
+        TIntrusivePtr[TDataProviderTemplate[TObjectsDataProvider]] Learn
+        TVector[TIntrusivePtr[TDataProviderTemplate[TObjectsDataProvider]]] Test
+
+    ctypedef TDataProvidersTemplate[TObjectsDataProvider] TDataProviders
+
+
+    cdef cppclass TProcessedDataProviderTemplate[TTObjectsDataProvider]:
+        TDataMetaInfo MetaInfo
+        TObjectsGroupingPtr ObjectsGrouping
+        TIntrusivePtr[TTObjectsDataProvider] ObjectsData
+        TTargetDataProviders TargetData
+
+
+    ctypedef TProcessedDataProviderTemplate[TObjectsDataProvider] TProcessedDataProvider
+    ctypedef TIntrusivePtr[TProcessedDataProvider] TProcessedDataProviderPtr
+
+
+    cdef cppclass TTrainingDataProvidersTemplate[TTObjectsDataProvider]:
+        TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]] Learn
+        TVector[TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]]] Test
+
+    ctypedef TTrainingDataProvidersTemplate[TObjectsDataProvider] TTrainingDataProviders
 
 
 cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
@@ -152,16 +396,92 @@ cdef extern from "catboost/libs/options/load_options.h" namespace "NCatboostOpti
         TPathWithScheme CdFilePath
 
 
-cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
-    cdef void ReadPool(
+cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
+    cdef cppclass IRawObjectsOrderDataVisitor:
+        void Start(
+            bool_t inBlock,
+            const TDataMetaInfo& metaInfo,
+            ui32 objectCount,
+            EObjectsOrder objectsOrder,
+            TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
+        ) except +ProcessException
+
+        void StartNextBlock(ui32 blockSize) except +ProcessException
+
+        void AddGroupId(ui32 localObjectIdx, TGroupId value) except +ProcessException
+        void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) except +ProcessException
+        void AddTimestamp(ui32 localObjectIdx, ui64 value) except +ProcessException
+
+        void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) except +ProcessException
+        void AddAllFloatFeatures(ui32 localObjectIdx, TConstArrayRef[float] features) except +ProcessException
+
+        ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
+        void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
+        void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
+
+        void AddTarget(ui32 localObjectIdx, const TString& value) except +ProcessException
+        void AddTarget(ui32 localObjectIdx, float value) except +ProcessException
+        void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) except +ProcessException
+        void AddWeight(ui32 localObjectIdx, float value) except +ProcessException
+        void AddGroupWeight(ui32 localObjectIdx, float value) except +ProcessException
+
+        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+
+        void Finish() except +ProcessException
+
+    cdef cppclass IRawFeaturesOrderDataVisitor:
+        void Start(
+            const TDataMetaInfo& metaInfo,
+            ui32 objectCount,
+            EObjectsOrder objectsOrder,
+            TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
+        )
+
+        void AddGroupId(ui32 objectIdx, TGroupId value) except +ProcessException
+        void AddSubgroupId(ui32 objectIdx, TSubgroupId value) except +ProcessException
+        void AddTimestamp(ui32 objectIdx, ui64 value) except +ProcessException
+
+        void AddFloatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[float] features) except +ProcessException
+        void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
+        void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
+
+        void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[ui32] features) except +ProcessException
+
+        void AddTarget(TConstArrayRef[TString] value) except +ProcessException
+        void AddTarget(TConstArrayRef[float] value) except +ProcessException
+        void AddBaseline(ui32 baselineIdx, TConstArrayRef[float] value) except +ProcessException
+        void AddWeights(TConstArrayRef[float] value) except +ProcessException
+        void AddGroupWeights(TConstArrayRef[float] value) except +ProcessException
+
+        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
+
+        void Finish() except +ProcessException
+
+
+cdef extern from "catboost/libs/data_new/data_provider_builders.h" namespace "NCB":
+    cdef cppclass IDataProviderBuilder:
+        TDataProviderPtr GetResult() except +ProcessException
+
+    cdef cppclass TDataProviderBuilderOptions:
+        pass
+
+    cdef void CreateDataProviderBuilderAndVisitor[IVisitor](
+        const TDataProviderBuilderOptions& options,
+        THolder[IDataProviderBuilder]* dataProviderBuilder,
+        IVisitor** loader
+    ) except +ProcessException
+
+
+cdef extern from "catboost/libs/data_new/load_data.h" namespace "NCB":
+    cdef TDataProviderPtr ReadDataset(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
         const TDsvPoolFormatParams& dsvPoolFormatParams,
-        const TVector[int]& ignoredFeatures,
+        const TVector[ui32]& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         int threadCount,
-        bool_t verbose,
-        TPool* pool
+        bool_t verbose
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/hessian.h":
@@ -212,7 +532,7 @@ cdef extern from "catboost/libs/model/model.h":
         const TString& userParametersJson,
         bool_t addFileFormatExtension,
         const TVector[TString]* featureId,
-        const THashMap[int, TString]* catFeaturesHashToString
+        const THashMap[ui32, TString]* catFeaturesHashToString
     ) except +ProcessException
 
     cdef void OutputModel(const TFullModel& model, const TString& modelFile) except +ProcessException
@@ -226,44 +546,6 @@ ctypedef const TFullModel* TFullModel_const_ptr
 cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel SumModels(TVector[TFullModel_const_ptr], TVector[double], ECtrTableMergePolicy) nogil except +ProcessException
 
-cdef extern from "catboost/libs/data/pool.h":
-    cdef cppclass TDocumentStorage:
-        TVector[TVector[float]] Factors
-        TVector[TVector[double]] Baseline
-        TVector[TString] Label
-        TVector[float] Target
-        TVector[float] Weight
-        TVector[uint64_t] QueryId
-        TVector[uint32_t] SubgroupId
-        int GetBaselineDimension() except +ProcessException const
-        int GetEffectiveFactorCount() except +ProcessException const
-        size_t GetDocCount() except +ProcessException const
-        void Swap(TDocumentStorage& other) except +ProcessException
-        void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
-        void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId, bool_t hasSubgroupId) except +ProcessException
-        void Clear() except +ProcessException
-
-    cdef cppclass TPoolMetaInfo:
-        bool_t HasGroupWeight
-
-    cdef cppclass TPool:
-        TDocumentStorage Docs
-        TAllFeatures QuantizedFeatures
-        TVector[TFloatFeature] FloatFeatures
-        TVector[int] CatFeatures
-        TVector[TString] FeatureId
-        THashMap[int, TString] CatFeaturesHashToString
-        TVector[TPair] Pairs
-        TPoolMetaInfo MetaInfo
-        bint operator==(TPool)
-        void SetCatFeatureHashWithBackMapUpdate(
-            size_t factorIdx,
-            size_t docIdx,
-            TStringBuf catFeatureString
-        ) except +ProcessException
-
-    cdef THolder[TPool] SlicePool(const TPool& pool, const TVector[size_t]& indices) except +ProcessException
-
 
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef cppclass TJsonValue:
@@ -272,6 +554,11 @@ cdef extern from "library/json/writer/json_value.h" namespace "NJson":
 cdef extern from "library/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
+
+cdef extern from "library/threading/local_executor/local_executor.h" namespace "NPar":
+    cdef cppclass TLocalExecutor:
+        TLocalExecutor() nogil
+        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
@@ -290,18 +577,11 @@ cdef extern from "catboost/libs/metrics/metric.h":
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric);
 
-cdef extern from "catboost/libs/metrics/ders_holder.h":
+cdef extern from "catboost/libs/algo/ders_holder.h":
     cdef cppclass TDers:
         double Der1
         double Der2
 
-cdef extern from "catboost/libs/options/enums.h":
-    cdef cppclass EPredictionType:
-        pass
-
-    cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
-    cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
-    cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
 cdef extern from "catboost/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
@@ -313,8 +593,8 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
         TMetricHolder (*EvalFunc)(
             const TVector[TVector[double]]& approx,
-            const TVector[float]& target,
-            const TVector[float]& weight,
+            const TConstArrayRef[float] target,
+            const TConstArrayRef[float] weight,
             int begin, int end, void* customData
         ) except * with gil
 
@@ -322,6 +602,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
         double (*GetFinalErrorFunc)(const TMetricHolder& error, void *customData) except * with gil
 
+cdef extern from "catboost/libs/algo/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
         void* CustomData
 
@@ -350,7 +631,7 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         int PartitionRandSeed
         bool_t Shuffle
         bool_t Stratified
-        int EvalPeriod
+        ui32 IterationsBatchSize
 
 cdef extern from "catboost/libs/options/check_train_options.h":
     cdef void CheckFitParams(
@@ -373,9 +654,10 @@ cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
         const TJsonValue& params,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
-        const TClearablePoolPtrs& clearablePoolPtrs,
+        TDataProviders pools,
         const TString& outputModelPath,
         TFullModel* model,
         const TVector[TEvalResult*]& testApproxes,
@@ -394,15 +676,29 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         const TJsonValue& jsonParams,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
-        TPool& pool,
+        TDataProviderPtr data,
         const TCrossValidationParams& cvParams,
         TVector[TCVResult]* results
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/algo/apply.h":
+    cdef cppclass TModelCalcerOnPool:
+        TModelCalcerOnPool(
+            const TFullModel& model,
+            TIntrusivePtr[TObjectsDataProvider] objectsData,
+            TLocalExecutor* executor
+        ) nogil
+        void ApplyModelMulti(
+            const EPredictionType predictionType,
+            int begin,
+            int end,
+            TVector[double]* flatApprox,
+            TVector[TVector[double]]* approx
+        ) nogil except +ProcessException
+
     cdef TVector[double] ApplyModel(
         const TFullModel& model,
-        const TPool& pool,
+        const TObjectsDataProvider& objectsData,
         bool_t verbose,
         const EPredictionType predictionType,
         int begin,
@@ -412,7 +708,7 @@ cdef extern from "catboost/libs/algo/apply.h":
 
     cdef TVector[TVector[double]] ApplyModelMulti(
         const TFullModel& calcer,
-        const TPool& pool,
+        const TObjectsDataProvider& objectsData,
         bool_t verbose,
         const EPredictionType predictionType,
         int begin,
@@ -438,7 +734,7 @@ cdef extern from "catboost/libs/algo/roc_curve.h":
 
         TRocCurve(
             const TFullModel& model,
-            const TVector[TPool]& pool,
+            const TVector[TDataProviderPtr]& datasets,
             int threadCount
         ) nogil
 
@@ -489,7 +785,7 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
         const TString& type,
         const TFullModel& model,
-        const TPool* pool,
+        const TDataProviderPtr dataset,
         int threadCount,
         int logPeriod
     ) nogil except +ProcessException
@@ -497,14 +793,14 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
         const TString& type,
         const TFullModel& model,
-        const TPool* pool,
+        const TDataProviderPtr dataset,
         int threadCount,
         int logPeriod
     ) nogil except +ProcessException
 
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
         const TFullModel& model,
-        const TPool* pool
+        const TDataProviderPtr dataset
     ) nogil except +ProcessException
 
 
@@ -514,8 +810,8 @@ cdef extern from "catboost/libs/documents_importance/docs_importance.h":
         TVector[TVector[double]] Scores
     cdef TDStrResult GetDocumentImportances(
         const TFullModel& model,
-        const TPool& trainPool,
-        const TPool& testPool,
+        const TDataProvider& trainData,
+        const TDataProvider& testData,
         const TString& dstrType,
         int topSize,
         const TString& updateMethod,
@@ -555,7 +851,7 @@ cdef extern from "catboost/libs/gpu_config/interface/get_gpu_device_count.h" nam
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef TVector[TVector[double]] EvalMetrics(
         const TFullModel& model,
-        const TPool& pool,
+        const TDataProvider& srcData,
         const TVector[TString]& metricsDescription,
         int begin,
         int end,
@@ -585,7 +881,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
                                         bool_t flag) except +ProcessException
         TVector[const IMetric*] GetMetricRawPtrs() const
         TVector[TVector[double]] ComputeScores()
-        void AddPool(const TPool& pool)
+        void AddPool(const TDataProvider& srcData)
 
 
 cdef inline float _FloatOrNan(object obj) except *:
@@ -662,8 +958,8 @@ cdef class _DoubleArrayWrapper:
 
 cdef TMetricHolder _MetricEval(
     const TVector[TVector[double]]& approx,
-    const TVector[float]& target,
-    const TVector[float]& weight,
+    TConstArrayRef[float] target,
+    TConstArrayRef[float] weight,
     int begin,
     int end,
     void* customData
@@ -977,22 +1273,449 @@ class FeaturesData(object):
         return self.num_feature_names + self.cat_feature_names
 
 
+cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
+    cdef TVector[ui32] cat_features_vector
+    cdef TVector[TString] feature_names_vector
+
+    if isinstance(data, FeaturesData):
+        feature_count = data.get_feature_count()
+        cat_features = [i for i in range(data.get_num_feature_count(), feature_count)]
+        feature_names = data.get_feature_names()
+    else:
+        feature_count = np.shape(data)[1]
+
+    if cat_features is not None:
+        for cat_feature in cat_features:
+            cat_features_vector.push_back(cat_feature)
+
+    if feature_names is not None:
+        for feature_name in feature_names:
+            feature_name = to_binary_str(str(feature_name))
+            feature_names_vector.push_back(feature_name)
+
+    return new TFeaturesLayout(
+        <ui32>feature_count,
+        cat_features_vector,
+        feature_names_vector
+    )
+
+cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
+    cdef TVector[bool_t] mask
+    mask.resize(featuresLayout.GetExternalFeatureCount(), False)
+
+    cdef ui32 idx
+    for idx in range(featuresLayout.GetExternalFeatureCount()):
+        if featuresLayout[0].GetExternalFeatureType(idx) == EFeatureType_Categorical:
+            mask[idx] = True
+
+    return mask
+
+cdef _get_object_count(data):
+    if isinstance(data, FeaturesData):
+        return data.get_object_count()
+    else:
+        return np.shape(data)[0]
+
+cdef _set_features_order_data_np(
+    const float [:,:] num_feature_values,
+    object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    if (num_feature_values is None) and (cat_feature_values is None):
+        raise CatboostError('both num_feature_values and cat_feature_values are empty')
+
+    cdef ui32 doc_count = <ui32>(
+        num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
+    )
+
+    cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
+    cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+
+    cdef bytes factor_bytes
+    cdef TString factor_string
+    cdef TVector[TString] cat_factor_data
+    cdef ui32 doc_idx
+    cdef ui32 num_feature_idx
+    cdef ui32 cat_feature_idx
+
+    cdef ui32 dst_feature_idx
+    
+    cat_factor_data.reserve(doc_count)
+    dst_feature_idx = <ui32>0
+    
+    dst_feature_idx = 0
+    for num_feature_idx in range(num_feature_count):
+        builder_visitor[0].AddFloatFeature(
+            dst_feature_idx,
+            TMaybeOwningConstArrayHolder[float].CreateNonOwning(
+                TConstArrayRef[float](&num_feature_values[0, num_feature_idx], doc_count)
+                if doc_count > 0
+                else TConstArrayRef[float]()
+            )
+        )
+        dst_feature_idx += 1
+    for cat_feature_idx in range(cat_feature_count):
+        cat_factor_data.clear()
+        for doc_idx in range(doc_count):
+            factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
+            factor_string = TString(<char*>factor_bytes, len(factor_bytes))
+            cat_factor_data.push_back(factor_string)
+        builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+        dst_feature_idx += 1
+
+
+cdef float get_float_feature(ui32 doc_idx, ui32 flat_feature_idx, src_value) except*:
+    try:
+        return _FloatOrNan(src_value)
+    except TypeError as e:
+        raise CatboostError(
+            'Bad value for num_feature[{},{}]="{}": {}'.format(
+                doc_idx,
+                flat_feature_idx,
+                src_value,
+                e
+            )
+        )
+
+
+cdef TIntrusivePtr[TVectorHolder[float]] create_num_factor_data(
+    ui32 flat_feature_idx,
+    np.ndarray column_values
+) except*:
+    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data = new TVectorHolder[float]()
+    cdef ui32 doc_idx
+    
+    num_factor_data.Get()[0].Data.resize(len(column_values))
+    for doc_idx in range(len(column_values)):
+        num_factor_data.Get()[0].Data[doc_idx] = get_float_feature(
+            doc_idx,
+            flat_feature_idx,
+            column_values[doc_idx]
+        )
+        
+    return num_factor_data
+
+
+cdef get_cat_factor_bytes_representation(
+    ui32 doc_idx, 
+    ui32 feature_idx,
+    object factor,
+    TStringBuf* factor_strbuf
+):
+    try:
+        return get_id_object_bytes_string_representation(factor, factor_strbuf)
+    except CatboostError:
+        raise CatboostError(
+            'Invalid type for cat_feature[{},{}]={} :'
+            ' cat_features must be integer or string, real number values and NaN values'
+            ' should be converted to string.'.format(doc_idx, feature_idx, factor)
+        )
+
+
+# returns new data holders array
+cdef object _set_features_order_data_pd_data_frame(
+    data_frame,
+    const TFeaturesLayout* features_layout,
+    IRawFeaturesOrderDataVisitor* builder_visitor
+):
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef ui32 doc_count = data_frame.shape[0]
+
+    cdef bytes factor_bytes
+    cdef TStringBuf factor_strbuf
+    cdef TString factor_string
+
+    # two pointers are needed as a workaround for Cython assignment of derived types restrictions
+    cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
+    cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
+
+    cdef TVector[TString] cat_factor_data
+    cdef ui32 doc_idx
+    cdef ui32 flat_feature_idx
+    cdef np.ndarray column_values
+
+    cat_factor_data.reserve(doc_count)
+
+    new_data_holders = []
+
+    for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
+        column_values = column_data.values
+        if is_cat_feature_mask[flat_feature_idx]:
+            cat_factor_data.clear()
+            for doc_idx in range(doc_count):
+                factor_bytes = get_cat_factor_bytes_representation(
+                    doc_idx,
+                    flat_feature_idx,
+                    column_values[doc_idx],
+                    &factor_strbuf
+                )
+                factor_string.assign(<char*>factor_strbuf.Data(), factor_strbuf.Size())
+                cat_factor_data.push_back(factor_string)
+            builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+        elif ((column_values.dtype == np.float32) and
+              column_values.flags.aligned and
+              column_values.flags.c_contiguous
+            ):
+
+            new_data_holders.append(column_values)
+            column_values.setflags(write=0)
+            
+            builder_visitor[0].AddFloatFeature(
+                flat_feature_idx,
+                TMaybeOwningConstArrayHolder[float].CreateNonOwning(
+                    TConstArrayRef[float](<float*>column_values.data, doc_count)
+                    if doc_count > 0
+                    else TConstArrayRef[float]()
+                )
+            )
+        else:
+            num_factor_data = create_num_factor_data(flat_feature_idx, column_values)
+            num_factor_data_holder.Reset(num_factor_data.Get())
+            builder_visitor[0].AddFloatFeature(
+                flat_feature_idx,
+                TMaybeOwningConstArrayHolder[float].CreateOwning(
+                    <TConstArrayRef[float]>num_factor_data.Get()[0].Data,
+                    num_factor_data_holder
+                )
+            )
+
+    return new_data_holders
+
+
+cdef _set_data_np(
+    const float [:,:] num_feature_values,
+    object [:,:] cat_feature_values, # cannot be const due to https://github.com/cython/cython/issues/2485
+    IRawObjectsOrderDataVisitor* builder_visitor
+):
+    if (num_feature_values is None) and (cat_feature_values is None):
+        raise CatboostError('both num_feature_values and cat_feature_values are empty')
+
+    cdef ui32 doc_count = <ui32>(
+        num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
+    )
+
+    cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
+    cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
+
+    cdef bytes factor_bytes
+    cdef TStringBuf factor_strbuf
+    cdef ui32 doc_idx
+    cdef ui32 num_feature_idx
+    cdef ui32 cat_feature_idx
+
+    cdef ui32 dst_feature_idx
+    for doc_idx in range(doc_count):
+        dst_feature_idx = <ui32>0
+        for num_feature_idx in range(num_feature_count):
+            builder_visitor[0].AddFloatFeature(
+                doc_idx,
+                dst_feature_idx,
+                num_feature_values[doc_idx, num_feature_idx]
+            )
+            dst_feature_idx += 1
+        for cat_feature_idx in range(cat_feature_count):
+            factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
+            factor_strbuf = TStringBuf(<char*>factor_bytes, len(factor_bytes))
+            builder_visitor[0].AddCatFeature(doc_idx, dst_feature_idx, factor_strbuf)
+            dst_feature_idx += 1
+
+cdef _set_data_from_generic_matrix(
+    data,
+    const TFeaturesLayout* features_layout,
+    IRawObjectsOrderDataVisitor* builder_visitor
+):
+    data_shape = np.shape(data)
+    cdef int doc_count = data_shape[0]
+    cdef int feature_count = data_shape[1]
+
+    if doc_count == 0:
+        return
+
+    cdef object factor_bytes
+    cdef TStringBuf factor_strbuf
+    cdef int doc_idx
+    cdef int feature_idx
+    cdef int cat_feature_idx
+
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+
+    for doc_idx in range(doc_count):
+        doc_data = data[doc_idx]
+        for feature_idx in range(feature_count):
+            factor = doc_data[feature_idx]
+            if is_cat_feature_mask[feature_idx]:
+                factor_bytes = get_cat_factor_bytes_representation(
+                    doc_idx,
+                    feature_idx,
+                    factor,
+                    &factor_strbuf
+                )
+                builder_visitor[0].AddCatFeature(doc_idx, feature_idx, factor_strbuf)
+            else:
+                builder_visitor[0].AddFloatFeature(
+                    doc_idx,
+                    feature_idx,
+                    get_float_feature(doc_idx, feature_idx, factor)
+                )
+
+cdef _set_data(data, const TFeaturesLayout* features_layout, IRawObjectsOrderDataVisitor* builder_visitor):
+    if isinstance(data, FeaturesData):
+        _set_data_np(data.num_feature_data, data.cat_feature_data, builder_visitor)
+    else:
+        if isinstance(data, np.ndarray) and data.dtype == np.float32:
+            _set_data_np(data, None, builder_visitor)
+        else:
+            _set_data_from_generic_matrix(data, features_layout, builder_visitor)
+
+
+cdef _set_label(label, IRawObjectsOrderDataVisitor* builder_visitor):
+    for i in range(len(label)):
+        if isinstance(label[i], string_types + (bytes,)):
+            bytes_string_representation = to_binary_str(label[i])
+        else:
+            bytes_string_representation = to_binary_str(str(label[i]))
+
+        builder_visitor[0].AddTarget(
+            <ui32>i,
+            TString(<char*>bytes_string_representation, len(bytes_string_representation))
+        )
+
+cdef _set_label_features_order(label, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef TVector[TString] labelVector
+    labelVector.reserve(len(label))
+    for i in range(len(label)):
+        if isinstance(label[i], string_types + (bytes,)):
+            bytes_string_representation = to_binary_str(label[i])
+        else:
+            bytes_string_representation = to_binary_str(str(label[i]))
+        labelVector.push_back(TString(<char*>bytes_string_representation, len(bytes_string_representation)))
+    builder_visitor[0].AddTarget(<TConstArrayRef[TString]>labelVector)
+
+
+ctypedef fused IBuilderVisitor:
+    IRawObjectsOrderDataVisitor
+    IRawFeaturesOrderDataVisitor
+
+
+cdef TVector[TPair] _make_pairs_vector(pairs, pairs_weight=None):
+    if pairs_weight:
+        if len(pairs) != len(pairs_weight):
+            raise CatboostError(
+                'len(pairs_weight) = {} is not equal to len(pairs) = {} '.format(
+                    len(pairs_weight), len(pairs)
+                )
+            )
+
+    cdef TVector[TPair] pairs_vector
+    pairs_vector.resize(len(pairs))
+
+    for pair_idx, pair in enumerate(pairs):
+        pairs_vector[pair_idx].WinnerId = <ui32>pair[0]
+        pairs_vector[pair_idx].LoserId = <ui32>pair[1]
+        pairs_vector[pair_idx].Weight = <float>(pairs_weight[pair_idx] if pairs_weight else 1.0)
+    return pairs_vector
+
+
+cdef _set_pairs(pairs, pairs_weight, IBuilderVisitor* builder_visitor):
+    cdef TVector[TPair] pairs_vector = _make_pairs_vector(pairs, pairs_weight)
+    builder_visitor[0].SetPairs(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
+
+cdef _set_weight(weight, IRawObjectsOrderDataVisitor* builder_visitor):
+    for i in range(len(weight)):
+        builder_visitor[0].AddWeight(i, float(weight[i]))
+        
+cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef TVector[float] weightVector
+    weightVector.reserve(len(weight))
+    for i in range(len(weight)):
+        weightVector.push_back(float(weight[i]))
+    builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
+
+cdef TGroupId _calc_group_id_for(i, py_group_ids):
+    cdef object id_as_bytes
+    cdef TStringBuf id_as_strbuf
+
+    try:
+        id_as_bytes = get_id_object_bytes_string_representation(py_group_ids[i], &id_as_strbuf)
+    except CatboostError:
+        raise CatboostError(
+            "group_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
+                i, py_group_ids[i]
+            )
+        )
+    return CalcGroupIdFor(id_as_strbuf)
+
+cdef _set_group_id(group_id, IBuilderVisitor* builder_visitor):
+    for i in range(len(group_id)):
+        builder_visitor[0].AddGroupId(i, _calc_group_id_for(i, group_id))
+
+cdef _set_group_weight(group_weight, IRawObjectsOrderDataVisitor* builder_visitor):
+    for i in range(len(group_weight)):
+        builder_visitor[0].AddGroupWeight(i, float(group_weight[i]))
+        
+cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef TVector[float] groupWeightVector
+    groupWeightVector.reserve(len(group_weight))
+    for i in range(len(group_weight)):
+        groupWeightVector.push_back(float(group_weight[i]))
+    builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
+
+cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids):
+    cdef object id_as_bytes
+    cdef TStringBuf id_as_strbuf
+
+    try:
+        id_as_bytes = get_id_object_bytes_string_representation(py_subgroup_ids[i], &id_as_strbuf)
+    except CatboostError:
+        raise CatboostError(
+            "subgroup_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
+                i, py_subgroup_ids[i]
+            )
+        )
+    return CalcSubgroupIdFor(id_as_strbuf)
+
+cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
+    for i in range(len(subgroup_id)):
+        builder_visitor[0].AddSubgroupId(i, _calc_subgroup_id_for(i, subgroup_id))
+
+cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
+    for i in range(len(baseline)):
+        for j, value in enumerate(baseline[i]):
+            builder_visitor[0].AddBaseline(i, j, float(value))
+            
+cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builder_visitor):
+    cdef ui32 baseline_count = len(baseline[0])
+    cdef TVector[float] one_dim_baseline
+        
+    for baseline_idx in range(baseline_count):
+        one_dim_baseline.clear()
+        one_dim_baseline.reserve(len(baseline))
+        for i in range(len(baseline)):
+            one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
+        builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
+
+
 cdef class _PoolBase:
-    cdef TPool* __pool
-    cdef bool_t has_label_
+    cdef TDataProviderPtr __pool
+    cdef object target_type
+    
+    # possibly hold reference or list of references to data to allow using views to them in __pool
+    cdef object __data_holders 
 
     def __cinit__(self):
-        self.__pool = new TPool()
-        self.has_label_ = False
+        self.__pool = TDataProviderPtr()
+        self.target_type = None
+        self.__data_holders = None
 
     def __dealloc__(self):
-        del self.__pool
+        self.__pool.Drop()
 
     def __deepcopy__(self, _):
         raise CatboostError('Can\'t deepcopy _PoolBase object')
 
     def __eq__(self, _PoolBase other):
-        return dereference(self.__pool) == dereference(other.__pool)
+        return dereference(self.__pool.Get()) == dereference(other.__pool.Get())
+    
 
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
         pool_file = to_binary_str(pool_file)
@@ -1011,274 +1734,319 @@ cdef class _PoolBase:
         if len(cd_file):
             dsvPoolFormatParams.CdFilePath = TPathWithScheme(TStringBuf(<char*>cd_file), TStringBuf(<char*>'dsv'))
 
-        thread_count = UpdateThreadCount(thread_count);
+        thread_count = UpdateThreadCount(thread_count)
 
-        cdef TVector[int] emptyIntVec
+        cdef TVector[ui32] emptyIntVec
 
-        ReadPool(
+        self.__pool = ReadDataset(
             pool_file_path,
             pairs_file_path,
             TPathWithScheme(),
             dsvPoolFormatParams,
             emptyIntVec,
+            EObjectsOrder_Undefined,
             thread_count,
-            False,
-            self.__pool
+            False
         )
+        self.__data_holders = None # free previously used resources
+        self.target_type = str
 
-        if len([target for target in self.__pool.Docs.Target]) > 1:
-            self.has_label_ = True
+
+    cdef _init_features_order_layout_pool(
+        self,
+        data,
+        const TDataMetaInfo& data_meta_info,
+        label,
+        pairs,
+        weight,
+        group_id,
+        group_weight,
+        subgroup_id,
+        pairs_weight,
+        baseline):
+
+        cdef TDataProviderBuilderOptions options
+        cdef THolder[IDataProviderBuilder] data_provider_builder
+        cdef IRawFeaturesOrderDataVisitor* builder_visitor
+
+        CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
+
+        cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
+        builder_visitor[0].Start(
+            data_meta_info,
+            _get_object_count(data),
+            EObjectsOrder_Undefined,
+            resource_holders
+        )
+        
+        if isinstance(data, FeaturesData):
+            new_data_holders = data
+         
+            # needed because of https://github.com/cython/cython/issues/2485   
+            if data.cat_feature_data is not None:
+                data.cat_feature_data.setflags(write=1)
+            
+            _set_features_order_data_np(
+                data.num_feature_data,
+                data.cat_feature_data,
+                builder_visitor)
+            
+            # set after _set_features_order_data_np call because we can't pass const cat_feature_data to it
+            # https://github.com/cython/cython/issues/2485
+            if data.num_feature_data is not None:
+                data.num_feature_data.setflags(write=0)
+            if data.cat_feature_data is not None:
+                data.cat_feature_data.setflags(write=0)
+        elif isinstance(data, pd.DataFrame):
+            new_data_holders = _set_features_order_data_pd_data_frame(
+                data,
+                data_meta_info.FeaturesLayout.Get(),
+                builder_visitor
+            )
+        elif isinstance(data, np.ndarray) and data.dtype == np.float32:
+            new_data_holders = data
+            data.setflags(write=0)
+            _set_features_order_data_np(data, None, builder_visitor)
+        else:
+            raise CatboostError(
+                '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
+            )
+
+        num_class = 2
+        if label is not None:
+            _set_label_features_order(label, builder_visitor)
+            num_class = len(set(list(label)))
+            if len(label) > 0:
+                self.target_type = type(label[0])
+        if pairs is not None:
+            _set_pairs(pairs, pairs_weight, builder_visitor)
+        elif pairs_weight is not None:
+            raise CatboostError('"pairs_weight" is specified but "pairs" is not')
+        if baseline is not None:
+            _set_baseline_features_order(baseline, builder_visitor)
+        if weight is not None:
+            _set_weight_features_order(weight, builder_visitor)
+        if group_id is not None:
+            _set_group_id(group_id, builder_visitor)
+        if group_weight is not None:
+            _set_group_weight_features_order(group_weight, builder_visitor)
+        if subgroup_id is not None:
+            _set_subgroup_id(subgroup_id, builder_visitor)
+
+        builder_visitor[0].Finish()
+
+        self.__pool = data_provider_builder.Get()[0].GetResult()
+        self.__data_holders = new_data_holders
+
+    
+    cdef _init_objects_order_layout_pool(
+        self,
+        data,
+        const TDataMetaInfo& data_meta_info,
+        label,
+        pairs,
+        weight,
+        group_id,
+        group_weight,
+        subgroup_id,
+        pairs_weight,
+        baseline):
+        
+        self.__data_holder = None # free previously used resources
+
+        cdef TDataProviderBuilderOptions options
+        cdef THolder[IDataProviderBuilder] data_provider_builder
+        cdef IRawObjectsOrderDataVisitor* builder_visitor
+
+        CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
+
+        cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
+        builder_visitor[0].Start(
+            False,
+            data_meta_info,
+            _get_object_count(data),
+            EObjectsOrder_Undefined,
+            resource_holders
+        )
+        builder_visitor[0].StartNextBlock(_get_object_count(data))
+
+        _set_data(data, data_meta_info.FeaturesLayout.Get(), builder_visitor)
+
+        num_class = 2
+        if label is not None:
+            _set_label(label, builder_visitor)
+            num_class = len(set(list(label)))
+            if len(label) > 0:
+                self.target_type = type(label[0])
+        if pairs is not None:
+            _set_pairs(pairs, pairs_weight, builder_visitor)
+        elif pairs_weight is not None:
+            raise CatboostError('"pairs_weight" is specified but "pairs" is not')
+        if baseline is not None:
+            _set_baseline(baseline, builder_visitor)
+        if weight is not None:
+            _set_weight(weight, builder_visitor)
+        if group_id is not None:
+            _set_group_id(group_id, builder_visitor)
+        if group_weight is not None:
+            _set_group_weight(group_weight, builder_visitor)
+        if subgroup_id is not None:
+            _set_subgroup_id(subgroup_id, builder_visitor)
+
+        builder_visitor[0].Finish()
+
+        self.__pool = data_provider_builder.Get()[0].GetResult()
+
 
     cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
         if group_weight is not None and weight is not None:
             raise CatboostError('Pool must have either weight or group_weight.')
+        
+        cdef TDataMetaInfo data_meta_info
+        data_meta_info.HasTarget = label is not None
+        data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
+        data_meta_info.HasGroupId = group_id is not None
+        data_meta_info.HasGroupWeight = group_weight is not None
+        data_meta_info.HasSubgroupIds = subgroup_id is not None
+        data_meta_info.HasWeights = weight is not None
+        data_meta_info.HasTimestamp = False
+        data_meta_info.HasPairs = pairs is not None
+        
+        data_meta_info.FeaturesLayout = _init_features_layout(data, cat_features, feature_names)
 
-        if cat_features is not None:
-            self._init_cat_features(cat_features)
-        self._set_data_and_feature_names(data, feature_names)
-        num_class = 2
-        if label is not None:
-            self._set_label(label)
-            num_class = len(set(list(label)))
-            self.has_label_ = True
-        if pairs is not None:
-            self._set_pairs(pairs)
-        if baseline is not None:
-            self._set_baseline(baseline)
-        if weight is not None:
-            self._set_weight(weight)
-        if group_id is not None:
-            self._set_group_id(group_id)
-        if group_weight is not None:
-            self._set_group_weight(group_weight)
-        if subgroup_id is not None:
-            self._set_subgroup_id(subgroup_id)
-        if pairs_weight is not None:
-            self._set_pairs_weight(pairs_weight)
-
-    cpdef _init_cat_features(self, cat_features):
-        self.__pool.CatFeatures.clear()
-        for feature in cat_features:
-            self.__pool.CatFeatures.push_back(int(feature))
-
-    cdef _set_data_np(self, np.float32_t [:,:] num_feature_values, object [:,:] cat_feature_values):
-        if (num_feature_values is None) and (cat_feature_values is None):
-            raise CatboostError('both num_feature_values and cat_feature_values are empty')
-
-        cdef int doc_count = (
-            num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
-        )
-
-        cdef int num_feature_count = num_feature_values.shape[1] if num_feature_values is not None else 0
-        cdef int cat_feature_count = cat_feature_values.shape[1] if cat_feature_values is not None else 0
-
-        cdef int feature_count = num_feature_count + cat_feature_count
-        self.__pool.MetaInfo.FeatureCount = <ui32>feature_count
-
-        cdef bool_t has_group_id = not self.__pool.Docs.QueryId.empty()
-        cdef bool_t has_subgroup_id = not self.__pool.Docs.SubgroupId.empty()
-        self.__pool.Docs.Resize(doc_count, feature_count, 0, has_group_id, has_subgroup_id)
-
-        cdef int dst_feature_idx
-        for dst_feature_idx in xrange(num_feature_count, feature_count):
-            self.__pool.CatFeatures.push_back(int(dst_feature_idx))
-
-        cdef bytes factor_bytes
-        cdef TStringBuf factor_strbuf
-        cdef int doc_idx
-        cdef int num_feature_idx
-        cdef int cat_feature_idx
-
-        for doc_idx in range(doc_count):
-            dst_feature_idx = 0
-            for num_feature_idx in range(num_feature_count):
-                self.__pool.Docs.Factors[dst_feature_idx][doc_idx] = num_feature_values[doc_idx, num_feature_idx]
-                dst_feature_idx += 1
-            for cat_feature_idx in range(cat_feature_count):
-                factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
-                factor_strbuf = TStringBuf(<char*>factor_bytes, len(factor_bytes))
-                self.__pool.SetCatFeatureHashWithBackMapUpdate(dst_feature_idx, doc_idx, factor_strbuf)
-                dst_feature_idx += 1
-
-
-    cdef TVector[bool_t] _get_is_cat_feature_mask(self, int feature_count):
-        cdef TVector[bool_t] mask
-        mask.resize(feature_count, False)
-
-        cdef size_t idx
-        for idx in range(self.__pool.CatFeatures.size()):
-            mask[self.__pool.CatFeatures[idx]] = True
-
-        return mask
-
-    cpdef _set_data_from_generic_matrix(self, data):
-        data_shape = np.shape(data)
-        cdef int doc_count = data_shape[0]
-        cdef int feature_count = data_shape[1]
-        self.__pool.MetaInfo.FeatureCount = <ui32>feature_count
-
-        cdef bool_t has_group_id = not self.__pool.Docs.QueryId.empty()
-        cdef bool_t has_subgroup_id = not self.__pool.Docs.SubgroupId.empty()
-        self.__pool.Docs.Resize(doc_count, feature_count, 0, has_group_id, has_subgroup_id)
-
-        if doc_count == 0:
-            return
-
-        cdef object factor_bytes
-        cdef TStringBuf factor_strbuf
-        cdef int doc_idx
-        cdef int feature_idx
-        cdef int cat_feature_idx
-
-        cdef TVector[bool_t] is_cat_feature_mask = self._get_is_cat_feature_mask(feature_count)
-
-        for doc_idx in range(doc_count):
-            doc_data = data[doc_idx]
-            for feature_idx in range(feature_count):
-                factor = doc_data[feature_idx]
-                if is_cat_feature_mask[feature_idx]:
-                    try:
-                        factor_bytes = get_id_object_bytes_string_representation(factor, &factor_strbuf)
-                    except CatboostError:
-                        raise CatboostError(
-                            'Invalid type for cat_feature[{},{}]={} :'
-                            ' cat_features must be integer or string, real number values and NaN values'
-                            ' should be converted to string.'.format(doc_idx, feature_idx, factor)
-                        )
-                    self.__pool.SetCatFeatureHashWithBackMapUpdate(feature_idx, doc_idx, factor_strbuf)
-                else:
-                    self.__pool.Docs.Factors[feature_idx][doc_idx] = _FloatOrNan(factor)
-
-    cpdef _set_data_and_feature_names(self, data, feature_names):
-        self.__pool.Docs.Clear()
+        do_use_raw_data_in_features_order = False
         if isinstance(data, FeaturesData):
-            self._set_data_np(data.num_feature_data, data.cat_feature_data)
-            self._set_feature_names(data.get_feature_names())
+            if ((data.num_feature_data is not None) and
+                data.num_feature_data.flags.aligned and
+                data.num_feature_data.flags.f_contiguous
+               ):
+                do_use_raw_data_in_features_order = True
+        elif isinstance(data, pd.DataFrame):
+            do_use_raw_data_in_features_order = True
         else:
             if isinstance(data, np.ndarray) and data.dtype == np.float32:
-                self._set_data_np(data, None)
-            else:
-                self._set_data_from_generic_matrix(data)
-            self._set_feature_names(feature_names)
+                if data.flags.aligned and data.flags.f_contiguous:
+                    do_use_raw_data_in_features_order = True
+        
+        if do_use_raw_data_in_features_order:
+            self._init_features_order_layout_pool(
+                data,
+                data_meta_info,
+                label,
+                pairs,
+                weight,
+                group_id,
+                group_weight,
+                subgroup_id,
+                pairs_weight,
+                baseline
+            )
+        else:
+            self._init_objects_order_layout_pool(
+                data,
+                data_meta_info,
+                label,
+                pairs,
+                weight,
+                group_id,
+                group_weight,
+                subgroup_id,
+                pairs_weight,
+                baseline
+            )
 
-    cpdef _set_label(self, label):
-        rows = self.num_row()
-        for i in range(rows):
-            self.__pool.Docs.Target[i] = float(label[i])
 
     cpdef _set_pairs(self, pairs):
-        self.__pool.Pairs.clear()
-        cdef TPair* pair_ptr
-        for pair in pairs:
-            pair_ptr = new TPair(pair[0], pair[1], 1.)
-            self.__pool.Pairs.push_back(dereference(pair_ptr))
-            del pair_ptr
+        cdef TVector[TPair] pairs_vector = _make_pairs_vector(pairs)
+        self.__pool.Get()[0].SetPairs(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
 
     cpdef _set_weight(self, weight):
-        rows = self.num_row()
-        for i in range(rows):
-            self.__pool.Docs.Weight[i] = float(weight[i])
-        self.__pool.MetaInfo.HasWeights = True
-        self.__pool.MetaInfo.HasGroupWeight = False
+        cdef TVector[float] weight_vector
+        for value in weight:
+            weight_vector.push_back(value)
+        self.__pool.Get()[0].SetWeights(
+            TConstArrayRef[float](weight_vector.data(), weight_vector.size())
+        )
 
     cpdef _set_group_id(self, group_id):
-        if group_id is None:
-            self.__pool.MetaInfo.HasGroupId = False
-            self.__pool.Docs.QueryId.clear();
-            return
-
-        self.__pool.MetaInfo.HasGroupId = True
         rows = self.num_row()
-        if rows == 0:
-            return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
-        cdef object id_as_bytes
-        cdef TStringBuf id_as_strbuf
+        cdef TVector[TGroupId] group_id_vector
+        group_id_vector.reserve(rows)
+
         for i in range(rows):
-            try:
-                id_as_bytes = get_id_object_bytes_string_representation(group_id[i], &id_as_strbuf)
-            except CatboostError:
-                raise CatboostError(
-                    "group_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
-                        i, group_id[i]
-                    )
-                )
-            self.__pool.Docs.QueryId[i] = CalcGroupIdFor(id_as_strbuf)
+            group_id_vector.push_back(_calc_group_id_for(i, group_id))
+
+        self.__pool.Get()[0].SetGroupIds(
+            TConstArrayRef[TGroupId](group_id_vector.data(), group_id_vector.size())
+        )
 
     cpdef _set_group_weight(self, group_weight):
-        rows = self.num_row()
-        if rows == 0:
-            return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), False, False)
-        for i in range(rows):
-            self.__pool.Docs.Weight[i] = float(group_weight[i])
-        self.__pool.MetaInfo.HasWeights = True
-        self.__pool.MetaInfo.HasGroupWeight = True
+        cdef TVector[float] group_weight_vector
+        for value in group_weight:
+            group_weight_vector.push_back(value)
+        self.__pool.Get()[0].SetGroupWeights(
+            TConstArrayRef[float](group_weight_vector.data(), group_weight_vector.size())
+        )
 
     cpdef _set_subgroup_id(self, subgroup_id):
-        if subgroup_id is None:
-            self.__pool.MetaInfo.HasSubgroupIds = False
-            self.__pool.Docs.SubgroupId.clear();
-            return
-
-        self.__pool.MetaInfo.HasSubgroupIds = True
         rows = self.num_row()
-        if rows == 0:
-            return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), False, True)
-        cdef object id_as_bytes
-        cdef TStringBuf id_as_strbuf
+        cdef TVector[TSubgroupId] subgroup_id_vector
+        subgroup_id_vector.reserve(rows)
+
         for i in range(rows):
-            try:
-                id_as_bytes = get_id_object_bytes_string_representation(subgroup_id[i], &id_as_strbuf)
-            except CatboostError:
-                raise CatboostError(
-                    "subgroup_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
-                        i, subgroup_id[i]
-                    )
-                )
-            self.__pool.Docs.SubgroupId[i] = CalcSubgroupIdFor(id_as_strbuf)
+            subgroup_id_vector.push_back(_calc_subgroup_id_for(i, subgroup_id))
+
+        self.__pool.Get()[0].SetSubgroupIds(
+            TConstArrayRef[TSubgroupId](subgroup_id_vector.data(), subgroup_id_vector.size())
+        )
 
     cpdef _set_pairs_weight(self, pairs_weight):
-        rows = self.num_pairs()
-        for i in range(rows):
-            self.__pool.Pairs[i].Weight = float(pairs_weight[i])
+        cdef TConstArrayRef[TPair] old_pairs = self.__pool.Get()[0].RawTargetData.GetPairs()
+        cdef TVector[TPair] new_pairs
+        for i in range(old_pairs.size()):
+            new_pairs.push_back(TPair(old_pairs[i].WinnerId, old_pairs[i].LoserId, pairs_weight[i]))
+        self.__pool.Get()[0].SetPairs(TConstArrayRef[TPair](new_pairs.data(), new_pairs.size()))
 
     cpdef _set_baseline(self, baseline):
-        self.__pool.MetaInfo.BaselineCount = len(baseline[0])
-
         rows = self.num_row()
-        if rows == 0:
-            return
-        self.__pool.Docs.Resize(
-            rows,
-            self.__pool.Docs.GetEffectiveFactorCount(),
-            self.__pool.MetaInfo.BaselineCount,
-            False,
-            False
-        )
+        approx_dimension = len(baseline[0])
+
+        cdef TVector[TVector[float]] baseline_matrix # [approxIdx][objectIdx]
+        cdef TVector[TConstArrayRef[float]] baseline_matrix_view # [approxIdx][objectIdx]
+        baseline_matrix.resize(approx_dimension)
+        baseline_matrix_view.resize(approx_dimension)
+        for j in range(approx_dimension):
+            baseline_matrix[j].resize(rows)
+            baseline_matrix_view[j] = TConstArrayRef[float](
+                baseline_matrix[j].data(),
+                baseline_matrix[j].size()
+            )
 
         for i in range(rows):
             for j, value in enumerate(baseline[i]):
-                self.__pool.Docs.Baseline[j][i] = float(value)
+                baseline_matrix[j][i] = float(value)
+
+        self.__pool.Get()[0].SetBaseline(
+            TBaselineArrayRef(baseline_matrix_view.data(), baseline_matrix_view.size())
+        )
 
     cpdef _set_feature_names(self, feature_names):
-        self.__pool.FeatureId.clear()
-        if feature_names is None:
-            # init to empty strings
-            self.__pool.FeatureId.resize(self.__pool.Docs.GetEffectiveFactorCount())
-        else:
-            # consistency of sizes for self.__pool.Docs.GetEffectiveFactorCount() and feature_names
-            # has been already checked
-            for value in feature_names:
-                value = to_binary_str(str(value))
-                self.__pool.FeatureId.push_back(value)
+        cdef TVector[TString] feature_names_vector
+        for value in feature_names:
+            value = to_binary_str(str(value))
+            feature_names_vector.push_back(value)
+        self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].SetExternalFeatureIds(
+            TConstArrayRef[TString](feature_names_vector.data(), feature_names_vector.size())
+        )
 
     cpdef get_feature_names(self):
         feature_names = []
         cdef bytes pystr
-        for value in self.__pool.FeatureId:
-            pystr = value.c_str()
+        cdef TConstArrayRef[TFeatureMetaInfo] features_meta_info = (
+            self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetExternalFeaturesMetaInfo()
+        )
+        for meta_info in features_meta_info:
+            pystr = meta_info.Name.c_str()
             feature_names.append(to_native_str(pystr))
         return feature_names
 
@@ -1290,7 +2058,7 @@ cdef class _PoolBase:
         -------
         number of rows : int
         """
-        return self.__pool.Docs.GetDocCount()
+        return self.__pool.Get()[0].GetObjectCount()
 
     cpdef num_col(self):
         """
@@ -1300,7 +2068,7 @@ cdef class _PoolBase:
         -------
         number of cols : int
         """
-        return self.__pool.Docs.GetEffectiveFactorCount()
+        return self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetExternalFeatureCount()
 
     cpdef num_pairs(self):
         """
@@ -1310,7 +2078,7 @@ cdef class _PoolBase:
         -------
         number of pairs : int
         """
-        return self.__pool.Pairs.size()
+        return self.__pool.Get()[0].RawTargetData.GetPairs().size()
 
     @property
     def shape(self):
@@ -1324,20 +2092,32 @@ cdef class _PoolBase:
         """
         return tuple([self.num_row(), self.num_col()])
 
+
+    cdef _get_feature(self, TRawObjectsDataProvider* raw_objects_data_provider, factor_idx, dst_data):
+        cdef TVector[float] factorData = raw_objects_data_provider[0].GetFeatureDataOldFormat(factor_idx)
+        for doc in range(self.num_row()):
+            dst_data[doc, factor_idx] = factorData[doc]
+
+
     cpdef get_features(self):
         """
         Get feature matrix from Pool.
 
         Returns
         -------
-        feature matrix : list(list)
+        feature matrix : np.array of shape (rows, cols)
         """
-        data = []
-        for doc in range(self.__pool.Docs.GetDocCount()):
-            factors = []
-            for factor in self.__pool.Docs.Factors:
-                factors.append(factor[doc])
-            data.append(factors)
+        cdef TRawObjectsDataProvider* raw_objects_data_provider = dynamic_cast_to_TRawObjectsDataProvider(
+            self.__pool.Get()[0].ObjectsData.Get()
+        )
+        if not raw_objects_data_provider:
+            raise CatboostError('Pool does not have raw features data, only quantized')
+
+        data = np.empty(self.shape, dtype=np.float32)
+
+        for factor in range(self.num_col()):
+            self._get_feature(raw_objects_data_provider, factor, data)
+
         return data
 
     cpdef get_label(self):
@@ -1348,8 +2128,9 @@ cdef class _PoolBase:
         -------
         labels : list
         """
-        if self.has_label_:
-            return [target for target in self.__pool.Docs.Target]
+        cdef TMaybeData[TConstArrayRef[TString]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
+        if maybe_target.Defined():
+            return [self.target_type(target_string.decode()) for target_string in maybe_target.GetRef()]
         return None
 
     cpdef get_cat_feature_indices(self):
@@ -1360,7 +2141,8 @@ cdef class _PoolBase:
         -------
         cat_feature_indices : list
         """
-        return [self.__pool.CatFeatures.at(i) for i in range(self.__pool.CatFeatures.size())]
+        cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
+        return [int(i) for i in featuresLayout[0].GetCatFeatureInternalIdxToExternalIdx()]
 
     cpdef get_cat_feature_hash_to_string(self):
         """
@@ -1370,9 +2152,23 @@ cdef class _PoolBase:
         -------
         hash_to_string : map
         """
+        cdef const THashMap[ui32, TString]* cat_features_hash_to_string
+
         hash_to_string = {}
-        for factor_hash, factor_string in self.__pool.CatFeaturesHashToString:
-            hash_to_string[ConvertCatFeatureHashToFloat(factor_hash)] = factor_string
+
+        cat_feature_count = self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetCatFeatureCount()
+        for cat_feature_idx in range(cat_feature_count):
+            cat_features_hash_to_string = &(
+                self.__pool.Get()[0].ObjectsData.Get()[0].GetCatFeaturesHashToString(cat_feature_idx)
+            )
+
+            # can't use canonical for loop here due to Cython's bugs:
+            # https://github.com/cython/cython/issues/1451
+            it = cat_features_hash_to_string[0].const_begin()
+            while it != cat_features_hash_to_string[0].const_end():
+                hash_to_string[ConvertCatFeatureHashToFloat(dereference(it).first)] = to_native_str(dereference(it).second)
+                preincrement(it)
+
         return hash_to_string
 
     cpdef get_weight(self):
@@ -1383,7 +2179,14 @@ cdef class _PoolBase:
         -------
         weight : list
         """
-        return [weight for weight in self.__pool.Docs.Weight]
+        cdef const TWeights[float]* weights = &(self.__pool.Get()[0].RawTargetData.GetWeights())
+        cdef TConstArrayRef[float] non_trivial_data
+        if weights.IsTrivial():
+            return [1.0]*weights.GetSize()
+        else:
+            non_trivial_data = weights.GetNonTrivialData()
+            return [weight for weight in non_trivial_data]
+
 
     cpdef get_baseline(self):
         """
@@ -1391,24 +2194,35 @@ cdef class _PoolBase:
 
         Returns
         -------
-        baseline : list(list)
+        baseline : np.array
         """
-        baseline = []
-        for doc in range(self.__pool.Docs.GetDocCount()):
-            doc_approxes = []
-            for approx in self.__pool.Docs.Baseline:
-                doc_approxes.append(approx[doc])
-            baseline.append(doc_approxes)
-        return baseline
+        cdef TMaybeData[TBaselineArrayRef] maybe_baseline = self.__pool.Get()[0].RawTargetData.GetBaseline()
+        cdef TBaselineArrayRef baseline
+        if maybe_baseline.Defined():
+            baseline = maybe_baseline.GetRef()
+            result = np.array((self.num_row(), baseline.size()), dtype=np.float32)
+            for baseline_idx in range(baseline.size()):
+                for object_idx in range(self.num_row()):
+                    result[object_idx, baseline_idx] = baseline[baseline_idx][object_idx]
+            return result
+        else:
+            return np.array((self.num_row(), 0), dtype=np.float32)
 
     cpdef _take_slice(self, _PoolBase pool, row_indices):
-        cdef TVector[size_t] rowIndices
+        cdef TVector[ui32] rowIndices
         for index in row_indices:
             rowIndices.push_back(index)
-        cdef TPool* slicedPool = SlicePool(dereference(pool.__pool), rowIndices).Release()
-        del self.__pool
-        self.__pool = slicedPool
-        self.has_label_ = pool.has_label_
+
+        thread_count = UpdateThreadCount(-1)
+        self.__pool = pool.__pool.Get()[0].GetSubset(
+            GetGroupingSubsetFromObjectsSubset(
+                pool.__pool.Get()[0].ObjectsGrouping,
+                rowIndices,
+                EObjectsOrder_Undefined
+            ),
+            thread_count
+        )
+        self.target_type = pool.target_type
 
     @property
     def is_empty_(self):
@@ -1419,7 +2233,7 @@ cdef class _PoolBase:
         -------
         is_empty_ : bool
         """
-        return self.__pool.Docs.GetDocCount() == 0
+        return self.num_row() == 0
 
 
 cdef class _CatBoost:
@@ -1449,19 +2263,18 @@ cdef class _CatBoost:
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool):
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
-        cdef TClearablePoolPtrs clearablePoolPtrs
-        clearablePoolPtrs.Learn = train_pool.__pool
-        clearablePoolPtrs.AllowClearLearn = allow_clear_pool
+        cdef TDataProviders dataProviders
+        dataProviders.Learn = train_pool.__pool
         cdef _PoolBase test_pool
         if isinstance(test_pools, list):
             if params.get('task_type', 'CPU') == 'GPU' and len(test_pools) > 1:
                 raise CatboostError('Multiple eval sets are not supported on GPU')
             for test_pool in test_pools:
-                clearablePoolPtrs.Test.push_back(test_pool.__pool)
+                dataProviders.Test.push_back(test_pool.__pool)
         else:
             test_pool = test_pools
-            clearablePoolPtrs.Test.push_back(test_pool.__pool)
-        self._reserve_test_evals(clearablePoolPtrs.Test.size())
+            dataProviders.Test.push_back(test_pool.__pool)
+        self._reserve_test_evals(dataProviders.Test.size())
         self._clear_test_evals()
 
         with nogil:
@@ -1469,9 +2282,10 @@ cdef class _CatBoost:
             try:
                 TrainModel(
                     prep_params.tree,
+                    TQuantizedFeaturesInfoPtr(),
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
-                    clearablePoolPtrs,
+                    dataProviders,
                     TString(<const char*>""),
                     self.__model,
                     self.__test_evals,
@@ -1542,43 +2356,45 @@ cdef class _CatBoost:
     cpdef _get_float_feature_indices(self):
             return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.FloatFeatures]
 
-    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, verbose):
+    cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
         cdef TVector[double] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-
-        pred = ApplyModel(
-            dereference(self.__model),
-            dereference(pool.__pool),
-            verbose,
-            predictionType,
-            ntree_start,
-            ntree_end,
-            thread_count
-        )
+        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
+        with nogil:
+            pred = ApplyModel(
+                dereference(self.__model),
+                dereference(objectsData),
+                verbose,
+                predictionType,
+                ntree_start,
+                ntree_end,
+                thread_count
+            )
         return [value for value in pred]
 
     cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end,
-                              int thread_count, verbose):
+                              int thread_count, bool_t verbose):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = PyPredictionType(prediction_type).predictionType
         thread_count = UpdateThreadCount(thread_count);
-
-        pred = ApplyModelMulti(
-            dereference(self.__model),
-            dereference(pool.__pool),
-            verbose,
-            predictionType,
-            ntree_start,
-            ntree_end,
-            thread_count
-        )
-        return _convert_to_visible_labels(prediction_type, pred, thread_count, self.__model)
+        cdef const TObjectsDataProvider* objectsData = &pool.__pool.Get()[0].ObjectsData.Get()[0]
+        with nogil:
+            pred = ApplyModelMulti(
+                dereference(self.__model),
+                dereference(objectsData),
+                verbose,
+                predictionType,
+                ntree_start,
+                ntree_end,
+                thread_count
+            )
+        return _convert_to_visible_labels(predictionType, pred, thread_count, self.__model)
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
-        stagedPredictIterator = _StagedPredictIterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-        stagedPredictIterator.set_model(self.__model)
+        stagedPredictIterator = _StagedPredictIterator(prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+        stagedPredictIterator._initialize_model_calcer(self.__model, pool)
         return stagedPredictIterator
 
     cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
@@ -1593,7 +2409,7 @@ cdef class _CatBoost:
         cdef TVector[TVector[double]] metrics
         metrics = EvalMetrics(
             dereference(self.__model),
-            dereference(pool.__pool),
+            pool.__pool.Get()[0],
             metricDescriptions,
             ntree_start,
             ntree_end,
@@ -1610,7 +2426,7 @@ cdef class _CatBoost:
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
-            pool.__pool if pool else NULL,
+            pool.__pool if pool else TDataProviderPtr(),
         )
         native_feature_ids = [to_native_str(s) for s in feature_ids]
 
@@ -1621,7 +2437,7 @@ cdef class _CatBoost:
             fstr_multi = GetFeatureImportancesMulti(
                 TString(<const char*>fstr_type_name),
                 dereference(self.__model),
-                pool.__pool if pool else NULL,
+                pool.__pool if pool else TDataProviderPtr(),
                 thread_count,
                 verbose
             )
@@ -1634,7 +2450,7 @@ cdef class _CatBoost:
             fstr = GetFeatureImportances(
                 TString(<const char*>fstr_type_name),
                 dereference(self.__model),
-                pool.__pool if pool else NULL,
+                pool.__pool if pool else TDataProviderPtr(),
                 thread_count,
                 verbose
             )
@@ -1647,8 +2463,8 @@ cdef class _CatBoost:
         thread_count = UpdateThreadCount(thread_count);
         cdef TDStrResult ostr = GetDocumentImportances(
             dereference(self.__model),
-            dereference(train_pool.__pool),
-            dereference(test_pool.__pool),
+            train_pool.__pool.Get()[0],
+            test_pool.__pool.Get()[0],
             TString(<const char*>ostr_type),
             top_size,
             TString(<const char*>update_method),
@@ -1679,14 +2495,23 @@ cdef class _CatBoost:
         cdef EModelType modelType = string_to_model_type(format)
         export_parameters = to_binary_str(export_parameters)
         output_file = to_binary_str(output_file)
+
+        cdef TVector[TString] feature_id
+        if pool:
+            feature_id = pool.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetExternalFeatureIds()
+
+        cdef THashMap[ui32, TString] cat_features_hash_to_string
+        if pool:
+            cat_features_hash_to_string = MergeCatFeaturesHashToString(pool.__pool.Get()[0].ObjectsData.Get()[0])
+
         ExportModel(
             dereference(self.__model),
             output_file,
             modelType,
             export_parameters,
             False,
-            &(dereference(pool.__pool).FeatureId) if pool else NULL,
-            &(dereference(pool.__pool).CatFeaturesHashToString) if pool else NULL
+            &feature_id if pool else <TVector[TString]*>nullptr,
+            &cat_features_hash_to_string if pool else <THashMap[ui32, TString]*>nullptr
         )
 
     cpdef _serialize_model(self):
@@ -1701,7 +2526,7 @@ cdef class _CatBoost:
         self.__model.Swap(tmp_model)
 
     cpdef _get_params(self):
-        if not self.__model.ModelInfo.has("params"):
+        if not self.__model.ModelInfo.contains("params"):
             return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
@@ -1717,7 +2542,7 @@ cdef class _CatBoost:
         return self.__model.GetTreeCount()
 
     def _get_random_seed(self):
-        if not self.__model.ModelInfo.has("params"):
+        if not self.__model.ModelInfo.contains("params"):
             return 0
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
@@ -1727,7 +2552,7 @@ cdef class _CatBoost:
         return 0
 
     def _get_learning_rate(self):
-        if not self.__model.ModelInfo.has("params"):
+        if not self.__model.ModelInfo.contains("params"):
             return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
@@ -1767,7 +2592,7 @@ cdef class _MetadataHashProxy:
         if not isinstance(key, string_types):
             raise CatboostError('only string keys allowed')
         key = to_binary_str(key)
-        if not self._catboost.__model.ModelInfo.has(key):
+        if not self._catboost.__model.ModelInfo.contains(key):
             raise KeyError
         return to_native_str(self._catboost.__model.ModelInfo.at(key))
 
@@ -1789,7 +2614,7 @@ cdef class _MetadataHashProxy:
         if not isinstance(key, string_types):
             raise CatboostError('only string keys allowed')
         key = to_binary_str(key)
-        if not self._catboost.__model.ModelInfo.has(key):
+        if not self._catboost.__model.ModelInfo.contains(key):
             raise KeyError
         self._catboost.__model.ModelInfo.erase(TString(<const char*>key))
 
@@ -1813,7 +2638,7 @@ cdef class _MetadataHashProxy:
 
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, bool_t as_pandas):
+          bool_t shuffle, bool_t stratified, bool_t as_pandas, int iterations_batch_size):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -1823,6 +2648,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
     cvParams.Inverted = inverted
+    cvParams.IterationsBatchSize = <ui32>iterations_batch_size
 
     with nogil:
         SetPythonInterruptHandler()
@@ -1831,7 +2657,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
                 prep_params.tree,
                 prep_params.customObjectiveDescriptor,
                 prep_params.customMetricDescriptor,
-                dereference(pool.__pool),
+                pool.__pool,
                 cvParams,
                 &results)
         finally:
@@ -1852,11 +2678,7 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
             result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
 
     if as_pandas:
-        try:
-            from pandas import DataFrame
-            return DataFrame.from_dict(result)
-        except ImportError:
-            pass
+        return pd.DataFrame.from_dict(result)
     return result
 
 
@@ -1871,8 +2693,8 @@ cdef _FloatOrStringFromString(char* s):
     return s
 
 
-cdef  _convert_to_visible_labels(str prediction_type, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
-     if prediction_type == 'Class':
+cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
+     if predictionType == PyPredictionType('Class').predictionType:
         return [[_FloatOrStringFromString(value) for value \
             in ConvertTargetToExternalName([value for value in raws[0]], dereference(model))]]
 
@@ -1880,27 +2702,35 @@ cdef  _convert_to_visible_labels(str prediction_type, TVector[TVector[double]] r
 
 
 cdef class _StagedPredictIterator:
+    cdef TVector[double] __flatApprox
     cdef TVector[TVector[double]] __approx
+    cdef TVector[TVector[double]] __pred
     cdef TFullModel* __model
-    cdef _PoolBase pool
-    cdef str prediction_type
+    cdef TLocalExecutor __executor
+    cdef TModelCalcerOnPool* __modelCalcerOnPool
+    cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
     cdef bool_t verbose
 
-    cdef set_model(self, TFullModel* model):
-        self.__model = model
-
-    def __cinit__(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
-        self.pool = pool
-        self.prediction_type = prediction_type
+    def __cinit__(self, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
+        self.predictionType = PyPredictionType(prediction_type).predictionType
         self.ntree_start = ntree_start
         self.ntree_end = ntree_end
         self.eval_period = eval_period
-        self.thread_count = thread_count
+        self.thread_count = UpdateThreadCount(thread_count)
         self.verbose = verbose
+        self.__executor.RunAdditionalThreads(self.thread_count - 1)
+
+    cdef _initialize_model_calcer(self, TFullModel* model, _PoolBase pool):
+        self.__model = model
+        self.__modelCalcerOnPool = new TModelCalcerOnPool(
+            dereference(self.__model),
+            pool.__pool.Get()[0].ObjectsData,
+            &self.__executor
+        )
 
     def __dealloc__(self):
-        pass
+        del self.__modelCalcerOnPool
 
     def __deepcopy__(self, _):
         raise CatboostError('Can\'t deepcopy _StagedPredictIterator object')
@@ -1909,27 +2739,25 @@ cdef class _StagedPredictIterator:
         if self.ntree_start >= self.ntree_end:
             raise StopIteration
 
-        cdef TVector[TVector[double]] pred
-        cdef EPredictionType predictionType = PyPredictionType(self.prediction_type).predictionType
-        pred = ApplyModelMulti(dereference(self.__model),
-                               dereference(self.pool.__pool),
-                               self.verbose,
-                               PyPredictionType('InternalRawFormulaVal').predictionType,
-                               self.ntree_start,
-                               min(self.ntree_start + self.eval_period, self.ntree_end),
-                               self.thread_count)
+        dereference(self.__modelCalcerOnPool).ApplyModelMulti(
+            PyPredictionType('InternalRawFormulaVal').predictionType,
+            self.ntree_start,
+            min(self.ntree_start + self.eval_period, self.ntree_end),
+            &self.__flatApprox,
+            &self.__pred
+        )
+
         if self.__approx.empty():
-            self.__approx = pred
+            self.__approx.swap(self.__pred)
         else:
             for i in range(self.__approx.size()):
                 for j in range(self.__approx[0].size()):
-                    self.__approx[i][j] += pred[i][j]
+                    self.__approx[i][j] += self.__pred[i][j]
 
         self.ntree_start += self.eval_period
-        pred = PrepareEvalForInternalApprox(predictionType, dereference(self.__model), self.__approx, 1)
+        self.__pred = PrepareEvalForInternalApprox(self.predictionType, dereference(self.__model), self.__approx, self.thread_count)
 
-        return  _convert_to_visible_labels(self.prediction_type, pred, self.thread_count, self.__model)
-
+        return _convert_to_visible_labels(self.predictionType, self.__pred, self.thread_count, self.__model)
 
 
 class MetricDescription:
@@ -2034,7 +2862,7 @@ cdef class _MetricCalcerBase:
                                  self._metric_descriptions)
 
     cpdef add(self, _PoolBase pool):
-        self.__calcer.AddPool(dereference(pool.__pool))
+        self.__calcer.AddPool(pool.__pool.Get()[0])
 
     def __deepcopy__(self):
         raise CatboostError('Can\'t deepcopy _MetricCalcerBase object')
@@ -2086,9 +2914,9 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
 cpdef _get_roc_curve(model, pools_list, thread_count):
     thread_count = UpdateThreadCount(thread_count)
-    cdef TVector[TPool] pools
+    cdef TVector[TDataProviderPtr] pools
     for pool in pools_list:
-        pools.push_back(dereference((<_PoolBase>pool).__pool))
+        pools.push_back((<_PoolBase>pool).__pool)
     cdef TVector[TRocPoint] curve = TRocCurve(
         dereference((<_CatBoost>model).__model), pools, thread_count
     ).GetCurvePoints()
@@ -2106,11 +2934,11 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
 
     cdef TRocCurve rocCurve
     cdef TVector[TRocPoint] points
-    cdef TVector[TPool] pools
+    cdef TVector[TDataProviderPtr] pools
 
     if data is not None:
         for pool in data:
-            pools.push_back(dereference((<_PoolBase>pool).__pool))
+            pools.push_back((<_PoolBase>pool).__pool)
         rocCurve = TRocCurve(dereference((<_CatBoost>model).__model), pools, thread_count)
     else:
         size = len(curve[2])

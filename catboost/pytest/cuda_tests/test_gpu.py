@@ -2,7 +2,6 @@ import catboost
 import csv
 import filecmp
 import json
-import math
 import numpy as np
 import os
 import pytest
@@ -764,6 +763,74 @@ def test_all_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), '2/10',
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv_for_query(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), '2/7',
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv_for_pairs(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), '2/7',
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_custom_priors(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -1364,8 +1431,6 @@ def test_multiclass_baseline_lost_class(loss_function):
     test_path = yatest.common.test_output_path('test.txt')
     np.savetxt(test_path, generate_random_labeled_set(num_objects, 10, labels=[0, 1, 2, 3]), fmt='%.5f', delimiter='\t')
 
-    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
-    test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
 
     custom_metric = 'Accuracy:use_weights=false'
@@ -1386,15 +1451,8 @@ def test_multiclass_baseline_lost_class(loss_function):
 
     fit_params.update(NO_RANDOM_PARAMS)
 
-    execute_catboost_fit('CPU', fit_params)
-
-    fit_params['--learn-err-log'] = learn_error_path
-    fit_params['--test-err-log'] = test_error_path
-    fit_catboost_gpu(fit_params)
-
-    compare_evals(custom_metric, test_error_path, eval_error_path, eps=math.sqrt(1.0 / num_objects))
-    return [local_canonical_file(learn_error_path, diff_tool=diff_tool(1e-6)),
-            local_canonical_file(test_error_path, diff_tool=diff_tool(1e-6))]
+    with pytest.raises(yatest.common.ExecutionError):
+        execute_catboost_fit('CPU', fit_params)
 
 
 def test_ctr_buckets():
@@ -1956,7 +2014,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
 
 
 REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3']
-CUSTOM_METRIC = ["MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5"]
+CUSTOM_METRIC = ["MAE,Lq:q=2.5,NumErrors:greater_than=0.1,NumErrors:greater_than=0.01,NumErrors:greater_than=0.5"]
 
 
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)

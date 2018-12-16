@@ -8,7 +8,7 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
+#include <catboost/libs/data_new/data_provider.h>
 
 namespace NCatboostCuda {
     //just meta for printing/debugging
@@ -48,11 +48,11 @@ namespace NCatboostCuda {
             }
 
             bool HasFeature(ui32 featureId) const {
-                return FeaturePolicy.has(featureId);
+                return FeaturePolicy.contains(featureId);
             }
 
             const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
-                Y_ASSERT(FeaturePolicy.has(featureId));
+                Y_ASSERT(FeaturePolicy.contains(featureId));
                 const auto& policy = FeaturePolicy.at(featureId);
                 return PolicyBlocks.at(policy)->GetTCFeature(featureId);
             }
@@ -66,7 +66,7 @@ namespace NCatboostCuda {
             };
 
             bool HasFeaturesForPolicy(EFeaturesGroupingPolicy policy) const {
-                return PolicyBlocks.has(policy);
+                return PolicyBlocks.contains(policy);
             }
 
             const THistogramsMapping& GetHistogramsMapping(EFeaturesGroupingPolicy policy) const {
@@ -94,7 +94,7 @@ namespace NCatboostCuda {
             }
 
             ui32 GetGridSize(EFeaturesGroupingPolicy policy) const {
-                if (!PolicyBlocks.has(policy)) {
+                if (!PolicyBlocks.contains(policy)) {
                     return 0;
                 }
                 return PolicyBlocks.at(policy)->CudaFeaturesHost.size();

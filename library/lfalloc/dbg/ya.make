@@ -1,7 +1,9 @@
 LIBRARY()
 
 
+
 NO_UTIL()
+
 NO_COMPILER_WARNINGS()
 
 IF (ARCH_AARCH64)
@@ -12,8 +14,10 @@ ELSE()
     IF ("${YMAKE}" MATCHES "devtools")
         CFLAGS(-DYMAKE=1)
     ENDIF()
-
-    CXXFLAGS(-DLFALLOC_DBG -DLFALLOC_YT)
+    CXXFLAGS(
+        -DLFALLOC_DBG
+        -DLFALLOC_YT
+    )
     SRCS(
         ../lf_allocX64.cpp
     )
@@ -26,5 +30,3 @@ PEERDIR(
 SET(IDE_FOLDER "util")
 
 END()
-
-NEED_CHECK()

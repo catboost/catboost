@@ -26,7 +26,7 @@ namespace NCudaLib {
             auto section = Build();
             for (auto& dev : devices) {
                 auto device = manager.GetDevice(dev);
-                CB_ENSURE(section.has(device));
+                CB_ENSURE(section.contains(device));
                 const auto& config = section[device];
                 LaunchSingleTask(device, config, provider(dev), manager.StreamAt(stream, dev));
             }
@@ -85,7 +85,7 @@ namespace NCudaLib {
                 section.StreamSectionUid = streamSectionProvider.NextUid();
 
                 for (const auto& device : group.second) {
-                    Y_ASSERT(!result.has(device));
+                    Y_ASSERT(!result.contains(device));
                     result[device] = section;
                 }
             }
@@ -101,7 +101,7 @@ namespace NCudaLib {
         using TKey = ui32;
 
         TKey GetKey(TCudaSingleDevice* device) {
-            if (!Keys.has(device)) {
+            if (!Keys.contains(device)) {
                 const auto key = NewKey();
                 Keys[device] = key;
                 Groups[key].clear();

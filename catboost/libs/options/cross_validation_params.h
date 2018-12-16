@@ -2,12 +2,6 @@
 
 #include <util/system/types.h>
 
-struct TCvDataPartitionParams {
-    int FoldIdx = -1;
-    size_t FoldCount = 0;
-    bool Inverted = false;
-    int RandSeed = 0;
-};
 
 struct TCrossValidationParams {
     ui32 FoldCount = 0;
@@ -15,4 +9,9 @@ struct TCrossValidationParams {
     int PartitionRandSeed = 0;
     bool Shuffle = true;
     bool Stratified = false;
+    ui32 IterationsBatchSize = 100;
+};
+
+struct TCvDataPartitionParams : public TCrossValidationParams {
+    ui32 FoldIdx = 0;
 };

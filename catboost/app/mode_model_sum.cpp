@@ -4,9 +4,13 @@
 
 #include <library/getopt/small/last_getopt.h>
 
+#include <util/generic/serialized_enum.h>
+
 int mode_model_sum(int argc, const char* argv[]) {
     TVector<std::pair<TString, double>> modelPathsWithWeights;
     TString outputModelPath;
+    ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage;
+
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     parser.AddLongOption('m', "model", "Model path with default weight 1.0")
@@ -22,17 +26,24 @@ int mode_model_sum(int argc, const char* argv[]) {
         .Required()
         .RequiredArgument("PATH")
         .StoreResult(&outputModelPath);
+
+    parser.AddLongOption("ctr-merge-policy",
+         TString::Join(
+            "One of ",
+            GetEnumAllNames<ECtrTableMergePolicy>()))
+        .Optional()
+        .StoreResult(&ctrMergePolicy);
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
-    TVector<TFullModel> models;
+    TVector<THolder<TFullModel>> models;
     TVector<const TFullModel*> modelPtrs;
     TVector<double> weights;
     for (const auto& [path, weight] : modelPathsWithWeights) {
-        models.emplace_back(ReadModel(path));
-        modelPtrs.emplace_back(&models.back());
+        models.emplace_back(MakeHolder<TFullModel>(ReadModel(path)));
+        modelPtrs.emplace_back(models.back().Get());
         weights.emplace_back(weight);
     }
-    TFullModel result = SumModels(modelPtrs, weights);
+    TFullModel result = SumModels(modelPtrs, weights, ctrMergePolicy);
     OutputModel(result, outputModelPath);
     return 0;
 }

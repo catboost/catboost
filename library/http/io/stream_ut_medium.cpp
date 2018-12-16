@@ -32,7 +32,7 @@ Y_UNIT_TEST_SUITE(THttpTestMedium) {
             }
 
             try {
-                UNIT_ASSERT(+s > 10);
+                UNIT_ASSERT(s.size() > 10);
                 UNIT_ASSERT(s.find(data) == TString::npos);
             } catch (...) {
                 Cerr << codec << " " << s << Endl;

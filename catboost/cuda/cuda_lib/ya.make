@@ -2,8 +2,6 @@
 
 LIBRARY()
 
-NO_WERROR()
-
 SRCS(
     cache.cpp
     cuda_base.cpp

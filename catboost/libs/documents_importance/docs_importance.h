@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/string.h>
@@ -21,8 +21,8 @@ struct TDStrResult {
 
 TDStrResult GetDocumentImportances(
     const TFullModel& model,
-    const TPool& trainPool,
-    const TPool& testPool,
+    const NCB::TDataProvider& trainData,
+    const NCB::TDataProvider& testData,
     const TString& dstrTypeStr,
     int topSize,
     const TString& updateMethodStr,

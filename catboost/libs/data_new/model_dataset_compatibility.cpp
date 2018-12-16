@@ -35,7 +35,7 @@ namespace NCB {
 
         const auto& datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
         for (ui32 i = 0; i < (ui32)datasetFeaturesMetaInfo.size(); ++i) {
-            featureNameIntersection += modelFeatureIdSet.has(datasetFeaturesMetaInfo[i].Name);
+            featureNameIntersection += modelFeatureIdSet.contains(datasetFeaturesMetaInfo[i].Name);
             datasetFeatureNamesMap[datasetFeaturesMetaInfo[i].Name] = i;
         }
         // if we have unique feature names for all features in model and in pool we can fill column index reordering map if needed
@@ -53,7 +53,7 @@ namespace NCB {
             }
             const auto datasetFlatFeatureIndex = datasetFeatureNamesMap.at(feature.FeatureId);
             CB_ENSURE(
-                datasetCatFeatureFlatIndexes.has(datasetFlatFeatureIndex),
+                datasetCatFeatureFlatIndexes.contains(datasetFlatFeatureIndex),
                 "Feature " << feature.FeatureId << " is categorical in model but marked as numerical in dataset");
             (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = datasetFlatFeatureIndex;
             needRemapping |= (datasetFlatFeatureIndex != SafeIntegerCast<ui32>(feature.FlatFeatureIndex));
@@ -64,7 +64,7 @@ namespace NCB {
             }
             const auto datasetFlatFeatureIndex = datasetFeatureNamesMap.at(feature.FeatureId);
             CB_ENSURE(
-                !datasetCatFeatureFlatIndexes.has(datasetFlatFeatureIndex),
+                !datasetCatFeatureFlatIndexes.contains(datasetFlatFeatureIndex),
                 "Feature " << feature.FeatureId << " is numerical in model but marked as categorical in dataset");
             (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = datasetFlatFeatureIndex;
             needRemapping |= (datasetFlatFeatureIndex != SafeIntegerCast<ui32>(feature.FlatFeatureIndex));
@@ -132,7 +132,7 @@ namespace NCB {
                 featurePoolName = GetFeatureName("", catFeature.FlatFeatureIndex);
             }
             CB_ENSURE(
-                datasetCatFeatures.has(catFeature.FlatFeatureIndex),
+                datasetCatFeatures.contains(catFeature.FlatFeatureIndex),
                 "Feature " << featurePoolName << " from pool must be categorical.");
         }
 
@@ -162,7 +162,7 @@ namespace NCB {
                 featurePoolName = GetFeatureName("", floatFeature.FlatFeatureIndex);
             }
             CB_ENSURE(
-                !datasetCatFeatures.has(floatFeature.FlatFeatureIndex),
+                !datasetCatFeatures.contains(floatFeature.FlatFeatureIndex),
                 "Feature " << featurePoolName << " from pool must not be categorical.");
         }
     }

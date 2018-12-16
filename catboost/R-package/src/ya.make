@@ -11,8 +11,8 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
-    catboost/libs/data
     catboost/libs/data_util
+    catboost/libs/data_new
     catboost/libs/documents_importance
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda
@@ -20,6 +20,7 @@ PEERDIR(
     catboost/libs/init
     catboost/libs/logging
     catboost/libs/model
+    catboost/libs/options
     catboost/libs/train_lib
     catboost/libs/options
 )

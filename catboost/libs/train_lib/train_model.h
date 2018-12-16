@@ -1,13 +1,12 @@
 #pragma once
 
 #include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/data/dataset.h>
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/algo/custom_objective_descriptor.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/options/output_file_options.h>
 
@@ -16,44 +15,55 @@
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
-#include <util/generic/vector.h>
+
+#include <functional>
 
 
 using NCB::TEvalResult;
 
+// returns whether training should be continued
+using TOnEndIterationCallback = std::function<bool(const TMetricsAndTimeLeftHistory&)>;
+
+
 class IModelTrainer {
 public:
     virtual void TrainModel(
+        bool calcMetricsOnly,
         const NJson::TJsonValue& jsonParams,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        const TClearablePoolPtrs& pools,
+        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+        NCB::TTrainingDataProviders trainingData,
+        const TLabelConverter& labelConverter,
+        NPar::TLocalExecutor* localExecutor,
+        const TMaybe<TRestorableFastRng64*> rand,
         TFullModel* model,
         const TVector<TEvalResult*>& evalResultPtrs,
-        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
-
-    virtual void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadParams,
-                            const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                            const NJson::TJsonValue& jsonParams) const = 0;
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+    ) const = 0;
 
     virtual ~IModelTrainer() = default;
 };
 
 void TrainModel(
+    const NCatboostOptions::TPoolLoadParams& poolLoadParams,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    const NJson::TJsonValue& jsonParams);
+
+
+void TrainModel(
     const NJson::TJsonValue& plainJsonParams,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TClearablePoolPtrs& pools,
+    NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
     const TString& outputModelPath,
     TFullModel* model,
     const TVector<TEvalResult*>& evalResultPtrs,
     TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr);
 
 /// Used by cross validation, hence one test dataset.
-void TrainOneIteration(
-    const TDataset& trainData,
-    const TDataset* testData,
-    TLearnContext* ctx);
+void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx);
 
 using TTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IModelTrainer, ETaskType>;

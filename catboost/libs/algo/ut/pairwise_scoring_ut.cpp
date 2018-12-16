@@ -30,10 +30,22 @@ static TPairwiseStats CalcPairwiseStats(
     }
 
     TPairwiseStats pairwiseStats;
-    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(docCount));
+    pairwiseStats.DerSums = ComputeDerSums(
+        weightedDerivativesData,
+        leafCount,
+        bucketCount,
+        leafIndices,
+        [&](ui32 docId) { return bucketIndices[docId]; },
+        NCB::TIndexRange<int>(docCount));
     const auto flatPairs = UnpackPairsFromQueries(queriesInfo);
     const int pairCount = flatPairs.ysize();
-    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(flatPairs, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(pairCount));
+    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(
+        flatPairs,
+        leafCount,
+        bucketCount,
+        leafIndices,
+        [&](ui32 docId) { return bucketIndices[docId]; },
+        NCB::TIndexRange<int>(pairCount));
 
     return pairwiseStats;
 }

@@ -1,8 +1,11 @@
 #include "gpu_metrics.h"
-#include "kernel.h"
-#include "query_cross_entropy_kernels.h"
-#include "multiclass_kernels.h"
+
 #include "auc.h"
+#include "dcg.h"
+#include "kernel.h"
+#include "multiclass_kernels.h"
+#include "query_cross_entropy_kernels.h"
+
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
@@ -184,7 +187,7 @@ namespace NCatboostCuda {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     if (metricType == ELossFunction::Logloss) {
                         useBorder = true;
-                        if (params.has("border")) {
+                        if (params.contains("border")) {
                             border = FromString<float>(params.at("border"));
                         }
                     }
@@ -218,11 +221,11 @@ namespace NCatboostCuda {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     //TODO(noxoomo): make param dispatch on device side
-                    if (params.has("alpha")) {
+                    if (params.contains("alpha")) {
                         alpha = FromString<float>(params.at("alpha"));
                     }
                     if (metricType == ELossFunction::NumErrors) {
-                        alpha = FromString<float>(params.at("greater_then"));
+                        alpha = FromString<float>(params.at("greater_than"));
                     }
                     if (metricType == ELossFunction::Lq) {
                         alpha = FromString<float>(params.at("q"));
@@ -414,13 +417,46 @@ namespace NCatboostCuda {
                     double sum = ReadReduce(value)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalPairsWeight);
                 }
+                case ELossFunction::NDCG: {
+                    const auto& params = GetMetricDescription().GetLossParams();
+
+                    auto type = ENdcgMetricType::Base;
+                    if (const auto it = params.find("type"); it != params.end()) {
+                        type = FromString<ENdcgMetricType>(it->second);
+                    }
+
+                    auto top = Max<ui32>();
+                    if (const auto it = params.find("top"); it != params.end()) {
+                        top = FromString<ui32>(it->second);
+                    }
+
+                    // TODO(yazevnul): we can compute multiple NDCG metrics with different `top`
+                    // parameter (but `type` must be the same) in one function call.
+                    const auto perQueryNdcgSum = CalculateNdcg(
+                        samplesGrouping.GetSizes(),
+                        samplesGrouping.GetBiasedOffsets(),
+                        samplesGrouping.GetOffsetsBias(),
+                        weights,
+                        target,
+                        cursor,
+                        type,
+                        {top}).front();
+                    auto queryWeights = TCudaBuffer<float, TMapping>::CopyMapping(samplesGrouping.GetSizes());
+                    NDetail::GatherBySizeAndOffset(
+                        weights,
+                        samplesGrouping.GetSizes(),
+                        samplesGrouping.GetBiasedOffsets(),
+                        samplesGrouping.GetOffsetsBias(),
+                        queryWeights,
+                        1);
+                    const auto queryWeightsSum = ReduceToHost(queryWeights);
+                    return MakeSimpleAdditiveStatistic(perQueryNdcgSum, queryWeightsSum);
+                }
                 default: {
-                    CB_ENSURE(false, "Unsupported on GPU pointwise metric " << metricType);
+                    CB_ENSURE(false, "Unsupported on GPU querywise metric " << metricType);
                 }
             }
         }
-
-    private:
     };
 
     TMetricHolder TCpuFallbackMetric::Eval(const TVector<TVector<double>>& approx,
@@ -522,7 +558,7 @@ namespace NCatboostCuda {
             case ELossFunction::HammingLoss: {
                 double border = GetDefaultClassificationBorder();
                 const auto& params = metricDescription.GetLossParams();
-                if (params.has("border")) {
+                if (params.contains("border")) {
                     border = FromString<float>(params.at("border"));
                 }
 
@@ -559,6 +595,7 @@ namespace NCatboostCuda {
                 }
                 break;
             }
+            case ELossFunction::NDCG:
             case ELossFunction::QueryRMSE:
             case ELossFunction::QuerySoftMax:
             case ELossFunction::PairLogit:
@@ -611,7 +648,7 @@ namespace NCatboostCuda {
         for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                             lossFunctionOption, cpuApproxDim)) {
             const TString& description = metric->GetCpuMetric().GetDescription();
-            if (!usedDescriptions.has(description)) {
+            if (!usedDescriptions.contains(description)) {
                 usedDescriptions.insert(description);
                 metrics.push_back(std::move(metric));
             }
@@ -621,7 +658,7 @@ namespace NCatboostCuda {
             for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                                 description, cpuApproxDim)) {
                 const TString& description = metric->GetCpuMetric().GetDescription();
-                if (!usedDescriptions.has(description)) {
+                if (!usedDescriptions.contains(description)) {
                     usedDescriptions.insert(description);
                     metrics.push_back(std::move(metric));
                 }

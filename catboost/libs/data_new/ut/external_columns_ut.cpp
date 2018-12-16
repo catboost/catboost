@@ -24,9 +24,10 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             /*discretization*/3
         );
 
-        auto featuresLayout = MakeIntrusive<TFeaturesLayout>(ui32(1), TVector<ui32>{}, TVector<TString>{});
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<TString>{});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
+            TConstArrayRef<ui32>(),
             binarizationOptions
         );
 
@@ -35,7 +36,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
         {
             TFloatValuesHolder floatValuesHolder(
                 featureId,
-                TMaybeOwningArrayHolder<float>::CreateNonOwning(v),
+                TMaybeOwningConstArrayHolder<float>::CreateNonOwning(v),
                 &vSubsetIndexing
             );
 
@@ -48,7 +49,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         TExternalFloatValuesHolder externalFloatValuesHolder(
             featureId,
-            TMaybeOwningArrayHolder<float>::CreateOwning(std::move(v)),
+            TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(v)),
             &vSubsetIndexing,
             quantizedFeaturesInfo
         );
@@ -74,20 +75,21 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             hashedCatValues.push_back( (ui32)CalcCatFeatureHash(srcCatValue) );
         }
 
-        auto hashedArrayNonOwningHolder = TMaybeOwningArrayHolder<ui32>::CreateNonOwning(hashedCatValues);
+        auto hashedArrayNonOwningHolder = TMaybeOwningConstArrayHolder<ui32>::CreateNonOwning(hashedCatValues);
 
         NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)hashedCatValues.size()} );
 
-        TConstMaybeOwningArraySubset<ui32, ui32> arraySubset(
+        TMaybeOwningConstArraySubset<ui32, ui32> arraySubset(
             &hashedArrayNonOwningHolder,
             &vSubsetIndexing
         );
 
         const NCatboostOptions::TBinarizationOptions binarizationOptions;
 
-        auto featuresLayout = MakeIntrusive<TFeaturesLayout>(ui32(1), TVector<ui32>{0}, TVector<TString>{});
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<TString>{});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
+            TConstArrayRef<ui32>(),
             binarizationOptions
         );
 
@@ -103,7 +105,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         TExternalCatValuesHolder externalCatValuesHolder(
             featureId,
-            TMaybeOwningArrayHolder<ui32>::CreateOwning(std::move(hashedCatValues)),
+            TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(hashedCatValues)),
             &vSubsetIndexing,
             quantizedFeaturesInfo
         );

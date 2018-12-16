@@ -26,7 +26,7 @@ UNIT_ASSERT_EQUAL(p + 2, child.AsCharPtr());
 
 Y_UNIT_TEST(TestFromStream) {
     TString s("sjklfgsdyutfuyas54fa78s5f89a6df790asdf7");
-    TMemoryInput mi(~s, +s);
+    TMemoryInput mi(s.data(), s.size());
     TBlob b = TBlob::FromStreamSingleThreaded(mi);
 
     UNIT_ASSERT_EQUAL(TString((const char*)b.Data(), b.Length()), s);

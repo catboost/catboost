@@ -1,16 +1,21 @@
 #include "approx_updater_helpers.h"
 
+#include <util/generic/cast.h>
+
+using namespace NCB;
+
+
 template <bool StoreExpApprox>
 static void UpdateAvrgApprox(
-    size_t learnSampleCount,
+    ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    const TDatasetPtrs& testDataPtrs,
+    TConstArrayRef<TTrainingForCPUDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 ) {
     Y_ASSERT(learnProgress->AveragingFold.BodyTailArr.ysize() == 1);
-    const TVector<size_t>& testOffsets = CalcTestOffsets(learnSampleCount, testDataPtrs);
+    const TVector<size_t>& testOffsets = CalcTestOffsets(learnSampleCount, testData);
 
     localExecutor->ExecRange([&](int setIdx){
         if (setIdx == 0) { // learn data set
@@ -27,7 +32,7 @@ static void UpdateAvrgApprox(
             Y_ASSERT(bt.Approx[0].ysize() == bt.TailFinish);
             UpdateApprox(updateApprox, expTreeDelta, &bt.Approx, localExecutor);
 
-            TConstArrayRef<ui32> learnPermutationRef(learnProgress->AveragingFold.LearnPermutation);
+            TConstArrayRef<ui32> learnPermutationRef(learnProgress->AveragingFold.GetLearnPermutationArray());
             const auto updateAvrgApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
                 approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
             };
@@ -35,7 +40,7 @@ static void UpdateAvrgApprox(
             UpdateApprox(updateAvrgApprox, treeDelta, &learnProgress->AvrgApprox, localExecutor);
         } else { // test data set
             const int testIdx = setIdx - 1;
-            const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
+            const size_t testSampleCount = testData[testIdx]->GetObjectCount();
             TConstArrayRef<TIndexType> indicesRef(indices.data() + testOffsets[testIdx], testSampleCount);
             const auto updateTestApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
                 approx[idx] += delta[indicesRef[idx]];
@@ -43,22 +48,22 @@ static void UpdateAvrgApprox(
             Y_ASSERT(learnProgress->TestApprox[testIdx][0].size() == testSampleCount);
             UpdateApprox(updateTestApprox, treeDelta, &learnProgress->TestApprox[testIdx], localExecutor);
         }
-    }, 0, 1 + testDataPtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, 0, 1 + SafeIntegerCast<int>(testData.size()), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 void UpdateAvrgApprox(
     bool storeExpApprox,
-    size_t learnSampleCount,
+    ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    const TDatasetPtrs& testDataPtrs,
+    TConstArrayRef<TTrainingForCPUDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 ) {
     if (storeExpApprox) {
-        ::UpdateAvrgApprox<true>(learnSampleCount, indices, treeDelta, testDataPtrs, learnProgress, localExecutor);
+        ::UpdateAvrgApprox<true>(learnSampleCount, indices, treeDelta, testData, learnProgress, localExecutor);
     } else {
-        ::UpdateAvrgApprox<false>(learnSampleCount, indices, treeDelta, testDataPtrs, learnProgress, localExecutor);
+        ::UpdateAvrgApprox<false>(learnSampleCount, indices, treeDelta, testData, learnProgress, localExecutor);
     }
 }
 

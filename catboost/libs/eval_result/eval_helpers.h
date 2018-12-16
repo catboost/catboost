@@ -6,12 +6,13 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/fwd.h>
 #include <util/generic/vector.h>
 
 
-void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax);
+void CalcSoftmax(TConstArrayRef<double> approx, TVector<double>* softmax);
 
-TVector<double> CalcSigmoid(const TVector<double>& approx);
+TVector<double> CalcSigmoid(TConstArrayRef<double> approx);
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
@@ -23,8 +24,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* localExecutor);
-
+    NPar::TLocalExecutor* executor = nullptr);
 
 bool IsMulticlass(const TVector<TVector<double>>& approx);
 
@@ -48,13 +48,13 @@ TVector<TString> ConvertTargetToExternalName(
 void PrepareEval(
     const EPredictionType predictionType,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* localExecutor,
+    NPar::TLocalExecutor* executor,
     TVector<TVector<double>>* result);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
     const TVector<TVector<double>>& approx,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::TLocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,

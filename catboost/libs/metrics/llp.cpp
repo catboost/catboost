@@ -19,7 +19,7 @@ TMetricHolder CalcLlp(TConstArrayRef<double> approx,
     TMetricHolder metric(3); // metric.Stats[0] = result, metric.Stats[1] = clicks, metric.Stats[2] = shows
     for (int i = begin; i < end; ++i) {
         float w = weight.empty() ? 1 : weight[i];
-        metric.Stats[0] += target[i] * log(prediction[i] * w) + (w - target[i]) * log(1 - prediction[i] * w);
+        metric.Stats[0] += target[i] * log(prediction[i - begin] * w) + (w - target[i]) * log(1 - prediction[i - begin] * w);
         metric.Stats[1] += target[i];
         metric.Stats[2] += w;
     }

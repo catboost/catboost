@@ -1,7 +1,7 @@
 DocId	RawFormulaVal
 0	nan
 1	-inf
-2	nan
+2	-inf
 3	-inf
 4	nan
 5	nan
@@ -14,7 +14,7 @@ DocId	RawFormulaVal
 12	nan
 13	nan
 14	-inf
-15	nan
+15	-inf
 16	-inf
 17	-inf
 18	-inf
@@ -33,7 +33,7 @@ DocId	RawFormulaVal
 31	nan
 32	nan
 33	nan
-34	nan
+34	-inf
 35	nan
 36	nan
 37	nan
@@ -71,7 +71,7 @@ DocId	RawFormulaVal
 69	nan
 70	-inf
 71	-inf
-72	-inf
+72	0.1296666674
 73	nan
 74	nan
 75	nan
@@ -83,7 +83,7 @@ DocId	RawFormulaVal
 81	nan
 82	nan
 83	nan
-84	nan
+84	-inf
 85	nan
 86	nan
 87	nan

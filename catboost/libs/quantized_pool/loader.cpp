@@ -15,6 +15,7 @@
 #include <catboost/libs/quantization_schema/serialization.h>
 
 #include <util/generic/cast.h>
+#include <util/generic/mapfindptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/ylimits.h>
 #include <util/system/madvise.h>
@@ -88,7 +89,7 @@ namespace NCB {
     }
 
     void TCBQuantizedDataLoader::AddColumn(
-        const ui32 featureIndex,
+        const ui32 flatFeatureIndex,
         const ui32 baselineIndex,
         const EColumn columnType,
         const ui32 localIndex,
@@ -132,7 +133,7 @@ namespace NCB {
                     sizeof(ui8),
                     [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
                         visitor->AddFloatFeaturePart(
-                            featureIndex,
+                            flatFeatureIndex,
                             objectOffset,
                             TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants)
                         );
@@ -234,7 +235,6 @@ namespace NCB {
 
         ui32 baselineIndex = 0;
         const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(QuantizedPool);
-        const auto columnIndexToNumericFeatureIndex = GetColumnIndexToNumericFeatureIndexMap(QuantizedPool);
         for (const auto [columnIndex, localIndex] : QuantizedPool.ColumnIndexToLocalIndex) {
             const auto columnType = QuantizedPool.ColumnTypes[localIndex];
 
@@ -253,19 +253,18 @@ namespace NCB {
                 "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got "
                 LabeledOutput(columnType, columnIndex));
 
-            const auto it = columnIndexToNumericFeatureIndex.find(columnIndex);
-            if (it == columnIndexToNumericFeatureIndex.end()) {
-                AddColumn(
-                    /*unused featureIndex*/ Max<ui32>(),
-                    baselineIndex,
-                    columnType,
-                    SafeIntegerCast<ui32>(localIndex),
-                    visitor
-                );
-                baselineIndex += (columnType == EColumn::Baseline);
-            } else if (!IsFeatureIgnored[columnIndexToFlatIndex.at(columnIndex)]) {
-                AddColumn(it->second, baselineIndex, columnType, localIndex, visitor);
+            const auto* flatFeatureIndex = MapFindPtr(columnIndexToFlatIndex, columnIndex);
+            if (flatFeatureIndex && IsFeatureIgnored[*flatFeatureIndex]) {
+                continue;
             }
+            AddColumn(
+                flatFeatureIndex ? *flatFeatureIndex : Max<ui32>(),
+                baselineIndex,
+                columnType,
+                SafeIntegerCast<ui32>(localIndex),
+                visitor
+            );
+            baselineIndex += (columnType == EColumn::Baseline);
         }
 
         QuantizedPool = TQuantizedPool(); // release memory

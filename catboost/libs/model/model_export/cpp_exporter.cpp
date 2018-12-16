@@ -235,7 +235,7 @@ namespace NCatboost {
         out << --indent << "};" << '\n';
     };
 
-    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) {
+    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to cpp is not supported.");
 
         WriteCTRStructs();
@@ -314,7 +314,7 @@ namespace NCatboost {
                 ordered_keys.insert(key_value.first);
             }
             for (const auto& key_value: ordered_keys) {
-                Out << indent << "{\"" << catFeaturesHashToString->at(key_value) << "\", "  << key_value << "},\n";
+                Out << indent << "{" << catFeaturesHashToString->at(key_value).Quote() << ", "  << key_value << "},\n";
             }
         }
         Out << --indent << "};" << '\n';

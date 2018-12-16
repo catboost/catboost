@@ -102,7 +102,7 @@ namespace NCatboostCuda {
         }
 
         bool HasCatFeature(ui32 featureId) const {
-            return CatFeatures.has(featureId);
+            return CatFeatures.contains(featureId);
         }
 
         const TSet<ui32>& GetCatFeatures() const {

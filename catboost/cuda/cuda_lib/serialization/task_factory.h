@@ -23,7 +23,7 @@ namespace NCudaLib {
         void RegisterUniqueId(ui64 taskId) {
             std::type_index index(typeid(TTask));
 
-            if (CommandIds.has(index)) {
+            if (CommandIds.contains(index)) {
                 ythrow TCatboostException() << "Error: class " << index.name() << " already registered with id " << taskId;
             } else {
                 //registers are done on initialization, so this check would not be bottleneck

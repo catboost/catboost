@@ -63,7 +63,7 @@ private:
         };
 
         TString data(GenData());
-        TMemoryInput mi(~data, +data);
+        TMemoryInput mi(data.data(), data.size());
         TExcOutput out;
 
         try {
@@ -81,7 +81,7 @@ private:
         TString res;
 
         {
-            TMemoryInput mi(~data, +data);
+            TMemoryInput mi(data.data(), data.size());
             TStringOutput so(res);
             TLzmaCompress c(&so);
 
@@ -91,7 +91,7 @@ private:
         }
 
         {
-            TMemoryInput mi(~res, +res);
+            TMemoryInput mi(res.data(), res.size());
             TStringOutput so(data1);
             TLzmaDecompress d((IInputStream*)&mi);
 
@@ -102,7 +102,7 @@ private:
 
         data1.clear();
         {
-            TMemoryInput mi(~res, +res);
+            TMemoryInput mi(res.data(), res.size());
             TStringOutput so(data1);
             TLzmaDecompress d(&mi);
 

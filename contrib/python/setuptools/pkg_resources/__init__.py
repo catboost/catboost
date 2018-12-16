@@ -3008,6 +3008,47 @@ def _mkstemp(*args, **kw):
         os.open = old_open
 
 
+# Yandex resource support
+from __res import ResourceImporter, executable
+from library.python import resource
+
+
+class ResProvider(EmptyProvider):
+    def __init__(self, prefix):
+        self.egg_info = self.module_path = prefix
+
+    def _fn(self, base, resource_name):
+        return base + resource_name
+
+    def _has(self, path):
+        return resource.find(path) is not None
+
+    def _get(self, path):
+        r = resource.find(path)
+        if r is None:
+            raise KeyError(path)
+        return r
+
+
+class ResDistribution(DistInfoDistribution):
+    def __init__(self, prefix):
+        super(ResDistribution, self).__init__(
+            location=executable,
+            metadata=ResProvider(prefix),
+            precedence=BINARY_DIST,
+        )
+        self.project_name = self._parsed_pkg_info['Name']
+
+
+def find_in_res(importer, path_item, only=False):
+    for key in resource.iterkeys():
+        if key.endswith('.dist-info/METADATA') and not key.startswith('resfs/src/'):
+            yield ResDistribution(key[:-8])
+
+
+register_finder(ResourceImporter, find_in_res)
+
+
 # Silence the PEP440Warning by default, so that end users don't get hit by it
 # randomly just because they use pkg_resources. We want to append the rule
 # because we want earlier uses of filterwarnings to take precedence over this
@@ -3068,44 +3109,3 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
-
-
-# Yandex resource support
-import __res as resource
-
-
-class ResProvider(EmptyProvider):
-    def __init__(self, prefix):
-        self.egg_info = self.module_path = prefix
-
-    def _fn(self, base, resource_name):
-        return base + resource_name
-
-    def _has(self, path):
-        return resource.find(path) is not None
-
-    def _get(self, path):
-        r = resource.find(path)
-        if r is None:
-            raise KeyError(path)
-        return r
-
-
-class ResDistribution(DistInfoDistribution):
-    def __init__(self, prefix):
-        super(ResDistribution, self).__init__(
-            location=resource.executable,
-            metadata=ResProvider(prefix),
-            precedence=BINARY_DIST,
-        )
-        self.project_name = self._parsed_pkg_info['Name']
-
-
-def find_in_res(importer, path_item, only=False):
-    for i in xrange(resource.count()):
-        key = resource.key_by_index(i)
-        if key.endswith('.dist-info/METADATA') and not key.startswith('resfs/src/'):
-            yield ResDistribution(key[:-8])
-
-
-register_finder(resource.ResourceImporter, find_in_res)

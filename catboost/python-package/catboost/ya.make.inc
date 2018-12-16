@@ -17,7 +17,6 @@ PEERDIR(
     catboost/libs/train_lib
     catboost/libs/algo
     catboost/libs/cat_feature
-    catboost/libs/data
     catboost/libs/data_new
     catboost/libs/data_types
     catboost/libs/data_util
@@ -31,6 +30,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/target
     library/containers/2d_array
     library/json/writer
 )

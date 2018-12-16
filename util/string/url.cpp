@@ -99,7 +99,7 @@ size_t GetSchemePrefixSize(const TStringBuf url) noexcept {
     };
 
     const auto& delim = *Singleton<TDelim>();
-    const char* n = delim.brk(~url, url.end());
+    const char* n = delim.brk(url.data(), url.end());
 
     if (n + 2 >= url.end() || *n != ':' || n[1] != '/' || n[2] != '/') {
         return 0;
@@ -133,7 +133,7 @@ static inline TStringBuf GetHostAndPortImpl(const TStringBuf url) {
     const char* firstNonHostCharacter = nonHostCharacters.brk(urlNoScheme.begin(), urlNoScheme.end());
 
     if (firstNonHostCharacter != urlNoScheme.end()) {
-        return urlNoScheme.substr(0, firstNonHostCharacter - ~urlNoScheme);
+        return urlNoScheme.substr(0, firstNonHostCharacter - urlNoScheme.data());
     }
 
     return urlNoScheme;
@@ -233,8 +233,8 @@ TStringBuf GetPathAndQuery(const TStringBuf url, bool trimFragment) noexcept {
 
 // this strange creature returns 2nd level domain, possibly with port
 TStringBuf GetDomain(const TStringBuf host) noexcept {
-    const char* c = !host ? ~host : host.end() - 1;
-    for (bool wasPoint = false; c != ~host; --c) {
+    const char* c = !host ? host.data() : host.end() - 1;
+    for (bool wasPoint = false; c != host.data(); --c) {
         if (*c == '.') {
             if (wasPoint) {
                 ++c;
@@ -261,7 +261,7 @@ TStringBuf GetZone(const TStringBuf host) noexcept {
 }
 
 TStringBuf CutWWWPrefix(const TStringBuf url) noexcept {
-    if (+url >= 4 && url[3] == '.' && !strnicmp(~url, "www", 3))
+    if (url.size() >= 4 && url[3] == '.' && !strnicmp(url.data(), "www", 3))
         return url.substr(4);
     return url;
 }

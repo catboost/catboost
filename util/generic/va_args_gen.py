@@ -1,82 +1,170 @@
 #!/usr/bin/env python
+"""
+Generates some handy macros for preprocessor metaprogramming.
+
+"""
+
+from __future__ import print_function
 
 import sys
+import textwrap
+
+if sys.version_info >= (3, 0, 0):
+    xrange = range
 
 
 def generate(limit):
-    print '''#pragma once
+    print('#pragma once')
+    print(textwrap.dedent('''
+        /// @file va_args.h
+        ///
+        /// Some handy macros for preprocessor metaprogramming.
+    '''.rstrip()))
+    print('')
+    command = ' '.join(sys.argv)
+    print('// NOTE: this file has been generated with "{}", do not edit -- use the generator instead'.format(command))
+    print('')
+    print('// DO_NOT_STYLE')
+    print('')
+    print('#include <util/system/defaults.h>')
+    print('')
 
-// NOTE: this file has been generated with "{command}", do not edit - use the generator instead
+    pass_va_args()
+    count(limit)
+    get_elem(limit)
+    map_args(limit)
+    map_args_with_last(limit)
+    all_but_last(limit)
+    last(limit)
+    impl_dispatcher()
 
-// Used merely for working around an MSVC++ bug:
-// http://stackoverflow.com/questions/5134523/msvc-doesnt-expand-va-args-correctly
-// Triggers another level of macro expansion, use whenever passing __VA_ARGS__ to another macro
-#define Y_PASS_VA_ARGS(x) x
 
-// Usage: Y_MAP_ARGS(ACTION, ...) - expands the ACTION(...) macro for each of the variable arguments
-#define Y_MAP_ARGS(ACTION, ...) Y_PASS_VA_ARGS(__MAP_ARGS_IMPL__(ACTION, __VA_ARGS__))
-// It is possible to adapt for multi-argument ACTIONs to use something like Y_MAP_ARGS(ACTION_PROXY, (1, 2), (3, 4)).
-// For that, #define ACTION_PROXY(x) ACTION x - the (1, 2) given to ACTION_PROXY will expand to ACTION (1, 2).
+def pass_va_args():
+    print(textwrap.dedent('''
+        /**
+         * Triggers another level of macro expansion, use whenever passing __VA_ARGS__ to another macro.
+         *
+         * Used merely for working around an MSVC++ bug.
+         * See http://stackoverflow.com/questions/5134523/msvc-doesnt-expand-va-args-correctly
+         */
+    '''.rstrip()))
+    print('#define Y_PASS_VA_ARGS(x) x')
 
-// Usage: Y_MAP_ARGS_WITH_LAST(ACTION, LAST_ACTION, ...) - expands the ACTION(...) macro
-// for each except the last of the varargs, for the latter the LAST_ACTION(...) macro is expanded
-#define Y_MAP_ARGS_WITH_LAST(ACTION, LAST_ACTION, ...) \\
-    Y_PASS_VA_ARGS(__MAP_ARGS_WITH_LAST_IMPL__(ACTION, LAST_ACTION, __VA_ARGS__))
 
-/* @def Y_MACRO_IMPL_DISPATCHER_2
- *
- * This macro is intended to use as a helper for macro overload by number of arguments.
- *
- * @code
- * #include <util/system/defaults.h>
- *
- * #define Y_PRINT_IMPL_1(arg1) Cout << Y_STRINGIZE(arg1) << Endl;
- * #define Y_PRINT_IMPL_2(arg1, arg2) Cout << Y_STRINGIZE(arg1) << ';' << Y_STRINGIZE(arg2) << Endl;
- *
- * #define Y_PRINT(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_PRINT_IMPL_2, Y_PRINT_IMPL_1)(__VA_ARGS__))
- * @endcode
- */
-#define Y_MACRO_IMPL_DISPATCHER_2(_1, _2, IMPL, ...) IMPL
+def count(limit):
+    print(textwrap.dedent('''
+        /**
+         * Count number of arguments in `__VA_ARGS__`.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    numbers = ', '.join(map(str, xrange(limit, -1, -1)))
+    u_numbers = ', '.join(map('_{}'.format, xrange(limit, 0, -1)))
+    print('#define Y_COUNT_ARGS(...) Y_PASS_VA_ARGS('
+          '__Y_COUNT_ARGS(__VA_ARGS__, {}))'.format(numbers))
+    print('#define __Y_COUNT_ARGS({}, N, ...) N'.format(u_numbers))
 
-// Implementation details follow'''.format(command=' '.join(sys.argv))
 
-    print '#define __APPLY_1__(MACRO, x) MACRO(x)'
-    for depth in xrange(2, limit + 1):
-        print '#define __APPLY_{}__(MACRO, x, ...) \\\n\
-    MACRO(x) Y_PASS_VA_ARGS(__APPLY_{}__(MACRO, __VA_ARGS__))'.format(
-            depth, depth - 1
-        )
-    print '// ...'
+def get_elem(limit):
+    print(textwrap.dedent('''
+        /**
+         * Get the i-th element from `__VA_ARGS__`.
+         */
+    '''.rstrip()))
+    print('#define Y_GET_ARG(N, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT(__Y_GET_ARG_, '
+          'N))(__VA_ARGS__))')
+    for i in xrange(0, limit + 1):
+        args = ', '.join(map('_{}'.format, xrange(i + 1)))
+        print('#define __Y_GET_ARG_{}({}, ...) _{}'.format(i, args, i))
 
-    print '#define __APPLY_WITH_LAST_1__(MACRO, LAST_MACRO, x) LAST_MACRO(x)'
-    for depth in xrange(2, limit + 1):
-        print '#define __APPLY_WITH_LAST_{}__(MACRO, LAST_MACRO, x, ...) \\\n\
-    MACRO(x) Y_PASS_VA_ARGS(__APPLY_WITH_LAST_{}__(MACRO, LAST_MACRO, __VA_ARGS__))'.format(
-            depth, depth - 1
-        )
-    print '// ...'
 
-    print '#define __GET_MACRO__({}, MACRO, ...) MACRO'.format(
-        ', \\\n    '.join(map(lambda x: '_' + str(x), xrange(1, limit + 1)))
-    )
+def map_args(limit):
+    print(textwrap.dedent('''
+        /**
+         * Expands a macro for each of the variable arguments.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    print('#define Y_MAP_ARGS(ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT('
+          '__Y_MAP_ARGS_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, __VA_ARGS__))')
+    print('#define __Y_MAP_ARGS_0(...)')
+    print('#define __Y_MAP_ARGS_1(ACTION, x, ...) ACTION(x)')
+    for i in xrange(2, limit + 1):
+        print('#define __Y_MAP_ARGS_{}(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_{}('
+              'ACTION, __VA_ARGS__))'.format(i, i - 1))
 
-    print '#define __MAP_ARGS_IMPL__(MACRO, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(__GET_MACRO__(__VA_ARGS__, \\'
-    for depth in xrange(limit, 1, -1):
-        print '    __APPLY_{}__, \\'.format(depth)
-    print '    __APPLY_1__))(MACRO, __VA_ARGS__))'
 
-    print '#define __MAP_ARGS_WITH_LAST_IMPL__(MACRO, LAST_MACRO, ...) ' + \
-        'Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(__GET_MACRO__(__VA_ARGS__, \\'
-    for depth in xrange(limit, 1, -1):
-        print '    __APPLY_WITH_LAST_{}__, \\'.format(depth)
-    print '    __APPLY_WITH_LAST_1__))(MACRO, LAST_MACRO, __VA_ARGS__))'
+def map_args_with_last(limit):
+    print(textwrap.dedent('''
+        /**
+         * Expands a macro for each of the variable arguments.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    print('#define Y_MAP_ARGS_WITH_LAST(ACTION, LAST_ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS('
+          'Y_CAT(__Y_MAP_ARGS_WITH_LAST_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, LAST_ACTION, '
+          '__VA_ARGS__))')
+    print('#define __Y_MAP_ARGS_WITH_LAST_0(...)')
+    print('#define __Y_MAP_ARGS_WITH_LAST_1(ACTION, LAST_ACTION, x, ...) LAST_ACTION(x)')
+    for i in xrange(2, limit + 1):
+        print('#define __Y_MAP_ARGS_WITH_LAST_{}(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS('
+              '__Y_MAP_ARGS_WITH_LAST_{}(ACTION, LAST_ACTION, __VA_ARGS__))'.format(i, i - 1))
+
+
+def all_but_last(limit):
+    print(textwrap.dedent('''
+        /**
+         * Get all elements but the last one from `__VA_ARGS__`.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    print('#define Y_ALL_BUT_LAST(...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT(__Y_ALL_BUT_LAST_, '
+          'Y_COUNT_ARGS(__VA_ARGS__)))(__VA_ARGS__))')
+    print('#define __Y_ALL_BUT_LAST_0(...)')
+    print('#define __Y_ALL_BUT_LAST_1(...)')
+    for i in xrange(2, limit + 1):
+        args = ', '.join(map('_{}'.format, xrange(i - 1)))
+        print('#define __Y_ALL_BUT_LAST_{}({}, ...) {}'.format(i, args, args))
+
+
+def last(limit):
+    print(textwrap.dedent('''
+        /**
+         * Get the last element from `__VA_ARGS__`.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    print('#define Y_LAST(...) Y_PASS_VA_ARGS('
+          'Y_GET_ARG(Y_COUNT_ARGS(__VA_ARGS__), , __VA_ARGS__, {}))'.format(',' * limit))
+
+
+def impl_dispatcher():
+    print(textwrap.dedent('''
+        /**
+         * Macros for implementing overload by number of arguments.
+         *
+         * Example usage:
+         *
+         * @code{cpp}
+         * #define I1(arg1) Cout << Y_STRINGIZE(arg1) << Endl;
+         * #define I2(arg1, arg2) Cout << Y_STRINGIZE(arg1) << ';' << Y_STRINGIZE(arg2) << Endl;
+         *
+         * #define Y_PRINT(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, I2, I1)(__VA_ARGS__))
+         * @endcode
+         */
+    '''.rstrip()))
+    print('/// @{')
+    for i in xrange(2, 11):
+        args = ', '.join(map('_{}'.format, xrange(i)))
+        print('#define Y_MACRO_IMPL_DISPATCHER_{}({}, IMPL, ...) IMPL'.format(i, args))
+    print('/// }@')
 
 
 def main():
     if len(sys.argv) > 2:
-        print >>sys.stderr, 'Usage: {} [limit=10]'.format(sys.argv[0])
+        sys.stderr.write('Usage: {} [limit=50]\n'.format(sys.argv[0]))
         sys.exit(1)
-    limit = 10
+    limit = 50
     if len(sys.argv) == 2:
         limit = int(sys.argv[1])
     generate(limit)

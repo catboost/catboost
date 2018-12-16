@@ -2,8 +2,13 @@
 
 #include <catboost/cuda/cuda_lib/fwd.h>
 
+#include <type_traits>
+
 template <typename T, class TMapping>
-void FillBuffer(NCudaLib::TCudaBuffer<T, TMapping>& buffer, T value, ui32 streamId = 0);
+void FillBuffer(
+    NCudaLib::TCudaBuffer<T, TMapping>& buffer,
+    std::remove_const_t<T> value,
+    ui32 streamId = 0);
 
 template <typename T, class TMapping>
 void MakeSequence(NCudaLib::TCudaBuffer<T, TMapping>& buffer, ui32 stream = 0);

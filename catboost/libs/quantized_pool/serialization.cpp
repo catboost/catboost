@@ -496,7 +496,7 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         ui32 featureIndex;
         ReadLittleEndian(&featureIndex, &epilog);
 
-        CB_ENSURE(!pool.ColumnIndexToLocalIndex.has(featureIndex),
+        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(featureIndex),
             "Quantized pool should have unique feature indices, but " <<
             LabeledOutput(featureIndex) << " is repeated.");
 
