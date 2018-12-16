@@ -1531,8 +1531,8 @@ namespace {
 
                         Body.swap(theData);
 
-                        Parts[0].buf = ~Header;
-                        Parts[0].len = +Header;
+                        Parts[0].buf = Header.Data();
+                        Parts[0].len = Header.Size();
                         Parts[1].buf = Body.data();
                         Parts[1].len = Body.size();
                     }
@@ -1599,8 +1599,8 @@ namespace {
                                                 "Content-Length:0\r\n\r\n");
                         }
 
-                        Parts[0].buf = ~Answer;
-                        Parts[0].len = +Answer;
+                        Parts[0].buf = Answer.Data();
+                        Parts[0].len = Answer.Size();
                     }
 
                     TStringStream Answer;
