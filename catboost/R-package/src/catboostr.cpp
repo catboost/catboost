@@ -399,8 +399,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         SET_VECTOR_ELT(result, metricIdx * 4 + 2, row_train_mean);
         SET_VECTOR_ELT(result, metricIdx * 4 + 3, row_train_std);
 
-        SET_STRING_ELT(columnN
-            ames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
         SET_STRING_ELT(columnNames, metricIdx * 4 + 1, mkChar(("test-" + metricName + "-std").c_str()));
         SET_STRING_ELT(columnNames, metricIdx * 4 + 2, mkChar(("train-" + metricName + "-mean").c_str()));
         SET_STRING_ELT(columnNames, metricIdx * 4 + 3, mkChar(("train-" + metricName + "-std").c_str()));
