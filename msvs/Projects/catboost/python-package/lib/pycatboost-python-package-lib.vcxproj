@@ -505,9 +505,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\catboost-cuda-train_lib.vcxproj">
       <Project>{D8550C12-2887-902A-28EC-36996021F9BC}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
-      <Project>{E73DCA9C-B071-4A48-F573-C852583220CE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
       <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
     </ProjectReference>

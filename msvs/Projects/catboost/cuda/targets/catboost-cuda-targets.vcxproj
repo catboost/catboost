@@ -220,9 +220,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\catboost-cuda-gpu_data.vcxproj">
       <Project>{4FE35BB1-F43A-39F4-9770-E9463DC3D595}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
-      <Project>{E73DCA9C-B071-4A48-F573-C852583220CE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
       <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
     </ProjectReference>
@@ -276,9 +273,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
-      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>

@@ -214,12 +214,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
       <Project>{7A8B786E-2597-9616-5F4E-B17CEE2501EE}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
-      <Project>{E73DCA9C-B071-4A48-F573-C852583220CE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
-      <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
     </ProjectReference>
@@ -247,9 +241,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
       <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
-      <Project>{EB86A32A-0A4A-7BD0-0414-09B87332B724}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
     </ProjectReference>
@@ -265,20 +256,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
-      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
       <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
-      <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
-      <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
