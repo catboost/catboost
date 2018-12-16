@@ -73,15 +73,4 @@ namespace NCatboostCuda {
         }
     }
 
-    template <class T>
-    void ApplyPermutation(const TVector<ui64>& order,
-                          TVector<T>& data) {
-        if (data.size()) {
-            TVector<T> tmp(data.begin(), data.end());
-            for (ui32 i = 0; i < order.size(); ++i) {
-                data[i] = tmp[order[i]];
-            }
-        }
-    };
-
 }
