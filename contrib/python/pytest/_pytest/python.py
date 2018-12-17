@@ -145,14 +145,14 @@ def pytest_namespace():
 def pytest_pyfunc_call(pyfuncitem):
     testfunction = pyfuncitem.obj
     if pyfuncitem._isyieldedfunction():
-        result = testfunction(*pyfuncitem._args)
+        testfunction(*pyfuncitem._args)
     else:
         funcargs = pyfuncitem.funcargs
         testargs = {}
         for arg in pyfuncitem._fixtureinfo.argnames:
             testargs[arg] = funcargs[arg]
-        result = testfunction(**testargs)
-    return result
+        testfunction(**testargs)
+    return True
 
 def pytest_collect_file(path, parent):
     ext = path.ext
@@ -1571,7 +1571,7 @@ class Function(FunctionMixin, pytest.Item, fixtures.FuncargnamesCompatAttr):
 
     def runtest(self):
         """ execute the underlying test function. """
-        return self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+        self.ihook.pytest_pyfunc_call(pyfuncitem=self)
 
     def setup(self):
         super(Function, self).setup()

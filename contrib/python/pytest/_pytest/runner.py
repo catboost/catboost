@@ -101,7 +101,7 @@ def pytest_runtest_setup(item):
 
 def pytest_runtest_call(item):
     try:
-        return item.runtest()
+        item.runtest()
     except Exception:
         # Store trace info to allow postmortem debugging
         type, value, tb = sys.exc_info()

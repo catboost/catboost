@@ -429,6 +429,21 @@ def pytest_collectreport(report):
             sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
 
 
+@pytest.mark.tryfirst
+def pytest_pyfunc_call(pyfuncitem):
+    testfunction = pyfuncitem.obj
+    if pyfuncitem._isyieldedfunction():
+        retval = testfunction(*pyfuncitem._args)
+    else:
+        funcargs = pyfuncitem.funcargs
+        testargs = {}
+        for arg in pyfuncitem._fixtureinfo.argnames:
+            testargs[arg] = funcargs[arg]
+        retval = testfunction(**testargs)
+    pyfuncitem.retval = retval
+    return True
+
+
 def pytest_runtest_makereport(item, call):
 
     def makereport(item, call):
@@ -477,8 +492,8 @@ def pytest_runtest_makereport(item, call):
             pytest.config.ya_trace_reporter.on_finish_test_class(test_item)
 
     rep = makereport(item, call)
-    if hasattr(call, 'result') and call.result:
-        result = call.result
+    if hasattr(item, 'retval') and item.retval is not None:
+        result = item.retval
         if not pytest.config.from_ya_test:
             ti = TestItem(rep, result, pytest.config.option.test_suffix)
             tr = pytest.config.pluginmanager.getplugin('terminalreporter')
@@ -699,9 +714,9 @@ class TraceReportGenerator(object):
         self.trace('subtest-started', message)
 
     def on_finish_test_case(self, test_item):
-        if test_item.result:
+        if test_item.result is not None:
             try:
-                result = canon.serialize(test_item.result[0])
+                result = canon.serialize(test_item.result)
             except Exception as e:
                 yatest_logger.exception("Error while serializing test results")
                 test_item.set_error("Invalid test result: {}".format(e))
