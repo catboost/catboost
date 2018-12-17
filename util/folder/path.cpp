@@ -193,7 +193,7 @@ struct TClosedir {
 
 void TFsPath::ListNames(TVector<TString>& children) const {
     CheckDefined();
-    THolder<DIR, TClosedir> dir(opendir(~*this));
+    THolder<DIR, TClosedir> dir(opendir(this->c_str()));
     if (!dir) {
         ythrow TIoSystemError() << "failed to opendir " << Path_;
     }
@@ -307,8 +307,8 @@ void TFsPath::DeleteIfExists() const {
     if (!IsDefined())
         return;
 
-    ::unlink(~*this);
-    ::rmdir(~*this);
+    ::unlink(this->c_str());
+    ::rmdir(this->c_str());
     if (Exists()) {
         ythrow TIoException() << "failed to delete " << Path_;
     }
@@ -317,7 +317,7 @@ void TFsPath::DeleteIfExists() const {
 void TFsPath::MkDir(const int mode) const {
     CheckDefined();
     if (!Exists()) {
-        int r = Mkdir(~*this, mode);
+        int r = Mkdir(this->c_str(), mode);
         if (r != 0) {
             // TODO (stanly) will still fail on Windows because
             // LastSystemError() returns windows specific ERROR_ALREADY_EXISTS

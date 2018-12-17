@@ -38,8 +38,8 @@ public:
         return IsDefined();
     }
 
-    inline const char* operator~() const {
-        return Path_.data();
+    inline const char* c_str() const {
+        return Path_.c_str();
     }
 
     inline operator const TString&() const {

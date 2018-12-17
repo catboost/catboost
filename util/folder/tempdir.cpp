@@ -20,7 +20,7 @@ TTempDir::TTempDir(const TString& tempDir)
     , Remove(true)
 {
     NFs::Remove(TempDir);
-    MakeDirIfNotExist(~TempDir);
+    MakeDirIfNotExist(TempDir.c_str());
 }
 
 void TTempDir::DoNotRemove() {
