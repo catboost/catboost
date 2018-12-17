@@ -7,7 +7,9 @@
 #include <library/json/json_value.h>
 
 #include <util/generic/strbuf.h>
+#include <util/string/builder.h>
 #include <util/string/cast.h>
+#include <util/string/escape.h>
 #include <util/system/compiler.h>
 
 using NCatboostOptions::ParseCtrDescription;
@@ -87,11 +89,64 @@ static Y_NO_INLINE void CopyOptionWithNewKey(
     }
 }
 
+static bool HasLossFunctionSomeWhereInPlainOptions(
+    const NJson::TJsonValue& plainOptions,
+    const ELossFunction lossFunction)
+{
+    for (const TStringBuf optionName : {"loss_function", "eval_metric"}) {
+        if (!plainOptions.Has(optionName)) {
+            continue;
+        }
+
+        const auto& value = plainOptions[optionName].GetStringSafe();
+        if (FromString<ELossFunction>(TStringBuf(value).Before(':')) == lossFunction) {
+            return true;
+        }
+    }
+
+    if (plainOptions.Has("custom_metric")) {
+        for (const auto& json : plainOptions["custom_metric"].GetArraySafe()) {
+            const auto& value = json.GetStringSafe();
+            if (FromString<ELossFunction>(TStringBuf(value).Before(':')) == lossFunction) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+// TODO(yazevnul): split catboost/app into catboost/app/lib and catboost/app so we can write
+// unittests for cmdline invocation.
+static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOptions) {
+    CB_ENSURE(
+        !(plainOptions.Has("custom_metric") && plainOptions.Has("custom_loss")),
+        "custom_metric and custom_loss are incompatible");
+
+    const auto hasMultiClass = HasLossFunctionSomeWhereInPlainOptions(
+        plainOptions,
+        ELossFunction::MultiClass);
+    const auto hasMultiClassOneVsAll = HasLossFunctionSomeWhereInPlainOptions(
+        plainOptions,
+        ELossFunction::MultiClassOneVsAll);
+    if (hasMultiClass && hasMultiClassOneVsAll) {
+        // MultiClass trains multiclassifier (when implemented efficiently it has N-1, where N is
+        // number of classes, target values and N-1 approxes), while MultiClassOneVsAll trains N
+        // binary classifiers (thus we have N target valeus and N approxes), thus it's not clear how
+        // we can compute both metrics at the same time.
+        ythrow TCatboostException()
+            << ELossFunction::MultiClass << " and "
+            << ELossFunction::MultiClassOneVsAll << " are incompatible";
+    }
+}
+
 void NCatboostOptions::PlainJsonToOptions(
     const NJson::TJsonValue& plainOptions,
     NJson::TJsonValue* options,
     NJson::TJsonValue* outputOptions)
 {
+    ValidatePlainOptionsConsistency(plainOptions);
+
     TSet<TString> seenKeys;
     auto& trainOptions = *options;
 
@@ -101,16 +156,15 @@ void NCatboostOptions::PlainJsonToOptions(
         lossFunctionRef = LossDescriptionToJson(plainOptions["loss_function"].GetStringSafe());
         seenKeys.insert("loss_function");
     }
+
     trainOptions["metrics"].SetType(NJson::JSON_MAP);
 
     if (plainOptions.Has("eval_metric")) {
         trainOptions["metrics"]["eval_metric"] = LossDescriptionToJson(plainOptions["eval_metric"].GetStringSafe());
         seenKeys.insert("eval_metric");
     }
+
     if (plainOptions.Has("custom_metric") || plainOptions.Has("custom_loss")) {
-        if (plainOptions.Has("custom_metric") && plainOptions.Has("custom_loss")) {
-            ythrow TCatboostException() << "Error: don't set custom_metric and custom_loss at the same time. Could be used only one option";
-        }
         const NJson::TJsonValue& metrics = plainOptions.Has("custom_metric") ? plainOptions["custom_metric"] : plainOptions["custom_loss"];
         if (metrics.IsArray()) {
             for (const auto& metric : metrics.GetArraySafe()) {
@@ -121,7 +175,6 @@ void NCatboostOptions::PlainJsonToOptions(
         }
         seenKeys.insert(plainOptions.Has("custom_metric") ? "custom_metric" : "custom_loss");
     }
-
 
     NJson::TJsonValue& outputFilesJson = *outputOptions;
     outputFilesJson.SetType(NJson::JSON_MAP);
@@ -267,10 +320,15 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "task_type", &trainOptions, &seenKeys);
     CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
 
-    for (const auto& option : plainOptions.GetMap()) {
-        if (!seenKeys.contains(option.first)) {
-            ythrow TCatboostException() << "Error: unknown option " << option.first << " with value " << option.second;
+    for (const auto& [optionName, optionValue] : plainOptions.GetMap()) {
+        if (seenKeys.contains(optionName)) {
+            break;
         }
+
+        const TString message = TStringBuilder()
+            << "Unknown option {" << optionName << '}'
+            << " with value \"" << EscapeC(ToString(optionValue)) << '"';
+        ythrow TCatboostException() << message;
     }
 
     trainOptions["flat_params"] = plainOptions;

@@ -2172,7 +2172,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
-        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss',
+        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -3831,6 +3831,10 @@ def test_eval_metrics(metric, metric_period):
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
 def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
+    if metric in MULTICLASS_LOSSES and metric != loss_function:
+        # MultiClass and MultiClassOneVsAll are incompatible
+        return
+
     train, test, cd = data_file(dataset, 'train_small'), data_file(dataset, 'test_small'), data_file(dataset, 'train.cd')
 
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -3896,7 +3900,7 @@ def test_eval_metrics_class_names():
         CATBOOST_PATH,
         'fit',
         '--loss-function', 'MultiClass',
-        '--custom-metric', 'TotalF1,MultiClassOneVsAll',
+        '--custom-metric', 'TotalF1,AUC',
         '-f', train_path,
         '-t', test_path,
         '--column-description', cd_path,
@@ -3912,7 +3916,7 @@ def test_eval_metrics_class_names():
     eval_cmd = (
         CATBOOST_PATH,
         'eval-metrics',
-        '--metrics', 'TotalF1,MultiClassOneVsAll',
+        '--metrics', 'TotalF1,AUC',
         '--input-path', test_path,
         '--column-description', cd_path,
         '-m', model_path,

@@ -905,21 +905,21 @@
     ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
-            "checksum": "986486fa1e2f2a3e64e0a1ec3129a157",
+            "checksum": "666244f3c4c6ad060806b32f43245d77",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "ed318a6f2cece5d89e1247c55c649102",
+            "checksum": "facaa5b06bcea76dc462bd8c67e25d4a",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Plain]": [
         {
-            "checksum": "f07eb92f09612fb3b2add86495ab2573",
+            "checksum": "5cd3c0259dff5a7fc89b00a8ce914c52",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "7896ea30f390e8d7504720145144da82",
+            "checksum": "3f57ca4fcef02714812d9ba359f1d5bc",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
@@ -1335,7 +1335,7 @@
     ],
     "test.test_eval_metrics_class_names": [
         {
-            "checksum": "14b2496f3e8cc636ae6496f0fc8f72a6",
+            "checksum": "baefdc74bba4489d79980b73a8d77558",
             "uri": "file://test.test_eval_metrics_class_names/eval.txt"
         }
     ],
@@ -1385,18 +1385,6 @@
         {
             "checksum": "8acd5e10b6ad54f3587c4cf827d79fa6",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-2_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClassOneVsAll-1]": [
-        {
-            "checksum": "42cf108ed3a60622265dec6eb678bdae",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClassOneVsAll-1_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClassOneVsAll-2]": [
-        {
-            "checksum": "261d8ff26386ef4280f5d2d530aaee23",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClassOneVsAll-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Precision-1]": [
@@ -1469,18 +1457,6 @@
         {
             "checksum": "231c7b87b0890cd392842def294da89b",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-2_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClass-1]": [
-        {
-            "checksum": "c006eee8af1cb1d3832f97d72e6ab3ac",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClass-1_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClass-2]": [
-        {
-            "checksum": "e0cf961a80604a605a129b9cbab7c672",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-1]": [
@@ -1579,18 +1555,6 @@
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-2_/output.tsv"
         }
     ],
-    "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClassOneVsAll-1]": [
-        {
-            "checksum": "4bc48cf9c2d42333ed38b6bb4b2d3ad6",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClassOneVsAll-1_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClassOneVsAll-2]": [
-        {
-            "checksum": "5bc239fccf25eedd02e4ddc45cebb963",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClassOneVsAll-2_/output.tsv"
-        }
-    ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-1]": [
         {
             "checksum": "c01002606cc95104495036846525669b",
@@ -1661,18 +1625,6 @@
         {
             "checksum": "5069c856505262b10329416b34253fd3",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-2_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClass-1]": [
-        {
-            "checksum": "86adf9154d2bc7b4b5815d358f2a3e51",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClass-1_/output.tsv"
-        }
-    ],
-    "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClass-2]": [
-        {
-            "checksum": "7da028a4a43827056cef4c228488de48",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-1]": [

@@ -5,6 +5,8 @@
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/targets/kernel/multilogit.cuh>
 
+#include <util/stream/labeled.h>
+
 namespace NKernelHost {
 
     class TMultiLogitValueAndDerKernel: public TStatelessKernel {
@@ -40,9 +42,9 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             const int approxDim = static_cast<const int>(Predictions.GetColumnCount());
-            CB_ENSURE(approxDim == NumClasses - 1);
+            CB_ENSURE(approxDim == NumClasses - 1, LabeledOutput(approxDim, NumClasses - 1));
             if (Der.Get()) {
-                CB_ENSURE((int)Der.GetColumnCount() == NumClasses - 1);
+                CB_ENSURE((int)Der.GetColumnCount() == NumClasses - 1, LabeledOutput(Der.GetColumnCount(), NumClasses - 1));
             }
             NKernel::MultiLogitValueAndDer(TargetClasses.Get(), NumClasses, TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), Predictions.AlignedColumnSize(), LoadPredictionIndices.Get(), FunctionValue.Get(), Der.Get(), Der.AlignedColumnSize(), stream.GetStream());
         }
@@ -78,7 +80,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, TargetWeights, Predictions,  Der2, RowIdx);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE((ui32)RowIdx <= Der2.GetColumnCount());
+            CB_ENSURE((ui32)RowIdx <= Der2.GetColumnCount(), LabeledOutput(RowIdx, Der2.GetColumnCount()));
             NKernel::MultiLogitSecondDer(TargetClasses.Get(), NumClasses, TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), Predictions.AlignedColumnSize(),  Der2.Get(), RowIdx, Der2.AlignedColumnSize(), stream.GetStream());
         }
     };
@@ -117,9 +119,9 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             if (Der.Get()) {
-                CB_ENSURE((int)Der.GetColumnCount() == NumClasses);
+                CB_ENSURE((int)Der.GetColumnCount() == NumClasses, LabeledOutput(Der.GetColumnCount(), NumClasses));
             }
-            CB_ENSURE((int)Predictions.GetColumnCount() == NumClasses);
+            CB_ENSURE((int)Predictions.GetColumnCount() == NumClasses, LabeledOutput(Predictions.GetColumnCount(), NumClasses));
 
             NKernel::MultiClassOneVsAllValueAndDer(TargetClasses.Get(), NumClasses, TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), Predictions.AlignedColumnSize(), LoadPredictionIndices.Get(), FunctionValue.Get(), Der.Get(), Der.AlignedColumnSize(), stream.GetStream());
         }
@@ -152,7 +154,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, TargetWeights, Predictions,  Der2);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(Der2.GetColumnCount() == Predictions.GetColumnCount());
+            CB_ENSURE(Der2.GetColumnCount() == Predictions.GetColumnCount(), LabeledOutput(Der2.GetColumnCount(), Predictions.GetColumnCount()));
             NKernel::MultiClassOneVsAllSecondDer(TargetClasses.Get(), NumClasses, TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), Predictions.AlignedColumnSize(),  Der2.Get(), Der2.AlignedColumnSize(), stream.GetStream());
         }
     };
