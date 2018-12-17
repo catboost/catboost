@@ -3,12 +3,14 @@
 #include "feature_layout_doc_parallel.h"
 #include "dataset_helpers.h"
 
-NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount) {
+NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount,
+                                                                                                  NPar::TLocalExecutor* localExecutor) {
     TDocParallelDataSetsHolder dataSetsHolder(DataProvider,
                                               FeaturesManager,
                                               LinkedTest);
 
-    TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex);
+    TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex,
+                                                                         localExecutor);
 
     auto ctrsTarget = BuildCtrTarget(FeaturesManager,
                                      DataProvider,
@@ -125,7 +127,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         TFloatAndOneHotFeaturesWriter<TDocParallelLayout> floatFeaturesWriter(FeaturesManager,
                                                                               compressedIndexBuilder,
                                                                               DataProvider,
-                                                                              permutationIndependentCompressedDataSetId);
+                                                                              permutationIndependentCompressedDataSetId,
+                                                                              localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 
@@ -133,7 +136,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         TFloatAndOneHotFeaturesWriter<TDocParallelLayout> floatFeaturesWriter(FeaturesManager,
                                                                               compressedIndexBuilder,
                                                                               *LinkedTest,
-                                                                              testDataSetId);
+                                                                              testDataSetId,
+                                                                              localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 
@@ -155,7 +159,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                DataProvider,
                                                ctrEstimationOrder,
                                                LinkedTest,
-                                               LinkedTest ? &testIndices : nullptr);
+                                               LinkedTest ? &testIndices : nullptr,
+                                               localExecutor);
 
         TCtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                    compressedIndexBuilder,
@@ -182,7 +187,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                        DataProvider,
                                                        ctrEstimationOrder,
                                                        linkedTest,
-                                                       testIndicesPtr);
+                                                       testIndicesPtr,
+                                                       localExecutor);
 
                 TCtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                            compressedIndexBuilder,

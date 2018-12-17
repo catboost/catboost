@@ -21,6 +21,7 @@ namespace NCatboostCuda {
                                                                         TGpuAwareRandom& random,
                                                                         ui32 approxDimension,
                                                                         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                        NPar::TLocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
@@ -33,6 +34,7 @@ namespace NCatboostCuda {
                                         random,
                                         approxDimension,
                                         onEndIterationCallback,
+                                        localExecutor,
                                         testMultiApprox,
                                         metricsAndTimeHistory);
         };

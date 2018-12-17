@@ -8,12 +8,14 @@
 
 namespace NCatboostCuda {
 
-    TFeatureParallelDataSetsHolder TFeatureParallelDataSetHoldersBuilder::BuildDataSet(const ui32 permutationCount) {
+    TFeatureParallelDataSetsHolder TFeatureParallelDataSetHoldersBuilder::BuildDataSet(const ui32 permutationCount,
+                                                                                       NPar::TLocalExecutor* localExecutor) {
         TFeatureParallelDataSetsHolder dataSetsHolder(DataProvider,
                                                       FeaturesManager);
 
         Y_ASSERT(dataSetsHolder.CompressedIndex);
-        TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex);
+        TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex,
+                                                                             localExecutor);
 
         dataSetsHolder.CtrTargets = BuildCtrTarget(FeaturesManager,
                                                    DataProvider,
@@ -23,12 +25,14 @@ namespace NCatboostCuda {
         {
             dataSetsHolder.LearnCatFeaturesDataSet = new TCompressedCatFeatureDataSet(CatFeaturesStorage);
             BuildCompressedCatFeatures(DataProvider,
-                                       *dataSetsHolder.LearnCatFeaturesDataSet);
+                                       *dataSetsHolder.LearnCatFeaturesDataSet,
+                                       localExecutor);
 
             if (LinkedTest) {
                 dataSetsHolder.TestCatFeaturesDataSet = new TCompressedCatFeatureDataSet(CatFeaturesStorage);
                 BuildCompressedCatFeatures(*LinkedTest,
-                                           *dataSetsHolder.TestCatFeaturesDataSet);
+                                           *dataSetsHolder.TestCatFeaturesDataSet,
+                                           localExecutor);
             }
         }
 
@@ -168,7 +172,8 @@ namespace NCatboostCuda {
             TFloatAndOneHotFeaturesWriter<TFeatureParallelLayout> floatFeaturesWriter(FeaturesManager,
                                                                                       compressedIndexBuilder,
                                                                                       DataProvider,
-                                                                                      permutationIndependentCompressedDataSetId);
+                                                                                      permutationIndependentCompressedDataSetId,
+                                                                                      localExecutor);
             floatFeaturesWriter.Write(permutationIndependent);
         }
 
@@ -176,7 +181,8 @@ namespace NCatboostCuda {
             TFloatAndOneHotFeaturesWriter<TFeatureParallelLayout> floatFeaturesWriter(FeaturesManager,
                                                                                       compressedIndexBuilder,
                                                                                       *LinkedTest,
-                                                                                      testDataSetId);
+                                                                                      testDataSetId,
+                                                                                      localExecutor);
             floatFeaturesWriter.Write(permutationIndependent);
         }
 
@@ -186,7 +192,8 @@ namespace NCatboostCuda {
                                                    DataProvider,
                                                    dataSetsHolder.PermutationDataSets[0]->GetTarget().GetIndices(),
                                                    LinkedTest,
-                                                   LinkedTest ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices() : nullptr);
+                                                   LinkedTest ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices() : nullptr,
+                                                   localExecutor);
 
             TCtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
                                                            compressedIndexBuilder,
@@ -215,7 +222,8 @@ namespace NCatboostCuda {
                                                            DataProvider,
                                                            ds.GetIndices(),
                                                            linkedTest,
-                                                           testIndices);
+                                                           testIndices,
+                                                           localExecutor);
 
                     TCtrsWriter<TFeatureParallelLayout> ctrsWriter(FeaturesManager,
                                                                    compressedIndexBuilder,
@@ -264,10 +272,12 @@ namespace NCatboostCuda {
     }
 
     void TFeatureParallelDataSetHoldersBuilder::BuildCompressedCatFeatures(const NCB::TTrainingDataProvider& dataProvider,
-                                                                           TCompressedCatFeatureDataSet& dataset) {
+                                                                           TCompressedCatFeatureDataSet& dataset,
+                                                                           NPar::TLocalExecutor* localExecutor) {
         TCompressedCatFeatureDataSetBuilder builder(dataProvider,
                                                     FeaturesManager,
-                                                    dataset);
+                                                    dataset,
+                                                    localExecutor);
         for (ui32 catFeature : FeaturesManager.GetCatFeatureIds()) {
             if (FeaturesManager.UseForTreeCtr(catFeature)) {
                 builder.Add(catFeature);

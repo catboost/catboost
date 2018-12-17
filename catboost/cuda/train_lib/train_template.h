@@ -6,6 +6,9 @@
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/cuda/methods/boosting_progress_tracker.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
     template <class TBoosting>
     inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
@@ -16,6 +19,7 @@ namespace NCatboostCuda {
                                                                          TGpuAwareRandom& random,
                                                                          ui32 approxDimension,
                                                                          const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                         NPar::TLocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
@@ -31,7 +35,8 @@ namespace NCatboostCuda {
                            catBoostOptions.LossFunctionDescription,
                            catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
                            random,
-                           weak);
+                           weak,
+                           localExecutor);
 
         boosting.SetDataProvider(learn,
                                  test);

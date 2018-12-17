@@ -39,8 +39,9 @@ namespace NCatboostCuda {
 
         class TDirectionEstimator {
         public:
-            TDirectionEstimator(TPointWithFuncInfo&& point)
+            TDirectionEstimator(TPointWithFuncInfo&& point, NPar::TLocalExecutor* localExecutor)
                 : CurrentPoint(std::move(point))
+                , LocalExecutor(localExecutor)
             {
                 UpdateMoveDirection();
             }
@@ -95,7 +96,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(rowSize * numBlocks == CurrentPoint.Point.size());
 
                 MoveDirection.resize(rowSize * numBlocks);
-                NPar::ParallelFor(0, numBlocks, [&](ui32 blockId) {
+                NPar::ParallelFor(*LocalExecutor, 0, numBlocks, [&](ui32 blockId) {
 
                     TVector<double> sigma(rowSize * rowSize);
                     TVector<double> solution(rowSize);
@@ -119,25 +120,33 @@ namespace NCatboostCuda {
         private:
             TPointWithFuncInfo CurrentPoint;
             TVector<float> MoveDirection;
+
+            NPar::TLocalExecutor* LocalExecutor;
         };
     }
 
 
-    TVector<float> TNewtonLikeWalker::Estimate(TVector<float> startPoint)  {
+    TVector<float> TNewtonLikeWalker::Estimate(
+        TVector<float> startPoint,
+        NPar::TLocalExecutor* localExecutor) {
+
         startPoint.resize(Oracle.PointDim());
         const int hessianBlockSize = Oracle.HessianBlockSize();
 
-        TDirectionEstimator estimator([&]() -> TPointWithFuncInfo {
-            TPointWithFuncInfo point(hessianBlockSize);
-            point.Point = startPoint;
-            Oracle.MoveTo(point.Point);
-            Oracle.WriteValueAndFirstDerivatives(&point.Value,
-                                                 &point.Gradient);
+        TDirectionEstimator estimator(
+            [&]() -> TPointWithFuncInfo {
+                TPointWithFuncInfo point(hessianBlockSize);
+                point.Point = startPoint;
+                Oracle.MoveTo(point.Point);
+                Oracle.WriteValueAndFirstDerivatives(&point.Value,
+                                                     &point.Gradient);
 
-            Oracle.WriteSecondDerivatives(&point.Hessian);
+                Oracle.WriteSecondDerivatives(&point.Hessian);
 
-            return point;
-        }());
+                return point;
+            }(),
+            localExecutor
+        );
 
         if (Iterations == 1) {
             TVector<float> result;

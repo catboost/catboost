@@ -222,7 +222,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         //        TFoldBa
         TSet<ui32> referenceFeatures;
         {
-            TSharedCompressedIndexBuilder<TLayout> builder(compressedIndex);
+            TSharedCompressedIndexBuilder<TLayout> builder(compressedIndex, &NPar::LocalExecutor());
             TBinarizationInfoProvider binarizationInfoProvider(*binarizedFeaturesManager,
                                                                dataProvider.Get());
             TDataSetDescription desc;
@@ -250,7 +250,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             TFloatAndOneHotFeaturesWriter<TLayout> writer(*binarizedFeaturesManager,
                                                           builder,
                                                           *dataProvider,
-                                                          id);
+                                                          id,
+                                                          &NPar::LocalExecutor());
             writer.Write(features);
             builder.Finish();
         }
@@ -380,7 +381,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
                                                                     *dataProvider);
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         {
             auto binarizedTargetRef = NCB::BinarizeLine<ui32>(dataProviderTarget,
@@ -471,7 +472,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
                                                          *dataProvider);
 
-        TDocParallelDataSetsHolder dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        TDocParallelDataSetsHolder dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
         const TDataPermutation& loadBalancingPermutation = dataSet.GetLoadBalancingPermutation();
 
         for (ui32 permutation = 0; permutation < dataSet.PermutationsCount(); ++permutation) {

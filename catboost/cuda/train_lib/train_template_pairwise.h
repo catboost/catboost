@@ -14,6 +14,7 @@ namespace NCatboostCuda {
                                                                 TGpuAwareRandom& random,
                                                                 ui32 approxDimension,
                                                                 const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                NPar::TLocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
@@ -30,6 +31,7 @@ namespace NCatboostCuda {
                                             random,
                                             approxDimension,
                                             onEndIterationCallback,
+                                            localExecutor,
                                             testMultiApprox,
                                             metricsAndTimeHistory);
     };
@@ -45,6 +47,7 @@ namespace NCatboostCuda {
                                                                         TGpuAwareRandom& random,
                                                                         ui32 approxDimension,
                                                                         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                        NPar::TLocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return TrainPairwise<TTargetTemplate>(featuresManager,
@@ -55,6 +58,7 @@ namespace NCatboostCuda {
                                                     random,
                                                     approxDimension,
                                                     onEndIterationCallback,
+                                                    localExecutor,
                                                     testMultiApprox,
                                                     metricsAndTimeHistory);
         };

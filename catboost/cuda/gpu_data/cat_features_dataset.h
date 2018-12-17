@@ -7,6 +7,8 @@
 
 #include <catboost/libs/data_new/data_provider.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/noncopyable.h>
 
 namespace NCatboostCuda {
@@ -95,11 +97,13 @@ namespace NCatboostCuda {
     public:
         TCompressedCatFeatureDataSetBuilder(const NCB::TTrainingDataProvider& dataProvider,
                                             TBinarizedFeaturesManager& featuresManager,
-                                            TCompressedCatFeatureDataSet& dataSet)
+                                            TCompressedCatFeatureDataSet& dataSet,
+                                            NPar::TLocalExecutor* localExecutor)
             : DevCount(GetDeviceCount())
             , DataSet(dataSet)
             , DataProvider(dataProvider)
             , FeaturesManager(featuresManager)
+            , LocalExecutor(localExecutor)
         {
             MemoryUsage.resize(DevCount, 0);
             DataSet.DataProvider = &DataProvider;
@@ -123,6 +127,8 @@ namespace NCatboostCuda {
 
         const NCB::TTrainingDataProvider& DataProvider;
         const TBinarizedFeaturesManager& FeaturesManager;
+
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     template <class TValue>

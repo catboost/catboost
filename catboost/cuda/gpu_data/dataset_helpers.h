@@ -10,6 +10,8 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_utils.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/generic/fwd.h>
 
 namespace NCatboostCuda {
@@ -47,11 +49,13 @@ namespace NCatboostCuda {
         TFloatAndOneHotFeaturesWriter(TBinarizedFeaturesManager& featuresManager,
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const NCB::TTrainingDataProvider& dataProvider,
-                                      const ui32 dataSetId)
+                                      const ui32 dataSetId,
+                                      NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
             , IndexBuilder(indexBuilder)
+            , LocalExecutor(localExecutor)
         {
         }
 
@@ -87,7 +91,7 @@ namespace NCatboostCuda {
             IndexBuilder.template Write<ui8>(DataSetId,
                                              feature,
                                              dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx),
-                                             *featuresHolder.ExtractValues(&NPar::LocalExecutor()));
+                                             *featuresHolder.ExtractValues(LocalExecutor));
         }
 
         void WriteOneHotFeature(const ui32 feature,
@@ -106,7 +110,7 @@ namespace NCatboostCuda {
             IndexBuilder.template Write<ui32>(DataSetId,
                                               feature,
                                               dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
-                                              *featuresHolder.ExtractValues(&NPar::LocalExecutor()));
+                                              *featuresHolder.ExtractValues(LocalExecutor));
         }
 
     private:
@@ -114,6 +118,7 @@ namespace NCatboostCuda {
         const NCB::TTrainingDataProvider& DataProvider;
         ui32 DataSetId = -1;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
