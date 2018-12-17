@@ -237,7 +237,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                     false,
                     &localExecutor
                 ),
-                TCatboostException
+                TCatBoostException
             );
         }
     }

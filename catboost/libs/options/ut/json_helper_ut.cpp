@@ -127,7 +127,7 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         loader.LoadMany(&option1, &option2);
 
         UNIT_ASSERT_VALUES_EQUAL(option1.Get(), 102);
-        UNIT_ASSERT_EXCEPTION(option2.Get(), TCatboostException);
+        UNIT_ASSERT_EXCEPTION(option2.Get(), TCatBoostException);
 
         NJson::TJsonValue tree2;
         SaveFields(&tree2, option1, option2);

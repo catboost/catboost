@@ -235,7 +235,7 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
 
             UNIT_ASSERT_EXCEPTION(
                 NCB::CheckCompatibleForApply(layout, layout2, "test data"),
-                TCatboostException
+                TCatBoostException
             );
         }
         {
@@ -255,7 +255,7 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
 
             UNIT_ASSERT_EXCEPTION(
                 NCB::CheckCompatibleForApply(longerLayout, layout, "test data"),
-                TCatboostException
+                TCatBoostException
             );
         }
         {

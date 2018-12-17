@@ -258,7 +258,7 @@ namespace NCatboostCuda {
                                        testMultiApprox,
                                        metricsAndTimeHistory);
         } else {
-            ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
+            ythrow TCatBoostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
         }
         return nullptr; // return default to keep compiler happy
     }
@@ -270,7 +270,7 @@ namespace NCatboostCuda {
                 trainDirPath.MkDir();
             }
         } catch (...) {
-            ythrow TCatboostException() << "Can't create working dir: " << path;
+            ythrow TCatBoostException() << "Can't create working dir: " << path;
         }
     }
 

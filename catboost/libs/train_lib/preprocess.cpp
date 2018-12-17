@@ -59,7 +59,7 @@ void UpdateUndefinedRandomSeed(ETaskType taskType,
             });
             ReadJsonTree(serializedTrainParams, &restoredJsonParams);
             CB_ENSURE(restoredJsonParams.Has("random_seed"), "Snapshot is broken.");
-        } catch (const TCatboostException&) {
+        } catch (const TCatBoostException&) {
             throw;
         } catch (...) {
             CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<

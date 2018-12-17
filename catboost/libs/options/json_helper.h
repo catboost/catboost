@@ -108,7 +108,7 @@ namespace NCatboostOptions {
                     TJsonFieldHelper<T>::Read(entry.second, &((*dst)[FromString<TKey>(entry.first)]));
                 }
             } else {
-                ythrow TCatboostException() << "Error: wrong json type";
+                ythrow TCatBoostException() << "Error: wrong json type";
             }
         }
 
@@ -149,7 +149,7 @@ namespace NCatboostOptions {
                     TJsonFieldHelper<T>::Read(srcValue, &dst->Value);
                     dst->IsSetFlag = true;
                 } catch (NJson::TJsonException) {
-                    ythrow TCatboostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue;
+                    ythrow TCatBoostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue;
                 }
                 return true;
             } else {
@@ -188,7 +188,7 @@ namespace NCatboostOptions {
                         return;
                     }
                     case ELoadUnimplementedPolicy::Exception: {
-                        ythrow TCatboostException() << "Error: option " << option->GetName()
+                        ythrow TCatBoostException() << "Error: option " << option->GetName()
                                                     << " is unimplemented for task " << option->GetCurrentTaskType();
                     }
                     case ELoadUnimplementedPolicy::ExceptionOnChange: {
@@ -196,13 +196,13 @@ namespace NCatboostOptions {
                         T oldValue = option->GetUnchecked();
                         LoadMany(static_cast<TOption<T>*>(option));
                         if (oldValue != option->GetUnchecked()) {
-                            ythrow TCatboostException() << "Error: change of option " << option->GetName()
+                            ythrow TCatBoostException() << "Error: change of option " << option->GetName()
                                                         << " is unimplemented for task type " << option->GetCurrentTaskType() << " and was not default in previous run";
                         }
                         return;
                     }
                     default: {
-                        ythrow TCatboostException() << "Unknown policy " << option->GetLoadUnimplementedPolicy();
+                        ythrow TCatBoostException() << "Unknown policy " << option->GetLoadUnimplementedPolicy();
                     }
                 }
             }

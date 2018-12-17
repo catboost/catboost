@@ -986,9 +986,9 @@ void NCB::TQuantizedForCPUObjectsDataProvider::Check() const {
             Data.CatFeatures,
             "TQuantizedCatValuesHolder"
         );
-    } catch (const TCatboostException& e) {
+    } catch (const TCatBoostException& e) {
         // not ythrow to avoid double line info in exception message
-        throw TCatboostException() << "Incompatible with TQuantizedForCPUObjectsDataProvider: " << e.what();
+        throw TCatBoostException() << "Incompatible with TQuantizedForCPUObjectsDataProvider: " << e.what();
     }
 }
 

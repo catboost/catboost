@@ -138,7 +138,7 @@ namespace NCatboostCuda {
         } else if (IsFloat(localId)) {
             return 0;
         } else {
-            ythrow TCatboostException() << "Error: unknown feature id #" << localId;
+            ythrow TCatBoostException() << "Error: unknown feature id #" << localId;
         }
     }
 

@@ -41,7 +41,7 @@ namespace NCudaLib {
                 return;
             }
             default: {
-                ythrow TCatboostException() << "Unsupported operation type";
+                ythrow TCatBoostException() << "Unsupported operation type";
             }
         }
     }
@@ -140,7 +140,7 @@ namespace NCudaLib {
                         Y_UNREACHABLE();
                     }
                     default: {
-                        ythrow TCatboostException() << "Unknown command type";
+                        ythrow TCatBoostException() << "Unknown command type";
                     }
                 }
             }

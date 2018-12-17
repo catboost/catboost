@@ -171,7 +171,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
                 break;
             }
             default: {
-                ythrow TCatboostException() << "Unknown estimation type "
+                ythrow TCatBoostException() << "Unknown estimation type "
                                             << method;
             }
         }
@@ -229,7 +229,7 @@ NCatboostOptions::TCatBoostOptions::CreateDefaultCounter(EProjectionType project
                 break;
             }
             default: {
-                ythrow TCatboostException() << "Unknown projection type " << projectionType;
+                ythrow TCatBoostException() << "Unknown projection type " << projectionType;
             }
         }
         return TCtrDescription(ECtrType::FeatureFreq,

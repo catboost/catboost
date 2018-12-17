@@ -58,10 +58,10 @@ namespace NCB {
                 if (it != LabelToClass.end()) {
                     return static_cast<float>(it->second);
                 }
-                ythrow TCatboostException() << "Unknown class name: " << label;
+                ythrow TCatBoostException() << "Unknown class name: " << label;
             }
             default: {
-                ythrow TCatboostException() <<
+                ythrow TCatBoostException() <<
                     "Cannot convert label online if convert target policy is not CastFloat or UseClassNames.";
             }
         }

@@ -134,7 +134,7 @@ static void ValidatePlainOptionsConsistency(const NJson::TJsonValue& plainOption
         // number of classes, target values and N-1 approxes), while MultiClassOneVsAll trains N
         // binary classifiers (thus we have N target valeus and N approxes), thus it's not clear how
         // we can compute both metrics at the same time.
-        ythrow TCatboostException()
+        ythrow TCatBoostException()
             << ELossFunction::MultiClass << " and "
             << ELossFunction::MultiClassOneVsAll << " are incompatible";
     }
@@ -328,7 +328,7 @@ void NCatboostOptions::PlainJsonToOptions(
         const TString message = TStringBuilder()
             << "Unknown option {" << optionName << '}'
             << " with value \"" << EscapeC(ToString(optionValue)) << '"';
-        ythrow TCatboostException() << message;
+        ythrow TCatBoostException() << message;
     }
 
     trainOptions["flat_params"] = plainOptions;

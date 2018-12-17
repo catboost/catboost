@@ -88,7 +88,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                 UNIT_ASSERT_EXCEPTION(
                     CreateProviderSimple(target.size(), rawTargetData),
-                    TCatboostException
+                    TCatBoostException
                 );
             }
         }
@@ -178,7 +178,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     UNIT_ASSERT_EXCEPTION(
                         CreateProviderSimple(target.size(), rawTargetData),
-                        TCatboostException
+                        TCatBoostException
                     );
                 }
 
@@ -197,7 +197,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     UNIT_ASSERT_EXCEPTION(
                         rawTargetDataProvider.SetBaseline(baselineView),
-                        TCatboostException
+                        TCatBoostException
                     );
                 }
             }
@@ -266,14 +266,14 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                         UNIT_ASSERT_EXCEPTION(
                             CreateProviderSimple(target.size(), rawTargetData),
-                            TCatboostException
+                            TCatBoostException
                         );
                     } else {
                         UNIT_ASSERT_EXCEPTION(
                             [&]() {
                                 rawTargetData.Weights = TWeights<float>(TVector<float>(weight));
                             } (),
-                            TCatboostException
+                            TCatBoostException
                         );
                     }
                 }
@@ -286,7 +286,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
 
-                    UNIT_ASSERT_EXCEPTION(rawTargetDataProvider.SetWeights(weight), TCatboostException);
+                    UNIT_ASSERT_EXCEPTION(rawTargetDataProvider.SetWeights(weight), TCatBoostException);
                 }
             }
         }
@@ -360,14 +360,14 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                         UNIT_ASSERT_EXCEPTION(
                             CreateProviderSimple(groupBounds, rawTargetData),
-                            TCatboostException
+                            TCatBoostException
                         );
                     } else {
                         UNIT_ASSERT_EXCEPTION(
                             [&]() {
                                 rawTargetData.GroupWeights = TWeights<float>(TVector<float>(groupWeights));
                             } (),
-                            TCatboostException
+                            TCatBoostException
                         );
                     }
 
@@ -383,7 +383,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     UNIT_ASSERT_EXCEPTION(
                         rawTargetDataProvider.SetGroupWeights(groupWeights),
-                        TCatboostException
+                        TCatBoostException
                     );
                 }
             }
@@ -442,7 +442,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     UNIT_ASSERT_EXCEPTION(
                         CreateProviderSimple(groupBounds, rawTargetData),
-                        TCatboostException
+                        TCatBoostException
                     );
                 }
 
@@ -454,7 +454,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     auto rawTargetDataProvider = CreateProviderSimple(groupBounds, rawTargetData);
 
-                    UNIT_ASSERT_EXCEPTION(rawTargetDataProvider.SetPairs(pairs), TCatboostException);
+                    UNIT_ASSERT_EXCEPTION(rawTargetDataProvider.SetPairs(pairs), TCatBoostException);
                 }
             }
         }
@@ -1534,7 +1534,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                 targetDataProviders[TTargetDataSpecification(ETargetType::GroupPairwiseRanking)]
             );
 
-            UNIT_ASSERT_EXCEPTION(GetTarget(onlyGroupPairwiseRanking), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(GetTarget(onlyGroupPairwiseRanking), TCatBoostException);
             UNIT_ASSERT_EQUAL(GetWeights(onlyGroupPairwiseRanking), TConstArrayRef<float>());
 
             UNIT_ASSERT_EQUAL(
@@ -1578,7 +1578,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                 targetDataProviders[TTargetDataSpecification(ETargetType::MultiClass)]
             );
 
-            UNIT_ASSERT_EXCEPTION(GetBaseline(badMix), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(GetBaseline(badMix), TCatBoostException);
         }
 
 

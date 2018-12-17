@@ -24,7 +24,7 @@ Y_DECLARE_PODTYPE(uint4);
     {                                                                                                                \
         cudaError_t errorCode = statement;                                                                           \
         if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
-            ythrow TCatboostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
+            ythrow TCatBoostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
         }                                                                                                            \
     }
 
@@ -324,7 +324,7 @@ namespace NCudaLib {
         }
     }
 
-    class TOutOfMemoryError: public TCatboostException {
+    class TOutOfMemoryError: public TCatBoostException {
     };
 
 }

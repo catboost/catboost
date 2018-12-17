@@ -24,12 +24,12 @@ namespace NCudaLib {
             std::type_index index(typeid(TTask));
 
             if (CommandIds.contains(index)) {
-                ythrow TCatboostException() << "Error: class " << index.name() << " already registered with id " << taskId;
+                ythrow TCatBoostException() << "Error: class " << index.name() << " already registered with id " << taskId;
             } else {
                 //registers are done on initialization, so this check would not be bottleneck
                 for (const auto& entry : CommandIds) {
                     if (entry.second == taskId) {
-                        ythrow TCatboostException() << "Error: Can't register class " << index.name() << ". TaskId " << taskId << " already registered for class " << entry.first.name();
+                        ythrow TCatBoostException() << "Error: Can't register class " << index.name() << ". TaskId " << taskId << " already registered for class " << entry.first.name();
                     }
                 }
                 CommandIds[index] = taskId;
@@ -43,7 +43,7 @@ namespace NCudaLib {
             if (commandId != CommandIds.end()) {
                 return commandId->second;
             } else {
-                ythrow TCatboostException() << "Task " << index.name() << " is not registered";
+                ythrow TCatBoostException() << "Task " << index.name() << " is not registered";
             }
         }
 

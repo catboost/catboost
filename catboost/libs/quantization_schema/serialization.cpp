@@ -40,22 +40,22 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
         StringSplitter(line).SplitLimited('\t', 3).Collect(&columns);
 
         if (columns.size() < 2) {
-            ythrow TCatboostException() << "only " << columns.size() << "columns at line " << lineIndex;
+            ythrow TCatBoostException() << "only " << columns.size() << "columns at line " << lineIndex;
         }
 
         size_t index;
         if (!TryFromString(columns[0], index)) {
-            ythrow TCatboostException() << "failed to parse feature index; " << LabeledOutput(lineIndex, EscapeC(columns[0]));
+            ythrow TCatBoostException() << "failed to parse feature index; " << LabeledOutput(lineIndex, EscapeC(columns[0]));
         }
 
         float border;
         if (!TryFromString(columns[1], border)) {
-            ythrow TCatboostException() << "failed to parse border value; " << LabeledOutput(lineIndex, EscapeC(columns[1]));
+            ythrow TCatBoostException() << "failed to parse border value; " << LabeledOutput(lineIndex, EscapeC(columns[1]));
         }
 
         ENanMode nanMode = ENanMode::Forbidden;
         if (columns.size() >= 3 && !TryFromString(columns[2], nanMode)) {
-            ythrow TCatboostException() << "failed to parse NaN mode value; " << LabeledOutput(lineIndex, EscapeC(columns[2]));
+            ythrow TCatBoostException() << "failed to parse NaN mode value; " << LabeledOutput(lineIndex, EscapeC(columns[2]));
         }
 
         const auto localIndex = remapping.emplace(index, remapping.size()).first->second;
@@ -67,13 +67,13 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
         if (!nanModes[localIndex].Defined()) {
             if (borders[localIndex]) {
                 // Some border were missing nan mode column
-                ythrow TCatboostException() << "Inconsistent Nan modes for feature " << index << ' '
+                ythrow TCatBoostException() << "Inconsistent Nan modes for feature " << index << ' '
                     << "at line " << lineIndex;
             }
 
             nanModes[localIndex] = nanMode;
         } else if (*nanModes[localIndex] != nanMode) {
-            ythrow TCatboostException()
+            ythrow TCatBoostException()
                 << "Inconsistent NaN modes for feature " << index << ' '
                 << "at line " << lineIndex << ' '
                 << *nanModes[localIndex] << " vs. " << nanMode;
@@ -128,7 +128,7 @@ NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
             break;
     }
 
-    ythrow TCatboostException() << "Unknown quantization schema serialization format : " << static_cast<int>(format);
+    ythrow TCatBoostException() << "Unknown quantization schema serialization format : " << static_cast<int>(format);
 }
 
 NCB::TPoolQuantizationSchema NCB::LoadQuantizationSchema(
@@ -184,7 +184,7 @@ void NCB::SaveQuantizationSchema(
             break;
     }
 
-    ythrow TCatboostException() << "Unknown quantization schema serialization format : " << static_cast<int>(format);
+    ythrow TCatBoostException() << "Unknown quantization schema serialization format : " << static_cast<int>(format);
 }
 
 void NCB::SaveQuantizationSchema(

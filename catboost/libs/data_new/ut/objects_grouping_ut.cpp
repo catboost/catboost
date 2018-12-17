@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                 UNIT_ASSERT_EQUAL(grouping.GetGroup(i), TGroupBounds(i, i + 1));
             }
 
-            UNIT_ASSERT_EXCEPTION(grouping.GetNonTrivialGroups(), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetNonTrivialGroups(), TCatBoostException);
         }
 
         // non-trivial
@@ -49,7 +49,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
         {
             TVector<TGroupBounds> groupsBounds = {{0, 1}, {2, 5}};
 
-            UNIT_ASSERT_EXCEPTION(TObjectsGrouping(std::move(groupsBounds)), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(TObjectsGrouping(std::move(groupsBounds)), TCatBoostException);
         }
     }
 
@@ -252,7 +252,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                     std::move(objectsSubset),
                     EObjectsOrder::Undefined
                 ),
-                TCatboostException
+                TCatBoostException
             );
         }
         {
@@ -268,7 +268,7 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                     std::move(objectsSubset),
                     EObjectsOrder::Ordered
                 ),
-                TCatboostException
+                TCatBoostException
             );
         }
     }
@@ -282,8 +282,8 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                 UNIT_ASSERT_VALUES_EQUAL(grouping.GetGroupIdxForObject(i), i);
             }
 
-            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(10), TCatboostException);
-            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(10), TCatBoostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatBoostException);
         }
 
         // non-trivial
@@ -304,8 +304,8 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
                 );
             }
 
-            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(22), TCatboostException);
-            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(22), TCatBoostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatBoostException);
         }
     }
 

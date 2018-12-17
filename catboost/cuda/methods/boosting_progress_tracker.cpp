@@ -159,7 +159,7 @@ namespace NCatboostCuda {
 
                 loader(in);
             });
-        } catch (const TCatboostException&) {
+        } catch (const TCatBoostException&) {
             throw;
         } catch (...) {
             CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << OutputFiles.SnapshotFile << " exception: "

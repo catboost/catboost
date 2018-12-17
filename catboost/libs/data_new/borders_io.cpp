@@ -66,7 +66,7 @@ namespace NCB {
                     }
                 }
             } catch (const yexception& e) {
-                throw TCatboostException() << "Incorrect file with borders. Error while parsing line #"
+                throw TCatBoostException() << "Incorrect file with borders. Error while parsing line #"
                     << lineNumber << ": " << e.what();
             }
         }

@@ -98,9 +98,9 @@ void NCB::CheckPairs(TConstArrayRef<TPair> pairs, const TObjectsGrouping& object
                 "winner id group #" << winnerIdGroupIdx << " is not equal to loser id group #"
                 << loserIdGroupIdx
             );
-        } catch (const TCatboostException& e) {
+        } catch (const TCatBoostException& e) {
             // throw, not ythrow to avoid duplication of line info
-            throw TCatboostException() << "Pair #" << pairIdx << ' ' << HumanReadableDescription(pair) << ": "
+            throw TCatBoostException() << "Pair #" << pairIdx << ' ' << HumanReadableDescription(pair) << ": "
                 << e.what();
         }
     }
@@ -184,9 +184,9 @@ void NCB::CheckGroupInfo(
             if (!groupInfo.Competitors.empty()) {
                 hasPairData = true;
             }
-        } catch (const TCatboostException& e) {
+        } catch (const TCatBoostException& e) {
             // throw, not ythrow to avoid duplication of line info
-            throw TCatboostException() << "groupInfo[" << i << "]: " << e.what();
+            throw TCatBoostException() << "groupInfo[" << i << "]: " << e.what();
         }
     }
     CB_ENSURE_INTERNAL(!mustContainPairData || hasPairData, "groups do not contain pair data");

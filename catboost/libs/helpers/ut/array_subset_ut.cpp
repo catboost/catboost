@@ -17,21 +17,21 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
             ([]{
                 NCB::TArraySubset<TVector<int>> arraySubset{nullptr, nullptr};
             }()),
-            TCatboostException
+            TCatBoostException
         );
         UNIT_ASSERT_EXCEPTION(
             ([]{
                 TVector<int> v(1, 0);
                 NCB::TArraySubset<TVector<int>> arraySubset{&v, nullptr};
             }()),
-            TCatboostException
+            TCatBoostException
         );
         UNIT_ASSERT_EXCEPTION(
             ([]{
                 NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing( NCB::TFullSubset<size_t>{0} );
                 NCB::TArraySubset<TVector<int>> arraySubset{nullptr, &arraySubsetIndexing};
             }()),
-            TCatboostException
+            TCatBoostException
         );
     }
 
@@ -50,7 +50,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                     0
                 );
             }()),
-            TCatboostException
+            TCatBoostException
         );
     }
 
@@ -502,7 +502,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                     ([&]{
                         Compose(srcs[srcIdx], badSrcSubsets[badSrcSubsetIdx]);
                     }()),
-                    TCatboostException
+                    TCatBoostException
                 );
             }
         }

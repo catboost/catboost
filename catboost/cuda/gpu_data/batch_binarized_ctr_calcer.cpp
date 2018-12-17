@@ -183,7 +183,7 @@ NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedB
         }
     }
     if (tensor.GetSplits().size()) {
-        ythrow TCatboostException() << "Precompute for combination ctrs with float splits is unimplemented yet";
+        ythrow TCatBoostException() << "Precompute for combination ctrs with float splits is unimplemented yet";
     }
     return ctrBinBuilder;
 }

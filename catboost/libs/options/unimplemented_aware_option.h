@@ -54,7 +54,7 @@ namespace NCatboostOptions {
                     return IsSupported<ETaskType::CPU>();
                 }
                 default: {
-                    ythrow TCatboostException() << "Unknown task type " << taskType;
+                    ythrow TCatBoostException() << "Unknown task type " << taskType;
                 }
             }
         }

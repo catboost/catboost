@@ -249,7 +249,7 @@ bool IsSecondOrderScoreFunction(EScoreFunction function) {
             return false;
         }
         default: {
-            ythrow TCatboostException() << "Unknown score function " << function;
+            ythrow TCatBoostException() << "Unknown score function " << function;
         }
     }
     Y_UNREACHABLE();
