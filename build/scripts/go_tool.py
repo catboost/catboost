@@ -1,6 +1,7 @@
 import argparse
 import copy
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -9,6 +10,13 @@ import tempfile
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
+
+
+def get_symlink_or_copyfile():
+    os_symlink = getattr(os, 'symlink', None)
+    if os_symlink is None:
+        os_symlink = shutil.copyfile
+    return os_symlink
 
 
 def copy_args(args):
@@ -158,7 +166,8 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
 
     # Get the list of "internal" tests
     os.makedirs(os.path.join(test_src_dir, test_module_path))
-    os.symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
+    os_symlink = get_symlink_or_copyfile()
+    os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
     cmd = [test_miner, '-tests', test_module_path]
     tests = (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n')
 
@@ -166,9 +175,11 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     if xtest_lib_args:
         xtest_module_path = xtest_lib_args.module_path
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
-        os.symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
+        os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-tests', xtest_module_path]
         xtests = (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n')
+
+    shutil.rmtree(go_path_root)
 
     content = """package main
 
@@ -261,8 +272,9 @@ if __name__ == '__main__':
     args.go_link = os.path.join(args.tool_root, 'link')
     args.go_asm = os.path.join(args.tool_root, 'asm')
     args.go_pack = os.path.join(args.tool_root, 'pack')
+    args.output = os.path.normpath(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
-    args.output_root = os.path.dirname(args.output)
+    args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
     args.module_map = {}
 
