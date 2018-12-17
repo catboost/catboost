@@ -203,7 +203,7 @@ RESOURCE(
     pytz/zoneinfo/America/Porto_Acre /pytz_data/zoneinfo/America/Porto_Acre
     pytz/zoneinfo/America/Porto_Velho /pytz_data/zoneinfo/America/Porto_Velho
     pytz/zoneinfo/America/Puerto_Rico /pytz_data/zoneinfo/America/Puerto_Rico
-    pytz/zoneinfo/America/Punta_Arenas /pytz_data/America/Punta_Arenas
+    pytz/zoneinfo/America/Punta_Arenas /pytz_data/zoneinfo/America/Punta_Arenas
     pytz/zoneinfo/America/Rainy_River /pytz_data/zoneinfo/America/Rainy_River
     pytz/zoneinfo/America/Rankin_Inlet /pytz_data/zoneinfo/America/Rankin_Inlet
     pytz/zoneinfo/America/Recife /pytz_data/zoneinfo/America/Recife
@@ -259,7 +259,7 @@ RESOURCE(
     pytz/zoneinfo/Asia/Aqtobe /pytz_data/zoneinfo/Asia/Aqtobe
     pytz/zoneinfo/Asia/Ashgabat /pytz_data/zoneinfo/Asia/Ashgabat
     pytz/zoneinfo/Asia/Ashkhabad /pytz_data/zoneinfo/Asia/Ashkhabad
-    pytz/zoneinfo/Asia/Atyrau /pytz_data/Asia/Atyrau
+    pytz/zoneinfo/Asia/Atyrau /pytz_data/zoneinfo/Asia/Atyrau
     pytz/zoneinfo/Asia/Baghdad /pytz_data/zoneinfo/Asia/Baghdad
     pytz/zoneinfo/Asia/Bahrain /pytz_data/zoneinfo/Asia/Bahrain
     pytz/zoneinfo/Asia/Baku /pytz_data/zoneinfo/Asia/Baku
@@ -280,7 +280,7 @@ RESOURCE(
     pytz/zoneinfo/Asia/Dili /pytz_data/zoneinfo/Asia/Dili
     pytz/zoneinfo/Asia/Dubai /pytz_data/zoneinfo/Asia/Dubai
     pytz/zoneinfo/Asia/Dushanbe /pytz_data/zoneinfo/Asia/Dushanbe
-    pytz/zoneinfo/Asia/Famagusta /pytz_data/Asia/Famagusta
+    pytz/zoneinfo/Asia/Famagusta /pytz_data/zoneinfo/Asia/Famagusta
     pytz/zoneinfo/Asia/Gaza /pytz_data/zoneinfo/Asia/Gaza
     pytz/zoneinfo/Asia/Harbin /pytz_data/zoneinfo/Asia/Harbin
     pytz/zoneinfo/Asia/Hebron /pytz_data/zoneinfo/Asia/Hebron
@@ -346,7 +346,7 @@ RESOURCE(
     pytz/zoneinfo/Asia/Vientiane /pytz_data/zoneinfo/Asia/Vientiane
     pytz/zoneinfo/Asia/Vladivostok /pytz_data/zoneinfo/Asia/Vladivostok
     pytz/zoneinfo/Asia/Yakutsk /pytz_data/zoneinfo/Asia/Yakutsk
-    pytz/zoneinfo/Asia/Yangon /pytz_data/Asia/Yangon
+    pytz/zoneinfo/Asia/Yangon /pytz_data/zoneinfo/Asia/Yangon
     pytz/zoneinfo/Asia/Yekaterinburg /pytz_data/zoneinfo/Asia/Yekaterinburg
     pytz/zoneinfo/Asia/Yerevan /pytz_data/zoneinfo/Asia/Yerevan
     pytz/zoneinfo/Atlantic/Azores /pytz_data/zoneinfo/Atlantic/Azores
@@ -486,7 +486,7 @@ RESOURCE(
     pytz/zoneinfo/Europe/Samara /pytz_data/zoneinfo/Europe/Samara
     pytz/zoneinfo/Europe/San_Marino /pytz_data/zoneinfo/Europe/San_Marino
     pytz/zoneinfo/Europe/Sarajevo /pytz_data/zoneinfo/Europe/Sarajevo
-    pytz/zoneinfo/Europe/Saratov /pytz_data/Europe/Saratov
+    pytz/zoneinfo/Europe/Saratov /pytz_data/zoneinfo/Europe/Saratov
     pytz/zoneinfo/Europe/Simferopol /pytz_data/zoneinfo/Europe/Simferopol
     pytz/zoneinfo/Europe/Skopje /pytz_data/zoneinfo/Europe/Skopje
     pytz/zoneinfo/Europe/Sofia /pytz_data/zoneinfo/Europe/Sofia
@@ -613,10 +613,10 @@ RESOURCE(
     pytz/zoneinfo/WET /pytz_data/zoneinfo/WET
     pytz/zoneinfo/Zulu /pytz_data/zoneinfo/Zulu
     pytz/zoneinfo/iso3166.tab /pytz_data/zoneinfo/iso3166.tab
-    pytz/zoneinfo/leapseconds /pytz_data/leapseconds
+    pytz/zoneinfo/leapseconds /pytz_data/zoneinfo/leapseconds
     pytz/zoneinfo/localtime /pytz_data/zoneinfo/localtime
     pytz/zoneinfo/posixrules /pytz_data/zoneinfo/posixrules
-    pytz/zoneinfo/tzdata.zi /pytz_data/tzdata.zi
+    pytz/zoneinfo/tzdata.zi /pytz_data/zoneinfo/tzdata.zi
     pytz/zoneinfo/zone.tab /pytz_data/zoneinfo/zone.tab
     pytz/zoneinfo/zone1970.tab /pytz_data/zoneinfo/zone1970.tab
 )
