@@ -1591,7 +1591,8 @@ class CatBoost(_CatBoostBase):
 
         verbose : bool or int
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
-            If positive integer, then it stands for log write period.
+            If positive integer, then it stands for log write period, the number of iterations that will be displayed at
+             every progress output.
 
         Returns
         -------
