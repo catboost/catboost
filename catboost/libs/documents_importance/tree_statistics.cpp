@@ -33,7 +33,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);
 
-    TFstrLogger treesLogger(treeCount, "Trees processed", "Processing trees...", logPeriod);
+    TImportanceLogger treesLogger(treeCount, "Trees processed", "Processing trees...", logPeriod);
     TProfileInfo processTreesProfile(treeCount);
 
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {

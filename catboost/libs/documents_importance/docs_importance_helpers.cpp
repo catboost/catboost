@@ -34,7 +34,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
     UpdateFinalFirstDerivatives(leafIndices, GetTarget(processedData.TargetData));
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
     const size_t docBlockSize = 1000;
-    TFstrLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
+    TImportanceLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
     TProfileInfo processDocumentsProfile(DocCount);
 
     for (size_t start = 0; start < DocCount; start += docBlockSize) {
