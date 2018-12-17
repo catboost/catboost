@@ -74,3 +74,5 @@ ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в 
 And if this is the case, then time estimates should be updated: time estimate is made based on previous timings. In case if one of these parameters has changed, previous time estimates become not trustable.
 
 26. AUC for MultiClass
+
+27. Weight in all binarizations.
