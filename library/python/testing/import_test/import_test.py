@@ -22,6 +22,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'click._winconsole',
         'common.*',  # sandbox.common
 
+        'flaky.flaky_pytest_plugin',
+
         'flask.ext.__init__',
         'future.backports.email.policy',  # email backport is incomplete in v0.16.0.
         'future.moves.dbm.ndbm',
