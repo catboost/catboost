@@ -2089,7 +2089,7 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* NormalizedGINI */
 
 THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateBinClassMetric(double border) {
-    return new TNormalizedGINIMetric(border);
+    return MakeHolder<TNormalizedGINIMetric>(border);
 }
 
 THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateMultiClassMetric(int positiveClass) {
@@ -2113,23 +2113,23 @@ TMetricHolder TNormalizedGINIMetric::Eval(
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
     const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
     Y_ASSERT(approxVec.size() == target.size());
-    const auto& weight = UseWeights ? weightIn : TVector<float>{};
 
-    TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
     TVector<double> targetCopy(target.begin() + begin, target.begin() + end);
 
     if (!IsMultiClass) {
-        for (ui32 i = 0; i < targetCopy.size(); ++i) {
-            targetCopy[i] = targetCopy[i] > Border;
+        for (ui32 target : targetCopy) {
+            target = target > Border;
         }
     }
 
     if (approx.ysize() > 1) {
-        int positiveClass = PositiveClass;
-        ForEach(targetCopy.begin(), targetCopy.end(), [positiveClass](double& x) {
-            x = (x == static_cast<double>(positiveClass));
-        });
+        for (ui32 target : targetCopy) {
+            target = (target == static_cast<double>(PositiveClass));
+        }
     }
+
+    TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
+    const auto& weight = UseWeights ? weightIn : TVector<float>{};
 
     TVector<NMetrics::TSample> samples;
     if (weight.empty()) {
@@ -2163,8 +2163,8 @@ void TNormalizedGINIMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 
 /* FairLoss */
 
-TFairLossMetric::TFairLossMetric(double c)
-        : c(c) {
+TFairLossMetric::TFairLossMetric(double smoothness)
+        : Smoothness(smoothness) {
 }
 
 TMetricHolder TFairLossMetric::EvalSingleThread(
@@ -2181,11 +2181,11 @@ TMetricHolder TFairLossMetric::EvalSingleThread(
     Y_ASSERT(approxVec.size() == target.size());
 
     TMetricHolder error(2);
-    for (int k = begin; k < end; ++k) {
-        float w = weight.empty() ? 1 : weight[k];
-        float x = Abs(approxVec[k] - target[k]) / c;
-        error.Stats[0] += Sqr(c) * (x - log(x + 1)) * w;
-        error.Stats[1] += w;
+    for (int idx = begin; idx < end; ++idx) {
+        float documentWeight = weight.empty() ? 1 : weight[idx];
+        float targetMismatch = Abs(approxVec[idx] - target[idx]) / Smoothness;
+        error.Stats[0] += Sqr(Smoothness) * (targetMismatch - log(targetMismatch + 1)) * documentWeight;
+        error.Stats[1] += documentWeight;
     }
     return error;
 }

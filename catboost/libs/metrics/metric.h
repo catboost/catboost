@@ -1104,7 +1104,7 @@ private:
 
 //FairLoss metric
 struct TFairLossMetric: public TAdditiveMetric<TFairLossMetric> {
-    explicit TFairLossMetric(double c = 2);
+    explicit TFairLossMetric(double smoothness = 2);
     TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
@@ -1117,7 +1117,7 @@ struct TFairLossMetric: public TAdditiveMetric<TFairLossMetric> {
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
-    double c;
+    double Smoothness;
 };
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
