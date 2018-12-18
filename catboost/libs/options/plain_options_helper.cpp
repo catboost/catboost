@@ -326,8 +326,9 @@ void NCatboostOptions::PlainJsonToOptions(
         }
 
         const TString message = TStringBuilder()
-            << "Unknown option {" << optionName << '}'
-            << " with value \"" << EscapeC(ToString(optionValue)) << '"';
+                //TODO(kirillovs): this cast fixes structured binding problem in msvc 14.12 compilator
+            << "Unknown option {" << static_cast<const TString&>(optionName) << '}'
+            << " with value \"" << EscapeC(optionValue.GetStringRobust()) << '"';
         ythrow TCatBoostException() << message;
     }
 
