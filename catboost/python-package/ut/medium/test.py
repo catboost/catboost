@@ -2655,6 +2655,18 @@ def test_cv_fold_count_alias(task_type):
     assert results_fold_count.equals(results_nfold)
 
 
+def test_predict_loss_function_alias(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    booster = train(params={'loss_function': 'MultiClassOneVsAll', 'num_trees': 5}, pool=pool)
+    shape_if_loss_function = booster.predict(test).shape
+
+    booster = train(params={'objective': 'MultiClassOneVsAll', 'num_trees': 5}, pool=pool)
+    shape_if_objective = booster.predict(test).shape
+
+    assert shape_if_loss_function == shape_if_objective
+
+
 # check different sizes as well as passing as int as well as str
 @pytest.mark.parametrize('used_ram_limit', ['1024', '2Gb'])
 def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):

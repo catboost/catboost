@@ -1263,6 +1263,8 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function_type = self.get_param('loss_function')
+        if loss_function_type is None:
+            loss_function_type = self.get_param('objective')
         # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
         if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
             return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
@@ -1327,6 +1329,8 @@ class CatBoost(_CatBoostBase):
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         loss_function = self.get_param('loss_function')
+        if loss_function is None:
+            loss_function = self.get_param('objective')
         while True:
             predictions = staged_predict_iterator.next()
             if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
