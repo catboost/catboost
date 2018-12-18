@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "all_arcadia", "Projects\all_arcadia.vcxproj", "{95B806C3-4642-B304-14C6-6F1A275A6733}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build-cuda", "Projects\build\cuda\build-cuda.vcxproj", "{2B3A11A1-3302-EA3C-4933-FD6C802962AE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build-platform-cuda", "Projects\build\platform\cuda\build-platform-cuda.vcxproj", "{18ED0C1C-3127-4315-3368-E63B97EFA8F1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "catboost", "Projects\catboost", "{7D165E40-4829-9340-07F5-5968418982EE}"
 EndProject
@@ -685,10 +685,10 @@ Global
 		{95B806C3-4642-B304-14C6-6F1A275A6733}.Debug|x64.Build.0 = Debug|x64
 		{95B806C3-4642-B304-14C6-6F1A275A6733}.Release|x64.ActiveCfg = Release|x64
 		{95B806C3-4642-B304-14C6-6F1A275A6733}.Release|x64.Build.0 = Release|x64
-		{2B3A11A1-3302-EA3C-4933-FD6C802962AE}.Debug|x64.ActiveCfg = Debug|x64
-		{2B3A11A1-3302-EA3C-4933-FD6C802962AE}.Debug|x64.Build.0 = Debug|x64
-		{2B3A11A1-3302-EA3C-4933-FD6C802962AE}.Release|x64.ActiveCfg = Release|x64
-		{2B3A11A1-3302-EA3C-4933-FD6C802962AE}.Release|x64.Build.0 = Release|x64
+		{18ED0C1C-3127-4315-3368-E63B97EFA8F1}.Debug|x64.ActiveCfg = Debug|x64
+		{18ED0C1C-3127-4315-3368-E63B97EFA8F1}.Debug|x64.Build.0 = Debug|x64
+		{18ED0C1C-3127-4315-3368-E63B97EFA8F1}.Release|x64.ActiveCfg = Release|x64
+		{18ED0C1C-3127-4315-3368-E63B97EFA8F1}.Release|x64.Build.0 = Release|x64
 		{A865CAE7-8B3F-B9B7-2CEA-DB5FE65BBE46}.Debug|x64.ActiveCfg = Debug|x64
 		{A865CAE7-8B3F-B9B7-2CEA-DB5FE65BBE46}.Debug|x64.Build.0 = Debug|x64
 		{A865CAE7-8B3F-B9B7-2CEA-DB5FE65BBE46}.Release|x64.ActiveCfg = Release|x64
