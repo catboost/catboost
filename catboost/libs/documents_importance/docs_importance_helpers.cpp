@@ -2,6 +2,8 @@
 #include "ders_helpers.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -9,8 +11,6 @@
 #include <util/generic/cast.h>
 #include <util/generic/utility.h>
 #include <util/generic/ymath.h>
-#include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/logging/profile_info.h>
 
 #include <numeric>
 

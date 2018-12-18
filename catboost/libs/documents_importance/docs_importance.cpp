@@ -5,6 +5,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/cast.h>
@@ -13,7 +14,6 @@
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
 #include <util/string/iterator.h>
-#include <catboost/libs/logging/logging.h>
 
 #include <functional>
 #include <numeric>
