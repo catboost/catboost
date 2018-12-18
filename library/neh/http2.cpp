@@ -262,21 +262,12 @@ namespace {
                 }
             }
 
-            void NotifyResponse(const TString& resp, const THttpHeaders& headers) {
-#ifdef DEBUG_STAT
-                ++TDebugStat::RequestSuccessed;
-#endif
-                TSimpleHandle::NotifyResponse(resp, headers);
-
-                ReleaseRequest();
-            }
-
-            void NotifyError(TErrorRef error, const TString* data = nullptr) {
+            void NotifyError(TErrorRef error, const THttpParser* rsp = nullptr) {
 #ifdef DEBUG_STAT
                 ++TDebugStat::RequestFailed;
 #endif
-                if (data) {
-                    TSimpleHandle::NotifyError(error, *data);
+                if (rsp) {
+                    TSimpleHandle::NotifyError(error, rsp->DecodedContent(), rsp->FirstLine(), rsp->Headers());
                 } else {
                     TSimpleHandle::NotifyError(error);
                 }
@@ -360,10 +351,10 @@ namespace {
         void Cancel() noexcept;
 
     private:
-        void NotifyResponse(const TString& resp, const THttpHeaders& headers) {
+        void NotifyResponse(const TString& resp, const TString& firstLine, const THttpHeaders& headers) {
             THandleRef h(ReleaseHandler());
             if (!!h) {
-                h->NotifyResponse(resp, headers);
+                h->NotifyResponse(resp, firstLine, headers);
             }
         }
 
@@ -374,10 +365,10 @@ namespace {
             NotifyError(new TError(errorText, errorType, errorCode, systemErrorCode));
         }
 
-        void NotifyError(TErrorRef error, const TString* data = nullptr) {
+        void NotifyError(TErrorRef error, const THttpParser* rsp = nullptr) {
             THandleRef h(ReleaseHandler());
             if (!!h) {
-                h->NotifyError(error, data);
+                h->NotifyError(error, rsp);
             }
         }
 
@@ -1136,7 +1127,7 @@ namespace {
         DBGOUT("THttpRequest::OnResponse()");
         ReleaseConn();
         if (Y_LIKELY(rsp->RetCode() >= 200 && rsp->RetCode() < (!THttp2Options::RedirectionNotError ? 300 : 400))) {
-            NotifyResponse(rsp->DecodedContent(), rsp->Headers());
+            NotifyResponse(rsp->DecodedContent(), rsp->FirstLine(), rsp->Headers());
         } else {
             TString message;
 
@@ -1158,7 +1149,7 @@ namespace {
                 message = err.Str();
             }
 
-            NotifyError(new TError(message, TError::ProtocolSpecific, rsp->RetCode()), &rsp->DecodedContent());
+            NotifyError(new TError(message, TError::ProtocolSpecific, rsp->RetCode()), rsp.Get());
         }
     }
 
