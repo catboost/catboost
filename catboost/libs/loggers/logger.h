@@ -461,9 +461,9 @@ private:
 
 void LogAverages(const TProfileResults& profileResults);
 
-class TFstrLogger {
+class TImportanceLogger {
 public:
-    TFstrLogger(
+    TImportanceLogger(
         size_t iterations,
         const TString& processedObjectToken,
         const TString& introductionLog,

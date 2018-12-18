@@ -508,7 +508,7 @@ static TShapPreparedTrees PrepareTrees(
     const size_t treeCount = model.GetTreeCount();
     const size_t treeBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
-    TFstrLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
+    TImportanceLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
 
     // use only if model.ObliviousTrees.LeafWeights is empty
     TVector<TVector<double>> leafWeights;
@@ -575,7 +575,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
-    TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
+    TImportanceLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
 
     TVector<TVector<TVector<double>>> shapValues;
     shapValues.reserve(documentCount);
@@ -654,7 +654,7 @@ void CalcAndOutputShapValues(
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
-    TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
+    TImportanceLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
 
     TProfileInfo processDocumentsProfile(documentCount);
 

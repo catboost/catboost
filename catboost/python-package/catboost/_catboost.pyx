@@ -816,7 +816,8 @@ cdef extern from "catboost/libs/documents_importance/docs_importance.h":
         int topSize,
         const TString& updateMethod,
         const TString& importanceValuesSign,
-        int threadCount
+        int threadCount,
+        int logPeriod
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/helpers/wx_test.h":
@@ -2461,7 +2462,7 @@ cdef class _CatBoost:
                 )
             return [[value for value in fstr[i]] for i in range(fstr.size())], native_feature_ids
 
-    cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count):
+    cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count, int verbose):
         ostr_type = to_binary_str(ostr_type)
         update_method = to_binary_str(update_method)
         importance_values_sign = to_binary_str(importance_values_sign)
@@ -2474,7 +2475,8 @@ cdef class _CatBoost:
             top_size,
             TString(<const char*>update_method),
             TString(<const char*>importance_values_sign),
-            thread_count
+            thread_count,
+            verbose
         )
         indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
         scores = [[value for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]

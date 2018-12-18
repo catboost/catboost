@@ -884,8 +884,8 @@ class _CatBoostBase(object):
         """returns (fstr_values, feature_ids)."""
         return self._object._calc_fstr(fstr_type.name, pool, thread_count, verbose)
 
-    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
-        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
+        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
 
     def _base_shrink(self, ntree_start, ntree_end):
         self._object._base_shrink(ntree_start, ntree_end)
@@ -1503,7 +1503,9 @@ class CatBoost(_CatBoostBase):
 
         verbose : bool or int
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
-            If positive integer, then it stands for log write period.
+            If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
+            and remaining time.
+
 
         Returns
         -------
@@ -1553,7 +1555,7 @@ class CatBoost(_CatBoostBase):
         elif fstr_type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
+    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1593,11 +1595,25 @@ class CatBoost(_CatBoostBase):
             Number of threads.
             If -1, then the number of threads is set to the number of cores.
 
+        verbose : bool or int
+            If False, then evaluation is not logged. If True, then each possible iteration is logged.
+            If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
+            and remaining time.
+
         Returns
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
-        return self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+
+        if not isinstance(verbose, bool) and not isinstance(verbose, int):
+            raise CatboostError('verbose should be bool or int.')
+        verbose = int(verbose)
+        if verbose < 0:
+            raise CatboostError('verbose should be non-negative.')
+
+        with log_fixup():
+            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
+        return result
 
     def shrink(self, ntree_end, ntree_start=0):
         """
