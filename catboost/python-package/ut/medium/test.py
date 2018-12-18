@@ -2600,7 +2600,6 @@ def test_slice_pool():
         pairs=[(0, 1), (0, 2), (1, 2), (3, 4)])
 
     for bad_indices in [[0], [2], [0, 0, 0]]:
-        print bad_indices
         with pytest.raises(CatboostError):
             pool.slice(bad_indices)
     rindexes = [

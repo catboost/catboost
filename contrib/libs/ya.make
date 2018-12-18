@@ -28,9 +28,6 @@ RECURSE(
     openssl
     openssl/apps
     openssl/dynamic
-    platform
-    platform/python
-    platform/python/ldflags
     protobuf
     protobuf/java
     protobuf/python

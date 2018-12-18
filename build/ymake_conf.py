@@ -1556,13 +1556,13 @@ class Linker(object):
 
                     when ($NEED_PLATFORM_PEERDIRS == "yes") {
                         when ($_LINKER_ID == "bfd") {
-                            PEERDIR+=contrib/libs/platform/tools/linkers/bfd
+                            PEERDIR+=build/platform/bfd
                         }
                         when ($_LINKER_ID == "gold") {
-                            PEERDIR+=contrib/libs/platform/tools/linkers/gold
+                            PEERDIR+=build/platform/gold
                         }
                         when ($_LINKER_ID == "lld") {
-                            PEERDIR+=contrib/libs/platform/tools/linkers/lld
+                            PEERDIR+=build/platform/lld
                         }
                     }
                 }''' % {'default_linker': self.type})
@@ -1844,7 +1844,7 @@ class MSVCToolchain(Toolchain, MSVC):
         if self.tc.from_arcadia and not self.tc.ide_msvs:
             self.platform_projects.append('build/platform/msvc')
             if tc.under_wine:
-                self.platform_projects.append('contrib/libs/platform/tools/wine')
+                self.platform_projects.append('build/platform/wine')
 
     def print_toolchain(self):
         super(MSVCToolchain, self).print_toolchain()
@@ -2410,7 +2410,7 @@ class Cuda(object):
         self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
         self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self.auto_cuda_arcadia_includes, convert=to_bool)
 
-        self.peerdirs = ['build/cuda']
+        self.peerdirs = ['build/platform/cuda']
 
         self.cuda_version_list = map(int, self.cuda_version.value.split('.')) if self.cuda_version.value else None
 

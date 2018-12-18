@@ -12,7 +12,7 @@ SRCS(
 )
 
 PEERDIR(
-    build/cuda
+    build/platform/cuda
     catboost/cuda/cuda_lib
     catboost/libs/ctr_description
     catboost/cuda/cuda_util
