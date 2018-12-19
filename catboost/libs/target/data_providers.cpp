@@ -570,7 +570,7 @@ namespace NCB {
 
 
         if (!rawData.GetWeights().IsTrivial() && isAnyOfMetrics(UsesPairsForCalculation)) {
-            CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights.";
+            CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
         }
 
 
