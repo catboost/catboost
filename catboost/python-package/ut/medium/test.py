@@ -7,7 +7,6 @@ import re
 import subprocess
 import sys
 import tempfile
-import time
 
 from catboost import (
     CatBoost,
@@ -134,14 +133,17 @@ def _count_lines(afile):
     return num_lines
 
 
-def _generate_nontrivial_binary_target(num):
+def _generate_nontrivial_binary_target(num, seed=20181219, prng=None):
     '''
     Generate binary vector with non zero variance
     :param num:
     :return:
     '''
+    if prng is None:
+        prng = np.random.RandomState(seed=seed)
+
     def gen():
-        return np.random.randint(0, 2, size=num)
+        return prng.randint(0, 2, size=num)
     if num <= 1:
         return gen()
 
@@ -151,15 +153,18 @@ def _generate_nontrivial_binary_target(num):
     return y
 
 
-def _generate_random_target(num):
-    return np.random.random((num,))
+def _generate_random_target(num, seed=20181219, prng=None):
+    if prng is None:
+        prng = np.random.RandomState(seed=seed)
+    return prng.random_sample((num,))
 
 
-def set_random_weight(pool):
-    np.random.seed(pool.num_row())
-    pool.set_weight(np.random.random(pool.num_row()))
+def set_random_weight(pool, seed=20181219, prng=None):
+    if prng is None:
+        prng = np.random.RandomState(seed=seed)
+    pool.set_weight(prng.random_sample(pool.num_row()))
     if pool.num_pairs() > 0:
-        pool.set_pairs_weight(np.random.random(pool.num_pairs()))
+        pool.set_pairs_weight(prng.random_sample(pool.num_pairs()))
 
 
 def verify_finite(result):
@@ -239,8 +244,9 @@ def test_pool_cat_features():
 
 def test_load_generated():
     pool_size = (100, 10)
-    data = np.round(np.random.normal(size=pool_size), decimals=3)
-    label = _generate_nontrivial_binary_target(pool_size[0])
+    prng = np.random.RandomState(seed=20181219)
+    data = np.round(prng.normal(size=pool_size), decimals=3)
+    label = _generate_nontrivial_binary_target(pool_size[0], prng=prng)
     pool = Pool(data, label)
     assert _check_data(pool.get_features(), data)
     assert _check_data(pool.get_label(), label)
@@ -248,8 +254,9 @@ def test_load_generated():
 
 def test_load_dumps():
     pool_size = (100, 10)
-    data = np.random.randint(10, size=pool_size)
-    labels = _generate_nontrivial_binary_target(pool_size[0])
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.randint(10, size=pool_size)
+    labels = _generate_nontrivial_binary_target(pool_size[0], prng=prng)
     pool1 = Pool(data, labels)
     lines = []
     for i in range(len(data)):
@@ -867,8 +874,8 @@ def test_multiclass(task_type):
 
 
 def test_multiclass_classes_count_missed_classes(task_type):
-    np.random.seed(0)
-    pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([1, 3], size=100))
+    prng = np.random.RandomState(seed=0)
+    pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice([1, 3], size=100))
     classifier = CatBoostClassifier(classes_count=4, iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -890,9 +897,9 @@ def test_multiclass_custom_class_labels(label_type, task_type):
         train_labels = [1, 2]
     elif label_type == 'string':
         train_labels = ['Class1', 'Class2']
-    np.random.seed(0)
-    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(train_labels, size=100))
-    test_pool = Pool(np.random.random(size=(50, 10)))
+    prng = np.random.RandomState(seed=0)
+    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice(train_labels, size=100))
+    test_pool = Pool(prng.random_sample(size=(50, 10)))
     classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(train_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
@@ -914,13 +921,13 @@ def test_multiclass_custom_class_labels_from_files(task_type):
     cd_path = test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(25, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(25, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     train_pool = Pool(train_path, column_description=cd_path)
     test_pool = Pool(test_path, column_description=cd_path)
@@ -942,9 +949,9 @@ def test_multiclass_custom_class_labels_from_files(task_type):
 def test_class_names(task_type):
     class_names = ['Small', 'Medium', 'Large']
 
-    np.random.seed(0)
-    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice(class_names, size=100))
-    test_pool = Pool(np.random.random(size=(25, 10)))
+    prng = np.random.RandomState(seed=0)
+    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice(class_names, size=100))
+    test_pool = Pool(prng.random_sample(size=(25, 10)))
 
     classifier = CatBoostClassifier(
         iterations=2,
@@ -971,8 +978,8 @@ def test_class_names(task_type):
 def test_inconsistent_labels_and_class_names():
     class_names = ['Small', 'Medium', 'Large']
 
-    np.random.seed(0)
-    train_pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([0, 1, 2], size=100))
+    prng = np.random.RandomState(seed=0)
+    train_pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice([0, 1, 2], size=100))
 
     classifier = CatBoostClassifier(
         iterations=2,
@@ -1250,8 +1257,9 @@ def test_predict_without_fit(task_type):
 
 
 def test_real_numbers_cat_features():
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     with pytest.raises(CatboostError):
         Pool(data, label, [1, 2])
 
@@ -1264,8 +1272,9 @@ def test_wrong_ctr_for_classification(task_type):
 
 
 def test_wrong_feature_count(task_type):
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoostClassifier(task_type=task_type, devices='0')
     model.fit(data, label)
     with pytest.raises(CatboostError):
@@ -1278,8 +1287,9 @@ def test_wrong_params_classifier():
 
 
 def test_wrong_params_base():
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoost({'wrong_param': 1})
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1291,32 +1301,36 @@ def test_wrong_params_regressor():
 
 
 def test_wrong_kwargs_base():
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoost({'kwargs': {'wrong_param': 1}})
     with pytest.raises(CatboostError):
         model.fit(data, label)
 
 
 def test_duplicate_params_base():
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoost({'iterations': 100, 'n_estimators': 50})
     with pytest.raises(CatboostError):
         model.fit(data, label)
 
 
 def test_duplicate_params_classifier():
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoostClassifier(depth=3, max_depth=4, random_seed=42, random_state=12)
     with pytest.raises(CatboostError):
         model.fit(data, label)
 
 
 def test_duplicate_params_regressor():
-    data = np.random.rand(100, 10)
-    label = _generate_nontrivial_binary_target(100)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.rand(100, 10)
+    label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1918,9 +1932,11 @@ def test_shap_complex_ctr(task_type):
     return local_canonical_file(fimp_txt_path)
 
 
-def random_xy(num_rows, num_cols_x):
-    x = np.random.randint(100, 104, size=(num_rows, num_cols_x))  # three cat values
-    y = _generate_nontrivial_binary_target(num_rows)
+def random_xy(num_rows, num_cols_x, seed=20181219, prng=None):
+    if prng is None:
+        prng = np.random.RandomState(seed=20181219)
+    x = prng.randint(100, 104, size=(num_rows, num_cols_x))  # three cat values
+    y = _generate_nontrivial_binary_target(num_rows, prng=prng)
     return x, y
 
 
@@ -1938,11 +1954,12 @@ def test_multiple_eval_sets_no_empty():
         for feature_no in sorted(cat_features):
             cd.write('{}\tCateg\n'.format(1 + feature_no))
 
-    x, y = random_xy(6, 4)
+    prng = np.random.RandomState(seed=20181219)
+    x, y = random_xy(6, 4, prng=prng)
     train_pool = Pool(x, y, cat_features=cat_features)
 
-    x0, y0 = random_xy(0, 4)  # empty tuple eval set
-    x1, y1 = random_xy(3, 4)
+    x0, y0 = random_xy(0, 4, prng=prng)  # empty tuple eval set
+    x1, y1 = random_xy(3, 4, prng=prng)
     test0_file = save_and_give_path(y0, x0, 'test0.txt')  # empty file eval set
 
     with pytest.raises(CatboostError, message="Do not create Pool for empty data"):
@@ -1965,8 +1982,8 @@ def test_multiple_eval_sets_no_empty():
 
 def test_multiple_eval_sets():
     # Know the seed to report it if assertion below fails
-    seed = int(1000 * time.time()) % 0xffffffff
-    np.random.seed(seed)
+    seed = 20181219
+    prng = np.random.RandomState(seed=seed)
 
     def model_fit_with(train_set, test_sets, cd_file):
         model = CatBoost({'use_best_model': False, 'loss_function': 'RMSE', 'iterations': 12})
@@ -1981,11 +1998,11 @@ def test_multiple_eval_sets():
         for feature_no in sorted(cat_features):
             cd.write('{}\tCateg\n'.format(1 + feature_no))
 
-    x, y = random_xy(12, num_features)
+    x, y = random_xy(12, num_features, prng=prng)
     train_pool = Pool(x, y, cat_features=cat_features)
 
-    x1, y1 = random_xy(13, num_features)
-    x2, y2 = random_xy(14, num_features)
+    x1, y1 = random_xy(13, num_features, prng=prng)
+    x2, y2 = random_xy(14, num_features, prng=prng)
     y2 = np.zeros_like(y2)
 
     test1_file = save_and_give_path(y1, x1, 'test1.txt')
@@ -1997,7 +2014,7 @@ def test_multiple_eval_sets():
 
     # The three models above shall predict identically on a test set
     # (make sure they are trained with 'use_best_model': False)
-    xt, yt = random_xy(7, num_features)
+    xt, yt = random_xy(7, num_features, prng=prng)
     test_pool = Pool(xt, yt, cat_features=cat_features)
 
     pred0 = model0.predict(test_pool)
@@ -2108,7 +2125,8 @@ def test_serialization_of_numpy_objects_internal():
 
 
 def test_serialization_of_numpy_objects_save_model():
-    train_pool = Pool(*random_xy(10, 5))
+    prng = np.random.RandomState(seed=20181219)
+    train_pool = Pool(*random_xy(10, 5, prng=prng))
     model = CatBoostClassifier(
         iterations=np.int64(2),
         random_seed=np.int32(0),
@@ -2194,7 +2212,8 @@ class TestInvalidCustomLossAndMetric(object):
     def test_loss_good_metric_none(self):
         with pytest.raises(CatboostError, match='metric is not defined|No metrics specified'):
             model = CatBoost({"loss_function": self.GoodCustomLoss(), "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
     def test_loss_bad_metric_logloss(self):
@@ -2202,7 +2221,8 @@ class TestInvalidCustomLossAndMetric(object):
             return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='BadCustomLoss calc_ders_range'):
             model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "Logloss", "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
     def test_loss_bad_metric_multiclass(self):
@@ -2210,7 +2230,8 @@ class TestInvalidCustomLossAndMetric(object):
             return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='BadCustomLoss calc_ders_multi'):
             model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "MultiClass", "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
     def test_loss_incomplete_metric_logloss(self):
@@ -2218,7 +2239,8 @@ class TestInvalidCustomLossAndMetric(object):
             return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='has no.*calc_ders_range'):
             model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "Logloss", "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
     def test_loss_incomplete_metric_multiclass(self):
@@ -2226,24 +2248,28 @@ class TestInvalidCustomLossAndMetric(object):
             return pytest.xfail(reason='Need fixing')
         with pytest.raises(Exception, match='has no.*calc_ders_multi'):
             model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "MultiClass", "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
     def test_custom_metric_object(self):
         with pytest.raises(CatboostError, match='custom_metric.*must be string'):
             model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
     def test_loss_none_metric_good(self):
         model = CatBoost({"eval_metric": self.GoodCustomMetric(), "iterations": 2})
-        pool = Pool(*random_xy(10, 5))
+        prng = np.random.RandomState(seed=20181219)
+        pool = Pool(*random_xy(10, 5, prng=prng))
         model.fit(pool)
 
     def test_loss_none_metric_incomplete(self):
         with pytest.raises(CatboostError, match='evaluate.*returned incorrect value'):
             model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2})
-            pool = Pool(*random_xy(10, 5))
+            prng = np.random.RandomState(seed=20181219)
+            pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
 
 
@@ -2294,8 +2320,9 @@ def test_set_params_with_synonyms(task_type):
     params_after_setting = model1.get_params()
     assert(params == params_after_setting)
 
-    data = np.random.randint(10, size=(20, 20))
-    label = _generate_nontrivial_binary_target(20)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.randint(10, size=(20, 20))
+    label = _generate_nontrivial_binary_target(20, prng=prng)
     train_pool = Pool(data, label, cat_features=[1, 2])
     model1.fit(train_pool)
     model_path = test_output_path('model.cb')
@@ -2443,8 +2470,9 @@ def test_shap_verbose():
 
 
 def test_eval_set_with_nans(task_type):
-    features = np.random.random((10, 200))
-    labels = np.random.random((10,))
+    prng = np.random.RandomState(seed=20181219)
+    features = prng.random_sample((10, 200))
+    labels = prng.random_sample((10,))
     features_with_nans = features.copy()
     np.putmask(features_with_nans, features_with_nans < 0.5, np.nan)
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
@@ -2541,7 +2569,8 @@ def test_pairs_generation_generated(task_type):
     df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
     test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(np.float32)
 
-    train_group_id = np.sort(np.random.randint(len(train_target) // 3, size=len(train_target)) + 1)
+    prng = np.random.RandomState(seed=20181219)
+    train_group_id = np.sort(prng.randint(len(train_target) // 3, size=len(train_target)) + 1)
     pairs = []
     for idx1 in range(len(train_group_id)):
         idx2 = idx1 + 1
@@ -3139,17 +3168,19 @@ class TestUseWeights(object):
         train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE, TARGET_IDX)
         test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE, TARGET_IDX)
 
+        prng = np.random.RandomState(seed=20181219)
         train_pool = Pool(
             data=train_features_df,
-            label=_generate_random_target(train_features_df.shape[0]),
+            label=_generate_random_target(train_features_df.shape[0], prng=prng),
             cat_features=cat_features
         )
         test_pool = Pool(
             data=test_features_df,
-            label=_generate_random_target(test_features_df.shape[0]),
+            label=_generate_random_target(test_features_df.shape[0], prng=prng),
             cat_features=cat_features
         )
-        list(map(set_random_weight, (train_pool, test_pool)))
+        set_random_weight(train_pool, prng=prng)
+        set_random_weight(test_pool, prng=prng)
 
         cb = CatBoostRegressor(loss_function='RMSE', iterations=3, task_type=task_type, devices='0')
         cb.fit(train_pool)
@@ -3160,17 +3191,19 @@ class TestUseWeights(object):
         train_features_df, cat_features = load_pool_features_as_df(TRAIN_FILE, CD_FILE, TARGET_IDX)
         test_features_df, _ = load_pool_features_as_df(TEST_FILE, CD_FILE, TARGET_IDX)
 
+        prng = np.random.RandomState(seed=20181219)
         train_pool = Pool(
             data=train_features_df,
-            label=_generate_nontrivial_binary_target(train_features_df.shape[0]),
+            label=_generate_nontrivial_binary_target(train_features_df.shape[0], prng=prng),
             cat_features=cat_features
         )
         test_pool = Pool(
             data=test_features_df,
-            label=_generate_nontrivial_binary_target(test_features_df.shape[0]),
+            label=_generate_nontrivial_binary_target(test_features_df.shape[0], prng=prng),
             cat_features=cat_features
         )
-        list(map(set_random_weight, (train_pool, test_pool)))
+        set_random_weight(train_pool, prng=prng)
+        set_random_weight(test_pool, prng=prng)
 
         cb = CatBoostClassifier(loss_function='Logloss', iterations=3, task_type=task_type, devices='0')
         cb.fit(train_pool)
@@ -3180,7 +3213,9 @@ class TestUseWeights(object):
     def a_multiclass_learner(self, task_type):
         train_pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
         test_pool = Pool(CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
-        list(map(set_random_weight, (train_pool, test_pool)))
+        prng = np.random.RandomState(seed=20181219)
+        set_random_weight(train_pool, prng=prng)
+        set_random_weight(test_pool, prng=prng)
         cb = CatBoostClassifier(loss_function='MultiClass', iterations=3, use_best_model=False, task_type=task_type, devices='0')
         cb.fit(train_pool)
         return (cb, test_pool)
@@ -3188,7 +3223,9 @@ class TestUseWeights(object):
     def a_ranking_learner(self, task_type, metric):
         train_pool = Pool(QUERYWISE_TRAIN_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
         test_pool = Pool(QUERYWISE_TEST_FILE, pairs=QUERYWISE_TEST_PAIRS_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
-        list(map(set_random_weight, (train_pool, test_pool)))
+        prng = np.random.RandomState(seed=20181219)
+        set_random_weight(train_pool, prng=prng)
+        set_random_weight(test_pool, prng=prng)
 
         if metric == 'QueryRMSE':
             loss_function = 'QueryRMSE'
@@ -3244,8 +3281,9 @@ class TestUseWeights(object):
 
 
 def test_set_cat_features_in_init():
-    data = np.random.randint(10, size=(20, 20))
-    label = _generate_nontrivial_binary_target(20)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.randint(10, size=(20, 20))
+    label = _generate_nontrivial_binary_target(20, prng=prng)
     train_pool = Pool(data, label, cat_features=[1, 2])
     test_pool = Pool(data, label, cat_features=[1, 2])
 
@@ -3328,8 +3366,9 @@ def test_set_cat_features_in_init():
 
 
 def test_deprecated_behavoir():
-    data = np.random.randint(10, size=(20, 20))
-    label = _generate_nontrivial_binary_target(20)
+    prng = np.random.RandomState(seed=20181219)
+    data = prng.randint(10, size=(20, 20))
+    label = _generate_nontrivial_binary_target(20, prng=prng)
     train_pool = Pool(data, label, cat_features=[1, 2])
 
     params = {

@@ -83,8 +83,10 @@ def permute_dataset_columns(test_pool_path, cd_path, seed=123):
     return permuted_test_path, permuted_cd_path
 
 
-def generate_random_labeled_set(nrows, nvals, labels):
-    label = np.random.choice(labels, [nrows, 1])
-    feature = np.random.random([nrows, nvals])
+def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
+    if prng is None:
+        prng = np.random.RandomState(seed=seed)
+    label = prng.choice(labels, [nrows, 1])
+    feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
 
