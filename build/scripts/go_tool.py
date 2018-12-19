@@ -316,5 +316,5 @@ if __name__ == '__main__':
         print >>sys.stderr, e.output
         exit_code = e.returncode
     except Exception as e:
-        print >>sys.stderr, "Unhadled excpetion [{}]...".format(str(e))
+        print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
     sys.exit(exit_code)
