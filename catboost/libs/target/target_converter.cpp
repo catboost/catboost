@@ -7,6 +7,7 @@
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
+#include <util/string/escape.h>
 
 
 namespace NCB {
@@ -46,7 +47,7 @@ namespace NCB {
                 float floatLabel;
                 CB_ENSURE(
                     TryFromString(label, floatLabel),
-                    "Target value \"" << label << "\" cannot be parsed as float"
+                    "Target value \"" << EscapeC(label) << "\" cannot be parsed as float"
                 );
                 if (IsMultiClassTarget) {
                     UniqueLabels.insert(floatLabel);
@@ -58,7 +59,7 @@ namespace NCB {
                 if (it != LabelToClass.end()) {
                     return static_cast<float>(it->second);
                 }
-                ythrow TCatBoostException() << "Unknown class name: " << label;
+                ythrow TCatBoostException() << "Unknown class name: \"" << EscapeC(label) << '"';
             }
             default: {
                 ythrow TCatBoostException() <<
