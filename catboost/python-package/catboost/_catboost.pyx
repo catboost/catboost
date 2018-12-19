@@ -33,8 +33,8 @@ from util.generic.maybe cimport TMaybe
 from util.generic.ptr cimport THolder
 from util.generic.string cimport TString
 from util.generic.vector cimport TVector
-from util.system.types cimport ui8, ui32, ui64
-from util.string.cast cimport StrToD, TryFromString
+from util.system.types cimport ui8, ui32, ui64, i64
+from util.string.cast cimport StrToD, TryFromString, ToString
 
 
 class _NumpyAwareEncoder(JSONEncoder):
@@ -832,15 +832,15 @@ cdef float _FLOAT_NAN = float('nan')
 cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB":
     int IsNanValue(const TStringBuf& s)
 
-cdef inline float _FloatOrNanFromString(char* s) except *:
+cdef inline float _FloatOrNanFromString(const TString& s) except *:
     cdef char* stop = NULL
-    cdef double parsed = StrToD(s, &stop)
+    cdef double parsed = StrToD(s.data(), &stop)
     cdef float res
-    if len(s) == 0:
+    if s.empty():
         res = _FLOAT_NAN
-    elif stop == s + len(s):
-        res = float(parsed)
-    elif IsNanValue(s):
+    elif stop == s.data() + s.size():
+        res = parsed
+    elif IsNanValue(<TStringBuf>s):
         res = _FLOAT_NAN
     else:
         raise TypeError("Cannot convert '{}' to float".format(str(s)))
@@ -895,7 +895,7 @@ cdef inline float _FloatOrNan(object obj) except *:
     if obj is None:
         res = _FLOAT_NAN
     elif isinstance(obj, string_types + (np.string_,)):
-        res = _FloatOrNanFromString(to_binary_str(obj))
+        res = _FloatOrNanFromString(to_arcadia_string(obj))
     else:
         raise TypeError("Cannot convert obj {} to float".format(str(obj)))
     return res
@@ -1058,7 +1058,7 @@ cdef class PyPredictionType:
 
 cdef EModelType string_to_model_type(model_type_str) except *:
     cdef EModelType model_type
-    if not TryFromString[EModelType](to_binary_str(model_type_str), model_type):
+    if not TryFromString[EModelType](to_arcadia_string(model_type_str), model_type):
         raise CatboostError("Unknown model type {}.".format(model_type_str))
     return model_type
 
@@ -1107,23 +1107,45 @@ cdef class _PreprocessParams:
         if params_to_json.get("eval_metric") == "Custom":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
 
-        dumps_params = to_binary_str(dumps_params)
-        self.tree = ReadTJsonValue(TString(<const char*>dumps_params))
+        self.tree = ReadTJsonValue(to_arcadia_string(dumps_params))
 
-cdef to_binary_str(string):
-    if PY3 and hasattr(string, 'encode'):
-        return string.encode()
-    return string
+
+cdef TString to_arcadia_string(s):
+    cdef const unsigned char[:] bytes_s
+    cdef type s_type = type(s)
+    if len(s) == 0:
+        return TString()
+    if s_type is unicode:
+        # Fast path for most common case(s).
+        tmp = (<unicode>s).encode('utf8')
+        return TString(<const char*>tmp, len(tmp))
+    elif s_type is bytes:
+        return TString(<const char*>s, len(s))
+
+    if PY3 and hasattr(s, 'encode'):
+        # encode to the specific encoding used inside of the module
+        bytes_s = s.encode()
+    else:
+        bytes_s = s
+    return TString(<const char*>&bytes_s[0], len(bytes_s))
 
 cdef to_native_str(binary):
     if PY3 and hasattr(binary, 'decode'):
         return binary.decode()
     return binary
 
+cdef all_string_types_plus_bytes = string_types + (bytes,)
 
-cdef inline object get_id_object_bytes_string_representation(
+cdef _npstring_ = np.string_
+cdef _npint32 = np.int32
+cdef _npint64 = np.int64
+cdef _npfloat32 = np.float32
+cdef _npfloat64 = np.float64
+
+
+cdef inline get_id_object_bytes_string_representation(
     object id_object,
-    TStringBuf* bytes_string_buf_representation
+    TString* bytes_string_buf_representation
 ):
     """
         returns python object, holding bytes_string_buf_representation memory,
@@ -1132,18 +1154,29 @@ cdef inline object get_id_object_bytes_string_representation(
         Internal CatboostError is typically catched up the calling stack to provide more detailed error
         description.
     """
-    if not isinstance(id_object, string_types + (bytes,)):
-        if isnan(id_object) or int(id_object) != id_object:
-            raise CatboostError("bad object for id: {}".format(id_object))
-        id_object = str(int(id_object))
-    bytes_string_representation = to_binary_str(id_object)
+    cdef double double_val
+    cdef type obj_type = type(id_object)
 
-    # for some reason Cython does not allow assignment to dereferenced pointer, so use this trick instead
-    bytes_string_buf_representation[0] = TStringBuf(
-        <char*>bytes_string_representation,
-        len(bytes_string_representation)
-    )
-    return bytes_string_representation
+    # For some reason Cython does not allow assignment to dereferenced pointer, so we are using ptr[0] trick
+    # Here we have shortcuts for most of base types
+    if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npstring_:
+        bytes_string_buf_representation[0] = to_arcadia_string(id_object)
+    elif obj_type is int or obj_type is long or obj_type is _npint32 or obj_type is _npint64:
+        bytes_string_buf_representation[0] = ToString[i64](<i64>id_object)
+    elif obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64:
+        double_val = <double>id_object
+        if isnan(double_val) or <i64>double_val != double_val:
+            raise CatboostError("bad object for id: {}".format(id_object))
+        bytes_string_buf_representation[0] = ToString[i64](<i64>double_val)
+    else:
+        # this part is really heavy as it uses lot's of python internal magic, so put it down
+        if isinstance(id_object, all_string_types_plus_bytes):
+            # for some reason Cython does not allow assignment to dereferenced pointer, so use this trick instead
+            bytes_string_buf_representation[0] = to_arcadia_string(id_object)
+        else:
+            if isnan(id_object) or int(id_object) != id_object:
+                raise CatboostError("bad object for id: {}".format(id_object))
+            bytes_string_buf_representation[0] = ToString[int](int(id_object))
 
 
 cdef UpdateThreadCount(thread_count):
@@ -1291,8 +1324,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
 
     if feature_names is not None:
         for feature_name in feature_names:
-            feature_name = to_binary_str(str(feature_name))
-            feature_names_vector.push_back(feature_name)
+            feature_names_vector.push_back(to_arcadia_string(str(feature_name)))
 
     return new TFeaturesLayout(
         <ui32>feature_count,
@@ -1332,7 +1364,6 @@ cdef _set_features_order_data_np(
     cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
     cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
 
-    cdef bytes factor_bytes
     cdef TString factor_string
     cdef TVector[TString] cat_factor_data
     cdef ui32 doc_idx
@@ -1358,8 +1389,7 @@ cdef _set_features_order_data_np(
     for cat_feature_idx in range(cat_feature_count):
         cat_factor_data.clear()
         for doc_idx in range(doc_count):
-            factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
-            factor_string = TString(<char*>factor_bytes, len(factor_bytes))
+            factor_string = to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
             cat_factor_data.push_back(factor_string)
         builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
         dst_feature_idx += 1
@@ -1401,10 +1431,10 @@ cdef get_cat_factor_bytes_representation(
     ui32 doc_idx, 
     ui32 feature_idx,
     object factor,
-    TStringBuf* factor_strbuf
+    TString* factor_strbuf
 ):
     try:
-        return get_id_object_bytes_string_representation(factor, factor_strbuf)
+        get_id_object_bytes_string_representation(factor, factor_strbuf)
     except CatboostError:
         raise CatboostError(
             'Invalid type for cat_feature[{},{}]={} :'
@@ -1422,8 +1452,6 @@ cdef object _set_features_order_data_pd_data_frame(
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
     cdef ui32 doc_count = data_frame.shape[0]
 
-    cdef bytes factor_bytes
-    cdef TStringBuf factor_strbuf
     cdef TString factor_string
 
     # two pointers are needed as a workaround for Cython assignment of derived types restrictions
@@ -1438,19 +1466,17 @@ cdef object _set_features_order_data_pd_data_frame(
     cat_factor_data.reserve(doc_count)
 
     new_data_holders = []
-
     for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
         column_values = column_data.values
         if is_cat_feature_mask[flat_feature_idx]:
             cat_factor_data.clear()
             for doc_idx in range(doc_count):
-                factor_bytes = get_cat_factor_bytes_representation(
+                get_cat_factor_bytes_representation(
                     doc_idx,
                     flat_feature_idx,
                     column_values[doc_idx],
-                    &factor_strbuf
+                    &factor_string
                 )
-                factor_string.assign(<char*>factor_strbuf.Data(), factor_strbuf.Size())
                 cat_factor_data.push_back(factor_string)
             builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
         elif ((column_values.dtype == np.float32) and
@@ -1498,8 +1524,6 @@ cdef _set_data_np(
     cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
     cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
 
-    cdef bytes factor_bytes
-    cdef TStringBuf factor_strbuf
     cdef ui32 doc_idx
     cdef ui32 num_feature_idx
     cdef ui32 cat_feature_idx
@@ -1515,9 +1539,11 @@ cdef _set_data_np(
             )
             dst_feature_idx += 1
         for cat_feature_idx in range(cat_feature_count):
-            factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
-            factor_strbuf = TStringBuf(<char*>factor_bytes, len(factor_bytes))
-            builder_visitor[0].AddCatFeature(doc_idx, dst_feature_idx, factor_strbuf)
+            builder_visitor[0].AddCatFeature(
+                doc_idx,
+                dst_feature_idx,
+                <TStringBuf>to_arcadia_string(cat_feature_values[doc_idx, cat_feature_idx])
+            )
             dst_feature_idx += 1
 
 cdef _set_data_from_generic_matrix(
@@ -1532,8 +1558,7 @@ cdef _set_data_from_generic_matrix(
     if doc_count == 0:
         return
 
-    cdef object factor_bytes
-    cdef TStringBuf factor_strbuf
+    cdef TString factor_strbuf
     cdef int doc_idx
     cdef int feature_idx
     cdef int cat_feature_idx
@@ -1545,13 +1570,13 @@ cdef _set_data_from_generic_matrix(
         for feature_idx in range(feature_count):
             factor = doc_data[feature_idx]
             if is_cat_feature_mask[feature_idx]:
-                factor_bytes = get_cat_factor_bytes_representation(
+                get_cat_factor_bytes_representation(
                     doc_idx,
                     feature_idx,
                     factor,
                     &factor_strbuf
                 )
-                builder_visitor[0].AddCatFeature(doc_idx, feature_idx, factor_strbuf)
+                builder_visitor[0].AddCatFeature(doc_idx, feature_idx, <TStringBuf>factor_strbuf)
             else:
                 builder_visitor[0].AddFloatFeature(
                     doc_idx,
@@ -1571,25 +1596,28 @@ cdef _set_data(data, const TFeaturesLayout* features_layout, IRawObjectsOrderDat
 
 cdef _set_label(label, IRawObjectsOrderDataVisitor* builder_visitor):
     for i in range(len(label)):
-        if isinstance(label[i], string_types + (bytes,)):
-            bytes_string_representation = to_binary_str(label[i])
+        if isinstance(label[i], all_string_types_plus_bytes):
+            builder_visitor[0].AddTarget(
+                <ui32>i,
+                to_arcadia_string(label[i])
+            )
         else:
-            bytes_string_representation = to_binary_str(str(label[i]))
+            builder_visitor[0].AddTarget(
+                <ui32>i,
+                to_arcadia_string(str(label[i]))
+            )
 
-        builder_visitor[0].AddTarget(
-            <ui32>i,
-            TString(<char*>bytes_string_representation, len(bytes_string_representation))
-        )
 
 cdef _set_label_features_order(label, IRawFeaturesOrderDataVisitor* builder_visitor):
     cdef TVector[TString] labelVector
+    cdef TString bytes_string_representation
     labelVector.reserve(len(label))
     for i in range(len(label)):
-        if isinstance(label[i], string_types + (bytes,)):
-            bytes_string_representation = to_binary_str(label[i])
+        if isinstance(label[i], all_string_types_plus_bytes):
+            bytes_string_representation = to_arcadia_string(label[i])
         else:
-            bytes_string_representation = to_binary_str(str(label[i]))
-        labelVector.push_back(TString(<char*>bytes_string_representation, len(bytes_string_representation)))
+            bytes_string_representation = to_arcadia_string(str(label[i]))
+        labelVector.push_back(bytes_string_representation)
     builder_visitor[0].AddTarget(<TConstArrayRef[TString]>labelVector)
 
 
@@ -1633,18 +1661,17 @@ cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_vi
     builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
 
 cdef TGroupId _calc_group_id_for(i, py_group_ids):
-    cdef object id_as_bytes
-    cdef TStringBuf id_as_strbuf
+    cdef TString id_as_strbuf
 
     try:
-        id_as_bytes = get_id_object_bytes_string_representation(py_group_ids[i], &id_as_strbuf)
+        get_id_object_bytes_string_representation(py_group_ids[i], &id_as_strbuf)
     except CatboostError:
         raise CatboostError(
             "group_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
                 i, py_group_ids[i]
             )
         )
-    return CalcGroupIdFor(id_as_strbuf)
+    return CalcGroupIdFor(<TStringBuf>id_as_strbuf)
 
 cdef _set_group_id(group_id, IBuilderVisitor* builder_visitor):
     for i in range(len(group_id)):
@@ -1662,18 +1689,17 @@ cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor
     builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
 
 cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids):
-    cdef object id_as_bytes
-    cdef TStringBuf id_as_strbuf
+    cdef TString id_as_strbuf
 
     try:
-        id_as_bytes = get_id_object_bytes_string_representation(py_subgroup_ids[i], &id_as_strbuf)
+        get_id_object_bytes_string_representation(py_subgroup_ids[i], &id_as_strbuf)
     except CatboostError:
         raise CatboostError(
             "subgroup_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
                 i, py_subgroup_ids[i]
             )
         )
-    return CalcSubgroupIdFor(id_as_strbuf)
+    return CalcSubgroupIdFor(<TStringBuf>id_as_strbuf)
 
 cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
     for i in range(len(subgroup_id)):
@@ -1719,21 +1745,18 @@ cdef class _PoolBase:
     
 
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
-        pool_file = to_binary_str(pool_file)
         cdef TPathWithScheme pool_file_path
-        pool_file_path = TPathWithScheme(TStringBuf(<char*>pool_file), TStringBuf(<char*>'dsv'))
+        pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
 
-        pairs_file = to_binary_str(pairs_file)
         cdef TPathWithScheme pairs_file_path
         if len(pairs_file):
-            pairs_file_path = TPathWithScheme(TStringBuf(<char*>pairs_file), TStringBuf(<char*>'dsv'))
+            pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv'))
 
         cdef TDsvPoolFormatParams dsvPoolFormatParams
         dsvPoolFormatParams.Format.HasHeader = has_header
         dsvPoolFormatParams.Format.Delimiter = ord(delimiter)
-        cd_file = to_binary_str(cd_file)
         if len(cd_file):
-            dsvPoolFormatParams.CdFilePath = TPathWithScheme(TStringBuf(<char*>cd_file), TStringBuf(<char*>'dsv'))
+            dsvPoolFormatParams.CdFilePath = TPathWithScheme(<TStringBuf>to_arcadia_string(cd_file), TStringBuf(<char*>'dsv'))
 
         thread_count = UpdateThreadCount(thread_count)
 
@@ -2034,8 +2057,7 @@ cdef class _PoolBase:
     cpdef _set_feature_names(self, feature_names):
         cdef TVector[TString] feature_names_vector
         for value in feature_names:
-            value = to_binary_str(str(value))
-            feature_names_vector.push_back(value)
+            feature_names_vector.push_back(to_arcadia_string(str(value)))
         self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].SetExternalFeatureIds(
             TConstArrayRef[TString](feature_names_vector.data(), feature_names_vector.size())
         )
@@ -2399,13 +2421,10 @@ cdef class _CatBoost:
         return stagedPredictIterator
 
     cpdef _base_eval_metrics(self, _PoolBase pool, metric_descriptions, int ntree_start, int ntree_end, int eval_period, int thread_count, result_dir, tmp_dir):
-        result_dir = to_binary_str(result_dir)
-        tmp_dir = to_binary_str(tmp_dir)
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] metricDescriptions
         for metric_description in metric_descriptions:
-            metric_description = to_binary_str(metric_description)
-            metricDescriptions.push_back(TString(<const char*>metric_description))
+            metricDescriptions.push_back(to_arcadia_string(metric_description))
 
         cdef TVector[TVector[double]] metrics
         metrics = EvalMetrics(
@@ -2416,14 +2435,13 @@ cdef class _CatBoost:
             ntree_end,
             eval_period,
             thread_count,
-            TString(<const char*>result_dir),
-            TString(<const char*>tmp_dir)
+            to_arcadia_string(result_dir),
+            to_arcadia_string(tmp_dir)
         )
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
     cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
-        fstr_type_name = to_binary_str(fstr_type_name)
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2436,7 +2454,7 @@ cdef class _CatBoost:
         cdef TDataProviderPtr dataProviderPtr
         if pool:
             dataProviderPtr = pool.__pool
-        cdef TString fstr_type_name_str = TString(<const char*>fstr_type_name)
+        cdef TString fstr_type_name_str = to_arcadia_string(fstr_type_name)
         if fstr_type_name == b'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
@@ -2463,24 +2481,21 @@ cdef class _CatBoost:
             return [[value for value in fstr[i]] for i in range(fstr.size())], native_feature_ids
 
     cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count, int verbose):
-        ostr_type = to_binary_str(ostr_type)
-        update_method = to_binary_str(update_method)
-        importance_values_sign = to_binary_str(importance_values_sign)
         thread_count = UpdateThreadCount(thread_count);
         cdef TDStrResult ostr = GetDocumentImportances(
             dereference(self.__model),
             train_pool.__pool.Get()[0],
             test_pool.__pool.Get()[0],
-            TString(<const char*>ostr_type),
+            to_arcadia_string(ostr_type),
             top_size,
-            TString(<const char*>update_method),
-            TString(<const char*>importance_values_sign),
+            to_arcadia_string(update_method),
+            to_arcadia_string(importance_values_sign),
             thread_count,
             verbose
         )
         indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
         scores = [[value for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]
-        if ostr_type == to_binary_str('Average'):
+        if to_arcadia_string(ostr_type) == to_arcadia_string('Average'):
             indices = indices[0]
             scores = scores[0]
         return indices, scores
@@ -2493,15 +2508,12 @@ cdef class _CatBoost:
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
-        model_file = to_binary_str(model_file)
         cdef EModelType modelType = string_to_model_type(format)
-        tmp_model = ReadModel(TString(<const char*>model_file), modelType)
+        tmp_model = ReadModel(to_arcadia_string(model_file), modelType)
         self.__model.Swap(tmp_model)
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
         cdef EModelType modelType = string_to_model_type(format)
-        export_parameters = to_binary_str(export_parameters)
-        output_file = to_binary_str(output_file)
 
         cdef TVector[TString] feature_id
         if pool:
@@ -2513,9 +2525,9 @@ cdef class _CatBoost:
 
         ExportModel(
             dereference(self.__model),
-            output_file,
+            to_arcadia_string(output_file),
             modelType,
-            export_parameters,
+            to_arcadia_string(export_parameters),
             False,
             &feature_id if pool else <TVector[TString]*>nullptr,
             &cat_features_hash_to_string if pool else <THashMap[ui32, TString]*>nullptr
@@ -2580,7 +2592,7 @@ cdef class _CatBoost:
         cdef TVector[TFullModel_const_ptr] models_vector
         cdef TVector[double] weights_vector
         cdef ECtrTableMergePolicy merge_policy
-        if not TryFromString[ECtrTableMergePolicy](to_binary_str(ctr_merge_policy), merge_policy):
+        if not TryFromString[ECtrTableMergePolicy](to_arcadia_string(ctr_merge_policy), merge_policy):
             raise CatboostError("Unknown ctr table merge policy {}".format(ctr_merge_policy))
         assert(len(models) == len(weights))
         for model_id in range(len(models)):
@@ -2598,10 +2610,10 @@ cdef class _MetadataHashProxy:
     def __getitem__(self, key):
         if not isinstance(key, string_types):
             raise CatboostError('only string keys allowed')
-        key = to_binary_str(key)
-        if not self._catboost.__model.ModelInfo.contains(key):
+        cdef TString key_str = to_arcadia_string(key)
+        if not self._catboost.__model.ModelInfo.contains(key_str):
             raise KeyError
-        return to_native_str(self._catboost.__model.ModelInfo.at(key))
+        return to_native_str(self._catboost.__model.ModelInfo.at(key_str))
 
     def get(self, key, default=None):
         try:
@@ -2614,16 +2626,15 @@ cdef class _MetadataHashProxy:
             raise CatboostError('only string keys allowed')
         if not isinstance(value, string_types):
             raise CatboostError('only string values allowed')
-        key = to_binary_str(key)
-        self._catboost.__model.ModelInfo[key] = to_binary_str(value)
+        self._catboost.__model.ModelInfo[to_arcadia_string(key)] = to_arcadia_string(value)
 
     def __delitem__(self, key):
         if not isinstance(key, string_types):
             raise CatboostError('only string keys allowed')
-        key = to_binary_str(key)
-        if not self._catboost.__model.ModelInfo.contains(key):
+        cdef TString key_str = to_arcadia_string(key)
+        if not self._catboost.__model.ModelInfo.contains(key_str):
             raise KeyError
-        self._catboost.__model.ModelInfo.erase(TString(<const char*>key))
+        self._catboost.__model.ModelInfo.erase(key_str)
 
     def __len__(self):
         return self._catboost.__model.ModelInfo.size()
@@ -2835,13 +2846,11 @@ cdef class _MetricCalcerBase:
         thread_count=UpdateThreadCount(thread_count);
         cdef TVector[TString] metricsDescription
         for metric_description in metrics_description:
-            metric_description = to_binary_str(metric_description)
-            metricsDescription.push_back(TString(<const char*> metric_description))
+            metricsDescription.push_back(to_arcadia_string(metric_description))
 
-        tmp_dir = to_binary_str(tmp_dir)
         self.__calcer = new TMetricsPlotCalcerPythonWrapper(metricsDescription, dereference(self.__catboost.__model),
                                                             ntree_start, ntree_end, eval_period, thread_count,
-                                                            TString(<const char*> tmp_dir), delete_temp_dir_on_exit)
+                                                            to_arcadia_string(tmp_dir), delete_temp_dir_on_exit)
 
         self._metric_descriptions = list()
 
@@ -2901,8 +2910,7 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
         for i in range(doc_count):
             weight[i] = float(weight_param[i])
 
-    cdef TStringBuf group_id_strbuf
-    cdef object group_id_bytes
+    cdef TString group_id_strbuf
 
     cdef TVector[TGroupId] group_id;
     if group_id_param is not None:
@@ -2910,13 +2918,12 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
             raise CatboostError('Label and group_id should have same sizes.')
         group_id.resize(doc_count)
         for i in range(doc_count):
-            group_id_bytes = get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
-            group_id[i] = CalcGroupIdFor(group_id_strbuf)
+            get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
+            group_id[i] = CalcGroupIdFor(<TStringBuf>group_id_strbuf)
 
-    metric = to_binary_str(metric)
     thread_count = UpdateThreadCount(thread_count);
 
-    return EvalMetricsForUtils(label, approx, TString(<const char*> metric), weight, group_id, thread_count)
+    return EvalMetricsForUtils(label, approx, to_arcadia_string(metric), weight, group_id, thread_count)
 
 
 cpdef _get_roc_curve(model, pools_list, thread_count):
@@ -3006,13 +3013,11 @@ cpdef compute_wx_test(baseline, test):
 
 
 cpdef is_classification_objective(loss_name):
-    loss_name = to_binary_str(loss_name)
-    return IsClassificationObjective(TString(<const char*> loss_name))
+    return IsClassificationObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_regression_objective(loss_name):
-    loss_name = to_binary_str(loss_name)
-    return IsRegressionObjective(TString(<const char*> loss_name))
+    return IsRegressionObjective(to_arcadia_string(loss_name))
 
 
 cpdef _check_train_params(dict params):
@@ -3032,5 +3037,4 @@ cpdef _get_gpu_device_count():
 
 
 cpdef _reset_trace_backend(file):
-    filename_binary_str = to_binary_str(file)
-    ResetTraceBackend(TString(<const char*>(filename_binary_str)))
+    ResetTraceBackend(to_arcadia_string(file))

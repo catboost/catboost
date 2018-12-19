@@ -13,6 +13,7 @@ import pytest
 import _pytest
 import _pytest.mark
 import signal
+import inspect
 
 try:
     import resource
@@ -131,8 +132,6 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    pytest.register_assert_rewrite('__tests__')
-
     config.option.continue_on_collection_errors = True
 
     # XXX Strip java contrib from dep_roots - it's python-irrelevant code,
@@ -540,6 +539,13 @@ def pytest_runtest_makereport(item, call):
     return rep
 
 
+def pytest_make_parametrize_id(config, val, argname):
+    # Avoid <, > symbols in canondata file names
+    if inspect.isfunction(val) and val.__name__ == "<lambda>":
+        return str(argname)
+    return None
+
+
 def get_formatted_error(report):
     if isinstance(report.longrepr, tuple):
         text = ""
@@ -635,7 +641,7 @@ class TestItem(object):
         return self._error
 
     def set_error(self, entry):
-        if isinstance(entry, _pytest.runner.BaseReport):
+        if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:
             self._error = "[[bad]]" + str(entry)

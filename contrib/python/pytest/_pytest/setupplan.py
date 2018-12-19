@@ -1,11 +1,19 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import pytest
 
 
 def pytest_addoption(parser):
     group = parser.getgroup("debugconfig")
-    group.addoption('--setupplan', '--setup-plan', action="store_true",
-                    help="show what fixtures and tests would be executed but "
-                    "don't execute anything.")
+    group.addoption(
+        "--setupplan",
+        "--setup-plan",
+        action="store_true",
+        help="show what fixtures and tests would be executed but "
+        "don't execute anything.",
+    )
 
 
 @pytest.hookimpl(tryfirst=True)

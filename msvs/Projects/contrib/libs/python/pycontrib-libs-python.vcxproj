@@ -89,6 +89,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pystate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pythread.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\structmember.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\structseq.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\traceback.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
