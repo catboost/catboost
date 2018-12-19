@@ -1143,10 +1143,10 @@
         },
         "golang_1_11": {
             "tools": {
-                "golang": {"bottle": "golang_1.11.1",  "executable": "golang"},
-                "go": {"bottle": "golang_1.11.1",  "executable": "go"},
-                "godoc": {"bottle": "golang_1.11.1",  "executable": "godoc"},
-                "gofmt": {"bottle": "golang_1.11.1",  "executable": "gofmt"}
+                "golang": {"bottle": "golang_1.11.4",  "executable": "golang"},
+                "go": {"bottle": "golang_1.11.4",  "executable": "go"},
+                "godoc": {"bottle": "golang_1.11.4",  "executable": "godoc"},
+                "gofmt": {"bottle": "golang_1.11.4",  "executable": "gofmt"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1155,7 +1155,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.11.1"
+                "version": "1.11.4"
             }
         }
     },
@@ -1923,9 +1923,9 @@
                 "crypta": ["crypta"]
             }
         },
-        "golang_1.11.1": {
+        "golang_1.11.4": {
             "formula": {
-                "sandbox_id": [333349599, 333351188, 333352014],
+                "sandbox_id": [349285347, 349286461, 349287209],
                 "match": "GOLANG"
             },
             "executable": {
