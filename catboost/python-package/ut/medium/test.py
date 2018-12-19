@@ -8,6 +8,7 @@ import tempfile
 import time
 
 import numpy as np
+import random
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
@@ -1783,6 +1784,52 @@ def test_get_metadata_notrain():
         assert str(i + 1) in model.get_metadata()
 
 
+# tests for single objects
+
+def get_single_object_from_dataset(pool):
+    test_list = open(data_file(pool, 'test_small')).read().split('\n')[:-1]
+    for i in range(len(test_list)):
+        test_list[i] = test_list[i].split('\t')
+        for j in range(len(test_list[i])):
+            try:
+                test_list[i][j] = float(test_list[i][j])
+            except:
+                test_list[i][j] = test_list[i][j]
+    return random.choice(test_list)
+
+
+@pytest.mark.parametrize('pool', ['higgs', 'adult'])
+def test_single_object_features():
+    train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
+    test_object = get_single_object_from_dataset(pool)
+    model = CatBoost({'iterations': 20, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model.fit(train_pool)
+    assert model.predict(test_object) == model.predict([test_object])[0]
+    assert list(model.staged_predict(test_object)) == list(list(model.staged_predict([test_object]))[0])
+
+
+@pytest.mark.parametrize('pool', 'adult')
+def test_single_object_regressor():
+    train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
+    model = CatBoostRegressor(iterations=2, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0')
+    model.fit(train_pool)
+    test_object = get_single_object_from_dataset(pool)
+    assert model.predict(test_object) == model.predict([test_object])[0]
+    assert list(model.staged_predict(test_object)) == list(list(model.staged_predict([test_object]))[0])
+
+
+@pytest.mark.parametrize('pool', 'adult')
+def test_single_object_classifier():
+    train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function='Logloss:border=0.5', task_type=task_type, devices='0')
+    model.fit(train_pool)
+    test_object = get_single_object_from_dataset(pool)
+    assert model.predict(test_object) == model.predict([test_object])[0]
+    assert list(model.staged_predict(test_object)) == list(list(model.staged_predict([test_object]))[0])
+    assert model.predict_proba(test_object) == model.predict_proba([test_object])[0]
+    assert list(model.staged_predict_proba(test_object)) == list(list(model.staged_predict_proba([test_object]))[0])
+
+
 def test_metadata():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
@@ -2903,8 +2950,6 @@ def test_set_cat_features_in_init():
     label = np.random.randint(2, size=20)
     train_pool = Pool(data, label, cat_features=[1, 2])
     test_pool = Pool(data, label, cat_features=[1, 2])
-    #for single tests
-    test_single = np.random.randint(10, size=(1, 20))
 
     params = {
         'logging_level': 'Silent',
@@ -2956,7 +3001,6 @@ def test_set_cat_features_in_init():
     model1.fit(X=data, y=label)
     model2.fit(X=data, y=label)
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
-    assert model1.predict(test_single) == model2.predict(test_single)
     assert(model2.get_cat_feature_indices() == [1, 2])
 
     model1 = CatBoost(params_with_cat_features)
@@ -2965,7 +3009,6 @@ def test_set_cat_features_in_init():
     model1.fit(X=data, y=label)
     model2.fit(X=data, y=label)
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
-    assert model1.predict(test_single) == model2.predict(test_single)
     assert(model2.get_cat_feature_indices() == [1, 2])
 
     model1 = CatBoost(params_with_cat_features)

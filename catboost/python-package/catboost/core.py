@@ -1215,7 +1215,7 @@ class CatBoost(_CatBoostBase):
                          save_snapshot, snapshot_file, snapshot_interval)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
-        single_flag = False
+        is_data_single_object = False
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
@@ -1225,20 +1225,13 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Data to predict must be initialized")
         if not isinstance(data, Pool):
             if isinstance(data, ARRAY_TYPES):
-                if isinstance(data[0], ARRAY_TYPES):
-                    data = Pool(
-                        data=data,
-                        cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
-                    )
-                else:
+                if not isinstance(data[0], ARRAY_TYPES):
                     data = [data]
-                    single_flag = True
-                    data = Pool(
-                        data=data,
-                        cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
-                    )
-            elif not isinstance(data, FeaturesData):
-                raise CatboostError('catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or catboost.FeaturesData')
+                    is_data_single_object = True
+            data = Pool(
+                data=data,
+                cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
+            )
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
@@ -1250,7 +1243,7 @@ class CatBoost(_CatBoostBase):
         predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
         if prediction_type == 'Probability':
             predictions = np.transpose([1 - predictions, predictions])
-        if single_flag:
+        if  is_data_single_object:
             return predictions[0]
         return predictions
 
@@ -1261,7 +1254,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-                or catboost.FeaturesData
+                or catboost.FeaturesData or single object
             Data to predict.
 
         prediction_type : string, optional (default='RawFormulaVal')
@@ -1287,17 +1280,24 @@ class CatBoost(_CatBoostBase):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction : numpy.array or single answer object prediction for single object
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
     def _staged_predict(self, data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
+        is_data_single_object = False
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatboostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
+        if data is None:
+            raise CatboostError("Data to predict must be initialized")
         if not isinstance(data, Pool):
+            if isinstance(data, ARRAY_TYPES):
+                if not isinstance(data[0], ARRAY_TYPES):
+                    data = [data]
+                    is_data_single_object = True
             data = Pool(
                 data=data,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
@@ -1320,6 +1320,8 @@ class CatBoost(_CatBoostBase):
                 predictions = np.array(predictions[0])
                 if prediction_type == 'Probability':
                     predictions = np.transpose([1 - predictions, predictions])
+            if is_data_single_object:
+                predictions = predictions[0]
             yield predictions
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
@@ -1328,7 +1330,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or single object
             Data to predict.
 
         prediction_type : string, optional (default='RawFormulaVal')
@@ -1357,7 +1359,7 @@ class CatBoost(_CatBoostBase):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator numpy.array or single object for each iteration
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
@@ -2139,7 +2141,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or single object
             Data to predict.
 
         prediction_type : string, optional (default='Class')
@@ -2165,7 +2167,7 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction : numpy.array or single object
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
@@ -2175,7 +2177,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or single object
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -2195,7 +2197,7 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction : numpy.array or single object
         """
         return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose)
 
@@ -2205,7 +2207,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or single object
             Data to predict.
 
         prediction_type : string, optional (default='Class')
@@ -2234,7 +2236,7 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator numpy.array or single object for each iteration
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
@@ -2244,7 +2246,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or single object
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -2267,7 +2269,7 @@ class CatBoostClassifier(CatBoost):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator numpy.array or single object for each iteration
         """
         return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose)
 
@@ -2501,7 +2503,7 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or single object
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -2521,7 +2523,7 @@ class CatBoostRegressor(CatBoost):
 
         Returns
         -------
-        prediction : numpy.array
+        prediction : numpy.array or single object
         """
         return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose)
 
@@ -2554,7 +2556,7 @@ class CatBoostRegressor(CatBoost):
 
         Returns
         -------
-        prediction : generator numpy.array for each iteration
+        prediction : generator numpy.array or single object for each iteration
         """
         return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose)
 
