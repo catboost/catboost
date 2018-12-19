@@ -19,7 +19,7 @@ def to_build_root(path, unit):
 
 
 def pb2_arg(path, mod, unit):
-    return '{}_int_pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
+    return '{}_pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
 def proto_arg(path, mod, unit):
     return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
@@ -354,7 +354,7 @@ def onpy_srcs(unit, *args):
             unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
 
         proto_paths = [path for path, mod in protos]
-        unit.ongenerate_py_protos_internal(proto_paths)
+        unit.ongenerate_py_protos(proto_paths)
         unit.onpy_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
 
         if grpc:
