@@ -2580,9 +2580,13 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         case ELossFunction::FairLoss: {
-            CB_ENSURE(params.has("c"), "Metric " << ELossFunction::FairLoss << " requires q as parameter");
-            result.emplace_back(new TFairLossMetric(FromString<float>(params.at("c"))));
-            validParams={"c"};
+            auto it = params.find("smoothness");
+            if (it != params.end()) {
+                result.emplace_back(new TFairLossMetric(FromString<float>(it->second)));
+            } else {
+                result.emplace_back(new TFairLossMetric());
+            }
+            validParams={"smoothness"};
             break;
         }
         default:

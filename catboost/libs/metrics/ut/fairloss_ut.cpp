@@ -50,3 +50,4 @@ Y_UNIT_TEST_SUITE(FairLossMetricTest) {
             }
         }
 }
+
