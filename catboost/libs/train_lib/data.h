@@ -19,8 +19,9 @@ namespace NCB {
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
-        bool unloadCatFeaturePerfectHashFromRam,
+        bool unloadCatFeaturePerfectHashFromRamIfPossible,
         bool ensureConsecutiveFeaturesDataForCpu,
+        bool allowWriteFiles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
@@ -31,6 +32,7 @@ namespace NCB {
         TDataProviders srcData,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
         bool ensureConsecutiveLearnFeaturesDataForCpu,
+        bool allowWriteFiles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,

@@ -42,12 +42,14 @@ namespace NCB {
         TQuantizedFeaturesInfo(const TFeaturesLayout& featuresLayout,
                                TConstArrayRef<ui32> ignoredFeatures,
                                const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
-                               bool floatFeaturesAllowNansInTestOnly = true)
+                               bool floatFeaturesAllowNansInTestOnly = true,
+                               bool allowWriteFiles = true)
             : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
             , FloatFeaturesBinarization(floatFeaturesBinarization)
             , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
             , CatFeaturesPerfectHash(featuresLayout.GetCatFeatureCount(),
-                                     TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp")
+                                     TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp",
+                                     allowWriteFiles)
         {
             FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
         }
@@ -137,12 +139,16 @@ namespace NCB {
             CatFeaturesPerfectHash.UpdateFeaturePerfectHash(catFeatureIdx, std::move(perfectHash));
         };
 
+        void SetAllowWriteFiles(bool allowWriteFiles) {
+            CatFeaturesPerfectHash.SetAllowWriteFiles(allowWriteFiles);
+        }
+
         void LoadCatFeaturePerfectHashToRam() const {
             CatFeaturesPerfectHash.Load();
         }
 
-        void UnloadCatFeaturePerfectHashFromRam() const {
-            CatFeaturesPerfectHash.FreeRam();
+        void UnloadCatFeaturePerfectHashFromRamIfPossible() const {
+            CatFeaturesPerfectHash.FreeRamIfPossible();
         }
 
         TPerfectHashedToHashedCatValuesMap CalcPerfectHashedToHashedCatValuesMap(

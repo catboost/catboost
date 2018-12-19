@@ -133,7 +133,7 @@ namespace NCB {
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
 
-        UnloadCatFeaturePerfectHashFromRam();
+        UnloadCatFeaturePerfectHashFromRamIfPossible();
 
         return result;
     }

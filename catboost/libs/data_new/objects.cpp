@@ -594,7 +594,11 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             *metaInfo.FeaturesLayout,
             TConstArrayRef<ui32>(),
-            binarizationOptions
+            binarizationOptions,
+            /*floatFeaturesAllowNansInTestOnly*/true,
+
+            // be conservative here, it will be reset using SetAllowWriteFiles later if needed
+            /*allowWriteFiles*/false
         );
     }
 }

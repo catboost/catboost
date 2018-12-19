@@ -34,8 +34,9 @@ namespace NCB {
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
-        bool unloadCatFeaturePerfectHashFromRam,
+        bool unloadCatFeaturePerfectHashFromRamIfPossible,
         bool ensureConsecutiveFeaturesDataForCpu,
+        bool allowWriteFiles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
@@ -85,6 +86,7 @@ namespace NCB {
             }
 
             trainingData->ObjectsData = quantizedObjectsDataProviderPtr;
+            trainingData->ObjectsData->GetQuantizedFeaturesInfo()->SetAllowWriteFiles(allowWriteFiles);
         } else {
             TQuantizationOptions quantizationOptions;
             if (params->GetTaskType() == ETaskType::CPU) {
@@ -102,6 +104,7 @@ namespace NCB {
             }
             quantizationOptions.CpuRamLimit
                 = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
+            quantizationOptions.AllowWriteFiles = allowWriteFiles;
 
             if (!quantizedFeaturesInfo) {
                 quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -139,8 +142,9 @@ namespace NCB {
             trainingData->MetaInfo.FeaturesLayout = quantizedFeaturesInfo->GetFeaturesLayout();
         }
 
-        if (unloadCatFeaturePerfectHashFromRam) {
-            trainingData->ObjectsData->GetQuantizedFeaturesInfo()->UnloadCatFeaturePerfectHashFromRam();
+        if (unloadCatFeaturePerfectHashFromRamIfPossible) {
+            trainingData->ObjectsData->GetQuantizedFeaturesInfo()
+                ->UnloadCatFeaturePerfectHashFromRamIfPossible();
         }
 
         auto& dataProcessingOptions = params->DataProcessingOptions.Get();
@@ -174,6 +178,7 @@ namespace NCB {
         TDataProviders srcData,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
         bool ensureConsecutiveLearnFeaturesDataForCpu,
+        bool allowWriteFiles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
@@ -187,8 +192,9 @@ namespace NCB {
             /*isLearnData*/ true,
             "learn",
             bordersFile,
-            /*unloadCatFeaturePerfectHashFromRam*/ srcData.Test.empty(),
+            /*unloadCatFeaturePerfectHashFromRamIfPossible*/ srcData.Test.empty(),
             ensureConsecutiveLearnFeaturesDataForCpu,
+            allowWriteFiles,
             quantizedFeaturesInfo,
             params,
             labelConverter,
@@ -204,8 +210,9 @@ namespace NCB {
                     /*isLearnData*/ false,
                     TStringBuilder() << "test #" << testIdx,
                     Nothing(), // borders already loaded
-                    /*unloadCatFeaturePerfectHashFromRam*/ (testIdx + 1) == srcData.Test.size(),
+                    /*unloadCatFeaturePerfectHashFromRamIfPossible*/ (testIdx + 1) == srcData.Test.size(),
                     /*ensureConsecutiveFeaturesDataForCpu*/ false, // not needed for test
+                    allowWriteFiles,
                     quantizedFeaturesInfo,
                     params,
                     labelConverter,

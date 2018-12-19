@@ -689,7 +689,8 @@ namespace NCB {
             *rawDataProviders.Learn->MetaInfo.FeaturesLayout,
             ignoredFeatures,
             floatFeaturesBinarization,
-            floatFeaturesAllowNansInTestOnly
+            floatFeaturesAllowNansInTestOnly,
+            options.AllowWriteFiles
         );
 
         result.Learn = Quantize(

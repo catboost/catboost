@@ -317,8 +317,9 @@ void CrossValidate(
         /*isLearnData*/ true,
         TStringBuf(),
         Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
-        /*unloadCatFeaturePerfectHashFromRam*/ true,
+        /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
         /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
+        outputFileOptions.AllowWriteFiles(),
         /*quantizedFeaturesInfo*/ nullptr,
         &catBoostOptions,
         &labelConverter,

@@ -630,7 +630,8 @@ static void TrainModel(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            /*allowNansInTestOnly*/true
+            /*allowNansInTestOnly*/true,
+            outputOptions.AllowWriteFiles()
         );
     }
 
@@ -669,6 +670,7 @@ static void TrainModel(
         std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+        outputOptions.AllowWriteFiles(),
         quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,
@@ -758,7 +760,8 @@ void TrainModel(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-        /*allowNansInTestOnly*/true
+        /*allowNansInTestOnly*/true,
+        outputOptions.AllowWriteFiles()
     );
     if (loadOptions.BordersFile) {
         LoadBordersAndNanModesFromFromFileInMatrixnetFormat(

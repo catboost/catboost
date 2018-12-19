@@ -43,10 +43,11 @@ namespace NCB {
 
     class TCatFeaturesPerfectHash {
     public:
-        TCatFeaturesPerfectHash(ui32 catFeatureCount, const TString& storageFile)
+        TCatFeaturesPerfectHash(ui32 catFeatureCount, const TString& storageFile, bool allowWriteFiles)
             : StorageTempFile(storageFile)
             , CatFeatureUniqValuesCountsVector(catFeatureCount)
             , FeaturesPerfectHash(catFeatureCount)
+            , AllowWriteFiles(allowWriteFiles)
         {
             HasHashInRam = true;
         }
@@ -76,11 +77,17 @@ namespace NCB {
             return (size_t)*catFeatureIdx < CatFeatureUniqValuesCountsVector.size();
         }
 
-        void FreeRam() const {
-            Save();
-            TVector<TMap<ui32, ui32>> empty;
-            FeaturesPerfectHash.swap(empty);
-            HasHashInRam = false;
+        void SetAllowWriteFiles(bool allowWriteFiles) {
+            AllowWriteFiles = allowWriteFiles;
+        }
+
+        void FreeRamIfPossible() const {
+            if (AllowWriteFiles) {
+                Save();
+                TVector<TMap<ui32, ui32>> empty;
+                FeaturesPerfectHash.swap(empty);
+                HasHashInRam = false;
+            }
         }
 
         void Load() const {
@@ -120,5 +127,6 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqValuesCountsVector; // [catFeatureIdx]
         mutable TVector<TMap<ui32, ui32>> FeaturesPerfectHash; // [catFeatureIdx]
         mutable bool HasHashInRam = true;
+        bool AllowWriteFiles;
     };
 }
