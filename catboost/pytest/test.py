@@ -2100,25 +2100,49 @@ def test_custom_overfitting_detector_metric(boosting_type):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('loss_function', BINCLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_custom_loss_for_classification(boosting_type):
+def test_custom_loss_for_classification(loss_function, boosting_type):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    custom_metrics = [
+        metric for metric in
+        [
+            'AUC:hints=skip_train~false',
+            'Logloss',
+            'CrossEntropy',
+            'Accuracy',
+            'Precision',
+            'Recall',
+            'F1',
+            'TotalF1',
+            'MCC',
+            'BalancedAccuracy',
+            'BalancedErrorRate',
+            'Kappa',
+            'WKappa',
+            'BrierScore',
+            'ZeroOneLoss',
+            'HammingLoss',
+            'HingeLoss'
+        ]
+        if metric != loss_function
+    ]
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '--loss-function', loss_function,
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
         '--boosting-type', boosting_type,
         '-w', '0.03',
         '-i', '10',
         '-T', '4',
-        '--custom-metric',
-        'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,BalancedAccuracy,BalancedErrorRate,Kappa,WKappa,BrierScore,ZeroOneLoss,HammingLoss,HingeLoss',
+        '--custom-metric', ','.join(custom_metrics),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )

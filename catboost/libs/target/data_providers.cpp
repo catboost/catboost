@@ -13,6 +13,7 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>
+#include <util/generic/maybe.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
@@ -84,7 +85,7 @@ namespace NCB {
                 );
             }
         }
-        if (isClass && classCountUnknown) {
+        if (isMultiClass && classCountUnknown) {
             *classCount = targetConverter.GetClassCount();
         }
 
@@ -122,7 +123,7 @@ namespace NCB {
         for (const auto& metricDescription : metricDescriptions) {
             ::CheckPreprocessedTarget(
                 convertedTarget,
-                metricDescription.GetLossFunction(),
+                metricDescription,
                 isLearnData,
                 allowConstLabel);
         }
@@ -345,6 +346,7 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
         bool allowConstLabel,
+        TMaybe<ui32> knownModelApproxDimension,
         ui32 knownClassCount,
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
         TVector<TString>* classNames,
@@ -373,13 +375,54 @@ namespace NCB {
         );
 
         bool hasClassificationMetrics = isAnyOfMetrics(IsClassificationMetric);
-        bool hasMultiClassMetrics = isAnyOfMetrics(IsMultiClassMetric);
+        bool hasBinClassOnlyMetrics = hasClassificationMetrics && isAnyOfMetrics(IsBinaryClassOnlyMetric);
+        bool hasMultiClassOnlyMetrics = hasClassificationMetrics && isAnyOfMetrics(
+            [](ELossFunction lossFunction) {
+                return IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction);
+            });
+
+        CB_ENSURE(
+            !(hasBinClassOnlyMetrics && hasMultiClassOnlyMetrics),
+            "Both binary classification -only and multiclassification -only loss function or metrics"
+            " specified"
+        );
+
+        bool hasMultiClassMetrics = hasClassificationMetrics && isAnyOfMetrics(IsMultiClassMetric);
+
+
+        bool maybeMultiClassTargetData = false;
+
+        bool knownMultiDimensionalModel = false;
+        if (knownModelApproxDimension) {
+            if (*knownModelApproxDimension == 1) {
+                CB_ENSURE(
+                    !hasMultiClassOnlyMetrics,
+                    "Multiclassification-only metrics specified for a single-dimensional model"
+                );
+            } else {
+                for (const auto& metricDescription : metricDescriptions) {
+                    CB_ENSURE(
+                        IsMultiClassMetric(metricDescription.GetLossFunction()),
+                        "Non-Multiclassification metric (" << metricDescription.GetLossFunction()
+                        << ") specified for a multidimensional model"
+                    );
+                }
+                knownMultiDimensionalModel = true;
+                if (!knownClassCount) { // because there might be missing classes in train
+                    knownClassCount = *knownModelApproxDimension;
+                }
+                maybeMultiClassTargetData = true;
+            }
+        } else {
+            maybeMultiClassTargetData = hasMultiClassMetrics && !hasBinClassOnlyMetrics;
+        }
+
         ui32 classCountInData = 0;
 
         auto maybeConvertedTarget = ConvertTarget(
             rawData.GetTarget(),
             hasClassificationMetrics,
-            hasMultiClassMetrics,
+            maybeMultiClassTargetData,
             knownClassCount == 0,
             classNames,
             localExecutor,
@@ -391,20 +434,6 @@ namespace NCB {
         ui32 classCount = (ui32)GetClassesCount((int)knownClassCount, *classNames);
 
 
-
-        bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
-
-        bool hasMultiClassOnlyMetrics = isAnyOfMetrics(
-            [](ELossFunction lossFunction) {
-                return IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction);
-            });
-
-        CB_ENSURE(
-            !(hasBinClassOnlyMetrics && hasMultiClassOnlyMetrics),
-            "Both binary classification -only and multiclassification -only loss function or metrics"
-            " specified"
-        );
-
         bool createBinClassTarget = false;
         bool createMultiClassTarget = false;
 
@@ -414,7 +443,7 @@ namespace NCB {
             createMultiClassTarget = true;
         } else {
             if (hasClassificationMetrics) {
-                if (classCount > 2) {
+                if (knownMultiDimensionalModel || (classCount > 2)) {
                     createMultiClassTarget = true;
                 } else {
                     createBinClassTarget = true;
@@ -437,8 +466,9 @@ namespace NCB {
         if (createBinClassTarget) { // binclass
             CB_ENSURE(maybeConvertedTarget, "Binary classification loss/metrics require label data");
             CB_ENSURE(
-                classCount == 2,
-                "Binary classification loss/metric specified but target data is not 2-class labels"
+                (classCount == 0) || (classCount == 2),
+                "Binary classification loss/metric specified but target data is neither positive class"
+                " probability nor 2-class labels"
             );
 
             adjustedWeights = MakeClassificationWeights(
@@ -696,7 +726,6 @@ namespace NCB {
                         "model trained with binary classification function has ApproxDimension="
                         << model.ObliviousTrees.ApproxDimension
                     );
-                    classCount = 2;
                 }
 
                 if (updatedMetricsDescriptions.empty()) {
@@ -715,9 +744,7 @@ namespace NCB {
                 if (multiclassOptions.ClassNames.IsSet()) {
                     classNames = multiclassOptions.ClassNames;
                 }
-                if (multiclassOptions.ClassesCount.IsSet()) {
-                    classCount = multiclassOptions.ClassesCount;
-                }
+                classCount = GetClassesCount(multiclassOptions.ClassesCount.Get(), classNames);
             } else {
                 labelConverter.Initialize(model.ObliviousTrees.ApproxDimension);
                 classCount = model.ObliviousTrees.ApproxDimension;
@@ -737,6 +764,7 @@ namespace NCB {
             updatedMetricsDescriptions,
             /*mainLossFunction*/ Nothing(),
             /*allowConstLabel*/ true,
+            (ui32)model.ObliviousTrees.ApproxDimension,
             classCount,
             classWeights,
             &classNames,

@@ -158,6 +158,7 @@ namespace NCB {
             GetMetricDescriptions(*params),
             &params->LossFunctionDescription.Get(),
             dataProcessingOptions.AllowConstLabel.Get(),
+            /*knownModelApproxDimension*/ Nothing(),
             dataProcessingOptions.ClassesCount.Get(),
             dataProcessingOptions.ClassWeights.Get(),
             &dataProcessingOptions.ClassNames.Get(),

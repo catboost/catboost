@@ -3899,14 +3899,17 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
 
 void CheckPreprocessedTarget(
     TConstArrayRef<float> target,
-    ELossFunction lossFunction,
+    const NCatboostOptions::TLossDescription& lossDesciption,
     bool isLearnData,
     bool allowConstLabel
 ) {
+    ELossFunction lossFunction = lossDesciption.GetLossFunction();
     if (isLearnData && (lossFunction == ELossFunction::Logloss)) {
+        auto border = NCatboostOptions::GetLogLossBorder(lossDesciption);
         auto targetBounds = CalcMinMax(target);
-        CB_ENSURE(targetBounds.Min == 0, "All train targets are greater than border");
-        CB_ENSURE(targetBounds.Max == 1, "All train targets are smaller than border");
+        CB_ENSURE(targetBounds.Min <= border, "All train targets are greater than border " << border);
+        CB_ENSURE(targetBounds.Max > border,
+                  "All train targets are smaller than or equal to border " << border);
     }
     if (isLearnData && (lossFunction != ELossFunction::PairLogit)) {
         auto targetBounds = CalcMinMax(target);
@@ -3923,7 +3926,9 @@ void CheckPreprocessedTarget(
         CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
     }
 
-    if (IsMultiClassMetric(lossFunction)) {
-        CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
+    if (IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction)) {
+        CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }),
+                  "metric/loss-function " << lossFunction << " is a Multiclassification metric, "
+                  " each target label should be a nonnegative integer");
     }
 }
