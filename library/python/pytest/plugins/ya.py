@@ -610,7 +610,7 @@ class TestItem(object):
         elif report.outcome == "skipped":
             if hasattr(report, 'wasxfail'):
                 self._status = 'xfail'
-                self.set_error(report.wasxfail)
+                self.set_error(report.wasxfail, 'imp')
             else:
                 self._status = 'skipped'
                 self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
@@ -640,11 +640,11 @@ class TestItem(object):
     def error(self):
         return self._error
 
-    def set_error(self, entry):
+    def set_error(self, entry, marker='bad'):
         if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:
-            self._error = "[[bad]]" + str(entry)
+            self._error = "[[{}]]{}".format(marker, entry)
 
     @property
     def duration(self):
