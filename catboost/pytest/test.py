@@ -3495,7 +3495,6 @@ def execute_dist_train(cmd):
         with open(hosts_path, 'w') as hosts:
             hosts.write('localhost:' + str(port0) + '\n')
             hosts.write('localhost:' + str(port1) + '\n')
-        hosts.close()
 
         worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
         worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
