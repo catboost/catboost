@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\cat_feature_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\catboost_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\check_train_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\options\cross_validation_params.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\data_processing_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\defaults_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\enum_helpers.cpp"/>
