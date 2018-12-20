@@ -57,7 +57,8 @@ namespace NKernel {
 
             while (i < docCount) {
                 const ui64 highBits = ((ui64)qids[i]) << 32;
-                const int lowBits32 = reinterpret_cast<int>(NextUniformF(&s));
+                const float f = NextUniformF(&s);
+                const int lowBits32 = *reinterpret_cast<const int*>(&f);
                 const ui64 lowBits = lowBits32;
                 keys[i] = lowBits | highBits;
                 i += gridDim.x * blockDim.x;
