@@ -265,7 +265,7 @@ namespace NKernel
             }
 
             //statisticians will complain :) but we don't need high-quality random generators
-            ui32 taskSeed = 127 * taskQid + 16807 * threadIdx.x + seed * taskQid;
+            ui32 taskSeed = 127 * taskQid + 16807 * threadIdx.x + seed * (1 + taskQid);
             AdvanceSeed32(&taskSeed);
             taskSeed += seed;
             #pragma unroll
