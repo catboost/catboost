@@ -10,6 +10,7 @@ SRCS(
     cat_feature_options.cpp
     catboost_options.cpp
     check_train_options.cpp
+    cross_validation_params.cpp
     data_processing_options.cpp
     defaults_helper.cpp
     enum_helpers.cpp

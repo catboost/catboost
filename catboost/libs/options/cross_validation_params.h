@@ -10,8 +10,16 @@ struct TCrossValidationParams {
     bool Shuffle = true;
     bool Stratified = false;
     ui32 IterationsBatchSize = 100;
+
+public:
+    bool Initialized() const {
+        return FoldCount != 0;
+    }
 };
 
 struct TCvDataPartitionParams : public TCrossValidationParams {
     ui32 FoldIdx = 0;
+
+public:
+    void Check() const;
 };

@@ -1510,6 +1510,58 @@ def test_cv_for_pairs(is_inverted, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('bad_cv_params', ['XX', 'YY', 'XY'])
+def test_multiple_cv_spec(bad_cv_params):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    if bad_cv_params == 'XX':
+        cmd += ('-X', '2/10', '-X', '4/7')
+    elif bad_cv_params == 'XY':
+        cmd += ('-X', '2/10', '-Y', '4/7')
+    elif bad_cv_params == 'YY':
+        cmd += ('-Y', '2/10', '-Y', '4/7')
+    else:
+        raise Exception('bad bad_cv_params value:' + bad_cv_params)
+
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('error_type', ['0folds', 'fold_idx_overflow'])
+def test_bad_fold_cv_spec(is_inverted, error_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), {'0folds': '0/0', 'fold_idx_overflow': '3/2'}[error_type],
+        '--eval-file', output_eval_path,
+    )
+
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_empty_eval(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
