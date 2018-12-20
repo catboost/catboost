@@ -1215,7 +1215,6 @@ class CatBoost(_CatBoostBase):
                          save_snapshot, snapshot_file, snapshot_interval)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
-        is_data_single_object = False
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
@@ -1223,6 +1222,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if data is None:
             raise CatboostError("Data to predict must be initialized")
+        is_data_single_object = False
         if not isinstance(data, Pool):
             if isinstance(data, ARRAY_TYPES):
                 if not isinstance(data[0], ARRAY_TYPES):
@@ -1285,7 +1285,6 @@ class CatBoost(_CatBoostBase):
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
     def _staged_predict(self, data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
-        is_data_single_object = False
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
@@ -1293,6 +1292,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
         if data is None:
             raise CatboostError("Data to predict must be initialized")
+        is_data_single_object = False
         if not isinstance(data, Pool):
             if isinstance(data, ARRAY_TYPES):
                 if not isinstance(data[0], ARRAY_TYPES):
