@@ -5,6 +5,7 @@ RECURSE(
     atomicwrites
     attrs
     dateutil
+    dateutil/tests
     enum34
     funcsigs
     Jinja2
