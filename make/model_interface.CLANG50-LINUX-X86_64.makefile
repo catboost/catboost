@@ -2165,12 +2165,13 @@ $(BUILD_ROOT)/util/all_system_1.cpp\
         $(SOURCE_ROOT)/util/system/fs.cpp\
         $(SOURCE_ROOT)/util/system/fstat.cpp\
         $(SOURCE_ROOT)/util/system/getpid.cpp\
+        $(SOURCE_ROOT)/util/system/hi_lo.cpp\
         $(SOURCE_ROOT)/util/system/hostname.cpp\
         $(SOURCE_ROOT)/util/system/hp_timer.cpp\
         $(SOURCE_ROOT)/util/system/info.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_1.cpp' util/system/atexit.cpp util/system/backtrace.cpp util/system/compat.cpp util/system/compiler.cpp util/system/condvar.cpp util/system/context.cpp util/system/daemon.cpp util/system/datetime.cpp util/system/defaults.c util/system/demangle.cpp util/system/direct_io.cpp util/system/dynlib.cpp util/system/env.cpp util/system/err.cpp util/system/error.cpp util/system/event.cpp util/system/execpath.cpp util/system/fasttime.cpp util/system/file.cpp util/system/file_lock.cpp util/system/filemap.cpp util/system/flock.cpp util/system/fs.cpp util/system/fstat.cpp util/system/getpid.cpp util/system/hostname.cpp util/system/hp_timer.cpp util/system/info.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_1.cpp' util/system/atexit.cpp util/system/backtrace.cpp util/system/compat.cpp util/system/compiler.cpp util/system/condvar.cpp util/system/context.cpp util/system/daemon.cpp util/system/datetime.cpp util/system/defaults.c util/system/demangle.cpp util/system/direct_io.cpp util/system/dynlib.cpp util/system/env.cpp util/system/err.cpp util/system/error.cpp util/system/event.cpp util/system/execpath.cpp util/system/fasttime.cpp util/system/file.cpp util/system/file_lock.cpp util/system/filemap.cpp util/system/flock.cpp util/system/fs.cpp util/system/fstat.cpp util/system/getpid.cpp util/system/hi_lo.cpp util/system/hostname.cpp util/system/hp_timer.cpp util/system/info.cpp
 
 $(BUILD_ROOT)/util/all_system_2.cpp.pic.o\
         ::\
