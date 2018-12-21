@@ -15,7 +15,9 @@ namespace NCB {
         const NCatboostOptions::TCatBoostOptions& params) {
 
         TVector<NCatboostOptions::TLossDescription> result;
-        result.emplace_back(params.LossFunctionDescription);
+        if (params.LossFunctionDescription->GetLossFunction() != ELossFunction::Custom) {
+            result.emplace_back(params.LossFunctionDescription);
+        }
 
         const auto& metricOptions = params.MetricOptions.Get();
         if (metricOptions.EvalMetric.IsSet()) {

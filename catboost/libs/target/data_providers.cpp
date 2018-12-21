@@ -358,7 +358,7 @@ namespace NCB {
             CB_ENSURE(rawData.GetObjectCount() > 0, "Train dataset is empty");
         }
 
-        CB_ENSURE_INTERNAL(!metricDescriptions.empty(), "CreateTargetDataProviders: No metrics specified");
+        CB_ENSURE(!metricDescriptions.empty(), "No metrics specified");
 
         auto isAnyOfMetrics = [&](auto&& predicate) {
             return AnyOf(
@@ -370,7 +370,9 @@ namespace NCB {
         };
 
         CB_ENSURE_INTERNAL(
-            !mainLossFunction || FindPtr(metricDescriptions, **mainLossFunction),
+            !mainLossFunction ||
+            ((*mainLossFunction)->GetLossFunction() == ELossFunction::Custom) ||
+            FindPtr(metricDescriptions, **mainLossFunction),
             "mainLossFunction is not in metricDescriptions"
         );
 
