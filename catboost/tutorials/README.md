@@ -74,6 +74,9 @@ It's better to start CatBoost exploring from this basic tutorials.
 
 ## Events
 
+* [PyData Moscow tutorial](events/pydata_moscow_oct_13_2018.ipynb)
+    * Tutorial from PyData Moscow, October 13, 2018.
+
 * [PyData NYC tutorial](events/pydata_nyc_oct_19_2018.ipynb)
     * Tutorial from PyData New York, October 19, 2018.
 
