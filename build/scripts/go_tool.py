@@ -170,6 +170,7 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
     cmd = [test_miner, '-tests', test_module_path]
     tests = (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n')
+    test_main_found = '#TestMain' in tests
 
     # Get the list of "external" tests
     if xtest_lib_args:
@@ -184,8 +185,11 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     content = """package main
 
 import (
-    "os"
-    "testing"
+"""
+    if not test_main_found:
+        content += """    "os"
+"""
+    content += """    "testing"
     "testing/internal/testdeps"
 """
     if len(tests) > 0:
@@ -204,7 +208,12 @@ import (
 
     content += """func main() {
     m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)
-    os.Exit(m.Run())
+"""
+    if test_main_found:
+        content += '    _test.TestMain(m)'
+    else:
+        content += '    os.Exit(m.Run())'
+    content += """
 }
 """
     # print >>sys.stderr, content
