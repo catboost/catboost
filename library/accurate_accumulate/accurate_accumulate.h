@@ -143,33 +143,39 @@ static inline TAccumulatorType TypedFastAccumulate(It begin, It end) {
     return accumulator;
 }
 
-template <typename TAccumulatorType, typename It1, typename It2>
-static inline TAccumulatorType TypedFastInnerProduct(It1 begin1, It1 end1, It2 begin2) {
+template <class TOperation, typename TAccumulatorType, typename It1, typename It2>
+static inline TAccumulatorType TypedFastInnerOperation(It1 begin1, It1 end1, It2 begin2) {
     TAccumulatorType accumulator = TAccumulatorType();
 
+    const TOperation op;
     for (; begin1 + 15 < end1; begin1 += 16, begin2 += 16) {
-        accumulator += *(begin1 + 0) * *(begin2 + 0) +
-                       *(begin1 + 1) * *(begin2 + 1) +
-                       *(begin1 + 2) * *(begin2 + 2) +
-                       *(begin1 + 3) * *(begin2 + 3) +
-                       *(begin1 + 4) * *(begin2 + 4) +
-                       *(begin1 + 5) * *(begin2 + 5) +
-                       *(begin1 + 6) * *(begin2 + 6) +
-                       *(begin1 + 7) * *(begin2 + 7) +
-                       *(begin1 + 8) * *(begin2 + 8) +
-                       *(begin1 + 9) * *(begin2 + 9) +
-                       *(begin1 + 10) * *(begin2 + 10) +
-                       *(begin1 + 11) * *(begin2 + 11) +
-                       *(begin1 + 12) * *(begin2 + 12) +
-                       *(begin1 + 13) * *(begin2 + 13) +
-                       *(begin1 + 14) * *(begin2 + 14) +
-                       *(begin1 + 15) * *(begin2 + 15);
+        accumulator += op(*(begin1 + 0), *(begin2 + 0)) +
+                       op(*(begin1 + 1), *(begin2 + 1)) +
+                       op(*(begin1 + 2), *(begin2 + 2)) +
+                       op(*(begin1 + 3), *(begin2 + 3)) +
+                       op(*(begin1 + 4), *(begin2 + 4)) +
+                       op(*(begin1 + 5), *(begin2 + 5)) +
+                       op(*(begin1 + 6), *(begin2 + 6)) +
+                       op(*(begin1 + 7), *(begin2 + 7)) +
+                       op(*(begin1 + 8), *(begin2 + 8)) +
+                       op(*(begin1 + 9), *(begin2 + 9)) +
+                       op(*(begin1 + 10), *(begin2 + 10)) +
+                       op(*(begin1 + 11), *(begin2 + 11)) +
+                       op(*(begin1 + 12), *(begin2 + 12)) +
+                       op(*(begin1 + 13), *(begin2 + 13)) +
+                       op(*(begin1 + 14), *(begin2 + 14)) +
+                       op(*(begin1 + 15), *(begin2 + 15));
     }
     for (; begin1 != end1; ++begin1, ++begin2) {
-        accumulator += *begin1 * *begin2;
+        accumulator += op(*begin1, *begin2);
     }
 
     return accumulator;
+}
+
+template <typename TAccumulatorType, typename It1, typename It2>
+static inline TAccumulatorType TypedFastInnerProduct(It1 begin1, It1 end1, It2 begin2) {
+    return TypedFastInnerOperation<std::multiplies<>, TAccumulatorType>(begin1, end1, begin2);
 }
 
 template <typename It>
