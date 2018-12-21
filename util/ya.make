@@ -275,6 +275,7 @@ JOIN_SRCS(
     system/fs.cpp
     system/fstat.cpp
     system/getpid.cpp
+    system/hi_lo.cpp
     system/hostname.cpp
     system/hp_timer.cpp
     system/info.cpp

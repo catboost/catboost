@@ -6,8 +6,8 @@
 #include <util/string/cast.h>
 #include <util/string/subst.h>
 #include <util/string/util.h>
+#include <util/system/hi_lo.h>
 #include <util/system/yassert.h>
-#include <util/system/defaults.h>
 #include <util/generic/hash.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -256,8 +256,8 @@ void DoDecodeUnknownPlane(TxChar* str, TxChar*& ee, const ECharset enc) {
     if (SingleByteCodepage(enc)) {
         const CodePage* cp = CodePageByCharset(enc);
         for (TxChar* s = str; s < e; s++) {
-            if (HI_8_LO_16(*s) == 0xF0)
-                *s = (TxChar)cp->unicode[LO_8_LO_16(*s)]; // NOT mb compliant
+            if (Hi8(Lo16(*s)) == 0xF0)
+                *s = (TxChar)cp->unicode[Lo8(Lo16(*s))]; // NOT mb compliant
         }
     } else if (enc == CODES_UTF8) {
         TxChar* s;
@@ -276,8 +276,8 @@ void DoDecodeUnknownPlane(TxChar* str, TxChar*& ee, const ECharset enc) {
         e = d;
     } else if (enc == CODES_UNKNOWN) {
         for (TxChar* s = str; s < e; s++) {
-            if (HI_8_LO_16(*s) == 0xF0)
-                *s = LO_8_LO_16(*s);
+            if (Hi8(Lo16(*s)) == 0xF0)
+                *s = Lo8(Lo16(*s));
         }
     } else {
         Y_ASSERT(!SingleByteCodepage(enc));
@@ -290,8 +290,8 @@ void DoDecodeUnknownPlane(TxChar* str, TxChar*& ee, const ECharset enc) {
         size_t read = 0;
         size_t written = 0;
         for (; s < e; ++s) {
-            if (HI_8_LO_16(*s) == 0xF0) {
-                buf.push_back(LO_8_LO_16(*s));
+            if (Hi8(Lo16(*s)) == 0xF0) {
+                buf.push_back(Lo8(Lo16(*s)));
             } else {
                 if (!buf.empty()) {
                     if (RecodeToUnicode(enc, buf.data(), d, buf.size(), e - d, read, written) == RECODE_OK) {
