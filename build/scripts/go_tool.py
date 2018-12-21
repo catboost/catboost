@@ -169,7 +169,7 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     os_symlink = get_symlink_or_copyfile()
     os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
     cmd = [test_miner, '-tests', test_module_path]
-    tests = (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n')
+    tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
     test_main_found = '#TestMain' in tests
 
     # Get the list of "external" tests
@@ -178,7 +178,7 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-tests', xtest_module_path]
-        xtests = (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n')
+        xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
 
     shutil.rmtree(go_path_root)
 
