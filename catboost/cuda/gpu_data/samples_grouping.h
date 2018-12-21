@@ -98,7 +98,7 @@ namespace NCatboostCuda {
                     ++groupIdx;
                 }
             }
-            CB_ENSURE(atLeastTwoDocQueriesCount, "Error: all groups has size 1");
+            CB_ENSURE(atLeastTwoDocQueriesCount, "Error: all groups have size 1");
         }
 
         ui32 GetQueryCount() const override {
