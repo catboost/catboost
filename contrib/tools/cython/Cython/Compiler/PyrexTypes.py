@@ -594,9 +594,9 @@ class MemoryViewSliceType(PyrexType):
         the packing specifiers specify how the array elements are layed-out
         in memory.
 
-        'contig' -- The data are contiguous in memory along this dimension.
+        'contig' -- The data is contiguous in memory along this dimension.
                 At most one dimension may be specified as 'contig'.
-        'strided' -- The data aren't contiguous along this dimenison.
+        'strided' -- The data isn't contiguous along this dimension.
         'follow' -- Used for C/Fortran contiguous arrays, a 'follow' dimension
             has its stride automatically computed from extents of the other
             dimensions to ensure C or Fortran memory layout.
@@ -653,8 +653,9 @@ class MemoryViewSliceType(PyrexType):
         assert not pyrex
         assert not dll_linkage
         from . import MemoryView
+        base_code = str(self) if for_display else MemoryView.memviewslice_cname
         return self.base_declaration_code(
-                MemoryView.memviewslice_cname,
+                base_code,
                 entity_code)
 
     def attributes_known(self):
@@ -711,8 +712,12 @@ class MemoryViewSliceType(PyrexType):
             to_axes_c = follow_dim * (ndim - 1) + contig_dim
             to_axes_f = contig_dim + follow_dim * (ndim -1)
 
-            to_memview_c = MemoryViewSliceType(self.dtype, to_axes_c)
-            to_memview_f = MemoryViewSliceType(self.dtype, to_axes_f)
+            dtype = self.dtype
+            if dtype.is_const:
+                dtype = dtype.const_base_type
+
+            to_memview_c = MemoryViewSliceType(dtype, to_axes_c)
+            to_memview_f = MemoryViewSliceType(dtype, to_axes_f)
 
             for to_memview, cython_name in [(to_memview_c, "copy"),
                                             (to_memview_f, "copy_fortran")]:
@@ -1341,6 +1346,7 @@ class PyExtensionType(PyObjectType):
     #  vtable_cname     string           Name of C method table definition
     #  early_init       boolean          Whether to initialize early (as opposed to during module execution).
     #  defered_declarations [thunk]      Used to declare class hierarchies in order
+    #  check_size       'warn', 'error', 'ignore'    What to do if tp_basicsize does not match
 
     is_extension_type = 1
     has_attributes = 1
@@ -1348,7 +1354,7 @@ class PyExtensionType(PyObjectType):
 
     objtypedef_cname = None
 
-    def __init__(self, name, typedef_flag, base_type, is_external=0):
+    def __init__(self, name, typedef_flag, base_type, is_external=0, check_size=None):
         self.name = name
         self.scope = None
         self.typedef_flag = typedef_flag
@@ -1364,6 +1370,7 @@ class PyExtensionType(PyObjectType):
         self.vtabptr_cname = None
         self.vtable_cname = None
         self.is_external = is_external
+        self.check_size = check_size or 'warn'
         self.defered_declarations = []
 
     def set_scope(self, scope):
@@ -3490,7 +3497,8 @@ builtin_cpp_conversions = {
     # arcadia_cpp_conversions
     "TMaybe":             1,
     "TVector":            1,
-    "THashMap":              2,
+    "THashMap":           2,
+    "TMap":               2,
 }
 
 class CppClassType(CType):

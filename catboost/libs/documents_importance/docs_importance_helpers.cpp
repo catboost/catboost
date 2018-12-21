@@ -2,31 +2,61 @@
 #include "ders_helpers.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
-TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(const TPool& pool) {
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(ThreadCount - 1);
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
+#include <util/generic/utility.h>
+#include <util/generic/ymath.h>
+
+#include <numeric>
+
+
+using namespace NCB;
+
+
+TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
+    const TProcessedDataProvider& processedData, int logPeriod
+) {
+    const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());
+    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
 
     TVector<TVector<ui32>> leafIndices(TreeCount);
-    const TVector<ui8> binarizedFeatures = BinarizeFeatures(Model, pool);
-    localExecutor.ExecRange([&] (int treeId) {
+    const TVector<ui8> binarizedFeatures = BinarizeFeatures(Model, *rawObjectsData);
+    LocalExecutor->ExecRange([&] (int treeId) {
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures, treeId);
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
-    UpdateFinalFirstDerivatives(leafIndices, pool);
-    TVector<TVector<double>> documentImportances(DocCount, TVector<double>(pool.Docs.GetDocCount()));
 
-    localExecutor.ExecRange([&] (int docId) {
-        // The derivative of leaf values with respect to train doc weight.
-        TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
-        UpdateLeavesDerivatives(docId, &leafDerivatives);
-        GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
-    }, NPar::TLocalExecutor::TExecRangeParams(0, DocCount), NPar::TLocalExecutor::WAIT_COMPLETE);
+    UpdateFinalFirstDerivatives(leafIndices, GetTarget(processedData.TargetData));
+    TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
+    const size_t docBlockSize = 1000;
+    TImportanceLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
+    TProfileInfo processDocumentsProfile(DocCount);
+
+    for (size_t start = 0; start < DocCount; start += docBlockSize) {
+        const size_t end = Min<size_t>(start + docBlockSize, DocCount);
+        processDocumentsProfile.StartIterationBlock();
+
+        LocalExecutor->ExecRange([&] (int docId) {
+            // The derivative of leaf values with respect to train doc weight.
+            TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
+            UpdateLeavesDerivatives(docId, &leafDerivatives);
+            GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
+        }, NPar::TLocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
+
+        processDocumentsProfile.FinishIterationBlock(end - start);
+        auto profileResults = processDocumentsProfile.GetProfileResults();
+        documentsLogger.Log(profileResults);
+        }
     return documentImportances;
 }
 
-void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TVector<ui32>>& leafIndices, const TPool& pool) {
-    const ui32 docCount = pool.Docs.GetDocCount();
+void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TVector<ui32>>& leafIndices, TConstArrayRef<float> target) {
+    const ui32 docCount = SafeIntegerCast<ui32>(target.size());
     TVector<double> finalApproxes(docCount);
 
     for (ui32 treeId = 0; treeId < TreeCount; ++treeId) {
@@ -40,7 +70,7 @@ void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TV
     }
 
     FinalFirstDerivatives.resize(docCount);
-    EvaluateDerivatives(LossFunction, LeafEstimationMethod, finalApproxes, pool, &FinalFirstDerivatives, nullptr, nullptr);
+    EvaluateDerivatives(LossFunction, LeafEstimationMethod, finalApproxes, target, &FinalFirstDerivatives, nullptr, nullptr);
 }
 
 TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian) {

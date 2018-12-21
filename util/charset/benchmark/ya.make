@@ -1,7 +1,5 @@
 
 
-NEED_CHECK()
-
 RECURSE(
     to_lower
     to_lower/metrics

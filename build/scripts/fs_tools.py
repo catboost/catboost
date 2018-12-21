@@ -50,5 +50,10 @@ if __name__ == '__main__':
             for input_name in args[1:]:
                 with open(input_name) as src:
                     dst.write(src.read())
+    elif mode == 'md':
+        try:
+            os.makedirs(args[0])
+        except OSError:
+            pass
     else:
         raise Exception('unsupported tool %s' % mode)

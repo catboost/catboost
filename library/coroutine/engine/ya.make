@@ -2,9 +2,7 @@ LIBRARY()
 
 
 
-GENERATE_ENUM_SERIALIZATION(
-    poller.h
-)
+GENERATE_ENUM_SERIALIZATION(poller.h)
 
 PEERDIR(
     library/containers/intrusive_rb_tree
@@ -19,5 +17,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

@@ -50,7 +50,7 @@ namespace {
         }
 
         virtual bool OnString(const TStringBuf& v) {
-            B.String(~v, +v);
+            B.String(v.data(), v.size());
 
             return true;
         }
@@ -62,9 +62,9 @@ namespace {
         }
 
         virtual bool OnMapKey(const TStringBuf& v) {
-            auto iv = P.AppendString(v);
+            auto iv = P.AppendCString(v);
 
-            B.Key(~iv, +iv);
+            B.Key(iv.data(), iv.size());
 
             return true;
         }
@@ -133,7 +133,7 @@ void NJson::ConvertJsonToFlexBuffers(TStringBuf input, TFlexBuffersData& result)
 }
 
 TString NJson::FlexToString(const TFlexBuffersData& v) {
-    auto root = flexbuffers::GetRoot(~v, +v);
+    auto root = flexbuffers::GetRoot(v.data(), v.size());
 
     return TString(root.ToString());
 }

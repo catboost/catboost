@@ -1,10 +1,12 @@
 #pragma once
 
-#include "enums.h"
-
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/data/pool.h>
-#include <catboost/libs/options/catboost_options.h>
+
+#include <util/generic/fwd.h>
+#include <util/generic/vector.h>
+#include <util/system/types.h>
+
 
 struct TTreeStatistics {
     TTreeStatistics() = default;
@@ -32,18 +34,19 @@ public:
 
     TVector<TTreeStatistics> EvaluateTreeStatistics(
         const TFullModel& model,
-        const TPool& pool
+        const NCB::TProcessedDataProvider& processedData,
+        int logPeriod = 0
     );
 
 private:
     // Compute leaf numerators.
-    virtual TVector<double> ComputeLeafNumerators(const TVector<float>& weights) = 0;
+    virtual TVector<double> ComputeLeafNumerators(TConstArrayRef<float> weights) = 0;
     // Compute leaf denominators.
-    virtual TVector<double> ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) = 0;
+    virtual TVector<double> ComputeLeafDenominators(TConstArrayRef<float> weights, float l2LeafReg) = 0;
     // Compute formula (6) numerator adding.
     virtual TVector<double> ComputeFormulaNumeratorAdding() = 0;
     // Compute formula (6) numerator multiplier.
-    virtual TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) = 0;
+    virtual TVector<double> ComputeFormulaNumeratorMultiplier(TConstArrayRef<float> weights) = 0;
 
 protected:
     ui32 DocCount;
@@ -62,10 +65,10 @@ public:
         : ITreeStatisticsEvaluator(docCount)
     {
     }
-    TVector<double> ComputeLeafNumerators(const TVector<float>& weights) override;
-    TVector<double> ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) override;
+    TVector<double> ComputeLeafNumerators(TConstArrayRef<float> weights) override;
+    TVector<double> ComputeLeafDenominators(TConstArrayRef<float> weights, float l2LeafReg) override;
     TVector<double> ComputeFormulaNumeratorAdding() override;
-    TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) override;
+    TVector<double> ComputeFormulaNumeratorMultiplier(TConstArrayRef<float> weights) override;
 };
 
 class TNewtonTreeStatisticsEvaluator : public ITreeStatisticsEvaluator {
@@ -74,9 +77,9 @@ public:
         : ITreeStatisticsEvaluator(docCount)
     {
     }
-    TVector<double> ComputeLeafNumerators(const TVector<float>& weights) override;
-    TVector<double> ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) override;
+    TVector<double> ComputeLeafNumerators(TConstArrayRef<float> weights) override;
+    TVector<double> ComputeLeafDenominators(TConstArrayRef<float> weights, float l2LeafReg) override;
     TVector<double> ComputeFormulaNumeratorAdding() override;
-    TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) override;
+    TVector<double> ComputeFormulaNumeratorMultiplier(TConstArrayRef<float> weights) override;
 };
 

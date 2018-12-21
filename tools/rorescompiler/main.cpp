@@ -11,7 +11,7 @@ using namespace NResource;
 
 void GenOne(const TString& raw, const TString& key, IOutputStream& out) {
     out << "extern \"C\" {\n   extern const unsigned char " << raw << "[];\n   extern const unsigned int " << raw << "Size;\n};\n";
-    out << "static const NResource::TRegHelper REG_name" << ToString(CityHash64(~key, +key)) << "(\"" << key << "\", TStringBuf((const char *)" << raw << ", " << raw << "Size));\n\n";
+    out << "static const NResource::TRegHelper REG_name" << ToString(CityHash64(key.data(), key.size())) << "(\"" << key << "\", TStringBuf((const char *)" << raw << ", " << raw << "Size));\n\n";
 };
 
 int main(int argc, char** argv) {

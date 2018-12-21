@@ -2,100 +2,113 @@
 
 #include <util/generic/xrange.h>
 
-void TCrossEntropyError::CalcFirstDerRange(
-     int start,
-     int count,
-     const double* __restrict approxes,
-     const double* __restrict approxDeltas,
-     const float* __restrict targets,
-     const float* __restrict weights,
-     double* __restrict ders
-) const {
-    if (approxDeltas != nullptr) {
-#pragma clang loop vectorize_width(4) interleave_count(2)
-        for (int i = start; i < start + count; ++i) {
-            const double e = approxes[i] * approxDeltas[i];
-            const double p = e / (1 + e);
-            ders[i] = targets[i] - p;
-        }
-    } else {
-#pragma clang loop vectorize_width(4) interleave_count(2)
-        for (int i = start; i < start + count; ++i) {
-            const double e = approxes[i];
-            const double p = e / (1 + e);
-            ders[i] = targets[i] - p;
-        }
-    }
-    if (weights != nullptr) {
-#pragma clang loop vectorize_width(4) interleave_count(2)
-        for (int i = start; i < start + count; ++i) {
-            ders[i] *= weights[i];
-        }
-    }
-}
-
-template<bool CalcThirdDer>
-static void CalcCrossEntropyErrorDersRangeImpl(
+template <int MaxDerivativeOrder, bool UseTDers, bool UseExpApprox, bool HasDelta>
+void IDerCalcer::CalcDersRangeImpl(
     int start,
     int count,
-    const double* __restrict approxExps,
-    const double* __restrict approxDeltas,
-    const float* __restrict targets,
-    const float* __restrict weights,
-    TDers* __restrict ders
-) {
-    if (approxDeltas != nullptr) {
-#pragma clang loop vectorize_width(4) interleave_count(2)
-        for (int i = start; i < start + count; ++i) {
-            const double p = approxExps[i] * approxDeltas[i] / (1 + approxExps[i] * approxDeltas[i]);
-            ders[i].Der1 = targets[i] - p;
-            ders[i].Der2 = -p * (1 - p);
-            if (CalcThirdDer) {
-                ders[i].Der3 = -p * (1 - p) * (1 - 2 * p);
-            }
+    const double* approxes,
+    const double* approxDeltas,
+    const float* targets,
+    const float* weights,
+    TDers* ders,
+    double* firstDers
+) const {
+    Y_ASSERT(UseExpApprox == IsExpApprox);
+    Y_ASSERT(HasDelta == (approxDeltas != nullptr));
+    Y_ASSERT(UseTDers == (ders != nullptr) && (ders != nullptr) == (firstDers == nullptr));
+    Y_ASSERT(MaxDerivativeOrder <= MaxSupportedDerivativeOrder);
+    Y_ASSERT((MaxDerivativeOrder > 1) <= (ders != nullptr));
+    for (int i = start; i < start + count; ++i) {
+        double updatedApprox = approxes[i];
+        if (HasDelta) {
+            updatedApprox = UpdateApprox<UseExpApprox>(updatedApprox, approxDeltas[i]);
         }
-    } else {
-#pragma clang loop vectorize_width(4) interleave_count(2)
-        for (int i = start; i < start + count; ++i) {
-            const double p = approxExps[i] / (1 + approxExps[i]);
-            ders[i].Der1 = targets[i] - p;
-            ders[i].Der2 = -p * (1 - p);
-            if (CalcThirdDer) {
-                ders[i].Der3 = -p * (1 - p) * (1 - 2 * p);
-            }
+        if (UseTDers) {
+            ders[i].Der1 = CalcDer(updatedApprox, targets[i]);
+        } else {
+            firstDers[i] = CalcDer(updatedApprox, targets[i]);
+        }
+        if (MaxDerivativeOrder >= 2) {
+            ders[i].Der2 = CalcDer2(updatedApprox, targets[i]);
+        }
+        if (MaxDerivativeOrder >= 3) {
+            ders[i].Der3 = CalcDer3(updatedApprox, targets[i]);
         }
     }
     if (weights != nullptr) {
-#pragma clang loop vectorize_width(8) interleave_count(2)
         for (int i = start; i < start + count; ++i) {
-            ders[i].Der1 *= weights[i];
-            ders[i].Der2 *= weights[i];
-            if (CalcThirdDer) {
+            if (UseTDers) {
+                ders[i].Der1 *= weights[i];
+            } else {
+                firstDers[i] *= weights[i];
+            }
+            if (MaxDerivativeOrder >= 2) {
+                ders[i].Der2 *= weights[i];
+            }
+            if (MaxDerivativeOrder >= 3) {
                 ders[i].Der3 *= weights[i];
             }
         }
     }
 }
 
-void TCrossEntropyError::CalcDersRange(
+static constexpr int EncodeImplParameters(int maxDerivativeOrder, bool useTDers, bool isExpApprox, bool hasDelta) {
+    return maxDerivativeOrder * 8 + useTDers * 4 + isExpApprox * 2 + hasDelta;
+}
+
+void IDerCalcer::CalcDersRange(
     int start,
     int count,
-    bool calcThirdDer,
-    const double* __restrict approxExps,
-    const double* __restrict approxDeltas,
-    const float* __restrict targets,
-    const float* __restrict weights,
-    TDers* __restrict ders
+    int maxDerivativeOrder,
+    const double* approxes,
+    const double* approxDeltas,
+    const float* targets,
+    const float* weights,
+    TDers* ders,
+    double* firstDers
 ) const {
-    if (calcThirdDer) {
-        CalcCrossEntropyErrorDersRangeImpl<true>(start, count, approxExps, approxDeltas, targets, weights, ders);
-    } else {
-        CalcCrossEntropyErrorDersRangeImpl<false>(start, count, approxExps, approxDeltas, targets, weights, ders);
+    const bool hasDelta = approxDeltas != nullptr;
+    const bool useTDers = ders != nullptr;
+    switch (EncodeImplParameters(maxDerivativeOrder, useTDers, IsExpApprox, hasDelta)) {
+        case EncodeImplParameters(1, false, false, false):
+            return CalcDersRangeImpl<1, false, false, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, false, false, true):
+            return CalcDersRangeImpl<1, false, false, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, false, true, false):
+            return CalcDersRangeImpl<1, false, true, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, false, true, true):
+            return CalcDersRangeImpl<1, false, true, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, true, false, false):
+            return CalcDersRangeImpl<1, true, false, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, true, false, true):
+            return CalcDersRangeImpl<1, true, false, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, true, true, false):
+            return CalcDersRangeImpl<1, true, true, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(1, true, true, true):
+            return CalcDersRangeImpl<1, true, true, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(2, true, false, false):
+            return CalcDersRangeImpl<2, true, false, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(2, true, false, true):
+            return CalcDersRangeImpl<2, true, false, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(2, true, true, false):
+            return CalcDersRangeImpl<2, true, true, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(2, true, true, true):
+            return CalcDersRangeImpl<2, true, true, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(3, true, false, false):
+            return CalcDersRangeImpl<3, true, false, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(3, true, false, true):
+            return CalcDersRangeImpl<3, true, false, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(3, true, true, false):
+            return CalcDersRangeImpl<3, true, true, false>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        case EncodeImplParameters(3, true, true, true):
+            return CalcDersRangeImpl<3, true, true, true>(start, count, approxes, approxDeltas, targets, weights, ders, firstDers);
+        default:
+            Y_ASSERT(false);
     }
 }
 
 namespace {
-    template<int Capacity>
+    template <int Capacity>
     class TExpForwardView {
     public:
         TExpForwardView(TConstArrayRef<double> src, double bias)
@@ -123,6 +136,123 @@ namespace {
         size_t ViewEnd = 0;
         std::array<double, Capacity> ExpSrc;
     };
+}
+
+template <bool CalcThirdDer, bool UseTDers, bool UseExpApprox, bool HasDelta>
+static void CalcCrossEntropyDerRangeImpl(
+    int start,
+    int count,
+    const double* approxes,
+    const double* approxDeltas,
+    const float* targets,
+    const float* weights,
+    TDers* ders,
+    double* firstDers
+) {
+    TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes + start, count), 0);
+    TExpForwardView</*Capacity*/16> expApproxDeltas(MakeArrayRef(approxDeltas + start, count), 0);
+    Y_ASSERT(HasDelta == (approxDeltas != nullptr));
+#pragma clang loop vectorize_width(4) interleave_count(2)
+    for (int i = start; i < start + count; ++i) {
+        double e;
+        if (UseExpApprox) {
+            e = approxes[i];
+        } else {
+            e = expApproxes[i - start];
+        }
+        if (HasDelta) {
+            if (UseExpApprox) {
+                e *= approxDeltas[i];
+            } else {
+                e *= expApproxDeltas[i - start];
+            }
+        }
+        const double p = e / (1 + e);
+        if (UseTDers) {
+            ders[i].Der1 = targets[i] - p;
+            ders[i].Der2 = -p * (1 - p);
+            if (CalcThirdDer) {
+                ders[i].Der3 = -p * (1 - p) * (1 - 2 * p);
+            }
+        } else {
+            firstDers[i] = targets[i] - p;
+        }
+    }
+    if (weights != nullptr) {
+#pragma clang loop vectorize_width(4) interleave_count(2)
+        for (int i = start; i < start + count; ++i) {
+            if (UseTDers) {
+                ders[i].Der1 *= weights[i];
+                ders[i].Der2 *= weights[i];
+                if (CalcThirdDer) {
+                    ders[i].Der3 *= weights[i];
+                }
+            } else {
+                firstDers[i] *= weights[i];
+            }
+        }
+    }
+}
+
+static constexpr int EncodeCrossEntropyImplParameters(bool CalcThirdDer, bool UseTDers, bool UseExpApprox, bool HasDelta) {
+    return CalcThirdDer * 8 + UseTDers * 4 + UseExpApprox * 2 + HasDelta;
+}
+
+void TCrossEntropyError::CalcFirstDerRange(
+    int start,
+    int count,
+    const double* approxes,
+    const double* approxDeltas,
+    const float* targets,
+    const float* weights,
+    double* ders
+) const {
+    const int encodedParameters = EncodeCrossEntropyImplParameters(/*CalcThirdDer*/false, /*UseTDers*/false, GetIsExpApprox(), /*HasDelta*/ approxDeltas != nullptr);
+    switch (encodedParameters) {
+        case EncodeCrossEntropyImplParameters(false, false, true, true):
+            return CalcCrossEntropyDerRangeImpl<false, false, true, true>(start, count, approxes, approxDeltas, targets, weights, nullptr, ders);
+        case EncodeCrossEntropyImplParameters(false, false, true, false):
+            return CalcCrossEntropyDerRangeImpl<false, false, true, false>(start, count, approxes, approxDeltas, targets, weights, nullptr, ders);
+        case EncodeCrossEntropyImplParameters(false, false, false, true):
+            return CalcCrossEntropyDerRangeImpl<false, false, false, true>(start, count, approxes, approxDeltas, targets, weights, nullptr, ders);
+        case EncodeCrossEntropyImplParameters(false, false, false, false):
+            return CalcCrossEntropyDerRangeImpl<false, false, false, false>(start, count, approxes, approxDeltas, targets, weights, nullptr, ders);
+        default:
+            Y_ASSERT(false);
+    }
+}
+
+void TCrossEntropyError::CalcDersRange(
+    int start,
+    int count,
+    bool calcThirdDer,
+    const double* approxes,
+    const double* approxDeltas,
+    const float* targets,
+    const float* weights,
+    TDers* ders
+) const {
+    const int encodedParameters = EncodeCrossEntropyImplParameters(calcThirdDer, /*UseTDers*/true, GetIsExpApprox(), /*HasDelta*/ approxDeltas != nullptr);
+    switch (encodedParameters) {
+        case EncodeCrossEntropyImplParameters(true, true, true, true):
+            return CalcCrossEntropyDerRangeImpl<true, true, true, true>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(true, true, true, false):
+            return CalcCrossEntropyDerRangeImpl<true, true, true, false>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(true, true, false, true):
+            return CalcCrossEntropyDerRangeImpl<true, true, false, true>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(true, true, false, false):
+            return CalcCrossEntropyDerRangeImpl<true, true, false, false>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(false, true, true, true):
+            return CalcCrossEntropyDerRangeImpl<false, true, true, true>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(false, true, true, false):
+            return CalcCrossEntropyDerRangeImpl<false, true, true, false>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(false, true, false, true):
+            return CalcCrossEntropyDerRangeImpl<false, true, false, true>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        case EncodeCrossEntropyImplParameters(false, true, false, false):
+            return CalcCrossEntropyDerRangeImpl<false, true, false, false>(start, count, approxes, approxDeltas, targets, weights, ders, nullptr);
+        default:
+            Y_ASSERT(false);
+    }
 }
 
 void TQuerySoftMaxError::CalcDersForSingleQuery(

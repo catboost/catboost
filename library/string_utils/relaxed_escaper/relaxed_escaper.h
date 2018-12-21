@@ -151,12 +151,12 @@ namespace NEscJ {
 
     template <bool quote, bool tounicode>
     inline void EscapeJ(TStringBuf in, IOutputStream& out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
-        TTempBuf b(SuggestBuffer(+in) + 2);
+        TTempBuf b(SuggestBuffer(in.size()) + 2);
 
         if (quote)
             b.Append("\"", 1);
 
-        b.Proceed(EscapeJ<tounicode>(~in, +in, b.Current(), safe, unsafe));
+        b.Proceed(EscapeJ<tounicode>(in.data(), in.size(), b.Current(), safe, unsafe));
 
         if (quote)
             b.Append("\"", 1);
@@ -166,12 +166,12 @@ namespace NEscJ {
 
     template <bool quote, bool tounicode>
     inline void EscapeJ(TStringBuf in, TString& out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
-        TTempBuf b(SuggestBuffer(+in) + 2);
+        TTempBuf b(SuggestBuffer(in.size()) + 2);
 
         if (quote)
             b.Append("\"", 1);
 
-        b.Proceed(EscapeJ<tounicode>(~in, +in, b.Current(), safe, unsafe));
+        b.Proceed(EscapeJ<tounicode>(in.data(), in.size(), b.Current(), safe, unsafe));
 
         if (quote)
             b.Append("\"", 1);

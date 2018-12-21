@@ -1,9 +1,13 @@
 RECURSE(
+    accurate_accumulate
+    accurate_accumulate/benchmark
+    accurate_accumulate/benchmark/metrics
     binsaver
     binsaver/ut
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut
+    build_info
     charset
     charset/ut
     chromium_trace
@@ -29,8 +33,12 @@ RECURSE(
     fast_exp/benchmark
     fast_exp/ut
     fast_log
+    float16
+    float16/ut
     getopt
+    getopt/last_getopt_demo
     getopt/small
+    getopt/ut
     grid_creator
     grid_creator/fuzz
     grid_creator/ut

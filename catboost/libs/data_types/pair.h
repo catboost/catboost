@@ -2,13 +2,18 @@
 
 #include <library/binsaver/bin_saver.h>
 
+#include <util/digest/multi.h>
+#include <util/stream/output.h>
+#include <util/str_stl.h>
+
+
 struct TPair {
-    int WinnerId;
-    int LoserId;
+    ui32 WinnerId;
+    ui32 LoserId;
     float Weight;
 
     TPair() = default;
-    TPair(int winnerId, int loserId, float weight)
+    TPair(ui32 winnerId, ui32 loserId, float weight)
         : WinnerId(winnerId)
         , LoserId(loserId)
         , Weight(weight)
@@ -22,17 +27,35 @@ struct TPair {
     SAVELOAD(WinnerId, LoserId, Weight);
 };
 
+
+template <>
+struct THash<TPair> {
+    inline size_t operator()(const TPair& pair) const {
+        return MultiHash(pair.WinnerId, pair.LoserId, pair.Weight);
+    }
+};
+
+
+void OutputHumanReadable(const TPair& pair, IOutputStream* out);
+
+TString HumanReadableDescription(const TPair& pair);
+
+
 struct TCompetitor {
-    int Id; // index that is relative to group start
+    ui32 Id; // index that is relative to group start
     float Weight;
     float SampleWeight;
 
     TCompetitor() = default;
-    TCompetitor(int id, float weight)
+    TCompetitor(ui32 id, float weight)
         : Id(id)
         , Weight(weight)
         , SampleWeight(weight)
     {
+    }
+
+    bool operator==(const TCompetitor& rhs) const {
+        return (Id == rhs.Id) && (Weight == rhs.Weight) && (SampleWeight == rhs.SampleWeight);
     }
 
     SAVELOAD(Id, Weight, SampleWeight);

@@ -140,7 +140,7 @@ static TString GetExecPathImpl() {
     if (FreeBSDGuessExecBasePath(getenv("PWD"), execPath)) {
         return execPath;
     }
-    if (FreeBSDGuessExecBasePath(~NFs::CurrentWorkingDirectory(), execPath)) {
+    if (FreeBSDGuessExecBasePath(NFs::CurrentWorkingDirectory(), execPath)) {
         return execPath;
     }
 

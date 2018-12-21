@@ -7,7 +7,7 @@
 namespace NCatboostCuda {
 
 
-    template<class TObjective>
+    template <class TObjective>
     class TOracleFactory: public ILeavesEstimationOracleFactory {
     public:
         TOracleFactory(const TObjective& target)

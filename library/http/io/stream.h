@@ -25,6 +25,7 @@ struct THttpReadException: public THttpException {
 class THttpInput: public IInputStream {
 public:
     THttpInput(IInputStream* slave);
+    THttpInput(THttpInput&& httpInput);
     ~THttpInput() override;
 
     /*
@@ -134,6 +135,10 @@ public:
      */
     /// Возвращает первую строку HTTP-запроса/ответа
     const TString& FirstLine() const noexcept;
+
+    /// Возвращает размер отправленных данных (без заголовков, с учётом сжатия, без
+    /// учёта chunked transfer encoding)
+    size_t SentSize() const noexcept;
 
 private:
     void DoWrite(const void* buf, size_t len) override;

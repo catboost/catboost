@@ -2,8 +2,6 @@ UNITTEST_FOR(util)
 
 
 
-NEED_CHECK()
-
 FORK_TESTS()
 
 SRCS(
@@ -42,6 +40,7 @@ SRCS(
     generic/singleton_ut.cpp
     generic/size_literals_ut.cpp
     generic/stack_ut.cpp
+    generic/store_policy_ut.cpp
     generic/strbuf_ut.cpp
     generic/string_ut.cpp
     generic/typelist_ut.cpp

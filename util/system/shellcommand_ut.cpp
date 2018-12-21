@@ -121,7 +121,7 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
                 << "sort";
             cmd.Run();
             UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
-            UNIT_ASSERT_VALUES_EQUAL(+cmd.GetError(), 0u);
+            UNIT_ASSERT_VALUES_EQUAL(cmd.GetError().size(), 0u);
             UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
         }
     }
@@ -146,7 +146,7 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT_VALUES_EQUAL(cmd.GetError(), "");
 #if !defined(_win_)
         UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
-        UNIT_ASSERT_VALUES_EQUAL(+cmd.GetOutput(), 0u);
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput().size(), 0u);
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
 #endif
     }
@@ -165,20 +165,20 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
 #else
         UNIT_ASSERT_VALUES_EQUAL(input, output);
 #endif
-        UNIT_ASSERT_VALUES_EQUAL(+cmd.GetError(), 0u);
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetError().size(), 0u);
     }
     Y_UNIT_TEST(TestRunNonexistent) {
         TShellCommand cmd("iwerognweiofnewio"); // some nonexistent command name
         cmd.Run().Wait();
         UNIT_ASSERT(TShellCommand::SHELL_ERROR == cmd.GetStatus());
-        UNIT_ASSERT_VALUES_UNEQUAL(+cmd.GetError(), 0u);
+        UNIT_ASSERT_VALUES_UNEQUAL(cmd.GetError().size(), 0u);
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 != cmd.GetExitCode());
     }
     Y_UNIT_TEST(TestExitCode) {
         TShellCommand cmd("grep qwerty qwerty"); // some nonexistent file name
         cmd.Run().Wait();
         UNIT_ASSERT(TShellCommand::SHELL_ERROR == cmd.GetStatus());
-        UNIT_ASSERT_VALUES_UNEQUAL(+cmd.GetError(), 0u);
+        UNIT_ASSERT_VALUES_UNEQUAL(cmd.GetError().size(), 0u);
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 2 == cmd.GetExitCode());
     }
     // 'type con' and 'copy con con' want real console, not stdin, use sort
@@ -190,7 +190,7 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         TShellCommand cmd(catCommand, options);
         cmd.Run().Wait();
         UNIT_ASSERT_VALUES_EQUAL(input, cmd.GetOutput());
-        UNIT_ASSERT_VALUES_EQUAL(+cmd.GetError(), 0u);
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetError().size(), 0u);
     }
     Y_UNIT_TEST(TestOutput) {
         TShellCommandOptions options;
@@ -203,7 +203,7 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         TShellCommand cmd(catCommand, options);
         cmd.Run().Wait();
         UNIT_ASSERT_VALUES_EQUAL(input, output);
-        UNIT_ASSERT_VALUES_EQUAL(+cmd.GetError(), 0u);
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetError().size(), 0u);
     }
     Y_UNIT_TEST(TestIO) {
         // descriptive test: use all options
@@ -294,6 +294,7 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
             cmd.Terminate();
             cmd.Wait();
             UNIT_ASSERT(TShellCommand::SHELL_ERROR == cmd.GetStatus());
+            UNIT_ASSERT(cmd.GetExitCode().Defined() && -15 == cmd.GetExitCode());
         }
         sleep(1);
         UNIT_ASSERT(!NFs::Exists(tmpfile));
@@ -360,6 +361,6 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         TShellCommand cmd(catCommand, options);
         cmd.Run().Wait();
         UNIT_ASSERT(TShellCommand::SHELL_INTERNAL_ERROR == cmd.GetStatus());
-        UNIT_ASSERT_VALUES_UNEQUAL(+cmd.GetInternalError(), 0u);
+        UNIT_ASSERT_VALUES_UNEQUAL(cmd.GetInternalError().size(), 0u);
     }
 }

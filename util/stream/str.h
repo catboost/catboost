@@ -30,7 +30,7 @@ public:
      * @param s                         String to read from.
      */
     inline TStringInput(const TString& s) noexcept
-        : S_(s)
+        : S_(&s)
         , Pos_(0)
     {
     }
@@ -47,7 +47,7 @@ protected:
     void DoUndo(size_t len) override;
 
 private:
-    const TString& S_;
+    const TString* S_;
     size_t Pos_;
 
     friend class TStringStream;
@@ -72,6 +72,8 @@ public:
         : S_(s)
     {
     }
+
+     TStringOutput(TStringOutput&& s) noexcept = default;
 
     ~TStringOutput() override;
 
@@ -159,13 +161,6 @@ public:
     }
 
     /**
-     * @see Data()
-     */
-    inline const char* operator~() const noexcept {
-        return Data();
-    }
-
-    /**
      * @returns                         Total number of characters in this
      *                                  stream. Note that this is not the same
      *                                  as the total number of characters
@@ -176,16 +171,10 @@ public:
     }
 
     /**
-     * @see Size()
-     */
-    inline size_t operator+() const noexcept {
-        return Size();
-    }
-
-    /**
      * @returns                         Whether the string that this stream
      *                                  operates on is empty.
      */
+    Y_PURE_FUNCTION
     inline bool Empty() const noexcept {
         return Str().empty();
     }
@@ -203,6 +192,7 @@ public:
 
     // TODO: compatibility with existing code, remove
 
+    Y_PURE_FUNCTION
     bool empty() const {
         return Empty();
     }

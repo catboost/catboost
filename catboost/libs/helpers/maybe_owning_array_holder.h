@@ -22,8 +22,9 @@ namespace NCB {
             return TMaybeOwningArrayHolder(arrayRef, std::move(resourceHolder));
         }
 
-        static TMaybeOwningArrayHolder CreateOwning(TVector<T>&& data) {
-            auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T>>(std::move(data));
+        template <class T2>
+        static TMaybeOwningArrayHolder CreateOwning(TVector<T2>&& data) {
+            auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T2>>(std::move(data));
             return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
         }
 
@@ -57,5 +58,7 @@ namespace NCB {
         TIntrusivePtr<IResourceHolder> ResourceHolder;
     };
 
+    template <class T>
+    using TMaybeOwningConstArrayHolder = TMaybeOwningArrayHolder<const T>;
 }
 

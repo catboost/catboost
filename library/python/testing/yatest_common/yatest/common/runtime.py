@@ -1,7 +1,8 @@
 import os
-import types
 import functools
 import json
+
+import six
 
 
 def _get_ya_config():
@@ -25,7 +26,7 @@ def _get_ya_plugin_instance():
 def _norm_path(path):
     if path is None:
         return None
-    assert isinstance(path, types.StringTypes)
+    assert isinstance(path, six.string_types)
     if "\\" in path:
         raise AssertionError("path {} contains Windows seprators \\ - replace them with '/'".format(path))
     return os.path.normpath(path)

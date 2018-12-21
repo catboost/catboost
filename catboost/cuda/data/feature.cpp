@@ -1,5 +1,7 @@
 #include "feature.h"
 
+#include <util/stream/output.h>
+
 using namespace NCatboostCuda;
 
 template <>

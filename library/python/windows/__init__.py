@@ -6,6 +6,8 @@ import sys
 import shutil
 import logging
 
+from six import reraise
+
 import library.python.func
 import library.python.strings
 
@@ -76,7 +78,7 @@ def errorfix(f):
         except WindowsError:
             tp, value, tb = sys.exc_info()
             fix_error(value)
-            raise tp, value, tb
+            reraise(tp, value, tb)
 
     return f_wrapped
 
@@ -151,7 +153,7 @@ if on_win():
                     raise
                 ei = sys.exc_info()
                 time.sleep(delay)
-        raise ei[0], ei[1], ei[2]
+        reraise(ei[0], ei[1], ei[2])
 
     # Placeholder for disabled functions
     @win_only

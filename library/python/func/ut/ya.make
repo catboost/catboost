@@ -1,15 +1,7 @@
 
 
-PYTEST()
-
-TEST_SRCS(
-    test_func.py
+RECURSE(
+    lib
+    py2
+    py3
 )
-
-PEERDIR(
-    library/python/func
-)
-
-END()
-
-NEED_CHECK()

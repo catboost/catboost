@@ -5,6 +5,7 @@
 #include <library/resource/resource.h>
 
 #include <util/generic/map.h>
+#include <util/generic/set.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
@@ -50,6 +51,15 @@ namespace NCatboost {
         Out << "    }" << '\n';
         Out << "    return result;" << '\n';
         Out << "}" << '\n';
+
+        // Also emit the API with catFeatures, for uniformity
+        Out << '\n';
+        Out << "double ApplyCatboostModel(" << '\n';
+        Out << "    const std::vector<float>& floatFeatures," << '\n';
+        Out << "    const std::vector<std::string>&" << '\n';
+        Out << ") {" << '\n';
+        Out << "    return ApplyCatboostModel(floatFeatures);" << '\n';
+        Out << "}" << '\n';
     }
 
     void TCatboostModelToCppConverter::WriteModel(const TFullModel& model) {
@@ -60,14 +70,14 @@ namespace NCatboost {
         int binaryFeatureCount = GetBinaryFeatureCount(model);
 
         Out << "static const struct CatboostModel {" << '\n';
-        Out << "    unsigned int FloatFeatureCount = " << model.ObliviousTrees.FloatFeatures.size() << ";" << '\n';
+        Out << "    unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
         Out << "    unsigned int BinaryFeatureCount = " << binaryFeatureCount << ";" << '\n';
         Out << "    unsigned int TreeCount = " << model.ObliviousTrees.TreeSizes.size() << ";" << '\n';
 
         Out << "    unsigned int TreeDepth[" << model.ObliviousTrees.TreeSizes.size() << "] = {" << OutputArrayInitializer(model.ObliviousTrees.TreeSizes) << "};" << '\n';
         Out << "    unsigned int TreeSplits[" << model.ObliviousTrees.TreeSplits.size() << "] = {" << OutputArrayInitializer(model.ObliviousTrees.TreeSplits) << "};" << '\n';
 
-        Out << "    unsigned int BorderCounts[" << model.ObliviousTrees.FloatFeatures.size() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
+        Out << "    unsigned int BorderCounts[" << model.ObliviousTrees.GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
 
         Out << "    float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
 
@@ -79,25 +89,21 @@ namespace NCatboost {
         Out << '\n';
     }
 
-    void TCatboostModelToCppConverter::WriteHeader() {
+    void TCatboostModelToCppConverter::WriteHeader(bool forCatFeatures) {
+        if (forCatFeatures) {
+           Out << "#include <cassert>" << '\n';
+        }
+        Out << "#include <string>" << '\n';
         Out << "#include <vector>" << '\n';
+        if (forCatFeatures) {
+            Out << "#include <unordered_map>" << '\n';
+        }
         Out << '\n';
     }
 
     /*
      * Full model code with complete support of cat features
      */
-
-    void TCatboostModelToCppConverter::WriteHeaderCatFeatures() {
-        Out << "#include <string>" << '\n';
-        Out << '\n';
-        Out << "#ifdef GOOOGLE_CITY_HASH // Required revision https://github.com/google/cityhash/tree/00b9287e8c1255b5922ef90e304d5287361b2c2a or earlier" << '\n';
-        Out << "    #include \"city.h\"" << '\n';
-        Out << "#else" << '\n';
-        Out << "    #include <util/digest/city.h>" << '\n';
-        Out << "#endif" << '\n';
-        Out << '\n';
-    }
 
     void TCatboostModelToCppConverter::WriteCTRStructs() {
         Out << NResource::Find("catboost_model_export_cpp_ctr_structs");
@@ -141,7 +147,7 @@ namespace NCatboost {
             out << indent << WN("transposedCatFeatureIndexes") << "{";
             TSequenceCommaSeparator commaInnerWithSpace(proj.CatFeatures.size(), AddSpaceAfterComma);
             for (const auto feature : proj.CatFeatures) {
-                out << ctrProvider->GetCatFeatureIndex().at(feature) << commaInnerWithSpace;
+                out << feature << commaInnerWithSpace;
             }
             out << "}," << '\n';
             out << indent++ << WN("binarizedIndexes") << "{";
@@ -229,8 +235,8 @@ namespace NCatboost {
         out << --indent << "};" << '\n';
     };
 
-    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model) {
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "MultiClassification model export to cpp is not supported.");
+    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
+        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to cpp is not supported.");
 
         WriteCTRStructs();
         Out << '\n';
@@ -243,10 +249,10 @@ namespace NCatboost {
 
         Out << indent++ << "static const struct CatboostModel {" << '\n';
         Out << indent << "CatboostModel() {};" << '\n';
-        Out << indent << "unsigned int FloatFeatureCount = " << model.ObliviousTrees.FloatFeatures.size() << ";" << '\n';
-        Out << indent << "unsigned int CatFeatureCount = " << model.ObliviousTrees.CatFeatures.size() << ";" << '\n';
+        Out << indent << "unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
+        Out << indent << "unsigned int CatFeatureCount = " << model.GetNumCatFeatures() << ";" << '\n';
         Out << indent << "unsigned int BinaryFeatureCount = " << binaryFeatureCount << ";" << '\n';
-        Out << indent << "unsigned int TreeCount = " << model.ObliviousTrees.TreeSizes.size() << ";" << '\n';
+        Out << indent << "unsigned int TreeCount = " << model.GetTreeCount() << ";" << '\n';
 
         Out << indent++ << "std::vector<std::vector<float>> FloatFeatureBorders = {" << '\n';
         comma.ResetCount(model.ObliviousTrees.FloatFeatures.size());
@@ -298,6 +304,20 @@ namespace NCatboost {
         WriteModelCTRs(Out, model, indent);
 
         Out << "} CatboostModelStatic;" << '\n';
+        Out << '\n';
+
+        indent--;
+        Out << indent++ << "static std::unordered_map<std::string, int> CatFeatureHashes = {" << '\n';
+        if (catFeaturesHashToString != nullptr) {
+            TSet<int> ordered_keys;
+            for (const auto& key_value: *catFeaturesHashToString) {
+                ordered_keys.insert(key_value.first);
+            }
+            for (const auto& key_value: ordered_keys) {
+                Out << indent << "{" << catFeaturesHashToString->at(key_value).Quote() << ", "  << key_value << "},\n";
+            }
+        }
+        Out << --indent << "};" << '\n';
         Out << '\n';
     }
 

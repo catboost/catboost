@@ -4,7 +4,7 @@ EXPORTS_SCRIPT(calcer.exports)
 
 
 SRCS(
-    model_calcer_wrapper.cpp
+    c_api.cpp
 )
 
 PEERDIR(

@@ -188,12 +188,11 @@ namespace NYT {
     void TToken::CheckType(ETokenType expectedType) const {
         if (Type_ != expectedType) {
             if (Type_ == ETokenType::EndOfStream) {
-                ythrow TYsonException() << Sprintf("Unexpected end of stream (ExpectedType: %d)", expectedType);
+                ythrow TYsonException() << "Unexpected end of stream (ExpectedType: " << TokenTypeToString(expectedType) << ")";
             } else {
-                ythrow TYsonException() << Sprintf("Unexpected token (Token: '%s', Type: %d, ExpectedType: %d)",
-                                                   ~ToString(*this),
-                                                   Type_,
-                                                   expectedType);
+                ythrow TYsonException() << "Unexpected token (Token: '" << ToString(*this)
+                                        << "', Type: " << TokenTypeToString(Type_)
+                                        << ", ExpectedType: " << TokenTypeToString(expectedType) << ")";
             }
         }
     }

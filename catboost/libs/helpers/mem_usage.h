@@ -2,8 +2,8 @@
 
 #include <catboost/libs/logging/logging.h>
 
-#include <util/system/rusage.h>
+#include <util/system/mem_info.h>
 
 inline void DumpMemUsage(const TString& msg) {
-    MATRIXNET_DEBUG_LOG << "Mem usage: " << msg << ": " << TRusage::Get().Rss << Endl;
+    CATBOOST_DEBUG_LOG << "Mem usage: " << msg << ": " << NMemInfo::GetMemInfo().RSS << Endl;
 }

@@ -14,6 +14,7 @@ PEERDIR(
     library/neh/asio
     library/netliba/v6
     library/openssl/init
+    library/threading/atomic
 )
 
 SRCS(
@@ -41,6 +42,6 @@ SRCS(
     utils.cpp
 )
 
-END()
+GENERATE_ENUM_SERIALIZATION(http_common.h)
 
-NEED_CHECK()
+END()

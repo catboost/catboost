@@ -10,13 +10,13 @@ namespace NCudaLib {
     public:
         bool HasPeerAccess(int from, int to) const {
             if (PeerDevices.size() && PeerDevices.size() > static_cast<ui64>(from)) {
-                return PeerDevices[from].has(to);
+                return PeerDevices[from].contains(to);
             }
             return false;
         }
 
         void EnablePeerAccess(int currentDevice, int targetDevice) {
-            if (PeerDevices[currentDevice].has(targetDevice)) {
+            if (PeerDevices[currentDevice].contains(targetDevice)) {
                 return;
             }
             Y_ASSERT(GetDevice() == currentDevice);
@@ -29,7 +29,7 @@ namespace NCudaLib {
         }
 
         void DisablePeerAccess(int currentDevice, int targetDevice) {
-            if (!PeerDevices[currentDevice].has(targetDevice)) {
+            if (!PeerDevices[currentDevice].contains(targetDevice)) {
                 return;
             }
             CUDA_SAFE_CALL(cudaDeviceDisablePeerAccess(targetDevice));

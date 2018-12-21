@@ -135,11 +135,12 @@ namespace NKernel {
 
 
                 const float ljj = Ljj[0];
+
                 #pragma unroll
                 for (int k = 0; k < N; ++k) {
                     const int colIdx = x + 32 * k;
                     if (colIdx == col) {
-                        currentLine[k] = ljj > 0 ? (currentLine[k] - sum) / (ljj + 1e-9f) : 0.0f;
+                        currentLine[k] = ljj > 0 ? (currentLine[k] - sum) / (ljj + 1e-7f) : 0.0f;
                     }
                 }
                 __syncwarp();
@@ -165,7 +166,7 @@ namespace NKernel {
                     const int rowIdx = x + 32 * k;
                     if (rowIdx == row) {
                         const float tmp2 = currentLine[k] - sum;
-                        currentLine[k] = tmp2 > 1e-4f ? sqrtf(tmp2) : 1e-2f;
+                        currentLine[k] = tmp2 > 1e-8f ? sqrtf(tmp2) : 1e-4f;
                     }
                 }
                 __syncwarp();
@@ -319,13 +320,24 @@ namespace NKernel {
 
         const float cellPrior = 1.0f / rowSize;
 
+        float trace = 0;
+        float pseudoRank = 0;
+        for (int row = 0; row < rowSize; ++row) {
+            const float val = __ldg(lower + row * (row + 1) / 2 + row);
+            trace += val;
+            pseudoRank += val > 1e-9f;
+        }
+
         #pragma unroll 8
         for (int row = 0; row < rowSize; ++row) {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
             if (col <= row) {
                 float val = __ldg(lower + row * (row + 1) / 2 + col);
-                if (col == row && val <= 1e-9f) {
+                if (col == row && val <= 1e-7f) {
                     val += 10.0f;
+                }
+                if (col == row) {
+                    val += 0.01 * trace / pseudoRank;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
                 WriteThrough(lower + row * (row + 1) / 2 + col,  val);
@@ -438,7 +450,7 @@ namespace NKernel {
 
 
     //Inplace solver
-    template<int BLOCK_SIZE, int SOLVER_BLOCK_SIZE, int REMOVE_LAST>
+    template <int BLOCK_SIZE, int SOLVER_BLOCK_SIZE, int REMOVE_LAST>
     inline void RunCholeskySolver(float* matrices, float* solutions,
                                   int rowSize, int matCount,
                                   TCudaStream stream) {
@@ -489,7 +501,7 @@ namespace NKernel {
         }
     }
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     inline void RunCalcScores(const float* linearSystem, const float* solutions, int rowSize, float* scores,
                               int matCount, TCudaStream stream) {
         const int numBlocks = (matCount * BLOCK_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;

@@ -2,6 +2,7 @@
 
 #include "pairwise_optimization_subsets.h"
 #include "blocked_histogram_helper.h"
+
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/reduce_scatter.h>
@@ -13,6 +14,8 @@
 #include <catboost/cuda/gpu_data/grid_policy.h>
 #include <catboost/cuda/methods/pointwise_kernels.h>
 #include <catboost/cuda/methods/histograms_helper.h>
+
+#include <util/stream/labeled.h>
 
 namespace NCatboostCuda {
     struct TBinaryFeatureSplitResults {
@@ -43,7 +46,7 @@ namespace NCatboostCuda {
                     .SetReadSlice((TSlice(idx, (idx + 1))))
                     .Read(*matrixDiagonal);
 
-            CB_ENSURE(result.size() == rowSize);
+            CB_ENSURE(result.size() == rowSize, LabeledOutput(result.size(), rowSize));
         }
     };
 

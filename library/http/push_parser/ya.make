@@ -8,8 +8,7 @@ SRCS(
 
 PEERDIR(
     library/http/io
+    library/blockcodecs
 )
 
 END()
-
-NEED_CHECK()

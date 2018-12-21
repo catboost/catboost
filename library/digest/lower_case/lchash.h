@@ -14,5 +14,5 @@ static inline T FnvCaseLess(const char* b, size_t l, T t = 0) noexcept {
 
 template <class T>
 static inline T FnvCaseLess(const TStringBuf& s, T t = 0) noexcept {
-    return FnvCaseLess(~s, +s, t);
+    return FnvCaseLess(s.data(), s.size(), t);
 }

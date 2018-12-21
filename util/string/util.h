@@ -148,8 +148,7 @@ public:
 
 protected:
     void init(const char* charset, bool extended);
-    str_spn() {
-    }
+    str_spn() = default;
 };
 
 // an analogue of tr/$from/$to/

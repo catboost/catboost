@@ -37,16 +37,28 @@ BaseException_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     /* the dict is created on the fly in PyObject_GenericSetAttr */
     self->message = self->dict = NULL;
 
-    self->args = PyTuple_New(0);
-    if (!self->args) {
-        Py_DECREF(self);
-        return NULL;
+    if (args) {
+        self->args = args;
+        Py_INCREF(args);
+    } else {
+
+        self->args = PyTuple_New(0);
+        if (!self->args) {
+            Py_DECREF(self);
+            return NULL;
+        }
+
     }
 
-    self->message = PyString_FromString("");
-    if (!self->message) {
-        Py_DECREF(self);
-        return NULL;
+    if (PyTuple_GET_SIZE(self->args) == 1) {
+        Py_INCREF(PyTuple_GET_ITEM(self->args, 0));
+        Py_XSETREF(self->message, PyTuple_GET_ITEM(self->args, 0));
+    } else {
+        self->message = PyString_FromString("");
+        if (!self->message) {
+            Py_DECREF(self);
+            return NULL;
+        }
     }
 
     return (PyObject *)self;

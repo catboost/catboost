@@ -4,6 +4,9 @@ LIBRARY()
 
 PEERDIR(
     library/python/runtime
+    library/python/symbols/module
+    library/python/symbols/libc
+    library/python/symbols/uuid
 )
 
 IF (MUSL)
@@ -19,5 +22,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

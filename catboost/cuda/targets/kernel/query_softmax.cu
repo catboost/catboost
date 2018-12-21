@@ -5,7 +5,7 @@
 
 namespace NKernel {
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupMaximalsImpl(const float* target, const float* weights,
                                              const float* approxExp,
                                              const ui32* qOffsets, int offsetsBias,
@@ -102,7 +102,7 @@ namespace NKernel {
         ComputeQueryExponentsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(weights, qids, size, maximals, writeMap, approxExp);
     }
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupSumsImpl(const float* data,
                                          const ui32* qOffsets, int offsetsBias,
                                          const ui32* qSizes, int qCount,

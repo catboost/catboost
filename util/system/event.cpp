@@ -12,7 +12,7 @@
 #include "winint.h"
 #endif
 
-class Event::TEvImpl: public TAtomicRefCount<Event::TEvImpl> {
+class TSystemEvent::TEvImpl: public TAtomicRefCount<TSystemEvent::TEvImpl> {
 public:
 #ifdef _win_
     inline TEvImpl(ResetMode rmode) {
@@ -107,31 +107,31 @@ private:
 #endif
 };
 
-Event::Event(ResetMode rmode)
+TSystemEvent::TSystemEvent(ResetMode rmode)
     : EvImpl_(new TEvImpl(rmode))
 {
 }
 
-Event::Event(const Event& other) noexcept
+TSystemEvent::TSystemEvent(const TSystemEvent& other) noexcept
     : EvImpl_(other.EvImpl_)
 {
 }
 
-Event& Event::operator=(const Event& other) noexcept {
+TSystemEvent& TSystemEvent::operator=(const TSystemEvent& other) noexcept {
     EvImpl_ = other.EvImpl_;
     return *this;
 }
 
-Event::~Event() = default;
+TSystemEvent::~TSystemEvent() = default;
 
-void Event::Reset() noexcept {
+void TSystemEvent::Reset() noexcept {
     EvImpl_->Reset();
 }
 
-void Event::Signal() noexcept {
+void TSystemEvent::Signal() noexcept {
     EvImpl_->Signal();
 }
 
-bool Event::WaitD(TInstant deadLine) noexcept {
+bool TSystemEvent::WaitD(TInstant deadLine) noexcept {
     return EvImpl_->WaitD(deadLine);
 }

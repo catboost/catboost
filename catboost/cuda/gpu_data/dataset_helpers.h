@@ -4,21 +4,26 @@
 #include "ctr_helper.h"
 #include "batch_binarized_ctr_calcer.h"
 #include "compressed_index_builder.h"
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_utils.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/fwd.h>
 
 namespace NCatboostCuda {
     TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
                                             const TVector<float>& targets);
 
     template <class T>
-    inline TVector<T> Join(const TVector<T>& left,
-                           const TVector<T>* right) {
+    inline TVector<T> Join(TConstArrayRef<T> left,
+                           TMaybe<TConstArrayRef<T>> right) {
         TVector<float> result(left.begin(), left.end());
         if (right) {
-            for (auto& element : *right) {
+            for (const auto& element : *right) {
                 result.push_back(element);
             }
         }
@@ -32,8 +37,8 @@ namespace NCatboostCuda {
                                       TVector<ui32>* permutationDependent);
 
     THolder<TCtrTargets<NCudaLib::TMirrorMapping>> BuildCtrTarget(const TBinarizedFeaturesManager& featuresManager,
-                                                                  const TDataProvider& dataProvider,
-                                                                  const TDataProvider* test = nullptr);
+                                                                  const NCB::TTrainingDataProvider& dataProvider,
+                                                                  const NCB::TTrainingDataProvider* test = nullptr);
 
     TVector<ui32> GetLearnFeatureIds(TBinarizedFeaturesManager& featuresManager);
 
@@ -43,12 +48,14 @@ namespace NCatboostCuda {
     public:
         TFloatAndOneHotFeaturesWriter(TBinarizedFeaturesManager& featuresManager,
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
-                                      const TDataProvider& dataProvider,
-                                      const ui32 dataSetId)
+                                      const NCB::TTrainingDataProvider& dataProvider,
+                                      const ui32 dataSetId,
+                                      NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
             , IndexBuilder(indexBuilder)
+            , LocalExecutor(localExecutor)
         {
         }
 
@@ -69,62 +76,49 @@ namespace NCatboostCuda {
 
     private:
         void WriteFloatFeature(const ui32 feature,
-                               const TDataProvider& dataProvider) {
+                               const NCB::TTrainingDataProvider& dataProvider) {
             const auto featureId = FeaturesManager.GetDataProviderId(feature);
-            CB_ENSURE(dataProvider.HasFeatureId(featureId), TStringBuilder() << "Feature " << featureId << " (" << featureId << ")"
-                                                                             << " is empty");
-            const auto& featureStorage = dataProvider.GetFeatureById(featureId);
+            const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
+            CB_ENSURE(featureMetaInfo.IsAvailable,
+                      TStringBuilder() << "Feature #" << featureId << " is empty");
+            CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
+                      TStringBuilder() << "Feature #" << featureId << " is not float");
 
-            if (featureStorage.GetType() == EFeatureValuesType::BinarizedFloat) {
-                const auto& featuresHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(featureStorage);
-                CB_ENSURE(featuresHolder.GetBorders() == FeaturesManager.GetBorders(feature),
-                          "Error: inconsistent borders for feature #" << feature);
+            auto floatFeatureIdx
+                = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
 
-                const ui32 binCount = featuresHolder.BinCount();
-                IndexBuilder.Write(DataSetId,
-                                   feature,
-                                   binCount,
-                                   featuresHolder.ExtractValues<ui8>());
-
-            } else {
-                CB_ENSURE(featureStorage.GetType() == EFeatureValuesType::Float);
-
-                const auto& holder = dynamic_cast<const TFloatValuesHolder&>(featureStorage);
-                const auto& borders = FeaturesManager.GetBorders(feature);
-                const ENanMode nanMode = FeaturesManager.GetOrComputeNanMode(holder);
-
-                auto bins = NCB::BinarizeLine<ui32>(MakeArrayRef(holder.GetValuesPtr(), holder.GetSize()),
-                                                    nanMode,
-                                                    borders);
-                const ui32 binCount = NCB::GetBinCount(borders, nanMode);
-
-                IndexBuilder.Write(DataSetId,
-                                   feature,
-                                   binCount,
-                                   bins);
-            }
+            const auto& featuresHolder = **(dataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
+            IndexBuilder.template Write<ui8>(DataSetId,
+                                             feature,
+                                             dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx),
+                                             *featuresHolder.ExtractValues(LocalExecutor));
         }
 
         void WriteOneHotFeature(const ui32 feature,
-                                const TDataProvider& dataProvider) {
-            const auto& featureStorage = dataProvider.GetFeatureById(FeaturesManager.GetDataProviderId(feature));
+                                const NCB::TTrainingDataProvider& dataProvider) {
+            const auto featureId = FeaturesManager.GetDataProviderId(feature);
+            const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
+            CB_ENSURE(featureMetaInfo.IsAvailable,
+                      TStringBuilder() << "Feature #" << featureId << " is empty");
+            CB_ENSURE(featureMetaInfo.Type == EFeatureType::Categorical,
+                      TStringBuilder() << "Feature #" << featureId << " is not categorical");
 
-            CB_ENSURE(featureStorage.GetType() == EFeatureValuesType::Categorical);
+            auto catFeatureIdx
+                = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
 
-            const auto& featuresHolder = dynamic_cast<const ICatFeatureValuesHolder&>(featureStorage);
-            const auto binCount = Min<ui32>(FeaturesManager.GetBinCount(feature), featuresHolder.GetUniqueValues());
-            IndexBuilder.Write(DataSetId,
-                               feature,
-                               /*hack for using only learn catFeatures as one-hot splits. test set storage should know about unseen catFeatures from learn. binCount is totalUniqueValues (learn + test)*/
-                               binCount,
-                               featuresHolder.ExtractValues());
+            const auto& featuresHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
+            IndexBuilder.template Write<ui32>(DataSetId,
+                                              feature,
+                                              dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
+                                              *featuresHolder.ExtractValues(LocalExecutor));
         }
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider& DataProvider;
         ui32 DataSetId = -1;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
@@ -155,19 +149,19 @@ namespace NCatboostCuda {
                     CtrCalcer.ComputeBinarizedCtrs(group, &learnCtrs, &testCtrs);
                     for (ui32 i = 0; i < group.size(); ++i) {
                         const ui32 featureId = group[i];
-                        IndexBuilder.Write(DataSetId,
-                                           featureId,
-                                           learnCtrs[i].BinCount,
-                                           learnCtrs[i].BinarizedCtr);
+                        IndexBuilder.template Write<ui8>(DataSetId,
+                                                         featureId,
+                                                         learnCtrs[i].BinCount,
+                                                         learnCtrs[i].BinarizedCtr);
 
                         if (testCtrs.size()) {
                             CB_ENSURE(TestDataSetId != (ui32)-1, "Error: set test dataset");
                             CB_ENSURE(testCtrs[i].BinCount == learnCtrs[i].BinCount);
 
-                            IndexBuilder.Write(TestDataSetId,
-                                               featureId,
-                                               testCtrs[i].BinCount,
-                                               testCtrs[i].BinarizedCtr);
+                            IndexBuilder.template Write<ui8>(TestDataSetId,
+                                                             featureId,
+                                                             testCtrs[i].BinCount,
+                                                             testCtrs[i].BinarizedCtr);
                         }
                     }
                     CheckInterrupted(); // check after long-lasting operation

@@ -11,8 +11,9 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> target{0, 1, 0, 0, 0, 1};
         TVector<float> weight{1, 1, 1, 1, 1, 1};
 
-        auto metric = TBalancedAccuracyMetric::CreateBinClassMetric();
-        TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
+        NPar::TLocalExecutor executor;
+        auto metric = MakeBinClassBalancedAccuracyMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.625, 1e-3);
     }
@@ -21,8 +22,9 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> target{0, 1, 1};
         TVector<float> weight{1, 1, 1};
 
-        auto metric = TBalancedAccuracyMetric::CreateBinClassMetric();
-        TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
+        NPar::TLocalExecutor executor;
+        auto metric = MakeBinClassBalancedAccuracyMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);;
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.75, 1e-2);
     }
@@ -31,8 +33,9 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> target{1, 1, 1, 0};
         TVector<float> weight{1, 1, 1, 1};
 
-        auto metric = TBalancedAccuracyMetric::CreateBinClassMetric();
-        TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
+        NPar::TLocalExecutor executor;
+        auto metric = MakeBinClassBalancedAccuracyMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
     }
@@ -41,8 +44,9 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> target{1, 1, 1, 1};
         TVector<float> weight{1, 1, 1, 1};
 
-        auto metric = TBalancedAccuracyMetric::CreateBinClassMetric();
-        TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 1, target.size());
+        NPar::TLocalExecutor executor;
+        auto metric = MakeBinClassBalancedAccuracyMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 1, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
     }
@@ -51,8 +55,9 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> target{0, 0, 0, 0};
         TVector<float> weight{1, 1, 1, 1};
 
-        auto metric = TBalancedAccuracyMetric::CreateBinClassMetric();
-        TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 1, target.size());
+        NPar::TLocalExecutor executor;
+        auto metric = MakeBinClassBalancedAccuracyMetric();
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 1, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
     }

@@ -14,6 +14,12 @@ def is_clang(command):
 
 
 def main():
+    try:
+        sys.argv.remove('--y_skip_nocxxinc')
+        skip_nocxxinc = True
+    except ValueError:
+        skip_nocxxinc = False
+
     spl = sys.argv.index('--cflags')
     command = sys.argv[1: spl]
     cflags = sys.argv[spl + 1:]
@@ -29,14 +35,15 @@ def main():
         sys.exit(1)
 
     if is_clang(command):
-        cflags.append('-Wno-unused-parameter')
+        # nvcc concatenates the sources for clang, and clang reports unused
+        # things from .h files as if they they were defined in a .cpp file.
+        cflags += ['-Wno-unused-function', '-Wno-unused-parameter']
 
     if not is_clang(command) and '-fopenmp=libomp' in cflags:
         cflags.append('-fopenmp')
         cflags.remove('-fopenmp=libomp')
 
     skip_list = [
-        '-nostdinc++',  # CUDA uses system STL library
         '-gline-tables-only',
         # clang coverage
         '-fprofile-instr-generate',
@@ -44,6 +51,9 @@ def main():
         '/Zc:inline',  # disable unreferenced functions (kernel registrators) remove
         '-Wno-c++17-extensions',
     ]
+
+    if skip_nocxxinc:
+        skip_list.append('-nostdinc++')
 
     for flag in skip_list:
         if flag in cflags:
@@ -57,6 +67,16 @@ def main():
     ]
     for prefix in skip_prefix_list:
         cflags = [i for i in cflags if not i.startswith(prefix)]
+
+    if not is_clang(command):
+        def good(arg):
+            if arg.startswith('--target='):
+                return False
+            if arg in ('-Wno-exceptions',
+                       '-Wno-inconsistent-missing-override'):
+                return False
+            return True
+        cflags = filter(good, cflags)
 
     cpp_args = []
     compiler_args = []
@@ -95,7 +115,8 @@ def main():
         compiler_args.append(arg)
 
     command += cpp_args
-    command += ['--compiler-options', ','.join(compiler_args)]
+    if compiler_args:
+        command += ['--compiler-options', ','.join(compiler_args)]
 
     if dump_args:
         sys.stdout.write('\n'.join(command))

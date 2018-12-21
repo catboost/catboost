@@ -6,6 +6,10 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_util/helpers.h>
 #include <catboost/libs/helpers/cpu_random.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/fwd.h>
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
@@ -16,8 +20,10 @@ namespace NCatboostCuda {
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
         using TIndex = TSharedCompressedIndex<TLayoutPolicy>;
 
-        TSharedCompressedIndexBuilder(TIndex& compressedIndex)
+        TSharedCompressedIndexBuilder(TIndex& compressedIndex,
+                                      NPar::TLocalExecutor* localExecutor)
             : CompressedIndex(compressedIndex)
+            , LocalExecutor(localExecutor)
         {
         }
 
@@ -146,7 +152,7 @@ namespace NCatboostCuda {
         TSharedCompressedIndexBuilder& Write(const ui32 dataSetId,
                                              const ui32 featureId,
                                              const ui32 binCount,
-                                             const TVector<TBinType>& bins) {
+                                             TConstArrayRef<TBinType> bins) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
             CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
                                                                                       << " total dataSets " << GatherIndex.size());
@@ -165,12 +171,12 @@ namespace NCatboostCuda {
                                                 << " to store feature");
                     }
                 }
-                CB_ENSURE(!SeenFeatures[dataSetId].has(featureId), "Error: can't write feature twice");
+                CB_ENSURE(!SeenFeatures[dataSetId].contains(featureId), "Error: can't write feature twice");
 
                 TVector<ui8> writeBins(bins.size());
 
                 if (GatherIndex[dataSetId]) {
-                    NPar::ParallelFor(0, bins.size(), [&](ui32 i) {
+                    NPar::ParallelFor(*LocalExecutor, 0, bins.size(), [&](ui32 i) {
                         writeBins[i] = bins[(*GatherIndex[dataSetId])[i]];
                         Y_ASSERT(writeBins[i] <= binCount);
                     });
@@ -195,7 +201,7 @@ namespace NCatboostCuda {
 
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
-            MATRIXNET_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
+            CATBOOST_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
 
             const ui32 blockCount = SeenFeatures.size();
 
@@ -219,6 +225,7 @@ namespace NCatboostCuda {
         TIndex& CompressedIndex;
         TVector<TSet<ui32>> SeenFeatures;
         TVector<TAtomicSharedPtr<TVector<ui32>>> GatherIndex;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     extern template class TSharedCompressedIndexBuilder<TFeatureParallelLayout>;

@@ -675,7 +675,7 @@ static TAutoPtr<IInputStream> TryOpenLzDecompressorX(const TDecompressSignature&
 template <class T>
 static inline TAutoPtr<IInputStream> TryOpenLzDecompressorImpl(const TStringBuf& signature, T input) {
     if (signature.size() == SIGNATURE_SIZE) {
-        TMemoryInput mem(~signature, +signature);
+        TMemoryInput mem(signature.data(), signature.size());
         TDecompressSignature s(&mem);
 
         return TryOpenLzDecompressorX(s, input);

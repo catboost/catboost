@@ -21,6 +21,7 @@
 #include <util/system/error.h>
 #include <util/system/mutex.h>
 #include <util/system/spinlock.h>
+#include <util/system/yassert.h>
 #include <util/thread/pool.h>
 
 #if defined(_unix_)
@@ -75,6 +76,7 @@ bool THttp2Options::ServerUseDirectWrite = false;
 bool THttp2Options::UseResponseAsErrorMessage = false;
 bool THttp2Options::FullHeadersAsErrorMessage = false;
 bool THttp2Options::ErrorDetailsAsResponseBody = false;
+bool THttp2Options::RedirectionNotError = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
@@ -83,7 +85,7 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     }
 
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
-    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else {
+    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else {
         return false;
     }
     return true;
@@ -146,12 +148,12 @@ namespace {
     bool Compress(TData& data, const TString& compressionScheme) {
         if (compressionScheme == "gzip") {
             try {
-                TData gzipped(+data);
-                TMemoryOutput out(~gzipped, +gzipped);
+                TData gzipped(data.size());
+                TMemoryOutput out(gzipped.data(), gzipped.size());
                 TZLibCompress c(&out, ZLib::GZip);
-                c.Write(~data, +data);
+                c.Write(data.data(), data.size());
                 c.Finish();
-                gzipped.resize(out.Buf() - ~gzipped);
+                gzipped.resize(out.Buf() - gzipped.data());
                 data.swap(gzipped);
                 return true;
             } catch (yexception&) {
@@ -166,7 +168,7 @@ namespace {
         THttpRequestBuffers(TRequestData::TPtr rd)
             : Req_(rd)
             , Parts_(Req_->Parts())
-            , IOvec_(~Parts_, +Parts_)
+            , IOvec_(Parts_.data(), Parts_.size())
         {
         }
 
@@ -260,21 +262,12 @@ namespace {
                 }
             }
 
-            void NotifyResponse(const TString& resp, const THttpHeaders& headers) {
-#ifdef DEBUG_STAT
-                ++TDebugStat::RequestSuccessed;
-#endif
-                TSimpleHandle::NotifyResponse(resp, headers);
-
-                ReleaseRequest();
-            }
-
-            void NotifyError(TErrorRef error, const TString* data = nullptr) {
+            void NotifyError(TErrorRef error, const THttpParser* rsp = nullptr) {
 #ifdef DEBUG_STAT
                 ++TDebugStat::RequestFailed;
 #endif
-                if (data) {
-                    TSimpleHandle::NotifyError(error, *data);
+                if (rsp) {
+                    TSimpleHandle::NotifyError(error, rsp->DecodedContent(), rsp->FirstLine(), rsp->Headers());
                 } else {
                     TSimpleHandle::NotifyError(error);
                 }
@@ -358,10 +351,10 @@ namespace {
         void Cancel() noexcept;
 
     private:
-        void NotifyResponse(const TString& resp, const THttpHeaders& headers) {
+        void NotifyResponse(const TString& resp, const TString& firstLine, const THttpHeaders& headers) {
             THandleRef h(ReleaseHandler());
             if (!!h) {
-                h->NotifyResponse(resp, headers);
+                h->NotifyResponse(resp, firstLine, headers);
             }
         }
 
@@ -372,10 +365,10 @@ namespace {
             NotifyError(new TError(errorText, errorType, errorCode, systemErrorCode));
         }
 
-        void NotifyError(TErrorRef error, const TString* data = nullptr) {
+        void NotifyError(TErrorRef error, const THttpParser* rsp = nullptr) {
             THandleRef h(ReleaseHandler());
             if (!!h) {
-                h->NotifyError(error, data);
+                h->NotifyError(error, rsp);
             }
         }
 
@@ -852,7 +845,7 @@ namespace {
                 SuggestPurgeCache();
 
                 if (ExceedHardLimit()) {
-                    Y_VERIFY(false && "neh::http2 output connections limit reached");
+                    Y_FAIL("neh::http2 output connections limit reached");
                     //ythrow yexception() << "neh::http2 output connections limit reached";
                 }
             }
@@ -1133,8 +1126,8 @@ namespace {
     void THttpRequest::OnResponse(TAutoPtr<THttpParser>& rsp) {
         DBGOUT("THttpRequest::OnResponse()");
         ReleaseConn();
-        if (Y_LIKELY(rsp->RetCode() >= 200 && rsp->RetCode() < 300)) {
-            NotifyResponse(rsp->DecodedContent(), rsp->Headers());
+        if (Y_LIKELY(rsp->RetCode() >= 200 && rsp->RetCode() < (!THttp2Options::RedirectionNotError ? 300 : 400))) {
+            NotifyResponse(rsp->DecodedContent(), rsp->FirstLine(), rsp->Headers());
         } else {
             TString message;
 
@@ -1156,7 +1149,7 @@ namespace {
                 message = err.Str();
             }
 
-            NotifyError(new TError(message, TError::ProtocolSpecific, rsp->RetCode()), &rsp->DecodedContent());
+            NotifyError(new TError(message, TError::ProtocolSpecific, rsp->RetCode()), rsp.Get());
         }
     }
 
@@ -1298,6 +1291,14 @@ namespace {
 
             const THttpHeaders& Headers() const override {
                 return P_->Headers();
+            }
+
+            TStringBuf Body() const override {
+                return P_->DecodedContent();
+            }
+
+            TStringBuf Cgi() const override {
+                return H_.Cgi;
             }
 
             TStringBuf RequestId() override {
@@ -1447,7 +1448,7 @@ namespace {
                     //DBGOUT("receive and parse: " << TStringBuf(Buff_.Get(), amount));
                     while (P_->Parse(Buff_.Get() + buffPos, amount - buffPos)) {
                         SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive();
-                        char rt = *~P_->FirstLine();
+                        char rt = *P_->FirstLine().data();
                         const size_t extraDataSize = P_->GetExtraDataSize();
                         if (rt == 'P' || rt == 'p') {
                             OnRequest(new TRequestPost(WeakThis_, P_));
@@ -1503,13 +1504,13 @@ namespace {
                 class THttpResponseFormatter {
                 public:
                     THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders) {
-                        Header.Reserve(128 + +contentEncoding + +theHeaders);
+                        Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
                         Header << AsStringBuf(" 200 Ok");
                         if (Compress(theData, contentEncoding)) {
                             Header << AsStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
-                        Header << AsStringBuf("\r\nContent-Length: ") << +theData;
+                        Header << AsStringBuf("\r\nContent-Length: ") << theData.size();
                         if (Y_LIKELY(theVer.Major > 1 || theVer.Minor > 0)) {
                             // since HTTP/1.1 Keep-Alive is default behaviour
                             Header << AsStringBuf("\r\nConnection: Keep-Alive");
@@ -1521,10 +1522,10 @@ namespace {
 
                         Body.swap(theData);
 
-                        Parts[0].buf = ~Header;
-                        Parts[0].len = +Header;
-                        Parts[1].buf = ~Body;
-                        Parts[1].len = +Body;
+                        Parts[0].buf = Header.Data();
+                        Parts[0].len = Header.Size();
+                        Parts[1].buf = Body.data();
+                        Parts[1].len = Body.size();
                     }
 
                     TStringStream Header;
@@ -1562,7 +1563,7 @@ namespace {
                     THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer) {
                         PrintHttpVersion(Answer, theVer);
                         Answer << AsStringBuf(" ") << theHttpCode << AsStringBuf(" ");
-                        if (+theDescr && !THttp2Options::ErrorDetailsAsResponseBody) {
+                        if (theDescr.size() && !THttp2Options::ErrorDetailsAsResponseBody) {
                             // Reason-Phrase  = *<TEXT, excluding CR, LF>
                             // replace bad chars to '.'
                             TString reasonPhrase = theDescr;
@@ -1589,8 +1590,8 @@ namespace {
                                                 "Content-Length:0\r\n\r\n");
                         }
 
-                        Parts[0].buf = ~Answer;
-                        Parts[0].len = +Answer;
+                        Parts[0].buf = Answer.Data();
+                        Parts[0].len = Answer.Size();
                     }
 
                     TStringStream Answer;
@@ -1880,6 +1881,14 @@ namespace NNeh {
     void SetHttp2InputConnectionsLimits(size_t softLimit, size_t hardLimit) {
         HttpInConnLimits()->Soft = softLimit;
         HttpInConnLimits()->Hard = hardLimit;
+    }
+
+    TAtomicBase GetHttpOutputConnectionCount() {
+        return HttpOutConnCounter()->Val();
+    }
+
+    TAtomicBase GetHttpInputConnectionCount() {
+        return HttpInConnCounter()->Val();
     }
 
     void SetHttp2InputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds) {

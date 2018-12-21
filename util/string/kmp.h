@@ -42,7 +42,7 @@ public:
 
     bool SubStr(const char* begin, const char* end, const char*& result) const {
         Y_ASSERT(begin <= end);
-        ssize_t m = +Pattern;
+        ssize_t m = Pattern.size();
         ssize_t n = end - begin;
         ssize_t i, j;
         for (i = 0, j = 0; (i < n) && (j < m); ++i, ++j) {
@@ -80,7 +80,7 @@ public:
         : Callback(callback)
         , Pattern(patternBegin, patternEnd)
         , State(0)
-        , Candidate(+Pattern)
+        , Candidate(Pattern.size())
     {
         ssize_t* pf;
         ComputePrefixFunction(patternBegin, patternEnd, &pf);
@@ -89,14 +89,14 @@ public:
 
     void Push(const T& symbol) {
         while ((State >= 0) && (Pattern[State] != symbol)) {
-            Y_ASSERT(State <= (ssize_t) + Pattern);
+            Y_ASSERT(State <= (ssize_t) Pattern.size());
             State = PrefixFunction[State];
-            Y_ASSERT(State <= (ssize_t) + Pattern);
+            Y_ASSERT(State <= (ssize_t) Pattern.size());
         }
         if (State >= 0)
             Candidate[State] = symbol;
         ++State;
-        if (State == (ssize_t) + Pattern) {
+        if (State == (ssize_t) Pattern.size()) {
             Callback->OnMatch(Candidate.begin(), Candidate.end());
             State = 0;
         }

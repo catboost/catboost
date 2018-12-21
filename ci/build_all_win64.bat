@@ -1,9 +1,11 @@
 @echo on
 
-call "%VS_VARS_PATH%\vcvars64.bat" -vcvars_ver=14.11
+set WIN_COMMON_FLAGS=-DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DUSE_ARCADIA_CUDA_HOST_COMPILER=no --host-platform-flag USE_ARCADIA_CUDA_HOST_COMPILER=no
+
+call "%VS_VARS_PATH%\vcvars64.bat" -vcvars_ver=14.12
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-c:\Python27\python.exe ya make -r -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DHAVE_CUDA=yes -o . catboost\app
+c:\Python27\python.exe ya make -r %WIN_COMMON_FLAGS% -DHAVE_CUDA=yes -o . catboost\app
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 cd catboost\python-package
@@ -11,28 +13,28 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=27
 echo c:\Python%PyV%\python.exe
-c:\Python%PyV%\python.exe mk_wheel.py -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
+c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=35
 echo c:\Python%PyV%\python.exe
-c:\Python%PyV%\python.exe mk_wheel.py -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
+c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=36
 echo c:\Python%PyV%\python.exe
-c:\Python%PyV%\python.exe mk_wheel.py -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
+c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 set PyV=37
 echo c:\Python%PyV%\python.exe
-c:\Python%PyV%\python.exe mk_wheel.py -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
+c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 echo Building R-package
 
 cd ..\..
-call ya.bat make -r -T -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -o . .\catboost\R-package\src\
+call ya.bat make -r -T %WIN_COMMON_FLAGS% -o . .\catboost\R-package\src\
 if %errorlevel% neq 0 exit /b %errorlevel%
 cd catboost\R-package
 if %errorlevel% neq 0 exit /b %errorlevel%

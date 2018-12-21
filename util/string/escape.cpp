@@ -402,33 +402,33 @@ template size_t UnescapeCCharLen<char>(const char* begin, const char* end);
 template size_t UnescapeCCharLen<TUtf16String::TChar>(const TUtf16String::TChar* begin, const TUtf16String::TChar* end);
 
 TString& EscapeC(const TStringBuf str, TString& s) {
-    return EscapeC(~str, +str, s);
+    return EscapeC(str.data(), str.size(), s);
 }
 
 TUtf16String& EscapeC(const TWtringBuf str, TUtf16String& w) {
-    return EscapeC(~str, +str, w);
+    return EscapeC(str.data(), str.size(), w);
 }
 
 TString EscapeC(const TString& str) {
-    return EscapeC(~str, +str);
+    return EscapeC(str.data(), str.size());
 }
 
 TUtf16String EscapeC(const TUtf16String& str) {
-    return EscapeC(~str, +str);
+    return EscapeC(str.data(), str.size());
 }
 
 TString& UnescapeC(const TStringBuf str, TString& s) {
-    return UnescapeC(~str, +str, s);
+    return UnescapeC(str.data(), str.size(), s);
 }
 
 TUtf16String& UnescapeC(const TWtringBuf str, TUtf16String& w) {
-    return UnescapeC(~str, +str, w);
+    return UnescapeC(str.data(), str.size(), w);
 }
 
 TString UnescapeC(const TStringBuf str) {
-    return UnescapeC(~str, +str);
+    return UnescapeC(str.data(), str.size());
 }
 
 TUtf16String UnescapeC(const TWtringBuf str) {
-    return UnescapeC(~str, +str);
+    return UnescapeC(str.data(), str.size());
 }

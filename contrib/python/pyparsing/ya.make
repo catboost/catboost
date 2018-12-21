@@ -1,4 +1,4 @@
-PY_LIBRARY()
+PY23_LIBRARY()
 
 LICENSE(
     MIT
@@ -6,9 +6,7 @@ LICENSE(
 
 
 
-# Version: 2.2.0
-
-# License: MIT License
+VERSION(2.2.0)
 
 NO_LINT()
 

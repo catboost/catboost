@@ -2,16 +2,20 @@
 
 #include "lfqueue.h"
 
+#include <library/threading/atomic/bool.h>
+
 #include <util/generic/vector.h>
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 
 namespace NNeh {
     template <class T>
-    class TBlockedQueue: public TLockFreeQueue<T>, public Event {
+    class TBlockedQueue: public TLockFreeQueue<T>, public TSystemEvent {
     public:
         inline TBlockedQueue() noexcept
-            : Event(Event::rAuto)
+            : TSystemEvent(TSystemEvent::rAuto)
         {
         }
 
@@ -52,13 +56,13 @@ namespace NNeh {
                 }
             }
 
-            bool Signalled;
+            NAtomic::TBool Signalled;
             TWaitQueue* Parent;
             TSpinLock M_;
         };
 
         inline ~TWaitQueue() {
-            for (size_t i = 0; i < +H_; ++i) {
+            for (size_t i = 0; i < H_.size(); ++i) {
                 H_[i]->Register(nullptr);
             }
         }

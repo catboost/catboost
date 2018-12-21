@@ -93,6 +93,7 @@ public:
     }
 
     /// Checks if the object has an empty data array.
+    Y_PURE_FUNCTION
     inline bool Empty() const noexcept {
         return !Length();
     }
@@ -138,14 +139,6 @@ public:
 
     inline value_type operator[](size_t n) const noexcept {
         return *(Begin() + n);
-    }
-
-    inline const char* operator~() const noexcept {
-        return AsCharPtr();
-    }
-
-    inline size_t operator+() const noexcept {
-        return Size();
     }
 
     /// Shortcut to SubBlob(0, len)

@@ -3,25 +3,29 @@
 #include "doc_parallel_dataset.h"
 #include <catboost/libs/helpers/interrupt.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
     class TDocParallelDataSetBuilder {
     public:
         using TDataSetLayout = TDocParallelLayout;
 
         TDocParallelDataSetBuilder(TBinarizedFeaturesManager& featuresManager,
-                                   const TDataProvider& dataProvider,
-                                   const TDataProvider* linkedTest = nullptr)
+                                   const NCB::TTrainingDataProvider& dataProvider,
+                                   const NCB::TTrainingDataProvider* linkedTest = nullptr)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , LinkedTest(linkedTest)
         {
         }
 
-        TDocParallelDataSetsHolder BuildDataSet(const ui32 permutationCount);
+        TDocParallelDataSetsHolder BuildDataSet(const ui32 permutationCount,
+                                                NPar::TLocalExecutor* localExecutor);
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider& DataProvider;
-        const TDataProvider* LinkedTest;
+        const NCB::TTrainingDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider* LinkedTest;
     };
 }

@@ -105,6 +105,10 @@ public:
         return ThreadCountExpected;
     }
 
+    inline size_t GetThreadCountReal() const noexcept {
+        return ThreadCountReal;
+    }
+
     inline void AtforkAction() noexcept {
         Forked = true;
     }
@@ -289,6 +293,30 @@ size_t TMtpQueue::Size() const noexcept {
     }
 
     return Impl_->Size();
+}
+
+size_t TMtpQueue::GetThreadCountExpected() const noexcept {
+    if (!Impl_.Get()) {
+        return 0;
+    }
+
+    return Impl_->GetThreadCountExpected();
+}
+
+size_t TMtpQueue::GetThreadCountReal() const noexcept {
+    if (!Impl_.Get()) {
+        return 0;
+    }
+
+    return Impl_->GetThreadCountReal();
+}
+
+size_t TMtpQueue::GetMaxQueueSize() const noexcept {
+    if (!Impl_.Get()) {
+        return 0;
+    }
+
+    return Impl_->GetMaxQueueSize();
 }
 
 bool TMtpQueue::Add(IObjectInQueue* obj) {
@@ -681,8 +709,8 @@ namespace {
 
         private:
             IThreadAble* Func_;
-            Event CompleteEvent_;
-            Event StartEvent_;
+            TSystemEvent CompleteEvent_;
+            TSystemEvent StartEvent_;
         };
 
         using TThreadImplRef = TIntrusivePtr<TThreadImpl>;

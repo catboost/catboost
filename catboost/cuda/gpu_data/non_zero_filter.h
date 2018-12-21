@@ -2,8 +2,10 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/fill.h>
-#include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/cuda/cuda_util/filter.h>
+#include <catboost/cuda/cuda_util/operator.h>
+#include <catboost/cuda/cuda_util/reduce.h>
+#include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/cuda/cuda_util/transform.h>
 
 namespace NCatboostCuda {

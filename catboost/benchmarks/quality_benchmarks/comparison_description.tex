@@ -1,0 +1,297 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{vmargin}
+\setpapersize{A4}
+\setmarginsrb{2cm}{1.5cm}{1cm}{1.5cm}{0pt}{0mm}{0pt}{13mm}
+\usepackage{indentfirst}
+\usepackage{amsmath}
+\usepackage{amsfonts,amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[usenames]{color}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\colorlet{linkequation}{red}
+\usepackage[colorlinks]{hyperref}
+\usepackage{cancel}
+\usepackage{tcolorbox}
+\usepackage{graphicx}
+\usepackage{mathtools}
+\usepackage{multicol}
+\usepackage{paralist}
+
+\newcommand{\argmin}{\mathop{\rm arg\,min}\limits}
+\newcommand{\argmax}{\mathop{\rm arg\,max}\limits}
+\newcommand{\sign}{\mathop{\rm sign}\limits}
+\newcommand{\cond}{\mspace{3mu}{|}\mspace{3mu}}
+
+\def\RR{\mathbb{R}}
+\def\XX{\mathbb{X}}
+\def\EE{\mathbb{E}}
+\def\NN{\mathcal{N}}
+\def\LL{\mathcal{L}}
+\def\YY{\mathbb{Y}}
+\def\OO{\mathcal{O}}
+
+\sloppy
+
+\title{Description of the experimental setup}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This document contains technical details about the experiments held in order to compare out-of-the-box performance of different gradient boosting methods on the tasks of binary classification. The goal of the description is to clarify the design of the experiments and guarantee the fairness of comparison and high reliability of the results.
+
+We compare CatBoost against popular gradient boosting libraries: LightGBM, XGBoost, H2O. For each algorithm we calculate 2 metrics:
+\begin{itemize}
+\item
+{\bfseries Default}. Each of the algorithms has its own specific set of parameters, for which the default values are proposed by their authors. We use these values and tune only number of trees.
+
+\item
+{\bfseries Tuned}. We tune all the key parameters of an algorithm using hyperopt library in the mode algo=tpe.suggest (i.e., by the sequential Tree Parzen Estimator algorithm).
+\end{itemize}
+
+We use 5-fold cross-validation to tune all the parameters, including number of trees. We fit the model, which performs best on validation, and apply this tuned model to test set.
+
+We guarantee reproducibility of all the experiments by providing docker image with all necessary data and scripts.
+
+\section{Datasets}
+The experiments were performed on the following datasets.
+
+\begin{center}
+    \begin{tabular}{ | l | l | l | l | p{8.5cm}|}
+    \hline
+    Dataset name & Link & Instances & Features & Description \\ \hline
+    \hline
+    adult & \href{https://archive.ics.uci.edu/ml/datasets/Adult}{link} & 48842 & 15 & Prediction task is to determine whether a person makes over 50K a year. Extraction was done by Barry Becker from the 1994 Census database. A set of reasonably clean records was extracted using the following conditions: (AAGE>16) and (AGI>100) and (AFNLWGT>1) and (HRSWK>0)\\\hline
+    amazon & \href{https://www.kaggle.com/c/amazon-employee-access-challenge}{link} & 32769 & 10 & Data from the Kaggle Amazon Employee challenge.\\\hline
+    appet & \href{http://www.kdd.org/kdd-cup/view/kdd-cup-2009/Data}{link} & 50000 & 231 & Small version of KDD 2009 Cup data.\\\hline
+    click & \href{http://www.kdd.org/kdd-cup/view/kdd-cup-2012-track-2}{link} & 399482 & 12 & This data is derived from the 2012 KDD Cup. The data is subsampled to 1\% of the original number of instances, downsampling the majority class (click=0) so that the target feature is reasonably balanced (5 to 1). The data is about advertisements shown alongside search results in a search engine, and whether or not people clicked on these ads. The task is to build the best possible model to predict whether a user will click on a given ad.\\\hline
+    internet & \href{https://kdd.ics.uci.edu/databases/internet\_usage/internet\_usage.html}{link} & 10108 & 69 & Binarized version of the original data set. The multi-class target feature is converted to a two-class nominal target feature by re-labeling the majority class as positive ('P') and all others as negative ('N'). Originally converted by Quan Sun.\\\hline
+    kdd98 & \href{https://kdd.ics.uci.edu/databases/kddcup98/kddcup98.html}{link} & 191260 & 479 & Dataset KDD98 challenge. The goal is to estimate the return from a direct mailing in order to maximize donation profits. This dataset represents problem of binary classification - whether there was a response to mailing. The data is subsampled to 50\% of the original number of instances. \\\hline
+    kddchurn & \href{http://www.kdd.org/kdd-cup/view/kdd-cup-2009/Data}{link} & 50000 & 231 & Small version of KDD 2009 Cup data.\\\hline
+    kick & \href{https://www.kaggle.com/c/DontGetKicked}{link} & 72983 & 36 & Data from "Don't Get Kicked!"\ Kaggle challenge.\\\hline
+    upsel & \href{http://www.kdd.org/kdd-cup/view/kdd-cup-2009/Data}{link} & 50000 & 231 & Small version of KDD 2009 Cup data.\\\hline
+        \end{tabular}
+\end{center}
+
+
+\section{Preprocessing}
+As the goal of the study is to compare out-of-the-box performance of algorithms themselves, no complex preprocessing (elimination of imbalanced classes, feature selection etc.) takes place. The simplest methods of imputation are used for both numeric and categorical variables:
+\begin{itemize}
+\item
+For categorical variables missing values are replaced with special value, i.e. we treat missing values as a special category
+
+\item
+For numeric variables missing values are be replaced with zeros, and a binary dummy feature for each imputed feature is added.
+\end{itemize}
+
+\section{Preparation of Splits}
+Each dataset was split into training set (80\%) and test set (20\%). We denote them as $(X_{full\_train}, y_{full\_train})$ and $(X_{test}, y_{test})$. For each dataset column numbers with categorical features are known.
+
+We use 5-fold cross-validation to tune parameters of each model on training set. Accordingly, $(X_{full\_train}, y_{full\_train})$ is split into 5 equally sized parts $(X_1, y_1), \dots, (X_5, y_5)$ (for classification tasks the sampling is stratified). These parts are used to construct 5 training and validation sets $(X^{train}_i, y^{train}_i)$, $(X^{val}_i, y^{val}_i)$ so that $(X^{val}_i, y^{val}_i)$ matches $(X_i, y_i)$, and $(X^{train}_i,y^{train}_i)$ matches $\cup_{j\neq i}(X_j, y_j)$.
+
+For each of these pairs, we then preprocess the categorical features as follows. Suppose that there is a training set $(X^{train}, y^{train})$ and a validation set $(X^{val}, y^{val})$. Next, after a random permutation of the objects for $j$-th categorical feature and $i$-th object, we calculate the 2 numbers $a_{ij}$ and $b_{ij}$ (in the formulae [{\itshape boolean expression}] is the indicator, it equals 1 if the expression is true and 0, in the other case):
+
+$$a_{ij} = \sum_{k=1}^{i - 1}[X^{train}_{ij} = X^{train}_{kj}]y^{train}_{kj},$$
+
+$$b_{ij} = \sum_{k=1}^{i - 1}[X^{train}_{ij} = X^{train}_{kj}]$$
+
+After that the categorical features in the training set are replaced by numeric ones using the following formula.
+
+% \textbf{For classification tasks:}
+
+$$X^{train}_{ij} = \frac{a_{ij} + 1}{b_{ij} + 2}.$$
+
+% \textbf{For regression tasks:}
+
+% $$X^{train}_{ij} = \begin{cases} \frac{a_{ij}}{b_{ij}}, & \mbox{if } b_{ij} \neq 0  \\ 0, & \mbox{if } b_{ij} = 0 \end{cases}.$$
+
+The next step is to replace the categorical features in the validation set. To do this, for $j$-th categorical feature and $i$-th object, the 2 numbers $c_{ij}$ and $d_{ij}$ are calculated the same way:
+
+$$c_{ij} = \sum_{k}[X^{val}_{ij} = X^{train}_{kj}]y^{train}_{kj},$$
+
+$$d_{ij} = \sum_{k}[X^{val}_{ij} = X^{train}_{kj}]$$
+
+Now the cat features in the validation set are replaced by numeric ones using the following formula.
+
+% \textbf{For classification tasks:}
+
+$$X^{val}_{ij} = \frac{c_{ij} + 1}{d_{ij} + 2}.$$
+
+% \textbf{For regression tasks:}
+
+% $$X^{val}_{ij} = \begin{cases} \frac{c_{ij}}{d_{ij}}, & \mbox{if } d_{ij} \neq 0  \\ 0, & \mbox{if } d_{ij} = 0 \end{cases}.$$
+
+Finally, for the original samples $(X_{full\_train}, y_{full\_train})$ and $(X_{test}, y_{test})$, we replace the categorical features with numerical ones following the same method as for $(X^{train}, y^{train})$ and $(X^{val}, y^{val})$.
+
+\section{Parameter Tuning Design}
+As a result of data preparation steps, we have:
+\begin{itemize}
+\item
+5 pairs of samples (training and validation) that contain only numeric values which are used to find the best parameters via 5-fold cross-validaton
+
+\item
+pair of samples (full training, test) that contains only numeric values to fit the model with best parameters on the full training set and get predictions for the test set
+\end{itemize}
+
+To estimate quality we use LogLoss.
+% \begin{itemize}
+% \item
+% LogLoss  on classification tasks
+ 
+% \item
+% $R^2$ on regression tasks
+% \end{itemize}
+
+In the process of parameter tuning, we perform exhaustive search for number of trees, having fixed all other parameters.
+
+% For classification task the maximum number of trees for XGBoost, LightGBM and H2OGradientBoosting is 5000 and for CatBoost is 1500. For regression task the maximum number of trees for XGBoost, LightGBM, H2OGradientBoosting and CatBoost is 5000.
+The maximum number of trees for all algorithms is 5000.
+
+For a specific set of parameters quality metrics on the validation sets are calculated for each of the 5 folds when adding the next tree. The result is five 5000-dimensional vectors that are averaged into one vector, which is used for getting the argmax or argmin. The resulting number is the optimal number of trees for the given set of parameters. I.e. having all other parameters fixed, we find optimal number of trees by maximizing average quality on 5 folds.
+
+In total, this process is repeated for 50 different parameter sets, and the parameters with the best quality are selected. After obtaining the best parameters, the model is trained on the preprocessed $(X_{full\_train}, y_{full\_train})$. With this model the final metric value for the pre-processed test set $(X_{test}, y_{test})$ is calculated.
+
+\section{Default Parameters}
+A list of default parameters for each algorithm:
+
+\medskip
+\noindent XGBoost.
+\begin{itemize}
+  \item 'eta': $0.3$
+  \item 'max\_depth': $6$
+  \item 'subsample': $1.0$
+  \item 'colsample\_bytree': $1.0$
+  \item 'colsample\_bylevel': $1.0$
+  \item 'min\_child\_weight': $1$
+  \item 'alpha':$0$
+  \item 'lambda': $1$
+  \item 'gamma': $1$
+\end{itemize}
+
+\medskip
+\noindent LightGBM.
+\begin{itemize}
+  \item 'learning\_rate': $0.1$
+  \item 'num\_leaves' : $127$
+  \item 'feature\_fraction': $1.0$
+  \item 'bagging\_fraction': $1.0$
+  \item 'min\_sum\_hessian\_in\_leaf': $10$
+  \item 'min\_data\_in\_leaf': $100$
+  \item 'lambda\_l1': $0$
+  \item 'lambda\_l2': $0$
+\end{itemize}
+
+\medskip
+\noindent H2OGradientBoosting.
+\begin{itemize}
+  \item 'learn\_rate':  $0.1$
+  \item 'max\_depth': $5$
+  \item 'sample\_rate': $1.0$
+  \item 'col\_sample\_rate': $1.0$
+  \item 'col\_sample\_rate\_change\_per\_level': $1$
+  \item 'col\_sample\_rate\_per\_tree': $1$
+  \item 'min\_split\_improvement': $1e-5$
+  \item 'min\_rows': $10$
+  \item 'histogram\_type': auto
+\end{itemize}
+
+\medskip
+\noindent CatBoost.
+\begin{itemize}
+  \item 'learning\_rate': $0.03$
+  \item 'depth' : $6$
+  \item 'fold\_len\_multiplier': $2$
+  \item 'rsm': $1.0$
+  \item 'border\_count': $128$
+  \item 'ctr\_border\_count': $16$
+  \item 'l2\_leaf\_reg': $3$
+  \item 'leaf\_estimation\_method': 'Newton'
+  \item 'gradient\_iterations': $10$
+  \item 'ctr\_description': ['Borders', 'CounterMax']
+  \item 'random\_strength': $1$
+  \item 'one\_hot\_max\_size': $0$
+  \item 'bagging\_temperature': $1$
+\end{itemize}
+
+
+\section{Parameter Tuning}
+Parameters for XGBoost, LightGBM and CatBoost were tuned using python hyperopt library. Parameters for H2OGradientBoosting were tuned using h2o.grid (randomized grid search) in R interface. Below is a list of tuned parameters and the distributions they were selected from for each algorithm:
+
+\medskip
+\noindent XGBoost.
+\begin{itemize}
+  \item 'eta': Log-uniform distribution $[e^{-7}, 1]$
+  \item 'max\_depth': Discrete uniform distribution $[2, 10]$
+  \item 'subsample': Uniform $[0.5, 1]$
+  \item 'colsample\_bytree': Uniform $[0.5, 1]$
+  \item 'colsample\_bylevel': Uniform $[0.5, 1]$
+  \item 'min\_child\_weight': Log-uniform distribution $[e^{-16}, e^{5}]$
+  \item 'alpha': Mixed: 0.5 * Degenerate at 0 + 0.5 * Log-uniform distribution $[e^{-16}, e^{2}]$
+  \item 'lambda': Mixed: 0.5 * Degenerate at 0 + 0.5 * Log-uniform distribution $[e^{-16}, e^{2}]$
+  \item 'gamma': Mixed: 0.5 * Degenerate at 0 + 0.5 * Log-uniform distribution $[e^{-16}, e^{2}]$
+\end{itemize}
+
+\medskip
+\noindent LightGBM.
+\begin{itemize}
+  \item 'learning\_rate': Log-uniform distribution $[e^{-7}, 1]$
+  \item 'num\_leaves' : Discrete log-uniform distribution $[1, e^{7}]$
+  \item 'feature\_fraction': Uniform $[0.5, 1]$
+  \item 'bagging\_fraction': Uniform $[0.5, 1]$
+  \item 'min\_sum\_hessian\_in\_leaf': Log-uniform distribution $[e^{-16}, e^{5}]$
+  \item 'min\_data\_in\_leaf':  Discrete log-uniform distribution $[1, e^{6}]$
+  \item 'lambda\_l1': Mixed: 0.5 * Degenerate at 0 + 0.5 * Log-uniform distribution $[e^{-16}, e^{2}]$
+  \item 'lambda\_l2': Mixed: 0.5 * Degenerate at 0 + 0.5 * Log-uniform distribution $[e^{-16}, e^{2}]$
+\end{itemize}
+
+\medskip
+\noindent H2OGradientBoosting.
+\medskip 
+\begin{itemize}
+  \item 'learn\_rate': Log-uniform distribution $[e^{-7}, 1]$
+  \item 'max\_depth': Discrete uniform distribution $[2, 10]$
+  \item 'sample\_rate': Uniform $[0.5, 1]$
+  \item 'col\_sample\_rate': Uniform $[0.5, 1]$
+  \item 'col\_sample\_rate\_change\_per\_level': Uniform $[0, 2]$
+  \item 'col\_sample\_rate\_per\_tree': Uniform $[0, 1]$
+  \item 'min\_split\_improvement': Log-uniform distribution $[e^{-16}, 1]$
+  \item 'min\_rows': Log-uniform distribution $[1, e^{5}]$
+  \item 'histogram\_type': Discrete uniform distribution over a set \{uniform\_adaptive, random, quantiles\_global, round\_robin\}
+\end{itemize}
+
+\medskip
+\noindent CatBoost.
+\begin{itemize}
+  \item 'learning\_rate':  Log-uniform distribution $[e^{-7}, 1]$
+  \item 'random\_strength': Discrete uniform distribution over a set  \{1, 20\}
+  \item 'one\_hot\_max\_size': Discrete uniform distribution over a set  \{0, 25\}
+  \item 'l2\_leaf\_reg': Log-uniform distribution $[1, 10]$
+  \item 'bagging\_temperature': Uniform $[0, 1]$
+  \item 'gradient\_iterations' : Discrete uniform distribution over a set  \{1, 10\}
+\end{itemize}
+
+% \noindent In regression tasks, the 'gradient\_iterations' parameter wasn't tuned (used defaults).
+
+\section{Versions of the libraries}
+
+\begin{itemize}
+  \item xgboost (0.6)
+  \item scikit-learn (0.18.1)
+  \item scipy (0.19.0)
+  \item pandas (0.19.2)
+  \item numpy (1.12.1)
+  \item lightgbm (0.1)
+  \item hyperopt (0.0.2)
+  \item h2o (3.10.4.6)
+  \item R (3.3.3)
+\end{itemize}
+
+
+\end{document}

@@ -219,16 +219,16 @@ public:
 
     template <typename TChar>
     inline TStringBufImpl<TChar> AppendString(const TStringBufImpl<TChar>& buf) {
-        return TStringBufImpl<TChar>(Append(~buf, +buf), +buf);
+        return TStringBufImpl<TChar>(Append(buf.data(), buf.size()), buf.size());
     }
 
     template <typename TChar>
     inline TStringBufImpl<TChar> AppendCString(const TStringBufImpl<TChar>& buf) {
-        TChar* ret = static_cast<TChar*>(Allocate((+buf + 1) * sizeof(TChar)));
+        TChar* ret = static_cast<TChar*>(Allocate((buf.size() + 1) * sizeof(TChar)));
 
-        TCharTraits<TChar>::Copy(ret, ~buf, +buf);
-        *(ret + +buf) = 0;
-        return TStringBufImpl<TChar>(ret, +buf);
+        TCharTraits<TChar>::Copy(ret, buf.data(), buf.size());
+        *(ret + buf.size()) = 0;
+        return TStringBufImpl<TChar>(ret, buf.size());
     }
 
     inline size_t Available() const noexcept {

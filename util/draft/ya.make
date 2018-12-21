@@ -2,12 +2,9 @@ LIBRARY()
 
 
 
-NEED_CHECK()
-
 NO_UTIL()
 
 SRCS(
-    bitutils.cpp
     date.cpp
     datetime.cpp
     file_utils.cpp

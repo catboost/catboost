@@ -192,7 +192,6 @@ class tzwin(tzwinbase):
     def __init__(self, name):
         self._name = name
 
-        # multiple contexts only possible in 2.7 and 3.1, we still support 2.6
         with winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE) as handle:
             tzkeyname = text_type("{kn}\\{name}").format(kn=TZKEYNAME, name=name)
             with winreg.OpenKey(handle, tzkeyname) as tzkey:

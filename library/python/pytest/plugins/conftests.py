@@ -1,7 +1,7 @@
 import importlib
 import sys
 import inspect
-from fixtures import metrics, links  # noqa
+from .fixtures import metrics, links  # noqa
 
 orig_getfile = inspect.getfile
 

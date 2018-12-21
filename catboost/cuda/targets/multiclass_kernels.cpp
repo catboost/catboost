@@ -8,4 +8,5 @@ namespace NCudaLib {
 
     REGISTER_KERNEL(0xA11BB02,  TMultiClassOneVsAllValueAndDerKernel);
     REGISTER_KERNEL(0xA11BB03,  TMultiClassOneVsAllSecondDerKernel);
+    REGISTER_KERNEL(0xA11BB04,  TBuildConfusionMatrixKernel);
 }

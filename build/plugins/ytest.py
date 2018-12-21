@@ -16,15 +16,16 @@ import collections
 import ymake
 
 
+MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
+MDS_SHEME = 'mds'
 CANON_DATA_DIR_NAME = 'canondata'
 CANON_OUTPUT_STORAGE = 'canondata_storage'
-CANON_RESOURCE_FILE = 'resource.tar.gz'
 CANON_RESULT_FILE_NAME = 'result.json'
-CANON_MDS_RESOURCE_REGEX = re.compile(r'(https?://.*?/(.*?)/' + re.escape(CANON_RESOURCE_FILE) + r')')
+CANON_MDS_RESOURCE_REGEX = re.compile(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)')
 CANON_SBR_RESOURCE_REGEX = re.compile(r'(sbr:/?/?(\d+))')
-CANON_RESOURCE_ID_CLEANUP_REGEX = re.compile(r'[\\/]')
 
 VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
+VALID_DNS_REQUIREMENTS = ("default", "local", "dns64")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
 
@@ -62,7 +63,7 @@ def validate_test(kw, is_fuzz_test):
 
     if valid_kw.get('SCRIPT-REL-PATH') == 'boost.test':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("mail", "maps", "metrika", "devtools")):
+        if not project_path.startswith(("contrib", "mail", "maps", "metrika", "devtools")):
             errors.append("BOOSTTEST is not allowed here")
             has_fatal_error = True
     elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
@@ -84,7 +85,7 @@ def validate_test(kw, is_fuzz_test):
     is_force_sandbox = 'ya:force_sandbox' in tags
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     requirements = {}
-    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network'}
+    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network', 'dns'}
     for req in get_list("REQUIREMENTS"):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
@@ -136,6 +137,10 @@ def validate_test(kw, is_fuzz_test):
             elif req_name == "network":
                 if req_value not in VALID_NETWORK_REQUIREMENTS:
                     errors.append("Unknown 'network' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_NETWORK_REQUIREMENTS)))
+                    continue
+            elif req_name == "dns":
+                if req_value not in VALID_DNS_REQUIREMENTS:
+                    errors.append("Unknown 'dns' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_DNS_REQUIREMENTS)))
                     continue
             requirements[req_name] = req_value
         else:
@@ -478,6 +483,7 @@ def onadd_check(unit, *args):
 def onadd_check_py_imports(unit, *args):
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE').strip() == "":
         return
+    unit.onpeerdir(['library/python/testing/import_test'])
     check_type = "py.imports"
     test_dir = unit.resolve(os.path.join(unit.path()))
 
@@ -623,7 +629,12 @@ def onjava_test(unit, *args):
 
     test_cwd = unit.get('TEST_CWD_VALUE') or ''  # TODO: validate test_cwd value
 
-    script_rel_path = 'testng.test' if unit.get('MODULE_TYPE') == 'TESTNG' else 'junit.test'
+    if unit.get('MODULE_TYPE') == 'TESTNG':
+        script_rel_path = 'testng.test'
+    elif unit.get('MODULE_TYPE') == 'JUNIT5':
+        script_rel_path = 'junit5.test'
+    else:
+        script_rel_path = 'junit.test'
 
     test_record = {
         'SOURCE-FOLDER-PATH': path,
@@ -673,6 +684,7 @@ def onjava_test_deps(unit, *args):
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TAG': '',
         'SIZE': 'SMALL',
+        'IGNORE_CLASSPATH_CLASH': ' '.join(get_values_list(unit, 'JAVA_IGNORE_CLASSPATH_CLASH_VALUE')),
 
         # JTEST/JTEST_FOR only
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
@@ -795,15 +807,17 @@ def onsetup_run_python(unit):
 
 
 def get_canonical_test_resources(test_dir, unit_path):
+    canon_data_dir = os.path.join(test_dir, CANON_DATA_DIR_NAME)
+
     try:
-        _, dirs, files = next(os.walk(test_dir))
+        _, dirs, files = next(os.walk(canon_data_dir))
     except StopIteration:
         # path doesn't exist
         return []
 
     if CANON_RESULT_FILE_NAME in files:
-        return _get_canonical_data_resources_v2(os.path.join(test_dir, CANON_RESULT_FILE_NAME), unit_path)
-    return _get_canonical_data_resources_v1(test_dir, dirs, unit_path)
+        return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
+    return _get_canonical_data_resources_v1(canon_data_dir, dirs, unit_path)
 
 
 def _load_canonical_file(filename, unit_path):
@@ -816,14 +830,18 @@ def _load_canonical_file(filename, unit_path):
 
 
 def _get_resource_from_uri(uri):
-    for regex in [CANON_MDS_RESOURCE_REGEX, CANON_SBR_RESOURCE_REGEX]:
-        m = regex.match(uri)
-        if m:
-            # There might be conflict between resources, because all resources in sandbox have 'resource.tar.gz' name
-            # That's why we use notation with '=' to specify specific path for resource
-            uri = m.group(1)
-            res_id = CANON_RESOURCE_ID_CLEANUP_REGEX.sub("_", m.group(2))
-            return "{}={}".format(uri, '/'.join([CANON_OUTPUT_STORAGE, res_id]))
+    m = CANON_MDS_RESOURCE_REGEX.match(uri)
+    if m:
+        res_id = m.group(1)
+        return "{}:{}".format(MDS_SHEME, res_id)
+
+    m = CANON_SBR_RESOURCE_REGEX.match(uri)
+    if m:
+        # There might be conflict between resources, because all resources in sandbox have 'resource.tar.gz' name
+        # That's why we use notation with '=' to specify specific path for resource
+        uri = m.group(1)
+        res_id = m.group(2)
+        return "{}={}".format(uri, '/'.join([CANON_OUTPUT_STORAGE, res_id]))
 
 
 def _get_external_resources_from_canon_data(data):
@@ -838,7 +856,9 @@ def _get_external_resources_from_canon_data(data):
 
     if isinstance(data, dict):
         if 'uri' in data and 'checksum' in data:
-            res.add(_get_resource_from_uri(data['uri']))
+            resource = _get_resource_from_uri(data['uri'])
+            if resource:
+                res.add(resource)
         else:
             for k, v in data.iteritems():
                 res.update(_get_external_resources_from_canon_data(v))

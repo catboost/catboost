@@ -1,0 +1,25 @@
+LIBRARY()
+
+USE_PYTHON()
+
+NO_WERROR()
+NO_WSHADOW()
+NO_COMPILER_WARNINGS()
+ENABLE(NO_WIN32_LEAN)
+
+
+
+PY_REGISTER(_scandir)
+
+SRCS(
+    _scandir.c
+)
+
+PY_SRCS(
+    TOP_LEVEL
+    scandir.py
+)
+
+NO_LINT()
+
+END()

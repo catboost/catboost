@@ -67,6 +67,9 @@ namespace NNeh {
         //use details (SendError argument) as response body
         static bool ErrorDetailsAsResponseBody;
 
+        //consider responses with 3xx code as successful
+        static bool RedirectionNotError;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };
@@ -76,6 +79,10 @@ namespace NNeh {
 
     /// if exceed soft limit, reduce quantity unused connections in cache
     void SetHttp2InputConnectionsLimits(size_t softLimit, size_t hardLimit);
+
+    /// for debug and monitoring purposes
+    TAtomicBase GetHttpOutputConnectionCount();
+    TAtomicBase GetHttpInputConnectionCount();
 
     /// unused input sockets keepalive timeouts
     /// real(used) timeout:

@@ -15,6 +15,9 @@
 #include <catboost/cuda/targets/permutation_der_calcer.h>
 #include <catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
 
     struct TEstimationTaskHelper {
@@ -188,6 +191,6 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void Estimate();
+        void Estimate(NPar::TLocalExecutor* localExecutor);
     };
 }

@@ -1,15 +1,7 @@
 
 
-PYTEST()
-
-TEST_SRCS(
-    test_filelock.py
+RECURSE(
+    lib
+    py2
+    py3
 )
-
-PEERDIR(
-    library/python/filelock
-)
-
-END()
-
-NEED_CHECK()

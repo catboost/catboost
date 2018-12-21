@@ -46,7 +46,7 @@ static inline TIpHost ResolveHost(const char* data, size_t len) {
     TIpHost ret;
     const TString s(data, len);
 
-    if (NResolver::GetHostIP(~s, &ret) != 0) {
+    if (NResolver::GetHostIP(s.data(), &ret) != 0) {
         ythrow TSystemError(NResolver::GetDnsError()) << "can not resolve(" << s << ")";
     }
 
@@ -70,7 +70,7 @@ struct TIpAddress: public sockaddr_in {
 
     template <typename D, typename C, typename T>
     inline TIpAddress(const TStringBase<D, C, T>& ip, TIpPort port) {
-        Set(ResolveHost(~ip, +ip), port);
+        Set(ResolveHost(ip.Data(), ip.Size()), port);
     }
 
     inline TIpAddress(const char* ip, TIpPort port) {

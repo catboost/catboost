@@ -329,6 +329,48 @@ string FsmCodeGen::KEY( Key key )
 	return ret.str();
 }
 
+bool FsmCodeGen::isAlphTypeSigned()
+{
+	return keyOps->isSigned;
+}
+
+bool FsmCodeGen::isWideAlphTypeSigned()
+{
+	string ret;
+	if ( redFsm->maxKey <= keyOps->maxKey )
+		return isAlphTypeSigned();
+	else {
+		long long maxKeyVal = redFsm->maxKey.getLongLong();
+		HostType *wideType = keyOps->typeSubsumes( keyOps->isSigned, maxKeyVal );
+		return wideType->isSigned;
+	}
+}
+
+string FsmCodeGen::WIDE_KEY( RedStateAp *state, Key key )
+{
+	if ( state->stateCondList.length() > 0 ) {
+		ostringstream ret;
+		if ( isWideAlphTypeSigned() )
+			ret << key.getVal();
+		else
+			ret << (unsigned long) key.getVal() << 'u';
+		return ret.str();
+	}
+	else {
+		return KEY( key );
+	}
+}
+
+void FsmCodeGen::EOF_CHECK( ostream &ret )
+{
+	ret << 
+		"	if ( " << P() << " == " << PE() << " )\n"
+		"		goto _test_eof;\n";
+
+	testEofUsed = true;
+}
+
+
 void FsmCodeGen::EXEC( ostream &ret, GenInlineItem *item, int targState, int inFinish )
 {
 	/* The parser gives fexec two children. The double brackets are for D
@@ -363,7 +405,7 @@ void FsmCodeGen::LM_SWITCH( ostream &ret, GenInlineItem *item,
 		ret << "	break;\n";
 	}
 
-	if ( hostLang->lang == HostLang::D && !haveDefault )
+	if ( (hostLang->lang == HostLang::D || hostLang->lang == HostLang::D2) && !haveDefault )
 		ret << "	default: break;";
 
 	ret << 
@@ -622,7 +664,7 @@ void FsmCodeGen::STATE_IDS()
 
 	out << "\n";
 
-	if ( entryPointNames.length() > 0 ) {
+	if ( !noEntry && entryPointNames.length() > 0 ) {
 		for ( EntryNameVect::Iter en = entryPointNames; en.lte(); en++ ) {
 			STATIC_VAR( "int", DATA_PREFIX() + "en_" + *en ) << 
 					" = " << entryPointIds[en.pos()] << "};\n";
@@ -653,6 +695,11 @@ void FsmCodeGen::writeError()
 string CCodeGen::PTR_CONST()
 {
 	return "const ";
+}
+
+string CCodeGen::PTR_CONST_END()
+{
+	return "";
 }
 
 std::ostream &CCodeGen::OPEN_ARRAY( string type, string name )
@@ -742,6 +789,11 @@ string DCodeGen::PTR_CONST()
 	return "";
 }
 
+string DCodeGen::PTR_CONST_END()
+{
+	return "";
+}
+
 std::ostream &DCodeGen::OPEN_ARRAY( string type, string name )
 {
 	out << "static const " << type << "[] " << name << " = [\n";
@@ -798,6 +850,112 @@ void DCodeGen::writeExports()
 
 /*
  * End D-specific code.
+ */
+
+/*
+ * D2 Specific
+ */
+
+string D2CodeGen::NULL_ITEM()
+{
+	return "null";
+}
+
+string D2CodeGen::POINTER()
+{
+	// multiple items seperated by commas can also be pointer types.
+	return "* ";
+}
+
+string D2CodeGen::PTR_CONST()
+{
+	return "const(";
+}
+
+string D2CodeGen::PTR_CONST_END()
+{
+	return ")";
+}
+
+std::ostream &D2CodeGen::OPEN_ARRAY( string type, string name )
+{
+	out << "enum " << type << "[] " << name << " = [\n";
+	return out;
+}
+
+std::ostream &D2CodeGen::CLOSE_ARRAY()
+{
+	return out << "];\n";
+}
+
+std::ostream &D2CodeGen::STATIC_VAR( string type, string name )
+{
+	out << "enum " << type << " " << name;
+	return out;
+}
+
+string D2CodeGen::ARR_OFF( string ptr, string offset )
+{
+	return "&" + ptr + "[" + offset + "]";
+}
+
+string D2CodeGen::CAST( string type )
+{
+	return "cast(" + type + ")";
+}
+
+string D2CodeGen::UINT( )
+{
+	return "uint";
+}
+
+std::ostream &D2CodeGen::SWITCH_DEFAULT()
+{
+	out << "		default: break;\n";
+	return out;
+}
+
+string D2CodeGen::CTRL_FLOW()
+{
+	return "if (true) ";
+}
+
+void D2CodeGen::writeExports()
+{
+	if ( exportList.length() > 0 ) {
+		for ( ExportList::Iter ex = exportList; ex.lte(); ex++ ) {
+			out << "enum " << ALPH_TYPE() << " " << DATA_PREFIX() << 
+					"ex_" << ex->name << " = " << KEY(ex->key) << ";\n";
+		}
+		out << "\n";
+	}
+}
+
+void D2CodeGen::SUB_ACTION( ostream &ret, GenInlineItem *item, 
+		int targState, bool inFinish, bool csForced )
+{
+	if ( item->children->length() > 0 ) {
+		/* Write the block and close it off. */
+		ret << "{{";
+		INLINE_LIST( ret, item->children, targState, inFinish, csForced );
+		ret << "}}";
+	}
+}
+
+void D2CodeGen::ACTION( ostream &ret, GenAction *action, int targState, 
+		bool inFinish, bool csForced )
+{
+	/* Write the preprocessor line info for going into the source file. */
+	cdLineDirective( ret, action->loc.fileName, action->loc.line );
+
+	/* Write the block and close it off. */
+	ret << "\t{{";
+	INLINE_LIST( ret, action->inlineList, targState, inFinish, csForced );
+	ret << "}}\n";
+}
+
+/*
+ * End D2-specific code.
  */
 
 void FsmCodeGen::finishRagelDef()

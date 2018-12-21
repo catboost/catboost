@@ -3,7 +3,8 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/slice.h>
 #include <catboost/cuda/data/data_utils.h>
-#include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/data_new/objects_grouping.h>
+#include <catboost/libs/data_types/query.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 
@@ -58,49 +59,46 @@ namespace NCatboostCuda {
     //zero-based group indices
     class TQueriesGrouping: public IQueriesGrouping {
     public:
-        TQueriesGrouping(const TVector<TGroupId>& queryIds,
-                         const THashMap<TGroupId, TVector<TPair>>& pairs) {
-            auto groupedSamples = GroupSamples(queryIds);
-            QuerySizes = ComputeGroupSizes(groupedSamples);
-            QueryOffsets = ComputeGroupOffsets(groupedSamples);
-            QueryIds.resize(queryIds.size());
+        TQueriesGrouping(TConstArrayRef<ui32> objectPermutation,
+                         const NCB::TObjectsGrouping& objectsGrouping,
+                         TConstArrayRef<TQueryInfo> groupInfos,
+                         bool hasPairs) {
 
-            TVector<TGroupId> inverseGids;
+            QueryIds.resize(objectPermutation.size());
 
             size_t atLeastTwoDocQueriesCount = 0;
 
             {
-                ui32 cursor = 0;
-                for (ui32 i = 0; i < QuerySizes.size(); ++i) {
-                    CB_ENSURE(QuerySizes[i], "Error: empty group");
-                    inverseGids.push_back(queryIds[cursor]);
-                    for (ui32 j = 0; j < QuerySizes[i]; ++j) {
-                        QueryIds[cursor++] = i;
+                ui32 groupIdx = 0;
+                ui32 groupStartIdx = 0;
+                while (groupStartIdx < objectPermutation.size()) {
+                    ui32 srcGroupIdx = objectsGrouping.GetGroupIdxForObject(objectPermutation[groupStartIdx]);
+                    const auto& groupInfo = groupInfos[srcGroupIdx];
+                    CB_ENSURE(groupInfo.GetSize(), "Error: empty group");
+                    QuerySizes.push_back(groupInfo.GetSize());
+                    QueryOffsets.push_back(groupStartIdx);
+                    for (ui32 j = 0; j < groupInfo.GetSize(); ++j) {
+                        QueryIds[groupStartIdx + j] = groupIdx;
                     }
-                    atLeastTwoDocQueriesCount += QuerySizes[i] > 1;
+                    atLeastTwoDocQueriesCount += groupInfo.GetSize() > 1;
+
+                    if (hasPairs) {
+                        QueryPairOffsets.push_back(FlatQueryPairs.size());
+                        for (auto winnerId : xrange(groupInfo.Competitors.size())) {
+                            for (const auto& localPair : groupInfo.Competitors[winnerId]) {
+                                uint2 gpuPair;
+                                gpuPair.x = groupStartIdx + winnerId;
+                                gpuPair.y = groupStartIdx + localPair.Id;
+                                FlatQueryPairs.push_back(gpuPair);
+                                QueryPairWeights.push_back(localPair.Weight);
+                            }
+                        }
+                    }
+                    groupStartIdx += groupInfo.GetSize();
+                    ++groupIdx;
                 }
             }
             CB_ENSURE(atLeastTwoDocQueriesCount, "Error: all groups has size 1");
-
-            if (pairs.size()) {
-                for (ui32 i = 0; i < inverseGids.size(); ++i) {
-                    TGroupId gid = inverseGids[i];
-                    QueryPairOffsets.push_back(FlatQueryPairs.size());
-                    if (pairs.has(gid)) {
-                        ui32 queryOffset = QueryOffsets[i];
-
-                        const auto& groupPairs = pairs.at(gid);
-                        for (auto& localPair : groupPairs) {
-                            uint2 gpuPair;
-                            gpuPair.x = queryOffset + localPair.WinnerId;
-                            gpuPair.y = queryOffset + localPair.LoserId;
-                            FlatQueryPairs.push_back(gpuPair);
-                            CB_ENSURE(localPair.Weight > 0, "Error: pair weight should be positive " << gpuPair.x << " / " << gpuPair.y);
-                            QueryPairWeights.push_back(localPair.Weight);
-                        }
-                    }
-                }
-            }
         }
 
         ui32 GetQueryCount() const override {
@@ -150,7 +148,7 @@ namespace NCatboostCuda {
         const ui32* GetSubgroupIds(ui32 queryId) const {
             CB_ENSURE(HasSubgroupIds());
             auto offset = GetQueryOffset(queryId);
-            return ~SubgroupIds + offset;
+            return SubgroupIds.data() + offset;
         }
 
     private:

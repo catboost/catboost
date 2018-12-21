@@ -4,9 +4,11 @@
 #include "par_locked_hash.h"
 #include "par_network.h"
 
+#include <library/threading/atomic/bool.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
+#include <util/system/atomic.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>
@@ -22,8 +24,8 @@ namespace NPar {
         };
         EType EventType;
         TGUID ReqId;
-        TSimpleSharedPtr<TNetworkRequest> Request;
-        TSimpleSharedPtr<TNetworkResponse> Response;
+        TAtomicSharedPtr<TNetworkRequest> Request;
+        TAtomicSharedPtr<TNetworkResponse> Response;
         TNetworkEvent() = default;
         explicit TNetworkEvent(TNetworkRequest* request)
             : EventType(EType::IncomingQuery)
@@ -43,6 +45,7 @@ namespace NPar {
         {
         }
     };
+
     struct ICmdProcessor : virtual public TThrRefBase {
         virtual void NewRequest(TRemoteQueryProcessor* p, TNetworkRequest* req) = 0;
     };
@@ -116,7 +119,6 @@ namespace NPar {
             }
         };
 
-        TIntrusivePtr<IRequester> Requester;
         int CompId = -1;
         TVector<TNetworkAddress> BaseSearcherAddrs;
         TNetworkAddress MasterAddress;
@@ -129,7 +131,7 @@ namespace NPar {
         TIntrusivePtr<TStopSlaveCmd> StopSlaveCmd;
         TIntrusivePtr<TGatherStatsCmd> GatherStatsCmd;
 
-        Event SlaveFinish;
+        TSystemEvent SlaveFinish;
         TVector<TAtomicWrap> LastCounts;
 
         using TRequestHash = TSpinLockedKeyValueStorage<TGUID, TIntrusivePtr<TQueryResultDst>, TGUIDHash>;
@@ -137,8 +139,11 @@ namespace NPar {
         TRequestHash IncomingRequestsData;
         TLockFreeQueue<TNetworkEvent> NetworkEventsQueue;
         THolder<IThreadPool::IThread> MetaThread;
-        volatile bool DoRun = true;
+        NAtomic::TBool DoRun = true;
         TAutoEvent NetworkEvent;
+
+        NAtomic::TBool RequesterIsSet = false;
+        TIntrusivePtr<IRequester> Requester;
 
     private:
         const TNetworkAddress& GetCompAddress(int compId) {
@@ -147,13 +152,17 @@ namespace NPar {
 
         void MetaThreadFunction();
 
-        void RegisterRequesterCallbacks();
+        void SetRequester(TIntrusivePtr<IRequester> requester) noexcept;
+        void WaitUntilRequesterIsSet() noexcept;
 
         void QueryCancelCallback(const TGUID& canceledReq);
+        void QueryCancelCallbackImpl(const TGUID& canceledReq);
 
         void IncomingQueryCallback(TAutoPtr<TNetworkRequest>& nlReq);
+        void IncomingQueryCallbackImpl(TAutoPtr<TNetworkRequest>& nlReq);
 
         void ReplyCallback(TAutoPtr<TNetworkResponse> response);
+        void ReplyCallbackImpl(TAutoPtr<TNetworkResponse> response);
 
     public:
         TRemoteQueryProcessor();

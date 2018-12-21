@@ -37,7 +37,7 @@ public class CatBoostModelTest {
         }
     }
 
-    static CatBoostModel loadNumericOnlyTestModel() throws CatBoostException {
+    static CatBoostModel loadNumericOnlyTestModel() throws CatBoostError {
         try {
             return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
         } catch (IOException ioe) {
@@ -47,14 +47,34 @@ public class CatBoostModelTest {
         return null;
     }
 
+    static CatBoostModel loadCategoricOnlyTestModel() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/categoric_only_model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load categoric only model from resource, can't run tests without it");
+        return null;
+    }
+
+    static CatBoostModel loadTestModel() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load categoric only model from resource, can't run tests without it");
+        return null;
+    }
+
     @Test
-    public void testHashCategoricalFeature() throws CatBoostException {
+    public void testHashCategoricalFeature() throws CatBoostError {
         final int hash = CatBoostModel.hashCategoricalFeature("foo");
         TestCase.assertEquals(-553946371, hash);
     }
 
     @Test
-    public void testHashCategoricalFeatures() throws CatBoostException {
+    public void testHashCategoricalFeatures() throws CatBoostError {
         final String[] catFeatures = new String[]{"foo", "bar", "baz"};
         final int[] expectedHashes = new int[]{-553946371, 50123586, 825262476};
 
@@ -70,7 +90,7 @@ public class CatBoostModelTest {
             final int[] hashes = new int[2];
             CatBoostModel.hashCategoricalFeatures(catFeatures, hashes);
             fail();
-        } catch (CatBoostException e) {
+        } catch (CatBoostError e) {
         }
     }
 
@@ -84,33 +104,38 @@ public class CatBoostModelTest {
     }
 
     @Test
-    public void testLoadModel() throws CatBoostException, IOException {
-        {
-            final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
-            model.close();
-        }
+    public void testSuccessfulLoadModelFromStream() throws CatBoostError, IOException {
+        final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
+        model.close();
+    }
 
-        {
-            final File file = File.createTempFile("numeric_only_model", "cbm");
-            file.deleteOnExit();
+    @Test
+    public void testSuccessfulLoadModelFromFile() throws IOException, CatBoostError {
+        final File file = File.createTempFile("numeric_only_model", "cbm");
+        file.deleteOnExit();
 
-            try(OutputStream out = new BufferedOutputStream(new FileOutputStream(file.getAbsoluteFile()))) {
-                copyStream(
+        try(OutputStream out = new BufferedOutputStream(new FileOutputStream(file.getAbsoluteFile()))) {
+            copyStream(
                     ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"),
                     out);
-            }
-
-            final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath());
-            model.close();
         }
 
+        final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath());
+        model.close();
+    }
+
+    @Test
+    public void testFailLoadModelFromStream() throws IOException {
         try {
             final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/not_a_model.cbm"));
             model.close();
             fail();
-        } catch (CatBoostException e) {
+        } catch (CatBoostError e) {
         }
+    }
 
+    @Test
+    public void testFailLoadModelFromFile() throws IOException {
         try {
             final File file = File.createTempFile("not_a_model", "cbm");
             file.deleteOnExit();
@@ -123,106 +148,688 @@ public class CatBoostModelTest {
             final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath());
             model.close();
             fail();
-        } catch (CatBoostException e) {
+        } catch (CatBoostError e) {
         }
     }
 
     @Test
-    public void testModelAttributes() throws CatBoostException {
+    public void testModelAttributes() throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             TestCase.assertEquals(1, model.getPredictionDimension());
             TestCase.assertEquals(5, model.getTreeCount());
-            TestCase.assertEquals(3, model.getNumericFeatureCount());
-            TestCase.assertEquals(0, model.getCategoricFeatureCount());
+            TestCase.assertEquals(3, model.getUsedNumericFeatureCount());
+            TestCase.assertEquals(0, model.getUsedCategoricFeatureCount());
         }
     }
 
     @Test
-    public void testPredictSingle() throws CatBoostException {
+    public void testSuccessfulPredictSingleNumericOnly() throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             final float[] numericFeatuers = new float[]{0.1f, 0.3f, 0.2f};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.029172098906116373});
+            final CatBoostPredictions prediction = model.predict(numericFeatuers, (String[]) null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatuers, (String[]) null));
+        }
+    }
 
-            // test valid case
-            {
-                final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.029172098906116373});
-                final CatBoostPredictions prediction = model.predict(numericFeatuers, (String[]) null);
-                assertEqual(expected, prediction);
-                assertEqual(expected, model.predict(numericFeatuers, (String[]) null));
-            }
-
-            // test absence of numeric features
+    @Test
+    public void testFailPredictSingleNumericOnlyWithNullInNumeric() throws CatBoostError {
+        try (final CatBoostModel model = loadNumericOnlyTestModel()) {
             try {
-                model.predict((float[])null, (String[]) null);
+                model.predict((float[]) null, (String[]) null);
                 fail();
-            } catch (CatBoostException e) {
-            }
-
-            // test insufficient number of numeric features
-            try {
-                final float[] numericFeatures = new float[]{0.f, 0.f};
-                model.predict(numericFeatures, (String[]) null);
-                fail();
-            } catch (CatBoostException e) {
-            }
-
-            // test insufficient `prediction` size
-            try {
-                final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
-                model.predict(numericFeatuers, (String[]) null, prediction);
-                fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
         }
     }
 
     @Test
-    public void testPredictMultiple() throws CatBoostException {
+    public void testFailPredictSingleNumericOnlywithInsufficientNumericFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadNumericOnlyTestModel()) {
+            try {
+                final float[] features = new float[]{0.f, 0.f};
+                model.predict(features, (String[]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictNumericOnlyWithInsufficientPredictionSize() throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
-            // test valid case
-            {
-                final float[][] numericFeatures = new float[][]{
+            try {
+                final float[] featuers = new float[]{0.1f, 0.3f, 0.2f};
+                final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
+                model.predict(featuers, (String[]) null, prediction);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultipleNumericOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            final float[][] features = new float[][]{
                     {0.5f, 1.5f, -2.5f},
                     {0.7f, 6.4f, 2.4f},
                     {-2.0f, -1.0f, +6.0f}};
-                final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
                     0.03547209874741901,
                     0.008157865240661602,
                     0.009992472030400074});
-                final CatBoostPredictions prediction = model.predict(numericFeatures, (String[][]) null);
-                assertEqual(expected, prediction);
-                assertEqual(expected, model.predict(numericFeatures, (String[][]) null));
-            }
+            final CatBoostPredictions prediction = model.predict(features, (String[][]) null);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(features, (String[][]) null));
+        }
+    }
 
-            // test absence of numeric features
+    @Test
+    public void testFailPredictMultipleNumericOnlyNullInNumeric() throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             try {
-                model.predict((float[][])null, (String[][]) null);
+                model.predict((float[][]) null, (String[][]) null);
                 fail();
-            } catch (CatBoostException e) {
-            }
-
-            // test insufficient number of numeric features
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f, 0.f},
-                        {0.f, 0.f}};
-                model.predict(numericFeatures, (String[][]) null);
-                fail();
-            } catch (CatBoostException e) {
-            }
-
-            // insufficient size of prediction (by number of objects)
-            try {
-                final float[][] numericFeatures = new float[][]{
-                        {0.f, 0.f, 0.f},
-                        {0.f, 0.f, 0.f}};
-                final CatBoostPredictions prediction = new CatBoostPredictions(1, 1);
-                model.predict(numericFeatures, (String[][]) null, prediction);
-                fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
         }
     }
 
-    // TODO(yazevnul): add test for models that have only categorical features
-    // TODO(yazevnul): add test for models that have both numeric and categorical features
+    @Test
+    public void testFailPredictMultipleNumericOnlyInsufficientNumberOfFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            try {
+                final float[][] features = new float[][]{
+                        {0.f, 0.f, 0.f},
+                        {0.f, 0.f}};
+                model.predict(features, (String[][]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientPredictionSize() throws CatBoostError {
+        try(final CatBoostModel model = loadNumericOnlyTestModel()) {
+            try {
+                final float[][] features = new float[][]{
+                        {0.f, 0.f, 0.f},
+                        {0.f, 0.f, 0.f}};
+                final CatBoostPredictions prediction = new CatBoostPredictions(1, 1);
+                model.predict(features, (String[][]) null, prediction);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictSingleCategoricOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            final String[] features = new String[]{"a", "d", "g"};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
+            final CatBoostPredictions prediction = model.predict((float[])null, features);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict((float[])null, features));
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleCategoricOnlyWithNullInNumeric() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                model.predict((float[]) null, (String[]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleCategoricOnlyWithNullCategoricalFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final float[] features = null;
+                final String[] catFeatures = new String[]{null, null, null};
+                model.predict(features, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleCategoricOnlywihtInsufficientCategoricFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final String[] features = new String[]{"a", "d"};
+                model.predict((float[])null, features);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultipleCategoricOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            final String[][] features = new String[][]{
+                {"a", "d", "g"},
+                {"b", "e", "h"},
+                {"c", "f", "k"}};
+            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                0.04146251510837989,
+                0.015486266021159064,
+                0.04146251510837989});
+            final CatBoostPredictions prediction = model.predict((float[][])null, features);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict((float[][])null, features));
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleCategoricOnlyNullInCategoric() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                model.predict((float[][]) null, (String[][]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleCategoricOnlyInsufficientNumberOfFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final String[][] features = new String[][]{
+                    {"a", "d", "g"},
+                    {"b", "e"}};
+                model.predict((float[][])null, features);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictSingle() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+            final String[] catFeatures = new String[]{"a", "d", "g"};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04666924366060905});
+            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatuers, catFeatures));
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleWithNullInNumeric() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final String[] catFeatures = new String[]{"a", "d", "g"};
+                model.predict((float[]) null, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleWithNullInCategoric() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+                model.predict(numericFeatuers, (String[])null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSinglewihtInsufficientNumericFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatures = new float[]{};
+                final String[] catFeatures = new String[]{"a", "d", "g"};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSinglewihtInsufficientCategoricFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatures = new float[]{0.f, 0.f};
+                final String[] catFeatures = new String[]{"a", "d"};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictWithInsufficientPredictionSize() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatuers = new float[]{0.1f, 0.3f};
+                final String[] catFeatures = new String[]{"a", "d", "g"};
+                final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
+                model.predict(numericFeatuers, catFeatures, prediction);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultiple() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            final float[][] numericFeatures = new float[][]{
+                {0.5f, 1.5f},
+                {0.7f, 6.4f},
+                {-2.0f, -1.0f}};
+            final String[][] catFeatures = new String[][]{
+                {"a", "d", "g"},
+                {"b", "e", "h"},
+                {"c", "f", "k"}};
+            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                0.04666924366060905,
+                0.026244613740247648,
+                0.03094452158737013});
+            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatures, catFeatures));
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleNullInNumeric() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final String[][] catFeatures = new String[][]{
+                    {"a", "d", "g"},
+                    {"b", "e", "h"},
+                    {"c", "f", "k"}};
+                model.predict((float[][]) null, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleNullInCategoric() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.5f, 1.5f},
+                        {0.7f, 6.4f},
+                        {-2.0f, -1.0f}};
+                model.predict(numericFeatures, (String[][])null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfNumericFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f},
+                        {0.f}};
+                final String[][] catFeatures = new String[][]{
+                        {"a", "d", "g"},
+                        {"b", "e", "h"},
+                        {"c", "f", "k"}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfCategoricFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f},
+                        {0.f, 0.f}};
+                final String[][] catFeatures = new String[][]{
+                        {"a", "d", "g"},
+                        {"b", "e", "h"},
+                        {"c", "f"}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfNumericRows() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f}};
+                final String[][] catFeatures = new String[][]{
+                        {"a", "d", "g"},
+                        {"b", "e", "h"},
+                        {"c", "f", "k"}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfCategoricRows() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f},
+                        {0.f, 0.f}};
+                final String[][] catFeatures = new String[][]{
+                        {"a", "d", "g"},
+                        {"b", "e", "h"}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictSingleHashesOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            final int[] features = new int[]{-805065478, 2136526169, 785836961};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
+            final CatBoostPredictions prediction = model.predict((float[])null, features);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict((float[])null, features));
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleHashesOnlyWithNullInNumeric() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                model.predict((float[]) null, (int[]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleHashesOnlywihtInsufficientCategoricFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final int[] features = new int[]{-805065478, 2136526169};
+                model.predict((float[])null, features);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultipleHashesOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            final int[][] features = new int[][]{
+                    {-805065478, 2136526169, 785836961},
+                    {1982436109, 1400211492, 1076941191},
+                    {-1883343840, -1452597217, 2122455585}};
+            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                    0.04146251510837989,
+                    0.015486266021159064,
+                    0.04146251510837989});
+            final CatBoostPredictions prediction = model.predict((float[][])null, features);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict((float[][])null, features));
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleHashesOnlyNullInCategoric() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                model.predict((float[][]) null, (int[][]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleHashesOnlyInsufficientNumberOfFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final int[][] features = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492}};
+                model.predict((float[][])null, features);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictSingleHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+            final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04666924366060905});
+            final CatBoostPredictions prediction = model.predict(numericFeatuers, catFeatures);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatuers, catFeatures));
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleWithNullInNumericHashes() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                model.predict((float[]) null, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleWithNullInCategoricHashes() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatuers = new float[]{0.5f, 1.5f};
+                model.predict(numericFeatuers, (int[])null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSinglewihtInsufficientNumericFeaturesHashes() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatures = new float[]{};
+                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSinglewihtInsufficientCategoricFeaturesHashes() throws CatBoostError {
+        try (final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatures = new float[]{0.f, 0.f};
+                final int[] catFeatures = new int[]{-805065478, 2136526169};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictWithInsufficientPredictionSizeHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[] numericFeatuers = new float[]{0.1f, 0.3f};
+                final int[] catFeatures = new int[]{-805065478, 2136526169, 785836961};
+                final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
+                model.predict(numericFeatuers, catFeatures, prediction);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultipleHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            final float[][] numericFeatures = new float[][]{
+                    {0.5f, 1.5f},
+                    {0.7f, 6.4f},
+                    {-2.0f, -1.0f}};
+            final int[][] catFeatures = new int[][]{
+                    {-805065478, 2136526169, 785836961},
+                    {1982436109, 1400211492, 1076941191},
+                    {-1883343840, -1452597217, 2122455585}};
+            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                    0.04666924366060905,
+                    0.026244613740247648,
+                    0.03094452158737013});
+            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatures, catFeatures));
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleNullInNumericHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final int[][] catFeatures = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492, 1076941191},
+                        {-1883343840, -1452597217, 2122455585}};
+                model.predict((float[][]) null, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleNullInCategoricHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.5f, 1.5f},
+                        {0.7f, 6.4f},
+                        {-2.0f, -1.0f}};
+                model.predict(numericFeatures, (int[][])null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfNumericFeaturesHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f},
+                        {0.f}};
+                final int[][] catFeatures = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492, 1076941191},
+                        {-1883343840, -1452597217, 2122455585}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfCategoricFeaturesHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f},
+                        {0.f, 0.f}};
+                final int[][] catFeatures = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492, 1076941191},
+                        {-1883343840, -1452597217}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfNumericRowsHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f}};
+                final int[][] catFeatures = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492, 1076941191},
+                        {-1883343840, -1452597217, 2122455585}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleInsufficientNumberOfCategoricRowsHashes() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            try {
+                final float[][] numericFeatures = new float[][]{
+                        {0.f, 0.f},
+                        {0.f, 0.f},
+                        {0.f, 0.f}};
+                final int[][] catFeatures = new int[][]{
+                        {-805065478, 2136526169, 785836961},
+                        {1982436109, 1400211492, 1076941191}};
+                model.predict(numericFeatures, catFeatures);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
 }

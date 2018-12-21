@@ -54,6 +54,7 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
     Y_UNIT_TEST(TestFileRemap) {
         const char data1[] = "01234";
         const char data2[] = "abcdefg";
+        const char data3[] = "COPY";
         const char dataFinal[] = "012abcdefg";
         const size_t data2Shift = 3;
 
@@ -64,10 +65,25 @@ Y_UNIT_TEST_SUITE(TFileMapTest) {
         {
             TFileMap mappedFile(FileName_, TMemoryMapCommon::oRdWr);
             mappedFile.Map(0, mappedFile.Length());
-            UNIT_ASSERT(mappedFile.MappedSize() == sizeof(data1) && mappedFile.Length() == sizeof(data1));
+            UNIT_ASSERT(mappedFile.MappedSize() == sizeof(data1) &&
+                        mappedFile.Length() == sizeof(data1));
 
             mappedFile.ResizeAndRemap(data2Shift, sizeof(data2));
             memcpy(mappedFile.Ptr(), data2, sizeof(data2));
+        }
+
+        {
+            TFileMap mappedFile(FileName_, TMemoryMapCommon::oCopyOnWr);
+            mappedFile.Map(0, mappedFile.Length());
+            UNIT_ASSERT(mappedFile.MappedSize() == sizeof(dataFinal) &&
+                        mappedFile.Length() == sizeof(dataFinal));
+
+            char* data = static_cast<char*>(mappedFile.Ptr());
+            UNIT_ASSERT(data[0] == '0');
+            UNIT_ASSERT(data[3] == 'a');
+            memcpy(data, data3, sizeof(data3));
+            UNIT_ASSERT(data[0] == 'C');
+            UNIT_ASSERT(data[3] == 'Y');
         }
 
         TFile resFile(FileName_, RdOnly);

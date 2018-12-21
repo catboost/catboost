@@ -1,10 +1,14 @@
 #include "feature_str.h"
 
-#include <util/stream/output.h>
 #include <util/generic/algorithm.h>
-#include <util/generic/xrange.h>
 #include <util/generic/hash.h>
-#include <library/containers/2d_array/2d_array.h>
+#include <util/generic/utility.h>
+#include <util/generic/xrange.h>
+#include <util/system/yassert.h>
+
+#include <algorithm>
+#include <utility>
+
 
 int GetMaxSrcFeature(const TVector<TMxTree>& trees) {
     int res = -1;

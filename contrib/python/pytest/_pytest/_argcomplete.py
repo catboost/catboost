@@ -1,11 +1,7 @@
-
 """allow bash-completion for argparse with argcomplete if installed
 needs argcomplete>=0.5.6 for python 3.2/3.3 (older versions fail
 to find the magic string, so _ARGCOMPLETE env. var is never set, and
 this does not need special code.
-
-argcomplete does not support python 2.5 (although the changes for that
-are minor).
 
 Function try_argcomplete(parser) should be called directly before
 the call to ArgumentParser.parse_args().
@@ -57,38 +53,44 @@ If things do not work right away:
   which should throw a KeyError: 'COMPLINE' (which is properly set by the
   global argcomplete script).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import sys
 import os
+import sys
 from glob import glob
 
-class FastFilesCompleter:
-    'Fast file completer class'
+
+class FastFilesCompleter(object):
+    "Fast file completer class"
+
     def __init__(self, directories=True):
         self.directories = directories
 
     def __call__(self, prefix, **kwargs):
         """only called on non option completions"""
-        if os.path.sep in prefix[1:]: #
+        if os.path.sep in prefix[1:]:
             prefix_dir = len(os.path.dirname(prefix) + os.path.sep)
         else:
             prefix_dir = 0
         completion = []
         globbed = []
-        if '*' not in prefix and '?' not in prefix:
-            if prefix[-1] == os.path.sep:  # we are on unix, otherwise no bash
-                globbed.extend(glob(prefix + '.*'))
-            prefix += '*'
+        if "*" not in prefix and "?" not in prefix:
+            # we are on unix, otherwise no bash
+            if not prefix or prefix[-1] == os.path.sep:
+                globbed.extend(glob(prefix + ".*"))
+            prefix += "*"
         globbed.extend(glob(prefix))
         for x in sorted(globbed):
             if os.path.isdir(x):
-                x += '/'
+                x += "/"
             # append stripping the prefix (like bash, not like compgen)
             completion.append(x[prefix_dir:])
         return completion
 
 
-if os.environ.get('_ARGCOMPLETE'):
+if os.environ.get("_ARGCOMPLETE"):
     try:
         import argcomplete.completers
     except ImportError:
@@ -96,7 +98,12 @@ if os.environ.get('_ARGCOMPLETE'):
     filescompleter = FastFilesCompleter()
 
     def try_argcomplete(parser):
-        argcomplete.autocomplete(parser)
+        argcomplete.autocomplete(parser, always_complete_options=False)
+
+
 else:
-    def try_argcomplete(parser): pass
+
+    def try_argcomplete(parser):
+        pass
+
     filescompleter = None

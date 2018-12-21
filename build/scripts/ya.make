@@ -7,6 +7,7 @@ TEST_SRCS(
     build_info_gen.py
     build_java_codenav_index.py
     build_java_with_error_prone.py
+    build_java_with_error_prone2.py
     build_mn.py
     build_pln_header.py
     cat.py
@@ -35,6 +36,9 @@ TEST_SRCS(
     gen_rodata.py
     gen_ub.py
     generate_pom.py
+    go_proto_wrapper.py
+    go_tool.py
+    ios_wrapper.py
     java_pack_to_file.py
     link_dyn_lib.py
     link_fat_obj.py
@@ -47,6 +51,7 @@ TEST_SRCS(
     pack_jcoverage_resources.py
     perl_wrapper.py
     preprocess.py
+    provides.py
     py_compile.py
     run_javac.py
     run_llvm_dsymutil.py
@@ -57,6 +62,7 @@ TEST_SRCS(
     svn_version_gen.py
     symlink.py
     tared_protoc.py
+    tar_directory.py
     touch.py
     unpacking_jtest_runner.py
     with_coverage.py

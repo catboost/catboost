@@ -1,19 +1,39 @@
 #include "docs_importance.h"
+
+#include "docs_importance_helpers.h"
 #include "enums.h"
 
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/target/data_providers.h>
+
+#include <util/generic/cast.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
 #include <util/generic/ymath.h>
+#include <util/string/cast.h>
+#include <util/string/iterator.h>
+
+#include <functional>
+#include <numeric>
+
+
+using namespace NCB;
+
+
 
 static TUpdateMethod ParseUpdateMethod(const TString& updateMethod) {
     TString errorMessage = "Incorrect update-method param value. Should be one of: SinglePoint, \
         TopKLeaves, AllPoints or TopKLeaves:top=2 to set the top size in TopKLeaves method.";
-    TVector<TString> tokens = StringSplitter(updateMethod).SplitLimited(':', 2).ToList<TString>();
+    TVector<TString> tokens = StringSplitter(updateMethod).SplitLimited(':', 2);
     CB_ENSURE(tokens.size() <= 2, errorMessage);
     EUpdateType updateType;
     CB_ENSURE(TryFromString<EUpdateType>(tokens[0], updateType), tokens[0] + " update method is not supported");
     CB_ENSURE(tokens.size() == 1 || (tokens.size() == 2 && updateType == EUpdateType::TopKLeaves), errorMessage);
     int topSize = 0;
     if (tokens.size() == 2) {
-        TVector<TString> keyValue = StringSplitter(tokens[1]).SplitLimited('=', 2).ToList<TString>();
+        TVector<TString> keyValue = StringSplitter(tokens[1]).SplitLimited('=', 2);
         CB_ENSURE(keyValue[0] == "top", errorMessage);
         CB_ENSURE(TryFromString<int>(keyValue[1], topSize), "Top size should be nonnegative integer, got: " + keyValue[1]);
     }
@@ -91,25 +111,56 @@ static TDStrResult GetFinalDocumentImportances(
 
 TDStrResult GetDocumentImportances(
     const TFullModel& model,
-    const TPool& trainPool,
-    const TPool& testPool,
+    const NCB::TDataProvider& trainData,
+    const NCB::TDataProvider& testData,
     const TString& dstrTypeStr,
     int topSize,
     const TString& updateMethodStr,
     const TString& importanceValuesSignStr,
-    int threadCount
+    int threadCount,
+    int logPeriod
 ) {
     if (topSize == -1) {
-        topSize = trainPool.Docs.GetDocCount();
+        topSize = SafeIntegerCast<int>(trainData.ObjectsData->GetObjectCount());
     } else {
         CB_ENSURE(topSize >= 0, "Top size should be nonnegative integer or -1 (for unlimited top size).");
     }
 
+    TSetLoggingVerbose inThisScope;
+
     TUpdateMethod updateMethod = ParseUpdateMethod(updateMethodStr);
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
     EImportanceValuesSign importanceValuesSign = FromString<EImportanceValuesSign>(importanceValuesSignStr);
-    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, trainPool, updateMethod, threadCount);
-    const TVector<TVector<double>> documentImportances = leafInfluenceEvaluator.GetDocumentImportances(testPool);
+
+    TRestorableFastRng64 rand(0);
+
+    auto localExecutor = MakeAtomicShared<NPar::TLocalExecutor>();
+    localExecutor->RunAdditionalThreads(threadCount - 1);
+
+    // use maybe to enable delayed initialization
+    TMaybe<TProcessedDataProvider> trainProcessedData;
+    TMaybe<TProcessedDataProvider> testProcessedData;
+
+    TVector<std::function<void()>> tasks;
+    tasks.emplace_back(
+        [&] () {
+            trainProcessedData.ConstructInPlace(
+                CreateModelCompatibleProcessedDataProvider(trainData, {}, model, &rand, localExecutor.Get())
+            );
+        }
+    );
+    tasks.emplace_back(
+        [&] () {
+            testProcessedData.ConstructInPlace(
+                CreateModelCompatibleProcessedDataProvider(testData, {}, model, &rand, localExecutor.Get())
+            );
+        }
+    );
+    ExecuteTasksInParallel(&tasks, localExecutor.Get());
+
+    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, *trainProcessedData, updateMethod, localExecutor, logPeriod);
+    const TVector<TVector<double>> documentImportances
+        = leafInfluenceEvaluator.GetDocumentImportances(*testProcessedData, logPeriod);
     return GetFinalDocumentImportances(documentImportances, dstrType, topSize, importanceValuesSign);
 }
 

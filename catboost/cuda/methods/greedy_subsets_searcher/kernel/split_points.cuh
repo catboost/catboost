@@ -20,6 +20,9 @@ namespace NKernel {
 
         TDevicePointer<ui32> TempIndices;
         TDevicePointer<ui32> Indices;
+
+        TDevicePointer<double> UpdatePropsTempBuffer;
+        ui32 UpdatePropsTempBufferSize = 0;
     };
 
     void SortByFlagsInLeaves(const ui32* leavesToSplit, ui32 leafCount,

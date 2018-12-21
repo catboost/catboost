@@ -7,5 +7,3 @@ RECURSE(
     relaxed_escaper
     relaxed_escaper/ut
 )
-
-NEED_CHECK()

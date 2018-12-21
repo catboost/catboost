@@ -6,12 +6,13 @@
 #include "par_log.h"
 
 #include <library/binsaver/mem_io.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/is_in.h>
 #include <util/generic/vector.h>
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 #include <util/system/yield.h>
-
-#include <library/threading/local_executor/local_executor.h>
 
 namespace NPar {
     struct TDeserializedCmds {
@@ -46,7 +47,7 @@ namespace NPar {
         TVector<bool> ResultHasData;
         TVector<int> RemapTable;
         TAtomic ReduceReqCount;
-        void* volatile CurrentState; // 0 = working, -1 = complete/canceled
+        TAtomic CurrentState; // 0 = working, -1 = complete/canceled
         TGUID MasterGuid;
 
         int CountHasData(int* iPtr) {
@@ -63,7 +64,7 @@ namespace NPar {
         void DoneReduceTask() {
             if (AtomicAdd(ReduceReqCount, -1) != 0)
                 return;
-            if (AtomicCas(&CurrentState, (void*)-1, (void*)nullptr)) {
+            if (AtomicCas(&CurrentState, -1, 0)) {
                 if (!RemapTable.empty()) {
                     int reduceResultCount = RemapTable.ysize();
                     for (int i = 0; i < reduceResultCount; ++i)
@@ -90,7 +91,7 @@ namespace NPar {
             return MasterGuid;
         }
         void Cancel() {
-            if (AtomicCas(&CurrentState, (void*)-1, (void*)nullptr)) {
+            if (AtomicCas(&CurrentState, -1, 0)) {
                 if (CompleteNotify.Get()) {
                     CompleteNotify->MRCommandComplete(true, nullptr);
                     CompleteNotify = nullptr;
@@ -99,7 +100,7 @@ namespace NPar {
             }
         }
         bool NeedResult() {
-            if (CurrentState != nullptr)
+            if (AtomicGet(CurrentState) != 0)
                 return false;
             if (CancelCheck.Get()) {
                 if (!CancelCheck->MRIsCmdNeeded()) {
@@ -170,7 +171,7 @@ namespace NPar {
             , CompleteNotify(completeNotify)
             , Cmds(jobRequest)
             , ReduceReqCount(0)
-            , CurrentState(nullptr)
+            , CurrentState(0)
         {
             resultData->swap(ResultData);
             resultHasData->swap(ResultHasData);
@@ -286,7 +287,7 @@ namespace NPar {
 
                 const int FAKE_REMOTE_JOB_COUNT = 100; // needed to prevent rescheduling of not started job
                 RemoteMapReqCount += partCount;
-                RemoteJobCount = partCount + FAKE_REMOTE_JOB_COUNT;
+                AtomicSet(RemoteJobCount, partCount + FAKE_REMOTE_JOB_COUNT);
 
                 // launch part ops
                 LocalPartId = -1;
@@ -345,7 +346,7 @@ namespace NPar {
                 }
             }
 
-            if (LocalUserContext->HasHostIds(hostIdSet) && MapResult == nullptr) {
+            if (LocalUserContext->HasHostIds(hostIdSet) && AtomicGet(MapResult) == nullptr) {
                 Y_ASSERT(LocalMapReqCount == 0);
                 LocalMapReqCount = 1;
                 for (int i = 0; i < mapJobCount; ++i) {
@@ -432,7 +433,7 @@ namespace NPar {
                     }
                 }
                 //Y_ASSERT(partId != -1); // possible since RemoteJobCount is modified from LaunchOps() in different thread
-                if (partId >= 0 && MapResult == nullptr)
+                if (partId >= 0 && AtomicGet(MapResult) == nullptr)
                     ReschedulePartRequest(partId);
             }
             DoneRemoteMapTask();
@@ -445,7 +446,7 @@ namespace NPar {
             if (!NeedResult())
                 return;
             CopyRemoteTaskResults(LocalPartId, res);
-            if (RemoteJobCount > 0) {
+            if (AtomicGet(RemoteJobCount) > 0) {
                 // completed local part, lets try to execute all the rest map jobs locally
                 // "local-remote balance"
                 TryToExecAllMapsLocally();
@@ -474,7 +475,7 @@ namespace NPar {
         void LocalExec(int id) override {
             // do map task locally
             const TJobParams& params = JobRequest->Descr.ExecList[id];
-            if (NeedResult() && MapResult == nullptr) {
+            if (NeedResult() && AtomicGet(MapResult) == nullptr) {
                 int partId = MapJob2PartId[id];
                 if (partId == -1 || !PartCompleted[partId]) {
                     TVector<char>& dataBuf = LocalMapBuf.ResultData[id];
@@ -485,7 +486,8 @@ namespace NPar {
             }
         }
         void StartReduce() {
-            TReduceExec::Launch(JobRequest.Get(), CompleteNotify.Get(), &MapResult->ResultData, &MapResult->ResultHasData);
+            auto* const mapResult = AtomicGet(MapResult);
+            TReduceExec::Launch(JobRequest.Get(), CompleteNotify.Get(), &mapResult->ResultData, &mapResult->ResultHasData);
         }
         void DoneRemoteMapTask() {
             if (AtomicAdd(RemoteMapReqCount, -1) != 0)
@@ -532,7 +534,7 @@ namespace NPar {
             }
         }
         bool NeedResult() {
-            if (MapResult != nullptr)
+            if (AtomicGet(MapResult) != nullptr)
                 return false;
             if (CancelCheck.Get()) {
                 if (!CancelCheck->MRIsCmdNeeded()) {

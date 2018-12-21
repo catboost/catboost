@@ -1,48 +1,31 @@
 #pragma once
 
 #include "option.h"
-#include "json_helper.h"
+#include "enums.h"
 #include "binarization_options.h"
-#include "restrictions.h"
+#include "unimplemented_aware_option.h"
+
 #include <library/grid_creator/binarization.h>
 
+#include <util/generic/vector.h>
+#include <util/system/types.h>
+
+
+namespace NJson {
+    class TJsonValue;
+}
+
 namespace NCatboostOptions {
-
     struct TDataProcessingOptions {
-        explicit TDataProcessingOptions(ETaskType type)
-            : IgnoredFeatures("ignored_features", TVector<int>())
-            , HasTimeFlag("has_time", false)
-            , AllowConstLabel("allow_const_label", false)
-            , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 128, ENanMode::Min))
-            , ClassesCount("classes_count", 0)
-            , ClassWeights("class_weights", TVector<float>())
-            , ClassNames("class_names", TVector<TString>())
-            , GpuCatFeaturesStorage("gpu_cat_features_storage", EGpuCatFeaturesStorage::GpuRam, type)
-        {
-            GpuCatFeaturesStorage.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
-        }
+        explicit TDataProcessingOptions(ETaskType type);
 
-        void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &FloatFeaturesBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
-            CB_ENSURE(FloatFeaturesBinarization->BorderCount <= GetMaxBinCount(), "Error: catboost doesn't support binarization with >= 256 levels");
-        }
+        void Save(NJson::TJsonValue* options) const;
+        void Load(const NJson::TJsonValue& options);
 
-        void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, FloatFeaturesBinarization, ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage);
-        }
+        bool operator==(const TDataProcessingOptions& rhs) const;
+        bool operator!=(const TDataProcessingOptions& rhs) const;
 
-        bool operator==(const TDataProcessingOptions& rhs) const {
-            return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, FloatFeaturesBinarization, ClassesCount, ClassWeights,
-                            ClassNames, GpuCatFeaturesStorage) ==
-                   std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.FloatFeaturesBinarization, rhs.ClassesCount,
-                            rhs.ClassWeights, rhs.ClassNames, rhs.GpuCatFeaturesStorage);
-        }
-
-        bool operator!=(const TDataProcessingOptions& rhs) const {
-            return !(rhs == *this);
-        }
-
-        TOption<TVector<int>> IgnoredFeatures;
+        TOption<TVector<ui32>> IgnoredFeatures;
         TOption<bool> HasTimeFlag;
         TOption<bool> AllowConstLabel;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
@@ -51,5 +34,4 @@ namespace NCatboostOptions {
         TOption<TVector<TString>> ClassNames;
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
     };
-
 }

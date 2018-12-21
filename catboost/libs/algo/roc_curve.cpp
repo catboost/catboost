@@ -3,17 +3,32 @@
 
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/target/data_providers.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
+#include <util/generic/cast.h>
 #include <util/generic/utility.h>
+#include <util/stream/fwd.h>
+#include <util/string/cast.h>
+
+#include <cmath>
+
+
+using namespace NCB;
+
 
 namespace {
     struct TClassWithProbability {
         int ClassId = 0;
         double Probability = 0.0;
 
+    public:
         TClassWithProbability() = default;
         TClassWithProbability(int classId, double probability)
-            : ClassId(classId), Probability(probability) {}
+            : ClassId(classId)
+            , Probability(probability)
+        {}
     };
 }
 
@@ -45,24 +60,23 @@ void TRocCurve::AddPoint(double newBoundary, double newFnr, double newFpr) {
 }
 
 void TRocCurve::BuildCurve(
-    const TVector<TVector<double>>& rawApproxes,
-    const TVector<TPool>& pools,
+    const TVector<TVector<double>>& approxes, // [poolId][docId]
+    const TVector<TConstArrayRef<float>>& labels, // [poolId][docId]
     NPar::TLocalExecutor* localExecutor
 ) {
     size_t allDocumentsCount = 0;
-    for (const auto& pool : pools) {
-        allDocumentsCount += pool.Docs.GetDocCount();
+    for (const auto& label : labels) {
+        allDocumentsCount += label.size();
     }
     TVector<TClassWithProbability> probabilitiesWithTargets(allDocumentsCount);
 
     TVector<size_t> countTargets(2, 0);
 
     size_t allDocumentsOffset = 0;
-    for (size_t poolIdx = 0; poolIdx < pools.size(); ++poolIdx) {
-        const auto& pool = pools[poolIdx];
-        TVector<TVector<double>> rawApproxesMulti(1, rawApproxes[poolIdx]);
+    for (size_t poolIdx = 0; poolIdx < labels.size(); ++poolIdx) {
+        TVector<TVector<double>> rawApproxesMulti(1, approxes[poolIdx]);
         auto probabilities = PrepareEval(EPredictionType::Probability, rawApproxesMulti, localExecutor);
-        const auto& targets = pool.Docs.Target;
+        const auto& targets = labels[poolIdx];
         size_t documentsCount = targets.size();
         for (size_t documentIdx = 0; documentIdx < documentsCount; ++documentIdx) {
             int target = targets[documentIdx] + 0.5 /* custom round for accuracy */;
@@ -78,7 +92,7 @@ void TRocCurve::BuildCurve(
     for (int classId : {0, 1}) {
         CB_ENSURE(
             countTargets[classId] > 0,
-            "No documents of class " << ToString(classId) << " provided in pool"
+            "No documents of class " << ToString(classId) << "."
         );
     }
 
@@ -112,32 +126,63 @@ void TRocCurve::BuildCurve(
     AddPoint(0, 0, 1); // always ends with (0, 0, 1)
 }
 
+
 TRocCurve::TRocCurve(
-    const TVector<TVector<double>>& rawApproxes,
-    const TVector<TPool>& pools,
-    NPar::TLocalExecutor* localExecutor
+    const TVector<TVector<double>>& approxes,
+    const TVector<TConstArrayRef<float>>& labels,
+    int threadCount
 ) {
-    BuildCurve(rawApproxes, pools, localExecutor);
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    BuildCurve(approxes, labels, &localExecutor);
 }
 
-TRocCurve::TRocCurve(const TFullModel& model, const TVector<TPool>& pools, int threadCount) {
-    TVector<TVector<double>> rawApproxes(pools.size());
-    for (size_t poolIdx = 0; poolIdx < pools.size(); ++poolIdx) {
-        rawApproxes[poolIdx] = ApplyModel(
-            model,
-            pools[poolIdx],
-            false,
-            EPredictionType::RawFormulaVal,
-            0,
-            pools[poolIdx].Docs.GetDocCount(),
-            threadCount
-        );
-    }
+
+TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& datasets, int threadCount) {
+    TVector<TVector<double>> approxes(datasets.size());
+    TVector<TConstArrayRef<float>> labels(datasets.size());
+
+    // need to save owners of labels data
+    TVector<TTargetDataProviders> targetDataParts(datasets.size());
+
+    NCatboostOptions::TLossDescription logLoss;
+    logLoss.LossFunction.Set(ELossFunction::Logloss);
+
+    TRestorableFastRng64 rand(0);
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    BuildCurve(rawApproxes, pools, &localExecutor);
+    localExecutor.ExecRange(
+        [&] (int i) {
+            TProcessedDataProvider processedData = CreateModelCompatibleProcessedDataProvider(
+                *datasets[i],
+                TConstArrayRef<NCatboostOptions::TLossDescription>(&logLoss, 1),
+                model,
+                &rand,
+                &localExecutor
+            );
+
+            approxes[i] = ApplyModelMulti(
+                model,
+                *processedData.ObjectsData,
+                EPredictionType::RawFormulaVal,
+                0,
+                SafeIntegerCast<int>(processedData.ObjectsData->GetObjectCount()),
+                &localExecutor
+            )[0];
+
+            targetDataParts[i] = std::move(processedData.TargetData);
+
+            labels[i] = GetTarget(targetDataParts[i]);
+        },
+        0,
+        SafeIntegerCast<int>(datasets.size()),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
+
+    BuildCurve(approxes, labels, &localExecutor);
 }
 
 static void CheckRocPoint(const TRocPoint& rocPoint) {
@@ -240,10 +285,10 @@ TVector<TRocPoint> TRocCurve::GetCurvePoints() {
     return Points;
 }
 
-void TRocCurve::Output(const TString& outputPath) {
+void TRocCurve::OutputRocCurve(const TString& outputPath) {
     TFileOutput out(outputPath);
-    out << "Boundary" << "\t" << "FNR" << "\t" << "FPR" << Endl;
+    out << "FPR" << "\t" << "TPR" << "\t" << "Threshold" << Endl;
     for (const TRocPoint& point : Points) {
-        out << point.Boundary << "\t" << point.FalseNegativeRate << "\t" << point.FalsePositiveRate << Endl;
+        out << point.FalsePositiveRate << "\t" << 1 - point.FalseNegativeRate << "\t" << point.Boundary << Endl;
     }
 }

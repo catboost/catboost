@@ -52,7 +52,7 @@ namespace NCatboost {
             out << indent << "transposed_cat_feature_indexes = [";
             TSequenceCommaSeparator commaInnerWithSpace(proj.CatFeatures.size(), AddSpaceAfterComma);
             for (const auto feature : proj.CatFeatures) {
-                out << ctrProvider->GetCatFeatureIndex().at(feature) << commaInnerWithSpace;
+                out << feature << commaInnerWithSpace;
             }
             out << "]," << '\n';
             out << indent++ << "binarized_indexes = [";
@@ -139,7 +139,7 @@ namespace NCatboost {
     };
 
 
-    void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) {
+    void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
 
         if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
@@ -154,27 +154,24 @@ namespace NCatboost {
         Out << indent << "float_features_index = [\n";
         TStringBuilder str;
         for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
-            str << feature.FeatureIndex << ", ";
+            if (feature.UsedInModel()) {
+                str << feature.FeatureIndex << ", ";
+            }
         }
         str.pop_back();
         Out << ++indent << str << "\n";
         Out << --indent << "]\n";
-        int max_index = -1;
-        for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
-            max_index = Max(max_index, feature.FeatureIndex);
-        }
-        Out << indent << "float_feature_count = " << max_index + 1 << '\n';
-        max_index = -1;
-        for (const auto& feature: model.ObliviousTrees.CatFeatures) {
-            max_index = Max(max_index, feature.FeatureIndex);
-        }
-        Out << indent << "cat_feature_count = " << max_index + 1 << '\n';
+        Out << indent << "float_feature_count = " << model.ObliviousTrees.GetNumFloatFeatures() << '\n';
+        Out << indent << "cat_feature_count = " << model.ObliviousTrees.GetNumCatFeatures() << '\n';
         Out << indent << "binary_feature_count = " << model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() << '\n';
         Out << indent << "tree_count = " << model.ObliviousTrees.TreeSizes.size() << '\n';
 
         Out << indent++ << "float_feature_borders = [" << '\n';
         comma.ResetCount(model.ObliviousTrees.FloatFeatures.size());
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+            if (!floatFeature.UsedInModel()) {
+                continue;
+            }
             Out << indent << "["
                 << OutputArrayInitializer([&floatFeature](size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 8); }, floatFeature.Borders.size())
                 << "]" << comma << '\n';
@@ -234,7 +231,7 @@ namespace NCatboost {
                 ordered_keys.insert(key_value.first);
             }
             for (const auto& key_value: ordered_keys) {
-                Out << indent << "\"" << catFeaturesHashToString->at(key_value) << "\": "  << key_value << ",\n";
+                Out << indent << catFeaturesHashToString->at(key_value).Quote() << ": "  << key_value << ",\n";
             }
         }
         Out << --indent << "}" << '\n';

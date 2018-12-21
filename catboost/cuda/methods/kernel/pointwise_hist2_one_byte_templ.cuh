@@ -57,12 +57,12 @@ namespace NKernel {
     struct TDeclarePassInnerOuterBitsTrait;
 
 
-    template<int OUTER_HIST_BITS_COUNT,
+    template <int OUTER_HIST_BITS_COUNT,
             int INNER_HIST_BITS_COUNT,
             int BLOCK_SIZE>
     struct TPointHist;
 
-    template<int BLOCK_SIZE, int OUTER_HIST_BITS_COUNT, int INNER_HIST_BITS_COUNT, int BLOCKS_PER_FEATURE, bool IS_FULL_PASS>
+    template <int BLOCK_SIZE, int OUTER_HIST_BITS_COUNT, int INNER_HIST_BITS_COUNT, int BLOCKS_PER_FEATURE, bool IS_FULL_PASS>
     __forceinline__ __device__ void ComputeSplitPropertiesPass(const TCFeature* __restrict__ feature, const ui32* __restrict__ cindex,
                                                                const float* __restrict__ target, const float* __restrict__ weight,
                                                                const ui32* __restrict__ indices,
@@ -150,7 +150,7 @@ namespace NKernel {
     ComputeSplitPropertiesPass<BLOCK_SIZE, O, I, M, FULL_PASS>(feature, cindex, target, weight, indices, partition, fCount, binSums, &counters[0]);
 
 
-    template<int BLOCK_SIZE, int BITS, bool FULL_PASS, int M>
+    template <int BLOCK_SIZE, int BITS, bool FULL_PASS, int M>
     #if __CUDA_ARCH__ <= 350
     __launch_bounds__(BLOCK_SIZE, 1)
     #endif
@@ -187,7 +187,7 @@ namespace NKernel {
         }
     }
 
-    template<int BLOCK_SIZE,
+    template <int BLOCK_SIZE,
              int Bits,
              int BLOCKS_PER_FEATURE_COUNT>
     inline void RunComputeHist2NonBinaryKernel(const TCFeature* nbFeatures, int nbCount,

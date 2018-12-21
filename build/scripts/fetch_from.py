@@ -45,6 +45,19 @@ def hardlink_or_copy(src, dst):
                 raise
 
 
+def rename_or_copy_and_remove(src, dst):
+    try:
+        os.makedirs(os.path.dirname(dst))
+    except OSError:
+        pass
+
+    try:
+        os.rename(src, dst)
+    except OSError:
+        shutil.copy(src, dst)
+        os.remove(src)
+
+
 class BadChecksumFetchError(Exception):
     pass
 
@@ -268,3 +281,6 @@ def process(fetched_file, file_name, opts, outputs, remove=True):
     if opts.copy_to_dir:
         hardlink_or_copy(fetched_file, os.path.join(opts.copy_to_dir, file_name))
         ensure_outputs_not_directories(outputs, opts.copy_to_dir)
+
+    if getattr(opts, 'rename_to', False):
+        rename_or_copy_and_remove(fetched_file, opts.rename_to)

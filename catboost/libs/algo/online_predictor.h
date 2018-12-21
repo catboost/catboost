@@ -4,12 +4,12 @@
 
 #include <catboost/libs/options/enums.h>
 
+#include <library/binsaver/bin_saver.h>
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>
 
-#include <library/binsaver/bin_saver.h>
 
 struct TSum {
     TVector<double> SumDerHistory;
@@ -83,8 +83,6 @@ struct TSumMulti {
     SAVELOAD(SumDerHistory, SumDer2History, SumWeights);
 };
 
-namespace {
-
 inline double CalcAverage(double sumDelta,
                           double count,
                           float l2Regularizer,
@@ -141,7 +139,6 @@ inline double CalcModelNewton(const TSum& ss,
                                l2Regularizer,
                                sumAllWeights,
                                allDocCount);
-}
 }
 
 void CalcModelNewtonMulti(const TSumMulti& ss,

@@ -255,8 +255,7 @@ namespace NNetliba {
         struct TCancelRequest {
             TGUID ReqGuid;
 
-            TCancelRequest() {
-            }
+            TCancelRequest() = default;
             TCancelRequest(const TGUID& reqguid)
                 : ReqGuid(reqguid)
             {
@@ -265,8 +264,7 @@ namespace NNetliba {
         struct TBreakRequest {
             TGUID ReqGuid;
 
-            TBreakRequest() {
-            }
+            TBreakRequest() = default;
             TBreakRequest(const TGUID& reqguid)
                 : ReqGuid(reqguid)
             {
@@ -276,7 +274,7 @@ namespace NNetliba {
         TThread myThread;
         bool KeepRunning, AbortTransactions;
         TSpinLock cs;
-        Event HasStarted;
+        TSystemEvent HasStarted;
 
         NHPTimer::STime PingsSendT;
 
@@ -320,7 +318,7 @@ namespace NNetliba {
             TUdpAddress PeerAddress;
             TIntrusivePtr<IPeerQueueStats> QueueStats;
             bool RequestFound;
-            Event Complete;
+            TSystemEvent Complete;
 
             TStatsRequest(EReq req)
                 : Req(req)
@@ -1268,8 +1266,8 @@ namespace NNetliba {
     //////////////////////////////////////////////////////////////////////////
     void AbortOnFailedRequest(TUdpHttpResponse* answer) {
         if (answer && answer->Ok == TUdpHttpResponse::FAILED) {
-            fprintf(stderr, "Failed request to host %s\n", ~GetAddressAsString(answer->PeerAddress));
-            fprintf(stderr, "Error description: %s\n", ~answer->Error);
+            fprintf(stderr, "Failed request to host %s\n", GetAddressAsString(answer->PeerAddress).data());
+            fprintf(stderr, "Error description: %s\n", answer->Error.data());
             fflush(nullptr);
             Y_ASSERT(0);
             abort();

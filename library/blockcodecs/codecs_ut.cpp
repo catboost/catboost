@@ -11,7 +11,7 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
 
     TBuffer Buffer(TStringBuf b) {
         TBuffer bb;
-        bb.Assign(~b, +b);
+        bb.Assign(b.data(), b.size());
         return bb;
     }
 
@@ -38,7 +38,7 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
 
         TCodecList lst = ListAllCodecs();
 
-        for (size_t i = 0; i < +lst; ++i) {
+        for (size_t i = 0; i < lst.size(); ++i) {
             const ICodec* c = Codec(lst[i]);
             const auto h = MultiHash(c->Name(), i, 1);
 
@@ -49,7 +49,7 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
 
             //Cout << c->Name() << Endl;
 
-            for (size_t j = 0; j < +datas; ++j) {
+            for (size_t j = 0; j < datas.size(); ++j) {
                 const TBuffer& data = datas[j];
                 TString res;
 
@@ -152,13 +152,13 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
             datas.push_back(TString(i, (char)(i % 128)));
         }
 
-        for (size_t i = 0; i < +datas; ++i) {
+        for (size_t i = 0; i < datas.size(); ++i) {
             res += datas[i];
         }
 
         TCodecList lst = ListAllCodecs();
 
-        for (size_t i = 0; i < +lst; ++i) {
+        for (size_t i = 0; i < lst.size(); ++i) {
             TStringStream ss;
 
             const ICodec* c = Codec(lst[i]);
@@ -174,7 +174,7 @@ Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
             {
                 TCodedOutput out(&ss, c, 1234);
 
-                for (size_t j = 0; j < +datas; ++j) {
+                for (size_t j = 0; j < datas.size(); ++j) {
                     out << datas[j];
                 }
 

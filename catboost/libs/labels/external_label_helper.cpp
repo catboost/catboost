@@ -1,8 +1,12 @@
 #include "external_label_helper.h"
 #include "label_converter.h"
 
+#include <util/generic/xrange.h>
+
+#include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/multiclass_label_options.h>
 
+#include <util/string/cast.h>
 
 void TExternalLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
@@ -17,19 +21,19 @@ void TExternalLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     if (ExternalApproxDimension == 0) {  // labels extracted from data
         ExternalApproxDimension = classToLabel.ysize();
 
-        int id = 0;
-        for (const auto& label: classToLabel) {
-            VisibleClassNames.push_back(ToString<float>(label));
-            LabelToName.emplace(label, ToString<float>(label));
-            SignificantLabelsIds.push_back(id++);
+        for (auto classId : xrange(ExternalApproxDimension)) {
+            TString className = ToString(classToLabel[classId]);
+            VisibleClassNames.push_back(className);
+            LabelToName.emplace(float(classId), className);
+            SignificantLabelsIds.push_back(classId);
         }
     } else {  // user-defined labels
-        SignificantLabelsIds = TVector<int>(classToLabel.begin(), classToLabel.end());
+        SignificantLabelsIds.assign(classToLabel.begin(), classToLabel.end());
 
         if (classNames.empty()) {
             for (int id = 0; id < classesCount; ++id) {
-                VisibleClassNames.push_back(ToString<int>(id));
-                LabelToName.emplace(id, ToString<int>(id));
+                VisibleClassNames.push_back(ToString(id));
+                LabelToName.emplace(id, ToString(id));
             }
         } else {  // classNames are not empty
             VisibleClassNames = classNames;
@@ -53,8 +57,8 @@ void TExternalLabelsHelper::Initialize(int approxDimension) {
     LabelToName.reserve(ExternalApproxDimension);
 
     for(int id = 0; id < approxDimension; ++id) {
-        VisibleClassNames[id] = ToString<int>(id);
-        LabelToName[id] = ToString<int>(id);
+        VisibleClassNames[id] = ToString(id);
+        LabelToName[id] = ToString(id);
         SignificantLabelsIds[id]= id;
     }
 

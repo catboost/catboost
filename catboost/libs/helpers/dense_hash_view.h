@@ -1,14 +1,16 @@
 #pragma once
 
-#include <util/generic/array_ref.h>
 #include <util/digest/numeric.h>
+#include <util/generic/array_ref.h>
+#include <util/generic/algorithm.h>
 
 namespace NCatboost {
 
 #pragma pack(push, 1)
     struct TBucket {
         static constexpr ui64 InvalidHashValue = 0xffffffffffffffffull;
-        ui64 Hash;
+        using THashType = ui64;
+        THashType Hash;
         ui32 IndexValue;
         bool operator==(const TBucket& other) const {
             return std::tie(Hash, IndexValue) == std::tie(other.Hash, other.IndexValue);
@@ -34,13 +36,16 @@ namespace NCatboost {
         }
 
         ui32 GetIndex(ui64 idx) const {
-
             for (ui64 zz = idx & HashMask; Buckets[zz].Hash != TBucket::InvalidHashValue; zz = (zz + 1) & HashMask) {
                 if (Buckets[zz].Hash == idx) {
                     return Buckets[zz].IndexValue;
                 }
             }
             return NotFoundIndex;
+        }
+
+        size_t CountNonEmptyBuckets() const {
+            return CountIf(Buckets, [](const TBucket& bucket) { return bucket.Hash != TBucket::InvalidHashValue; });
         }
 
         const TConstArrayRef<TBucket> GetBuckets() const {

@@ -619,9 +619,9 @@ void TabCodeGen::LOCATE_TRANS()
 		"\n"
 		"	_klen = " << SL() << "[" << vCS() << "];\n"
 		"	if ( _klen > 0 ) {\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_lower = _keys;\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_mid;\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_upper = _keys + _klen - 1;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_lower = _keys;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_mid;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_upper = _keys + _klen - 1;\n"
 		"		while (1) {\n"
 		"			if ( _upper < _lower )\n"
 		"				break;\n"
@@ -632,7 +632,7 @@ void TabCodeGen::LOCATE_TRANS()
 		"			else if ( " << GET_WIDE_KEY() << " > *_mid )\n"
 		"				_lower = _mid + 1;\n"
 		"			else {\n"
-		"				_trans += (_mid - _keys);\n"
+		"				_trans += " << CAST(UINT()) << "(_mid - _keys);\n"
 		"				goto _match;\n"
 		"			}\n"
 		"		}\n"
@@ -642,9 +642,9 @@ void TabCodeGen::LOCATE_TRANS()
 		"\n"
 		"	_klen = " << RL() << "[" << vCS() << "];\n"
 		"	if ( _klen > 0 ) {\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_lower = _keys;\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_mid;\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_upper = _keys + (_klen<<1) - 2;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_lower = _keys;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_mid;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_upper = _keys + (_klen<<1) - 2;\n"
 		"		while (1) {\n"
 		"			if ( _upper < _lower )\n"
 		"				break;\n"
@@ -655,7 +655,7 @@ void TabCodeGen::LOCATE_TRANS()
 		"			else if ( " << GET_WIDE_KEY() << " > _mid[1] )\n"
 		"				_lower = _mid + 2;\n"
 		"			else {\n"
-		"				_trans += ((_mid - _keys)>>1);\n"
+		"				_trans += " << CAST(UINT()) << "((_mid - _keys)>>1);\n"
 		"				goto _match;\n"
 		"			}\n"
 		"		}\n"
@@ -666,15 +666,31 @@ void TabCodeGen::LOCATE_TRANS()
 
 void TabCodeGen::GOTO( ostream &ret, int gotoDest, bool inFinish )
 {
-	ret << "{" << vCS() << " = " << gotoDest << "; " << 
-			CTRL_FLOW() << "goto _again;}";
+	ret << "{";
+	
+	ret << vCS() << " = " << gotoDest << ";";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 }
 
 void TabCodeGen::GOTO_EXPR( ostream &ret, GenInlineItem *ilItem, bool inFinish )
 {
-	ret << "{" << vCS() << " = (";
+	ret << "{";
+	ret << vCS() << " = (";
 	INLINE_LIST( ret, ilItem->children, 0, inFinish, false );
-	ret << "); " << CTRL_FLOW() << "goto _again;}";
+	ret << "); ";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 }
 
 void TabCodeGen::CURS( ostream &ret, bool inFinish )
@@ -706,8 +722,14 @@ void TabCodeGen::CALL( ostream &ret, int callDest, int targState, bool inFinish 
 		INLINE_LIST( ret, prePushExpr, 0, false, false );
 	}
 
-	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = " << 
-			callDest << "; " << CTRL_FLOW() << "goto _again;}";
+	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = " << callDest << ";";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 
 	if ( prePushExpr != 0 )
 		ret << "}";
@@ -720,9 +742,18 @@ void TabCodeGen::CALL_EXPR( ostream &ret, GenInlineItem *ilItem, int targState, 
 		INLINE_LIST( ret, prePushExpr, 0, false, false );
 	}
 
-	ret << "{" << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = (";
+	ret << "{";
+
+	ret << STACK() << "[" << TOP() << "++] = " << vCS() << "; " << vCS() << " = (";
 	INLINE_LIST( ret, ilItem->children, targState, inFinish, false );
-	ret << "); " << CTRL_FLOW() << "goto _again;}";
+	ret << ");";
+
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() << "goto _again;";
+
+	ret << "}";
 
 	if ( prePushExpr != 0 )
 		ret << "}";
@@ -739,7 +770,12 @@ void TabCodeGen::RET( ostream &ret, bool inFinish )
 		ret << "}";
 	}
 
-	ret << CTRL_FLOW() <<  "goto _again;}";
+	if ( inFinish && !noEnd )
+		EOF_CHECK( ret );
+
+	ret << CTRL_FLOW() <<  "goto _again;";
+
+	ret << "}";
 }
 
 void TabCodeGen::BREAK( ostream &ret, int targState, bool csForced )
@@ -876,9 +912,9 @@ void TabCodeGen::COND_TRANSLATE()
 		"	_klen = " << CL() << "[" << vCS() << "];\n"
 		"	_keys = " << ARR_OFF( CK(), "(" + CO() + "[" + vCS() + "]*2)" ) << ";\n"
 		"	if ( _klen > 0 ) {\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_lower = _keys;\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_mid;\n"
-		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_upper = _keys + (_klen<<1) - 2;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_lower = _keys;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_mid;\n"
+		"		" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_upper = _keys + (_klen<<1) - 2;\n"
 		"		while (1) {\n"
 		"			if ( _upper < _lower )\n"
 		"				break;\n"
@@ -945,13 +981,13 @@ void TabCodeGen::writeExec()
 			|| redFsm->anyFromStateActions() )
 	{
 		out << 
-			"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << 
+			"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << PTR_CONST_END() << 
 					POINTER() << "_acts;\n"
 			"	" << UINT() << " _nacts;\n";
 	}
 
 	out <<
-		"	" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_keys;\n"
+		"	" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_keys;\n"
 		"\n";
 
 	if ( !noEnd ) {
@@ -1072,7 +1108,7 @@ void TabCodeGen::writeExec()
 
 		if ( redFsm->anyEofActions() ) {
 			out <<
-				"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << 
+				"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxActArrItem) << PTR_CONST_END() << 
 						POINTER() << "__acts = " << 
 						ARR_OFF( A(), EA() + "[" + vCS() + "]" ) << ";\n"
 				"	" << UINT() << " __nacts = " << CAST(UINT()) << " *__acts++;\n"

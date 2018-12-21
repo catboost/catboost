@@ -1,11 +1,21 @@
 #include "shap_values.h"
+
 #include "util.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
+#include <util/generic/ymath.h>
+
+
+using namespace NCB;
+
 
 namespace {
     struct TFeaturePathElement {
@@ -48,11 +58,16 @@ static TVector<TFeaturePathElement> ExtendFeaturePath(
     return newFeaturePath;
 }
 
-static TVector<TFeaturePathElement> UnwindFeaturePath(const TVector<TFeaturePathElement>& oldFeaturePath, size_t eraseElementIdx) {
+static TVector<TFeaturePathElement> UnwindFeaturePath(
+    const TVector<TFeaturePathElement>& oldFeaturePath,
+    size_t eraseElementIdx)
+{
     const size_t pathLength = oldFeaturePath.size();
     CB_ENSURE(pathLength > 0, "Path to unwind must have at least one element");
 
-    TVector<TFeaturePathElement> newFeaturePath(oldFeaturePath.begin(), oldFeaturePath.begin() + pathLength - 1);
+    TVector<TFeaturePathElement> newFeaturePath(
+        oldFeaturePath.begin(),
+        oldFeaturePath.begin() + pathLength - 1);
 
     for (size_t elementIdx = eraseElementIdx; elementIdx < pathLength - 1; ++elementIdx) {
         newFeaturePath[elementIdx].Feature = oldFeaturePath[elementIdx + 1].Feature;
@@ -67,15 +82,18 @@ static TVector<TFeaturePathElement> UnwindFeaturePath(const TVector<TFeaturePath
     if (!FuzzyEquals(onePathsFraction, 0.0)) {
         for (int elementIdx = pathLength - 2; elementIdx >= 0; --elementIdx) {
             double oldWeight = newFeaturePath[elementIdx].Weight;
-            newFeaturePath[elementIdx].Weight = weightDiff * pathLength / (onePathsFraction * (elementIdx + 1));
-            weightDiff = oldWeight - newFeaturePath[elementIdx].Weight * zeroPathsFraction * (pathLength - elementIdx - 1) / pathLength;
+            newFeaturePath[elementIdx].Weight = weightDiff * pathLength
+                / (onePathsFraction * (elementIdx + 1));
+            weightDiff = oldWeight
+                - newFeaturePath[elementIdx].Weight * zeroPathsFraction * (pathLength - elementIdx - 1)
+                    / pathLength;
         }
     } else {
         for (int elementIdx = pathLength - 2; elementIdx >= 0; --elementIdx) {
-            newFeaturePath[elementIdx].Weight *= pathLength / (zeroPathsFraction * (pathLength - elementIdx - 1));
+            newFeaturePath[elementIdx].Weight *= pathLength
+                / (zeroPathsFraction * (pathLength - elementIdx - 1));
         }
     }
-
 
     return newFeaturePath;
 }
@@ -111,7 +129,11 @@ static void CalcShapValuesForLeafRecursive(
     int feature,
     TVector<TShapValue>* shapValues
 ) {
-    TVector<TFeaturePathElement> featurePath = ExtendFeaturePath(oldFeaturePath, zeroPathsFraction, onePathsFraction, feature);
+    TVector<TFeaturePathElement> featurePath = ExtendFeaturePath(
+        oldFeaturePath,
+        zeroPathsFraction,
+        onePathsFraction,
+        feature);
     auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
     if (depth == forest.TreeSizes[treeIdx]) {
         for (size_t elementIdx = 1; elementIdx < featurePath.size(); ++elementIdx) {
@@ -133,7 +155,8 @@ static void CalcShapValuesForLeafRecursive(
                         return shapValue.Feature == flatFeatureIdx;
                     }
                 );
-                double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction) / flatFeatures.size();
+                double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction)
+                    / flatFeatures.size();
                 if (sameFeatureShapValue == shapValues->end()) {
                     shapValues->emplace_back(flatFeatureIdx, approxDimension);
                     for (int dimension = 0; dimension < approxDimension; ++dimension) {
@@ -149,13 +172,12 @@ static void CalcShapValuesForLeafRecursive(
             }
         }
     } else {
-        const TRepackedBin& split = forest.GetRepackedBins()[forest.TreeStartOffsets[treeIdx] + depth];
-        const int splitFeature = split.FeatureIndex;
-
         double newZeroPathsFraction = 1.0;
         double newOnePathsFraction = 1.0;
 
-        const int combinationClass = binFeatureCombinationClass[splitFeature];
+        const int combinationClass = binFeatureCombinationClass[
+            forest.TreeSplits[forest.TreeStartOffsets[treeIdx] + depth]
+        ];
 
         const auto sameFeatureElement = FindIf(
             featurePath.begin(),
@@ -176,7 +198,8 @@ static void CalcShapValuesForLeafRecursive(
         const size_t skipNodeIdx = goNodeIdx ^ (1 << depth);
 
         if (!FuzzyEquals(subtreeWeights[depth + 1][goNodeIdx], 0.0)) {
-            double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeWeights[depth + 1][goNodeIdx] / subtreeWeights[depth][nodeIdx];
+            double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeWeights[depth + 1][goNodeIdx]
+                / subtreeWeights[depth][nodeIdx];
             CalcShapValuesForLeafRecursive(
                 forest,
                 binFeatureCombinationClass,
@@ -195,7 +218,8 @@ static void CalcShapValuesForLeafRecursive(
         }
 
         if (!FuzzyEquals(subtreeWeights[depth + 1][skipNodeIdx], 0.0)) {
-            double newZeroPathsFractionSkipNode = newZeroPathsFraction * subtreeWeights[depth + 1][skipNodeIdx] / subtreeWeights[depth][nodeIdx];
+            double newZeroPathsFractionSkipNode = newZeroPathsFraction * subtreeWeights[depth + 1][skipNodeIdx]
+                / subtreeWeights[depth][nodeIdx];
             CalcShapValuesForLeafRecursive(
                 forest,
                 binFeatureCombinationClass,
@@ -288,49 +312,68 @@ static void MapBinFeaturesToClasses(
     TVector<int>* binFeatureCombinationClass,
     TVector<TVector<int>>* combinationClassFeatures
 ) {
-    const int featureCount = forest.GetEffectiveBinaryFeaturesBucketsCount();
-
-    TVector<TVector<int>> binFeaturesCombinations;
-    binFeaturesCombinations.reserve(featureCount);
+    NCB::TFeaturesLayout layout(forest.FloatFeatures, forest.CatFeatures);
+    TVector<TVector<int>> featuresCombinations;
+    TVector<size_t> featureBucketSizes;
 
     for (const TFloatFeature& floatFeature : forest.FloatFeatures) {
-        binFeaturesCombinations.emplace_back(1, floatFeature.FlatFeatureIndex);
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
+        featuresCombinations.emplace_back();
+        featuresCombinations.back() = { floatFeature.FlatFeatureIndex };
+        featureBucketSizes.push_back(floatFeature.Borders.size());
     }
 
     for (const TOneHotFeature& oneHotFeature: forest.OneHotFeatures) {
-        binFeaturesCombinations.emplace_back(1, oneHotFeature.CatFeatureIndex);
+        featuresCombinations.emplace_back();
+        featuresCombinations.back() = {
+            (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex,
+            EFeatureType::Categorical)
+        };
+        featureBucketSizes.push_back(oneHotFeature.Values.size());
     }
 
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
-        binFeaturesCombinations.emplace_back();
+        featuresCombinations.emplace_back();
         for (int catFeatureIdx : combination.CatFeatures) {
-            binFeaturesCombinations.back().push_back(forest.CatFeatures[catFeatureIdx].FlatFeatureIndex);
+            featuresCombinations.back().push_back(
+                layout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical));
         }
+        featureBucketSizes.push_back(ctrFeature.Borders.size());
     }
-
-    TVector<int> sortedBinFeatures(featureCount);
+    TVector<size_t> featureFirstBinBucket(featureBucketSizes.size(), 0);
+    for (size_t i = 1; i < featureBucketSizes.size(); ++i) {
+        featureFirstBinBucket[i] = featureFirstBinBucket[i - 1] + featureBucketSizes[i - 1];
+    }
+    TVector<int> sortedBinFeatures(featuresCombinations.size());
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
     Sort(
         sortedBinFeatures.begin(),
         sortedBinFeatures.end(),
-        [binFeaturesCombinations](int feature1, int feature2) {
-            return binFeaturesCombinations[feature1] < binFeaturesCombinations[feature2];
+        [featuresCombinations](int feature1, int feature2) {
+            return featuresCombinations[feature1] < featuresCombinations[feature2];
         }
     );
 
-    *binFeatureCombinationClass = TVector<int>(featureCount);
+    *binFeatureCombinationClass = TVector<int>(forest.GetBinaryFeaturesFullCount());
     *combinationClassFeatures = TVector<TVector<int>>();
 
     int equivalenceClassesCount = 0;
-    for (int featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
+    for (ui32 featureIdx = 0; featureIdx < featuresCombinations.size(); ++featureIdx) {
         int currentFeature = sortedBinFeatures[featureIdx];
         int previousFeature = featureIdx == 0 ? -1 : sortedBinFeatures[featureIdx - 1];
-        if (featureIdx == 0 || binFeaturesCombinations[currentFeature] != binFeaturesCombinations[previousFeature]) {
-            combinationClassFeatures->push_back(binFeaturesCombinations[currentFeature]);
+        if (featureIdx == 0 || featuresCombinations[currentFeature] != featuresCombinations[previousFeature]) {
+            combinationClassFeatures->push_back(featuresCombinations[currentFeature]);
             ++equivalenceClassesCount;
         }
-        (*binFeatureCombinationClass)[currentFeature] = equivalenceClassesCount - 1;
+        for (size_t binBucketId = featureFirstBinBucket[currentFeature];
+             binBucketId < featureFirstBinBucket[currentFeature] + featureBucketSizes[currentFeature];
+             ++binBucketId)
+        {
+            (*binFeatureCombinationClass)[binBucketId] = equivalenceClassesCount - 1;
+        }
     }
 }
 
@@ -368,19 +411,22 @@ void CalcShapValuesForDocumentMulti(
 
 static void CalcShapValuesForDocumentBlockMulti(
     const TFullModel& model,
-    const TPool& pool,
+    const TObjectsDataProvider& objectsData,
     const TShapPreparedTrees& preparedTrees,
     size_t start,
     size_t end,
     NPar::TLocalExecutor* localExecutor,
     TVector<TVector<TVector<double>>>* shapValuesForAllDocuments
 ) {
+    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
+    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
+
     const TObliviousTrees& forest = model.ObliviousTrees;
     const size_t documentCount = end - start;
 
-    TVector<ui8> binarizedFeaturesForBlock = BinarizeFeatures(model, pool, start, end);
+    TVector<ui8> binarizedFeaturesForBlock = BinarizeFeatures(model, *rawObjectsData, start, end);
 
-    const int flatFeatureCount = pool.Docs.GetEffectiveFactorCount();
+    const int flatFeatureCount = objectsData.GetFeaturesLayout()->GetExternalFeatureCount();
 
     const int oldShapValuesSize = shapValuesForAllDocuments->size();
     shapValuesForAllDocuments->resize(oldShapValuesSize + end - start);
@@ -434,7 +480,8 @@ static void CalcShapValuesByLeafForTreeBlock(
                 &shapValuesByLeaf[leafIdx]
             );
 
-            preparedTrees->MeanValuesForAllTrees[treeIdx] = CalcMeanValueForTree(forest, subtreeWeights, treeIdx);
+            preparedTrees->MeanValuesForAllTrees[treeIdx]
+                = CalcMeanValueForTree(forest, subtreeWeights, treeIdx);
         }
     }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
@@ -443,7 +490,8 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
         if (!combination.IsSingleCatFeature()) {
-            MATRIXNET_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated approximately." << Endl;
+            CATBOOST_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated"
+                " approximately." << Endl;
             return;
         }
     }
@@ -451,21 +499,27 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
 
 static TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
-    const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod
+    const TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
     WarnForComplexCtrs(model.ObliviousTrees);
 
     const size_t treeCount = model.GetTreeCount();
     const size_t treeBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
-    TFstrLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
+    TImportanceLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
 
     // use only if model.ObliviousTrees.LeafWeights is empty
     TVector<TVector<double>> leafWeights;
     if (model.ObliviousTrees.LeafWeights.empty()) {
-        leafWeights = CollectLeavesStatistics(pool, model);
+        CB_ENSURE(
+            dataset,
+            "PrepareTrees requires either non-empty LeafWeights in model or provided dataset"
+        );
+        CB_ENSURE(dataset->ObjectsGrouping->GetObjectCount() != 0, "no docs in pool");
+        CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
+        leafWeights = CollectLeavesStatistics(*dataset, model, localExecutor);
     }
 
     TShapPreparedTrees preparedTrees;
@@ -502,26 +556,26 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
         !model.ObliviousTrees.LeafWeights.empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    return PrepareTrees(model, TPool(), localExecutor, 0);
+    return PrepareTrees(model, nullptr, 0, localExecutor);
 }
 
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
-    const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod
+    const TDataProvider& dataset,
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
-        pool,
-        localExecutor,
-        logPeriod
+        &dataset,
+        logPeriod,
+        localExecutor
     );
 
-    const size_t documentCount = pool.Docs.GetDocCount();
+    const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
-    TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
+    TImportanceLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
 
     TVector<TVector<TVector<double>>> shapValues;
     shapValues.reserve(documentCount);
@@ -535,7 +589,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 
         CalcShapValuesForDocumentBlockMulti(
             model,
-            pool,
+            *dataset.ObjectsData,
             preparedTrees,
             start,
             end,
@@ -553,18 +607,18 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
-    const TPool& pool,
-    NPar::TLocalExecutor* localExecutor,
-    int logPeriod
+    const TDataProvider& dataset,
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
         model,
-        pool,
-        localExecutor,
-        logPeriod
+        dataset,
+        logPeriod,
+        localExecutor
     );
-    size_t documentsCount = pool.Docs.GetDocCount();
+    size_t documentsCount = dataset.ObjectsGrouping->GetObjectCount();
     TVector<TVector<double>> shapValues(documentsCount);
     for (size_t documentIdx = 0; documentIdx < documentsCount; ++documentIdx) {
         shapValues[documentIdx] = std::move(shapValuesMulti[documentIdx][0]);
@@ -585,31 +639,28 @@ static void OutputShapValuesMulti(const TVector<TVector<TVector<double>>>& shapV
 
 void CalcAndOutputShapValues(
     const TFullModel& model,
-    const TPool& pool,
+    const TDataProvider& dataset,
     const TString& outputPath,
-    int threadCount,
-    int logPeriod
+    int logPeriod,
+    NPar::TLocalExecutor* localExecutor
 ) {
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount - 1);
-
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
-        pool,
-        &localExecutor,
-        logPeriod
+        &dataset,
+        logPeriod,
+        localExecutor
     );
 
-    const size_t documentCount = pool.Docs.GetDocCount();
+    const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
-    TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
+    TImportanceLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
 
     TProfileInfo processDocumentsProfile(documentCount);
 
     TFileOutput out(outputPath);
     for (size_t start = 0; start < documentCount; start += documentBlockSize) {
-        size_t end = Min(start + documentBlockSize, pool.Docs.GetDocCount());
+        size_t end = Min(start + documentBlockSize, documentCount);
         processDocumentsProfile.StartIterationBlock();
 
         TVector<TVector<TVector<double>>> shapValuesForBlock;
@@ -617,11 +668,11 @@ void CalcAndOutputShapValues(
 
         CalcShapValuesForDocumentBlockMulti(
             model,
-            pool,
+            *dataset.ObjectsData,
             preparedTrees,
             start,
             end,
-            &localExecutor,
+            localExecutor,
             &shapValuesForBlock
         );
 

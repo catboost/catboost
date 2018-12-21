@@ -3,6 +3,9 @@
 #include "step_estimator.h"
 #include "oracle_interface.h"
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
 
 
@@ -22,7 +25,7 @@ namespace NCatboostCuda {
         {
         }
 
-        TVector<float> Estimate(TVector<float> startPoint);
+        TVector<float> Estimate(TVector<float> startPoint, NPar::TLocalExecutor* localExecutor);
     };
 
 }

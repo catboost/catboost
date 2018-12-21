@@ -183,6 +183,7 @@ JOIN_SRCS(
     random/mersenne.cpp
     random/normal.cpp
     random/shuffle.cpp
+    random/init_atfork.cpp
 )
 
 JOIN_SRCS(
@@ -242,11 +243,6 @@ JOIN_SRCS(
     string/util.cpp
     string/vector.cpp
 )
-
-# system
-IF (OS_DARWIN)
-    CFLAGS(-Wno-deprecated-declarations)
-ENDIF()
 
 IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)

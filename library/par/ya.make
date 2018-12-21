@@ -30,9 +30,8 @@ PEERDIR(
     library/logger/global
     library/neh
     library/netliba/v12
+    library/threading/atomic
     library/threading/local_executor
 )
 
 END()
-
-NEED_CHECK()

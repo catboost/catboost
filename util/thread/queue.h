@@ -183,6 +183,9 @@ public:
     void Start(size_t threadCount, size_t queueSizeLimit = 0) override;
     void Stop() noexcept override;
     size_t Size() const noexcept override;
+    size_t GetThreadCountExpected() const noexcept;
+    size_t GetThreadCountReal() const noexcept;
+    size_t GetMaxQueueSize() const noexcept;
 
 private:
     class TImpl;

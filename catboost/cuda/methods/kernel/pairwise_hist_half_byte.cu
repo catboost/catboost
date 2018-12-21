@@ -10,7 +10,7 @@ using namespace cooperative_groups;
 namespace NKernel {
 
     //TODO(noxoomo): tune it
-    template<bool IsFullPass>
+    template <bool IsFullPass>
     struct THalfBytePairwiseHistUnrollTrait {
 
         static constexpr int InnerUnroll() {
@@ -36,7 +36,7 @@ namespace NKernel {
 
 
 
-    template<int BLOCK_SIZE, class TCmpBins = TCmpBinsWithoutOneHot>
+    template <int BLOCK_SIZE, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TPairHistHalfByte {
         TCmpBins CmpBinsFunc;
         float* Slice;
@@ -213,7 +213,7 @@ namespace NKernel {
 
 
 
-    template<int BlockSize, int N, int OuterUnroll>
+    template <int BlockSize, int N, int OuterUnroll>
     __forceinline__ __device__ void ComputeSplitPropertiesHalfBytePass(const TCFeature* feature, int fCount,
                                                                        const ui32* __restrict cindex,
                                                                        const uint2* __restrict pairs,
@@ -272,7 +272,7 @@ namespace NKernel {
 
 
 
-    template<int BlockSize, bool IsFullPass>
+    template <int BlockSize, bool IsFullPass>
     #if __CUDA_ARCH__ >= 700
     __launch_bounds__(BlockSize, 2)
     #else

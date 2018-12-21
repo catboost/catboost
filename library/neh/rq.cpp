@@ -1,6 +1,8 @@
 #include "rq.h"
 #include "lfqueue.h"
 
+#include <library/threading/atomic/bool.h>
+
 #include <util/system/tls.h>
 #include <util/system/pipe.h>
 #include <util/system/event.h>
@@ -217,20 +219,20 @@ namespace {
         }
 
         inline bool Signal() noexcept {
-            const bool ret = AtomicGet(InWait);
+            const bool ret = InWait;
             Ev.Signal();
 
             return ret;
         }
 
         inline void Wait() noexcept {
-            AtomicSet(InWait, true);
+            InWait = true;
             Ev.Wait();
-            AtomicSet(InWait, false);
+            InWait = false;
         }
 
         TAutoEvent Ev;
-        TAtomic InWait;
+        NAtomic::TBool InWait;
     };
 
     template <class TEvent>

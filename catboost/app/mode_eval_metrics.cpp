@@ -1,17 +1,26 @@
 #include "modes.h"
-#include "cmd_line.h"
-#include "bind_options.h"
-#include "proceed_pool_in_blocks.h"
 
-#include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/app_helpers/proceed_pool_in_blocks.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/model/model.h>
+#include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/target/data_providers.h>
 
-#include <util/system/fs.h>
-#include <util/string/iterator.h>
+#include <library/getopt/small/last_getopt_opts.h>
+
 #include <util/folder/tempdir.h>
+#include <util/string/iterator.h>
+#include <util/system/compiler.h>
+
+
+using namespace NCB;
+
 
 struct TModeEvalMetricsParams {
     ui32 Step = 1;
@@ -49,41 +58,45 @@ struct TModeEvalMetricsParams {
     }
 };
 
-static void PreprocessTarget(const TLabelConverter& labelConverter, TVector<float>* targets) {
-    if (labelConverter.IsInitialized()) {
-        PrepareTargetCompressed(labelConverter, targets);
+
+static TVector<NCatboostOptions::TLossDescription> CreateMetricDescriptions(
+    TStringBuf metricsDescription) {
+
+    TVector<NCatboostOptions::TLossDescription> result;
+    for (const auto& metricDescription : StringSplitter(metricsDescription).Split(',').SkipEmpty()) {
+        result.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription.Token()));
     }
+    CB_ENSURE(!result.empty(), "No metric in metrics description " << metricsDescription);
+
+    return result;
 }
 
+
 static void ReadDatasetParts(
-    const TAnalyticalModeCommonParams& params,
+    const NCB::TAnalyticalModeCommonParams& params,
     int blockSize,
-    const TLabelConverter& labelConverter,
+    TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+    const TFullModel& model,
+    TRestorableFastRng64* rand,
     NPar::TLocalExecutor* executor,
-    TVector<TPool>* datasetParts) {
-    ReadAndProceedPoolInBlocks(params, blockSize, [&](TPool& poolPart) {
-        PreprocessTarget(labelConverter, &poolPart.Docs.Target);
-        datasetParts->emplace_back();
-        datasetParts->back().Swap(poolPart);
+    TVector<TProcessedDataProvider>* processedDatasetParts) {
+
+    processedDatasetParts->clear();
+    ReadAndProceedPoolInBlocks(params, blockSize, [&](TDataProviderPtr datasetPart) {
+        auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+            *datasetPart,
+            metricDescriptions,
+            model,
+            rand,
+            executor);
+        processedDatasetParts->push_back(std::move(processedDataProvider));
     },
     executor);
 }
 
-static TVector<THolder<IMetric>> CreateMetrics(
-    const TModeEvalMetricsParams& plotParams,
-    int approxDim) {
-
-    TVector<TString> metricsDescription;
-    for (const auto& metricDescription : StringSplitter(plotParams.MetricsDescription).Split(',')) {
-        metricsDescription.emplace_back(metricDescription.Token());
-    }
-
-    auto metrics = CreateMetricsFromDescription(metricsDescription, approxDim);
-    return metrics;
-}
 
 int mode_eval_metrics(int argc, const char* argv[]) {
-    TAnalyticalModeCommonParams params;
+    NCB::TAnalyticalModeCommonParams params;
     TModeEvalMetricsParams plotParams;
     bool verbose = false;
 
@@ -110,16 +123,12 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         NLastGetopt::TOptsParseResult parseResult(&parser, argc, argv);
         Y_UNUSED(parseResult);
     }
-    if (verbose) {
-        SetVerboseLogingMode();
-    } else {
-        SetSilentLogingMode();
-    }
+    TSetLoggingVerboseOrSilent inThisScope(verbose);
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
-    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || params.DsvPoolFormatParams.CdFilePath.Inited(),
+    CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.DsvPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");
-    params.ClassNames = ReadClassNames(model.ModelInfo.at("params"));
+    params.ClassNames = GetModelClassNames(model);
 
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.ObliviousTrees.TreeSizes.size();
@@ -131,7 +140,10 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
-    auto metrics = CreateMetrics(plotParams, model.ObliviousTrees.ApproxDimension);
+    TRestorableFastRng64 rand(0);
+
+    auto metricDescriptions = CreateMetricDescriptions(plotParams.MetricsDescription);
+    auto metrics = CreateMetrics(metricDescriptions, model.ObliviousTrees.ApproxDimension);
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
@@ -144,26 +156,33 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         metrics
     );
 
-    auto labelConverter = BuildLabelsHelper<TLabelConverter>(model);
-
-    TVector<TPool> datasetParts;
+    TVector<TProcessedDataProvider> datasetParts;
     if (plotCalcer.HasAdditiveMetric()) {
-        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
-            PreprocessTarget(labelConverter, &poolPart.Docs.Target);
-            plotCalcer.ProceedDataSetForAdditiveMetrics(poolPart, !poolPart.Docs.QueryId.empty());
+        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
+            auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+                *datasetPart,
+                metricDescriptions,
+                model,
+                &rand,
+                &executor);
+
+            plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
             if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
-                datasetParts.emplace_back();
-                datasetParts.back().Swap(poolPart);
+                datasetParts.push_back(std::move(processedDataProvider));
             }
         }, &executor);
-        plotCalcer.FinishProceedDataSetForAdditiveMetrics();
     }
 
     if (plotCalcer.HasNonAdditiveMetric() && calcOnParts) {
         while (!plotCalcer.AreAllIterationsProcessed()) {
-            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
-                PreprocessTarget(labelConverter, &poolPart.Docs.Target);
-                plotCalcer.ProceedDataSetForNonAdditiveMetrics(poolPart);
+            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
+                auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+                    *datasetPart,
+                    metricDescriptions,
+                    model,
+                    &rand,
+                    &executor);
+                plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
             }, &executor);
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
@@ -171,10 +190,10 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
         if (datasetParts.empty()) {
-            ReadDatasetParts(params, plotParams.ReadBlockSize, labelConverter, &executor, &datasetParts);
+            ReadDatasetParts(params, plotParams.ReadBlockSize, metricDescriptions, model, &rand, &executor, &datasetParts);
         }
         plotCalcer.ComputeNonAdditiveMetrics(datasetParts);
     }
-    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, true /*saveMetrics*/, saveStats).ClearTempFiles();
+    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath.Path, true /*saveMetrics*/, saveStats).ClearTempFiles();
     return 0;
 }

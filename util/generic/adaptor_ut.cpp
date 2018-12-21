@@ -40,6 +40,10 @@ Y_UNIT_TEST_SUITE(TReverseAdaptor) {
         for (const auto& x : Reversed(cont)) {
             UNIT_ASSERT_VALUES_EQUAL(etalon[idx++], x);
         }
+        idx = 0;
+        for (const auto& x : Reversed(std::move(cont))) {
+            UNIT_ASSERT_VALUES_EQUAL(etalon[idx++], x);
+        }
     }
 
     Y_UNIT_TEST(WriteTest) {
@@ -70,5 +74,51 @@ Y_UNIT_TEST_SUITE(TReverseAdaptor) {
         const TState clvalue;
         UNIT_ASSERT_NO_EXCEPTION(Reversed(lvalue));
         UNIT_ASSERT_NO_EXCEPTION(Reversed(clvalue));
+    }
+
+    Y_UNIT_TEST(ReverseX2Test) {
+        TVector<int> cont = {1, 2, 3};
+        size_t idx = 0;
+        for (const auto& x : Reversed(Reversed(cont))) {
+            UNIT_ASSERT_VALUES_EQUAL(cont[idx++], x);
+        }
+    }
+
+    Y_UNIT_TEST(ReverseX3Test) {
+        TVector<int> cont = {1, 2, 3};
+        TVector<int> etalon = {3, 2, 1};
+        size_t idx = 0;
+        for (const auto& x : Reversed(Reversed(Reversed(cont)))) {
+            UNIT_ASSERT_VALUES_EQUAL(etalon[idx++], x);
+        }
+    }
+
+    Y_UNIT_TEST(ReverseTemporaryTest) {
+        TVector<int> etalon = {3, 2, 1};
+        TVector<int> etalon2 = {1, 2, 3};
+        size_t idx = 0;
+        for (const auto& x : Reversed(TVector<int>{1, 2, 3})) {
+            UNIT_ASSERT_VALUES_EQUAL(etalon[idx++], x);
+        }
+        idx = 0;
+        for (const auto& x : Reversed(Reversed(TVector<int>{1, 2, 3}))) {
+            UNIT_ASSERT_VALUES_EQUAL(etalon2[idx++], x);
+        }
+    }
+
+    Y_UNIT_TEST(ReverseInitializerListTest) {
+        // initializer_list has no rbegin and rend
+        auto cont = {1, 2, 3};
+        TVector<int> etalon = {3, 2, 1};
+        TVector<int> etalon2 = {1, 2, 3};
+
+        size_t idx = 0;
+        for (const auto& x : Reversed(cont)) {
+            UNIT_ASSERT_VALUES_EQUAL(etalon[idx++], x);
+        }
+        idx = 0;
+        for (const auto& x : Reversed(Reversed(cont))) {
+            UNIT_ASSERT_VALUES_EQUAL(etalon2[idx++], x);
+        }
     }
 }

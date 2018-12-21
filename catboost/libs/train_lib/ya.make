@@ -3,15 +3,17 @@ LIBRARY()
 
 
 SRCS(
+    approx_dimension.cpp
     cross_validation.cpp
+    data.cpp
     preprocess.cpp
     GLOBAL train_model.cpp
 )
 
 PEERDIR(
-    catboost/libs/data
     catboost/libs/algo
     catboost/libs/options
+    catboost/libs/data_new
     catboost/libs/distributed
     catboost/libs/eval_result
     catboost/libs/helpers
@@ -23,13 +25,7 @@ PEERDIR(
     catboost/libs/fstr
     catboost/libs/overfitting_detector
     catboost/libs/pairs
-    library/binsaver
-    library/containers/2d_array
-    library/containers/dense_hash
-    library/digest/md5
-    library/dot_product
-    library/fast_exp
-    library/fast_log
+    catboost/libs/target
     library/grid_creator
     library/json
     library/object_factory

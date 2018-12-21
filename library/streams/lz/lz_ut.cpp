@@ -32,7 +32,7 @@ namespace {
                 }
             } while (!sym);
             Y_ASSERT(sym);
-            j = (j + 1) % +entropy;
+            j = (j + 1) % entropy.size();
             result += char(sym + entropy[j]);
         }
         return result;
@@ -56,7 +56,7 @@ namespace {
     }
 
     TString TestFileName(const TString& d, size_t bufferSize) {
-        return LDATA_RANDOM + TString(".") + ToString(+d) + TString(".") + ToString(bufferSize);
+        return LDATA_RANDOM + TString(".") + ToString(d.size()) + TString(".") + ToString(bufferSize);
     }
 
     struct TRandomData: public TVector<TString> {
@@ -90,7 +90,7 @@ static inline void TestGoodDataCompress() {
     TString d = data;
 
     for (size_t i = 0; i < 10; ++i) {
-        c.Write(~d, +d);
+        c.Write(d.data(), d.size());
         c << Endl;
         d = d + d;
     }
@@ -104,7 +104,7 @@ static inline void TestIncompressibleDataCompress(const TString& d, size_t buffe
     TString testFileName = TestFileName(d, bufferSize);
     TFixedBufferFileOutput o(testFileName);
     C c(&o, bufferSize);
-    c.Write(~d, +d);
+    c.Write(d.data(), d.size());
     c.Finish();
     o.Finish();
 }

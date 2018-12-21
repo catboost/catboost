@@ -52,7 +52,7 @@ inline TString ToString(const TUi32Region& r) {
 template <>
 inline TUi32Region FromString(const TString& s) {
     TUi32Region result;
-    sscanf(~s, "(%" PRIu32 ", %" PRIu32 ")", &result.Begin, &result.End);
+    sscanf(s.data(), "(%" PRIu32 ", %" PRIu32 ")", &result.Begin, &result.End);
     return result;
 }
 

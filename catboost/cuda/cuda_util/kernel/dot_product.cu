@@ -3,21 +3,20 @@
 
 namespace NKernel {
 
-    template<typename T, int BLOCK_SIZE>
+    template <typename T, int BLOCK_SIZE>
     __global__ void DotProductImpl(const T *x, const T *y, T *partResults, ui64 size) {
-        __shared__
-        T sdata[BLOCK_SIZE];
+        __shared__ T sdata[BLOCK_SIZE];
         ui32 tid = threadIdx.x;
         ui32 i = blockIdx.x * BLOCK_SIZE * 2 + tid;
 
-        T valx = i < size ? x[i] : 0;
-        T valy = i < size ? y[i] : 0;
-        sdata[tid] = valx * valy;
-        __syncthreads();
 
-        valx = i + BLOCK_SIZE < size ? x[i + BLOCK_SIZE] : 0;
-        valy = i + BLOCK_SIZE < size ? y[i + BLOCK_SIZE] : 0;
-        sdata[tid] += valx * valy;
+        T valx = i < size ? __ldg(x + i) : 0;
+        T valy = i < size ? __ldg(y + i) : 0;
+
+        T val2x = i + BLOCK_SIZE < size ? __ldg(x + i + BLOCK_SIZE) : 0;
+        T val2y = i + BLOCK_SIZE < size ? __ldg(y + i + BLOCK_SIZE) : 0;
+
+        sdata[tid] =  valx * valy + val2x * val2y;
         __syncthreads();
 
         for (ui32 s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
@@ -30,29 +29,27 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void DotProduct(const T *x, const T *y, TDotProductContext<T>& context, TCudaStream stream) {
         const ui32 blockSize = GetDotProductBlockSize();
         DotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, y, context.PartResults.Get(), context.Size);
     }
 
-    template<typename T, int BLOCK_SIZE>
+    template <typename T, int BLOCK_SIZE>
     __global__ void WeightedDotProductImpl(const T *x, const T *weights, const T *y, T *partResults, ui64 size) {
         __shared__
         T sdata[BLOCK_SIZE];
         ui32 tid = threadIdx.x;
         ui32 i = blockIdx.x * BLOCK_SIZE * 2 + tid;
 
-        T valx = i < size ? x[i] : 0;
-        T valy = i < size ? y[i] : 0;
-        T weight = i < size ? weights[i] : 0;
-        sdata[tid] = weight * valx * valy;
-        __syncthreads();
+        T valx = i < size ? __ldg(x + i) : 0;
+        T valy = i < size ? __ldg(y + i) : 0;
+        T weight = i < size ? __ldg(weights + i) : 0;
 
-        valx = i + BLOCK_SIZE < size ? x[i + BLOCK_SIZE] : 0.;
-        valy = i + BLOCK_SIZE < size ? y[i + BLOCK_SIZE] : 0;
-        weight = i + BLOCK_SIZE < size ? weights[i + BLOCK_SIZE] : 0;
-        sdata[tid] += weight * valx * valy;
+        T val2x = i + BLOCK_SIZE < size ? __ldg(x + i + BLOCK_SIZE) : 0.;
+        T val2y = i + BLOCK_SIZE < size ? __ldg(y + i + BLOCK_SIZE) : 0;
+        T weight2 = i + BLOCK_SIZE < size ? __ldg(weights + i + BLOCK_SIZE) : 0;
+        sdata[tid] = weight * valx * valy + weight2 * val2x * val2y;
         __syncthreads();
 
         for (ui32 s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
@@ -64,7 +61,7 @@ namespace NKernel {
             partResults[blockIdx.x] = sdata[0];
     }
 
-    template<typename T>
+    template <typename T>
     void WeightedDotProduct(const T *x, const T *weights, const T *y, TDotProductContext<T>& context, TCudaStream stream) {
         const ui32 blockSize = GetDotProductBlockSize();
         WeightedDotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, weights, y, context.PartResults.Get(), context.Size);

@@ -19,6 +19,8 @@ namespace NNeh {
         using IRequest::SendReply;
         virtual void SendReply(TData& data, const TString& headers) = 0;
         virtual const THttpHeaders& Headers() const = 0;
+        virtual TStringBuf Body() const = 0;
+        virtual TStringBuf Cgi() const = 0;
     };
 
     namespace NHttp {
@@ -91,7 +93,7 @@ namespace NNeh {
             }
 
             inline void SendTo(IOutputStream& io) const {
-                io.Write(~Parts_, +Parts_);
+                io.Write(Parts_.data(), Parts_.size());
             }
 
             inline void AddPart(const void* buf, size_t len) noexcept {
@@ -110,8 +112,8 @@ namespace NNeh {
 
         struct TRequestGet {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation& loc) {
-                TRequestData::TPtr req(new TRequestData(50 + +loc.Service + +msg.Data + +loc.Host));
-                TMemoryOutput out(~req->Mem, +req->Mem);
+                TRequestData::TPtr req(new TRequestData(50 + loc.Service.size() + msg.Data.size() + loc.Host.size()));
+                TMemoryOutput out(req->Mem.data(), req->Mem.size());
 
                 out << AsStringBuf("GET /") << loc.Service;
 
@@ -127,7 +129,7 @@ namespace NNeh {
 
                 out << AsStringBuf("\r\n\r\n");
 
-                req->AddPart(~req->Mem, out.Buf() - ~req->Mem);
+                req->AddPart(req->Mem.data(), out.Buf() - req->Mem.data());
                 return req;
             }
 
@@ -138,8 +140,8 @@ namespace NNeh {
 
         struct TRequestPost {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation& loc) {
-                TRequestData::TPtr req(new TRequestData(100 + +loc.Service + +loc.Host));
-                TMemoryOutput out(~req->Mem, +req->Mem);
+                TRequestData::TPtr req(new TRequestData(100 + loc.Service.size() + loc.Host.size()));
+                TMemoryOutput out(req->Mem.data(), req->Mem.size());
 
                 out << AsStringBuf("POST /") << loc.Service
                     << AsStringBuf(" HTTP/1.1\r\nHost: ") << loc.Host;
@@ -148,10 +150,10 @@ namespace NNeh {
                     out << AsStringBuf(":") << loc.Port;
                 }
 
-                out << AsStringBuf("\r\nContent-Length: ") << +msg.Data << AsStringBuf("\r\n\r\n");
+                out << AsStringBuf("\r\nContent-Length: ") << msg.Data.size() << AsStringBuf("\r\n\r\n");
 
-                req->AddPart(~req->Mem, out.Buf() - ~req->Mem);
-                req->AddPart(~msg.Data, +msg.Data);
+                req->AddPart(req->Mem.data(), out.Buf() - req->Mem.data());
+                req->AddPart(msg.Data.data(), msg.Data.size());
                 return req;
             }
 
@@ -163,7 +165,7 @@ namespace NNeh {
         struct TRequestFull {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation&) {
                 TRequestData::TPtr req(new TRequestData(0));
-                req->AddPart(~msg.Data, +msg.Data);
+                req->AddPart(msg.Data.data(), msg.Data.size());
                 return req;
             }
 
@@ -173,12 +175,12 @@ namespace NNeh {
         };
 
         enum class ERequestType {
-            Any = 0,
-            Post,
-            Get,
-            Put,
-            Delete,
-            Patch,
+            Any = 0 /* "ANY" */,
+            Post    /* "POST" */,
+            Get     /* "GET" */,
+            Put     /* "PUT" */,
+            Delete  /* "DELETE" */,
+            Patch   /* "PATCH" */,
         };
 
         enum class ERequestFlag {

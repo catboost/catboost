@@ -10,7 +10,7 @@ using namespace cooperative_groups;
 namespace NKernel
 {
 
-    template<int BlockSize>
+    template <int BlockSize>
     struct TPointHistHalfByte {
         float* Buffer;
         thread_block_tile<32> SyncTile;

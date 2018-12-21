@@ -9,7 +9,7 @@
 
 /// Note this magic API traverses directory hierarchy
 
-class TDirIterator: public TStlIterator<TDirIterator> {
+class TDirIterator: public TInputRangeAdaptor<TDirIterator> {
     struct TFtsDestroy {
         static inline void Destroy(FTS* f) noexcept {
             yfts_close(f);
@@ -61,8 +61,6 @@ public:
             Cmp = nullptr;
         }
     };
-
-    using TRetVal = FTSENT*;
 
     inline TDirIterator(const TString& path, const TOptions& options = TOptions())
         : Options_(options)

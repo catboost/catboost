@@ -63,7 +63,7 @@ TFullModel ReadModelAny(const TString& fileName) {
     for (EModelType modelType : {EModelType::CatboostBinary, EModelType::AppleCoreML}) {
         try {
             model = ReadModel(fileName, modelType);
-        } catch (TCatboostException& e) {
+        } catch (TCatBoostException& e) {
             continue;
         }
         loaded = true;

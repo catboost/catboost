@@ -5,7 +5,7 @@
 #include <util/generic/vector.h>
 
 struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
-    template<typename T>
+    template <typename T>
     TRestorableFastRng64(T&& seedSource)
         : SeedArgs(std::forward<T>(seedSource))
         , Rng(SeedArgs)
@@ -42,6 +42,10 @@ struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
     inline void Advance(ui64 delta) noexcept {
         CallCount += delta;
         Rng.Advance(delta);
+    }
+
+    ui64 GetCallCount() const {
+        return CallCount;
     }
 private:
     TFastRng64::TArgs SeedArgs;

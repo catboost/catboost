@@ -1,8 +1,9 @@
 #pragma once
 
-#include <catboost/libs/data_new/features_layout.h>
 #include "projection.h"
 #include "split.h"
+
+#include <catboost/libs/data_new/features_layout.h>
 
 
 TString BuildFeatureDescription(const NCB::TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type);

@@ -1,40 +1,36 @@
 """ recording warnings during test function execution. """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import inspect
-
-import _pytest._code
-import py
+import re
 import sys
 import warnings
-import pytest
+
+import six
+
+import _pytest._code
+from _pytest.fixtures import yield_fixture
+from _pytest.outcomes import fail
 
 
-@pytest.yield_fixture
-def recwarn(request):
-    """Return a WarningsRecorder instance that provides these methods:
-
-    * ``pop(category=None)``: return last warning matching the category.
-    * ``clear()``: clear list of warnings
+@yield_fixture
+def recwarn():
+    """Return a :class:`WarningsRecorder` instance that records all warnings emitted by test functions.
 
     See http://docs.python.org/library/warnings.html for information
     on warning categories.
     """
     wrec = WarningsRecorder()
     with wrec:
-        warnings.simplefilter('default')
+        warnings.simplefilter("default")
         yield wrec
 
 
-def pytest_namespace():
-    return {'deprecated_call': deprecated_call,
-            'warns': warns}
-
-
 def deprecated_call(func=None, *args, **kwargs):
-    """ assert that calling ``func(*args, **kwargs)`` triggers a
-    ``DeprecationWarning`` or ``PendingDeprecationWarning``.
-
-    This function can be used as a context manager::
+    """context manager that can be used to ensure a block of code triggers a
+    ``DeprecationWarning`` or ``PendingDeprecationWarning``::
 
         >>> import warnings
         >>> def api_call_v2():
@@ -44,50 +40,24 @@ def deprecated_call(func=None, *args, **kwargs):
         >>> with deprecated_call():
         ...    assert api_call_v2() == 200
 
-    Note: we cannot use WarningsRecorder here because it is still subject
-    to the mechanism that prevents warnings of the same type from being
-    triggered twice for the same module. See #1190.
+    ``deprecated_call`` can also be used by passing a function and ``*args`` and ``*kwargs``,
+    in which case it will ensure calling ``func(*args, **kwargs)`` produces one of the warnings
+    types above.
     """
-    if not func:
-        return WarningsChecker(expected_warning=DeprecationWarning)
-
-    categories = []
-
-    def warn_explicit(message, category, *args, **kwargs):
-        categories.append(category)
-        old_warn_explicit(message, category, *args, **kwargs)
-
-    def warn(message, category=None, *args, **kwargs):
-        if isinstance(message, Warning):
-            categories.append(message.__class__)
-        else:
-            categories.append(category)
-        old_warn(message, category, *args, **kwargs)
-
-    old_warn = warnings.warn
-    old_warn_explicit = warnings.warn_explicit
-    warnings.warn_explicit = warn_explicit
-    warnings.warn = warn
-    try:
-        ret = func(*args, **kwargs)
-    finally:
-        warnings.warn_explicit = old_warn_explicit
-        warnings.warn = old_warn
-    deprecation_categories = (DeprecationWarning, PendingDeprecationWarning)
-    if not any(issubclass(c, deprecation_categories) for c in categories):
-        __tracebackhide__ = True
-        raise AssertionError("%r did not produce DeprecationWarning" % (func,))
-    return ret
+    __tracebackhide__ = True
+    if func is not None:
+        args = (func,) + args
+    return warns((DeprecationWarning, PendingDeprecationWarning), *args, **kwargs)
 
 
 def warns(expected_warning, *args, **kwargs):
-    """Assert that code raises a particular class of warning.
+    r"""Assert that code raises a particular class of warning.
 
-    Specifically, the input @expected_warning can be a warning class or
-    tuple of warning classes, and the code must return that warning
-    (if a single class) or one of those warnings (if a tuple).
+    Specifically, the parameter ``expected_warning`` can be a warning class or
+    sequence of warning classes, and the inside the ``with`` block must issue a warning of that class or
+    classes.
 
-    This helper produces a list of ``warnings.WarningMessage`` objects,
+    This helper produces a list of :class:`warnings.WarningMessage` objects,
     one for each warning raised.
 
     This function can be used as a context manager, or any of the other ways
@@ -95,10 +65,29 @@ def warns(expected_warning, *args, **kwargs):
 
         >>> with warns(RuntimeWarning):
         ...    warnings.warn("my warning", RuntimeWarning)
+
+    In the context manager form you may use the keyword argument ``match`` to assert
+    that the exception matches a text or regex::
+
+        >>> with warns(UserWarning, match='must be 0 or None'):
+        ...     warnings.warn("value must be 0 or None", UserWarning)
+
+        >>> with warns(UserWarning, match=r'must be \d+$'):
+        ...     warnings.warn("value must be 42", UserWarning)
+
+        >>> with warns(UserWarning, match=r'must be \d+$'):
+        ...     warnings.warn("this is not here", UserWarning)
+        Traceback (most recent call last):
+          ...
+        Failed: DID NOT WARN. No warnings of type ...UserWarning... was emitted...
+
     """
-    wcheck = WarningsChecker(expected_warning)
+    __tracebackhide__ = True
+    match_expr = None
     if not args:
-        return wcheck
+        if "match" in kwargs:
+            match_expr = kwargs.pop("match")
+        return WarningsChecker(expected_warning, match_expr=match_expr)
     elif isinstance(args[0], str):
         code, = args
         assert isinstance(code, str)
@@ -106,33 +95,23 @@ def warns(expected_warning, *args, **kwargs):
         loc = frame.f_locals.copy()
         loc.update(kwargs)
 
-        with wcheck:
+        with WarningsChecker(expected_warning, match_expr=match_expr):
             code = _pytest._code.Source(code).compile()
-            py.builtin.exec_(code, frame.f_globals, loc)
+            six.exec_(code, frame.f_globals, loc)
     else:
         func = args[0]
-        with wcheck:
+        with WarningsChecker(expected_warning, match_expr=match_expr):
             return func(*args[1:], **kwargs)
 
 
-class RecordedWarning(object):
-    def __init__(self, message, category, filename, lineno, file, line):
-        self.message = message
-        self.category = category
-        self.filename = filename
-        self.lineno = lineno
-        self.file = file
-        self.line = line
-
-
-class WarningsRecorder(object):
+class WarningsRecorder(warnings.catch_warnings):
     """A context manager to record raised warnings.
 
     Adapted from `warnings.catch_warnings`.
     """
 
-    def __init__(self, module=None):
-        self._module = sys.modules['warnings'] if module is None else module
+    def __init__(self):
+        super(WarningsRecorder, self).__init__(record=True)
         self._entered = False
         self._list = []
 
@@ -169,41 +148,54 @@ class WarningsRecorder(object):
         if self._entered:
             __tracebackhide__ = True
             raise RuntimeError("Cannot enter %r twice" % self)
-        self._entered = True
-        self._filters = self._module.filters
-        self._module.filters = self._filters[:]
-        self._showwarning = self._module.showwarning
+        self._list = super(WarningsRecorder, self).__enter__()
+        warnings.simplefilter("always")
+        # python3 keeps track of a "filter version", when the filters are
+        # updated previously seen warnings can be re-warned.  python2 has no
+        # concept of this so we must reset the warnings registry manually.
+        # trivial patching of `warnings.warn` seems to be enough somehow?
+        if six.PY2:
 
-        def showwarning(message, category, filename, lineno,
-                        file=None, line=None):
-            self._list.append(RecordedWarning(
-                message, category, filename, lineno, file, line))
+            def warn(message, category=None, stacklevel=1):
+                # duplicate the stdlib logic due to
+                # bad handing in the c version of warnings
+                if isinstance(message, Warning):
+                    category = message.__class__
+                # Check category argument
+                if category is None:
+                    category = UserWarning
+                assert issubclass(category, Warning)
 
-            # still perform old showwarning functionality
-            self._showwarning(
-                message, category, filename, lineno, file=file, line=line)
+                # emulate resetting the warn registry
+                f_globals = sys._getframe(stacklevel).f_globals
+                if "__warningregistry__" in f_globals:
+                    orig = f_globals["__warningregistry__"]
+                    f_globals["__warningregistry__"] = None
+                    try:
+                        return self._saved_warn(message, category, stacklevel + 1)
+                    finally:
+                        f_globals["__warningregistry__"] = orig
+                else:
+                    return self._saved_warn(message, category, stacklevel + 1)
 
-        self._module.showwarning = showwarning
-
-        # allow the same warning to be raised more than once
-
-        self._module.simplefilter('always')
+            warnings.warn, self._saved_warn = warn, warnings.warn
         return self
 
     def __exit__(self, *exc_info):
         if not self._entered:
             __tracebackhide__ = True
             raise RuntimeError("Cannot exit %r without entering first" % self)
-        self._module.filters = self._filters
-        self._module.showwarning = self._showwarning
+        # see above where `self._saved_warn` is assigned
+        if six.PY2:
+            warnings.warn = self._saved_warn
+        super(WarningsRecorder, self).__exit__(*exc_info)
 
 
 class WarningsChecker(WarningsRecorder):
-    def __init__(self, expected_warning=None, module=None):
-        super(WarningsChecker, self).__init__(module=module)
+    def __init__(self, expected_warning=None, match_expr=None):
+        super(WarningsChecker, self).__init__()
 
-        msg = ("exceptions must be old-style classes or "
-               "derived from Warning, not %s")
+        msg = "exceptions must be old-style classes or derived from Warning, not %s"
         if isinstance(expected_warning, tuple):
             for exc in expected_warning:
                 if not inspect.isclass(exc):
@@ -214,16 +206,36 @@ class WarningsChecker(WarningsRecorder):
             raise TypeError(msg % type(expected_warning))
 
         self.expected_warning = expected_warning
+        self.match_expr = match_expr
 
     def __exit__(self, *exc_info):
         super(WarningsChecker, self).__exit__(*exc_info)
 
+        __tracebackhide__ = True
+
         # only check if we're not currently handling an exception
         if all(a is None for a in exc_info):
             if self.expected_warning is not None:
-                if not any(r.category in self.expected_warning for r in self):
+                if not any(issubclass(r.category, self.expected_warning) for r in self):
                     __tracebackhide__ = True
-                    pytest.fail("DID NOT WARN. No warnings of type {0} was emitted. "
-                                "The list of emitted warnings is: {1}.".format(
-                                    self.expected_warning,
-                                    [each.message for each in self]))
+                    fail(
+                        "DID NOT WARN. No warnings of type {} was emitted. "
+                        "The list of emitted warnings is: {}.".format(
+                            self.expected_warning, [each.message for each in self]
+                        )
+                    )
+                elif self.match_expr is not None:
+                    for r in self:
+                        if issubclass(r.category, self.expected_warning):
+                            if re.compile(self.match_expr).search(str(r.message)):
+                                break
+                    else:
+                        fail(
+                            "DID NOT WARN. No warnings of type {} matching"
+                            " ('{}') was emitted. The list of emitted warnings"
+                            " is: {}.".format(
+                                self.expected_warning,
+                                self.match_expr,
+                                [each.message for each in self],
+                            )
+                        )

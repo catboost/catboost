@@ -1,6 +1,6 @@
 #pragma once
 
-// TErrorTracker is responsible for overfit detection in matrixnet.
+// TErrorTracker is responsible for overfit detection.
 // Here is a usage example:
 /*    TErrorTracker errorTracker(learnSettings.OverfittingDetectorType,
 *                                errorFunction.MaxIsOptimal(),

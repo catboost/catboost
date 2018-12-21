@@ -28,6 +28,18 @@ static void CallbackFun(int i) {
 
 static IOutputStream* OUTS = nullptr;
 
+namespace NOuter {
+    namespace NInner {
+        constexpr TStringBuf AsStringBuf(...) {
+            return ::AsStringBuf("Shouldn't be called from Y_ENSURE");
+        }
+
+        void Compare10And20() {
+            Y_ENSURE(10 > 20);
+        }
+    }
+}
+
 class TExceptionTest: public TTestBase {
     UNIT_TEST_SUITE(TExceptionTest);
     UNIT_TEST_EXCEPTION(TestException, yexception)
@@ -219,6 +231,12 @@ private:
             Y_ENSURE(10 > 20, "exception message to search for");
         } catch (const yexception& e) {
             UNIT_ASSERT(e.AsStrBuf().Contains("exception message to search for"));
+        }
+
+        try {
+            NOuter::NInner::Compare10And20();
+        } catch (const yexception& e) {
+            UNIT_ASSERT(e.AsStrBuf().Contains("10 > 20"));
         }
     }
 

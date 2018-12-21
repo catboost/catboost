@@ -69,9 +69,9 @@ namespace {
         void Save(IOutputStream* out) const {
             static const TEventArgs emptyArgs;
 
-            i8 tag = Event.Visit(TGetTagVisitor());
+            i8 tag = Visit(TGetTagVisitor(), Event);
             ::Save(out, tag);
-            Event.Visit(TSavePtrVisitor{out});
+            Visit(TSavePtrVisitor{out}, Event);
             if (Args) {
                 ::Save(out, *Args);
             } else {
@@ -144,9 +144,9 @@ void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::T
 
     ::SaveStr(out, v.Name);
 
-    i8 tag = v.Value.Tag();
+    i8 tag = v.Value.index();
     ::Save(out, tag);
-    v.Value.Visit(TSaveVisitor{out});
+    Visit(TSaveVisitor{out}, v.Value);
 }
 
 void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, TMemoryPool& pool) {
@@ -159,17 +159,17 @@ void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, 
     switch (tag) {
         case TValue::TagOf<TStringBuf>():
             v.Value = TStringBuf();
-            ::LoadStr(in, v.Value.As<TStringBuf>(), pool);
+            ::LoadStr(in, Get<TStringBuf>(v.Value), pool);
             break;
 
         case TValue::TagOf<i64>():
             v.Value = i64();
-            ::Load(in, v.Value.As<i64>());
+            ::Load(in, Get<i64>(v.Value));
             break;
 
         case TValue::TagOf<double>():
             v.Value = double();
-            ::Load(in, v.Value.As<double>());
+            ::Load(in, Get<double>(v.Value));
             break;
 
         default:
@@ -260,7 +260,7 @@ void TSerializer<TMetadataEvent>::Load(IInputStream* in, TMetadataEvent& v, TMem
 }
 
 void TSerializer<TEventWithArgs>::Save(IOutputStream* out, const TEventWithArgs& v) {
-    v.Event.Visit(TSaveAnyEventVisitor{out, &v.Args});
+    Visit(TSaveAnyEventVisitor{out, &v.Args}, v.Event);
 }
 
 void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMemoryPool& pool) {
@@ -270,7 +270,7 @@ void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMem
 #define CASE(type)                            \
     case TAnyEvent::TagOf<type>():            \
         v.Event = type();                     \
-        ::Load(in, v.Event.As<type>(), pool); \
+        ::Load(in, Get<type>(v.Event), pool); \
         break;
 
         CASE(TDurationBeginEvent)

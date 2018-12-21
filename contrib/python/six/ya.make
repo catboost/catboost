@@ -1,6 +1,6 @@
 
 
-LIBRARY(six)
+PY23_LIBRARY()
 
 LICENSE(
     MIT

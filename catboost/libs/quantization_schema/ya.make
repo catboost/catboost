@@ -10,6 +10,7 @@ SRCS(
 
 PEERDIR(
     catboost/idl/pool/proto
+    catboost/libs/helpers
     catboost/libs/options
 )
 

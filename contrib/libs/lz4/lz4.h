@@ -411,6 +411,10 @@ union LZ4_streamDecode_u {
    typically with -Wno-deprecated-declarations for gcc
    or _CRT_SECURE_NO_WARNINGS in Visual.
    Otherwise, it's also possible to define LZ4_DISABLE_DEPRECATE_WARNINGS */
+#ifndef LZ4_DISABLE_DEPRECATE_WARNINGS
+#  define LZ4_DISABLE_DEPRECATE_WARNINGS
+#endif
+
 #ifdef LZ4_DISABLE_DEPRECATE_WARNINGS
 #  define LZ4_DEPRECATED(message)   /* disable deprecation warnings */
 #else

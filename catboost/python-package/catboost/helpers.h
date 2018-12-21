@@ -2,6 +2,10 @@
 
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data_types/groupid.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/noncopyable.h>
 
@@ -26,7 +30,7 @@ void ResetPythonInterruptHandler();
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& srcData,
     const TVector<TString>& metricsDescription,
     int begin,
     int end,
@@ -47,6 +51,21 @@ TVector<double> EvalMetricsForUtils(
     int threadCount
 );
 
+
+inline TVector<NCatboostOptions::TLossDescription> CreateMetricLossDescriptions(
+    const TVector<TString>& metricDescriptions) {
+
+    CB_ENSURE(!metricDescriptions.empty(), "No metrics in metric descriptions");
+
+    TVector<NCatboostOptions::TLossDescription> result;
+    for (const auto& metricDescription : metricDescriptions) {
+        result.emplace_back(NCatboostOptions::ParseLossDescription(metricDescription));
+    }
+
+    return result;
+}
+
+
 class TMetricsPlotCalcerPythonWrapper {
 public:
     TMetricsPlotCalcerPythonWrapper(const TVector<TString>& metricDescriptions,
@@ -57,7 +76,9 @@ public:
                                     int threadCount,
                                     const TString& tmpDir,
                                     bool deleteTempDirOnExit = false)
-    : Metrics(CreateMetricsFromDescription(metricDescriptions, model.ObliviousTrees.ApproxDimension))
+    : Rand(0)
+    , MetricLossDescriptions(CreateMetricLossDescriptions(metricDescriptions))
+    , Metrics(CreateMetrics(MetricLossDescriptions, model.ObliviousTrees.ApproxDimension))
     , MetricPlotCalcer(CreateMetricCalcer(
             model,
             begin,
@@ -75,12 +96,20 @@ public:
         MetricPlotCalcer.ClearTempFiles();
     }
 
-    void AddPool(const TPool& pool) {
+    void AddPool(const NCB::TDataProvider& srcData) {
+        auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(
+            srcData,
+            MetricLossDescriptions,
+            MetricPlotCalcer.GetModel(),
+            &Rand,
+            &Executor
+        );
+
         if (MetricPlotCalcer.HasAdditiveMetric()) {
-            MetricPlotCalcer.ProceedDataSetForAdditiveMetrics(pool, /*isProcessBoundaryGroups=*/false);
+            MetricPlotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
         }
         if (MetricPlotCalcer.HasNonAdditiveMetric()) {
-            MetricPlotCalcer.ProceedDataSetForNonAdditiveMetrics(pool);
+            MetricPlotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
         }
 
     }
@@ -94,9 +123,6 @@ public:
     }
 
     TVector<TVector<double>> ComputeScores()  {
-        if (MetricPlotCalcer.HasAdditiveMetric()) {
-            MetricPlotCalcer.FinishProceedDataSetForAdditiveMetrics();
-        }
         if (MetricPlotCalcer.HasNonAdditiveMetric()) {
             MetricPlotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
@@ -104,7 +130,9 @@ public:
     }
 
 private:
+    TRestorableFastRng64 Rand;
     NPar::TLocalExecutor Executor;
+    TVector<NCatboostOptions::TLossDescription> MetricLossDescriptions;
     TVector<THolder<IMetric>> Metrics;
     TMetricsPlotCalcer MetricPlotCalcer;
 };

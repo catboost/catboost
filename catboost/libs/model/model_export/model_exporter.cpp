@@ -7,7 +7,7 @@
 namespace NCatboost {
     ICatboostModelExporter* CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJson, bool addFileFormatExtension) {
         switch (format) {
-            case EModelType::CPP:
+            case EModelType::Cpp:
                 return new TCatboostModelToCppConverter(modelFile, addFileFormatExtension, userParametersJson);
             case EModelType::Python:
                 return new TCatboostModelToPythonConverter(modelFile, addFileFormatExtension, userParametersJson);

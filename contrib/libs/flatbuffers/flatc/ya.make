@@ -26,9 +26,9 @@ SRCS(
     idl_gen_cpp.cpp
     idl_gen_fbs.cpp
     idl_gen_general.cpp
-    idl_gen_js.cpp
-    idl_gen_php.cpp
     idl_gen_python.cpp
+    idl_gen_go.cpp
+    idl_gen_json_schema.cpp
 )
 
 END()

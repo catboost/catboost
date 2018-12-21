@@ -1,10 +1,22 @@
 #pragma once
 
-#include "target_func.h"
 #include "oracle_type.h"
+#include "target_func.h"
+
+#include <catboost/cuda/cuda_lib/mapping.h>
+
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/cuda/cuda_util/algorithm.h>
-#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+
+#include <util/generic/algorithm.h>
+#include <util/generic/mapfindptr.h>
+#include <util/generic/strbuf.h>
+#include <util/string/cast.h>
+#include <util/system/yassert.h>
+
 
 namespace NCatboostCuda {
 
@@ -127,12 +139,19 @@ namespace NCatboostCuda {
         }
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions,
-                  const TDataProvider& dataProvider) {
-            NumClasses = dataProvider.GetTargetHelper().GetNumClasses();
-            TVector<float> tmp = dataProvider.GetTargets();
+                  const NCB::TTrainingDataProvider& dataProvider) {
+
+            auto* multiClassTarget = MapFindPtr(dataProvider.TargetData,
+                                                NCB::TTargetDataSpecification(NCB::ETargetType::MultiClass));
+            CB_ENSURE_INTERNAL(multiClassTarget, "dataProvider.TargetData must contain multiclass target");
+
+            NumClasses = dynamic_cast<const NCB::TMultiClassTarget&>(**multiClassTarget).GetClassCount();
+
+            TConstArrayRef<float> target = NCB::GetTarget(dataProvider.TargetData);
+            TVector<float> tmp(target.begin(), target.end());
             SortUnique(tmp);
             Y_VERIFY(NumClasses >= tmp.size());
-            MATRIXNET_DEBUG_LOG << "Num classes " << NumClasses << Endl;
+            CATBOOST_DEBUG_LOG << "Num classes " << NumClasses << Endl;
             Type = targetOptions.GetLossFunction();
             MetricName = ToString(targetOptions);
 

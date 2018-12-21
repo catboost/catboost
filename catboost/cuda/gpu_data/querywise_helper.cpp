@@ -35,8 +35,17 @@ void NCatboostCuda::TQuerywiseSampler::SampleQueries(TGpuAwareRandom& random, co
                         maxQuerySize,
                         &sampledWeight);
 
-    FilterZeroEntries(&sampledWeight,
-                      &indices);
+    {
+        auto nzElements =  TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+        auto docs =  TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+        docs.Copy(indices);
+
+        FilterZeroEntries(&sampledWeight,
+                          &nzElements);
+
+        indices.Reset(sampledWeight.GetMapping());
+        Gather(indices, docs, nzElements);
+    }
     RadixSort(indices);
 }
 

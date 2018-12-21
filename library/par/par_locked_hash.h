@@ -48,7 +48,7 @@ public:
         const auto binIndex = GetBinIndexForKey(key);
         with_lock (Locks[binIndex]) {
             auto& map = Storages[binIndex];
-            if (!map.has(key)) {
+            if (!map.contains(key)) {
                 return false;
             }
             map.erase(key);
@@ -59,7 +59,7 @@ public:
         const auto binIndex = GetBinIndexForKey(key);
         with_lock (Locks[binIndex]) {
             auto& map = Storages[binIndex];
-            if (!map.has(key)) {
+            if (!map.contains(key)) {
                 return false;
             }
             value = std::move(map.at(key));
@@ -89,7 +89,7 @@ public:
         const auto binIndex = GetBinIndexForKey(key);
         with_lock (Locks[binIndex]) {
             auto& map = Storages[binIndex];
-            if (!map.has(key)) {
+            if (!map.contains(key)) {
                 return false;
             }
             functor(map.at(key));

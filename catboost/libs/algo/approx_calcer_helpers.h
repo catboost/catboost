@@ -1,7 +1,8 @@
 #pragma once
 
 #include "online_predictor.h"
-#include <catboost/libs/metrics/ders_holder.h>
+#include "ders_holder.h"
+
 #include <catboost/libs/options/enums.h>
 
 template <ELeavesEstimation LeafEstimationType>

@@ -3,12 +3,14 @@
 #include "feature_layout_doc_parallel.h"
 #include "dataset_helpers.h"
 
-NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount) {
+NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount,
+                                                                                                  NPar::TLocalExecutor* localExecutor) {
     TDocParallelDataSetsHolder dataSetsHolder(DataProvider,
                                               FeaturesManager,
                                               LinkedTest);
 
-    TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex);
+    TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex,
+                                                                         localExecutor);
 
     auto ctrsTarget = BuildCtrTarget(FeaturesManager,
                                      DataProvider,
@@ -25,8 +27,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
     weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
 
-    targets.Write(learnLoadBalancingPermutation.Gather(DataProvider.GetTargets()));
-    weights.Write(learnLoadBalancingPermutation.Gather(DataProvider.GetWeights()));
+    targets.Write(learnLoadBalancingPermutation.Gather(GetTarget(DataProvider.TargetData)));
+    weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(DataProvider.TargetData)));
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
         dataSetsHolder.PermutationDataSets[permutationId] = new TDocParallelDataSet(DataProvider,
@@ -47,8 +49,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
         testWeights.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
 
-        testTargets.Write(testLoadBalancingPermutation.Gather(LinkedTest->GetTargets()));
-        testWeights.Write(testLoadBalancingPermutation.Gather(LinkedTest->GetWeights()));
+        testTargets.Write(testLoadBalancingPermutation.Gather(GetTarget(LinkedTest->TargetData)));
+        testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(LinkedTest->TargetData)));
 
         dataSetsHolder.TestDataSet = new TDocParallelDataSet(*LinkedTest,
                                                              dataSetsHolder.CompressedIndex,
@@ -125,7 +127,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         TFloatAndOneHotFeaturesWriter<TDocParallelLayout> floatFeaturesWriter(FeaturesManager,
                                                                               compressedIndexBuilder,
                                                                               DataProvider,
-                                                                              permutationIndependentCompressedDataSetId);
+                                                                              permutationIndependentCompressedDataSetId,
+                                                                              localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 
@@ -133,15 +136,16 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         TFloatAndOneHotFeaturesWriter<TDocParallelLayout> floatFeaturesWriter(FeaturesManager,
                                                                               compressedIndexBuilder,
                                                                               *LinkedTest,
-                                                                              testDataSetId);
+                                                                              testDataSetId,
+                                                                              localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
 
     TMirrorBuffer<ui32> ctrEstimationOrder;
     TMirrorBuffer<ui32> testIndices;
-    ctrEstimationOrder.Reset(NCudaLib::TMirrorMapping(DataProvider.GetSampleCount()));
+    ctrEstimationOrder.Reset(NCudaLib::TMirrorMapping(DataProvider.GetObjectCount()));
     if (LinkedTest) {
-        testIndices.Reset(NCudaLib::TMirrorMapping(LinkedTest->GetSampleCount()));
+        testIndices.Reset(NCudaLib::TMirrorMapping(LinkedTest->GetObjectCount()));
     }
 
     {
@@ -155,7 +159,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                DataProvider,
                                                ctrEstimationOrder,
                                                LinkedTest,
-                                               LinkedTest ? &testIndices : nullptr);
+                                               LinkedTest ? &testIndices : nullptr,
+                                               localExecutor);
 
         TCtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                    compressedIndexBuilder,
@@ -172,7 +177,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
             ctrsEstimationPermutation.WriteOrder(ctrEstimationOrder);
 
             {
-                const TDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
+                const NCB::TTrainingDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
                 const TMirrorBuffer<ui32>* testIndicesPtr = (permutationId == 0 && linkedTest)
                                                                 ? &testIndices
                                                                 : nullptr;
@@ -182,7 +187,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                        DataProvider,
                                                        ctrEstimationOrder,
                                                        linkedTest,
-                                                       testIndicesPtr);
+                                                       testIndicesPtr,
+                                                       localExecutor);
 
                 TCtrsWriter<TDocParallelLayout> ctrsWriter(FeaturesManager,
                                                            compressedIndexBuilder,
@@ -191,7 +197,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                            testDataSetId);
                 ctrsWriter.Write(permutationDependent);
             }
-            MATRIXNET_INFO_LOG << "Ctr computation for " << permutationId << " is finished" << Endl;
+            CATBOOST_INFO_LOG << "Ctr computation for " << permutationId << " is finished" << Endl;
         }
     }
     compressedIndexBuilder.Finish();

@@ -136,7 +136,7 @@ private:
 private:
     inline void AddNameWithCheck(const TString& name, ECharset code) {
         if (Data.find(name.c_str()) == Data.end()) {
-            Data.insert(TData::value_type(Pool.Append(~name, +name + 1), code));
+            Data.insert(TData::value_type(Pool.Append(name.data(), name.size() + 1), code));
         } else {
             Y_ASSERT(Data.find(name.c_str())->second == code);
         }
@@ -294,12 +294,12 @@ void DoDecodeUnknownPlane(TxChar* str, TxChar*& ee, const ECharset enc) {
                 buf.push_back(LO_8_LO_16(*s));
             } else {
                 if (!buf.empty()) {
-                    if (RecodeToUnicode(enc, ~buf, d, +buf, e - d, read, written) == RECODE_OK) {
+                    if (RecodeToUnicode(enc, buf.data(), d, buf.size(), e - d, read, written) == RECODE_OK) {
                         Y_ASSERT(read == buf.size());
                         d += written;
                     } else { // just copying broken symbols
                         Y_ASSERT(buf.size() <= static_cast<size_t>(e - d));
-                        Copy(~buf, +buf, d);
+                        Copy(buf.data(), buf.size(), d);
                         d += buf.size();
                     }
                     buf.clear();
@@ -413,7 +413,7 @@ static inline void NormalizeEncodingPrefixes(TString& enc) {
             TString enccopy = enc.substr(preflen);
             enccopy.prepend("latin");
             const TLatinToIsoHash* latinhash = Singleton<TLatinToIsoHash>();
-            TLatinToIsoHash::const_iterator it = latinhash->find(~enccopy);
+            TLatinToIsoHash::const_iterator it = latinhash->find(enccopy.data());
             if (it != latinhash->end())
                 enc.assign(it->second);
             return;

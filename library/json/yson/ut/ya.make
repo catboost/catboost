@@ -4,9 +4,7 @@ UNITTEST_FOR(library/json/yson)
 
 ALLOCATOR(LF)
 
-DATA(
-    sbr://363537653
-)
+DATA(sbr://363537653)
 
 PEERDIR(
     library/blockcodecs
@@ -25,5 +23,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

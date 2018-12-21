@@ -1267,6 +1267,10 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 // implementation.
 #define _LIBCPP_HAS_NO_SPACESHIP_OPERATOR
 
+// Yandex-specific: We build our own libc++, so it has everything available
+#define _LIBCPP_DISABLE_AVAILABILITY
+// End of Yandex-specific
+
 // Decide whether to use availability macros.
 #if !defined(_LIBCPP_BUILDING_LIBRARY) &&                                      \
     !defined(_LIBCPP_DISABLE_AVAILABILITY) &&                                  \

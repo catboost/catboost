@@ -12,6 +12,8 @@ import py
 import pytest
 import _pytest
 import _pytest.mark
+import signal
+import inspect
 
 try:
     import resource
@@ -33,6 +35,7 @@ yatest_logger = logging.getLogger("ya.test")
 
 
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
+SHUTDOWN_REQUESTED = False
 
 
 def configure_pdb_on_demand():
@@ -104,12 +107,13 @@ def pytest_addoption(parser):
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
     parser.addoption("--mode", action="store", choices=[RunMode.List, RunMode.Run], dest="mode", default=RunMode.Run, help="testing mode")
+    parser.addoption("--test-list-file", action="store", dest="test_list_file")
     parser.addoption("--modulo", default=1, type=int)
     parser.addoption("--modulo-index", default=0, type=int)
     parser.addoption("--split-by-tests", action='store_true', help="Split test execution by tests instead of suites", default=False)
     parser.addoption("--project-path", action="store", default="", help="path to CMakeList where test is declared")
     parser.addoption("--build-type", action="store", default="", help="build type")
-    parser.addoption("--flags", action="append", dest="flags", default=None, help="build flags (-D)")
+    parser.addoption("--flags", action="append", dest="flags", default=[], help="build flags (-D)")
     parser.addoption("--sanitize", action="store", default="", help="sanitize mode")
     parser.addoption("--test-stderr", action="store_true", default=False, help="test stderr")
     parser.addoption("--test-debug", action="store_true", default=False, help="test debug mode")
@@ -128,13 +132,7 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    if pytest.__version__ != "2.7.2":
-        from _pytest.monkeypatch import monkeypatch
-        import reinterpret
-        m = next(monkeypatch())
-        m.setattr(py.builtin.builtins, 'AssertionError', reinterpret.AssertionError)  # noqa
-
-        config.option.continue_on_collection_errors = True
+    config.option.continue_on_collection_errors = True
 
     # XXX Strip java contrib from dep_roots - it's python-irrelevant code,
     # The number of such deps may lead to problems - see https://st.yandex-team.ru/DEVTOOLS-4627
@@ -235,6 +233,16 @@ def pytest_configure(config):
     sys.meta_path.append(CustomImporter([config.option.build_root] + [os.path.join(config.option.build_root, dep) for dep in config.option.dep_roots]))
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
+
+    if hasattr(signal, "SIGUSR2"):
+        signal.signal(signal.SIGUSR2, _smooth_shutdown)
+
+
+def _smooth_shutdown(*args):
+    cov = pytest.config.coverage
+    if cov:
+        cov.stop()
+    pytest.exit("Smooth shutdown requested")
 
 
 def _get_rusage():
@@ -378,7 +386,7 @@ def pytest_collection_modifyitems(items, config):
             else:
                 res.append([item])
 
-        shift = (len(res) + modulo - 1) / modulo
+        shift = int((len(res) + modulo - 1) / modulo)
         start = modulo_index * shift
         end = start + shift
         chunk_items = []
@@ -404,6 +412,10 @@ def pytest_collection_modifyitems(items, config):
                 "tags": _get_item_tags(item),
             }
             tests.append(record)
+        if config.option.test_list_file:
+            with open(config.option.test_list_file, 'w') as afile:
+                json.dump(tests, afile)
+        # TODO prettyboy remove after test_tool release - currently it's required for backward compatibility
         sys.stderr.write(json.dumps(tests))
 
 
@@ -414,6 +426,21 @@ def pytest_collectreport(report):
             pytest.config.ya_trace_reporter.on_error(test_item)
         else:
             sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
+
+
+@pytest.mark.tryfirst
+def pytest_pyfunc_call(pyfuncitem):
+    testfunction = pyfuncitem.obj
+    if pyfuncitem._isyieldedfunction():
+        retval = testfunction(*pyfuncitem._args)
+    else:
+        funcargs = pyfuncitem.funcargs
+        testargs = {}
+        for arg in pyfuncitem._fixtureinfo.argnames:
+            testargs[arg] = funcargs[arg]
+        retval = testfunction(**testargs)
+    pyfuncitem.retval = retval
+    return True
 
 
 def pytest_runtest_makereport(item, call):
@@ -464,8 +491,8 @@ def pytest_runtest_makereport(item, call):
             pytest.config.ya_trace_reporter.on_finish_test_class(test_item)
 
     rep = makereport(item, call)
-    if hasattr(call, 'result') and call.result:
-        result = call.result
+    if hasattr(item, 'retval') and item.retval is not None:
+        result = item.retval
         if not pytest.config.from_ya_test:
             ti = TestItem(rep, result, pytest.config.option.test_suffix)
             tr = pytest.config.pluginmanager.getplugin('terminalreporter')
@@ -510,6 +537,13 @@ def pytest_runtest_makereport(item, call):
     finally:
         logreport(rep, result)
     return rep
+
+
+def pytest_make_parametrize_id(config, val, argname):
+    # Avoid <, > symbols in canondata file names
+    if inspect.isfunction(val) and val.__name__ == "<lambda>":
+        return str(argname)
+    return None
 
 
 def get_formatted_error(report):
@@ -576,7 +610,7 @@ class TestItem(object):
         elif report.outcome == "skipped":
             if hasattr(report, 'wasxfail'):
                 self._status = 'xfail'
-                self.set_error(report.wasxfail)
+                self.set_error(report.wasxfail, 'imp')
             else:
                 self._status = 'skipped'
                 self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
@@ -606,11 +640,11 @@ class TestItem(object):
     def error(self):
         return self._error
 
-    def set_error(self, entry):
-        if isinstance(entry, _pytest.runner.BaseReport):
+    def set_error(self, entry, marker='bad'):
+        if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:
-            self._error = "[[bad]]" + str(entry)
+            self._error = "[[{}]]{}".format(marker, entry)
 
     @property
     def duration(self):
@@ -669,11 +703,11 @@ class TraceReportGenerator(object):
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-started', {'class': test_item.class_name.decode('utf-8')})
+        self.trace('test-started', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_finish_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8')})
+        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_start_test_case(self, test_item):
         message = {
@@ -686,9 +720,9 @@ class TraceReportGenerator(object):
         self.trace('subtest-started', message)
 
     def on_finish_test_case(self, test_item):
-        if test_item.result:
+        if test_item.result is not None:
             try:
-                result = canon.serialize(test_item.result[0])
+                result = canon.serialize(test_item.result)
             except Exception as e:
                 yatest_logger.exception("Error while serializing test results")
                 test_item.set_error("Invalid test result: {}".format(e))
@@ -728,7 +762,7 @@ class TraceReportGenerator(object):
             'name': name
         }
         data = json.dumps(event, ensure_ascii=False)
-        if isinstance(data, unicode):
+        if sys.version_info[0] < 3 and isinstance(data, unicode):
             data = data.encode("utf8")
         self.File.write(data + '\n')
         self.File.flush()

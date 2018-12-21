@@ -2,8 +2,6 @@ PYTEST()
 
 
 
-NEED_CHECK()
-
 SRCDIR(util)
 
 NO_WSHADOW()

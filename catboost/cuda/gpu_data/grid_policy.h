@@ -110,7 +110,7 @@ namespace NCatboostCuda {
                 return TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::FeaturesPerInt();
             }
             default: {
-                ythrow TCatboostException() << "Unknown policy " << policy;
+                ythrow TCatBoostException() << "Unknown policy " << policy;
             }
         }
     }
@@ -127,7 +127,7 @@ namespace NCatboostCuda {
                 return TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::Shift(fid);
             }
             default: {
-                ythrow TCatboostException() << "Unknown policy " << policy;
+                ythrow TCatBoostException() << "Unknown policy " << policy;
             }
         }
     }

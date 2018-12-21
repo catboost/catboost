@@ -2,11 +2,14 @@
 
 #include "option.h"
 #include "unimplemented_aware_option.h"
+
 #include <library/json/json_value.h>
+
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 #include <util/generic/map.h>
 #include <util/string/cast.h>
+#include <util/system/compiler.h>
 
 namespace NCatboostOptions {
     template <class T, bool IsEnum = std::is_enum<T>::value>
@@ -29,7 +32,7 @@ namespace NCatboostOptions {
         }
 
         static void Write(const T& value, NJson::TJsonValue* dst) {
-            (*dst) = ToString<T>(value);
+            (*dst) = ToString(value);
         }
     };
 
@@ -69,7 +72,7 @@ namespace NCatboostOptions {
     template <class T>
     class TJsonFieldHelper<TVector<T>, false> {
     public:
-        static void Read(const NJson::TJsonValue& src, TVector<T>* dst) {
+        static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TVector<T>* dst) {
             dst->clear();
             if (src.IsArray()) {
                 const NJson::TJsonValue::TArray& data = src.GetArraySafe();
@@ -84,7 +87,7 @@ namespace NCatboostOptions {
             }
         }
 
-        static void Write(const TVector<T>& src, NJson::TJsonValue* dst) {
+        static Y_NO_INLINE void Write(const TVector<T>& src, NJson::TJsonValue* dst) {
             (*dst) = NJson::TJsonValue(NJson::EJsonValueType::JSON_ARRAY);
             for (const auto& entry : src) {
                 NJson::TJsonValue value;
@@ -97,7 +100,7 @@ namespace NCatboostOptions {
     template <class TKey, class T>
     class TJsonFieldHelper<TMap<TKey, T>, false> {
     public:
-        static void Read(const NJson::TJsonValue& src, TMap<TKey, T>* dst) {
+        static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TMap<TKey, T>* dst) {
             dst->clear();
             if (src.IsMap()) {
                 const auto& data = src.GetMapSafe();
@@ -105,11 +108,11 @@ namespace NCatboostOptions {
                     TJsonFieldHelper<T>::Read(entry.second, &((*dst)[FromString<TKey>(entry.first)]));
                 }
             } else {
-                ythrow TCatboostException() << "Error: wrong json type";
+                ythrow TCatBoostException() << "Error: wrong json type";
             }
         }
 
-        static void Write(const TMap<TKey, T>& src, NJson::TJsonValue* dst) {
+        static Y_NO_INLINE void Write(const TMap<TKey, T>& src, NJson::TJsonValue* dst) {
             (*dst) = NJson::TJsonValue(NJson::EJsonValueType::JSON_MAP);
             for (const auto& entry : src) {
                 NJson::TJsonValue value;
@@ -134,8 +137,7 @@ namespace NCatboostOptions {
     template <class T>
     class TJsonFieldHelper<TOption<T>, false> {
     public:
-        static bool Read(const NJson::TJsonValue& src,
-                         TOption<T>* dst) {
+        static Y_NO_INLINE bool Read(const NJson::TJsonValue& src, TOption<T>* dst) {
             if (dst->IsDisabled()) {
                 return false;
             }
@@ -147,7 +149,7 @@ namespace NCatboostOptions {
                     TJsonFieldHelper<T>::Read(srcValue, &dst->Value);
                     dst->IsSetFlag = true;
                 } catch (NJson::TJsonException) {
-                    ythrow TCatboostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue;
+                    ythrow TCatBoostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue;
                 }
                 return true;
             } else {
@@ -155,8 +157,7 @@ namespace NCatboostOptions {
             }
         }
 
-        static void Write(const TOption<T>& src,
-                          NJson::TJsonValue* dst) {
+        static Y_NO_INLINE void Write(const TOption<T>& src, NJson::TJsonValue* dst) {
             if (src.IsDisabled()) {
                 return;
             }
@@ -173,7 +174,7 @@ namespace NCatboostOptions {
         }
 
         template <typename T, class TSupportedTasks>
-        inline void LoadMany(TUnimplementedAwareOption<T, TSupportedTasks>* option) {
+        Y_NO_INLINE void LoadMany(TUnimplementedAwareOption<T, TSupportedTasks>* option) {
             if (option->IsDisabled()) {
                 return;
             }
@@ -187,7 +188,7 @@ namespace NCatboostOptions {
                         return;
                     }
                     case ELoadUnimplementedPolicy::Exception: {
-                        ythrow TCatboostException() << "Error: option " << option->GetName()
+                        ythrow TCatBoostException() << "Error: option " << option->GetName()
                                                     << " is unimplemented for task " << option->GetCurrentTaskType();
                     }
                     case ELoadUnimplementedPolicy::ExceptionOnChange: {
@@ -195,13 +196,13 @@ namespace NCatboostOptions {
                         T oldValue = option->GetUnchecked();
                         LoadMany(static_cast<TOption<T>*>(option));
                         if (oldValue != option->GetUnchecked()) {
-                            ythrow TCatboostException() << "Error: change of option " << option->GetName()
+                            ythrow TCatBoostException() << "Error: change of option " << option->GetName()
                                                         << " is unimplemented for task type " << option->GetCurrentTaskType() << " and was not default in previous run";
                         }
                         return;
                     }
                     default: {
-                        ythrow TCatboostException() << "Unknown policy " << option->GetLoadUnimplementedPolicy();
+                        ythrow TCatBoostException() << "Unknown policy " << option->GetLoadUnimplementedPolicy();
                     }
                 }
             }
@@ -209,7 +210,7 @@ namespace NCatboostOptions {
         }
 
         template <typename T>
-        inline void LoadMany(TOption<T>* option) {
+        void LoadMany(TOption<T>* option) {
             const bool keyWasFound = TJsonFieldHelper<TOption<T>>::Read(Source, option);
             if (keyWasFound) {
                 ValidKeys.insert(option->GetName());
@@ -217,14 +218,14 @@ namespace NCatboostOptions {
         }
 
         template <typename T, typename... R>
-        inline void LoadMany(T* t, R*... r) {
+        void LoadMany(T* t, R*... r) {
             LoadMany(t);
             LoadMany(r...);
         }
 
         void CheckForUnseenKeys() {
             for (const auto& keyVal : Source.GetMap()) {
-                CB_ENSURE(ValidKeys.has(keyVal.first) || UnimplementedKeys.has(keyVal.first), "Invalid parameter: " << keyVal.first << Endl << Source);
+                CB_ENSURE(ValidKeys.contains(keyVal.first) || UnimplementedKeys.contains(keyVal.first), "Invalid parameter: " << keyVal.first << Endl << Source);
             }
         }
 
@@ -260,12 +261,12 @@ namespace NCatboostOptions {
         }
 
         template <typename T>
-        inline void SaveMany(const TOption<T>& option) {
+        void SaveMany(const TOption<T>& option) {
             TJsonFieldHelper<TOption<T>>::Write(option, Result);
         }
 
         template <typename T, class... TRest>
-        inline void SaveMany(const T& option, const TRest&... rest) {
+        void SaveMany(const T& option, const TRest&... rest) {
             SaveMany(option);
             SaveMany(rest...);
         }
@@ -281,4 +282,4 @@ namespace NCatboostOptions {
     };
 }
 
-NJson::TJsonValue ReadTJsonValue(const TString& paramsJson);
+NJson::TJsonValue ReadTJsonValue(TStringBuf paramsJson);

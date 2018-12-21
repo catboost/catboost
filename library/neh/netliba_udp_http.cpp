@@ -11,6 +11,8 @@
 #include <util/system/shmat.h>
 #include <util/system/spinlock.h>
 #include <util/system/thread.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
 #include <util/thread/lfqueue.h>
 
 #if !defined(_win_)
@@ -199,8 +201,7 @@ namespace NNehNetliba {
         };
 
         struct TSendRequest {
-            TSendRequest() {
-            }
+            TSendRequest() = default;
 
             TSendRequest(const TUdpAddress& addr, TAutoPtr<TRopeDataPacket>* data, const TGUID& reqGuid, const IEventsCollectorRef& eventsCollector)
                 : Addr(addr)
@@ -219,8 +220,7 @@ namespace NNehNetliba {
         };
 
         struct TSendResponse {
-            TSendResponse() {
-            }
+            TSendResponse() = default;
 
             TSendResponse(const TGUID& reqGuid, EPacketPriority prior, TVector<char>* data)
                 : ReqGuid(reqGuid)
@@ -279,7 +279,10 @@ namespace NNehNetliba {
         }
 
         void SendRequest(const TUdpAddress& addr, const TString& url, const TString& data, const TGUID& reqId) override {
-            Y_VERIFY(data.Size() < MAX_PACKET_SIZE, "data size is too large");
+            Y_VERIFY(
+                data.size() < MAX_PACKET_SIZE,
+                "data size is too large; data.size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
+                data.size(), MAX_PACKET_SIZE);
 
             TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
             if (data.Size() > MIN_SHARED_MEM_PACKET && IsLocal(addr)) {
@@ -316,7 +319,9 @@ namespace NNehNetliba {
 
         void SendResponse(const TGUID& reqId, TVector<char>* data) override {
             if (data && data->size() > MAX_PACKET_SIZE) {
-                Y_VERIFY(0, "data size is too large");
+               Y_FAIL(
+                    "data size is too large; data->size()=%" PRISZT ", MAX_PACKET_SIZE=%" PRISZT,
+                    data->size(), MAX_PACKET_SIZE);
             }
             SendRespList_.Enqueue(new TSendResponse(reqId, PP_NORMAL, data));
             Host_->CancelWait();
@@ -636,7 +641,7 @@ namespace NNehNetliba {
                     TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
                     ui32 crc32 = 0;
                     int dataSize = rd->Data.ysize();
-                    if (+rd->Data > MIN_SHARED_MEM_PACKET && IsLocal(s.Address)) {
+                    if (rd->Data.size() > MIN_SHARED_MEM_PACKET && IsLocal(s.Address)) {
                         TIntrusivePtr<TSharedMemory> shm = new TSharedMemory;
                         if (shm->Create(dataSize)) {
                             ms->Write((char)PKT_LOCAL_RESPONSE);
@@ -758,7 +763,7 @@ namespace NNehNetliba {
         TAtomic KeepRunning_ = 1;
         bool AbortTransactions_;
         TSpinLock Spn_;
-        Event HasStarted_;
+        TSystemEvent HasStarted_;
 
         NHPTimer::STime PingsSendT_;
 

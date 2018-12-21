@@ -7,7 +7,7 @@
 #include <util/generic/vector.h>
 
 void Check(TString symbol, TString expectedName) {
-    THolder<char, TFree> name = llvm_demangle_gnu3(~symbol);
+    THolder<char, TFree> name = llvm_demangle_gnu3(symbol.data());
     TString actualName = name.Get();
     UNIT_ASSERT_VALUES_EQUAL(expectedName, actualName);
 }
@@ -23,6 +23,10 @@ Y_UNIT_TEST_SUITE(Demangle) {
 
     Y_UNIT_TEST(List1) {
         Check("_ZNKSt3__110__function6__funcIZN4DLCL8DLFutureIP15AnalysenManagerE3setINS_8functionIFS5_vEEEJEEEvT_DpOT0_EUlvE_NS_9allocatorISF_EEFvvEE7__cloneEv", "std::__1::__function::__func<void DLCL::DLFuture<AnalysenManager*>::set<std::__1::function<AnalysenManager* ()> >(std::__1::function<AnalysenManager* ()>)::'lambda'(), std::__1::allocator<void DLCL::DLFuture<AnalysenManager*>::set<std::__1::function<AnalysenManager* ()> >(std::__1::function<AnalysenManager* ()>)::'lambda'()>, void ()>::__clone() const");
+    }
+
+    Y_UNIT_TEST(List2) {
+        Check("_Z1iIiLi0EMN1d1e1fEFvPcEJEE1aIN1bIN1cIT1_E1gEFvvEE1hEEiS9_", "a<b<c<void (d::e::f::*)(char*)>::g, void ()>::h> i<int, 0, void (d::e::f::*)(char*)>(int, void (d::e::f::*)(char*))");
     }
 
     Y_UNIT_TEST(Lambda1) {

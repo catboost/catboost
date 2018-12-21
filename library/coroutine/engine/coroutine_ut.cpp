@@ -5,6 +5,7 @@
 #include <util/string/cast.h>
 #include <util/system/pipe.h>
 #include <util/system/env.h>
+#include <util/generic/xrange.h>
 
 // TODO (velavokr): BALANCER-1345 add more tests on pollers
 
@@ -31,6 +32,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestFastPathWakePoll)
     UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST(TestLegacyCancelYieldRaceBug)
+    UNIT_TEST(TestJoinRescheduleBug);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -54,6 +56,7 @@ public:
     void TestFastPathWakePoll();
     void TestFastPathWakeSelect();
     void TestLegacyCancelYieldRaceBug();
+    void TestJoinRescheduleBug();
 };
 
 void TCoroTest::TestException() {
@@ -516,7 +519,7 @@ namespace NCoroWaitWakeLivelockBug {
         TState state;
 
         for (auto& subState : state.Subs) {
-            subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
+            subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data())->ContPtr();
         }
 
         cont->Join(
@@ -607,7 +610,7 @@ namespace NCoroTestFastPathWake {
 
             // These guys are to be woken up right away
             for (auto& subState : state.Subs) {
-                subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
+                subState.Cont = cont->Executor()->Create(DoSub, &subState, subState.Name.data())->ContPtr();
             }
 
             // Give way
@@ -709,6 +712,84 @@ void TCoroTest::TestLegacyCancelYieldRaceBug() {
     TContExecutor exec(20000);
     exec.SetFailOnError(true);
     exec.Execute(NCoroTestLegacyCancelYieldRaceBug::DoMain, &state);
+}
+
+namespace NCoroTestJoinRescheduleBug {
+    enum class EState {
+        Idle, Running, Finished,
+    };
+
+    struct TState {
+        TCont* volatile SubA = nullptr;
+        volatile EState SubAState = EState::Idle;
+        volatile EState SubBState = EState::Idle;
+        volatile EState SubCState = EState::Idle;
+    };
+
+    static void DoSubC(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)argPtr;
+        state.SubCState = EState::Running;
+        while (state.SubBState != EState::Running) {
+            cont->Yield();
+        }
+        while (cont->SleepD(TInstant::Max()) != ECANCELED) {
+        }
+        state.SubCState = EState::Finished;
+    }
+
+    static void DoSubB(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)argPtr;
+        state.SubBState = EState::Running;
+        while (state.SubAState != EState::Running && state.SubCState != EState::Running) {
+            cont->Yield();
+        }
+        for (auto i : xrange(100)) {
+            Y_UNUSED(i);
+            if (!state.SubA) {
+                break;
+            }
+            state.SubA->ReSchedule();
+            cont->Yield();
+        }
+        state.SubBState = EState::Finished;
+    }
+
+    static void DoSubA(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)argPtr;
+        state.SubAState = EState::Running;
+        TCont* subC = cont->Executor()->Create(DoSubC, argPtr, "SubC")->ContPtr();
+        while (state.SubBState != EState::Running && state.SubCState != EState::Running) {
+            cont->Yield();
+        }
+        cont->Join(subC);
+        UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
+        state.SubA = nullptr;
+        state.SubAState = EState::Finished;
+    }
+
+    static void DoMain(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)argPtr;
+        TCont* subA = cont->Executor()->Create(DoSubA, argPtr, "SubA")->ContPtr();
+        state.SubA = subA;
+        cont->Join(cont->Executor()->Create(DoSubB, argPtr, "SubB")->ContPtr());
+
+        if (state.SubA) {
+            subA->Cancel();
+            cont->Join(subA);
+        }
+    }
+}
+
+void TCoroTest::TestJoinRescheduleBug() {
+    using namespace NCoroTestJoinRescheduleBug;
+    TState state;
+    {
+        TContExecutor exec(20000);
+        exec.Execute(DoMain, &state);
+    }
+    UNIT_ASSERT_EQUAL(state.SubAState, EState::Finished);
+    UNIT_ASSERT_EQUAL(state.SubBState, EState::Finished);
+    UNIT_ASSERT_EQUAL(state.SubCState, EState::Finished);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

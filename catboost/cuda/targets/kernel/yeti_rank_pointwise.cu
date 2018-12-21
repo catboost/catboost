@@ -162,7 +162,7 @@ namespace NKernel
         }
     };
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void YetiRankGradientImpl(int seed, float decaySpeed,
                                          ui32 bootstrapIter,
                                          const ui32* queryOffsets,

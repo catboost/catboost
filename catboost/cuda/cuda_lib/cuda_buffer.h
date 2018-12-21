@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "cuda_base.h"
 #include "column_aligment_helper.h"
 #include "memory_provider_trait.h"
@@ -12,13 +13,15 @@
 #include "cache.h"
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_writer.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_reader.h>
+
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
 
     template <class T,
               class TMapping,
-              EPtrType Type = EPtrType::CudaDevice>
+              EPtrType Type>
     class TCudaBuffer: public TMoveOnly {
     private:
         using TRawPtr = typename TMemoryProviderImplTrait<Type>::TRawFreeMemory;
@@ -346,7 +349,7 @@ namespace NCudaLib {
             return Type;
         }
 
-        TCudaBufferWriter<TCudaBuffer> CreateWriter(const TVector<T>& src) {
+        TCudaBufferWriter<TCudaBuffer> CreateWriter(TConstArrayRef<T> src) {
             return TCudaBufferWriter<TCudaBuffer>(src, *this);
         }
 
@@ -354,7 +357,7 @@ namespace NCudaLib {
             return TCudaBufferReader<TCudaBuffer>(*this);
         }
 
-        void Write(const TVector<T>& src, ui32 stream = 0) {
+        void Write(TConstArrayRef<T> src, ui32 stream = 0) {
             CreateWriter(src).SetCustomWritingStream(stream).Write();
         }
 

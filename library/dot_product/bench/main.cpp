@@ -4,6 +4,7 @@
 
 #include <util/generic/singleton.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <contrib/libs/eigen/Eigen/Core>
 
 #include <util/random/fast.h>
@@ -27,12 +28,21 @@ namespace {
 
     template <class Number, size_t length, size_t seed>
     class TRandomDataHolder {
+        static constexpr const size_t SequenceLength = Max(length * 2, (size_t)4096);
+
     public:
         TRandomDataHolder() {
             TReallyFastRng32 rng(seed);
-            for (size_t i = 0; i < length; ++i) {
-                RandomNumber(rng, Data_[i]);
+            rng.Advance(length);
+            for (Number& n : Data_) {
+                RandomNumber(rng, n);
             }
+        }
+
+        /// Возвращает набор смещений, каждое из которых можно использовать как начало окна с длиной `length`
+        static auto SlidingWindows() {
+            static_assert(SequenceLength >= length);
+            return xrange((size_t)0, SequenceLength - length, 16);
         }
 
         const Number* Data() const {
@@ -44,28 +54,10 @@ namespace {
         }
 
     private:
-        alignas(16) Number Data_[length];
+        char Padding0[64];                        // memory sanitizer guard range
+        alignas(16) Number Data_[SequenceLength]; // в тесте используется скользящее окно с длиной length, которое имеет смещение до length, поэтому адресуются length*2 значений
+        char Padding1[64];                        // memory sanitizer guard range
     };
-
-    using RDH_1000_1 = TRandomDataHolder<i8, 1000, 1>;
-    using RDH_1000_2 = TRandomDataHolder<i8, 1000, 179>;
-    using RDH_30000_1 = TRandomDataHolder<i8, 30000, 1>;
-    using RDH_30000_2 = TRandomDataHolder<i8, 30000, 179>;
-
-    using RDH32_1000_1 = TRandomDataHolder<i32, 1000, 1>;
-    using RDH32_1000_2 = TRandomDataHolder<i32, 1000, 217>;
-    using RDH32_30000_1 = TRandomDataHolder<i32, 30000, 1>;
-    using RDH32_30000_2 = TRandomDataHolder<i32, 30000, 217>;
-
-    using RDHF_1000_1 = TRandomDataHolder<float, 1000, 1>;
-    using RDHF_1000_2 = TRandomDataHolder<float, 1000, 117>;
-    using RDHF_30000_1 = TRandomDataHolder<float, 30000, 1>;
-    using RDHF_30000_2 = TRandomDataHolder<float, 30000, 117>;
-
-    using RDHD_1000_1 = TRandomDataHolder<double, 1000, 13>;
-    using RDHD_1000_2 = TRandomDataHolder<double, 1000, 65537>;
-    using RDHD_30000_1 = TRandomDataHolder<double, 30000, 13>;
-    using RDHD_30000_2 = TRandomDataHolder<double, 30000, 65537>;
 
     template <typename Res, typename Num>
     Res SimpleDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
@@ -91,6 +83,38 @@ namespace {
         return res[0];
     }
 
+    template <typename Res, typename Num>
+    Res SequentialCosine(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p{
+            L2NormSquared(lhs, length),
+            DotProduct(lhs, rhs, length),
+            L2NormSquared(rhs, length)
+        };
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
+    template <typename Res, typename Num>
+    Res CombinedCosine(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::All);
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
+    template <typename Res, typename Num>
+    Res SequentialCosinePrenorm(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p{
+            L2NormSquared(lhs, length),
+            DotProduct(lhs, rhs, length),
+            1
+        };
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
+    template <typename Res, typename Num>
+    Res CombinedCosinePrenorm(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::Left);
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
     template <typename Res, typename Number, size_t count, size_t seed1, size_t seed2>
     class TBenchmark {
     public:
@@ -105,10 +129,14 @@ namespace {
             const Number* lhs = Data1_.Data();
             const Number* rhs = Data2_.Data();
 
-            for (size_t i = 0; i < iface.Iterations(); ++i) {
-                Y_UNUSED(i);
-                for (ui32 start = 0; start + 100 <= length; start += 16) {
+            size_t i = 0;
+            while (1) {
+                for (ui32 start : TData1::SlidingWindows()) {
+                    if (!(i < iface.Iterations())) {
+                        return;
+                    }
                     Y_DO_NOT_OPTIMIZE_AWAY(op(lhs + start, rhs + start, length));
+                    ++i;
                 }
             }
         }
@@ -118,146 +146,84 @@ namespace {
         TData2 Data2_;
     };
 
-    static TBenchmark<i32, i8, 1000, 1, 179> Bench1000_i8;
-    static TBenchmark<i64, i32, 1000, 19, 117> Bench1000_i32;
-    static TBenchmark<float, float, 1000, 19, 117> Bench1000_float;
-    static TBenchmark<double, double, 1000, 19, 117> Bench1000_double;
+    template <typename TSourceType>
+    struct TResultType {
+        using TType = TSourceType;
+    };
 
-    static TBenchmark<i32, i8, 30000, 1, 179> Bench30000_i8;
-    static TBenchmark<i64, i32, 30000, 19, 117> Bench30000_i32;
-    static TBenchmark<float, float, 30000, 19, 117> Bench30000_float;
-    static TBenchmark<double, double, 30000, 19, 117> Bench30000_double;
+    template <>
+    struct TResultType<i8> {
+        using TType = i32;
+    };
 
-    /* 8-bit: */
-    Y_CPU_BENCHMARK(Slow1000_8, iface) {
-        Bench1000_i8.Do(SimpleDotProduct, iface);
+    template <>
+    struct TResultType<i32> {
+        using TType = i64;
+    };
+
+    /* stand-alone dot-product */
+
+#define DefineBenchmarkAlgos(length, TSourceType)                                                                   \
+    static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 19, 179> Bench##length##_##TSourceType; \
+                                                                                                                    \
+    Y_CPU_BENCHMARK(Slow##length##_##TSourceType, iface) {                                                          \
+        Bench##length##_##TSourceType.Do(SimpleDotProduct, iface);                                                  \
+    }                                                                                                               \
+    Y_CPU_BENCHMARK(Eigen##length##_##TSourceType, iface) {                                                         \
+        Bench##length##_##TSourceType.Do(EigenDotProduct, iface);                                                   \
+    }                                                                                                               \
+    Y_CPU_BENCHMARK(Vector##length##_##TSourceType, iface) {                                                        \
+        Bench##length##_##TSourceType.Do(DotProductSlow, iface);                                                    \
+    }                                                                                                               \
+    Y_CPU_BENCHMARK(Fast##length##_##TSourceType, iface) {                                                          \
+        Bench##length##_##TSourceType.Do(DotProduct, iface);                                                        \
     }
 
-    Y_CPU_BENCHMARK(Eigen1000_8, iface) {
-        Bench1000_i8.Do(EigenDotProduct, iface);
+#define DefineBenchmarkLengths(TSourceType)  \
+    DefineBenchmarkAlgos(32, TSourceType);   \
+    DefineBenchmarkAlgos(96, TSourceType);   \
+    DefineBenchmarkAlgos(100, TSourceType);  \
+    DefineBenchmarkAlgos(150, TSourceType);  \
+    DefineBenchmarkAlgos(200, TSourceType);  \
+    DefineBenchmarkAlgos(350, TSourceType);  \
+    DefineBenchmarkAlgos(700, TSourceType);  \
+    DefineBenchmarkAlgos(1000, TSourceType); \
+    DefineBenchmarkAlgos(30000, TSourceType);
+
+    DefineBenchmarkLengths(i8);
+    DefineBenchmarkLengths(i32);
+    DefineBenchmarkLengths(float);
+    DefineBenchmarkLengths(double);
+
+    /* combined dot-product */
+
+#define DefineCosineBenchmarkAlgos(length, TSourceType)                                                                   \
+    static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 17, 137> BenchCosine##length##_##TSourceType; \
+                                                                                                                          \
+    Y_CPU_BENCHMARK(SequentialCosine##length##_##TSourceType, iface) {                                                    \
+        BenchCosine##length##_##TSourceType.Do(SequentialCosine, iface);                                     \
+    }                                                                                                                     \
+    Y_CPU_BENCHMARK(CombinedCosine##length##_##TSourceType, iface) {                                                      \
+        BenchCosine##length##_##TSourceType.Do(CombinedCosine, iface);                                       \
+    }                                                                                                                     \
+                                                                                                                          \
+    Y_CPU_BENCHMARK(SequentialCosinePrenorm##length##_##TSourceType, iface) {                                             \
+        BenchCosine##length##_##TSourceType.Do(SequentialCosinePrenorm, iface);                              \
+    }                                                                                                                     \
+    Y_CPU_BENCHMARK(CombinedCosinePrenorm##length##_##TSourceType, iface) {                                               \
+        BenchCosine##length##_##TSourceType.Do(CombinedCosinePrenorm, iface);                                \
     }
 
-    Y_CPU_BENCHMARK(Vector1000_8, iface) {
-        Bench1000_i8.Do(DotProductSlow, iface);
-    }
+#define DefineCosineBenchmarkLengths(TSourceType)  \
+    DefineCosineBenchmarkAlgos(32, TSourceType);   \
+    DefineCosineBenchmarkAlgos(96, TSourceType);   \
+    DefineCosineBenchmarkAlgos(100, TSourceType);  \
+    DefineCosineBenchmarkAlgos(150, TSourceType);  \
+    DefineCosineBenchmarkAlgos(200, TSourceType);  \
+    DefineCosineBenchmarkAlgos(350, TSourceType);  \
+    DefineCosineBenchmarkAlgos(700, TSourceType);  \
+    DefineCosineBenchmarkAlgos(1000, TSourceType); \
+    DefineCosineBenchmarkAlgos(30000, TSourceType);
 
-    Y_CPU_BENCHMARK(Fast1000_8, iface) {
-        Bench1000_i8.Do(DotProduct, iface);
-    }
-
-    /* 32-bit: */
-    Y_CPU_BENCHMARK(Slow1000_32, iface) {
-        Bench1000_i32.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen1000_32, iface) {
-        Bench1000_i32.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector1000_32, iface) {
-        Bench1000_i32.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast1000_32, iface) {
-        Bench1000_i32.Do(DotProduct, iface);
-    }
-
-    /* float: */
-    Y_CPU_BENCHMARK(Slow1000_float, iface) {
-        Bench1000_float.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen1000_float, iface) {
-        Bench1000_float.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector1000_float, iface) {
-        Bench1000_float.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast1000_float, iface) {
-        Bench1000_float.Do(DotProduct, iface);
-    }
-
-    /* double: */
-    Y_CPU_BENCHMARK(Slow1000_double, iface) {
-        Bench1000_double.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen1000_double, iface) {
-        Bench1000_double.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector1000_double, iface) {
-        Bench1000_double.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast1000_double, iface) {
-        Bench1000_double.Do(DotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Slow30000_8, iface) {
-        Bench30000_i8.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen30000_8, iface) {
-        Bench30000_i8.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector30000_8, iface) {
-        Bench30000_i8.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast30000_8, iface) {
-        Bench30000_i8.Do(DotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Slow30000_32, iface) {
-        Bench30000_i32.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen30000_32, iface) {
-        Bench30000_i32.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector30000_32, iface) {
-        Bench30000_i32.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast30000_32, iface) {
-        Bench30000_i32.Do(DotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Slow30000_float, iface) {
-        Bench30000_float.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen30000_float, iface) {
-        Bench30000_float.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector30000_float, iface) {
-        Bench30000_float.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast30000_float, iface) {
-        Bench30000_float.Do(DotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Slow30000_double, iface) {
-        Bench30000_double.Do(SimpleDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Eigen30000_double, iface) {
-        Bench30000_double.Do(EigenDotProduct, iface);
-    }
-
-    Y_CPU_BENCHMARK(Vector30000_double, iface) {
-        Bench30000_double.Do(DotProductSlow, iface);
-    }
-
-    Y_CPU_BENCHMARK(Fast30000_double, iface) {
-        Bench30000_double.Do(DotProduct, iface);
-    }
-
+    DefineCosineBenchmarkLengths(float);
 }

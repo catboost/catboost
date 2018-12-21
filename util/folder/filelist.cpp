@@ -18,7 +18,7 @@ void TFileEntitiesList::Fill(const TString& dirname, TStringBuf prefix, TStringB
     while (dirNameLength && (dirname[dirNameLength - 1] == '\\' || dirname[dirNameLength - 1] == '/'))
         --dirNameLength;
 
-    for (auto file = dir.Begin(); file != dir.End(); ++file) {
+    for (auto file = dir.begin(); file != dir.end(); ++file) {
         if (file->fts_pathlen == file->fts_namelen || file->fts_pathlen <= dirNameLength) {
             continue;
         }
@@ -31,7 +31,7 @@ void TFileEntitiesList::Fill(const TString& dirname, TStringBuf prefix, TStringB
 
         if (((Mask & EM_FILES) && file->fts_info == FTS_F) || ((Mask & EM_DIRS) && file->fts_info == FTS_D) || ((Mask & EM_SLINKS) && file->fts_info == FTS_SL)) {
             ++FileNamesSize;
-            FileNames.Append(~filename, +filename + 1);
+            FileNames.Append(filename.data(), filename.size() + 1);
         }
     }
 

@@ -27,5 +27,19 @@
 #endif
 
 #ifdef _darwin_
-#   include "pyconfig.darwin.h"
+#   ifdef _ios_
+#      if defined(_arm64_)
+#         include "pyconfig.ios.arm64.h"
+#      elif defined(_arm32_)
+#         include "pyconfig.ios.armv7.h"
+#      elif defined(_x86_64_)
+#         include "pyconfig.ios.x86_64.h"
+#      elif defined(_i386_)
+#         include "pyconfig.ios.i386.h"
+#      else
+#         error "Unsupported architecture for ios"
+#      endif // defined(_arm64_) || defined(_arm32_) || defined(_x86_64_) || defined(_i386_)
+#   else
+#       include "pyconfig.darwin.h"
+#   endif // __IOS__
 #endif

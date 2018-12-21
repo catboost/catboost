@@ -114,7 +114,14 @@
     extern int  __KAI_KMPC_CONVENTION  omp_get_team_num (void);
     extern int  __KAI_KMPC_CONVENTION  omp_get_cancellation (void);
 
+#if 0  // !defined(NORUNTIME) && !defined(USE_STL_SYSTEM)
+    // We need to put all possible dependencies to prevent blinking:
+    // on all stdlib.h that can be mentioned here within a platform.
+#   include <contrib/libs/cxxsupp/libcxx/include/stdlib.h>
+#else
 #   include <stdlib.h>
+#endif
+
     /* kmp API functions */
     extern int    __KAI_KMPC_CONVENTION  kmp_get_stacksize          (void);
     extern void   __KAI_KMPC_CONVENTION  kmp_set_stacksize          (int);

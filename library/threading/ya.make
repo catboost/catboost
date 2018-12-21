@@ -10,6 +10,8 @@ RECURSE(
     local_executor/ut
     mux_event
     mux_event/ut
+    name_guard
+    name_guard/ut
 )
 
 NEED_CHECK()

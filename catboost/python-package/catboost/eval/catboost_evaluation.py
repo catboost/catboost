@@ -109,7 +109,7 @@ class CatboostEvaluation(object):
                                                                            [],
                                                                            label_mode=label_mode)
                                             ))
-        if eval_type == EvalType.SeqRem:
+        elif eval_type == EvalType.SeqRem:
             for feature_num in features_to_eval:
                 test_cases.append(ExecutionCase(params,
                                                 ignored_features=[feature_num],

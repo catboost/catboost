@@ -2,6 +2,8 @@
 
 #include "feature_parallel_dataset.h"
 
+#include <library/threading/local_executor/local_executor.h>
+
 namespace NCatboostCuda {
     //Test dataset will be linked on first permutation (direct indexing)
     class TFeatureParallelDataSetHoldersBuilder {
@@ -9,8 +11,8 @@ namespace NCatboostCuda {
         using TDataSetLayout = TFeatureParallelLayout;
 
         TFeatureParallelDataSetHoldersBuilder(TBinarizedFeaturesManager& featuresManager,
-                                              const TDataProvider& dataProvider,
-                                              const TDataProvider* linkedTest = nullptr,
+                                              const NCB::TTrainingDataProvider& dataProvider,
+                                              const NCB::TTrainingDataProvider* linkedTest = nullptr,
                                               ui32 blockSize = 1,
                                               EGpuCatFeaturesStorage catFeaturesStorage = EGpuCatFeaturesStorage::GpuRam)
             : FeaturesManager(featuresManager)
@@ -21,18 +23,20 @@ namespace NCatboostCuda {
         {
         }
 
-        TFeatureParallelDataSetsHolder BuildDataSet(const ui32 permutationCount);
+        TFeatureParallelDataSetsHolder BuildDataSet(const ui32 permutationCount,
+                                                    NPar::TLocalExecutor* localExecutor);
     private:
         void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder& dataSetsHolder,
                                        const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget);
 
-        void BuildCompressedCatFeatures(const TDataProvider& dataProvider,
-                                        TCompressedCatFeatureDataSet& dataset);
+        void BuildCompressedCatFeatures(const NCB::TTrainingDataProvider& dataProvider,
+                                        TCompressedCatFeatureDataSet& dataset,
+                                        NPar::TLocalExecutor* localExecutor);
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider& DataProvider;
-        const TDataProvider* LinkedTest;
+        const NCB::TTrainingDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider* LinkedTest;
         ui32 DataProviderPermutationBlockSize = 1;
         EGpuCatFeaturesStorage CatFeaturesStorage;
     };

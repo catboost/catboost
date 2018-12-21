@@ -13,7 +13,8 @@ cython.declare(Nodes=object, ExprNodes=object, EncodedString=object,
                Future=object, Options=object, error=object, warning=object,
                Builtin=object, ModuleNode=object, Utils=object, _unicode=object, _bytes=object,
                re=object, sys=object, _parse_escape_sequences=object, _parse_escape_sequences_raw=object,
-               partial=object, reduce=object, _IS_PY3=cython.bint, _IS_2BYTE_UNICODE=cython.bint)
+               partial=object, reduce=object, _IS_PY3=cython.bint, _IS_2BYTE_UNICODE=cython.bint,
+               _CDEF_MODIFIERS=tuple)
 
 from io import StringIO
 import re
@@ -35,6 +36,7 @@ from . import Options
 
 _IS_PY3 = sys.version_info[0] >= 3
 _IS_2BYTE_UNICODE = sys.maxunicode == 0xffff
+_CDEF_MODIFIERS = ('inline', 'nogil', 'api')
 
 
 class Ctx(object):
@@ -958,7 +960,7 @@ def p_string_literal(s, kind_override=None):
         bytes_value, unicode_value = chars.getstrings()
         if is_python3_source and has_non_ascii_literal_characters:
             # Python 3 forbids literal non-ASCII characters in byte strings
-            if kind not in ('u', 'f'):
+            if kind == 'b':
                 s.error("bytes can only contain ASCII literal characters.", pos=pos)
             bytes_value = None
     if kind == 'f':
@@ -2940,6 +2942,9 @@ def p_exception_value_clause(s):
                 name = s.systring
                 s.next()
                 exc_val = p_name(s, name)
+            elif s.sy == '*':
+                exc_val = ExprNodes.CharNode(s.position(), value=u'*')
+                s.next()
         else:
             if s.sy == '?':
                 exc_check = 1
@@ -3260,6 +3265,14 @@ def p_c_func_or_var_declaration(s, pos, ctx):
         is_const_method = 1
     else:
         is_const_method = 0
+    if s.sy == '->':
+        # Special enough to give a better error message and keep going.
+        s.error(
+            "Return type annotation is not allowed in cdef/cpdef signatures. "
+            "Please define it before the function name, as in C signatures.",
+            fatal=False)
+        s.next()
+        p_test(s)  # Keep going, but ignore result.
     if s.sy == ':':
         if ctx.level not in ('module', 'c_class', 'module_pxd', 'c_class_pxd', 'cpp_class') and not ctx.templates:
             s.error("C function definition not allowed here")
@@ -3347,6 +3360,16 @@ def p_decorators(s):
     return decorators
 
 
+def _reject_cdef_modifier_in_py(s, name):
+    """Step over incorrectly placed cdef modifiers (@see _CDEF_MODIFIERS) to provide a good error message for them.
+    """
+    if s.sy == 'IDENT' and name in _CDEF_MODIFIERS:
+        # Special enough to provide a good error message.
+        s.error("Cannot use cdef modifier '%s' in Python function signature. Use a decorator instead." % name, fatal=False)
+        return p_ident(s)  # Keep going, in case there are other errors.
+    return name
+
+
 def p_def_statement(s, decorators=None, is_async_def=False):
     # s.sy == 'def'
     pos = s.position()
@@ -3354,16 +3377,20 @@ def p_def_statement(s, decorators=None, is_async_def=False):
     if is_async_def:
         s.enter_async()
     s.next()
-    name = p_ident(s)
-    s.expect('(')
+    name = _reject_cdef_modifier_in_py(s, p_ident(s))
+    s.expect(
+        '(',
+        "Expected '(', found '%s'. Did you use cdef syntax in a Python declaration? "
+        "Use decorators and Python type annotations instead." % (
+            s.systring if s.sy == 'IDENT' else s.sy))
     args, star_arg, starstar_arg = p_varargslist(s, terminator=')')
     s.expect(')')
-    if p_nogil(s):
-        error(pos, "Python function cannot be declared nogil")
+    _reject_cdef_modifier_in_py(s, s.systring)
     return_type_annotation = None
     if s.sy == '->':
         s.next()
         return_type_annotation = p_test(s)
+        _reject_cdef_modifier_in_py(s, s.systring)
 
     doc, body = p_suite_with_docstring(s, Ctx(level='function'))
     if is_async_def:
@@ -3449,6 +3476,7 @@ def p_c_class_definition(s, pos,  ctx):
     objstruct_name = None
     typeobj_name = None
     bases = None
+    check_size = None
     if s.sy == '(':
         positional_args, keyword_args = p_call_parse_args(s, allow_genexp=False)
         if keyword_args:
@@ -3460,7 +3488,7 @@ def p_c_class_definition(s, pos,  ctx):
     if s.sy == '[':
         if ctx.visibility not in ('public', 'extern') and not ctx.api:
             error(s.position(), "Name options only allowed for 'public', 'api', or 'extern' C class")
-        objstruct_name, typeobj_name = p_c_class_options(s)
+        objstruct_name, typeobj_name, check_size = p_c_class_options(s)
     if s.sy == ':':
         if ctx.level == 'module_pxd':
             body_level = 'c_class_pxd'
@@ -3499,13 +3527,16 @@ def p_c_class_definition(s, pos,  ctx):
         bases = bases,
         objstruct_name = objstruct_name,
         typeobj_name = typeobj_name,
+        check_size = check_size,
         in_pxd = ctx.level == 'module_pxd',
         doc = doc,
         body = body)
 
+
 def p_c_class_options(s):
     objstruct_name = None
     typeobj_name = None
+    check_size = None
     s.expect('[')
     while 1:
         if s.sy != 'IDENT':
@@ -3516,11 +3547,16 @@ def p_c_class_options(s):
         elif s.systring == 'type':
             s.next()
             typeobj_name = p_ident(s)
+        elif s.systring == 'check_size':
+            s.next()
+            check_size = p_ident(s)
+            if check_size not in ('ignore', 'warn', 'error'):
+                s.error("Expected one of ignore, warn or error, found %r" % check_size)
         if s.sy != ',':
             break
         s.next()
-    s.expect(']', "Expected 'object' or 'type'")
-    return objstruct_name, typeobj_name
+    s.expect(']', "Expected 'object', 'type' or 'check_size'")
+    return objstruct_name, typeobj_name, check_size
 
 
 def p_property_decl(s):
@@ -3599,22 +3635,43 @@ def p_code(s, level=None, ctx=Ctx):
             repr(s.sy), repr(s.systring)))
     return body
 
+
 _match_compiler_directive_comment = cython.declare(object, re.compile(
     r"^#\s*cython\s*:\s*((\w|[.])+\s*=.*)$").match)
+
 
 def p_compiler_directive_comments(s):
     result = {}
     while s.sy == 'commentline':
+        pos = s.position()
         m = _match_compiler_directive_comment(s.systring)
         if m:
-            directives = m.group(1).strip()
+            directives_string = m.group(1).strip()
             try:
-                result.update(Options.parse_directive_list(
-                    directives, ignore_unknown=True))
+                new_directives = Options.parse_directive_list(directives_string, ignore_unknown=True)
             except ValueError as e:
                 s.error(e.args[0], fatal=False)
+                s.next()
+                continue
+
+            for name in new_directives:
+                if name not in result:
+                    pass
+                elif new_directives[name] == result[name]:
+                    warning(pos, "Duplicate directive found: %s" % (name,))
+                else:
+                    s.error("Conflicting settings found for top-level directive %s: %r and %r" % (
+                        name, result[name], new_directives[name]), pos=pos)
+
+            if 'language_level' in new_directives:
+                # Make sure we apply the language level already to the first token that follows the comments.
+                s.context.set_language_level(new_directives['language_level'])
+
+            result.update(new_directives)
+
         s.next()
     return result
+
 
 def p_module(s, pxd, full_module_name, ctx=Ctx):
     pos = s.position()
@@ -3622,8 +3679,19 @@ def p_module(s, pxd, full_module_name, ctx=Ctx):
     directive_comments = p_compiler_directive_comments(s)
     s.parse_comments = False
 
-    if 'language_level' in directive_comments:
-        s.context.set_language_level(directive_comments['language_level'])
+    if s.context.language_level is None:
+        s.context.set_language_level(2)  # Arcadia default.
+
+    if s.context.language_level is None:
+        s.context.set_language_level(2)
+        if pos[0].filename:
+            import warnings
+            warnings.warn(
+                "Cython directive 'language_level' not set, using 2 for now (Py2). "
+                "This will change in a later release! File: %s" % pos[0].filename,
+                FutureWarning,
+                stacklevel=1 if cython.compiled else 2,
+            )
 
     doc = p_doc_string(s)
     if pxd:

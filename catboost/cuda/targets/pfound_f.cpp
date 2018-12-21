@@ -1,6 +1,12 @@
 #include "pfound_f.h"
 #include "kernel.h"
 
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_util/algorithm.h>
+#include <catboost/cuda/cuda_util/bootstrap.h>
+#include <catboost/cuda/gpu_data/non_zero_filter.h>
+
+
 namespace NCatboostCuda {
     void TPFoundF<NCudaLib::TStripeMapping>::ApproximateStochastic(
             const TPFoundF<NCudaLib::TStripeMapping>::TConstVec& point,
@@ -25,7 +31,7 @@ namespace NCatboostCuda {
             }
 
             if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Poisson) {
-                ythrow TCatboostException() << "Poisson bootstrap is not supported for YetiRankPairwise";
+                ythrow TCatBoostException() << "Poisson bootstrap is not supported for YetiRankPairwise";
             }
 
             {
@@ -79,9 +85,9 @@ namespace NCatboostCuda {
             Gather(targets, GetTarget().GetTargets(), sampledDocs);
             Gather(querywiseWeights, GetTarget().GetWeights(), sampledDocs);
 
-            RemoveQueryMeans(sampledQids,
-                             sampledQidOffsets,
-                             &expApprox);
+            RemoveQueryMax(sampledQids,
+                           sampledQidOffsets,
+                           &expApprox);
             ExpVector(expApprox);
 
             {

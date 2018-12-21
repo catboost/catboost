@@ -147,8 +147,11 @@ def onjava_module(unit, *args):
     dart = 'JAVA_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['JAVA_DART_DATA', dart])
-    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG') and not unit.path().startswith('$S/contrib/java'):
-        if (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower() == 'yes':
+    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
+        jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
+        if jdeps_val and jdeps_val not in ('yes', 'no'):
+            ymake.report_configure_error('CHECK_JAVA_DEPS: "yes" or "no" required')
+        if jdeps_val == 'yes':
             unit.onjava_test_deps()
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])

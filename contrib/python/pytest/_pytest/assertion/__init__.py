@@ -1,31 +1,34 @@
 """
 support for presenting detailed information in failing assertions.
 """
-import py
-import os
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import sys
 
-from _pytest.assertion import util
+import six
+
 from _pytest.assertion import rewrite
+from _pytest.assertion import truncate
+from _pytest.assertion import util
 
 
 def pytest_addoption(parser):
     group = parser.getgroup("debugconfig")
-    group.addoption('--assert',
-                    action="store",
-                    dest="assertmode",
-                    choices=("rewrite", "plain",),
-                    default="rewrite",
-                    metavar="MODE",
-                    help="""Control assertion debugging tools.  'plain'
+    group.addoption(
+        "--assert",
+        action="store",
+        dest="assertmode",
+        choices=("rewrite", "plain"),
+        default="rewrite",
+        metavar="MODE",
+        help="""Control assertion debugging tools.  'plain'
                             performs no assertion debugging.  'rewrite'
                             (the default) rewrites assert statements in
                             test modules on import to provide assert
-                            expression information.""")
-
-
-def pytest_namespace():
-    return {'register_assert_rewrite': register_assert_rewrite}
+                            expression information.""",
+    )
 
 
 def register_assert_rewrite(*names):
@@ -41,7 +44,7 @@ def register_assert_rewrite(*names):
     """
     for name in names:
         if not isinstance(name, str):
-            msg = 'expected module names as *args, got {0} instead'
+            msg = "expected module names as *args, got {0} instead"
             raise TypeError(msg.format(repr(names)))
     for hook in sys.meta_path:
         if isinstance(hook, rewrite.AssertionRewritingHook):
@@ -59,7 +62,7 @@ class DummyRewriteHook(object):
         pass
 
 
-class AssertionState:
+class AssertionState(object):
     """State for the assertion plugin."""
 
     def __init__(self, config, mode):
@@ -70,16 +73,14 @@ class AssertionState:
 
 def install_importhook(config):
     """Try to install the rewrite hook, raise SystemError if it fails."""
-    # Both Jython and CPython 2.6.0 have AST bugs that make the
-    # assertion rewriting hook malfunction.
-    if (sys.platform.startswith('java') or
-            sys.version_info[:3] == (2, 6, 0)):
-        raise SystemError('rewrite not supported')
+    # Jython has an AST bug that make the assertion rewriting hook malfunction.
+    if sys.platform.startswith("java"):
+        raise SystemError("rewrite not supported")
 
-    config._assertstate = AssertionState(config, 'rewrite')
+    config._assertstate = AssertionState(config, "rewrite")
     config._assertstate.hook = hook = rewrite.AssertionRewritingHook(config)
     sys.meta_path.insert(0, hook)
-    config._assertstate.trace('installed rewrite import hook')
+    config._assertstate.trace("installed rewrite import hook")
 
     def undo():
         hook = config._assertstate.hook
@@ -94,16 +95,10 @@ def pytest_collection(session):
     # this hook is only called when test modules are collected
     # so for example not in the master process of pytest-xdist
     # (which does not collect test modules)
-    assertstate = getattr(session.config, '_assertstate', None)
+    assertstate = getattr(session.config, "_assertstate", None)
     if assertstate:
         if assertstate.hook is not None:
             assertstate.hook.set_session(session)
-
-
-def _running_on_ci():
-    """Check if we're currently running on a CI system."""
-    env_vars = ['CI', 'BUILD_NUMBER']
-    return any(var in os.environ for var in env_vars)
 
 
 def pytest_runtest_setup(item):
@@ -114,13 +109,14 @@ def pytest_runtest_setup(item):
     pytest_assertrepr_compare hook.  This sets up this custom
     comparison for the test.
     """
+
     def callbinrepr(op, left, right):
         """Call the pytest_assertrepr_compare hook and prepare the result
 
         This uses the first result from the hook and then ensures the
         following:
-        * Overly verbose explanations are dropped unless -vv was used or
-          running on a CI.
+        * Overly verbose explanations are truncated unless configured otherwise
+          (eg. if running in verbose mode).
         * Embedded newlines are escaped to help util.format_explanation()
           later.
         * If the rewrite mode is used embedded %-characters are replaced
@@ -130,22 +126,17 @@ def pytest_runtest_setup(item):
         pretty printing.
         """
         hook_result = item.ihook.pytest_assertrepr_compare(
-            config=item.config, op=op, left=left, right=right)
+            config=item.config, op=op, left=left, right=right
+        )
         for new_expl in hook_result:
             if new_expl:
-                if (sum(len(p) for p in new_expl[1:]) > 80*8 and
-                        item.config.option.verbose < 2 and
-                        not _running_on_ci()):
-                    show_max = 10
-                    truncated_lines = len(new_expl) - show_max
-                    new_expl[show_max:] = [py.builtin._totext(
-                        'Detailed information truncated (%d more lines)'
-                        ', use "-vv" to show' % truncated_lines)]
+                new_expl = truncate.truncate_if_required(new_expl, item)
                 new_expl = [line.replace("\n", "\\n") for line in new_expl]
-                res = py.builtin._totext("\n~").join(new_expl)
+                res = six.text_type("\n~").join(new_expl)
                 if item.config.getvalue("assertmode") == "rewrite":
                     res = res.replace("%", "%%")
                 return res
+
     util._reprcompare = callbinrepr
 
 
@@ -154,7 +145,7 @@ def pytest_runtest_teardown(item):
 
 
 def pytest_sessionfinish(session):
-    assertstate = getattr(session.config, '_assertstate', None)
+    assertstate = getattr(session.config, "_assertstate", None)
     if assertstate:
         if assertstate.hook is not None:
             assertstate.hook.set_session(None)

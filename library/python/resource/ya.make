@@ -1,11 +1,13 @@
-LIBRARY()
+PY23_LIBRARY()
 
 
 
-PY_SRCS(
-    __init__.py
+PEERDIR(
+    contrib/python/six
 )
+
+PY_SRCS(__init__.py)
 
 END()
 
-NEED_CHECK()
+RECURSE_FOR_TESTS(ut)

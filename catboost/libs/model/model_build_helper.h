@@ -12,7 +12,11 @@ public:
     void AddTree(
             const TVector<TModelSplit>& modelSplits,
             const TVector<TVector<double>>& treeLeafValues,
-            const TVector<double>& treeLeafWeights);
+            TConstArrayRef<double> treeLeafWeights);
+    void AddTree(
+            const TVector<TModelSplit>& modelSplits,
+            TConstArrayRef<double> treeLeafValues,
+            TConstArrayRef<double> treeLeafWeights);
     void AddTree(
             const TVector<TModelSplit>& modelSplits,
             const TVector<TVector<double>>& treeLeafValues) {
@@ -21,10 +25,11 @@ public:
     TObliviousTrees Build();
 private:
     int ApproxDimension = 1;
-
     TVector<TVector<TModelSplit>> Trees;
     TVector<double> LeafValues;
     TVector<TVector<double>> LeafWeights;
     TVector<TFloatFeature> FloatFeatures;
+    TVector<size_t> FloatFeaturesInternalIndexesMap;
     TVector<TCatFeature> CatFeatures;
+    TVector<size_t> CatFeaturesInternalIndexesMap;
 };

@@ -52,8 +52,8 @@ Y_UNIT_TEST_SUITE(TSegmentedScanTest) {
                     }
 
                     if (result[i] != prefixSum && i > 0) {
-                        MATRIXNET_INFO_LOG << flagsCpu[i - 1] << " " << i - 1 << " " << result[i - 1] << " " << data[i - 1] << Endl;
-                        MATRIXNET_INFO_LOG << flagsCpu[i] << " " << i << " " << result[i] << " " << prefixSum << Endl;
+                        CATBOOST_INFO_LOG << flagsCpu[i - 1] << " " << i - 1 << " " << result[i - 1] << " " << data[i - 1] << Endl;
+                        CATBOOST_INFO_LOG << flagsCpu[i] << " " << i << " " << result[i] << " " << prefixSum << Endl;
                     }
                     UNIT_ASSERT_EQUAL(result[i], prefixSum);
                     prefixSum += data[i];
@@ -116,8 +116,8 @@ Y_UNIT_TEST_SUITE(TSegmentedScanTest) {
                     }
 
                     if (result[i] != prefixSum) {
-                        MATRIXNET_INFO_LOG << flagsCpu[i - 1] << " " << i - 1 << " " << result[i - 1] << " " << data[i - 1] << Endl;
-                        MATRIXNET_INFO_LOG << flagsCpu[i] << " " << i << " " << result[i] << " " << prefixSum << Endl;
+                        CATBOOST_INFO_LOG << flagsCpu[i - 1] << " " << i - 1 << " " << result[i - 1] << " " << data[i - 1] << Endl;
+                        CATBOOST_INFO_LOG << flagsCpu[i] << " " << i << " " << result[i] << " " << prefixSum << Endl;
                     }
                     UNIT_ASSERT_EQUAL(result[i], prefixSum);
                     prefixSum += data[i];
@@ -262,9 +262,9 @@ Y_UNIT_TEST_SUITE(TSegmentedScanTest) {
                     const ui32 scatterIndex = indicesCpu[i] & mask;
                     const float val = result[scatterIndex];
                     if (std::abs(val - prefixSum) > 1e-9) {
-                        MATRIXNET_INFO_LOG << scatterIndex << " " << std::abs(val) << " " << prefixSum << Endl;
-                        MATRIXNET_INFO_LOG << indicesCpu[i - 1] << " " << i - 1 << " " << result[i - 1] << " " << data[i - 1] << Endl;
-                        MATRIXNET_INFO_LOG << indicesCpu[i] << " " << i << " " << result[i] << " " << prefixSum << Endl;
+                        CATBOOST_INFO_LOG << scatterIndex << " " << std::abs(val) << " " << prefixSum << Endl;
+                        CATBOOST_INFO_LOG << indicesCpu[i - 1] << " " << i - 1 << " " << result[i - 1] << " " << data[i - 1] << Endl;
+                        CATBOOST_INFO_LOG << indicesCpu[i] << " " << i << " " << result[i] << " " << prefixSum << Endl;
                     }
                     UNIT_ASSERT_EQUAL(val, prefixSum);
                 }

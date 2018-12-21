@@ -35,7 +35,7 @@ public:
             const int docId = qurls[position];
             if (subgroupData != nullptr) {
                 const ui32 subgroupId = subgroupData[docId];
-                if (subgroupIds.has(subgroupId)) {
+                if (subgroupIds.contains(subgroupId)) {
                     continue;
                 }
                 subgroupIds.insert(subgroupId);

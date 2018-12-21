@@ -17,7 +17,7 @@ inline int DefaultFoldPermutationBlockSize(int docCount) {
 
 inline void UpdateCtrTargetBordersOption(ELossFunction lossFunction, ui32 approxDim, NCatboostOptions::TCtrDescription* ctr) {
     if (NeedTargetClassifier(ctr->Type)) {
-        if (IsMultiClassError(lossFunction)) {
+        if (IsMultiClassMetric(lossFunction)) {
             ctr->TargetBinarization->BorderCount = approxDim - 1;
         }
     }
@@ -43,35 +43,22 @@ inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::
     }
 }
 
-inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostOptions::TOption<bool>* useBestModel) {
-    if (useBestModel->NotSet() && hasTest && !hasTestConstTarget) {
+inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
+    if (useBestModel->NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
         *useBestModel = true;
     }
     if (!hasTest && *useBestModel) {
-        MATRIXNET_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
+        CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
         *useBestModel = false;
     }
 }
 
-inline void UpdateLeavesEstimation(bool hasNonTrivialWeights, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
-    auto& leavesEstimationMethod = catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod;
-    auto& leavesEstimationIterations = catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations;
-    if (hasNonTrivialWeights && IsBinaryClassError(catBoostOptions->LossFunctionDescription->GetLossFunction())) {
-        if (leavesEstimationMethod.NotSet()) {
-            leavesEstimationMethod = ELeavesEstimation::Gradient;
-        }
-        if (leavesEstimationIterations.NotSet()) {
-            leavesEstimationIterations = 40;
-        }
-    }
-}
-
-inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+inline void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
     auto& learningRate = catBoostOptions->BoostingOptions->LearningRate;
     const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
     const bool doUpdateLearningRate = (
         learningRate.NotSet() &&
-        IsBinaryClassError(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
+        IsBinaryClassMetric(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->L2Reg.NotSet()
@@ -96,22 +83,19 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
         learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
         learningRate = Round(learningRate, /*precision=*/6);
 
-        MATRIXNET_WARNING_LOG << "Learning rate set to " << learningRate << Endl;
+        CATBOOST_NOTICE_LOG << "Learning rate set to " << learningRate << Endl;
     }
 }
 
-inline void SetDataDependantDefaults(
-    int learnPoolSize,
-    int testPoolSize,
+inline void SetDataDependentDefaults(
+    ui32 learnPoolSize,
+    ui32 testPoolSize,
     bool hasTestConstTarget,
-    bool hasNonTrivialWeights,
+    bool hasTestPairs,
     NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
-    UpdateUseBestModel(testPoolSize, hasTestConstTarget, useBestModel);
+    UpdateUseBestModel(testPoolSize, hasTestConstTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
-
-    // TODO(nikitxskv): Remove it when the l2 normalization will be added.
-    UpdateLeavesEstimation(hasNonTrivialWeights, catBoostOptions);
 }

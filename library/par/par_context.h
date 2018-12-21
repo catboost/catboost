@@ -10,6 +10,7 @@
 #include <library/chromium_trace/interface.h>
 #include <library/binsaver/bin_saver.h>
 
+#include <util/system/atomic.h>
 #include <util/system/thread.h>
 
 namespace NPar {
@@ -332,7 +333,7 @@ namespace NPar {
         THashMap<int, TFullCtxInfo> EnvId2Info;
         TMutex Sync;
         TVector<int> ComputerSendCount;
-        volatile bool DistributionIsComplete;
+        TAtomic DistributionIsComplete;
 
         struct TTransferInfo {
             int EnvId, HostId;

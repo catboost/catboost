@@ -66,7 +66,7 @@ const TString& HostName() {
 }
 
 const char* GetHostName() {
-    return ~HostName();
+    return HostName().data();
 }
 
 const TString& FQDNHostName() {
@@ -74,7 +74,7 @@ const TString& FQDNHostName() {
 }
 
 const char* GetFQDNHostName() {
-    return ~FQDNHostName();
+    return FQDNHostName().data();
 }
 
 bool IsFQDN(const TString& name) {

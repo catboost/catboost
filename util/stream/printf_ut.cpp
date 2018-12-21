@@ -26,7 +26,7 @@ Y_UNIT_TEST_SUITE(TStreamPrintfTest) {
         TString s = NUnitTest::RandomString(1000000);
         TStringStream ss;
 
-        Printf(ss, "%s", ~s);
+        Printf(ss, "%s", s.data());
 
         UNIT_ASSERT_EQUAL(ss.Str(), s);
     }

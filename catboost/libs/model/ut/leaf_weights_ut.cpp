@@ -1,8 +1,12 @@
+#include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/train_lib/train_model.h>
+
+#include <util/generic/xrange.h>
 
 #include <library/unittest/registar.h>
 
 using namespace std;
+using namespace NCB;
 
 enum EWeightsMode {
     WITH_WEIGHTS = true,
@@ -19,25 +23,47 @@ enum EExportFormat {
     COREML = false
 };
 
-static TPool SmallFloatPool(EWeightsMode addWeights, ETargetDimMode multiclass) {
-    TPool pool;
-    pool.Docs.Resize(/*doc count*/3, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-    pool.Docs.Factors[0] = {+0.5f, +1.5f, -2.5f};
-    pool.Docs.Factors[1] = {+0.7f, +6.4f, +2.4f};
-    pool.Docs.Factors[2] = {-2.0f, -1.0f, +6.0f};
-    if (multiclass) {
-        pool.Docs.Target = {1, 0, 2};
-    } else {
-        pool.Docs.Target = {1.0f, 0.0f, 0.2f};
-    }
-    if (addWeights) {
-        pool.Docs.Weight = {1.0f, 2.0f, 0.5f};
-        pool.MetaInfo.HasWeights = true;
-    }
-    return pool;
+static TDataProviderPtr SmallFloatPool(EWeightsMode addWeights, ETargetDimMode multiclass) {
+    return CreateDataProvider(
+        [&] (IRawFeaturesOrderDataVisitor* visitor) {
+            TDataMetaInfo metaInfo;
+            metaInfo.HasTarget = true;
+            metaInfo.HasWeights = addWeights;
+            metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+                (ui32)3,
+                TVector<ui32>{},
+                TVector<TString>{}
+            );
+
+            visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
+
+            visitor->AddFloatFeature(
+                0,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f})
+            );
+            visitor->AddFloatFeature(
+                1,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f})
+            );
+            visitor->AddFloatFeature(
+                2,
+                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f})
+            );
+
+            if (multiclass) {
+                visitor->AddTarget(TVector<TString>{"1", "0", "2"});
+            } else {
+                visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f});
+            }
+            if (addWeights) {
+                visitor->AddWeights({1.0f, 2.0f, 0.5f});
+            }
+            visitor->Finish();
+        }
+    );
 }
 
-static TFullModel TrainModelOnPool(TPool* pool, ETargetDimMode multiclass) {
+static TFullModel TrainModelOnPool(TDataProviderPtr pool, ETargetDimMode multiclass) {
     TFullModel model;
     TEvalResult evalResult;
     NJson::TJsonValue params;
@@ -45,7 +71,15 @@ static TFullModel TrainModelOnPool(TPool* pool, ETargetDimMode multiclass) {
     if (multiclass) {
         params.InsertValue("loss_function", "MultiClass");
     }
-    TrainModel(params, Nothing(), Nothing(), TClearablePoolPtrs(*pool, {pool}), "", &model, {&evalResult});
+    TrainModel(
+        params,
+        nullptr,
+        Nothing(),
+        Nothing(),
+        TDataProviders{pool, {pool}},
+        "",
+        &model,
+        {&evalResult});
 
     return model;
 }
@@ -66,10 +100,10 @@ static TFullModel SaveLoadCoreML(const TFullModel& trainedModel) {
     return deserializedModel;
 }
 
-static void CheckWeights(const TVector<float>& docWeights, const TVector<TVector<double>>& leafWeights) {
+static void CheckWeights(const TWeights<float>& docWeights, const TVector<TVector<double>>& leafWeights) {
     double trueWeightSum = 0;
-    for (auto weight : docWeights) {
-        trueWeightSum += weight;
+    for (auto i : xrange(docWeights.GetSize())) {
+        trueWeightSum += docWeights[i];
     }
     for (const auto& leafWeightsInTree : leafWeights) {
         double weightSumInTree = 0;
@@ -81,8 +115,8 @@ static void CheckWeights(const TVector<float>& docWeights, const TVector<TVector
 }
 
 static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass, EExportFormat exportToCBM) {
-    TPool floatPool = SmallFloatPool(addWeights, multiclass);
-    TFullModel trainedModel = TrainModelOnPool(&floatPool, multiclass);
+    TDataProviderPtr floatPool = SmallFloatPool(addWeights, multiclass);
+    TFullModel trainedModel = TrainModelOnPool(floatPool, multiclass);
     TFullModel deserializedModel;
     if (exportToCBM) {
         deserializedModel = SaveLoadCBM(trainedModel);
@@ -90,7 +124,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
         deserializedModel = SaveLoadCoreML(trainedModel);
     }
     if (exportToCBM) {
-        CheckWeights(floatPool.Docs.Weight, deserializedModel.ObliviousTrees.LeafWeights);
+        CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel.ObliviousTrees.LeafWeights);
     } else {
         UNIT_ASSERT(deserializedModel.ObliviousTrees.LeafWeights.empty());
     }

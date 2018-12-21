@@ -23,6 +23,11 @@ ADD_TEST(
 RECURSE(
     plugins
     scripts
+    platform/perl
+    platform/perl/5.14.4
+    platform/python
+    platform/python/ldflags
+    platform/java
 )
 
 

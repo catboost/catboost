@@ -97,16 +97,9 @@ public:
         return !this->empty();
     }
 
-    inline size_type operator+() const noexcept {
-        return this->size();
-    }
-
-    inline T* operator~() noexcept {
-        return this->data();
-    }
-
-    inline const T* operator~() const noexcept {
-        return this->data();
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
+        return TBase::empty();
     }
 
     inline yssize_t ysize() const noexcept {
@@ -115,7 +108,7 @@ public:
 
     inline void crop(size_type size) {
         if (this->size() > size) {
-            this->resize(size);
+            this->erase(this->begin() + size, this->end());
         }
     }
 };

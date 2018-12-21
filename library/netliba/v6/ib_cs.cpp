@@ -148,8 +148,7 @@ namespace NNetliba {
             ui64 RemoteAddr;
             ui32 RemoteKey;
 
-            TQueuedSend() {
-            }
+            TQueuedSend() = default;
             TQueuedSend(const TGUID& packetGuid, TIBMsgHandle msgHandle)
                 : PacketGuid(packetGuid)
                 , MsgHandle(msgHandle)
@@ -162,8 +161,7 @@ namespace NNetliba {
             TGUID PacketGuid;
             TIntrusivePtr<TIBMemBlock> Data;
 
-            TQueuedRecv() {
-            }
+            TQueuedRecv() = default;
             TQueuedRecv(const TGUID& packetGuid, TPtrArg<TIBMemBlock> data)
                 : PacketGuid(packetGuid)
                 , Data(data)

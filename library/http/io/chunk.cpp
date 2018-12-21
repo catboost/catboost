@@ -30,7 +30,7 @@ static inline size_t ParseHex(const TString& s) {
         } else if (isspace(ch)) {
             continue;
         } else {
-            ythrow yexception() << "can not parse chunk length(" << ~s << ")";
+            ythrow yexception() << "can not parse chunk length(" << s.data() << ")";
         }
     }
 

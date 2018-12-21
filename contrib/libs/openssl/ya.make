@@ -15,6 +15,7 @@ LICENSE(
 
 
 NO_COMPILER_WARNINGS()
+NO_UTIL()
 
 IF (SANITIZER_TYPE STREQUAL "undefined")
     NO_SANITIZE()
@@ -42,22 +43,27 @@ ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64 OR OS_FREEBSD AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_X86_64)
     CFLAGS(
-        -DAES_ASM
         -DBSAES_ASM
         -DECP_NISTZ256_ASM
+        -DOPENSSL_BN_ASM_MONT5
+    )
+ENDIF()
+
+IF (OS_DARWIN AND ARCH_X86_64 OR OS_FREEBSD AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_I386)
+    CFLAGS(
+        -DAES_ASM
         -DGHASH_ASM
         -DL_ENDIAN
         -DMD5_ASM
         -DOPENSSL_BN_ASM_GF2m
         -DOPENSSL_BN_ASM_MONT
-        -DOPENSSL_BN_ASM_MONT5
         -DOPENSSL_IA32_SSE2
         -DVPAES_ASM
         -DWHIRLPOOL_ASM
     )
 ENDIF()
 
-IF (OS_FREEBSD AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_X86_64)
+IF (OS_FREEBSD AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_I386)
     CFLAGS(-DRC4_ASM)
 ENDIF()
 
@@ -65,10 +71,9 @@ IF (OS_FREEBSD AND ARCH_X86_64)
     CFLAGS(-D_THREAD_SAFE)
 ENDIF()
 
-IF (OS_WINDOWS AND ARCH_X86_64)
+IF (OS_WINDOWS AND ARCH_X86_64 OR OS_WINDOWS AND ARCH_I386)
     CFLAGS(
         -DMK1MF_BUILD
-        -DMK1MF_PLATFORM_VC_WIN64A
         -DOPENSSL_NO_DYNAMIC_ENGINE
         -DOPENSSL_NO_JPAKE
         -DOPENSSL_NO_KRB5
@@ -77,10 +82,24 @@ IF (OS_WINDOWS AND ARCH_X86_64)
         -DOPENSSL_NO_SSL2
         -DOPENSSL_NO_WEAK_SSL_CIPHERS
         -DOPENSSL_SYSNAME_WIN32
-        -DUNICODE
         -DWIN32_LEAN_AND_MEAN
         -D_CRT_SECURE_NO_DEPRECATE
+    )
+ENDIF()
+
+IF (OS_WINDOWS AND ARCH_X86_64)
+    CFLAGS(
+        -DMK1MF_PLATFORM_VC_WIN64A
+        -DUNICODE
         -D_UNICODE
+    )
+ENDIF()
+
+IF (OS_WINDOWS AND ARCH_I386)
+    CFLAGS(
+        -DMK1MF_PLATFORM_VC_WIN32
+        -DOPENSSL_BN_ASM_PART_WORDS
+        -DRMD160_ASM
     )
 ENDIF()
 
@@ -181,7 +200,6 @@ SRCS(
     crypto/asn1/x_x509a.c
     crypto/bf/bf_cfb64.c
     crypto/bf/bf_ecb.c
-    crypto/bf/bf_enc.c
     crypto/bf/bf_ofb64.c
     crypto/bf/bf_skey.c
     crypto/bio/b_dump.c
@@ -236,12 +254,10 @@ SRCS(
     crypto/camellia/cmll_cfb.c
     crypto/camellia/cmll_ctr.c
     crypto/camellia/cmll_ecb.c
-    crypto/camellia/cmll_misc.c
     crypto/camellia/cmll_ofb.c
     crypto/camellia/cmll_utl.c
     crypto/cast/c_cfb64.c
     crypto/cast/c_ecb.c
-    crypto/cast/c_enc.c
     crypto/cast/c_ofb64.c
     crypto/cast/c_skey.c
     crypto/cmac/cm_ameth.c
@@ -280,7 +296,6 @@ SRCS(
     crypto/des/cfb64ede.c
     crypto/des/cfb64enc.c
     crypto/des/cfb_enc.c
-    crypto/des/des_enc.c
     crypto/des/des_old.c
     crypto/des/des_old2.c
     crypto/des/ecb3_enc.c
@@ -289,7 +304,6 @@ SRCS(
     crypto/des/enc_read.c
     crypto/des/enc_writ.c
     crypto/des/fcrypt.c
-    crypto/des/fcrypt_b.c
     crypto/des/ofb64ede.c
     crypto/des/ofb64enc.c
     crypto/des/ofb_enc.c
@@ -396,7 +410,6 @@ SRCS(
     crypto/engine/tb_rsa.c
     crypto/engine/tb_store.c
     crypto/err/err.c
-    GLOBAL crypto/err/err.cpp
     crypto/err/err_all.c
     crypto/err/err_prn.c
     crypto/evp/bio_b64.c
@@ -753,6 +766,20 @@ SRCS(
     ssl/tls_srp.c
 )
 
+IF (OS_WINDOWS AND ARCH_I386)
+    SRCS(
+        crypto/whrlpool/wp_block.c
+    )
+ELSE()
+    SRCS(
+        crypto/bf/bf_enc.c
+        crypto/camellia/cmll_misc.c
+        crypto/cast/c_enc.c
+        crypto/des/des_enc.c
+        crypto/des/fcrypt_b.c
+    )
+ENDIF()
+
 IF (OS_DARWIN AND ARCH_X86_64 OR OS_FREEBSD AND ARCH_X86_64 OR OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64)
     SRCS(
         crypto/evp/m_md2.c
@@ -922,6 +949,32 @@ IF (OS_WINDOWS AND ARCH_X86_64)
         asm/windows/x86_64-mont.masm
         asm/windows/x86_64-mont5.masm
         asm/windows/x86_64cpuid.masm
+    )
+ENDIF()
+
+IF (OS_WINDOWS AND ARCH_I386)
+    SRCS(
+        asm/windows/aes-586.masm
+        asm/windows/aesni-x86.masm
+        asm/windows/bf-586.masm
+        asm/windows/bn-586.masm
+        asm/windows/cast-586.masm
+        asm/windows/cmll-x86.masm
+        asm/windows/co-586.masm
+        asm/windows/crypt586.masm
+        asm/windows/des-586.masm
+        asm/windows/ghash-x86.masm
+        asm/windows/md5-586.masm
+        asm/windows/rc4-586.masm
+        asm/windows/rmd-586.masm
+        asm/windows/sha1-586.masm
+        asm/windows/sha256-586.masm
+        asm/windows/sha512-586.masm
+        asm/windows/vpaes-x86.masm
+        asm/windows/wp-mmx.masm
+        asm/windows/x86-gf2m.masm
+        asm/windows/x86-mont.masm
+        asm/windows/x86cpuid.masm
     )
 ENDIF()
 

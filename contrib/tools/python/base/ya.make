@@ -9,15 +9,15 @@ LICENSE(
 NO_WSHADOW()
 ENABLE(NO_WIN32_LEAN)
 
+IF (NOT MSVC)
+    CFLAGS(
+        -fwrapv
+    )
+ENDIF()
+
 SRCDIR(
     contrib/tools/python/src/Include
 )
-
-IF (OS_DARWIN)
-    ADDINCL(
-        contrib/tools/python/base/darwin
-    )
-ENDIF ()
 
 INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 INCLUDE(CMakeLists.inc)

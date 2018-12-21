@@ -3,14 +3,43 @@
 #include "mersenne.h"
 
 #include <util/system/tls.h>
+#include <util/system/getpid.h>
 #include <util/generic/ylimits.h>
 #include <util/thread/singleton.h>
+#include <util/stream/multi.h>
+#include <util/stream/mem.h>
+#include <util/digest/numeric.h>
 
 namespace {
+    struct TProcStream {
+        ui32 Extra;
+        TMemoryInput MI;
+        TMultiInput TI;
+
+        static inline ui32 ExtraData() noexcept {
+            ui32 data;
+
+            EntropyPool().LoadOrFail(&data, sizeof(data));
+
+            return IntHash(data ^ GetPID());
+        }
+
+        inline TProcStream() noexcept
+            : Extra(ExtraData())
+            , MI(&Extra, sizeof(Extra))
+            , TI(&MI, &EntropyPool())
+        {
+        }
+
+        inline IInputStream& S() noexcept {
+            return TI;
+        }
+    };
+
     template <class T>
     struct TRndGen: public TMersenne<T> {
         inline TRndGen()
-            : TMersenne<T>(EntropyPool())
+            : TMersenne<T>(TProcStream().S())
         {
         }
     };

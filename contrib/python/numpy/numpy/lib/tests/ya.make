@@ -1,4 +1,4 @@
-PROGRAM()
+PY_PROGRAM()
 
 
 
@@ -6,7 +6,7 @@ NO_LINT()
 NO_CHECK_IMPORTS()
 
 PEERDIR(
-    contrib/libs/nose/runner
+    contrib/python/nose/runner
     contrib/python/numpy
 )
 

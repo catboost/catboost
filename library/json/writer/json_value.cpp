@@ -900,11 +900,11 @@ namespace NJson {
 
         if (Type == JSON_MAP) {
             for (auto&& i : *Value.Map) {
-                i.second.DoScan((!!path ? path + "." : "") + i.first, this, callback);
+                i.second.DoScan(!!path ? TString::Join(path, ".", i.first) : i.first, this, callback);
             }
         } else if (Type == JSON_ARRAY) {
             for (ui32 i = 0; i < Value.Array->size(); ++i) {
-                (*Value.Array)[i].DoScan(path + "[" + ToString(i) + "]", this, callback);
+                (*Value.Array)[i].DoScan(TString::Join(path, "[", ToString(i), "]"), this, callback);
             }
         }
     }
@@ -926,7 +926,7 @@ namespace NJson {
     }
 
     bool TJsonValue::Has(const TStringBuf& key) const noexcept {
-        return Type == JSON_MAP && Value.Map->has(key);
+        return Type == JSON_MAP && Value.Map->contains(key);
     }
 
     bool TJsonValue::Has(size_t key) const noexcept {

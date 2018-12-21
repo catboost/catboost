@@ -1,9 +1,10 @@
-LIBRARY()
+PY23_LIBRARY()
 
 
 
 PY_SRCS(
     main.py
+    rewrite.py
     yatest_tools.py
 )
 
@@ -13,10 +14,7 @@ PEERDIR(
     library/python/testing/yatest_lib
     contrib/python/py
     contrib/python/pytest
-    contrib/python/PyYAML
     contrib/python/dateutil
 )
 
 END()
-
-NEED_CHECK()

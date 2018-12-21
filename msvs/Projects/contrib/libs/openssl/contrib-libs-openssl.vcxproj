@@ -56,13 +56,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=20180820T174921.419655629 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -DOPENSSL_THREADS -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DAES_ASM -DBSAES_ASM -DECP_NISTZ256_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DVPAES_ASM -DWHIRLPOOL_ASM -DRC4_ASM -DMK1MF_BUILD -DMK1MF_PLATFORM_VC_WIN64A -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_JPAKE -DOPENSSL_NO_KRB5 -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_SSL2 -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_SYSNAME_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457 </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=20180820T174921.419655629 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -DOPENSSL_THREADS -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DAES_ASM -DBSAES_ASM -DECP_NISTZ256_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DVPAES_ASM -DWHIRLPOOL_ASM -DRC4_ASM -DMK1MF_BUILD -DMK1MF_PLATFORM_VC_WIN64A -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_JPAKE -DOPENSSL_NO_KRB5 -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_SSL2 -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_SYSNAME_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4286128 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -DOPENSSL_THREADS -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DBSAES_ASM -DECP_NISTZ256_ASM -DOPENSSL_BN_ASM_MONT5 -DAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT -DOPENSSL_IA32_SSE2 -DVPAES_ASM -DWHIRLPOOL_ASM -DRC4_ASM -DMK1MF_BUILD -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_JPAKE -DOPENSSL_NO_KRB5 -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_SSL2 -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_SYSNAME_WIN32 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -DMK1MF_PLATFORM_VC_WIN64A -DUNICODE -D_UNICODE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN    /wd4456 /wd4457 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4286128 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -DOPENSSL_THREADS -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DBSAES_ASM -DECP_NISTZ256_ASM -DOPENSSL_BN_ASM_MONT5 -DAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT -DOPENSSL_IA32_SSE2 -DVPAES_ASM -DWHIRLPOOL_ASM -DRC4_ASM -DMK1MF_BUILD -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_JPAKE -DOPENSSL_NO_KRB5 -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_SSL2 -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_SYSNAME_WIN32 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -DMK1MF_PLATFORM_VC_WIN64A -DUNICODE -D_UNICODE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN    /wd4456 /wd4457 </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/openssl;$(SolutionDir)../contrib/libs/openssl/crypto;$(SolutionDir)../contrib/libs/openssl/crypto/asn1;$(SolutionDir)../contrib/libs/openssl/crypto/evp;$(SolutionDir)../contrib/libs/openssl/crypto/modes;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/openssl;$(SolutionDir)../contrib/libs/openssl/crypto;$(SolutionDir)../contrib/libs/openssl/crypto/asn1;$(SolutionDir)../contrib/libs/openssl/crypto/evp;$(SolutionDir)../contrib/libs/openssl/crypto/modes;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -988,9 +988,6 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.c">
       <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.cpp">
-      <ObjectFileName>$(IntDir)err_extra1.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err_all.c">
       <CompileAs>CompileAsC</CompileAs>
@@ -2876,6 +2873,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-linux_aarch64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-win32.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\camellia\cmll_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cast\cast_lcl.h"/>
@@ -2895,7 +2893,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ecdh\ech_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ecdsa\ecs_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\engine\eng_int.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\evp\evp_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\fips_err.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\idea\idea_lcl.h"/>
@@ -2998,6 +2995,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_aarch64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win32.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslv.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\ossl_typ.h"/>
@@ -3043,18 +3041,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
-      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
-      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
-      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
-      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

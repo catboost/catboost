@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "compiler.h"
 
 #define Y_CPU_ID_ENUMERATE(F) \
     F(SSE)                    \
@@ -45,11 +46,11 @@ namespace NX86 {
     bool CpuId(ui32 op, ui32 res[4]) noexcept;
     bool CpuId(ui32 op, ui32 subOp, ui32 res[4]) noexcept;
 
-#define Y_DEF_NAME(X) bool Have##X() noexcept;
+#define Y_DEF_NAME(X) Y_CONST_FUNCTION bool Have##X() noexcept;
     Y_CPU_ID_ENUMERATE(Y_DEF_NAME)
 #undef Y_DEF_NAME
 
-#define Y_DEF_NAME(X) bool CachedHave##X() noexcept;
+#define Y_DEF_NAME(X) Y_CONST_FUNCTION bool CachedHave##X() noexcept;
     Y_CPU_ID_ENUMERATE(Y_DEF_NAME)
 #undef Y_DEF_NAME
 }

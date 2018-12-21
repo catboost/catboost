@@ -19,6 +19,7 @@ table TCatFeature {
     Index:int = -1;
     FlatIndex:int = -1;
     FeatureId:string;
+    UsedInModel:bool = true;
 }
 
 table TOneHotFeature {

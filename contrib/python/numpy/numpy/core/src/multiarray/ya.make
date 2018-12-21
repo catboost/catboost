@@ -1,12 +1,10 @@
-LIBRARY()
+PY23_LIBRARY()
 
 LICENSE(
     BSD3
 )
 
 
-
-USE_PYTHON()
 
 NO_COMPILER_WARNINGS()
 
@@ -82,6 +80,6 @@ SRCS(
     vdot.c
 )
 
-PY_REGISTER(numpy.core.multiarray)
+PY_REGISTER(numpy.core.multiarray=multiarray)
 
 END()

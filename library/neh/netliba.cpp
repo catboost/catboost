@@ -10,13 +10,14 @@
 
 #include <library/dns/cache.h>
 
-#include <util/generic/singleton.h>
-#include <util/generic/vector.h>
 #include <util/generic/hash.h>
 #include <util/generic/hash_set.h>
+#include <util/generic/singleton.h>
+#include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/network/ip.h>
 #include <util/string/cast.h>
+#include <util/system/yassert.h>
 #include <util/thread/pool.h>
 
 using namespace NDns;
@@ -194,7 +195,7 @@ namespace {
 
                     if (req->SetNotified()) {
                         if (resp->Ok == TUdpHttpResponse::OK) {
-                            req->NotifyResponse(TString(~resp->Data, +resp->Data));
+                            req->NotifyResponse(TString(resp->Data.data(), resp->Data.size()));
                         } else {
                             if (resp->Ok == TUdpHttpResponse::CANCELED) {
                                 req->NotifyError(new TError(resp->Error, TError::Cancelled));
@@ -324,7 +325,7 @@ namespace {
                 }
 
                 TStringBuf Data() override {
-                    return TStringBuf((const char*)~R_->Data, +R_->Data);
+                    return TStringBuf((const char*)R_->Data.data(), R_->Data.size());
                 }
 
                 TStringBuf RequestId() override {
@@ -403,7 +404,7 @@ namespace {
                 }
 
                 void AddResponse(TUdpHttpResponse*) override {
-                    Y_VERIFY(0, "unexpected response in neh netliba server");
+                    Y_FAIL("unexpected response in neh netliba server");
                 }
 
                 void AddCancel(const TGUID& guid) override {
@@ -414,7 +415,7 @@ namespace {
                 }
 
                 void AddRequestAck(const TGUID&) override {
-                    Y_VERIFY(0, "unexpected acc in neh netliba server");
+                    Y_FAIL("unexpected acc in neh netliba server");
                 }
 
                 void UpdateInProcess() {

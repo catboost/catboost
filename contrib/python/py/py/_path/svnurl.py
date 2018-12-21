@@ -315,7 +315,7 @@ class InfoSvnCommand:
     # locked, see 'svn help ls'
     lspattern = re.compile(
         r'^ *(?P<rev>\d+) +(?P<author>.+?) +(0? *(?P<size>\d+))? '
-            '*(?P<date>\w+ +\d{2} +[\d:]+) +(?P<file>.*)$')
+            r'*(?P<date>\w+ +\d{2} +[\d:]+) +(?P<file>.*)$')
     def __init__(self, line):
         # this is a typical line from 'svn ls http://...'
         #_    1127      jum        0 Jul 13 15:28 branch/

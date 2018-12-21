@@ -7,7 +7,7 @@
 #include "score_bin.h"
 #include "split.h"
 
-#include <catboost/libs/data/quantized_features.h>
+#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/options/catboost_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
@@ -20,7 +20,7 @@
 // Function that calculates score statistics for each split of a split candidate (candidate is a feature == all splits of this feature).
 // This function does all the work - it calculates sums in buckets, gets real sums for splits and (optionally - if scoreBins is non-null) builds TScoreBin-s from that.
 void CalcStatsAndScores(
-    const TAllFeatures& af,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TVector<int>& splitsCount,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TCalcScoreFold& fold,
@@ -30,6 +30,7 @@ void CalcStatsAndScores(
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
+    bool useTreeLevelCaching,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d, // can be nullptr (and if PairwiseScoring must be), if so - don't return this data

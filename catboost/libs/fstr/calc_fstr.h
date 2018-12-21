@@ -1,49 +1,55 @@
 #pragma once
 
-#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/algo/split.h>
-#include <catboost/libs/algo/tree_print.h>
-
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
-
-#include <util/digest/multi.h>
-#include <util/string/builder.h>
 #include <catboost/libs/options/enums.h>
 
-#include <functional>
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/digest/multi.h>
+#include <util/system/yassert.h>
+
+#include <utility>
 
 
 struct TRegularFeature {
     EFeatureType Type;
     int Index;
+
+public:
     TRegularFeature(EFeatureType type, int index)
         : Type(type)
-        , Index(index) {}
+        , Index(index)
+    {}
 };
 
 struct TFeatureEffect {
     double Score = 0;
     TRegularFeature Feature;
 
+public:
     TFeatureEffect() = default;
 
     TFeatureEffect(double score, EFeatureType type, int index)
         : Score(score)
-        , Feature{type, index} {}
+        , Feature{type, index}
+    {}
 };
 
 struct TFeatureInteraction {
     double Score = 0;
     TRegularFeature FirstFeature, SecondFeature;
 
+public:
     TFeatureInteraction() = default;
 
     TFeatureInteraction(double score, EFeatureType firstFeatureType, int firstFeatureIndex,
                    EFeatureType secondFeatureType, int secondFeatureIndex)
         : Score(score)
         , FirstFeature{firstFeatureType, firstFeatureIndex}
-        , SecondFeature{secondFeatureType, secondFeatureIndex} {}
+        , SecondFeature{secondFeatureType, secondFeatureIndex}
+    {}
 };
 
 struct TFeature {
@@ -53,6 +59,8 @@ struct TFeature {
     const size_t FloatFeatureBaseHash = 12321;
     const size_t CtrBaseHash = 89321;
     const size_t OneHotFeatureBaseHash = 517931;
+
+public:
     bool operator==(const TFeature& other) const {
         if (Type != other.Type) {
             return false;
@@ -82,33 +90,48 @@ struct TFeature {
 struct TInternalFeatureInteraction {
     double Score = 0;
     TFeature FirstFeature, SecondFeature;
+
+public:
     TInternalFeatureInteraction(double score, const TFeature& firstFeature, const TFeature& secondFeature)
         : Score(score)
         , FirstFeature(firstFeature)
-        , SecondFeature(secondFeature) {}
+        , SecondFeature(secondFeature)
+    {}
 };
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool);
-TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double, TFeature>>& effect,
-                                                 int catFeaturesCount, int floatFeaturesCount);
-TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool);
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset, // can be nullptr
+    NPar::TLocalExecutor* localExecutor);
+
+TVector<TFeatureEffect> CalcRegularFeatureEffect(
+    const TVector<std::pair<double, TFeature>>& effect,
+    int catFeaturesCount,
+    int floatFeaturesCount);
+TVector<double> CalcRegularFeatureEffect(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset, // can be nullptr
+    NPar::TLocalExecutor* localExecutor);
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
-TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
-                                                    const NCB::TFeaturesLayout& layout);
+TVector<TFeatureInteraction> CalcFeatureInteraction(
+    const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
+    const NCB::TFeaturesLayout& layout);
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
-TVector<TVector<double>> GetFeatureImportances(const TString& type,
-                                               const TFullModel& model,
-                                               const TPool* pool,
-                                               int threadCount,
-                                               int logPeriod = 0);
+TVector<TVector<double>> GetFeatureImportances(
+    const TString& type,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset, // can be nullptr
+    int threadCount,
+    int logPeriod = 0);
 
-TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type,
-                                                             const TFullModel& model,
-                                                             const TPool* pool,
-                                                             int threadCount,
-                                                             int logPeriod = 0);
+TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
+    const TString& type,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    int threadCount,
+    int logPeriod = 0);
 
 
 /*
@@ -117,4 +140,6 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type
  * for all remaining features without id generated featureIds will be just their external indices
  * (indices in original training dataset)
  */
-TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TPool* pool);
+TVector<TString> GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset); // can be nullptr

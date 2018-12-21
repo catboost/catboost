@@ -9,7 +9,7 @@ Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
         TString compressed;
         TStringOutput output(compressed);
         TBrotliCompress compressStream(&output, 11);
-        compressStream.Write(~data, +data);
+        compressStream.Write(data.data(), data.size());
         compressStream.Finish();
         output.Finish();
         return compressed;

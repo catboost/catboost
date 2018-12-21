@@ -29,10 +29,11 @@
 #include <util/network/socket.h>
 #include <util/stream/str.h>
 #include <util/stream/zlib.h>
-#include <util/string/cast.h>
 #include <util/string/builder.h>
+#include <util/string/cast.h>
 #include <util/system/condvar.h>
 #include <util/system/error.h>
+#include <util/system/types.h>
 #include <util/thread/pool.h>
 
 #if defined(_unix_)
@@ -58,6 +59,7 @@ namespace NNeh {
     bool THttpsOptions::CheckCertificateHostname = false;
     THttpsOptions::TVerifyCallback THttpsOptions::ClientVerifyCallback = nullptr;
     THttpsOptions::TPasswordCallback THttpsOptions::KeyPasswdCallback = nullptr;
+    bool THttpsOptions::RedirectionNotError = false;
 
     bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
 #define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
@@ -74,6 +76,7 @@ namespace NNeh {
         YNDX_NEH_HTTPS_TRY_SET(EnableSslServerDebug);
         YNDX_NEH_HTTPS_TRY_SET(EnableSslClientDebug);
         YNDX_NEH_HTTPS_TRY_SET(CheckCertificateHostname);
+        YNDX_NEH_HTTPS_TRY_SET(RedirectionNotError);
 
 #undef YNDX_NEH_HTTPS_TRY_SET
 
@@ -247,8 +250,7 @@ namespace NNeh {
 
         class TSslException: public yexception {
         public:
-            TSslException() {
-            }
+            TSslException() = default;
 
             TSslException(TStringBuf f) {
                 *this << f << Endl;
@@ -303,7 +305,7 @@ namespace NNeh {
                 ERROR
             };
             static bool EqualNoCase(TStringBuf a, TStringBuf b) {
-                return (+a == +b) && a.ToString().to_lower() == b.ToString().to_lower();
+                return (a.size() == b.size()) && a.ToString().to_lower() == b.ToString().to_lower();
             }
             static bool MatchDomainName(TStringBuf tmpl, TStringBuf name) {
                 // match wildcards only in the left-most part
@@ -829,11 +831,11 @@ namespace NNeh {
                     ythrow TSslException() << AsStringBuf("no certificate or private key is specified for server");
                 }
 
-                if (1 != SSL_CTX_use_certificate_chain_file(SslCtx_, ~cert)) {
+                if (1 != SSL_CTX_use_certificate_chain_file(SslCtx_, cert.data())) {
                     ythrow TSslException(AsStringBuf("SSL_CTX_use_certificate_chain_file (server)"));
                 }
 
-                if (1 != SSL_CTX_use_PrivateKey_file(SslCtx_, ~key, SSL_FILETYPE_PEM)) {
+                if (1 != SSL_CTX_use_PrivateKey_file(SslCtx_, key.data(), SSL_FILETYPE_PEM)) {
                     ythrow TSslException(AsStringBuf("SSL_CTX_use_PrivateKey_file (server)"));
                 }
 
@@ -859,7 +861,7 @@ namespace NNeh {
                 const TString& caFile = THttpsOptions::CAFile;
                 const TString& caPath = THttpsOptions::CAPath;
                 if (caFile || caPath) {
-                    if (!SSL_CTX_load_verify_locations(SslCtx_, caFile ? ~caFile : nullptr, caPath ? ~caPath : nullptr)) {
+                    if (!SSL_CTX_load_verify_locations(SslCtx_, caFile ? caFile.data() : nullptr, caPath ? caPath.data() : nullptr)) {
                         ythrow TSslException(AsStringBuf("SSL_CTX_load_verify_locations(client)"));
                     }
                 }
@@ -1277,7 +1279,7 @@ namespace NNeh {
                 Y_UNUSED(bio.Release());
 
                 const TString hostname(Location_.Host);
-                const int rev = SSL_set_tlsext_host_name(Ssl_.Get(), ~hostname);
+                const int rev = SSL_set_tlsext_host_name(Ssl_.Get(), hostname.data());
                 if (Y_UNLIKELY(1 != rev)) {
                     ythrow TSslException(AsStringBuf("SSL_set_tlsext_host_name(client)"), Ssl_.Get(), rev);
                 }
@@ -1285,12 +1287,12 @@ namespace NNeh {
                 TString cert, pvtKey;
                 ParseUserInfo(Location_, cert, pvtKey);
 
-                if (cert && (1 != SSL_use_certificate_file(Ssl_.Get(), ~cert, SSL_FILETYPE_PEM))) {
+                if (cert && (1 != SSL_use_certificate_file(Ssl_.Get(), cert.data(), SSL_FILETYPE_PEM))) {
                     ythrow TSslException(AsStringBuf("SSL_use_certificate_file(client)"));
                 }
 
                 if (pvtKey) {
-                    if (1 != SSL_use_PrivateKey_file(Ssl_.Get(), ~pvtKey, SSL_FILETYPE_PEM)) {
+                    if (1 != SSL_use_PrivateKey_file(Ssl_.Get(), pvtKey.data(), SSL_FILETYPE_PEM)) {
                         ythrow TSslException(AsStringBuf("SSL_use_PrivateKey_file(client)"));
                     }
 
@@ -1353,8 +1355,8 @@ namespace NNeh {
             } else {
                 TVector<char> buff(9500); //common jumbo frame size
 
-                while (size_t len = in.Read(~buff, +buff)) {
-                    ret.AppendNoAlias(~buff, len);
+                while (size_t len = in.Read(buff.data(), buff.size())) {
+                    ret.AppendNoAlias(buff.data(), len);
                 }
             }
 
@@ -1391,12 +1393,13 @@ namespace NNeh {
                 TContBIOWatcher w(io, c);
                 TString received;
                 THttpHeaders headers;
+                TString firstLine;
 
                 try {
                     io.Handshake();
                     RequestData().SendTo(io);
                     Req_.Destroy();
-                    error = ProcessRecv(io, &received, &headers);
+                    error = ProcessRecv(io, &received, &headers, &firstLine);
                 } catch (const TSystemError& e) {
                     if (c->Cancelled() || e.Status() == ECANCELED) {
                         error = new TError("canceled", TError::TType::Cancelled);
@@ -1412,25 +1415,26 @@ namespace NNeh {
                 }
 
                 if (error) {
-                    Hndl_->NotifyError(error, received);
+                    Hndl_->NotifyError(error, received, firstLine, headers);
                 } else {
                     io.Shutdown();
                     SocketCache()->Release(*s);
-                    Hndl_->NotifyResponse(received, headers);
+                    Hndl_->NotifyResponse(received, firstLine, headers);
                 }
             }
 
-            TErrorRef ProcessRecv(TSslClientIOStream& io, TString* data, THttpHeaders* headers) {
+            TErrorRef ProcessRecv(TSslClientIOStream& io, TString* data, THttpHeaders* headers, TString* firstLine) {
                 io.WaitUntilWritten();
 
                 Hndl_->SetSendComplete();
 
                 THttpInput in(&io);
                 *data = ReadAll(in);
+                *firstLine = in.FirstLine();
                 *headers = in.Headers();
 
                 i32 code = ParseHttpRetCode(in.FirstLine());
-                if (code < 200 || code > 299) {
+                if (code < 200 || code > (!THttpsOptions::RedirectionNotError ? 299 : 399)) {
                     return new TError(TStringBuilder() << AsStringBuf("request failed(") << in.FirstLine() << ')', TError::TType::ProtocolSpecific, code);
                 }
 
@@ -1646,6 +1650,10 @@ namespace NNeh {
                     return Headers_;
                 }
 
+                TStringBuf Cgi() const override {
+                    return H_.Cgi;
+                }
+
                 TStringBuf Service() override {
                     return TStringBuf(H_.Path).Skip(1);
                 }
@@ -1682,11 +1690,11 @@ namespace NNeh {
                     if (CompressionScheme_ == AsStringBuf("gzip")) {
                         try {
                             TData gzipped(data.size());
-                            TMemoryOutput out(~gzipped, +gzipped);
+                            TMemoryOutput out(gzipped.data(), gzipped.size());
                             TZLibCompress c(&out, ZLib::GZip);
                             c.Write(data.data(), data.size());
                             c.Finish();
-                            gzipped.resize(out.Buf() - ~gzipped);
+                            gzipped.resize(out.Buf() - gzipped.data());
                             data.swap(gzipped);
                             return true;
                         } catch (yexception&) {
@@ -1718,6 +1726,10 @@ namespace NNeh {
                 TStringBuf Data() override {
                     return H_.Cgi;
                 }
+
+                TStringBuf Body() const override {
+                    return TStringBuf();
+                }
             };
 
             class TPostRequest: public TRequest {
@@ -1729,6 +1741,10 @@ namespace NNeh {
                 }
 
                 TStringBuf Data() override {
+                    return Data_;
+                }
+
+                TStringBuf Body() const override {
                     return Data_;
                 }
 
@@ -1783,7 +1799,7 @@ namespace NNeh {
                         IO_->Handshake();
                         THttpInput in(IO_.Get());
 
-                        const char sym = *~in.FirstLine();
+                        const char sym = *in.FirstLine().data();
 
                         if (sym == 'p' || sym == 'P') {
                             Server_->OnRequest(new TPostRequest(in, IO_, Server_));
@@ -1827,7 +1843,7 @@ namespace NNeh {
             ~TServer() override {
                 JQ_->Enqueue(nullptr);
 
-                for (size_t i = 0; i < +Thrs_; ++i) {
+                for (size_t i = 0; i < Thrs_.size(); ++i) {
                     Thrs_[i]->Join();
                 }
             }
@@ -1969,19 +1985,28 @@ namespace NNeh {
     }
 
     void SetHttpOutputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        Y_VERIFY(hardLimit > softLimit, "invalid output fd limits");
+        Y_VERIFY(
+            hardLimit > softLimit,
+            "invalid output fd limits; hardLimit=%" PRISZT ", softLimit=%" PRISZT,
+            hardLimit, softLimit);
 
         NHttps::SocketCache()->SetFdLimits(softLimit, hardLimit);
     }
 
     void SetHttpInputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        Y_VERIFY(hardLimit > softLimit, "invalid input fd limits");
+        Y_VERIFY(
+            hardLimit > softLimit,
+            "invalid output fd limits; hardLimit=%" PRISZT ", softLimit=%" PRISZT,
+            hardLimit, softLimit);
 
         NHttps::InputConnections()->SetFdLimits(softLimit, hardLimit);
     }
 
     void SetHttpInputConnectionsTimeouts(unsigned minSec, unsigned maxSec) {
-        Y_VERIFY(maxSec > minSec, "invalid input fd limits timeouts");
+        Y_VERIFY(
+            maxSec > minSec,
+            "invalid input fd limits timeouts; maxSec=%u, minSec=%u",
+            maxSec, minSec);
 
         NHttps::InputConnections()->MinUnusedConnKeepaliveTimeout = minSec;
         NHttps::InputConnections()->MaxUnusedConnKeepaliveTimeout = maxSec;

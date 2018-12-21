@@ -1527,7 +1527,13 @@ _import_array(void)
 }
 
 #if PY_VERSION_HEX >= 0x03000000
+
+#if CYTHON_PEP489_MULTI_PHASE_INIT
+#define NUMPY_IMPORT_ARRAY_RETVAL -1
+#else
 #define NUMPY_IMPORT_ARRAY_RETVAL NULL
+#endif
+
 #else
 #define NUMPY_IMPORT_ARRAY_RETVAL
 #endif

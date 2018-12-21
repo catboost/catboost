@@ -40,7 +40,7 @@ char* MD5::File(const char* filename, char* buf) {
 
 TString MD5::File(const TString& filename) {
     char buf[33] = {0}; // 32 characters and \0
-    return MD5::File(~filename, buf);
+    return MD5::File(filename.data(), buf);
 }
 
 char* MD5::Data(const void* data, size_t len, char* buf) {
@@ -203,7 +203,7 @@ TString MD5::Calc(const TStringBuf& data) {
     TString result;
     result.resize(32);
 
-    Data((const unsigned char*)~data, +data, result.begin());
+    Data((const unsigned char*)data.data(), data.size(), result.begin());
 
     return result;
 }
@@ -212,7 +212,7 @@ TString MD5::CalcRaw(const TStringBuf& data) {
     TString result;
     result.resize(16);
     MD5 md5;
-    md5.Update(~data, +data);
+    md5.Update(data.data(), data.size());
     md5.Final(reinterpret_cast<unsigned char*>(result.begin()));
     return result;
 }
@@ -224,14 +224,14 @@ ui64 MD5::CalcHalfMix(const char* data, size_t len) {
 }
 
 ui64 MD5::CalcHalfMix(const TStringBuf& data) {
-    return CalcHalfMix(~data, +data);
+    return CalcHalfMix(data.data(), data.size());
 }
 
 bool MD5::IsMD5(const TStringBuf& data) {
-    if (+data != 32) {
+    if (data.size() != 32) {
         return false;
     }
-    for (const char *p = ~data, *e = ~data + +data; p != e; ++p) {
+    for (const char *p = data.data(), *e = data.data() + data.size(); p != e; ++p) {
         if (Char2DigitTable[(unsigned char)*p] == '\xff') {
             return false;
         }

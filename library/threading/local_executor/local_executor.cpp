@@ -3,6 +3,7 @@
 #include <library/threading/future/future.h>
 
 #include <util/generic/utility.h>
+#include <util/system/atomic.h>
 #include <util/system/event.h>
 #include <util/system/thread.h>
 #include <util/system/tls.h>
@@ -10,10 +11,6 @@
 #include <util/thread/lfqueue.h>
 
 #include <utility>
-
-#ifdef _freebsd_
-#include <sys/syscall.h>
-#endif
 
 #ifdef _win_
 static void RegularYield() {
@@ -125,73 +122,6 @@ namespace {
         }
     };
 
-#ifdef _freebsd_
-    Y_POD_THREAD(long)
-    ThreadSelfId;
-
-    TFastFreeBsdEvent::TFastFreeBsdEvent()
-        : ThreadCount(0)
-        , Signaled(0)
-    {
-        Zero(ThreadId);
-        for (int i = 0; i < MAX_THREAD_COUNT; ++i)
-            ThreadState[i] = 0;
-    }
-
-    int TFastFreeBsdEvent::GetCurrentThreadIdx() {
-        if (ThreadSelfId == 0) {
-            syscall(SYS_thr_self, &ThreadSelfId);
-        }
-
-        int tc = Min((int)ThreadCount, (int)MAX_THREAD_COUNT);
-        for (int i = 0; i < tc; ++i) {
-            if (ThreadId[i] == ThreadSelfId)
-                return i;
-        }
-        if (ThreadCount >= MAX_THREAD_COUNT)
-            return -1;
-        int arrIdx = AtomicAdd(ThreadCount, 1) - 1;
-        if (arrIdx >= MAX_THREAD_COUNT)
-            return -1;
-        ThreadId[arrIdx] = ThreadSelfId;
-        return arrIdx;
-    }
-
-    void TFastFreeBsdEvent::Signal() {
-        if (AtomicCas(&Signaled, (void*)-1, (void*)0)) {
-            int tc = Min((int)ThreadCount, (int)MAX_THREAD_COUNT);
-            for (int i = 0; i < tc; ++i) {
-                if (AtomicCas(&ThreadState[i], (void*)-1, (void*)-2))
-                    syscall(SYS_thr_wake, ThreadId[i]);
-            }
-        }
-    }
-
-    void TFastFreeBsdEvent::Reset() {
-        Signaled = (void*)0;
-    }
-
-    void TFastFreeBsdEvent::Wait() {
-        if (Signaled)
-            return;
-
-        int arrIdx = GetCurrentThreadIdx();
-        if (arrIdx < 0)
-            return;
-
-        timespec ts;
-        ts.tv_sec = 0;
-        ts.tv_nsec = 10;
-
-        if (AtomicCas(&ThreadState[arrIdx], (void*)-2, (void*)0)) {
-            while (!Signaled && ThreadState[arrIdx] == (void*)-2) {
-                syscall(SYS_thr_suspend, &ts);
-                ts.tv_nsec = Min(500 * 1000000, (int)ts.tv_nsec * 2);
-            }
-        }
-        ThreadState[arrIdx] = (void*)0;
-    }
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -200,11 +130,7 @@ public:
     TLockFreeQueue<TSingleJob> JobQueue;
     TLockFreeQueue<TSingleJob> MedJobQueue;
     TLockFreeQueue<TSingleJob> LowJobQueue;
-#ifdef _freebsd_
-    TFastFreeBsdEvent HasJob;
-#else
-    Event HasJob;
-#endif
+    TSystemEvent HasJob;
 
     TAtomic ThreadCount{0};
     TAtomic QueueSize{0};
@@ -421,15 +347,15 @@ void NPar::TLocalExecutor::ClearLPQueue() {
 }
 
 int NPar::TLocalExecutor::GetQueueSize() const noexcept {
-    return Impl_->QueueSize;
+    return AtomicGet(Impl_->QueueSize);
 }
 
 int NPar::TLocalExecutor::GetMPQueueSize() const noexcept {
-    return Impl_->MPQueueSize;
+    return AtomicGet(Impl_->MPQueueSize);
 }
 
 int NPar::TLocalExecutor::GetLPQueueSize() const noexcept {
-    return Impl_->LPQueueSize;
+    return AtomicGet(Impl_->LPQueueSize);
 }
 
 int NPar::TLocalExecutor::GetWorkerThreadId() const noexcept {
@@ -437,7 +363,7 @@ int NPar::TLocalExecutor::GetWorkerThreadId() const noexcept {
 }
 
 int NPar::TLocalExecutor::GetThreadCount() const noexcept {
-    return Impl_->ThreadCount;
+    return AtomicGet(Impl_->ThreadCount);
 }
 
 //////////////////////////////////////////////////////////////////////////

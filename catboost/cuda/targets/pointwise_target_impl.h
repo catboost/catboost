@@ -296,7 +296,7 @@ namespace NCatboostCuda {
                     break;
                 }
                 default: {
-                    ythrow TCatboostException() << "Unsupported loss function " << targetOptions.GetLossFunction();
+                    ythrow TCatBoostException() << "Unsupported loss function " << targetOptions.GetLossFunction();
                 }
             }
             MetricName = ToString(targetOptions);

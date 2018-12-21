@@ -1,4 +1,4 @@
-LIBRARY(Jinja2)
+PY23_LIBRARY(Jinja2)
 
 
 
@@ -13,8 +13,6 @@ PY_SRCS(
     jinja2/__init__.py
     jinja2/_compat.py
     jinja2/_identifier.py
-    # jinja2/asyncfilters.py
-    # jinja2/asyncsupport.py
     jinja2/bccache.py
     jinja2/compiler.py
     jinja2/constants.py
@@ -38,6 +36,14 @@ PY_SRCS(
     jinja2/utils.py
     jinja2/visitor.py
 )
+
+IF (PYTHON3)
+    PY_SRCS(
+        TOP_LEVEL
+        jinja2/asyncfilters.py
+        jinja2/asyncsupport.py
+    )
+ENDIF()
 
 NO_LINT()
 

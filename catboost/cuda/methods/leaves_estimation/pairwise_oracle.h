@@ -126,7 +126,7 @@ namespace NCatboostCuda {
             , ScatterDersOrder(TStripeBuffer<ui32>::CopyMapping(pointLeafIndices))
         {
             InversePermutation(pointLeafIndices, ScatterDersOrder);
-            MATRIXNET_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
+            CATBOOST_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
         }
 
     private:

@@ -1,7 +1,5 @@
 LIBRARY(models)
 
-NO_WERROR()
-
 
 
 SRCS(

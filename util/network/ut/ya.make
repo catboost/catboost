@@ -4,8 +4,6 @@ REQUIREMENTS(network:full)
 
 
 
-NEED_CHECK()
-
 PEERDIR(
     library/threading/future
 )

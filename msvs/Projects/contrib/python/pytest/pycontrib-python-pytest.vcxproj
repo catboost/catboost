@@ -1,0 +1,978 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{FA513E53-9CE5-854C-5402-D210B2FFD326}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>pycontrib-python-pytest</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>pycontrib-python-pytest</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pytest\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FA513E53-9CE5-854C-5402-D210B2FFD326\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4286128 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4286128 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN  </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  crypt32.lib ws2_32.lib</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_96d31b3fb84e8cd42b19edecf4.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\_py2traceback.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fb6e64adfbfd0c57485612bf7a.yasm" "-" "contrib/python/pytest/_pytest/_code/_py2traceback.py" "_dc837971099bc51d6bece3db23.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2de45fd977aef695235289b380.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1e85e6c8ef4c1cca7338dfccad.rodata" "-" "contrib/python/pytest/_pytest/_code/source.py" "_e76868dcc5050f2de1e1805991.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4dbefcafc5855c06b12a6ed925.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f456aa5e61b0300538ae488323.rodata" "-" "contrib/python/pytest/_pytest/compat.py" "_20cb9de38456b6dbcab11209b8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ac4635066b065cd4eea77855c5.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/argparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1e4602c849b6f0d7f3807d4767.rodata" "-" "contrib/python/pytest/_pytest/config/argparsing.py" "_aad96372ef2ffe1503fc796b80.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/argparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1a835c3cfbfc5fdd7d9f82c615.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3a7060837dee18e889218b0bd7.rodata" "-" "contrib/python/pytest/_pytest/config/exceptions.py" "_6f593dc94b29fe42507e4f98bc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/exceptions.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3da7292bde57cf61f03d8ef649.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/findpaths.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_044d4d64e078ae92a6d6d1e5fc.rodata" "-" "contrib/python/pytest/_pytest/config/findpaths.py" "_ebe1847d079fc26a9e3c69e187.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/findpaths.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4d6938404d9317fc1422930918.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ec3726a1e8c8278fc97e068dbe.rodata" "-" "contrib/python/pytest/_pytest/config/__init__.py" "_563a5e6ac85b1acf7812f351b7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_70d085df656eb8e343bb0dca32.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_308dba1cd44e0d5f5a588d7f69.rodata" "-" "contrib/python/pytest/_pytest/debugging.py" "_601e1274843a4f173f14753321.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c199f1d215498d09e370ec6b03.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3f82eb66e8f3f07fa6e3406250.rodata" "-" "contrib/python/pytest/_pytest/deprecated.py" "_c3176ed70f2e6c23f0ca4c1832.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c8529d8811e2ef017967c845ea.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_325fcb8b2a86e2f6e8737ccf37.rodata" "-" "contrib/python/pytest/_pytest/doctest.py" "_0ff62f17d288cec8960049edc7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fb6e64adfbfd0c57485612bf7a.yasm" "-" "contrib/python/pytest/_pytest/_code/_py2traceback.py" "_dc837971099bc51d6bece3db23.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2de45fd977aef695235289b380.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1e85e6c8ef4c1cca7338dfccad.rodata" "-" "contrib/python/pytest/_pytest/_code/source.py" "_e76868dcc5050f2de1e1805991.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4dbefcafc5855c06b12a6ed925.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f456aa5e61b0300538ae488323.rodata" "-" "contrib/python/pytest/_pytest/compat.py" "_20cb9de38456b6dbcab11209b8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ac4635066b065cd4eea77855c5.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/argparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1e4602c849b6f0d7f3807d4767.rodata" "-" "contrib/python/pytest/_pytest/config/argparsing.py" "_aad96372ef2ffe1503fc796b80.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/argparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1a835c3cfbfc5fdd7d9f82c615.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3a7060837dee18e889218b0bd7.rodata" "-" "contrib/python/pytest/_pytest/config/exceptions.py" "_6f593dc94b29fe42507e4f98bc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/exceptions.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3da7292bde57cf61f03d8ef649.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/findpaths.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_044d4d64e078ae92a6d6d1e5fc.rodata" "-" "contrib/python/pytest/_pytest/config/findpaths.py" "_ebe1847d079fc26a9e3c69e187.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/findpaths.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4d6938404d9317fc1422930918.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ec3726a1e8c8278fc97e068dbe.rodata" "-" "contrib/python/pytest/_pytest/config/__init__.py" "_563a5e6ac85b1acf7812f351b7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_70d085df656eb8e343bb0dca32.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_308dba1cd44e0d5f5a588d7f69.rodata" "-" "contrib/python/pytest/_pytest/debugging.py" "_601e1274843a4f173f14753321.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c199f1d215498d09e370ec6b03.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3f82eb66e8f3f07fa6e3406250.rodata" "-" "contrib/python/pytest/_pytest/deprecated.py" "_c3176ed70f2e6c23f0ca4c1832.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c8529d8811e2ef017967c845ea.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_325fcb8b2a86e2f6e8737ccf37.rodata" "-" "contrib/python/pytest/_pytest/doctest.py" "_0ff62f17d288cec8960049edc7.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_fb6e64adfbfd0c57485612bf7a.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\_py2traceback.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\source.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\source.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\compat.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\compat.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\config\argparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\argparsing.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\config\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\exceptions.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\config\findpaths.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\findpaths.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\config\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\debugging.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\debugging.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\deprecated.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\deprecated.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\doctest.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_fb6e64adfbfd0c57485612bf7a.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_2de45fd977aef695235289b380.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1e85e6c8ef4c1cca7338dfccad.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4dbefcafc5855c06b12a6ed925.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_f456aa5e61b0300538ae488323.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_ac4635066b065cd4eea77855c5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1e4602c849b6f0d7f3807d4767.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1a835c3cfbfc5fdd7d9f82c615.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3a7060837dee18e889218b0bd7.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3da7292bde57cf61f03d8ef649.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_044d4d64e078ae92a6d6d1e5fc.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4d6938404d9317fc1422930918.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_ec3726a1e8c8278fc97e068dbe.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_70d085df656eb8e343bb0dca32.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_308dba1cd44e0d5f5a588d7f69.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_c199f1d215498d09e370ec6b03.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3f82eb66e8f3f07fa6e3406250.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_c8529d8811e2ef017967c845ea.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_325fcb8b2a86e2f6e8737ccf37.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\doctest.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3d0ba6afd4a923130a74541f50.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4b318fa1be79b83cd9bbb71d07.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0557ead209fcf856bb4829a6a4.rodata" "-" "contrib/python/pytest/_pytest/fixtures.py" "_c37182fef2387fc9443132c7a9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0a81aa2dba20755d5ea1c6e4e5.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ef66276a1228dc1ac22847686c.rodata" "-" "contrib/python/pytest/_pytest/freeze_support.py" "_d13f8eabb65da431fa0a686adc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_738986df684489eadc23c641d6.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_5b023df98d937177882fd49b06.rodata" "-" "contrib/python/pytest/_pytest/helpconfig.py" "_a83debc1c0fbe1b1ff9f5e057f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d9b3bcb59b453962157366bfaa.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4948e6e712ac1ecf6bd9db0a8f.rodata" "-" "contrib/python/pytest/_pytest/hookspec.py" "_c121335c3e842813b39f013dae.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c5c3c12a7ec116252765b899b4.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2d6c6a8ec9354cc7f9734b878a.rodata" "-" "contrib/python/pytest/_pytest/__init__.py" "_1f2b50a8f077d1770f72818ac8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_423b2db280f199cf6413c9bd5d.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_103845b3fdbd8906512942e1f5.rodata" "-" "contrib/python/pytest/_pytest/junitxml.py" "_d59808804e11367054cb15bdd3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9c8af3a9b695bc24b2d43e9b5b.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/logging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4d4294b1fc90f390f33e6b4ca2.rodata" "-" "contrib/python/pytest/_pytest/logging.py" "_80ea1040d9b4996aba7053d6aa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/logging.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_887741c243c9af91bf1a65354a.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_51222cecaabaad80250feeb29f.rodata" "-" "contrib/python/pytest/_pytest/main.py" "_59581b8fd65c7555d40a4c7819.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8af2b3a8fdcfc1fc967b719f00.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/evaluate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4350cce7db1e5062cd8e15d024.rodata" "-" "contrib/python/pytest/_pytest/mark/evaluate.py" "_8579708c2ecb6f1374323c394d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/evaluate.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_971c3f37e155277e58a189e23d.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3218840f0b349f6b8ffaf4c47b.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3d0ba6afd4a923130a74541f50.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4b318fa1be79b83cd9bbb71d07.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0557ead209fcf856bb4829a6a4.rodata" "-" "contrib/python/pytest/_pytest/fixtures.py" "_c37182fef2387fc9443132c7a9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0a81aa2dba20755d5ea1c6e4e5.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ef66276a1228dc1ac22847686c.rodata" "-" "contrib/python/pytest/_pytest/freeze_support.py" "_d13f8eabb65da431fa0a686adc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_738986df684489eadc23c641d6.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_5b023df98d937177882fd49b06.rodata" "-" "contrib/python/pytest/_pytest/helpconfig.py" "_a83debc1c0fbe1b1ff9f5e057f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d9b3bcb59b453962157366bfaa.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4948e6e712ac1ecf6bd9db0a8f.rodata" "-" "contrib/python/pytest/_pytest/hookspec.py" "_c121335c3e842813b39f013dae.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c5c3c12a7ec116252765b899b4.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2d6c6a8ec9354cc7f9734b878a.rodata" "-" "contrib/python/pytest/_pytest/__init__.py" "_1f2b50a8f077d1770f72818ac8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_423b2db280f199cf6413c9bd5d.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_103845b3fdbd8906512942e1f5.rodata" "-" "contrib/python/pytest/_pytest/junitxml.py" "_d59808804e11367054cb15bdd3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9c8af3a9b695bc24b2d43e9b5b.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/logging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4d4294b1fc90f390f33e6b4ca2.rodata" "-" "contrib/python/pytest/_pytest/logging.py" "_80ea1040d9b4996aba7053d6aa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/logging.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_887741c243c9af91bf1a65354a.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_51222cecaabaad80250feeb29f.rodata" "-" "contrib/python/pytest/_pytest/main.py" "_59581b8fd65c7555d40a4c7819.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8af2b3a8fdcfc1fc967b719f00.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/evaluate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4350cce7db1e5062cd8e15d024.rodata" "-" "contrib/python/pytest/_pytest/mark/evaluate.py" "_8579708c2ecb6f1374323c394d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/evaluate.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_971c3f37e155277e58a189e23d.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3218840f0b349f6b8ffaf4c47b.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_3d0ba6afd4a923130a74541f50.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\doctest.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\fixtures.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\fixtures.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\freeze_support.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\freeze_support.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\helpconfig.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\helpconfig.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\hookspec.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\hookspec.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\junitxml.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\junitxml.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\logging.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\logging.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\main.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\main.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\evaluate.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\evaluate.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\__init__.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_3d0ba6afd4a923130a74541f50.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4b318fa1be79b83cd9bbb71d07.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_0557ead209fcf856bb4829a6a4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_0a81aa2dba20755d5ea1c6e4e5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_ef66276a1228dc1ac22847686c.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_738986df684489eadc23c641d6.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_5b023df98d937177882fd49b06.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_d9b3bcb59b453962157366bfaa.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4948e6e712ac1ecf6bd9db0a8f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_c5c3c12a7ec116252765b899b4.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_2d6c6a8ec9354cc7f9734b878a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_423b2db280f199cf6413c9bd5d.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_103845b3fdbd8906512942e1f5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_9c8af3a9b695bc24b2d43e9b5b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4d4294b1fc90f390f33e6b4ca2.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_887741c243c9af91bf1a65354a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_51222cecaabaad80250feeb29f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8af2b3a8fdcfc1fc967b719f00.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4350cce7db1e5062cd8e15d024.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_971c3f37e155277e58a189e23d.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3218840f0b349f6b8ffaf4c47b.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\__init__.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8e16a1c25868d542a54432a2a5.yasm" "-" "contrib/python/pytest/_pytest/mark/__init__.py" "_4ebb497ff6302498a1f079b826.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_db476db0df81396e53b2c846f8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/legacy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_7b5b48cc504acbd18cf281934e.rodata" "-" "contrib/python/pytest/_pytest/mark/legacy.py" "_bfa70e57e587f816175e79ef01.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/legacy.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6f7d1a024eda6b45e3258fe74a.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_156207e7339d2d4561befb7797.rodata" "-" "contrib/python/pytest/_pytest/mark/structures.py" "_6270641e671f7e2279457047ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/structures.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_43ffa08d3a62f8c49c962c892a.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d939d057229254e12b09dc9928.rodata" "-" "contrib/python/pytest/_pytest/monkeypatch.py" "_d5566217b2df24d724d03c38b6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ea8493ff6c7c3c93d5a53f6425.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_178ebb34553a0f92baf0883328.rodata" "-" "contrib/python/pytest/_pytest/nodes.py" "_1facffb10181f96c6d58d9518e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nodes.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_37ec4495f6533f2411bffc79e8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d3d676a6fecf0a578aa03b8683.rodata" "-" "contrib/python/pytest/_pytest/nose.py" "_41bc106dc325611c42de2dfdb9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d20cdb63b1c6be1ab063fa0d48.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/outcomes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6c3bd14db896e976db5f115c4b.rodata" "-" "contrib/python/pytest/_pytest/outcomes.py" "_299f02bb8d8e7a966fd4491240.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/outcomes.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1ad3e058d5c9952e3dc9309df8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4c8f492a2fc9d593140cc36201.rodata" "-" "contrib/python/pytest/_pytest/pastebin.py" "_5a8080fb7f53f73721d408699c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c75ea42abd6ce511f86ad029de.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/pathlib.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8683acb1dd0ecc76fabc97dc32.rodata" "-" "contrib/python/pytest/_pytest/pathlib.py" "_c65266c878883db247df95111b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pathlib.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_7f15e34cd4936ced1dd64632fb.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_afa9eb65f15db49bd6ef3312d0.rodata" "-" "contrib/python/pytest/_pytest/pytester.py" "_96ebd6713ee8d76d2e95af1ea6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_50116542638be1cde768d09ed6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8e16a1c25868d542a54432a2a5.yasm" "-" "contrib/python/pytest/_pytest/mark/__init__.py" "_4ebb497ff6302498a1f079b826.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_db476db0df81396e53b2c846f8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/legacy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_7b5b48cc504acbd18cf281934e.rodata" "-" "contrib/python/pytest/_pytest/mark/legacy.py" "_bfa70e57e587f816175e79ef01.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/legacy.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6f7d1a024eda6b45e3258fe74a.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_156207e7339d2d4561befb7797.rodata" "-" "contrib/python/pytest/_pytest/mark/structures.py" "_6270641e671f7e2279457047ee.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/structures.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_43ffa08d3a62f8c49c962c892a.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d939d057229254e12b09dc9928.rodata" "-" "contrib/python/pytest/_pytest/monkeypatch.py" "_d5566217b2df24d724d03c38b6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ea8493ff6c7c3c93d5a53f6425.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_178ebb34553a0f92baf0883328.rodata" "-" "contrib/python/pytest/_pytest/nodes.py" "_1facffb10181f96c6d58d9518e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nodes.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_37ec4495f6533f2411bffc79e8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d3d676a6fecf0a578aa03b8683.rodata" "-" "contrib/python/pytest/_pytest/nose.py" "_41bc106dc325611c42de2dfdb9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d20cdb63b1c6be1ab063fa0d48.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/outcomes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6c3bd14db896e976db5f115c4b.rodata" "-" "contrib/python/pytest/_pytest/outcomes.py" "_299f02bb8d8e7a966fd4491240.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/outcomes.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1ad3e058d5c9952e3dc9309df8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4c8f492a2fc9d593140cc36201.rodata" "-" "contrib/python/pytest/_pytest/pastebin.py" "_5a8080fb7f53f73721d408699c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_c75ea42abd6ce511f86ad029de.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/pathlib.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8683acb1dd0ecc76fabc97dc32.rodata" "-" "contrib/python/pytest/_pytest/pathlib.py" "_c65266c878883db247df95111b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pathlib.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_7f15e34cd4936ced1dd64632fb.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_afa9eb65f15db49bd6ef3312d0.rodata" "-" "contrib/python/pytest/_pytest/pytester.py" "_96ebd6713ee8d76d2e95af1ea6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_50116542638be1cde768d09ed6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_8e16a1c25868d542a54432a2a5.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\legacy.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\legacy.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\structures.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\structures.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\monkeypatch.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\monkeypatch.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\nodes.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\nodes.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\nose.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\nose.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\outcomes.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\outcomes.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\pastebin.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pastebin.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\pathlib.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pathlib.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\pytester.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pytester.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_8e16a1c25868d542a54432a2a5.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_db476db0df81396e53b2c846f8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_7b5b48cc504acbd18cf281934e.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_6f7d1a024eda6b45e3258fe74a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_156207e7339d2d4561befb7797.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_43ffa08d3a62f8c49c962c892a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_d939d057229254e12b09dc9928.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_ea8493ff6c7c3c93d5a53f6425.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_178ebb34553a0f92baf0883328.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_37ec4495f6533f2411bffc79e8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_d3d676a6fecf0a578aa03b8683.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_d20cdb63b1c6be1ab063fa0d48.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_6c3bd14db896e976db5f115c4b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1ad3e058d5c9952e3dc9309df8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4c8f492a2fc9d593140cc36201.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_c75ea42abd6ce511f86ad029de.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8683acb1dd0ecc76fabc97dc32.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_7f15e34cd4936ced1dd64632fb.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_afa9eb65f15db49bd6ef3312d0.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_50116542638be1cde768d09ed6.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\stepwise.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_a4bff7a2662750ddaae1669b11.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/stepwise.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4a7af9f90e63672f21f59ca5ca.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_a1defe150f84acb4e03aeb3617.rodata" "-" "contrib/python/pytest/_pytest/terminal.py" "_455288adbdec41cc20bdad02ab.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8b8b9ac3c091c825aaa98ac394.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_834c503e2539f344ee5738a403.rodata" "-" "contrib/python/pytest/_pytest/tmpdir.py" "_2f404ab9779cb95a4d0bf6703c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8a308f64324a3df04152b565b5.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_90717cd9a2862a1768a6ea72e7.rodata" "-" "contrib/python/pytest/_pytest/unittest.py" "_68817260d59015c02452ddd96d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_08485778288a5c74d002543610.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fd1fb3bcf85ccb832ca96d1e0f.rodata" "-" "contrib/python/pytest/_pytest/_version.py" "_60629a5e2759344a6fa7532a3c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_version.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0b1c96de4b676ca62369c6fab6.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/warnings.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d95e430946e0f0747adbdf0aa2.rodata" "-" "contrib/python/pytest/_pytest/warnings.py" "_0f0c61e8e266c7f0567db68522.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warnings.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_be2c0fc9c451542ff40c4874ec.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/warning_types.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6df615299cf0d738fced469cbf.rodata" "-" "contrib/python/pytest/_pytest/warning_types.py" "_2f5c71b12518f0c39a35b6953d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warning_types.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4dd83cc8603e55a03eaad57d21.rodata" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_7b8fddffbdf38339fccc1d5081.rodata" "-" "contrib/python/pytest/pytest.py" "_dcd878a506764e81c971ad2f76.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f1ab90ace39c2010a2e06c3562.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_a4bff7a2662750ddaae1669b11.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/stepwise.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4a7af9f90e63672f21f59ca5ca.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_a1defe150f84acb4e03aeb3617.rodata" "-" "contrib/python/pytest/_pytest/terminal.py" "_455288adbdec41cc20bdad02ab.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8b8b9ac3c091c825aaa98ac394.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_834c503e2539f344ee5738a403.rodata" "-" "contrib/python/pytest/_pytest/tmpdir.py" "_2f404ab9779cb95a4d0bf6703c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8a308f64324a3df04152b565b5.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_90717cd9a2862a1768a6ea72e7.rodata" "-" "contrib/python/pytest/_pytest/unittest.py" "_68817260d59015c02452ddd96d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_08485778288a5c74d002543610.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fd1fb3bcf85ccb832ca96d1e0f.rodata" "-" "contrib/python/pytest/_pytest/_version.py" "_60629a5e2759344a6fa7532a3c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_version.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0b1c96de4b676ca62369c6fab6.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/warnings.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_d95e430946e0f0747adbdf0aa2.rodata" "-" "contrib/python/pytest/_pytest/warnings.py" "_0f0c61e8e266c7f0567db68522.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warnings.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_be2c0fc9c451542ff40c4874ec.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/warning_types.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6df615299cf0d738fced469cbf.rodata" "-" "contrib/python/pytest/_pytest/warning_types.py" "_2f5c71b12518f0c39a35b6953d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warning_types.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4dd83cc8603e55a03eaad57d21.rodata" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_7b8fddffbdf38339fccc1d5081.rodata" "-" "contrib/python/pytest/pytest.py" "_dcd878a506764e81c971ad2f76.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f1ab90ace39c2010a2e06c3562.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_a4bff7a2662750ddaae1669b11.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\stepwise.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\terminal.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\terminal.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\tmpdir.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\tmpdir.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\unittest.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\unittest.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_version.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_version.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\warnings.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\warnings.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\warning_types.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\warning_types.py.yapyc;$(SolutionDir)..\contrib\python\pytest\pytest.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\pytest.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_a4bff7a2662750ddaae1669b11.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4a7af9f90e63672f21f59ca5ca.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_a1defe150f84acb4e03aeb3617.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8b8b9ac3c091c825aaa98ac394.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_834c503e2539f344ee5738a403.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8a308f64324a3df04152b565b5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_90717cd9a2862a1768a6ea72e7.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_08485778288a5c74d002543610.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_fd1fb3bcf85ccb832ca96d1e0f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_0b1c96de4b676ca62369c6fab6.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_d95e430946e0f0747adbdf0aa2.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_be2c0fc9c451542ff40c4874ec.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_6df615299cf0d738fced469cbf.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4dd83cc8603e55a03eaad57d21.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_7b8fddffbdf38339fccc1d5081.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_f1ab90ace39c2010a2e06c3562.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_6e0077c479bc19cb84f29bc7d6.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_6e0077c479bc19cb84f29bc7d6.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_6e0077c479bc19cb84f29bc7d6.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/2c70252a220111016db4210536.cpp" "_80bf7ba49f9d7132de4a8f12e1=/py_modules/_pytest.python_api" "_879c73729d00a9281133d0a6d2=resfs/src//py_modules/_pytest.python_api" "_05e601f548d2cbaf3e77a93073=/py_code/_pytest.python_api" "_b7ab186ee96d015f6140fcdfa8=/py_modules/_pytest.python" "_226669d26a5ee68c9849848c48=resfs/src//py_modules/_pytest.python" "_15aa61aae1c47bd5f75127bce0=/py_code/_pytest.python" "_e28bc7bb807cb7ea27de424105=/py_modules/_pytest.recwarn" "_4727ca15a39ac98b7082c7006d=resfs/src//py_modules/_pytest.recwarn" "_9e2e5deb3115669d037bc70f6d=/py_code/_pytest.recwarn" "_1aefc3635295732d547d5a4bd8=/py_modules/_pytest.reports" "_6e4766f90d0e8911a21bea4de3=resfs/src//py_modules/_pytest.reports" "_441999dabea377e468852e12ba=/py_code/_pytest.reports" "_18312d27bd4c6c6338e6a6b58d=/py_modules/_pytest.resultlog" "_44b01aca206469f7f1bd1edc0b=resfs/src//py_modules/_pytest.resultlog" "_6d401aa848bd0d9e2f3e024bec=/py_code/_pytest.resultlog" "_ecab9dc4d89bef3da1505f0a9b=/py_modules/_pytest.runner" "_39aa11363521b94c780b227245=resfs/src//py_modules/_pytest.runner" "_633478bd0fb4d6cf6b5bd94677=/py_code/_pytest.runner" "_272f7b69bfbc7de3a8a8aab437=/py_modules/_pytest.setuponly" "_3de9a57cd6cf389d5fc038c193=resfs/src//py_modules/_pytest.setuponly" "_8aee693281601079888c8bff48=/py_code/_pytest.setuponly" "_1539d4b940f228a1c90d1aba71=/py_modules/_pytest.setupplan" "_d82a6c8969448b99a43eb2694f=resfs/src//py_modules/_pytest.setupplan" "_4427009ecd9104fadf6f39f6df=/py_code/_pytest.setupplan" "_6abb70971eb7704ecc389ab678=/py_modules/_pytest.skipping" "_cf817cc913639ca1888de481ea=resfs/src//py_modules/_pytest.skipping" "_bf5891ec0f1e3798f7a79301e8=/py_code/_pytest.skipping" "_0fa38363e2e42e9a051f5c2f9b=/py_modules/_pytest.stepwise" "_73afc9b2abec3fb4cbaa434d0d=resfs/src//py_modules/_pytest.stepwise"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/3d0ba6afd4a923130a74541f50.cpp" "_4b318fa1be79b83cd9bbb71d07=/py_code/_pytest.doctest" "_0557ead209fcf856bb4829a6a4=/py_modules/_pytest.fixtures" "_c37182fef2387fc9443132c7a9=resfs/src//py_modules/_pytest.fixtures" "_0a81aa2dba20755d5ea1c6e4e5=/py_code/_pytest.fixtures" "_ef66276a1228dc1ac22847686c=/py_modules/_pytest.freeze_support" "_d13f8eabb65da431fa0a686adc=resfs/src//py_modules/_pytest.freeze_support" "_738986df684489eadc23c641d6=/py_code/_pytest.freeze_support" "_5b023df98d937177882fd49b06=/py_modules/_pytest.helpconfig" "_a83debc1c0fbe1b1ff9f5e057f=resfs/src//py_modules/_pytest.helpconfig" "_d9b3bcb59b453962157366bfaa=/py_code/_pytest.helpconfig" "_4948e6e712ac1ecf6bd9db0a8f=/py_modules/_pytest.hookspec" "_c121335c3e842813b39f013dae=resfs/src//py_modules/_pytest.hookspec" "_c5c3c12a7ec116252765b899b4=/py_code/_pytest.hookspec" "_2d6c6a8ec9354cc7f9734b878a=/py_modules/_pytest.__init__" "_1f2b50a8f077d1770f72818ac8=resfs/src//py_modules/_pytest.__init__" "_423b2db280f199cf6413c9bd5d=/py_code/_pytest.__init__" "_103845b3fdbd8906512942e1f5=/py_modules/_pytest.junitxml" "_d59808804e11367054cb15bdd3=resfs/src//py_modules/_pytest.junitxml" "_9c8af3a9b695bc24b2d43e9b5b=/py_code/_pytest.junitxml" "_4d4294b1fc90f390f33e6b4ca2=/py_modules/_pytest.logging" "_80ea1040d9b4996aba7053d6aa=resfs/src//py_modules/_pytest.logging" "_887741c243c9af91bf1a65354a=/py_code/_pytest.logging" "_51222cecaabaad80250feeb29f=/py_modules/_pytest.main" "_59581b8fd65c7555d40a4c7819=resfs/src//py_modules/_pytest.main" "_8af2b3a8fdcfc1fc967b719f00=/py_code/_pytest.main" "_4350cce7db1e5062cd8e15d024=/py_modules/_pytest.mark.evaluate" "_8579708c2ecb6f1374323c394d=resfs/src//py_modules/_pytest.mark.evaluate" "_971c3f37e155277e58a189e23d=/py_code/_pytest.mark.evaluate" "_3218840f0b349f6b8ffaf4c47b=/py_modules/_pytest.mark.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/8e16a1c25868d542a54432a2a5.cpp" "_4ebb497ff6302498a1f079b826=resfs/src//py_modules/_pytest.mark.__init__" "_db476db0df81396e53b2c846f8=/py_code/_pytest.mark.__init__" "_7b5b48cc504acbd18cf281934e=/py_modules/_pytest.mark.legacy" "_bfa70e57e587f816175e79ef01=resfs/src//py_modules/_pytest.mark.legacy" "_6f7d1a024eda6b45e3258fe74a=/py_code/_pytest.mark.legacy" "_156207e7339d2d4561befb7797=/py_modules/_pytest.mark.structures" "_6270641e671f7e2279457047ee=resfs/src//py_modules/_pytest.mark.structures" "_43ffa08d3a62f8c49c962c892a=/py_code/_pytest.mark.structures" "_d939d057229254e12b09dc9928=/py_modules/_pytest.monkeypatch" "_d5566217b2df24d724d03c38b6=resfs/src//py_modules/_pytest.monkeypatch" "_ea8493ff6c7c3c93d5a53f6425=/py_code/_pytest.monkeypatch" "_178ebb34553a0f92baf0883328=/py_modules/_pytest.nodes" "_1facffb10181f96c6d58d9518e=resfs/src//py_modules/_pytest.nodes" "_37ec4495f6533f2411bffc79e8=/py_code/_pytest.nodes" "_d3d676a6fecf0a578aa03b8683=/py_modules/_pytest.nose" "_41bc106dc325611c42de2dfdb9=resfs/src//py_modules/_pytest.nose" "_d20cdb63b1c6be1ab063fa0d48=/py_code/_pytest.nose" "_6c3bd14db896e976db5f115c4b=/py_modules/_pytest.outcomes" "_299f02bb8d8e7a966fd4491240=resfs/src//py_modules/_pytest.outcomes" "_1ad3e058d5c9952e3dc9309df8=/py_code/_pytest.outcomes" "_4c8f492a2fc9d593140cc36201=/py_modules/_pytest.pastebin" "_5a8080fb7f53f73721d408699c=resfs/src//py_modules/_pytest.pastebin" "_c75ea42abd6ce511f86ad029de=/py_code/_pytest.pastebin" "_8683acb1dd0ecc76fabc97dc32=/py_modules/_pytest.pathlib" "_c65266c878883db247df95111b=resfs/src//py_modules/_pytest.pathlib" "_7f15e34cd4936ced1dd64632fb=/py_code/_pytest.pathlib" "_afa9eb65f15db49bd6ef3312d0=/py_modules/_pytest.pytester" "_96ebd6713ee8d76d2e95af1ea6=resfs/src//py_modules/_pytest.pytester" "_50116542638be1cde768d09ed6=/py_code/_pytest.pytester"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/a4bff7a2662750ddaae1669b11.cpp" "_4a7af9f90e63672f21f59ca5ca=/py_code/_pytest.stepwise" "_a1defe150f84acb4e03aeb3617=/py_modules/_pytest.terminal" "_455288adbdec41cc20bdad02ab=resfs/src//py_modules/_pytest.terminal" "_8b8b9ac3c091c825aaa98ac394=/py_code/_pytest.terminal" "_834c503e2539f344ee5738a403=/py_modules/_pytest.tmpdir" "_2f404ab9779cb95a4d0bf6703c=resfs/src//py_modules/_pytest.tmpdir" "_8a308f64324a3df04152b565b5=/py_code/_pytest.tmpdir" "_90717cd9a2862a1768a6ea72e7=/py_modules/_pytest.unittest" "_68817260d59015c02452ddd96d=resfs/src//py_modules/_pytest.unittest" "_08485778288a5c74d002543610=/py_code/_pytest.unittest" "_fd1fb3bcf85ccb832ca96d1e0f=/py_modules/_pytest._version" "_60629a5e2759344a6fa7532a3c=resfs/src//py_modules/_pytest._version" "_0b1c96de4b676ca62369c6fab6=/py_code/_pytest._version" "_d95e430946e0f0747adbdf0aa2=/py_modules/_pytest.warnings" "_0f0c61e8e266c7f0567db68522=resfs/src//py_modules/_pytest.warnings" "_be2c0fc9c451542ff40c4874ec=/py_code/_pytest.warnings" "_6df615299cf0d738fced469cbf=/py_modules/_pytest.warning_types" "_2f5c71b12518f0c39a35b6953d=resfs/src//py_modules/_pytest.warning_types" "_4dd83cc8603e55a03eaad57d21=/py_code/_pytest.warning_types" "_7b8fddffbdf38339fccc1d5081=/py_modules/pytest" "_dcd878a506764e81c971ad2f76=resfs/src//py_modules/pytest" "_f1ab90ace39c2010a2e06c3562=/py_code/pytest"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/f58757f012850024250f333a96.cpp" "_9fdd1d36227bcda30aec08f6f9=/py_modules/_pytest._argcomplete" "_d94975445976d2dd15bb9289f2=resfs/src//py_modules/_pytest._argcomplete" "_e48eb16c7c49461cca273ecb22=/py_code/_pytest._argcomplete" "_df1ba93007ee3b9cef4a934510=/py_modules/_pytest.assertion.__init__" "_69b03659eab13b0fd26b498d4e=resfs/src//py_modules/_pytest.assertion.__init__" "_39e2e56267d62f03dc6a429e59=/py_code/_pytest.assertion.__init__" "_e87561f87906e5cc31517f5f96=/py_modules/_pytest.assertion.rewrite" "_f362cdb66899109cd06e782119=resfs/src//py_modules/_pytest.assertion.rewrite" "_73f7d6ea1aef561da892fb5264=/py_code/_pytest.assertion.rewrite" "_28f1706ab2b733c7b64d14bc7f=/py_modules/_pytest.assertion.truncate" "_1d6811b69d73945cda8a909607=resfs/src//py_modules/_pytest.assertion.truncate" "_038c4b58e02fb09fe035de10e8=/py_code/_pytest.assertion.truncate" "_23c6ad920cf2a43ad7c10816b8=/py_modules/_pytest.assertion.util" "_2769ef92418d3571ae5d43574c=resfs/src//py_modules/_pytest.assertion.util" "_85f039cd4d99b355735faebafe=/py_code/_pytest.assertion.util" "_abe75a2660aaaefd2db486a725=/py_modules/_pytest.cacheprovider" "_f3924c34d4ffc086a7adbe2dd4=resfs/src//py_modules/_pytest.cacheprovider" "_e70f0cacd41afb3bf5d1677100=/py_code/_pytest.cacheprovider" "_8eda44e037c71befc9a27478d2=/py_modules/_pytest.capture" "_7892e47a6b0e6252f3af2e5fcf=resfs/src//py_modules/_pytest.capture" "_92862a0268e29b240f2c23d0cd=/py_code/_pytest.capture" "_cd3aa164509d2de6ee7a44b220=/py_modules/_pytest._code.code" "_1810e3097df459bb2056138569=resfs/src//py_modules/_pytest._code.code" "_fc9cd11131c5ef65e59656eaed=/py_code/_pytest._code.code" "_e4b730f07750968d70affc3cbb=/py_modules/_pytest._code.__init__" "_76c286d86f62b04629a0671f3d=resfs/src//py_modules/_pytest._code.__init__" "_e33c2a1cffc0dfd8d7364fae89=/py_code/_pytest._code.__init__" "_b6bf4aa37a98f5155819f7c7b6=/py_modules/_pytest._code._py2traceback"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/fb6e64adfbfd0c57485612bf7a.cpp" "_dc837971099bc51d6bece3db23=resfs/src//py_modules/_pytest._code._py2traceback" "_2de45fd977aef695235289b380=/py_code/_pytest._code._py2traceback" "_1e85e6c8ef4c1cca7338dfccad=/py_modules/_pytest._code.source" "_e76868dcc5050f2de1e1805991=resfs/src//py_modules/_pytest._code.source" "_4dbefcafc5855c06b12a6ed925=/py_code/_pytest._code.source" "_f456aa5e61b0300538ae488323=/py_modules/_pytest.compat" "_20cb9de38456b6dbcab11209b8=resfs/src//py_modules/_pytest.compat" "_ac4635066b065cd4eea77855c5=/py_code/_pytest.compat" "_1e4602c849b6f0d7f3807d4767=/py_modules/_pytest.config.argparsing" "_aad96372ef2ffe1503fc796b80=resfs/src//py_modules/_pytest.config.argparsing" "_1a835c3cfbfc5fdd7d9f82c615=/py_code/_pytest.config.argparsing" "_3a7060837dee18e889218b0bd7=/py_modules/_pytest.config.exceptions" "_6f593dc94b29fe42507e4f98bc=resfs/src//py_modules/_pytest.config.exceptions" "_3da7292bde57cf61f03d8ef649=/py_code/_pytest.config.exceptions" "_044d4d64e078ae92a6d6d1e5fc=/py_modules/_pytest.config.findpaths" "_ebe1847d079fc26a9e3c69e187=resfs/src//py_modules/_pytest.config.findpaths" "_4d6938404d9317fc1422930918=/py_code/_pytest.config.findpaths" "_ec3726a1e8c8278fc97e068dbe=/py_modules/_pytest.config.__init__" "_563a5e6ac85b1acf7812f351b7=resfs/src//py_modules/_pytest.config.__init__" "_70d085df656eb8e343bb0dca32=/py_code/_pytest.config.__init__" "_308dba1cd44e0d5f5a588d7f69=/py_modules/_pytest.debugging" "_601e1274843a4f173f14753321=resfs/src//py_modules/_pytest.debugging" "_c199f1d215498d09e370ec6b03=/py_code/_pytest.debugging" "_3f82eb66e8f3f07fa6e3406250=/py_modules/_pytest.deprecated" "_c3176ed70f2e6c23f0ca4c1832=resfs/src//py_modules/_pytest.deprecated" "_c8529d8811e2ef017967c845ea=/py_code/_pytest.deprecated" "_325fcb8b2a86e2f6e8737ccf37=/py_modules/_pytest.doctest" "_0ff62f17d288cec8960049edc7=resfs/src//py_modules/_pytest.doctest"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/2c70252a220111016db4210536.cpp" "_80bf7ba49f9d7132de4a8f12e1=/py_modules/_pytest.python_api" "_879c73729d00a9281133d0a6d2=resfs/src//py_modules/_pytest.python_api" "_05e601f548d2cbaf3e77a93073=/py_code/_pytest.python_api" "_b7ab186ee96d015f6140fcdfa8=/py_modules/_pytest.python" "_226669d26a5ee68c9849848c48=resfs/src//py_modules/_pytest.python" "_15aa61aae1c47bd5f75127bce0=/py_code/_pytest.python" "_e28bc7bb807cb7ea27de424105=/py_modules/_pytest.recwarn" "_4727ca15a39ac98b7082c7006d=resfs/src//py_modules/_pytest.recwarn" "_9e2e5deb3115669d037bc70f6d=/py_code/_pytest.recwarn" "_1aefc3635295732d547d5a4bd8=/py_modules/_pytest.reports" "_6e4766f90d0e8911a21bea4de3=resfs/src//py_modules/_pytest.reports" "_441999dabea377e468852e12ba=/py_code/_pytest.reports" "_18312d27bd4c6c6338e6a6b58d=/py_modules/_pytest.resultlog" "_44b01aca206469f7f1bd1edc0b=resfs/src//py_modules/_pytest.resultlog" "_6d401aa848bd0d9e2f3e024bec=/py_code/_pytest.resultlog" "_ecab9dc4d89bef3da1505f0a9b=/py_modules/_pytest.runner" "_39aa11363521b94c780b227245=resfs/src//py_modules/_pytest.runner" "_633478bd0fb4d6cf6b5bd94677=/py_code/_pytest.runner" "_272f7b69bfbc7de3a8a8aab437=/py_modules/_pytest.setuponly" "_3de9a57cd6cf389d5fc038c193=resfs/src//py_modules/_pytest.setuponly" "_8aee693281601079888c8bff48=/py_code/_pytest.setuponly" "_1539d4b940f228a1c90d1aba71=/py_modules/_pytest.setupplan" "_d82a6c8969448b99a43eb2694f=resfs/src//py_modules/_pytest.setupplan" "_4427009ecd9104fadf6f39f6df=/py_code/_pytest.setupplan" "_6abb70971eb7704ecc389ab678=/py_modules/_pytest.skipping" "_cf817cc913639ca1888de481ea=resfs/src//py_modules/_pytest.skipping" "_bf5891ec0f1e3798f7a79301e8=/py_code/_pytest.skipping" "_0fa38363e2e42e9a051f5c2f9b=/py_modules/_pytest.stepwise" "_73afc9b2abec3fb4cbaa434d0d=resfs/src//py_modules/_pytest.stepwise"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/3d0ba6afd4a923130a74541f50.cpp" "_4b318fa1be79b83cd9bbb71d07=/py_code/_pytest.doctest" "_0557ead209fcf856bb4829a6a4=/py_modules/_pytest.fixtures" "_c37182fef2387fc9443132c7a9=resfs/src//py_modules/_pytest.fixtures" "_0a81aa2dba20755d5ea1c6e4e5=/py_code/_pytest.fixtures" "_ef66276a1228dc1ac22847686c=/py_modules/_pytest.freeze_support" "_d13f8eabb65da431fa0a686adc=resfs/src//py_modules/_pytest.freeze_support" "_738986df684489eadc23c641d6=/py_code/_pytest.freeze_support" "_5b023df98d937177882fd49b06=/py_modules/_pytest.helpconfig" "_a83debc1c0fbe1b1ff9f5e057f=resfs/src//py_modules/_pytest.helpconfig" "_d9b3bcb59b453962157366bfaa=/py_code/_pytest.helpconfig" "_4948e6e712ac1ecf6bd9db0a8f=/py_modules/_pytest.hookspec" "_c121335c3e842813b39f013dae=resfs/src//py_modules/_pytest.hookspec" "_c5c3c12a7ec116252765b899b4=/py_code/_pytest.hookspec" "_2d6c6a8ec9354cc7f9734b878a=/py_modules/_pytest.__init__" "_1f2b50a8f077d1770f72818ac8=resfs/src//py_modules/_pytest.__init__" "_423b2db280f199cf6413c9bd5d=/py_code/_pytest.__init__" "_103845b3fdbd8906512942e1f5=/py_modules/_pytest.junitxml" "_d59808804e11367054cb15bdd3=resfs/src//py_modules/_pytest.junitxml" "_9c8af3a9b695bc24b2d43e9b5b=/py_code/_pytest.junitxml" "_4d4294b1fc90f390f33e6b4ca2=/py_modules/_pytest.logging" "_80ea1040d9b4996aba7053d6aa=resfs/src//py_modules/_pytest.logging" "_887741c243c9af91bf1a65354a=/py_code/_pytest.logging" "_51222cecaabaad80250feeb29f=/py_modules/_pytest.main" "_59581b8fd65c7555d40a4c7819=resfs/src//py_modules/_pytest.main" "_8af2b3a8fdcfc1fc967b719f00=/py_code/_pytest.main" "_4350cce7db1e5062cd8e15d024=/py_modules/_pytest.mark.evaluate" "_8579708c2ecb6f1374323c394d=resfs/src//py_modules/_pytest.mark.evaluate" "_971c3f37e155277e58a189e23d=/py_code/_pytest.mark.evaluate" "_3218840f0b349f6b8ffaf4c47b=/py_modules/_pytest.mark.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/8e16a1c25868d542a54432a2a5.cpp" "_4ebb497ff6302498a1f079b826=resfs/src//py_modules/_pytest.mark.__init__" "_db476db0df81396e53b2c846f8=/py_code/_pytest.mark.__init__" "_7b5b48cc504acbd18cf281934e=/py_modules/_pytest.mark.legacy" "_bfa70e57e587f816175e79ef01=resfs/src//py_modules/_pytest.mark.legacy" "_6f7d1a024eda6b45e3258fe74a=/py_code/_pytest.mark.legacy" "_156207e7339d2d4561befb7797=/py_modules/_pytest.mark.structures" "_6270641e671f7e2279457047ee=resfs/src//py_modules/_pytest.mark.structures" "_43ffa08d3a62f8c49c962c892a=/py_code/_pytest.mark.structures" "_d939d057229254e12b09dc9928=/py_modules/_pytest.monkeypatch" "_d5566217b2df24d724d03c38b6=resfs/src//py_modules/_pytest.monkeypatch" "_ea8493ff6c7c3c93d5a53f6425=/py_code/_pytest.monkeypatch" "_178ebb34553a0f92baf0883328=/py_modules/_pytest.nodes" "_1facffb10181f96c6d58d9518e=resfs/src//py_modules/_pytest.nodes" "_37ec4495f6533f2411bffc79e8=/py_code/_pytest.nodes" "_d3d676a6fecf0a578aa03b8683=/py_modules/_pytest.nose" "_41bc106dc325611c42de2dfdb9=resfs/src//py_modules/_pytest.nose" "_d20cdb63b1c6be1ab063fa0d48=/py_code/_pytest.nose" "_6c3bd14db896e976db5f115c4b=/py_modules/_pytest.outcomes" "_299f02bb8d8e7a966fd4491240=resfs/src//py_modules/_pytest.outcomes" "_1ad3e058d5c9952e3dc9309df8=/py_code/_pytest.outcomes" "_4c8f492a2fc9d593140cc36201=/py_modules/_pytest.pastebin" "_5a8080fb7f53f73721d408699c=resfs/src//py_modules/_pytest.pastebin" "_c75ea42abd6ce511f86ad029de=/py_code/_pytest.pastebin" "_8683acb1dd0ecc76fabc97dc32=/py_modules/_pytest.pathlib" "_c65266c878883db247df95111b=resfs/src//py_modules/_pytest.pathlib" "_7f15e34cd4936ced1dd64632fb=/py_code/_pytest.pathlib" "_afa9eb65f15db49bd6ef3312d0=/py_modules/_pytest.pytester" "_96ebd6713ee8d76d2e95af1ea6=resfs/src//py_modules/_pytest.pytester" "_50116542638be1cde768d09ed6=/py_code/_pytest.pytester"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/a4bff7a2662750ddaae1669b11.cpp" "_4a7af9f90e63672f21f59ca5ca=/py_code/_pytest.stepwise" "_a1defe150f84acb4e03aeb3617=/py_modules/_pytest.terminal" "_455288adbdec41cc20bdad02ab=resfs/src//py_modules/_pytest.terminal" "_8b8b9ac3c091c825aaa98ac394=/py_code/_pytest.terminal" "_834c503e2539f344ee5738a403=/py_modules/_pytest.tmpdir" "_2f404ab9779cb95a4d0bf6703c=resfs/src//py_modules/_pytest.tmpdir" "_8a308f64324a3df04152b565b5=/py_code/_pytest.tmpdir" "_90717cd9a2862a1768a6ea72e7=/py_modules/_pytest.unittest" "_68817260d59015c02452ddd96d=resfs/src//py_modules/_pytest.unittest" "_08485778288a5c74d002543610=/py_code/_pytest.unittest" "_fd1fb3bcf85ccb832ca96d1e0f=/py_modules/_pytest._version" "_60629a5e2759344a6fa7532a3c=resfs/src//py_modules/_pytest._version" "_0b1c96de4b676ca62369c6fab6=/py_code/_pytest._version" "_d95e430946e0f0747adbdf0aa2=/py_modules/_pytest.warnings" "_0f0c61e8e266c7f0567db68522=resfs/src//py_modules/_pytest.warnings" "_be2c0fc9c451542ff40c4874ec=/py_code/_pytest.warnings" "_6df615299cf0d738fced469cbf=/py_modules/_pytest.warning_types" "_2f5c71b12518f0c39a35b6953d=resfs/src//py_modules/_pytest.warning_types" "_4dd83cc8603e55a03eaad57d21=/py_code/_pytest.warning_types" "_7b8fddffbdf38339fccc1d5081=/py_modules/pytest" "_dcd878a506764e81c971ad2f76=resfs/src//py_modules/pytest" "_f1ab90ace39c2010a2e06c3562=/py_code/pytest"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/f58757f012850024250f333a96.cpp" "_9fdd1d36227bcda30aec08f6f9=/py_modules/_pytest._argcomplete" "_d94975445976d2dd15bb9289f2=resfs/src//py_modules/_pytest._argcomplete" "_e48eb16c7c49461cca273ecb22=/py_code/_pytest._argcomplete" "_df1ba93007ee3b9cef4a934510=/py_modules/_pytest.assertion.__init__" "_69b03659eab13b0fd26b498d4e=resfs/src//py_modules/_pytest.assertion.__init__" "_39e2e56267d62f03dc6a429e59=/py_code/_pytest.assertion.__init__" "_e87561f87906e5cc31517f5f96=/py_modules/_pytest.assertion.rewrite" "_f362cdb66899109cd06e782119=resfs/src//py_modules/_pytest.assertion.rewrite" "_73f7d6ea1aef561da892fb5264=/py_code/_pytest.assertion.rewrite" "_28f1706ab2b733c7b64d14bc7f=/py_modules/_pytest.assertion.truncate" "_1d6811b69d73945cda8a909607=resfs/src//py_modules/_pytest.assertion.truncate" "_038c4b58e02fb09fe035de10e8=/py_code/_pytest.assertion.truncate" "_23c6ad920cf2a43ad7c10816b8=/py_modules/_pytest.assertion.util" "_2769ef92418d3571ae5d43574c=resfs/src//py_modules/_pytest.assertion.util" "_85f039cd4d99b355735faebafe=/py_code/_pytest.assertion.util" "_abe75a2660aaaefd2db486a725=/py_modules/_pytest.cacheprovider" "_f3924c34d4ffc086a7adbe2dd4=resfs/src//py_modules/_pytest.cacheprovider" "_e70f0cacd41afb3bf5d1677100=/py_code/_pytest.cacheprovider" "_8eda44e037c71befc9a27478d2=/py_modules/_pytest.capture" "_7892e47a6b0e6252f3af2e5fcf=resfs/src//py_modules/_pytest.capture" "_92862a0268e29b240f2c23d0cd=/py_code/_pytest.capture" "_cd3aa164509d2de6ee7a44b220=/py_modules/_pytest._code.code" "_1810e3097df459bb2056138569=resfs/src//py_modules/_pytest._code.code" "_fc9cd11131c5ef65e59656eaed=/py_code/_pytest._code.code" "_e4b730f07750968d70affc3cbb=/py_modules/_pytest._code.__init__" "_76c286d86f62b04629a0671f3d=resfs/src//py_modules/_pytest._code.__init__" "_e33c2a1cffc0dfd8d7364fae89=/py_code/_pytest._code.__init__" "_b6bf4aa37a98f5155819f7c7b6=/py_modules/_pytest._code._py2traceback"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/fb6e64adfbfd0c57485612bf7a.cpp" "_dc837971099bc51d6bece3db23=resfs/src//py_modules/_pytest._code._py2traceback" "_2de45fd977aef695235289b380=/py_code/_pytest._code._py2traceback" "_1e85e6c8ef4c1cca7338dfccad=/py_modules/_pytest._code.source" "_e76868dcc5050f2de1e1805991=resfs/src//py_modules/_pytest._code.source" "_4dbefcafc5855c06b12a6ed925=/py_code/_pytest._code.source" "_f456aa5e61b0300538ae488323=/py_modules/_pytest.compat" "_20cb9de38456b6dbcab11209b8=resfs/src//py_modules/_pytest.compat" "_ac4635066b065cd4eea77855c5=/py_code/_pytest.compat" "_1e4602c849b6f0d7f3807d4767=/py_modules/_pytest.config.argparsing" "_aad96372ef2ffe1503fc796b80=resfs/src//py_modules/_pytest.config.argparsing" "_1a835c3cfbfc5fdd7d9f82c615=/py_code/_pytest.config.argparsing" "_3a7060837dee18e889218b0bd7=/py_modules/_pytest.config.exceptions" "_6f593dc94b29fe42507e4f98bc=resfs/src//py_modules/_pytest.config.exceptions" "_3da7292bde57cf61f03d8ef649=/py_code/_pytest.config.exceptions" "_044d4d64e078ae92a6d6d1e5fc=/py_modules/_pytest.config.findpaths" "_ebe1847d079fc26a9e3c69e187=resfs/src//py_modules/_pytest.config.findpaths" "_4d6938404d9317fc1422930918=/py_code/_pytest.config.findpaths" "_ec3726a1e8c8278fc97e068dbe=/py_modules/_pytest.config.__init__" "_563a5e6ac85b1acf7812f351b7=resfs/src//py_modules/_pytest.config.__init__" "_70d085df656eb8e343bb0dca32=/py_code/_pytest.config.__init__" "_308dba1cd44e0d5f5a588d7f69=/py_modules/_pytest.debugging" "_601e1274843a4f173f14753321=resfs/src//py_modules/_pytest.debugging" "_c199f1d215498d09e370ec6b03=/py_code/_pytest.debugging" "_3f82eb66e8f3f07fa6e3406250=/py_modules/_pytest.deprecated" "_c3176ed70f2e6c23f0ca4c1832=resfs/src//py_modules/_pytest.deprecated" "_c8529d8811e2ef017967c845ea=/py_code/_pytest.deprecated" "_325fcb8b2a86e2f6e8737ccf37=/py_modules/_pytest.doctest" "_0ff62f17d288cec8960049edc7=resfs/src//py_modules/_pytest.doctest"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/2c70252a220111016db4210536.cpp	$B/contrib/python/pytest/3d0ba6afd4a923130a74541f50.cpp	$B/contrib/python/pytest/8e16a1c25868d542a54432a2a5.cpp	$B/contrib/python/pytest/a4bff7a2662750ddaae1669b11.cpp	$B/contrib/python/pytest/f58757f012850024250f333a96.cpp	$B/contrib/python/pytest/fb6e64adfbfd0c57485612bf7a.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\2c70252a220111016db4210536.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\3d0ba6afd4a923130a74541f50.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\8e16a1c25868d542a54432a2a5.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\a4bff7a2662750ddaae1669b11.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\f58757f012850024250f333a96.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\fb6e64adfbfd0c57485612bf7a.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f58757f012850024250f333a96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fb6e64adfbfd0c57485612bf7a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3d0ba6afd4a923130a74541f50.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8e16a1c25868d542a54432a2a5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2c70252a220111016db4210536.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_a4bff7a2662750ddaae1669b11.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f58757f012850024250f333a96.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fb6e64adfbfd0c57485612bf7a.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_3d0ba6afd4a923130a74541f50.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8e16a1c25868d542a54432a2a5.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2c70252a220111016db4210536.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_a4bff7a2662750ddaae1669b11.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/join_6e0077c479bc19cb84f29bc7d6.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_f58757f012850024250f333a96.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_fb6e64adfbfd0c57485612bf7a.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3d0ba6afd4a923130a74541f50.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8e16a1c25868d542a54432a2a5.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_2c70252a220111016db4210536.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_a4bff7a2662750ddaae1669b11.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_6e0077c479bc19cb84f29bc7d6.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_96d31b3fb84e8cd42b19edecf4.cpp" "contrib/python/pytest/f58757f012850024250f333a96.cpp" "contrib/python/pytest/fb6e64adfbfd0c57485612bf7a.cpp" "contrib/python/pytest/3d0ba6afd4a923130a74541f50.cpp" "contrib/python/pytest/8e16a1c25868d542a54432a2a5.cpp" "contrib/python/pytest/2c70252a220111016db4210536.cpp" "contrib/python/pytest/a4bff7a2662750ddaae1669b11.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_96d31b3fb84e8cd42b19edecf4.cpp" "contrib/python/pytest/f58757f012850024250f333a96.cpp" "contrib/python/pytest/fb6e64adfbfd0c57485612bf7a.cpp" "contrib/python/pytest/3d0ba6afd4a923130a74541f50.cpp" "contrib/python/pytest/8e16a1c25868d542a54432a2a5.cpp" "contrib/python/pytest/2c70252a220111016db4210536.cpp" "contrib/python/pytest/a4bff7a2662750ddaae1669b11.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/join_96d31b3fb84e8cd42b19edecf4.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\f58757f012850024250f333a96.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\fb6e64adfbfd0c57485612bf7a.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\3d0ba6afd4a923130a74541f50.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\8e16a1c25868d542a54432a2a5.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\2c70252a220111016db4210536.cpp;$(SolutionDir)$(Configuration)\contrib\python\pytest\a4bff7a2662750ddaae1669b11.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_96d31b3fb84e8cd42b19edecf4.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_argcomplete.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/code.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/source.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_version.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_version.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/rewrite.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/truncate.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/truncate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/truncate.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/util.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/cacheprovider.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/capture.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/compat.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/argparsing.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/argparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/argparsing.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/exceptions.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/findpaths.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/findpaths.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/findpaths.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/debugging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/deprecated.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/doctest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/fixtures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/freeze_support.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/helpconfig.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/hookspec.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/junitxml.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/logging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/logging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/logging.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/main.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/evaluate.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/evaluate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/evaluate.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/legacy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/legacy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/legacy.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/structures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/structures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/monkeypatch.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nodes.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nodes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nose.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/outcomes.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/outcomes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/outcomes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pastebin.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pathlib.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pathlib.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pathlib.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pytester.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python_api.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python_api.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python_api.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/recwarn.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/reports.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/reports.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/reports.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/resultlog.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/runner.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setuponly.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setupplan.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/skipping.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/stepwise.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/stepwise.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/stepwise.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/terminal.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/tmpdir.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/unittest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/warning_types.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/warning_types.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warning_types.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/warnings.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/warnings.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warnings.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/pytest.py-" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_argcomplete.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/_py2traceback.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/code.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_code/source.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/source.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/source.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/_version.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_version.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/rewrite.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/truncate.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/truncate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/truncate.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/assertion/util.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/cacheprovider.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/capture.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/compat.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/compat.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/argparsing.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/argparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/argparsing.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/exceptions.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/config/findpaths.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/config/findpaths.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/config/findpaths.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/debugging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/debugging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/debugging.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/deprecated.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/deprecated.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/deprecated.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/doctest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/doctest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/doctest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/fixtures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/fixtures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/fixtures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/freeze_support.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/freeze_support.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/freeze_support.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/helpconfig.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/helpconfig.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/helpconfig.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/hookspec.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/hookspec.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/hookspec.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/junitxml.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/junitxml.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/junitxml.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/logging.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/logging.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/logging.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/main.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/main.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/main.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/__init__.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/evaluate.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/evaluate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/evaluate.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/legacy.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/legacy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/legacy.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/mark/structures.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/mark/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/mark/structures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/monkeypatch.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/monkeypatch.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/monkeypatch.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nodes.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nodes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/nose.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/nose.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/nose.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/outcomes.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/outcomes.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/outcomes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pastebin.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pastebin.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pastebin.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pathlib.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pathlib.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pathlib.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/pytester.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/pytester.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/pytester.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/python_api.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/python_api.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python_api.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/recwarn.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/reports.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/reports.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/reports.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/resultlog.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/runner.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setuponly.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/setupplan.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/skipping.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/stepwise.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/stepwise.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/stepwise.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/terminal.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/terminal.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/terminal.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/tmpdir.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/tmpdir.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/tmpdir.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/unittest.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/unittest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/unittest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/warning_types.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/warning_types.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warning_types.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/_pytest/warnings.py-" "$(SolutionDir)../contrib/python/pytest/_pytest/warnings.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/warnings.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytest/pytest.py-" "$(SolutionDir)../contrib/python/pytest/pytest.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/pytest.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_pytest/__init__.py.yapyc	$B/contrib/python/pytest/_pytest/_argcomplete.py.yapyc	$B/contrib/python/pytest/_pytest/_code/__init__.py.yapyc	$B/contrib/python/pytest/_pytest/_code/_py2traceback.py.yapyc	$B/contrib/python/pytest/_pytest/_code/code.py.yapyc	$B/contrib/python/pytest/_pytest/_code/source.py.yapyc	$B/contrib/python/pytest/_pytest/_version.py.yapyc	$B/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc	$B/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc	$B/contrib/python/pytest/_pytest/assertion/truncate.py.yapyc	$B/contrib/python/pytest/_pytest/assertion/util.py.yapyc	$B/contrib/python/pytest/_pytest/cacheprovider.py.yapyc	$B/contrib/python/pytest/_pytest/capture.py.yapyc	$B/contrib/python/pytest/_pytest/compat.py.yapyc	$B/contrib/python/pytest/_pytest/config/__init__.py.yapyc	$B/contrib/python/pytest/_pytest/config/argparsing.py.yapyc	$B/contrib/python/pytest/_pytest/config/exceptions.py.yapyc	$B/contrib/python/pytest/_pytest/config/findpaths.py.yapyc	$B/contrib/python/pytest/_pytest/debugging.py.yapyc	$B/contrib/python/pytest/_pytest/deprecated.py.yapyc	$B/contrib/python/pytest/_pytest/doctest.py.yapyc	$B/contrib/python/pytest/_pytest/fixtures.py.yapyc	$B/contrib/python/pytest/_pytest/freeze_support.py.yapyc	$B/contrib/python/pytest/_pytest/helpconfig.py.yapyc	$B/contrib/python/pytest/_pytest/hookspec.py.yapyc	$B/contrib/python/pytest/_pytest/junitxml.py.yapyc	$B/contrib/python/pytest/_pytest/logging.py.yapyc	$B/contrib/python/pytest/_pytest/main.py.yapyc	$B/contrib/python/pytest/_pytest/mark/__init__.py.yapyc	$B/contrib/python/pytest/_pytest/mark/evaluate.py.yapyc	$B/contrib/python/pytest/_pytest/mark/legacy.py.yapyc	$B/contrib/python/pytest/_pytest/mark/structures.py.yapyc	$B/contrib/python/pytest/_pytest/monkeypatch.py.yapyc	$B/contrib/python/pytest/_pytest/nodes.py.yapyc	$B/contrib/python/pytest/_pytest/nose.py.yapyc	$B/contrib/python/pytest/_pytest/outcomes.py.yapyc	$B/contrib/python/pytest/_pytest/pastebin.py.yapyc	$B/contrib/python/pytest/_pytest/pathlib.py.yapyc	$B/contrib/python/pytest/_pytest/pytester.py.yapyc	$B/contrib/python/pytest/_pytest/python.py.yapyc	$B/contrib/python/pytest/_pytest/python_api.py.yapyc	$B/contrib/python/pytest/_pytest/recwarn.py.yapyc	$B/contrib/python/pytest/_pytest/reports.py.yapyc	$B/contrib/python/pytest/_pytest/resultlog.py.yapyc	$B/contrib/python/pytest/_pytest/runner.py.yapyc	$B/contrib/python/pytest/_pytest/setuponly.py.yapyc	$B/contrib/python/pytest/_pytest/setupplan.py.yapyc	$B/contrib/python/pytest/_pytest/skipping.py.yapyc	$B/contrib/python/pytest/_pytest/stepwise.py.yapyc	$B/contrib/python/pytest/_pytest/terminal.py.yapyc	$B/contrib/python/pytest/_pytest/tmpdir.py.yapyc	$B/contrib/python/pytest/_pytest/unittest.py.yapyc	$B/contrib/python/pytest/_pytest/warning_types.py.yapyc	$B/contrib/python/pytest/_pytest/warnings.py.yapyc	$B/contrib/python/pytest/pytest.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pytest\_pytest\__init__.py;$(SolutionDir)..\contrib\python\pytest\_pytest\_argcomplete.py;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\__init__.py;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\_py2traceback.py;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\code.py;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\source.py;$(SolutionDir)..\contrib\python\pytest\_pytest\_version.py;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\__init__.py;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\rewrite.py;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\truncate.py;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\util.py;$(SolutionDir)..\contrib\python\pytest\_pytest\cacheprovider.py;$(SolutionDir)..\contrib\python\pytest\_pytest\capture.py;$(SolutionDir)..\contrib\python\pytest\_pytest\compat.py;$(SolutionDir)..\contrib\python\pytest\_pytest\config\__init__.py;$(SolutionDir)..\contrib\python\pytest\_pytest\config\argparsing.py;$(SolutionDir)..\contrib\python\pytest\_pytest\config\exceptions.py;$(SolutionDir)..\contrib\python\pytest\_pytest\config\findpaths.py;$(SolutionDir)..\contrib\python\pytest\_pytest\debugging.py;$(SolutionDir)..\contrib\python\pytest\_pytest\deprecated.py;$(SolutionDir)..\contrib\python\pytest\_pytest\doctest.py;$(SolutionDir)..\contrib\python\pytest\_pytest\fixtures.py;$(SolutionDir)..\contrib\python\pytest\_pytest\freeze_support.py;$(SolutionDir)..\contrib\python\pytest\_pytest\helpconfig.py;$(SolutionDir)..\contrib\python\pytest\_pytest\hookspec.py;$(SolutionDir)..\contrib\python\pytest\_pytest\junitxml.py;$(SolutionDir)..\contrib\python\pytest\_pytest\logging.py;$(SolutionDir)..\contrib\python\pytest\_pytest\main.py;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\__init__.py;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\evaluate.py;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\legacy.py;$(SolutionDir)..\contrib\python\pytest\_pytest\mark\structures.py;$(SolutionDir)..\contrib\python\pytest\_pytest\monkeypatch.py;$(SolutionDir)..\contrib\python\pytest\_pytest\nodes.py;$(SolutionDir)..\contrib\python\pytest\_pytest\nose.py;$(SolutionDir)..\contrib\python\pytest\_pytest\outcomes.py;$(SolutionDir)..\contrib\python\pytest\_pytest\pastebin.py;$(SolutionDir)..\contrib\python\pytest\_pytest\pathlib.py;$(SolutionDir)..\contrib\python\pytest\_pytest\pytester.py;$(SolutionDir)..\contrib\python\pytest\_pytest\python.py;$(SolutionDir)..\contrib\python\pytest\_pytest\python_api.py;$(SolutionDir)..\contrib\python\pytest\_pytest\recwarn.py;$(SolutionDir)..\contrib\python\pytest\_pytest\reports.py;$(SolutionDir)..\contrib\python\pytest\_pytest\resultlog.py;$(SolutionDir)..\contrib\python\pytest\_pytest\runner.py;$(SolutionDir)..\contrib\python\pytest\_pytest\setuponly.py;$(SolutionDir)..\contrib\python\pytest\_pytest\setupplan.py;$(SolutionDir)..\contrib\python\pytest\_pytest\skipping.py;$(SolutionDir)..\contrib\python\pytest\_pytest\stepwise.py;$(SolutionDir)..\contrib\python\pytest\_pytest\terminal.py;$(SolutionDir)..\contrib\python\pytest\_pytest\tmpdir.py;$(SolutionDir)..\contrib\python\pytest\_pytest\unittest.py;$(SolutionDir)..\contrib\python\pytest\_pytest\warning_types.py;$(SolutionDir)..\contrib\python\pytest\_pytest\warnings.py;$(SolutionDir)..\contrib\python\pytest\pytest.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_argcomplete.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\_py2traceback.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\code.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\source.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_version.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\rewrite.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\truncate.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\util.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\cacheprovider.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\capture.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\argparsing.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\exceptions.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config\findpaths.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\debugging.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\deprecated.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\doctest.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\fixtures.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\freeze_support.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\helpconfig.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\hookspec.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\junitxml.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\logging.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\main.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\evaluate.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\legacy.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\mark\structures.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\monkeypatch.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\nodes.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\nose.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\outcomes.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pastebin.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pathlib.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\pytester.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\python.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\python_api.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\recwarn.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\reports.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\resultlog.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\runner.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\setuponly.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\setupplan.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\skipping.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\stepwise.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\terminal.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\tmpdir.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\unittest.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\warning_types.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\warnings.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\pytest\pytest.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pytest\_pytest\_argcomplete.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f58757f012850024250f333a96.yasm" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9fdd1d36227bcda30aec08f6f9.rodata" "-" "contrib/python/pytest/_pytest/_argcomplete.py" "_d94975445976d2dd15bb9289f2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e48eb16c7c49461cca273ecb22.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_df1ba93007ee3b9cef4a934510.rodata" "-" "contrib/python/pytest/_pytest/assertion/__init__.py" "_69b03659eab13b0fd26b498d4e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_39e2e56267d62f03dc6a429e59.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e87561f87906e5cc31517f5f96.rodata" "-" "contrib/python/pytest/_pytest/assertion/rewrite.py" "_f362cdb66899109cd06e782119.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_73f7d6ea1aef561da892fb5264.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/truncate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_28f1706ab2b733c7b64d14bc7f.rodata" "-" "contrib/python/pytest/_pytest/assertion/truncate.py" "_1d6811b69d73945cda8a909607.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/truncate.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_038c4b58e02fb09fe035de10e8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_23c6ad920cf2a43ad7c10816b8.rodata" "-" "contrib/python/pytest/_pytest/assertion/util.py" "_2769ef92418d3571ae5d43574c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_85f039cd4d99b355735faebafe.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_abe75a2660aaaefd2db486a725.rodata" "-" "contrib/python/pytest/_pytest/cacheprovider.py" "_f3924c34d4ffc086a7adbe2dd4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e70f0cacd41afb3bf5d1677100.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8eda44e037c71befc9a27478d2.rodata" "-" "contrib/python/pytest/_pytest/capture.py" "_7892e47a6b0e6252f3af2e5fcf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_92862a0268e29b240f2c23d0cd.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_cd3aa164509d2de6ee7a44b220.rodata" "-" "contrib/python/pytest/_pytest/_code/code.py" "_1810e3097df459bb2056138569.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fc9cd11131c5ef65e59656eaed.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e4b730f07750968d70affc3cbb.rodata" "-" "contrib/python/pytest/_pytest/_code/__init__.py" "_76c286d86f62b04629a0671f3d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e33c2a1cffc0dfd8d7364fae89.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b6bf4aa37a98f5155819f7c7b6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_f58757f012850024250f333a96.yasm" "$(SolutionDir)../contrib/python/pytest/_pytest/_argcomplete.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9fdd1d36227bcda30aec08f6f9.rodata" "-" "contrib/python/pytest/_pytest/_argcomplete.py" "_d94975445976d2dd15bb9289f2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_argcomplete.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e48eb16c7c49461cca273ecb22.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_df1ba93007ee3b9cef4a934510.rodata" "-" "contrib/python/pytest/_pytest/assertion/__init__.py" "_69b03659eab13b0fd26b498d4e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_39e2e56267d62f03dc6a429e59.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/rewrite.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e87561f87906e5cc31517f5f96.rodata" "-" "contrib/python/pytest/_pytest/assertion/rewrite.py" "_f362cdb66899109cd06e782119.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/rewrite.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_73f7d6ea1aef561da892fb5264.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/truncate.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_28f1706ab2b733c7b64d14bc7f.rodata" "-" "contrib/python/pytest/_pytest/assertion/truncate.py" "_1d6811b69d73945cda8a909607.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/truncate.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_038c4b58e02fb09fe035de10e8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/assertion/util.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_23c6ad920cf2a43ad7c10816b8.rodata" "-" "contrib/python/pytest/_pytest/assertion/util.py" "_2769ef92418d3571ae5d43574c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/assertion/util.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_85f039cd4d99b355735faebafe.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/cacheprovider.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_abe75a2660aaaefd2db486a725.rodata" "-" "contrib/python/pytest/_pytest/cacheprovider.py" "_f3924c34d4ffc086a7adbe2dd4.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/cacheprovider.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e70f0cacd41afb3bf5d1677100.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/capture.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8eda44e037c71befc9a27478d2.rodata" "-" "contrib/python/pytest/_pytest/capture.py" "_7892e47a6b0e6252f3af2e5fcf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/capture.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_92862a0268e29b240f2c23d0cd.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/code.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_cd3aa164509d2de6ee7a44b220.rodata" "-" "contrib/python/pytest/_pytest/_code/code.py" "_1810e3097df459bb2056138569.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/code.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_fc9cd11131c5ef65e59656eaed.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e4b730f07750968d70affc3cbb.rodata" "-" "contrib/python/pytest/_pytest/_code/__init__.py" "_76c286d86f62b04629a0671f3d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/_code/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e33c2a1cffc0dfd8d7364fae89.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/_code/_py2traceback.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b6bf4aa37a98f5155819f7c7b6.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_f58757f012850024250f333a96.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pytest\_pytest\_argcomplete.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_argcomplete.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\rewrite.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\rewrite.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\truncate.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\truncate.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\assertion\util.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\assertion\util.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\cacheprovider.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\cacheprovider.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\capture.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\capture.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\code.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\code.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_code\_py2traceback.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_f58757f012850024250f333a96.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_9fdd1d36227bcda30aec08f6f9.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e48eb16c7c49461cca273ecb22.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_df1ba93007ee3b9cef4a934510.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_39e2e56267d62f03dc6a429e59.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e87561f87906e5cc31517f5f96.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_73f7d6ea1aef561da892fb5264.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_28f1706ab2b733c7b64d14bc7f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_038c4b58e02fb09fe035de10e8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_23c6ad920cf2a43ad7c10816b8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_85f039cd4d99b355735faebafe.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_abe75a2660aaaefd2db486a725.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e70f0cacd41afb3bf5d1677100.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8eda44e037c71befc9a27478d2.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_92862a0268e29b240f2c23d0cd.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_cd3aa164509d2de6ee7a44b220.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_fc9cd11131c5ef65e59656eaed.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e4b730f07750968d70affc3cbb.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e33c2a1cffc0dfd8d7364fae89.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_b6bf4aa37a98f5155819f7c7b6.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\pytest\_pytest\python_api.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2c70252a220111016db4210536.yasm" "$(SolutionDir)../contrib/python/pytest/_pytest/python_api.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_80bf7ba49f9d7132de4a8f12e1.rodata" "-" "contrib/python/pytest/_pytest/python_api.py" "_879c73729d00a9281133d0a6d2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python_api.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_05e601f548d2cbaf3e77a93073.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b7ab186ee96d015f6140fcdfa8.rodata" "-" "contrib/python/pytest/_pytest/python.py" "_226669d26a5ee68c9849848c48.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_15aa61aae1c47bd5f75127bce0.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e28bc7bb807cb7ea27de424105.rodata" "-" "contrib/python/pytest/_pytest/recwarn.py" "_4727ca15a39ac98b7082c7006d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9e2e5deb3115669d037bc70f6d.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/reports.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1aefc3635295732d547d5a4bd8.rodata" "-" "contrib/python/pytest/_pytest/reports.py" "_6e4766f90d0e8911a21bea4de3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/reports.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_441999dabea377e468852e12ba.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_18312d27bd4c6c6338e6a6b58d.rodata" "-" "contrib/python/pytest/_pytest/resultlog.py" "_44b01aca206469f7f1bd1edc0b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6d401aa848bd0d9e2f3e024bec.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ecab9dc4d89bef3da1505f0a9b.rodata" "-" "contrib/python/pytest/_pytest/runner.py" "_39aa11363521b94c780b227245.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_633478bd0fb4d6cf6b5bd94677.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_272f7b69bfbc7de3a8a8aab437.rodata" "-" "contrib/python/pytest/_pytest/setuponly.py" "_3de9a57cd6cf389d5fc038c193.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8aee693281601079888c8bff48.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1539d4b940f228a1c90d1aba71.rodata" "-" "contrib/python/pytest/_pytest/setupplan.py" "_d82a6c8969448b99a43eb2694f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4427009ecd9104fadf6f39f6df.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6abb70971eb7704ecc389ab678.rodata" "-" "contrib/python/pytest/_pytest/skipping.py" "_cf817cc913639ca1888de481ea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_bf5891ec0f1e3798f7a79301e8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/stepwise.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0fa38363e2e42e9a051f5c2f9b.rodata" "-" "contrib/python/pytest/_pytest/stepwise.py" "_73afc9b2abec3fb4cbaa434d0d.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_2c70252a220111016db4210536.yasm" "$(SolutionDir)../contrib/python/pytest/_pytest/python_api.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_80bf7ba49f9d7132de4a8f12e1.rodata" "-" "contrib/python/pytest/_pytest/python_api.py" "_879c73729d00a9281133d0a6d2.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python_api.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_05e601f548d2cbaf3e77a93073.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/python.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b7ab186ee96d015f6140fcdfa8.rodata" "-" "contrib/python/pytest/_pytest/python.py" "_226669d26a5ee68c9849848c48.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/python.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_15aa61aae1c47bd5f75127bce0.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/recwarn.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_e28bc7bb807cb7ea27de424105.rodata" "-" "contrib/python/pytest/_pytest/recwarn.py" "_4727ca15a39ac98b7082c7006d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/recwarn.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9e2e5deb3115669d037bc70f6d.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/reports.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1aefc3635295732d547d5a4bd8.rodata" "-" "contrib/python/pytest/_pytest/reports.py" "_6e4766f90d0e8911a21bea4de3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/reports.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_441999dabea377e468852e12ba.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/resultlog.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_18312d27bd4c6c6338e6a6b58d.rodata" "-" "contrib/python/pytest/_pytest/resultlog.py" "_44b01aca206469f7f1bd1edc0b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/resultlog.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6d401aa848bd0d9e2f3e024bec.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/runner.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ecab9dc4d89bef3da1505f0a9b.rodata" "-" "contrib/python/pytest/_pytest/runner.py" "_39aa11363521b94c780b227245.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/runner.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_633478bd0fb4d6cf6b5bd94677.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/setuponly.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_272f7b69bfbc7de3a8a8aab437.rodata" "-" "contrib/python/pytest/_pytest/setuponly.py" "_3de9a57cd6cf389d5fc038c193.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setuponly.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_8aee693281601079888c8bff48.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/setupplan.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1539d4b940f228a1c90d1aba71.rodata" "-" "contrib/python/pytest/_pytest/setupplan.py" "_d82a6c8969448b99a43eb2694f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/setupplan.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_4427009ecd9104fadf6f39f6df.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/skipping.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_6abb70971eb7704ecc389ab678.rodata" "-" "contrib/python/pytest/_pytest/skipping.py" "_cf817cc913639ca1888de481ea.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_pytest/skipping.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_bf5891ec0f1e3798f7a79301e8.rodata" "$(SolutionDir)../contrib/python/pytest/_pytest/stepwise.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_0fa38363e2e42e9a051f5c2f9b.rodata" "-" "contrib/python/pytest/_pytest/stepwise.py" "_73afc9b2abec3fb4cbaa434d0d.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/_2c70252a220111016db4210536.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pytest\_pytest\python_api.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\python_api.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\python.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\python.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\recwarn.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\recwarn.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\reports.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\reports.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\resultlog.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\resultlog.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\runner.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\runner.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\setuponly.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\setuponly.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\setupplan.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\setupplan.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\skipping.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\skipping.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\stepwise.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_2c70252a220111016db4210536.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_80bf7ba49f9d7132de4a8f12e1.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_05e601f548d2cbaf3e77a93073.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_b7ab186ee96d015f6140fcdfa8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_15aa61aae1c47bd5f75127bce0.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e28bc7bb807cb7ea27de424105.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_9e2e5deb3115669d037bc70f6d.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1aefc3635295732d547d5a4bd8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_441999dabea377e468852e12ba.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_18312d27bd4c6c6338e6a6b58d.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_6d401aa848bd0d9e2f3e024bec.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_ecab9dc4d89bef3da1505f0a9b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_633478bd0fb4d6cf6b5bd94677.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_272f7b69bfbc7de3a8a8aab437.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8aee693281601079888c8bff48.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1539d4b940f228a1c90d1aba71.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4427009ecd9104fadf6f39f6df.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_6abb70971eb7704ecc389ab678.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_bf5891ec0f1e3798f7a79301e8.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_0fa38363e2e42e9a051f5c2f9b.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
+      <Project>{32E78DFF-5451-B440-4B35-E627E82B514E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>{1B7E96CA-22DB-5D08-EC22-214B2D56032B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
+      <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>{95B1672E-65CB-6C0E-8AEB-4971392AB876}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>{6048E29B-4487-B4DB-ADA1-4CAAE7C1607F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
+      <Project>{32EDAE47-C9E0-5490-205B-6A1DB239D8BA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.vcxproj">
+      <Project>{2A505A08-73FD-9F97-DBC1-5BC70FFD9C70}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
+      <Project>{B19D597D-A363-F744-6165-C68C1835DD61}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
+      <Project>{7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
+      <Project>{BC62290A-1F8B-7962-8C00-63BFE8DAE2A0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\pycontrib-python-packaging.vcxproj">
+      <Project>{6C15063A-DDDE-66AF-5176-3D80158617E3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
+      <Project>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\pycontrib-python-pluggy.vcxproj">
+      <Project>{655F3AA8-7E17-5AF6-E453-0AD94235E99C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\pycontrib-python-py.vcxproj">
+      <Project>{965E6429-AE78-1C06-E2DA-1B781FCDB7AA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\pycontrib-python-pyparsing.vcxproj">
+      <Project>{CAA5C16F-0EB7-06E7-A793-BEC259BA54A0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\contrib-python-scandir.vcxproj">
+      <Project>{3801D285-214E-7AC0-0EC2-28446F46D262}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
+      <Project>{8179ED86-9B97-876C-F62E-DE7CEB78CDDF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
+      <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>{1230701B-DB69-9B51-E24F-A059CB0400B3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
+      <Project>{37AC15B4-A170-D4C8-25DC-6474572B40BA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
+      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -46,7 +46,7 @@ namespace NKernel {
             for (ui32 fold = x; fold < featureFolds; fold += 32) {
                 const ui32 offset = featureOffset + fold;
                 const float hist0 = histogram[4 * offset];
-                const float hist1 = histogram[4 * offset + 1];
+                // const float hist1 = histogram[4 * offset + 1];
                 const float hist2 = histogram[4 * offset + 2];
                 const float hist3 = histogram[4 * offset + 3];
 

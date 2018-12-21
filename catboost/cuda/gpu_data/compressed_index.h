@@ -8,7 +8,7 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
+#include <catboost/libs/data_new/data_provider.h>
 
 namespace NCatboostCuda {
     //just meta for printing/debugging
@@ -48,11 +48,11 @@ namespace NCatboostCuda {
             }
 
             bool HasFeature(ui32 featureId) const {
-                return FeaturePolicy.has(featureId);
+                return FeaturePolicy.contains(featureId);
             }
 
             const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
-                Y_ASSERT(FeaturePolicy.has(featureId));
+                Y_ASSERT(FeaturePolicy.contains(featureId));
                 const auto& policy = FeaturePolicy.at(featureId);
                 return PolicyBlocks.at(policy)->GetTCFeature(featureId);
             }
@@ -66,7 +66,7 @@ namespace NCatboostCuda {
             };
 
             bool HasFeaturesForPolicy(EFeaturesGroupingPolicy policy) const {
-                return PolicyBlocks.has(policy);
+                return PolicyBlocks.contains(policy);
             }
 
             const THistogramsMapping& GetHistogramsMapping(EFeaturesGroupingPolicy policy) const {
@@ -94,7 +94,7 @@ namespace NCatboostCuda {
             }
 
             ui32 GetGridSize(EFeaturesGroupingPolicy policy) const {
-                if (!PolicyBlocks.has(policy)) {
+                if (!PolicyBlocks.contains(policy)) {
                     return 0;
                 }
                 return PolicyBlocks.at(policy)->CudaFeaturesHost.size();
@@ -164,7 +164,7 @@ namespace NCatboostCuda {
             }
 
             void PrintInfo() const {
-                MATRIXNET_INFO_LOG << "Compressed DataSet " << Description.Name << " with features #" << ActiveFeatureIds.size() << " features" << Endl;
+                CATBOOST_INFO_LOG << "Compressed DataSet " << Description.Name << " with features #" << ActiveFeatureIds.size() << " features" << Endl;
 
                 for (const auto& entry : PolicyBlocks) {
                     EFeaturesGroupingPolicy policy = entry.first;
@@ -173,7 +173,7 @@ namespace NCatboostCuda {
                     for (auto dev : featuresMapping.NonEmptyDevices()) {
                         const ui32 featuresAtDevice = featuresMapping.DeviceSlice(dev).Size();
                         const ui32 docsAtDevice = block.Samples.DeviceSlice(dev).Size();
-                        MATRIXNET_INFO_LOG << "Grid policy " << policy << Endl << "Memory usage for " << featuresAtDevice << " features, " << docsAtDevice << " documents at #"
+                        CATBOOST_INFO_LOG << "Grid policy " << policy << Endl << "Memory usage for " << featuresAtDevice << " features, " << docsAtDevice << " documents at #"
                                            << dev << ": " << block.CIndexSizes.At(dev) * sizeof(ui32) * 1.0 / 1024 / 1024 << " MB" << Endl;
                     }
                 }

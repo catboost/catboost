@@ -201,7 +201,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Timestamp:
             case EColumn::Prediction:
             case EColumn::Auxiliary:
-                ythrow TCatboostException() << "unexpected column type in quantized pool";
+                ythrow TCatBoostException() << "unexpected column type in quantized pool";
         }
 
         metainfo.MutableColumnIndexToType()->insert({static_cast<ui32>(columnIndex), pbColumnType});
@@ -372,7 +372,7 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
         EColumn type;
         switch (pbType) {
             case NCB::NIdl::CT_UNKNOWN:
-                ythrow TCatboostException() << "unknown column type in quantized pool";
+                ythrow TCatBoostException() << "unknown column type in quantized pool";
             case NCB::NIdl::CT_NUMERIC:
                 type = EColumn::Num;
                 break;
@@ -496,7 +496,7 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         ui32 featureIndex;
         ReadLittleEndian(&featureIndex, &epilog);
 
-        CB_ENSURE(!pool.ColumnIndexToLocalIndex.has(featureIndex),
+        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(featureIndex),
             "Quantized pool should have unique feature indices, but " <<
             LabeledOutput(featureIndex) << " is repeated.");
 
@@ -607,7 +607,7 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
         featureIndex += columnType == NCB::NIdl::CT_NUMERIC || columnType == NCB::NIdl::CT_CATEGORICAL;
         switch (columnType) {
             case NCB::NIdl::CT_UNKNOWN:
-                ythrow TCatboostException() << "unknown column type in quantized pool";
+                ythrow TCatBoostException() << "unknown column type in quantized pool";
             case NCB::NIdl::CT_NUMERIC: {
                 if (quantizationSchema.GetFeatureIndexToSchema().count(featureIndex) == 0) {
                     continue; //TODO(kirillovs): is this proper way to skip ignored features?
@@ -625,7 +625,7 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
                 } else if (borders.size() < 1 << 8) {
                     ++digest.NumericFeature8BitCount;
                 } else {
-                    ythrow TCatboostException() << "unsupported quantized feature bitness";
+                    ythrow TCatBoostException() << "unsupported quantized feature bitness";
                 }
                 break;
             }

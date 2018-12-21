@@ -175,7 +175,7 @@ namespace NNetliba_v12 {
             MinValue = Min(t, MinValue);
         }
         bool Has(const T& t) const {
-            return Set.has(t);
+            return Set.contains(t);
         }
 
         bool Empty() const {

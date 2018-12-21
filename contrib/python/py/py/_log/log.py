@@ -14,7 +14,9 @@ XXX implement this API: (maybe put it into slogger.py?)
                      debug=py.log.STDOUT,
                      command=None)
 """
-import py, sys
+import py
+import sys
+
 
 class Message(object):
     def __init__(self, keywords, args):
@@ -70,6 +72,7 @@ class KeywordMapper:
 
     def getstate(self):
         return self.keywords2consumer.copy()
+
     def setstate(self, state):
         self.keywords2consumer.clear()
         self.keywords2consumer.update(state)
@@ -104,17 +107,22 @@ class KeywordMapper:
             consumer = File(consumer)
         self.keywords2consumer[keywords] = consumer
 
+
 def default_consumer(msg):
     """ the default consumer, prints the message to stdout (using 'print') """
     sys.stderr.write(str(msg)+"\n")
 
 default_keywordmapper = KeywordMapper()
 
+
 def setconsumer(keywords, consumer):
     default_keywordmapper.setconsumer(keywords, consumer)
 
+
 def setstate(state):
     default_keywordmapper.setstate(state)
+
+
 def getstate():
     return default_keywordmapper.getstate()
 
@@ -122,11 +130,12 @@ def getstate():
 # Consumers
 #
 
+
 class File(object):
     """ log consumer wrapping a file(-like) object """
     def __init__(self, f):
         assert hasattr(f, 'write')
-        #assert isinstance(f, file) or not hasattr(f, 'open')
+        # assert isinstance(f, file) or not hasattr(f, 'open')
         self._file = f
 
     def __call__(self, msg):
@@ -134,6 +143,7 @@ class File(object):
         self._file.write(str(msg) + "\n")
         if hasattr(self._file, 'flush'):
             self._file.flush()
+
 
 class Path(object):
     """ log consumer that opens and writes to a Path """
@@ -158,29 +168,39 @@ class Path(object):
         if not self._buffering:
             self._file.flush()
 
+
 def STDOUT(msg):
     """ consumer that writes to sys.stdout """
     sys.stdout.write(str(msg)+"\n")
+
 
 def STDERR(msg):
     """ consumer that writes to sys.stderr """
     sys.stderr.write(str(msg)+"\n")
 
+
 class Syslog:
     """ consumer that writes to the syslog daemon """
 
-    def __init__(self, priority = None):
+    def __init__(self, priority=None):
         if priority is None:
             priority = self.LOG_INFO
         self.priority = priority
 
     def __call__(self, msg):
         """ write a message to the log """
-        py.std.syslog.syslog(self.priority, str(msg))
+        import syslog
+        syslog.syslog(self.priority, str(msg))
 
-for _prio in "EMERG ALERT CRIT ERR WARNING NOTICE INFO DEBUG".split():
-    _prio = "LOG_" + _prio
-    try:
-        setattr(Syslog, _prio, getattr(py.std.syslog, _prio))
-    except AttributeError:
-        pass
+
+try:
+    import syslog
+except ImportError:
+    pass
+else:
+    for _prio in "EMERG ALERT CRIT ERR WARNING NOTICE INFO DEBUG".split():
+        _prio = "LOG_" + _prio
+        try:
+            setattr(Syslog, _prio, getattr(syslog, _prio))
+        except AttributeError:
+            pass

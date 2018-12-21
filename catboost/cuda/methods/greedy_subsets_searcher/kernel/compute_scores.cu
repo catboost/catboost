@@ -104,8 +104,8 @@ namespace NKernel {
                 result->BinId = bf[index].BinId;
                 result->Score = scores[0];
             } else {
-                result->FeatureId = -1;
-                result->BinId = -1;
+                result->FeatureId = static_cast<ui32>(-1);
+                result->BinId = static_cast<ui32>(-1);
                 result->Score = FLT_MAX;
 
             }

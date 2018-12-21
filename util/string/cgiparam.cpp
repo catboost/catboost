@@ -10,7 +10,7 @@ TCgiParameters::TCgiParameters(std::initializer_list<std::pair<TString, TString>
     }
 }
 
-const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) const {
+const TString& TCgiParameters::Get(const TStringBuf name, size_t numOfValue) const noexcept {
     const auto it = Find(name, numOfValue);
 
     return end() == it ? Default<TString>() : it->second;
@@ -69,7 +69,7 @@ void TCgiParameters::JoinUnescaped(const TStringBuf key, char sep, TStringBuf va
 
         for (++it; it != pair.second; erase(it++)) {
             dst += sep;
-            dst.AppendNoAlias(~it->second, +it->second);
+            dst.AppendNoAlias(it->second.data(), it->second.size());
         }
 
         if (val.IsInited()) {
@@ -82,8 +82,8 @@ void TCgiParameters::JoinUnescaped(const TStringBuf key, char sep, TStringBuf va
 static inline TString DoUnescape(const TStringBuf s) {
     TString res;
 
-    res.reserve(CgiUnescapeBufLen(+s));
-    res.ReserveAndResize(+CgiUnescape(res.begin(), s));
+    res.reserve(CgiUnescapeBufLen(s.size()));
+    res.ReserveAndResize(CgiUnescape(res.begin(), s).size());
 
     return res;
 }
@@ -143,7 +143,7 @@ TString TCgiParameters::Print() const {
 
     res.reserve(PrintSize());
     const char* end = Print(res.begin());
-    res.ReserveAndResize(end - ~res);
+    res.ReserveAndResize(end - res.data());
 
     return res;
 }
@@ -172,7 +172,7 @@ size_t TCgiParameters::PrintSize() const noexcept {
     size_t res = size(); // for '&'
 
     for (const auto& i : *this) {
-        res += CgiEscapeBufLen(+i.first + +i.second); // extra zero will be used for '='
+        res += CgiEscapeBufLen(i.first.size() + i.second.size()); // extra zero will be used for '='
     }
 
     return res;
@@ -199,11 +199,11 @@ TString TCgiParameters::QuotedPrint(const char* safe) const {
         *ptr++ = '&';
     }
 
-    res.ReserveAndResize(ptr - ~res);
+    res.ReserveAndResize(ptr - res.data());
     return res;
 }
 
-TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const {
+TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it, --pos) {
@@ -215,7 +215,7 @@ TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_
     return end();
 }
 
-bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const {
+bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it) {
@@ -228,14 +228,14 @@ bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const {
 }
 
 TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
-    UnescapeBuf.reserve(CgiUnescapeBufLen(+cgiParamStr));
+    UnescapeBuf.reserve(CgiUnescapeBufLen(cgiParamStr.size()));
     char* buf = UnescapeBuf.begin();
 
     auto f = [this, &buf](const TStringBuf key, const TStringBuf val) {
         TStringBuf name = CgiUnescapeBuf(buf, key);
-        buf += +name + 1;
+        buf += name.size() + 1;
         TStringBuf value = CgiUnescapeBuf(buf, val);
-        buf += +value + 1;
+        buf += value.size() + 1;
         Y_ASSERT(buf <= UnescapeBuf.begin() + UnescapeBuf.reserve() + 1 /*trailing zero*/);
         emplace(name, value);
     };
@@ -247,7 +247,7 @@ TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
     }
 }
 
-const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const {
+const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it, --pos) {
@@ -259,7 +259,7 @@ const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const {
     return Default<TStringBuf>();
 }
 
-bool TQuickCgiParam::Has(const TStringBuf name, const TStringBuf value) const {
+bool TQuickCgiParam::Has(const TStringBuf name, const TStringBuf value) const noexcept {
     const auto pair = equal_range(name);
 
     for (auto it = pair.first; it != pair.second; ++it) {

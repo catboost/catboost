@@ -104,7 +104,7 @@ struct TDumper<TIndentNewLine> {
     template <class S>
     static inline void Dump(S& s, const TIndentNewLine&) {
         if (s.Indent) {
-            s << DumpRaw("\n") << DumpRaw(~TString(s.IndentLevel * 4, ' '));
+            s << DumpRaw("\n") << DumpRaw(TString(s.IndentLevel * 4, ' ').data());
         }
     }
 };

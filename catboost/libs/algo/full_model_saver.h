@@ -4,18 +4,16 @@
 #include "online_ctr.h"
 #include "projection.h"
 
-#include <catboost/libs/data/dataset.h>
-#include <catboost/libs/data/pool.h>
-
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/ctr_value_table.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/online_ctr.h>
 #include <catboost/libs/model/target_classifier.h>
-
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/load_options.h>
+#include <catboost/libs/target/classification_target_helper.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
@@ -37,41 +35,46 @@ namespace NCB {
 
     public:
         TCoreModelToFullModelConverter(
-            ui32 numThreads,
-            EFinalCtrComputationMode finalCtrComputationMode,
-            ui64 cpuRamLimit,
+            const NCatboostOptions::TCatBoostOptions& options,
+            const TClassificationTargetHelper& classificationTargetHelper,
             ui64 ctrLeafCountLimit,
             bool storeAllSimpleCtrs,
-            const NCatboostOptions::TCatFeatureParams& catFeatureParams
+            EFinalCtrComputationMode finalCtrComputationMode
         );
 
         TCoreModelToFullModelConverter& WithCoreModelFrom(TFullModel* coreModel);
 
-        TCoreModelToFullModelConverter& WithCoreModelFrom(const TString& coreModelPath);
+        TCoreModelToFullModelConverter& WithObjectsDataFrom(TObjectsDataProviderPtr learnObjectsData);
 
         TCoreModelToFullModelConverter& WithBinarizedDataComputedFrom(
-            const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
-            const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjection
+            TDatasetDataForFinalCtrs&& datasetDataForFinalCtrs,
+            THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection
         );
 
         TCoreModelToFullModelConverter& WithBinarizedDataComputedFrom(
-            const TClearablePoolPtrs& pools,
+            TTrainingForCPUDataProviders&& trainingData,
+            THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
             const TVector<TTargetClassifier>& targetClassifiers
         );
 
-        TCoreModelToFullModelConverter& WithBinarizedDataComputedFrom(
-            const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
-            const TVector<TString>& classNames,
-            const TVector<TTargetClassifier>& targetClassifiers
+        TCoreModelToFullModelConverter& WithPerfectHashedToHashedCatValuesMap(
+            const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap
         );
 
-        void Do(TFullModel* dstModel, bool requiresStaticCtrProvider);
+        void Do(bool requiresStaticCtrProvider, TFullModel* dstModel);
 
-        void Do(const TString& fullModelPath);
+        void Do(
+            const TString& fullModelPath,
+            const TVector<EModelType>& formats,
+            bool addFileFormatExtension = false
+        );
 
     private:
+        void DoImpl(bool requiresStaticCtrProvider, TFullModel* fullModel);
+
         void CalcFinalCtrs(
-            const TFullModel& coreModel,
+            const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+            const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
             const TVector<TModelCtrBase>& ctrBases,
             std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
         );
@@ -87,9 +90,12 @@ namespace NCB {
         ui64 CtrLeafCountLimit;
         bool StoreAllSimpleCtrs;
 
-        const NCatboostOptions::TCatFeatureParams& CatFeatureParams;
+        const NCatboostOptions::TCatBoostOptions& Options;
+        const TClassificationTargetHelper& ClassificationTargetHelper;
 
-        TGetCoreModelFunc GetCoreModelFunc;
+        TFullModel* CoreModel = nullptr;
+        const NCB::TPerfectHashedToHashedCatValuesMap* PerfectHashedToHashedCatValuesMap = nullptr;
         TGetBinarizedDataFunc GetBinarizedDataFunc;
+        TObjectsDataProviderPtr LearnObjectsData;
     };
 }

@@ -10,15 +10,16 @@ static TMetricHolder ComputeBrierScoreMetric(TConstArrayRef<double> approxes,
                                       TConstArrayRef<float> targets,
                                       TConstArrayRef<float> weights) {
     Y_ASSERT(approxes.size() == targets.size());
-    Y_ASSERT(approxes.size() == weights.size());
+    Y_ASSERT(weights.empty() || (approxes.size() == weights.size()));
 
     TMetricHolder error(2);
 
     double score = 0;
     double sum = 0;
     for (size_t i = 0; i < approxes.size(); ++i) {
-        score += Sqr(targets[i] - approxes[i]) * weights[i];
-        sum += weights[i];
+        float weight = weights.empty() ? 1.0f : weights[i];
+        score += Sqr(targets[i] - approxes[i]) * weight;
+        sum += weight;
     }
 
     error.Stats[0] = score;
@@ -36,5 +37,5 @@ TMetricHolder ComputeBrierScoreMetric(TConstArrayRef<double> approxes,
     return ComputeBrierScoreMetric(
             CalcSigmoid(TVector<double>(partOfApproxes.begin(), partOfApproxes.end())),
             targets.Slice(begin, end - begin),
-            weights.Slice(begin, end - begin));
+            weights.empty() ? TConstArrayRef<float>() : weights.Slice(begin, end - begin));
 }

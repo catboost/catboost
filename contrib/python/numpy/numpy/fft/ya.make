@@ -1,4 +1,4 @@
-LIBRARY()
+PY23_LIBRARY()
 
 LICENSE(
     BSD3
@@ -34,6 +34,6 @@ PY_SRCS(
     info.py
 )
 
-PY_REGISTER(numpy.fft.fftpack_lite)
+PY_REGISTER(numpy.fft.fftpack_lite=fftpack_lite)
 
 END()

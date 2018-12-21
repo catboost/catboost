@@ -93,7 +93,7 @@ Y_UNIT_TEST_SUITE(TestChunkedIO) {
 
         try {
             TString badChunk = "10\r\nqwerty";
-            TMemoryInput mi(~badChunk, +badChunk);
+            TMemoryInput mi(badChunk.data(), badChunk.size());
             TChunkedInput ci(&mi);
             TransferData(&ci, &Cnull);
         } catch (...) {

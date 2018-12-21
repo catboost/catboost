@@ -16,31 +16,33 @@ namespace NCatboostCuda {
 
     void TCompressedCatFeatureDataSetBuilder::Finish() {
         CB_ENSURE(!BuildDone, "Error: build could be done only once");
-        MATRIXNET_INFO_LOG << "Build catFeatures compressed dataset "
+        CATBOOST_INFO_LOG << "Build catFeatures compressed dataset "
                            << "for "
                            << DataSet.GetFeatureCount() << " features and " << DataSet.GetDocCount() << " documents"
                            << Endl;
 
         for (ui32 dev = 0; dev < DevCount; ++dev) {
-            MATRIXNET_INFO_LOG
+            CATBOOST_INFO_LOG
                 << "Memory usage at #" << dev << ": " << sizeof(ui64) * MemoryUsage[dev] * 1.0 / 1024 / 1024 << "MB"
                 << Endl;
         }
         BuildDone = true;
     }
 
-    template<EPtrType PtrType>
+    template <EPtrType PtrType>
     TCompressedCatFeatureDataSetBuilder& TCompressedCatFeatureDataSetBuilder::AddImpl(ui32 featureId,
                                                                                       TVector<typename TCompressedCatFeatureDataSet::TCompressedCatFeatureVec<PtrType>>* dst) {
         const ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);
-        const auto& catFeature = dynamic_cast<const ICatFeatureValuesHolder&>(DataProvider.GetFeatureById(
-                dataProviderId));
+        const auto& catFeature = **(DataProvider.ObjectsData->GetCatFeature(
+            DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(dataProviderId)
+        ));
+
         const ui64 docCount = catFeature.GetSize();
 
-        auto uncompressedCatFeature = catFeature.ExtractValues();
+        auto uncompressedCatFeature = catFeature.ExtractValues(LocalExecutor);
         TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
-                NCudaLib::TSingleMapping(DeviceId, uncompressedCatFeature.size()));
-        tmp.Write(uncompressedCatFeature);
+                NCudaLib::TSingleMapping(DeviceId, (*uncompressedCatFeature).size()));
+        tmp.Write(*uncompressedCatFeature);
         const auto uniqueValues = FeaturesManager.GetBinCount(featureId);
         const auto compressedSize = CompressedSize<ui64>((ui32)docCount, uniqueValues);
         auto compressedMapping = NCudaLib::TSingleMapping(DeviceId, compressedSize);

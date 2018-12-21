@@ -188,6 +188,7 @@ static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcep
  * BUGS: Currently will NOT work properly with strings that contain
  * 0-terminator character inside.
  */
+Y_PURE_FUNCTION
 int AsciiCompareIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept;
 
 /**
