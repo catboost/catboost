@@ -2455,7 +2455,7 @@ cdef class _CatBoost:
         if pool:
             dataProviderPtr = pool.__pool
         cdef TString fstr_type_name_str = to_arcadia_string(fstr_type_name)
-        if fstr_type_name == b'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
                     fstr_type_name_str,
@@ -2705,10 +2705,10 @@ cdef _FloatOrStringFromString(char* s):
     cdef double parsed = StrToD(s, &stop)
     cdef float res
     if len(s) == 0:
-        return s
+        return str()
     elif stop == s + len(s):
         return float(parsed)
-    return s
+    return to_native_str(bytes(s))
 
 
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
