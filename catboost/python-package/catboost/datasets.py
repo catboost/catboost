@@ -134,7 +134,7 @@ def adult():
     dir_path = os.path.join(_get_cache_path(), 'adult')
     _ensure_dir_exists(dir_path)
 
-    # proxy.sanddbox.yandex-team.ru is Yandex internal storage, we first try to download it from
+    # proxy.sandbox.yandex-team.ru is Yandex internal storage, we first try to download it from
     # internal storage to avoid putting too much pressure on UCI storage from our internal CI
 
     train_urls = (
@@ -151,19 +151,14 @@ def adult():
     test_path = os.path.join(dir_path, 'test.csv')
     _cached_download(test_urls, test_md5, test_path)
 
-    train_df = pd.read_csv(train_path, names=names, header=None, sep=',\s*', na_values=['?'])
-    test_df = pd.read_csv(test_path, names=names, header=None, sep=',\s*', na_values=['?'], skiprows=1)
-
-    # pandas 0.19.1 doesn't support `dtype` parameter for `read_csv` when `python` engine is used, so
-    # we have to do the casting manually
-    train_df = train_df.astype(dtype)
-    test_df = test_df.astype(dtype)
+    train_df = pd.read_csv(train_path, names=names, header=None, sep=',\s*', na_values=['?'], engine='python')
 
     # lines in test part end with dot, thus we need to fix last column of the dataset
-    #
-    # pandas has a bug in DataFrame.replace when using it with Python 3.5, so we have to do all the
-    # staff manually; see #21098 in pandas GitHub
-    for i in range(test_df.income.size):
-        test_df.income[i] = test_df.income[i][:-1]
+    test_df = pd.read_csv(test_path, names=names, header=None, sep=',\s*', na_values=['?'], skiprows=1, converters={'income': lambda x: x[:-1]}, engine='python')
+
+    # pandas 0.19.1 doesn't support `dtype` parameter for `read_csv` when `python` engine is used,
+    # so we have to do the casting manually; also we can't use `converters` together with `dtype`
+    train_df = train_df.astype(dtype)
+    test_df = test_df.astype(dtype)
 
     return train_df, test_df
