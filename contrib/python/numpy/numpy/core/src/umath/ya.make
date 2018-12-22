@@ -1,12 +1,10 @@
-LIBRARY()
+PY23_LIBRARY()
 
 LICENSE(
     BSD3
 )
 
 
-
-USE_PYTHON()
 
 NO_COMPILER_WARNINGS()
 
@@ -39,7 +37,7 @@ SRCS(
     umathmodule.c
 )
 
-PY_REGISTER(numpy.core.umath)
-PY_REGISTER(numpy.core.umath_tests)
+PY_REGISTER(numpy.core.umath=umath)
+PY_REGISTER(numpy.core.umath_tests=umath_tests)
 
 END()

@@ -492,7 +492,7 @@ namespace NKernel {
     #undef ALIGN_MEMORY_GATHER
 
 
-    template<class THist, int BlockSize, int GroupSize>
+    template <class THist, int BlockSize, int GroupSize>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
@@ -557,7 +557,7 @@ namespace NKernel {
     }
 
 
-    template<class THist, int BlockSize, int GroupSize>
+    template <class THist, int BlockSize, int GroupSize>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else

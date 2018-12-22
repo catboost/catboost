@@ -134,6 +134,28 @@ enum class EFwdEnum {
 enum EEmpty {
 };
 
+namespace NComposite::NInner {
+    enum EInCompositeNamespaceSimple {
+        one,
+        two = 2,
+        three,
+    };
+}
+
+namespace NOuterSimple {
+    namespace NComposite::NMiddle::NInner {
+        namespace NInnerSimple {
+            class TEnumClass {
+            public:
+                enum EVeryDeep {
+                    Key0 = 0,
+                    Key1 = 1,
+                };
+            };
+        }
+    }
+}
+
 /*
  * Still unsupported features:
  *

@@ -1,13 +1,11 @@
 
 
-LIBRARY()
+PY_LIBRARY()
 
-PY_SRCS(
-    conftest.py
+PY_SRCS(conftest.py)
+
+PEERDIR(
+    contrib/python/pytest-allure-adaptor
 )
 
-PEERDIR(contrib/python/pytest-allure-adaptor)
-
 END()
-
-NEED_CHECK()

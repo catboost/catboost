@@ -2,7 +2,7 @@
 
 #include "pool.h"
 
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data_new/meta_info.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/vector.h>
@@ -16,7 +16,11 @@ TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool);
 
 THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool);
 
-TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditionalGroupWeight);
+NCB::TDataMetaInfo GetDataMetaInfo(
+    const NCB::TQuantizedPool& pool,
+    bool hasAdditionalGroupWeight,
+    bool hasPairs
+);
 
 // Returns flat indices of all categorical features
 // Sorted from min to max
@@ -24,4 +28,4 @@ TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool);
 
 // Returns flat indices of all ignored features
 // Sorted from min to max
-TVector<int> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool);
+TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool);

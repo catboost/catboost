@@ -1,6 +1,7 @@
 UNITTEST_FOR(library/digest/md5)
 
 SIZE(MEDIUM)
+
 TIMEOUT(120)
 
 
@@ -10,5 +11,3 @@ SRCS(
 )
 
 END()
-
-NEED_CHECK()

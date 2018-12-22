@@ -404,6 +404,9 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
         ret = ParseISO8601DateTime("1990-03-151T15:16:17.18Z+21:32", t);
         UNIT_ASSERT(!ret);
+
+        ret = ParseISO8601DateTime("1990-03-29 01:42:57.7587777777", t);
+        UNIT_ASSERT(!ret);
     }
 
     Y_UNIT_TEST(TestIso8601Fractions) {
@@ -522,6 +525,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
 Y_UNIT_TEST_SUITE(TDurationParseTest) {
     Y_UNIT_TEST(TestParse) {
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60*60*24*7), TDuration::Parse("1w"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60), TDuration::Parse("1m"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(90), TDuration::Parse("1.5m"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(102), TDuration::Parse("1.7m"));

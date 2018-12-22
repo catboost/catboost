@@ -38,7 +38,7 @@ class XsynParser(object):
     def __init__(self, path, unit):
         self._path = path
         self._includes = []
-        retargeted = os.path.join(unit.path(), os.path.basename(path))
+        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
 
         self._includes = get_all_includes(path)
         self._includes = unit.resolve_include([retargeted] + self._includes) if self._includes else []

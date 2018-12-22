@@ -86,7 +86,7 @@ public:
 };
 
 inline bool DoOutputIteration(int currentIteration, int iterationsCount, int writePeriod) {
-    return currentIteration % writePeriod == 0 || currentIteration == iterationsCount - 1;
+    return writePeriod > 0 && (currentIteration % writePeriod == 0 || currentIteration == iterationsCount - 1);
 }
 
 class TJsonLoggingBackend : public ILoggingBackend {
@@ -170,7 +170,7 @@ public:
 
     void Flush(const int currentIteration) {
         if (!Stream.empty() && DoOutputIteration(currentIteration, IterationsCount, WritePeriod)) {
-            MATRIXNET_NOTICE_LOG << currentIteration << ":" << Stream.Str() << Endl;
+            CATBOOST_NOTICE_LOG << currentIteration << ":" << Stream.Str() << Endl;
         }
         Stream.Clear();
     }
@@ -461,9 +461,9 @@ private:
 
 void LogAverages(const TProfileResults& profileResults);
 
-class TFstrLogger {
+class TImportanceLogger {
 public:
-    TFstrLogger(
+    TImportanceLogger(
         size_t iterations,
         const TString& processedObjectToken,
         const TString& introductionLog,
@@ -476,7 +476,7 @@ public:
     {
         if (!writePeriod)
             return;
-        MATRIXNET_INFO_LOG << introductionLog << Endl;
+        CATBOOST_INFO_LOG << introductionLog << Endl;
     }
 
     void Log(const TProfileResults& profileResults) {
@@ -486,10 +486,10 @@ public:
         PassedIterations = profileResults.PassedIterations;
 
         if (GetLastWriteIterationsNumber() > oldPassedIterations) {
-            MATRIXNET_INFO_LOG << profileResults.PassedIterations << "/" << Iterations << " " << ProcessedObjectToken;
-            MATRIXNET_INFO_LOG << "\tpassed time: " << HumanReadable(TDuration::Seconds(profileResults.PassedTime));
-            MATRIXNET_INFO_LOG << "\tremaining time: " << HumanReadable(TDuration::Seconds(profileResults.RemainingTime)) << " sec";
-            MATRIXNET_INFO_LOG << Endl;
+            CATBOOST_INFO_LOG << profileResults.PassedIterations << "/" << Iterations << " " << ProcessedObjectToken;
+            CATBOOST_INFO_LOG << "\tpassed time: " << HumanReadable(TDuration::Seconds(profileResults.PassedTime));
+            CATBOOST_INFO_LOG << "\tremaining time: " << HumanReadable(TDuration::Seconds(profileResults.RemainingTime)) << " sec";
+            CATBOOST_INFO_LOG << Endl;
         }
     }
 private:

@@ -7,5 +7,3 @@ RESOURCE(
 )
 
 END()
-
-NEED_CHECK()

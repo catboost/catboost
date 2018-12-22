@@ -1,31 +1,36 @@
 #include "train_model.h"
+
+#include "approx_dimension.h"
+#include "cross_validation.h"
+#include "data.h"
 #include "preprocess.h"
 
+#include <catboost/libs/algo/full_model_saver.h>
+#include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/train.h>
+#include <catboost/libs/algo/tree_print.h>
+#include <catboost/libs/data_new/borders_io.h>
+#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/distributed/master.h>
+#include <catboost/libs/distributed/worker.h>
+#include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/helpers/int_cast.h>
+#include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/helpers/query_info_helper.h>
+#include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/model/ctr_data.h>
+#include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/options/system_options.h>
-#include <catboost/libs/algo/train.h>
-#include <catboost/libs/algo/helpers.h>
-#include <catboost/libs/distributed/master.h>
-#include <catboost/libs/distributed/worker.h>
-#include <catboost/libs/helpers/permutation.h>
-#include <catboost/libs/helpers/query_info_helper.h>
-#include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/pairs/util.h>
-#include <catboost/libs/model/ctr_data.h>
-#include <catboost/libs/model/model_build_helper.h>
-#include <catboost/libs/algo/full_model_saver.h>
-#include <catboost/libs/algo/tree_print.h>
-#include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/cv_data_partition.h>
-#include <catboost/libs/data/load_data.h>
-#include <catboost/libs/helpers/mem_usage.h>
-#include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/labels/label_helper_builder.h>
-#include <catboost/libs/logging/profile_info.h>
-#include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/fstr/output_fstr.h>
-#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/target/classification_target_helper.h>
 
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
@@ -35,77 +40,72 @@
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/random/shuffle.h>
+#include <util/system/compiler.h>
 #include <util/system/hp_timer.h>
 #include <util/system/info.h>
 
-using NCB::TEvalResult;
-using NCB::ValidateColumnOutput;
 
-namespace {
-void ShrinkModel(int itCount, TLearnProgress* progress) {
+using namespace NCB;
+
+
+static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     progress->LeafValues.resize(itCount);
     progress->TreeStruct.resize(itCount);
+    progress->TreeStats.resize(itCount);
+    progress->UsedCtrSplits.clear();
+    for (const auto& tree: progress->TreeStruct) {
+        for (const auto& split: tree.GetCtrSplits()) {
+            TProjection projection = split.Projection;
+            ECtrType ctrType = ctrsHelper.GetCtrInfo(projection)[split.CtrIdx].Type;
+            progress->UsedCtrSplits.insert(std::make_pair(ctrType, projection));
+        }
+    }
 }
 
 static int GetThreadCount(const NCatboostOptions::TCatBoostOptions& options) {
     return Min<int>(options.SystemOptions->NumThreads, (int)NSystemInfo::CachedNumberOfCpus());
 }
 
-static inline bool IsMultiClass(const ELossFunction lossFunction,
-                                const NCatboostOptions::TMetricOptions& metricOptions) {
-    return IsMultiClassError(lossFunction) ||
-           (lossFunction == ELossFunction::Custom &&
-            metricOptions.EvalMetric.IsSet() &&
-            IsMultiClassError(metricOptions.EvalMetric->GetLossFunction()));
-}
 
-static inline NCB::TTargetConverter MakeTargetConverter(
-    NCatboostOptions::TCatBoostOptions& catBoostOptions
-) {
-    ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
-    const bool isMulticlass = IsMultiClass(lossFunction, catBoostOptions.MetricOptions);
-
-    auto& classNames = catBoostOptions.DataProcessingOptions->ClassNames.Get();
-    int classesCount = catBoostOptions.DataProcessingOptions->ClassesCount.Get();
-
-    EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
-
-    if (!classNames.empty()) {
-        targetPolicy = EConvertTargetPolicy::UseClassNames;
-    } else {
-        if (isMulticlass && classesCount == 0) {
-            targetPolicy = EConvertTargetPolicy::MakeClassNames;
-        }
-    }
-
-    return NCB::TTargetConverter(targetPolicy, classNames, &classNames);
-}
-
-static void LoadPools(
+static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
+    EObjectsOrder objectsOrder,
     int threadCount,
-    NCB::TTargetConverter* const trainTargetConverter,
-    TProfileInfo* profile,
-    TTrainPools* pools) {
-
-    NCB::ReadTrainPools(loadOptions, true, threadCount, trainTargetConverter, profile, pools);
-
+    TProfileInfo* profile
+) {
     const auto& cvParams = loadOptions.CvParams;
-    if (cvParams.FoldCount != 0) {
-        CB_ENSURE(loadOptions.TestSetPaths.empty(), "Test files are not supported in cross-validation mode");
-        Y_VERIFY(cvParams.FoldIdx != -1);
+    const bool cvMode = cvParams.FoldCount != 0;
+    CB_ENSURE(
+        !cvMode || loadOptions.TestSetPaths.empty(),
+        "Test files are not supported in cross-validation mode"
+    );
 
-        pools->Test.resize(1);
-        BuildCvPools(
+    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, threadCount, profile);
+
+    if (cvMode) {
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(threadCount - 1);
+
+        if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
+            TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
+
+            auto objectsGroupingSubset = NCB::Shuffle(pools.Learn->ObjectsGrouping, 1, &rand);
+            pools.Learn = pools.Learn->GetSubset(objectsGroupingSubset, &localExecutor);
+        }
+
+        TVector<TDataProviders> foldPools = PrepareCvFolds<TDataProviders>(
+            std::move(pools.Learn),
+            cvParams,
             cvParams.FoldIdx,
-            cvParams.FoldCount,
-            cvParams.Inverted,
-            cvParams.RandSeed,
-            threadCount,
-            &pools->Learn,
-            &(pools->Test[0])
-        );
+            /* oldCvStyleSplit */ true,
+            &localExecutor);
+        Y_VERIFY(foldPools.size() == 1);
+
         profile->AddOperation("Build cv pools");
+
+        return foldPools[0];
+    } else {
+        return pools;
     }
 }
 
@@ -127,16 +127,15 @@ static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues
 }
 
 static void Train(
-    const TDataset& learnData,
-    const TDatasetPtrs& testDataPtrs,
+    const TTrainingForCPUDataProviders& data,
+    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
     TProfileInfo& profile = ctx->Profile;
 
     const int approxDimension = ctx->LearnProgress.ApproxDimension;
-    const bool hasTest = GetSampleCount(testDataPtrs) > 0;
-    auto trainOneIterationFunc = GetOneIterationFunc(ctx->Params.LossFunctionDescription->GetLossFunction());
+    const bool hasTest = data.GetTestSampleCount() > 0;
     TVector<THolder<IMetric>> metrics = CreateMetrics(
         ctx->Params.LossFunctionDescription,
         ctx->Params.MetricOptions,
@@ -144,6 +143,11 @@ static void Train(
         approxDimension
     );
     CheckMetrics(metrics, ctx->Params.LossFunctionDescription.Get().GetLossFunction());
+    if (!ctx->Params.SystemOptions->IsSingleHost()) {
+        if (!AllOf(metrics, [](const auto& metric) { return metric->IsAdditiveMetric(); })) {
+            CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
+        }
+    }
 
     EMetricBestValue bestValueType;
     float bestPossibleValue;
@@ -154,36 +158,39 @@ static void Train(
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
-    ctx->TryLoadProgress();
+    if (ctx->TryLoadProgress() && ctx->Params.SystemOptions->IsMaster()) {
+        MapRestoreApproxFromTreeStruct(ctx);
+    }
 
     if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker.IsActive() && hasTest) {
-        MATRIXNET_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is" <<
+        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 
     auto learnToken = GetTrainModelLearnToken();
-    auto testTokens = GetTrainModelTestTokens(testDataPtrs.ysize());
+    auto testTokens = GetTrainModelTestTokens(data.Test.ysize());
     TLogger logger;
 
     if (ctx->OutputOptions.AllowWriteFiles()) {
         InitializeFileLoggers(
-                ctx->Params,
-                ctx->Files,
-                GetConstPointers(metrics),
-                learnToken,
-                testTokens,
-                ctx->OutputOptions.GetMetricPeriod(),
-                &logger);
+            ctx->Params,
+            ctx->Files,
+            GetConstPointers(metrics),
+            learnToken,
+            testTokens,
+            ctx->OutputOptions.GetMetricPeriod(),
+            &logger);
     }
 
     // Use only (last_test, first_metric) for best iteration and overfitting detection
     // In case of changing the order it should be changed in GPU mode also.
     const size_t errorTrackerMetricIdx = 0;
 
-    const TVector<TVector<TVector<double>>>& testMetricsHistory =
+    const TVector<TVector<THashMap<TString, double>>>& testMetricsHistory =
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
     const TVector<TTimeInfo>& timeHistory = ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory;
 
+    bool continueTraining = true;
     for (int iter : xrange(ctx->LearnProgress.TreeStruct.ysize())) {
         bool calcAllMetrics = DivisibleOrLastIteration(
             iter,
@@ -192,7 +199,8 @@ static void Train(
         );
         const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
         if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric) {
-            const double error = testMetricsHistory[iter].back()[errorTrackerMetricIdx];
+            const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
+            const double error = testMetricsHistory[iter].back().at(errorTrackerMetricDescription);
             errorTracker.AddError(error, iter);
             if (useBestModel && iter + 1 >= ctx->OutputOptions.BestModelMinTrees) {
                 bestModelMinTreesTracker.AddError(error, iter);
@@ -202,7 +210,6 @@ static void Train(
         Log(
             iter,
             GetMetricsDescription(metrics),
-            GetSkipMetricOnTrain(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
             testMetricsHistory,
             errorTracker.GetBestError(),
@@ -213,45 +220,64 @@ static void Train(
             calcAllMetrics,
             &logger
         );
+
+        if (onEndIterationCallback) {
+            continueTraining = (*onEndIterationCallback)(ctx->LearnProgress.MetricsAndTimeHistory);
+        }
     }
 
     AddConsoleLogger(
-            learnToken,
-            testTokens,
-            /*hasTrain=*/true,
-            ctx->OutputOptions.GetVerbosePeriod(),
-            ctx->Params.BoostingOptions->IterationCount,
-            &logger
+        learnToken,
+        testTokens,
+        /*hasTrain=*/true,
+        ctx->OutputOptions.GetVerbosePeriod(),
+        ctx->Params.BoostingOptions->IterationCount,
+        &logger
     );
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
     const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
-    if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
-        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
-        ctx->PrevTreeLevelStats.Create(
+
+    if (continueTraining) {
+        if (ctx->UseTreeLevelCaching()) {
+            ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
+            ctx->PrevTreeLevelStats.Create(
+                ctx->LearnProgress.Folds,
+                CountNonCtrBuckets(
+                    CountSplits(ctx->LearnProgress.FloatFeatures),
+                    *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
+                    ctx->Params.CatFeatureParams->OneHotMaxSize),
+                static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
+            );
+        }
+        ctx->SampledDocs.Create(
             ctx->LearnProgress.Folds,
-            CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), learnData.AllFeatures.OneHotValues),
-            static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
-        );
+            isPairwiseScoring,
+            defaultCalcStatsObjBlockSize,
+            GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
+        ); // TODO(espetrov): create only if sample rate < 1
     }
-    ctx->SampledDocs.Create(
-        ctx->LearnProgress.Folds,
-        isPairwiseScoring,
-        defaultCalcStatsObjBlockSize,
-        GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
-    ); // TODO(espetrov): create only if sample rate < 1
 
     THPTimer timer;
-    for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
+    for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize();
+         continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
+         ++iter)
+    {
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
+            CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
 
         profile.StartNextIteration();
 
-        trainOneIterationFunc(learnData, testDataPtrs, ctx);
+        if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
+            profile.AddOperation("Save snapshot");
+            ctx->SaveProgress();
+            timer.Reset();
+        }
+
+        TrainOneIteration(data, ctx);
 
         bool calcAllMetrics = DivisibleOrLastIteration(
             iter,
@@ -260,12 +286,13 @@ static void Train(
         );
         const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
 
-        CalcErrors(learnData, testDataPtrs, metrics, calcAllMetrics, calcErrorTrackerMetric, ctx);
+        CalcErrors(data, metrics, calcAllMetrics, calcErrorTrackerMetric, ctx);
 
         profile.AddOperation("Calc errors");
         if (hasTest && calcErrorTrackerMetric) {
             const auto testErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
-            const double error = testErrors.back()[errorTrackerMetricIdx];
+            const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
+            const double error = testErrors.back().at(errorTrackerMetricDescription);
             errorTracker.AddError(error, iter);
             if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
                 ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
@@ -283,7 +310,6 @@ static void Train(
         Log(
             iter,
             GetMetricsDescription(metrics),
-            GetSkipMetricOnTrain(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
             ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory,
             errorTracker.GetBestError(),
@@ -295,17 +321,16 @@ static void Train(
             &logger
         );
 
-        if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
-            ctx->SaveProgress();
-            timer.Reset();
-        }
-
         if (HasInvalidValues(ctx->LearnProgress.LeafValues)) {
             ctx->LearnProgress.LeafValues.pop_back();
             ctx->LearnProgress.TreeStruct.pop_back();
-            MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
+            CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
                 << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
             break;
+        }
+
+        if (onEndIterationCallback) {
+            continueTraining = (*onEndIterationCallback)(ctx->LearnProgress.MetricsAndTimeHistory);
         }
     }
 
@@ -321,275 +346,162 @@ static void Train(
     ctx->LearnProgress.Folds.clear();
 
     if (hasTest) {
-        MATRIXNET_NOTICE_LOG << "\n";
-        MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
-        MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
-        MATRIXNET_NOTICE_LOG << "\n";
+        CATBOOST_NOTICE_LOG << "\n";
+        CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
+        CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
+        CATBOOST_NOTICE_LOG << "\n";
     }
 
     if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
         const int bestModelIterations = bestModelMinTreesTracker.GetBestIteration() + 1;
         if (0 < bestModelIterations && bestModelIterations < static_cast<int>(ctx->Params.BoostingOptions->IterationCount)) {
-            MATRIXNET_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
+            CATBOOST_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
             if (errorTracker.GetBestIteration() + 1 < ctx->OutputOptions.BestModelMinTrees) {
-                MATRIXNET_NOTICE_LOG << " (min iterations for best model = " << ctx->OutputOptions.BestModelMinTrees << ")";
+                CATBOOST_NOTICE_LOG << " (min iterations for best model = " << ctx->OutputOptions.BestModelMinTrees << ")";
             }
-            MATRIXNET_NOTICE_LOG << Endl;
-            ShrinkModel(bestModelIterations, &ctx->LearnProgress);
+            CATBOOST_NOTICE_LOG << Endl;
+            ShrinkModel(bestModelIterations, ctx->CtrsHelper, &ctx->LearnProgress);
         }
     }
 }
 
-}
 
-class TCPUModelTrainer : public IModelTrainer {
+namespace {
+    class TCPUModelTrainer : public IModelTrainer {
 
-    void TrainModel(
-        const NJson::TJsonValue& jsonParams,
-        const NCatboostOptions::TOutputFilesOptions& outputOptions,
-        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        const TClearablePoolPtrs& pools,
-        TFullModel* modelPtr,
-        const TVector<TEvalResult*>& evalResultPtrs
-    ) const override {
+        void TrainModel(
+            bool calcMetricsOnly,
+            const NJson::TJsonValue& jsonParams,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+            const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+            TTrainingDataProviders trainingData,
+            const TLabelConverter& labelConverter,
+            NPar::TLocalExecutor* localExecutor,
+            const TMaybe<TRestorableFastRng64*> rand,
+            TFullModel* model,
+            const TVector<TEvalResult*>& evalResultPtrs,
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+        ) const override {
+            TTrainingForCPUDataProviders trainingDataForCpu
+                = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
-        CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
-        auto sortedCatFeatures = pools.Learn->CatFeatures;
-        Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
-
-        for (const TPool* testPoolPtr : pools.Test) {
-            const TPool& testPool = *testPoolPtr;
-            if (testPool.Docs.GetDocCount() == 0) {
-                continue;
-            }
-            CB_ENSURE(
-                testPool.GetFactorCount() == pools.Learn->GetFactorCount(),
-                "train pool factors count == " << pools.Learn->GetFactorCount() << " and test pool factors count == " << testPool.GetFactorCount()
-            );
-            auto catFeaturesTest = testPool.CatFeatures;
-            Sort(catFeaturesTest.begin(), catFeaturesTest.end());
-            CB_ENSURE(sortedCatFeatures == catFeaturesTest, "Cat features in train and test should be the same.");
-        }
-
-        if ((modelPtr == nullptr) == outputOptions.GetResultModelFilename().empty()) {
-            if (modelPtr == nullptr) {
-                ythrow TCatboostException() << "Both modelPtr == nullptr and outputModelPath empty";
-            } else {
-                ythrow TCatboostException() << "Both modelPtr != nullptr and outputModelPath non empty";
-            }
-        }
-
-        const int featureCount = pools.Learn->GetFactorCount();
-
-        NJson::TJsonValue updatedJsonParams = jsonParams;
-        if (outputOptions.SaveSnapshot()) {
-            UpdateUndefinedRandomSeed(ETaskType::CPU, outputOptions, &updatedJsonParams, [&](IInputStream* in, TString& params) {
-                TRestorableFastRng64 unusedRng(0);
-                ::LoadMany(in, unusedRng, params);
-            });
-        }
-        NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(updatedJsonParams));
-        NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
-
-        SetDataDependantDefaults(
-            pools.Learn->Docs.GetDocCount(),
-            /*testPoolSize*/ GetDocCount(pools.Test),
-            /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),
-            !pools.Learn->IsTrivialWeights(),
-            &updatedOutputOptions.UseBestModel,
-            &updatedParams
-        );
-
-        TLearnContext ctx(
-            updatedParams,
-            objectiveDescriptor,
-            evalMetricDescriptor,
-            updatedOutputOptions,
-            featureCount,
-            sortedCatFeatures,
-            pools.Learn->FeatureId
-        );
-        SetLogingLevel(ctx.Params.LoggingLevel);
-
-        Y_DEFER {
-            SetSilentLogingMode();
-        };
-
-        TVector<ui64> indices(pools.Learn->Docs.GetDocCount());
-        std::iota(indices.begin(), indices.end(), 0);
-
-        ui64 minTimestamp = *MinElement(pools.Learn->Docs.Timestamp.begin(), pools.Learn->Docs.Timestamp.end());
-        ui64 maxTimestamp = *MaxElement(pools.Learn->Docs.Timestamp.begin(), pools.Learn->Docs.Timestamp.end());
-        if (minTimestamp != maxTimestamp) {
-            indices = CreateOrderByKey(pools.Learn->Docs.Timestamp);
-            ctx.Params.DataProcessingOptions->HasTimeFlag = true;
-        }
-
-        if (!ctx.Params.DataProcessingOptions->HasTimeFlag) {
-            Shuffle(pools.Learn->Docs.QueryId, ctx.Rand, &indices);
-        }
-
-        ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
-        if (IsPairLogit(lossFunction) && pools.Learn->Pairs.empty()) {
-            CB_ENSURE(
-                    !pools.Learn->Docs.Target.empty(),
-                    "Pool labels are not provided. Cannot generate pairs."
-            );
-            MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
-                                  << "Trying to generate pairs using dataset labels." << Endl;
-            pools.Learn->Pairs.clear();
-            GeneratePairLogitPairs(
-                    pools.Learn->Docs.QueryId,
-                    pools.Learn->Docs.Target,
-                    NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
-                    &ctx.Rand,
-                    &(pools.Learn->Pairs));
-            MATRIXNET_INFO_LOG << "Generated " << pools.Learn->Pairs.size() << " pairs for learn pool." << Endl;
-        }
-
-        ApplyPermutation(InvertPermutation(indices), pools.Learn, &ctx.LocalExecutor);
-        Y_DEFER {
-            ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor);
-        };
-
-        TDataset learnData = BuildDataset(*pools.Learn);
-
-        TVector<TDataset> testDatasets;
-        for (const TPool* testPoolPtr : pools.Test) {
-            testDatasets.push_back(BuildDataset(*testPoolPtr));
-            auto& pairs = testDatasets.back().Pairs;
-            if (IsPairLogit(lossFunction) && pairs.empty()) {
-                GeneratePairLogitPairs(
-                        testDatasets.back().QueryId,
-                        testDatasets.back().Target,
-                        NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
-                        &ctx.Rand,
-                        &pairs);
-                MATRIXNET_INFO_LOG << "Generated " << pairs.size()
-                    << " pairs for test pool " <<  testDatasets.size() << "." << Endl;
-            }
-        }
-
-        // Note:
-        // `testDatasets` refers to the vector of `TDataset` (this function only)
-        // `testDataPtrs` refers to the vector of `const TDataset*` (everywhere)
-        // Both vectors are not empty
-        const TDatasetPtrs& testDataPtrs = GetConstPointers(testDatasets);
-
-        const bool isMulticlass = IsMultiClass(lossFunction, ctx.Params.MetricOptions);
-
-        if (isMulticlass) {
-            int classesCount = GetClassesCount(
-                ctx.Params.DataProcessingOptions->ClassesCount,
-                ctx.Params.DataProcessingOptions->ClassNames
-            );
-            ctx.LearnProgress.LabelConverter.Initialize(learnData.Target, classesCount);
-            ctx.LearnProgress.ApproxDimension = ctx.LearnProgress.LabelConverter.GetApproxDimension();
-        }
-
-        TVector<ELossFunction> metrics = {ctx.Params.LossFunctionDescription->GetLossFunction()};
-        if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {
-            metrics.push_back(ctx.Params.MetricOptions->EvalMetric->GetLossFunction());
-        }
-        for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
-            metrics.push_back(metric.GetLossFunction());
-        }
-        bool hasQuerywiseMetric = false;
-        for (const auto& metric : metrics) {
-            if (IsQuerywiseError(metric)) {
-                hasQuerywiseMetric = true;
-            }
-        }
-        if (hasQuerywiseMetric) {
-            CB_ENSURE(HaveGoodQueryIds(learnData), "Query ids not provided for querywise metric.");
-            CB_ENSURE(HaveGoodQueryIds(testDataPtrs), "Query ids not provided for querywise metric.");
-        }
-
-        UpdateQueryInfo(&learnData);
-        for (TDataset& testData : testDatasets) {
-            UpdateQueryInfo(&testData);
-        }
-
-        const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
-        const auto& labelConverter = ctx.LearnProgress.LabelConverter;
-        Preprocess(ctx.Params.LossFunctionDescription, classWeights, labelConverter, learnData);
-        CheckLearnConsistency(ctx.Params.LossFunctionDescription, ctx.Params.DataProcessingOptions->AllowConstLabel.Get(), learnData);
-        for (TDataset& testData : testDatasets) {
-            Preprocess(ctx.Params.LossFunctionDescription, classWeights, labelConverter, testData);
-            CheckTestConsistency(ctx.Params.LossFunctionDescription, learnData, testData);
-        }
-
-        ctx.OutputMeta();
-
-        const auto& catFeatureParams = ctx.Params.CatFeatureParams.Get();
-
-        if (!pools.Learn->IsQuantized()) {
-            GenerateBorders(*pools.Learn, &ctx, &ctx.LearnProgress.FloatFeatures);
-        } else {
-            ctx.LearnProgress.FloatFeatures = pools.Learn->FloatFeatures;
-        }
-        QuantizeTrainPools(
-            pools,
-            ctx.LearnProgress.FloatFeatures,
-            Nothing(),
-            ctx.Params.DataProcessingOptions->IgnoredFeatures,
-            catFeatureParams.OneHotMaxSize,
-            ctx.LocalExecutor,
-            &learnData,
-            &testDatasets
-        );
-        ctx.InitContext(learnData, testDataPtrs);
-
-        ctx.LearnProgress.CatFeatures.resize(sortedCatFeatures.size());
-        for (size_t i = 0; i < sortedCatFeatures.size(); ++i) {
-            auto& catFeature = ctx.LearnProgress.CatFeatures[i];
-            catFeature.FeatureIndex = i;
-            catFeature.FlatFeatureIndex = sortedCatFeatures[i];
-            if (catFeature.FlatFeatureIndex < pools.Learn->FeatureId.ysize()) {
-                catFeature.FeatureId = pools.Learn->FeatureId[catFeature.FlatFeatureIndex];
-            }
-        }
-
-        DumpMemUsage("Before start train");
-
-        const auto& systemOptions = ctx.Params.SystemOptions;
-        if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
-            InitializeMaster(&ctx);
-            CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
-            CB_ENSURE(pools.Learn->CatFeatures.empty(), "Distributed training requires all numeric data");
-            MapBuildPlainFold(learnData, &ctx);
-        }
-        TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);
-        TVector<TVector<TVector<double>>> rawValues(testDataPtrs.size(), oneRawValues);
-
-        Train(learnData, testDataPtrs, &ctx, &rawValues);
-
-        for (int testIdx = 0; testIdx < testDataPtrs.ysize(); ++testIdx) {
-            evalResultPtrs[testIdx]->SetRawValuesByMove(rawValues[testIdx]);
-        }
-        if (testDataPtrs.empty() && evalResultPtrs.ysize() > 0) {
-            // need at least one evalResult, maybe empty
-            evalResultPtrs[0]->SetRawValuesByMove(oneRawValues);
-        }
-
-        TObliviousTrees obliviousTrees;
-        THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
-        {
-            TObliviousTreeBuilder builder(ctx.LearnProgress.FloatFeatures, ctx.LearnProgress.CatFeatures, ctx.LearnProgress.ApproxDimension);
-            for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
-                TVector<TModelSplit> modelSplits;
-                for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {
-                    auto modelSplit = split.GetModelSplit(ctx, learnData);
-                    modelSplits.push_back(modelSplit);
-                    if (modelSplit.Type == ESplitType::OnlineCtr) {
-                        featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
-                    }
+            if (!calcMetricsOnly) {
+                if (model != nullptr) {
+                    CB_ENSURE(
+                        !outputOptions.ResultModelPath.IsSet(),
+                        "Both modelPtr != nullptr and ResultModelPath is set"
+                    );
+                } else {
+                    CB_ENSURE(
+                        !outputOptions.ResultModelPath.Get().empty(),
+                        "Both modelPtr == nullptr and ResultModelPath is empty"
+                    );
                 }
-                builder.AddTree(modelSplits, ctx.LearnProgress.LeafValues[treeId], ctx.LearnProgress.TreeStats[treeId].LeafWeightsSum);
             }
-            obliviousTrees = builder.Build();
-        }
+
+            NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(jsonParams));
+            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+
+            SetDataDependentDefaults(
+                trainingDataForCpu.Learn->GetObjectCount(),
+                /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
+                /*hasTestLabels*/ trainingDataForCpu.Test.size() > 0 &&
+                    trainingDataForCpu.Test[0]->MetaInfo.HasTarget &&
+                    IsConst(GetTarget(trainingDataForCpu.Test[0]->TargetData)),
+                /*hasTestPairs*/ trainingDataForCpu.Test.size() > 0 &&
+                    trainingDataForCpu.Test[0]->TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking)),
+                &updatedOutputOptions.UseBestModel,
+                &updatedParams
+            );
+
+            TLearnContext ctx(
+                updatedParams,
+                objectiveDescriptor,
+                evalMetricDescriptor,
+                updatedOutputOptions,
+                trainingDataForCpu.Learn->MetaInfo.FeaturesLayout,
+                rand,
+                localExecutor
+            );
+
+            ctx.LearnProgress.ApproxDimension = GetApproxDimension(updatedParams, labelConverter);
+            if (ctx.LearnProgress.ApproxDimension > 1) {
+                ctx.LearnProgress.LabelConverter = labelConverter;
+            }
+
+            TVector<ELossFunction> metrics;
+            if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {
+                metrics.push_back(ctx.Params.MetricOptions->EvalMetric->GetLossFunction());
+            }
+            metrics.push_back(ctx.Params.LossFunctionDescription->GetLossFunction());
+            for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
+                metrics.push_back(metric.GetLossFunction());
+            }
+
+            ctx.OutputMeta();
+
+            const auto& quantizedFeaturesInfo = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
+
+            ctx.LearnProgress.FloatFeatures = CreateFloatFeatures(quantizedFeaturesInfo);
+            ctx.LearnProgress.CatFeatures = CreateCatFeatures(quantizedFeaturesInfo);
+
+            ctx.InitContext(trainingDataForCpu);
+
+            DumpMemUsage("Before start train");
+
+            const auto& systemOptions = ctx.Params.SystemOptions;
+            if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
+                InitializeMaster(&ctx);
+                CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
+                CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Distributed training requires all numeric data");
+                MapBuildPlainFold(trainingDataForCpu.Learn, &ctx);
+            }
+            TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);
+            TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
+
+            Train(trainingDataForCpu, onEndIterationCallback, &ctx, &rawValues);
+
+            for (int testIdx = 0; testIdx < trainingDataForCpu.Test.ysize(); ++testIdx) {
+                evalResultPtrs[testIdx]->SetRawValuesByMove(rawValues[testIdx]);
+            }
+
+            if (metricsAndTimeHistory) {
+                *metricsAndTimeHistory = ctx.LearnProgress.MetricsAndTimeHistory;
+            }
+
+            const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
+            if (!trainingOptionsFileName.empty()) {
+                TOFStream trainingOptionsFile(trainingOptionsFileName);
+                trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
+            }
+
+            if (calcMetricsOnly) {
+                return;
+            }
+
+            TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
+                = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
+                    ->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
+
+            TObliviousTrees obliviousTrees;
+            THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
+            {
+                TObliviousTreeBuilder builder(ctx.LearnProgress.FloatFeatures, ctx.LearnProgress.CatFeatures, ctx.LearnProgress.ApproxDimension);
+                for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
+                    TVector<TModelSplit> modelSplits;
+                    for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {
+                        auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
+                        modelSplits.push_back(modelSplit);
+                        if (modelSplit.Type == ESplitType::OnlineCtr) {
+                            featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
+                        }
+                    }
+                    builder.AddTree(modelSplits, ctx.LearnProgress.LeafValues[treeId], ctx.LearnProgress.TreeStats[treeId].LeafWeightsSum);
+                }
+                obliviousTrees = builder.Build();
+            }
 
 
 //        TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
@@ -598,233 +510,372 @@ class TCPUModelTrainer : public IModelTrainer {
 //                oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
 //            }
 //        }
+            TClassificationTargetHelper classificationTargetHelper(
+                ctx.LearnProgress.LabelConverter,
+                ctx.Params.DataProcessingOptions
+            );
 
-        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
-            (ui32)GetThreadCount(ctx.Params),
-            ctx.OutputOptions.GetFinalCtrComputationMode(),
-            ParseMemorySizeDescription(ctx.Params.SystemOptions->CpuUsedRamLimit),
-            ctx.Params.CatFeatureParams->CtrLeafCountLimit,
-            ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
-            catFeatureParams
-        );
+            TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
+            datasetDataForFinalCtrs.Data = trainingDataForCpu;
+            datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress.AveragingFold.LearnPermutation->GetObjectsIndexing();
+            datasetDataForFinalCtrs.Targets = ctx.LearnProgress.AveragingFold.LearnTarget;
+            datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress.AveragingFold.LearnTargetClass;
+            datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress.AveragingFold.TargetClassesCount;
 
-        TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
-        datasetDataForFinalCtrs.LearnData = &learnData;
-        datasetDataForFinalCtrs.TestDataPtrs = &testDataPtrs;
-        datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress.AveragingFold.LearnPermutation;
-        datasetDataForFinalCtrs.Targets = &pools.Learn->Docs.Target;
-        datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress.AveragingFold.LearnTargetClass;
-        datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress.AveragingFold.TargetClassesCount;
-
-        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-            datasetDataForFinalCtrs,
-            featureCombinationToProjectionMap
-        );
-
-        if (modelPtr) {
-            modelPtr->ObliviousTrees = std::move(obliviousTrees);
-            modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
-            CB_ENSURE(isMulticlass == ctx.LearnProgress.LabelConverter.IsInitialized(),
-                      "LabelConverter must be initialized ONLY for multiclass problem");
-            if (isMulticlass) {
-                modelPtr->ModelInfo["multiclass_params"] = ctx.LearnProgress.LabelConverter.SerializeMulticlassParams(
-                    ctx.Params.DataProcessingOptions->ClassesCount,
-                    ctx.Params.DataProcessingOptions->ClassNames
-                );;
-            }
-            for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
-                modelPtr->ModelInfo[keyValue.first] = keyValue.second.GetString();
-            }
-            coreModelToFullModelConverter.WithCoreModelFrom(modelPtr).Do(modelPtr, true);
-        } else {
-            TFullModel Model;
-            Model.ObliviousTrees = std::move(obliviousTrees);
-            Model.ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
-            CB_ENSURE(isMulticlass == ctx.LearnProgress.LabelConverter.IsInitialized(),
-                      "LabelConverter must be initialized ONLY for multiclass problem");
-            if (isMulticlass) {
-                Model.ModelInfo["multiclass_params"] = ctx.LearnProgress.LabelConverter.SerializeMulticlassParams(
-                    ctx.Params.DataProcessingOptions->ClassesCount,
-                    ctx.Params.DataProcessingOptions->ClassNames
-                );;
-            }
-            for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
-                Model.ModelInfo[keyValue.first] = keyValue.second.GetString();
-            }
-            if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
-                coreModelToFullModelConverter.WithCoreModelFrom(&Model).Do(
-                    &Model,
-                    ctx.OutputOptions.ExportRequiresStaticCtrProvider()
+            {
+                NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
+                    ctx.Params,
+                    classificationTargetHelper,
+                    ctx.Params.CatFeatureParams->CtrLeafCountLimit,
+                    ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
+                    ctx.OutputOptions.GetFinalCtrComputationMode()
                 );
+
+                coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
+                    std::move(datasetDataForFinalCtrs),
+                    std::move(featureCombinationToProjectionMap)
+                ).WithPerfectHashedToHashedCatValuesMap(
+                    &perfectHashedToHashedCatValuesMap
+                ).WithObjectsDataFrom(trainingDataForCpu.Learn->ObjectsData);
+
+                TMaybe<TFullModel> fullModel;
+                TFullModel* modelPtr = nullptr;
+                if (model) {
+                    modelPtr = model;
+                } else {
+                    fullModel.ConstructInPlace();
+                    modelPtr = &*fullModel;
+                }
+
+                modelPtr->ObliviousTrees = std::move(obliviousTrees);
+                coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
+
+                if (model) {
+                    coreModelToFullModelConverter.Do(true, model);
+                } else {
+                    coreModelToFullModelConverter.Do(
+                        ctx.OutputOptions.CreateResultModelFullPath(),
+                        ctx.OutputOptions.GetModelFormats(),
+                        ctx.OutputOptions.AddFileFormatExtension()
+                    );
+                }
             }
-            TString outputFile = ctx.OutputOptions.CreateResultModelFullPath();
-            for (const auto& format : ctx.OutputOptions.GetModelFormats()) {
-                ExportModel(Model, outputFile, format, "", ctx.OutputOptions.AddFileFormatExtension(), &pools.Learn->FeatureId, &pools.Learn->CatFeaturesHashToString);
-            }
         }
-        const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
-        if (!trainingOptionsFileName.empty()) {
-            TOFStream trainingOptionsFile(trainingOptionsFileName);
-            trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
-        }
-    }
+    };
 
-    void TrainModel(
-        const NCatboostOptions::TPoolLoadParams& loadOptions,
-        const NCatboostOptions::TOutputFilesOptions& outputOptions,
-        const NJson::TJsonValue& trainJson
-    ) const override {
-        THPTimer runTimer;
-        NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
-        catBoostOptions.Load(trainJson);
-
-        int threadCount = GetThreadCount(catBoostOptions);
-
-        TProfileInfo profile;
-        TPool learnPool;
-        TVector<TPool> testPools;
-
-        auto targetConverter = MakeTargetConverter(catBoostOptions);
-
-        TTrainPools pools;
-        LoadPools(
-            loadOptions,
-            threadCount,
-            &targetConverter,
-            &profile,
-            &pools
-        );
-
-        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
-        if (!evalOutputFileName.empty() && !loadOptions.TestSetPaths.empty()) {
-            ValidateColumnOutput(outputOptions.GetOutputColumns(), pools.Learn, false, loadOptions.CvParams.FoldCount > 0);
-        }
-        TVector<TEvalResult> evalResults(Max(pools.Test.ysize(), 1)); // need at least one evalResult, maybe empty
-
-        NJson::TJsonValue updatedTrainJson = trainJson;
-        UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
-
-        this->TrainModel(
-            updatedTrainJson,
-            outputOptions,
-            Nothing(),
-            Nothing(),
-            TClearablePoolPtrs(pools, true, evalOutputFileName.empty()),
-            nullptr,
-            GetMutablePointers(evalResults)
-        );
-        auto modelPath = outputOptions.CreateResultModelFullPath();
-        auto modelFormat = outputOptions.GetModelFormats()[0];
-        if (outputOptions.AddFileFormatExtension()) {
-            NCatboostOptions::AddExtension(NCatboostOptions::GetModelExtensionFromType(modelFormat), &modelPath);
-        }
-
-        SetVerboseLogingMode();
-        if (!evalOutputFileName.empty()) {
-            TFullModel model = ReadModel(modelPath, modelFormat);
-            auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
-            if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
-                MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
-            }
-            MATRIXNET_INFO_LOG << "Writing test eval to: " << evalOutputFileName << Endl;
-            TOFStream fileStream(evalOutputFileName);
-            for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
-                const TPool& testPool = pools.Test[testIdx];
-                const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
-                OutputEvalResultToFile(
-                    evalResults[testIdx],
-                    threadCount,
-                    outputOptions.GetOutputColumns(),
-                    visibleLabelsHelper,
-                    testPool,
-                    false,
-                    &fileStream,
-                    testSetPath,
-                    {testIdx, pools.Test.ysize()},
-                    loadOptions.DsvPoolFormatParams.Format,
-                    /*writeHeader*/ testIdx < 1);
-            }
-            if (pools.Test.empty()) {
-                // Make sure to emit header to fileStream
-                OutputEvalResultToFile(
-                    evalResults[0],
-                    threadCount,
-                    outputOptions.GetOutputColumns(),
-                    visibleLabelsHelper,
-                    TPool(),
-                    false,
-                    &fileStream,
-                    NCB::TPathWithScheme(),
-                    {0, 1},
-                    loadOptions.DsvPoolFormatParams.Format,
-                    /*writeHeader*/ true);
-            }
-        } else {
-            MATRIXNET_INFO_LOG << "Skipping test eval output" << Endl;
-        }
-        profile.AddOperation("Train model");
-
-        if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
-            TLogger logger;
-            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
-            TOneInterationLogger oneIterLogger(logger);
-            oneIterLogger.OutputProfile(profile.GetProfileResults());
-        }
-
-        const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
-        const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-        const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
-        if (needFstr) {
-            TFullModel model = ReadModel(modelPath, modelFormat);
-            // no need to pass pool data because we always have LeafWeights stored in model now
-            CalcAndOutputFstr(model, nullptr, &fstrRegularFileName, &fstrInternalFileName);
-        }
-
-        MATRIXNET_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
-        SetSilentLogingMode();
-    }
-};
+}
 
 TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ETaskType::CPU);
 
-void TrainModel(const NJson::TJsonValue& plainJsonParams,
+
+static void TrainModel(
+    const NJson::TJsonValue& trainOptionsJson,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    const TClearablePoolPtrs& pools,
+    TDataProviders pools,
     const TString& outputModelPath,
     TFullModel* modelPtr,
-    const TVector<TEvalResult*>& evalResultPtrs)
+    const TVector<TEvalResult*>& evalResultPtrs,
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory)
 {
+    CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
+    CB_ENSURE(pools.Test.size() == evalResultPtrs.size());
+
     THolder<IModelTrainer> modelTrainerHolder;
-    NJson::TJsonValue trainOptions;
-    NJson::TJsonValue outputFilesOptionsJson;
-    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptions, &outputFilesOptionsJson);
-    const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptions);
 
-    NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
-    outputFilesOptionsJson["result_model_file"] = outputModelPath;
-    outputOptions.Load(outputFilesOptionsJson);
+    const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
 
-    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
-    catBoostOptions.Load(trainOptions);
+    CB_ENSURE(
+        (taskType == ETaskType::CPU) || (pools.Test.size() <= 1),
+        "Multiple eval sets not supported for GPU"
+    );
+
+    NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+    if (outputModelPath) {
+        updatedOutputOptions.ResultModelPath = outputModelPath;
+    }
+
+    NJson::TJsonValue updatedTrainOptionsJson = trainOptionsJson;
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
+
+        if (outputOptions.SaveSnapshot()) {
+            UpdateUndefinedRandomSeed(ETaskType::GPU, updatedOutputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
+                ::Load(in, params);
+            });
+        }
     } else {
         CB_ENSURE(!isGpuDeviceType, "Can't load GPU learning library. Module was not compiled or driver  is incompatible with package. Please install latest NVDIA driver and check again");
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
+
+        if (outputOptions.SaveSnapshot()) {
+            UpdateUndefinedRandomSeed(ETaskType::CPU, updatedOutputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
+                TRestorableFastRng64 unusedRng(0);
+                ::LoadMany(in, unusedRng, params);
+            });
+        }
     }
-    modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, pools, modelPtr, evalResultPtrs);
+
+    const auto learnFeaturesLayout = pools.Learn->MetaInfo.FeaturesLayout;
+
+    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
+    catBoostOptions.Load(updatedTrainOptionsJson);
+
+    if (!quantizedFeaturesInfo) {
+        quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *learnFeaturesLayout,
+            catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
+            catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            /*allowNansInTestOnly*/true,
+            outputOptions.AllowWriteFiles()
+        );
+    }
+
+    for (auto testPoolIdx : xrange(pools.Test.size())) {
+        const auto& testPool = *pools.Test[testPoolIdx];
+        if (testPool.GetObjectCount() == 0) {
+            continue;
+        }
+        CheckCompatibleForApply(
+            *learnFeaturesLayout,
+            *testPool.MetaInfo.FeaturesLayout,
+            TStringBuilder() << "test dataset #" << testPoolIdx);
+    }
+
+    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    auto learnDataOrder = pools.Learn->ObjectsData->GetOrder();
+    if (learnDataOrder == EObjectsOrder::Ordered) {
+        catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
+    }
+
+    int threadCount = GetThreadCount(catBoostOptions);
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, &localExecutor);
+
+    TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
+
+    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, &localExecutor, &rand);
+
+    TLabelConverter labelConverter;
+
+    TTrainingDataProviders trainingData = GetTrainingData(
+        std::move(pools),
+        /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
+        /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+        outputOptions.AllowWriteFiles(),
+        quantizedFeaturesInfo,
+        &catBoostOptions,
+        &labelConverter,
+        &localExecutor,
+        &rand);
+
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
+
+    CheckConsistency(trainingData);
+
+    if (outputOptions.NeedSaveBorders()) {
+        SaveBordersAndNanModesToFileInMatrixnetFormat(
+            outputOptions.CreateOutputBordersFullPath(),
+            *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
+    }
+
+    modelTrainerHolder->TrainModel(
+        false,
+        updatedTrainOptionsJson,
+        updatedOutputOptions,
+        objectiveDescriptor,
+        evalMetricDescriptor,
+        Nothing(),
+        std::move(trainingData),
+        labelConverter,
+        &localExecutor,
+        &rand,
+        modelPtr,
+        evalResultPtrs,
+        metricsAndTimeHistory);
 }
 
-/// Used by cross validation, hence one test dataset.
-void TrainOneIteration(const TDataset& trainData, const TDataset* testDataPtr, TLearnContext* ctx) {
-    SetLogingLevel(ctx->Params.LoggingLevel);
 
-    TTrainOneIterationFunc trainFunc;
-    ELossFunction lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
+void TrainModel(
+    const NCatboostOptions::TPoolLoadParams& loadOptions,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    const NJson::TJsonValue& trainJson
+) {
+    THPTimer runTimer;
+    auto catBoostOptions = NCatboostOptions::LoadOptions(trainJson);
 
-    Y_VERIFY(testDataPtr);
-    GetOneIterationFunc(lossFunction)(trainData, {testDataPtr}, ctx);
+    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    TProfileInfo profile;
+
+    CB_ENSURE(
+        (catBoostOptions.GetTaskType() == ETaskType::CPU) || (loadOptions.TestSetPaths.size() <= 1),
+        "Multiple eval sets not supported for GPU"
+    );
+
+    int threadCount = GetThreadCount(catBoostOptions);
+    TDataProviders pools = LoadPools(
+        loadOptions,
+        catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
+            EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        threadCount,
+        &profile
+    );
+
+    const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
+    TVector<TString> outputColumns;
+    if (!evalOutputFileName.empty() && !pools.Test.empty()) {
+        outputColumns = outputOptions.GetOutputColumns(pools.Test[0]->MetaInfo.HasTarget);
+        for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
+            const TDataProvider& testPool = *pools.Test[testIdx];
+
+            CB_ENSURE(
+                outputColumns == outputOptions.GetOutputColumns(testPool.MetaInfo.HasTarget),
+                "Inconsistent output columns between test sets"
+            );
+
+            ValidateColumnOutput(
+                outputColumns,
+                testPool,
+                false,
+                loadOptions.CvParams.FoldCount > 0
+            );
+        }
+    }
+    TVector<TEvalResult> evalResults(pools.Test.ysize());
+
+    NJson::TJsonValue updatedTrainJson = trainJson;
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+
+    // create here to possibly load borders
+    auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+        *pools.Learn->MetaInfo.FeaturesLayout,
+        catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
+        catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        /*allowNansInTestOnly*/true,
+        outputOptions.AllowWriteFiles()
+    );
+    if (loadOptions.BordersFile) {
+        LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+            loadOptions.BordersFile,
+            quantizedFeaturesInfo.Get());
+    }
+
+    TrainModel(
+        updatedTrainJson,
+        outputOptions,
+        quantizedFeaturesInfo,
+        Nothing(),
+        Nothing(),
+        evalOutputFileName.empty() ? std::move(pools) : pools,
+        "",
+        nullptr,
+        GetMutablePointers(evalResults),
+        nullptr
+    );
+
+    auto modelFormat = outputOptions.GetModelFormats()[0];
+    const auto fullModelPath = NCatboostOptions::AddExtension(
+        modelFormat,
+        outputOptions.CreateResultModelFullPath(),
+        outputOptions.AddFileFormatExtension());
+
+    TSetLoggingVerbose inThisScope2;
+    if (!evalOutputFileName.empty()) {
+        TFullModel model = ReadModel(fullModelPath, modelFormat);
+        auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+        if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputColumns.empty()) {
+            CATBOOST_WARNING_LOG << "No test files, can't output columns\n";
+        }
+        CATBOOST_INFO_LOG << "Writing test eval to: " << evalOutputFileName << Endl;
+        TOFStream fileStream(evalOutputFileName);
+        for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
+            const TDataProvider& testPool = *pools.Test[testIdx];
+            const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
+            OutputEvalResultToFile(
+                evalResults[testIdx],
+                threadCount,
+                outputColumns,
+                visibleLabelsHelper,
+                testPool,
+                false,
+                &fileStream,
+                testSetPath,
+                {testIdx, pools.Test.ysize()},
+                loadOptions.DsvPoolFormatParams.Format,
+                /*writeHeader*/ testIdx < 1);
+        }
+
+        if (pools.Test.empty()) {
+            CATBOOST_WARNING_LOG << "can't evaluate model (--eval-file) without test set" << Endl;
+        }
+    } else {
+        CATBOOST_INFO_LOG << "Skipping test eval output" << Endl;
+    }
+    profile.AddOperation("Train model");
+
+    if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
+        TLogger logger;
+        logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
+        TOneInterationLogger oneIterLogger(logger);
+        oneIterLogger.OutputProfile(profile.GetProfileResults());
+    }
+
+    const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
+    const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
+    const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    if (needFstr) {
+        TFullModel model = ReadModel(fullModelPath, modelFormat);
+
+        NPar::TLocalExecutor localExecutor;
+        // no need to pass pool data because we always have LeafWeights stored in model now
+        CalcAndOutputFstr(model, nullptr, &localExecutor, &fstrRegularFileName, &fstrInternalFileName);
+    }
+
+    const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
+    if (!trainingOptionsFileName.empty()) {
+        TOFStream trainingOptionsFile(trainingOptionsFileName);
+        trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
+    }
+
+    CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
+}
+
+void TrainModel(
+    const NJson::TJsonValue& plainJsonParams,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    NCB::TDataProviders pools, // not rvalue reference because Cython does not support them
+    const TString& outputModelPath,
+    TFullModel* model,
+    const TVector<TEvalResult*>& evalResultPtrs,
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+) {
+    NJson::TJsonValue trainOptionsJson;
+    NJson::TJsonValue outputFilesOptionsJson;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+
+    NCatboostOptions::TOutputFilesOptions outputOptions;
+    outputOptions.Load(outputFilesOptionsJson);
+
+    TrainModel(
+        trainOptionsJson,
+        outputOptions,
+        quantizedFeaturesInfo,
+        objectiveDescriptor,
+        evalMetricDescriptor,
+        std::move(pools),
+        outputModelPath,
+        model,
+        evalResultPtrs,
+        metricsAndTimeHistory);
 }

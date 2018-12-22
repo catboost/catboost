@@ -8,6 +8,28 @@
 #include <util/generic/algorithm.h>
 #include <util/string/builder.h>
 
+static THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCount) {
+    SortUnique(targets);
+    THashMap<float, int> labels;
+    if (classesCount != 0) {  // classes-count or class-names are set
+        CB_ENSURE(AllOf(targets, [&classesCount](float x) { return int(x) == x && x >= 0 && x < classesCount; }),
+            "If classes count is specified each target label should be nonnegative integer in [0,..,classes_count - 1].");
+
+        if (classesCount > targets.ysize()) {
+            CATBOOST_WARNING_LOG << "Found only " << targets.ysize() <<
+                " unique classes but defined " << classesCount
+                << " classes probably something is wrong with data." << Endl;
+        }
+    }
+
+    labels.reserve(targets.size());
+    int id = 0;
+    for (auto target : targets) {
+        labels.emplace(target, id++);
+    }
+
+    return labels;
+}
 
 void TLabelConverter::Initialize(int approxDimension) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
@@ -44,10 +66,11 @@ void TLabelConverter::Initialize(const TString& multiclassLabelParams) {
     Initialized = true;
 }
 
-void TLabelConverter::Initialize(const TVector<float>& targets, int classesCount) {
+void TLabelConverter::Initialize(TConstArrayRef<float> targets, int classesCount) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
 
-    LabelToClass = CalcLabelToClassMap(targets, classesCount);
+    TVector<float> targetsCopy(targets.begin(), targets.end());
+    LabelToClass = CalcLabelToClassMap(std::move(targetsCopy), classesCount);
     ClassesCount = Max(classesCount, LabelToClass.ysize());
 
     ClassToLabel.resize(LabelToClass.ysize());
@@ -68,15 +91,13 @@ int TLabelConverter::GetClassIdx(float label) const {
     return it == LabelToClass.cend() ? 0 : it->second;
 }
 
-void TLabelConverter::ValidateLabels(const TVector<float>& labels) const {
+void TLabelConverter::ValidateLabels(TConstArrayRef<float> labels) const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
 
     THashSet<float> missingLabels;
 
     for (const auto& label : labels) {
-        const auto it = LabelToClass.find(label);
-
-        if (it == LabelToClass.cend()) {
+        if (!LabelToClass.contains(label)) {
             if (ClassesCount > 0 && int(label) == label && label >= 0 && label < ClassesCount) {
                 missingLabels.emplace(label);
             } else {
@@ -99,7 +120,7 @@ void TLabelConverter::ValidateLabels(const TVector<float>& labels) const {
         CB_ENSURE(!ClassToLabel.empty(), "ClassToLabel mapping must be not empty.");
         warningStrBuilder << " aren't contained in train set but still valid "
                       << "and will be processed the same as label " << ClassToLabel[0] << ".";
-        MATRIXNET_WARNING_LOG << warningStrBuilder << Endl;
+        CATBOOST_WARNING_LOG << warningStrBuilder << Endl;
     }
 }
 
@@ -129,29 +150,6 @@ void PrepareTargetCompressed(const TLabelConverter& labelConverter, TVector<floa
     for (auto& label : *labels) {
         label = labelConverter.GetClassIdx(label);
     }
-}
-
-THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCount) {
-    SortUnique(targets);
-    THashMap<float, int> labels;
-    if (classesCount != 0) {  // classes-count or class-names are set
-        CB_ENSURE(AllOf(targets, [&classesCount](float x) { return int(x) == x && x >= 0 && x < classesCount; }),
-                  "If classes count is specified each target label should be nonnegative integer in [0,..,classes_count - 1].");
-
-        if (classesCount > targets.ysize()) {
-            MATRIXNET_WARNING_LOG << "Found only " << targets.ysize() <<
-                                  " unique classes but defined " << classesCount
-                                  << " classes probably something is wrong with data." << Endl;
-        }
-    }
-
-    labels.reserve(targets.size());
-    int id = 0;
-    for (auto target : targets) {
-        labels.emplace(target, id++);
-    }
-
-    return labels;
 }
 
 int GetClassesCount(int classesCount, const TVector<TString>& classNames) {

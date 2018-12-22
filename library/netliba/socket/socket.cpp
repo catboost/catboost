@@ -804,7 +804,7 @@ private:
 
     THolderVector<TThread> RecvThreads;
     TAtomic NumThreadsToDie;
-    Event AllThreadsAreDead;
+    TSystemEvent AllThreadsAreDead;
 
     TPacketQueue Queue;
 
@@ -914,11 +914,11 @@ public:
         };
 
         TFilteredPacketQueue& GetRecvQueue(int netlibaVersion) const;
-        Event& GetQueueEvent(const TFilteredPacketQueue& queue) const;
+        TSystemEvent& GetQueueEvent(const TFilteredPacketQueue& queue) const;
 
         TThread RecvThread;
         TAtomic ShouldDie;
-        Event DieEvent;
+        TSystemEvent DieEvent;
 
         mutable TFilteredPacketQueue RecvQueue6;
         mutable TFilteredPacketQueue RecvQueue12;
@@ -998,7 +998,7 @@ public:
         return netlibaVersion == NETLIBA_V12_VERSION ? RecvQueue12 : RecvQueue6;
     }
 
-    Event& TDualStackSocket::GetQueueEvent(const TFilteredPacketQueue& queue) const {
+    TSystemEvent& TDualStackSocket::GetQueueEvent(const TFilteredPacketQueue& queue) const {
         return queue.Queue.GetEvent();
     }
 

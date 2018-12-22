@@ -3,6 +3,7 @@ RECURSE(
     protoc
     python
     python/src/Modules/expat
+    python3
     ragel5
     ragel6
     yasm

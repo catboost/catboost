@@ -1,6 +1,5 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 
-#include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/compressed_index_builder.h>
 #include <catboost/cuda/ctrs/ut/calc_ctr_cpu.h>
 #include <catboost/cuda/data/permutation.h>
@@ -24,19 +23,19 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
     struct TCpuTreeCtrHelper {
         const TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider& DataProvider;
 
         TVector<ui8> BinarizedTarget;
         TVector<ui32> Indices;
         ui32 NumClasses;
 
         TCpuTreeCtrHelper(const TBinarizedFeaturesManager& featuresManager,
-                          const TDataProvider& dataProvider,
+                          const NCB::TTrainingDataProvider& dataProvider,
                           const TDataPermutation& permutation)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
         {
-            BinarizedTarget = NCB::BinarizeLine<ui8>(dataProvider.GetTargets(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
+            BinarizedTarget = NCB::BinarizeLine<ui8>(GetTarget(dataProvider.TargetData), ENanMode::Forbidden, featuresManager.GetTargetBorders());
             NumClasses = 0;
             {
                 std::array<bool, 255> seen;
@@ -57,40 +56,45 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             TTreeCtrSplit ctrSplit;
             TMap<ui64, ui32> uniqueBins;
 
-            const size_t sampleCount = DataProvider.GetSampleCount();
+            const size_t sampleCount = DataProvider.GetObjectCount();
             TVector<ui64> keys(sampleCount, 0);
             ui32 shift = 0;
 
             for (auto split : featureTensor.GetSplits()) {
-                TVector<ui32> splitBins;
+                auto updateKeys = [&](const auto& splitBins) {
+                    for (ui32 i = 0; i < sampleCount; ++i) {
+                        keys[i] |= split.SplitType == EBinSplitType::TakeBin
+                                       ? static_cast<ui64>(split.BinIdx == splitBins[i]) << shift
+                                       : static_cast<ui64>(splitBins[i] > split.BinIdx) << shift;
+                    }
+                };
+
                 if (FeaturesManager.IsFloat(split.FeatureId)) {
-                    auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(DataProvider.GetFeatureById(
-                        FeaturesManager.GetDataProviderId(split.FeatureId)));
-                    splitBins = valuesHolder.ExtractValues();
+                    const auto floatFeatureIdx
+                        = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
+                    auto& valuesHolder = **(DataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
+                    updateKeys(valuesHolder.ExtractValues(&NPar::LocalExecutor()));
                 } else if (FeaturesManager.IsCat(split.FeatureId)) {
-                    auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(DataProvider.GetFeatureById(
-                        FeaturesManager.GetDataProviderId(split.FeatureId)));
-                    splitBins = valuesHolder.ExtractValues();
-                }
-                for (ui32 i = 0; i < sampleCount; ++i) {
-                    keys[i] |= split.SplitType == EBinSplitType::TakeBin
-                                   ? static_cast<ui64>(split.BinIdx == splitBins[i]) << shift
-                                   : static_cast<ui64>(splitBins[i] > split.BinIdx) << shift;
+                    const auto catFeatureIdx
+                        = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
+                    auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
+                    updateKeys(valuesHolder.ExtractValues(&NPar::LocalExecutor()));
                 }
                 ++shift;
             }
 
             for (auto featureId : featureTensor.GetCatFeatures()) {
-                TVector<ui32> splitBins;
                 ui32 binarization = 0;
                 CB_ENSURE(FeaturesManager.IsCat(featureId));
 
-                auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(DataProvider.GetFeatureById(FeaturesManager.GetDataProviderId(featureId)));
-                splitBins = valuesHolder.ExtractValues();
-                binarization = valuesHolder.GetUniqueValues();
+                const auto catFeatureIdx
+                    = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
+                auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
+                NCB::TMaybeOwningArrayHolder<ui32> splitBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                binarization = DataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll;
                 const ui32 bits = NCB::IntLog2(binarization);
                 for (ui32 i = 0; i < sampleCount; ++i) {
-                    keys[i] |= static_cast<ui64>(splitBins[i]) << shift;
+                    keys[i] |= static_cast<ui64>((*splitBins)[i]) << shift;
                 }
                 shift += bits;
                 CB_ENSURE(shift < 64);
@@ -111,16 +115,18 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                    ui32 depth,
                    TVector<ui32>& bins) {
             if (FeaturesManager.IsFloat(split.FeatureId)) {
-                auto& valuesHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(DataProvider.GetFeatureById(
-                    FeaturesManager.GetDataProviderId(split.FeatureId)));
-                auto featureBins = valuesHolder.ExtractValues();
+                const auto floatFeatureIdx
+                    = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
+                auto& valuesHolder = **(DataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
+                auto featureBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     bins[i] |= (featureBins[i] > split.BinIdx) << depth;
                 }
             } else if (FeaturesManager.IsCat(split.FeatureId)) {
-                auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(DataProvider.GetFeatureById(
-                    FeaturesManager.GetDataProviderId(split.FeatureId)));
-                auto featureBins = valuesHolder.ExtractValues();
+                const auto catFeatureIdx
+                    = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
+                auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
+                auto featureBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     bins[i] |= (featureBins[i] == split.BinIdx) << depth;
                 }
@@ -132,7 +138,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
                 TCpuTargetClassCtrCalcer calcer(treeSplit.UniqueCount,
                                                 treeSplit.Bins,
-                                                DataProvider.GetWeights(),
+                                                GetWeights(DataProvider.TargetData),
                                                 ctr.Configuration.Prior[0], ctr.Configuration.Prior[1]);
 
                 TVector<ui32> featureBins;
@@ -203,54 +209,46 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             catFeatureParams.AddTreeCtrDescription(bucketsCtr);
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
-        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
-        TDataProvider dataProvider;
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                 dataProvider);
 
-        {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
 
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         NCatboostOptions::TBinarizationOptions(),
+                         NCatboostOptions::TCatFeatureParams(ETaskType::GPU),
+                         &dataProvider,
+                         &featuresManager);
 
-        {
-        }
 
-        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(featuresManager,
-                                                                    dataProvider);
+        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
+                                                                    *dataProvider);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         TVector<ui32> oneHotIds;
         TVector<ui32> catIds;
         TVector<ui32> binaryIds;
         TVector<ui32> floatIds;
-        for (ui32 id : featuresManager.GetCatFeatureIds()) {
-            if (featuresManager.UseForOneHotEncoding(id)) {
+        for (ui32 id : featuresManager->GetCatFeatureIds()) {
+            if (featuresManager->UseForOneHotEncoding(id)) {
                 oneHotIds.push_back(id);
-            } else if (featuresManager.UseForCtr(id)) {
+            } else if (featuresManager->UseForCtr(id)) {
                 catIds.push_back(id);
             }
         }
-        for (ui32 id : featuresManager.GetFloatFeatureIds()) {
-            if (featuresManager.GetBinCount(id) == 2) {
+        for (ui32 id : featuresManager->GetFloatFeatureIds()) {
+            if (featuresManager->GetBinCount(id) == 2) {
                 binaryIds.push_back(id);
             } else {
                 floatIds.push_back(id);
             }
         }
 
-        TVector<ui32> simpleCtrIds = featuresManager.GetAllSimpleCtrs();
+        TVector<ui32> simpleCtrIds = featuresManager->GetAllSimpleCtrs();
 
         TVector<TBinarySplit> splits;
         TBinarySplit firstSplit = TBinarySplit(floatIds[random.NextUniformL() % floatIds.size()], 2, EBinSplitType::TakeGreater);
@@ -266,7 +264,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         treeCtr.Configuration.Type = random.NextUniformL() % 2 == 0 ? ECtrType::Buckets : ECtrType::FeatureFreq;
         {
             if (treeCtr.Configuration.Type == ECtrType::Buckets) {
-                treeCtr.Configuration.Prior.resize(featuresManager.GetTargetBorders().size() + 1, 0.5f);
+                treeCtr.Configuration.Prior.resize(featuresManager->GetTargetBorders().size() + 1, 0.5f);
             } else {
                 treeCtr.Configuration.Prior = {0.5f, 1};
             }
@@ -276,10 +274,10 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             for (ui32 i = 0; i < 8; ++i) {
                 naiveBorders.push_back(i * 1.0 / 8);
             }
-            featuresManager.AddCtr(treeCtr, std::move(naiveBorders));
+            featuresManager->AddCtr(treeCtr, std::move(naiveBorders));
         }
 
-        TBinarySplit thirdSplit = TBinarySplit(featuresManager.GetId(treeCtr), 4, EBinSplitType::TakeGreater);
+        TBinarySplit thirdSplit = TBinarySplit(featuresManager->GetId(treeCtr), 4, EBinSplitType::TakeGreater);
         splits.push_back(thirdSplit);
 
         ui32 simpleCtr = simpleCtrIds[random.NextUniformL() % simpleCtrIds.size()];
@@ -299,7 +297,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 TMirrorBuffer<ui32> bins = TMirrorBuffer<ui32>::CopyMapping(ds.GetIndices());
 
                 {
-                    TTreeUpdater treeBuilder(cacheHolder, featuresManager,
+                    TTreeUpdater treeBuilder(cacheHolder, *featuresManager,
                                              dataSet.GetCtrTargets(), ds,
                                              bins);
                     TVector<ui32> currentBinsCpu;
@@ -313,7 +311,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                             NCudaLib::GetCudaManager().WaitComplete();
                         }
 
-                        CheckBins(ds, featuresManager,
+                        CheckBins(ds, *featuresManager,
                                   splits[i], i,
                                   bins, currentBinsCpu);
                     }
@@ -328,7 +326,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 TMirrorBuffer<ui32> bins = TMirrorBuffer<ui32>::CopyMapping(ds.GetIndices());
                 {
                     TTreeUpdater treeBuilder(cacheHolder,
-                                             featuresManager,
+                                             *featuresManager,
                                              dataSet.GetCtrTargets(),
                                              ds,
                                              bins);
@@ -343,7 +341,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                             treeBuilder.AddSplit(splits[i]);
                             NCudaLib::GetCudaManager().WaitComplete();
                         }
-                        CheckBins(ds, featuresManager,
+                        CheckBins(ds, *featuresManager,
                                   splits[i], i,
                                   bins, currentBinsCpu);
                     }

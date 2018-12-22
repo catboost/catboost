@@ -17,10 +17,10 @@
 DEF _buffer_format_string_len = 255
 
 cimport cpython.buffer as pybuf
-from cpython.ref cimport Py_INCREF, Py_XDECREF
-from cpython.object cimport PyObject
+from cpython.ref cimport Py_INCREF
+from cpython.mem cimport PyObject_Malloc, PyObject_Free
+from cpython.object cimport PyObject, PyTypeObject
 from cpython.type cimport type
-cimport libc.stdlib as stdlib
 cimport libc.stdio as stdio
 
 cdef extern from "Python.h":
@@ -52,6 +52,8 @@ cdef extern from "numpy/arrayobject.h":
         NPY_STRING
         NPY_UNICODE
         NPY_VOID
+        NPY_DATETIME
+        NPY_TIMEDELTA
         NPY_NTYPES
         NPY_NOTYPE
 
@@ -88,6 +90,14 @@ cdef extern from "numpy/arrayobject.h":
         NPY_ANYORDER
         NPY_CORDER
         NPY_FORTRANORDER
+        NPY_KEEPORDER
+
+    ctypedef enum NPY_CASTING:
+        NPY_NO_CASTING
+        NPY_EQUIV_CASTING
+        NPY_SAFE_CASTING
+        NPY_SAME_KIND_CASTING
+        NPY_UNSAFE_CASTING
 
     ctypedef enum NPY_CLIPMODE:
         NPY_CLIP
@@ -113,6 +123,7 @@ cdef extern from "numpy/arrayobject.h":
         NPY_SEARCHRIGHT
 
     enum:
+        # DEPRECATED since NumPy 1.7 ! Do not use in new code!
         NPY_C_CONTIGUOUS
         NPY_F_CONTIGUOUS
         NPY_CONTIGUOUS
@@ -145,6 +156,37 @@ cdef extern from "numpy/arrayobject.h":
 
         NPY_UPDATE_ALL
 
+    enum:
+        # Added in NumPy 1.7 to replace the deprecated enums above.
+        NPY_ARRAY_C_CONTIGUOUS
+        NPY_ARRAY_F_CONTIGUOUS
+        NPY_ARRAY_OWNDATA
+        NPY_ARRAY_FORCECAST
+        NPY_ARRAY_ENSURECOPY
+        NPY_ARRAY_ENSUREARRAY
+        NPY_ARRAY_ELEMENTSTRIDES
+        NPY_ARRAY_ALIGNED
+        NPY_ARRAY_NOTSWAPPED
+        NPY_ARRAY_WRITEABLE
+        NPY_ARRAY_UPDATEIFCOPY
+
+        NPY_ARRAY_BEHAVED
+        NPY_ARRAY_BEHAVED_NS
+        NPY_ARRAY_CARRAY
+        NPY_ARRAY_CARRAY_RO
+        NPY_ARRAY_FARRAY
+        NPY_ARRAY_FARRAY_RO
+        NPY_ARRAY_DEFAULT
+
+        NPY_ARRAY_IN_ARRAY
+        NPY_ARRAY_OUT_ARRAY
+        NPY_ARRAY_INOUT_ARRAY
+        NPY_ARRAY_IN_FARRAY
+        NPY_ARRAY_OUT_FARRAY
+        NPY_ARRAY_INOUT_FARRAY
+
+        NPY_ARRAY_UPDATE_ALL
+
     cdef enum:
         NPY_MAXDIMS
 
@@ -152,15 +194,37 @@ cdef extern from "numpy/arrayobject.h":
 
     ctypedef void (*PyArray_VectorUnaryFunc)(void *, void *, npy_intp, void *,  void *)
 
-    ctypedef class numpy.dtype [object PyArray_Descr]:
+    ctypedef struct PyArray_ArrayDescr:
+        # shape is a tuple, but Cython doesn't support "tuple shape"
+        # inside a non-PyObject declaration, so we have to declare it
+        # as just a PyObject*.
+        PyObject* shape
+
+    ctypedef struct PyArray_Descr:
+        pass
+
+    ctypedef class numpy.dtype [object PyArray_Descr, check_size ignore]:
         # Use PyDataType_* macros when possible, however there are no macros
-        # for accessing some of the fields, so some are defined. Please
-        # ask on cython-dev if you need more.
+        # for accessing some of the fields, so some are defined.
+        cdef PyTypeObject* typeobj
+        cdef char kind
+        cdef char type
+        # Numpy sometimes mutates this without warning (e.g. it'll
+        # sometimes change "|" to "<" in shared dtype objects on
+        # little-endian machines). If this matters to you, use
+        # PyArray_IsNativeByteOrder(dtype.byteorder) instead of
+        # directly accessing this field.
+        cdef char byteorder
+        cdef char flags
         cdef int type_num
         cdef int itemsize "elsize"
-        cdef char byteorder
-        cdef object fields
+        cdef int alignment
+        cdef dict fields
         cdef tuple names
+        # Use PyDataType_HASSUBARRAY to test whether this field is
+        # valid (the pointer can be NULL). Most users should access
+        # this field via the inline helper method PyDataType_SHAPE.
+        cdef PyArray_ArrayDescr* subarray
 
     ctypedef extern class numpy.flatiter [object PyArrayIterObject]:
         # Use through macros
@@ -175,7 +239,7 @@ cdef extern from "numpy/arrayobject.h":
         # like PyArrayObject**.
         pass
 
-    ctypedef class numpy.ndarray [object PyArrayObject]:
+    ctypedef class numpy.ndarray [object PyArrayObject, check_size ignore]:
         cdef __cythonbufferdefaults__ = {"mode": "strided"}
 
         cdef:
@@ -185,7 +249,7 @@ cdef extern from "numpy/arrayobject.h":
             int ndim "nd"
             npy_intp *shape "dimensions"
             npy_intp *strides
-            dtype descr
+            dtype descr  # deprecated since NumPy 1.7 !
             PyObject* base
 
         # Note: This syntax (function definition in pxd files) is an
@@ -193,37 +257,30 @@ cdef extern from "numpy/arrayobject.h":
         # -- the details of this may change.
         def __getbuffer__(ndarray self, Py_buffer* info, int flags):
             # This implementation of getbuffer is geared towards Cython
-            # requirements, and does not yet fullfill the PEP.
+            # requirements, and does not yet fulfill the PEP.
             # In particular strided access is always provided regardless
             # of flags
 
-            if info == NULL: return
-
-            cdef int copy_shape, i, ndim
+            cdef int i, ndim
             cdef int endian_detector = 1
             cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)
 
             ndim = PyArray_NDIM(self)
 
-            if sizeof(npy_intp) != sizeof(Py_ssize_t):
-                copy_shape = 1
-            else:
-                copy_shape = 0
-
             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
-                and not PyArray_CHKFLAGS(self, NPY_C_CONTIGUOUS)):
+                and not PyArray_CHKFLAGS(self, NPY_ARRAY_C_CONTIGUOUS)):
                 raise ValueError(u"ndarray is not C contiguous")
 
             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
-                and not PyArray_CHKFLAGS(self, NPY_F_CONTIGUOUS)):
+                and not PyArray_CHKFLAGS(self, NPY_ARRAY_F_CONTIGUOUS)):
                 raise ValueError(u"ndarray is not Fortran contiguous")
 
             info.buf = PyArray_DATA(self)
             info.ndim = ndim
-            if copy_shape:
+            if sizeof(npy_intp) != sizeof(Py_ssize_t):
                 # Allocate new buffer for strides and shape info.
                 # This is allocated as one block, strides first.
-                info.strides = <Py_ssize_t*>stdlib.malloc(sizeof(Py_ssize_t) * <size_t>ndim * 2)
+                info.strides = <Py_ssize_t*>PyObject_Malloc(sizeof(Py_ssize_t) * 2 * <size_t>ndim)
                 info.shape = info.strides + ndim
                 for i in range(ndim):
                     info.strides[i] = PyArray_STRIDES(self)[i]
@@ -237,20 +294,12 @@ cdef extern from "numpy/arrayobject.h":
 
             cdef int t
             cdef char* f = NULL
-            cdef dtype descr = self.descr
-            cdef list stack
+            cdef dtype descr = <dtype>PyArray_DESCR(self)
             cdef int offset
 
-            cdef bint hasfields = PyDataType_HASFIELDS(descr)
+            info.obj = self
 
-            if not hasfields and not copy_shape:
-                # do not call releasebuffer
-                info.obj = None
-            else:
-                # need to call releasebuffer
-                info.obj = self
-
-            if not hasfields:
+            if not PyDataType_HASFIELDS(descr):
                 t = descr.type_num
                 if ((descr.byteorder == c'>' and little_endian) or
                     (descr.byteorder == c'<' and not little_endian)):
@@ -277,7 +326,7 @@ cdef extern from "numpy/arrayobject.h":
                 info.format = f
                 return
             else:
-                info.format = <char*>stdlib.malloc(_buffer_format_string_len)
+                info.format = <char*>PyObject_Malloc(_buffer_format_string_len)
                 info.format[0] = c'^' # Native data types, manual alignment
                 offset = 0
                 f = _util_dtypestring(descr, info.format + 1,
@@ -287,13 +336,13 @@ cdef extern from "numpy/arrayobject.h":
 
         def __releasebuffer__(ndarray self, Py_buffer* info):
             if PyArray_HASFIELDS(self):
-                stdlib.free(info.format)
+                PyObject_Free(info.format)
             if sizeof(npy_intp) != sizeof(Py_ssize_t):
-                stdlib.free(info.strides)
+                PyObject_Free(info.strides)
                 # info.shape was stored after info.strides in the same block
 
 
-    ctypedef signed char      npy_bool
+    ctypedef unsigned char      npy_bool
 
     ctypedef signed char      npy_byte
     ctypedef signed short     npy_short
@@ -340,28 +389,28 @@ cdef extern from "numpy/arrayobject.h":
         double imag
 
     ctypedef struct npy_clongdouble:
-        double real
-        double imag
+        long double real
+        long double imag
 
     ctypedef struct npy_complex64:
-        double real
-        double imag
+        float real
+        float imag
 
     ctypedef struct npy_complex128:
         double real
         double imag
 
     ctypedef struct npy_complex160:
-        double real
-        double imag
+        long double real
+        long double imag
 
     ctypedef struct npy_complex192:
-        double real
-        double imag
+        long double real
+        long double imag
 
     ctypedef struct npy_complex256:
-        double real
-        double imag
+        long double real
+        long double imag
 
     ctypedef struct PyArray_Dims:
         npy_intp *ptr
@@ -373,6 +422,8 @@ cdef extern from "numpy/arrayobject.h":
     # Macros from ndarrayobject.h
     #
     bint PyArray_CHKFLAGS(ndarray m, int flags)
+    bint PyArray_IS_C_CONTIGUOUS(ndarray arr)
+    bint PyArray_IS_F_CONTIGUOUS(ndarray arr)
     bint PyArray_ISCONTIGUOUS(ndarray m)
     bint PyArray_ISWRITEABLE(ndarray m)
     bint PyArray_ISALIGNED(ndarray m)
@@ -389,8 +440,8 @@ cdef extern from "numpy/arrayobject.h":
     npy_intp PyArray_DIM(ndarray, size_t)
     npy_intp PyArray_STRIDE(ndarray, size_t)
 
-    # object PyArray_BASE(ndarray) wrong refcount semantics
-    # dtype PyArray_DESCR(ndarray) wrong refcount semantics
+    PyObject *PyArray_BASE(ndarray)  # returns borrowed reference!
+    PyArray_Descr *PyArray_DESCR(ndarray) # returns borrowed reference to dtype!
     int PyArray_FLAGS(ndarray)
     npy_intp PyArray_ITEMSIZE(ndarray)
     int PyArray_TYPE(ndarray arr)
@@ -426,6 +477,7 @@ cdef extern from "numpy/arrayobject.h":
     bint PyDataType_ISEXTENDED(dtype)
     bint PyDataType_ISOBJECT(dtype)
     bint PyDataType_HASFIELDS(dtype)
+    bint PyDataType_HASSUBARRAY(dtype)
 
     bint PyArray_ISBOOL(ndarray)
     bint PyArray_ISUNSIGNED(ndarray)
@@ -445,8 +497,8 @@ cdef extern from "numpy/arrayobject.h":
     bint PyArray_ISVARIABLE(ndarray)
 
     bint PyArray_SAFEALIGNEDCOPY(ndarray)
-    bint PyArray_ISNBO(ndarray)
-    bint PyArray_IsNativeByteOrder(ndarray)
+    bint PyArray_ISNBO(char)              # works on ndarray.byteorder
+    bint PyArray_IsNativeByteOrder(char)  # works on ndarray.byteorder
     bint PyArray_ISNOTSWAPPED(ndarray)
     bint PyArray_ISBYTESWAPPED(ndarray)
 
@@ -488,8 +540,8 @@ cdef extern from "numpy/arrayobject.h":
 
     object PyArray_FROM_O(object)
     object PyArray_FROM_OF(object m, int flags)
-    bint PyArray_FROM_OT(object m, int type)
-    bint PyArray_FROM_OTF(object m, int type, int flags)
+    object PyArray_FROM_OT(object m, int type)
+    object PyArray_FROM_OTF(object m, int type, int flags)
     object PyArray_FROMANY(object m, int type, int min, int max, int flags)
     object PyArray_ZEROS(int nd, npy_intp* dims, int type, int fortran)
     object PyArray_EMPTY(int nd, npy_intp* dims, int type, int fortran)
@@ -712,6 +764,7 @@ cdef extern from "numpy/arrayobject.h":
     object PyArray_CheckAxis (ndarray, int *, int)
     npy_intp PyArray_OverflowMultiplyList (npy_intp *, int)
     int PyArray_CompareString (char *, char *, size_t)
+    int PyArray_SetBaseObject(ndarray, base)  # NOTE: steals a reference to base! Use "set_array_base()" instead.
 
 
 # Typedefs that matches the runtime dtype objects in
@@ -780,13 +833,17 @@ cdef inline object PyArray_MultiIterNew4(a, b, c, d):
 cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
 
+cdef inline tuple PyDataType_SHAPE(dtype d):
+    if PyDataType_HASSUBARRAY(d):
+        return <tuple>d.subarray.shape
+    else:
+        return ()
+
 cdef inline char* _util_dtypestring(dtype descr, char* f, char* end, int* offset) except NULL:
     # Recursive utility function used in __getbuffer__ to get format
     # string. The new location in the format string is returned.
 
     cdef dtype child
-    cdef int delta_offset
-    cdef tuple i
     cdef int endian_detector = 1
     cdef bint little_endian = ((<char*>&endian_detector)[0] != 0)
     cdef tuple fields
@@ -795,7 +852,7 @@ cdef inline char* _util_dtypestring(dtype descr, char* f, char* end, int* offset
         fields = descr.fields[childname]
         child, new_offset = fields
 
-        if (end - f) - (new_offset - offset[0]) < 15:
+        if (end - f) - <int>(new_offset - offset[0]) < 15:
             raise RuntimeError(u"Format string allocated too short, see comment in numpy.pxd")
 
         if ((child.byteorder == c'>' and little_endian) or
@@ -962,23 +1019,15 @@ cdef extern from "numpy/ufuncobject.h":
 
     int _import_umath() except -1
 
-
 cdef inline void set_array_base(ndarray arr, object base):
-     cdef PyObject* baseptr
-     if base is None:
-         baseptr = NULL
-     else:
-         Py_INCREF(base) # important to do this before decref below!
-         baseptr = <PyObject*>base
-     Py_XDECREF(arr.base)
-     arr.base = baseptr
+    Py_INCREF(base) # important to do this before stealing the reference below!
+    PyArray_SetBaseObject(arr, base)
 
 cdef inline object get_array_base(ndarray arr):
-    if arr.base is NULL:
+    base = PyArray_BASE(arr)
+    if base is NULL:
         return None
-    else:
-        return <object>arr.base
-
+    return <object>base
 
 # Versions of the import_* functions which are more suitable for
 # Cython code.

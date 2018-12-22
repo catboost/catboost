@@ -40,7 +40,7 @@ class ROData(iw.CustomCommand):
         self._fmt += unit.get('hardware_arch')
         self._type = unit.get('hardware_type')
 
-        if unit.enabled('darwin') or (unit.enabled('windows') and unit.enabled('arch_type_32')):
+        if unit.enabled('darwin') or unit.enabled('ios') or (unit.enabled('windows') and unit.enabled('arch_type_32')):
             self._prefix = '_'
         else:
             self._prefix = ''

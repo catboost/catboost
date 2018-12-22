@@ -13,11 +13,11 @@ Y_UNIT_TEST_SUITE(Columns) {
         TVector<float> v = {10.0f, 11.1f, 12.2f, 13.3f, 14.4f, 15.5f, 16.6f, 17.7f, 18.8f, 19.9f};
         TVector<float> vCopy = v;
 
-        NCB::TArraySubsetIndexing<size_t> vSubsetIndexing( NCB::TFullSubset<size_t>{v.size()} );
+        NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)v.size()} );
 
         TFloatValuesHolder floatValuesHolder(
             10,
-            TMaybeOwningArrayHolder<float>::CreateOwning(std::move(v)),
+            TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(v)),
             &vSubsetIndexing
         );
 
@@ -27,7 +27,7 @@ Y_UNIT_TEST_SUITE(Columns) {
 
         TVector<bool> visitedIndices(vCopy.size(), false);
         floatValuesHolder.GetArrayData().ForEach(
-            [&](ui64 idx, float value) {
+            [&](ui32 idx, float value) {
                 UNIT_ASSERT_EQUAL(vCopy[idx], value);
                 UNIT_ASSERT(!visitedIndices[idx]);
                 visitedIndices[idx] = true;
@@ -47,7 +47,7 @@ Y_UNIT_TEST_SUITE(Columns) {
 
         TCompressedArray data(10, 8, storage);
 
-        TFeaturesArraySubsetIndexing subsetIndexing( TIndexedSubset<size_t>{6, 5, 2, 0, 12} );
+        TFeaturesArraySubsetIndexing subsetIndexing( TIndexedSubset<ui32>{6, 5, 2, 0, 12} );
 
         TQuantizedFloatValuesHolder quantizedFloatValuesHolder(9, data, &subsetIndexing);
 
@@ -60,7 +60,7 @@ Y_UNIT_TEST_SUITE(Columns) {
         TVector<bool> visitedIndices(subsetIndexing.Size(), false);
 
         quantizedFloatValuesHolder.GetArrayData().ForEach(
-            [&](ui64 idx, ui8 value) {
+            [&](ui32 idx, ui8 value) {
                 UNIT_ASSERT_EQUAL(expectedSubset[idx], value);
                 UNIT_ASSERT(!visitedIndices[idx]);
                 visitedIndices[idx] = true;

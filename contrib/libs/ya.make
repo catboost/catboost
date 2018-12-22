@@ -8,6 +8,7 @@ RECURSE(
     cppdemangle/all
     crcutil
     cxxsupp/libcxx
+    expat
     fastlz
     flatbuffers
     flatbuffers/samples
@@ -22,21 +23,21 @@ RECURSE(
     lz4
     lz4/generated
     lzmasdk
+    musl-1.1.20
     nayuki_md5
     openssl
     openssl/apps
     openssl/dynamic
-    platform
-    platform/python
     protobuf
     protobuf/java
     protobuf/python
     protobuf/python/test
     protobuf/ut
+    python
+    python/ut
     snappy
     sqlite3
     tensorboard
-    yaml
     zlib
     zstd
     zstd06

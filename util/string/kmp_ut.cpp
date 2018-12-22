@@ -11,8 +11,8 @@ static TVector<int> FindAll(const TString& pattern, const TString& string) {
     const char* begin = string.begin();
     const char* end = string.end();
     while (kmp.SubStr(begin, end, pResult)) {
-        result.push_back(int(pResult - ~string));
-        begin = pResult + +pattern;
+        result.push_back(int(pResult - string.data()));
+        begin = pResult + pattern.size();
     }
     return result;
 }

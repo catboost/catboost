@@ -9,7 +9,7 @@
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
+#include <catboost/libs/data_new/data_provider.h>
 
 namespace NCatboostCuda {
     //damn proxy for learn set one-hots
@@ -24,14 +24,14 @@ namespace NCatboostCuda {
         }
 
         explicit TBinarizationInfoProvider(const TBinarizedFeaturesManager& manager,
-                                           const TDataProvider* provider = nullptr)
+                                           const NCB::TTrainingDataProvider* provider = nullptr)
                 : Manager(&manager)
                   , DataProvider(provider) {
         }
 
     private:
         const TBinarizedFeaturesManager* Manager;
-        const TDataProvider* DataProvider;
+        const NCB::TTrainingDataProvider* DataProvider;
     };
 
     struct TCpuGrid {
@@ -40,7 +40,7 @@ namespace NCatboostCuda {
         TVector<bool> IsOneHot;
         TMap<ui32, ui32> InverseFeatures;
 
-        template<class TFeaturesBinarizationDescription>
+        template <class TFeaturesBinarizationDescription>
         TCpuGrid(const TFeaturesBinarizationDescription& info,
                  const TVector<ui32>& features)
                 : FeatureIds(features) {
@@ -84,7 +84,7 @@ namespace NCatboostCuda {
 
     //block of compressed features for one policy
     //what features we have and hot to access one
-    template<class TFeaturesMapping,
+    template <class TFeaturesMapping,
             class TSamplesMapping>
     struct TGpuFeaturesBlockDescription {
         TCpuGrid Grid;
@@ -111,7 +111,7 @@ namespace NCatboostCuda {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
-            CB_ENSURE(Grid.InverseFeatures.has(featureId));
+            CB_ENSURE(Grid.InverseFeatures.contains(featureId));
             return CudaFeaturesHost[Grid.InverseFeatures.at(featureId)];
         }
 
@@ -127,7 +127,7 @@ namespace NCatboostCuda {
     extern template
     struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;
 
-    template<class TPoolLayout>
+    template <class TPoolLayout>
     struct TCudaFeaturesLayoutHelper;
 
     //cuda-manager has 1 active device (mainly for child managers) and we use it

@@ -182,9 +182,9 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                 ++localQid;
 
                 {
-                    double bestShift = BestQueryShift(~cursor + cpuQueryOffset,
-                                                      ~targets + cpuQueryOffset,
-                                                      ~weights + cpuQueryOffset,
+                    double bestShift = BestQueryShift(cursor.data() + cpuQueryOffset,
+                                                      targets.data() + cpuQueryOffset,
+                                                      weights.data() + cpuQueryOffset,
                                                       querySize);
 
                     double groupDer2 = 0;

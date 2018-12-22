@@ -1,6 +1,11 @@
 #pragma once
 
-#include "docs_importance_helpers.h"
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/model/model.h>
+
+#include <util/generic/string.h>
+#include <util/system/types.h>
+
 
 struct TDStrResult {
     TDStrResult() = default;
@@ -16,12 +21,13 @@ struct TDStrResult {
 
 TDStrResult GetDocumentImportances(
     const TFullModel& model,
-    const TPool& trainPool,
-    const TPool& testPool,
+    const NCB::TDataProvider& trainData,
+    const NCB::TDataProvider& testData,
     const TString& dstrTypeStr,
     int topSize,
     const TString& updateMethodStr,
     const TString& importanceValuesSignStr,
-    int threadCount
+    int threadCount,
+    int logPeriod = 0
 );
 

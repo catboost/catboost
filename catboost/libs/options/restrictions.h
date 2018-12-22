@@ -2,18 +2,19 @@
 
 #include "enums.h"
 
-#include <util/system/types.h>
 #include <catboost/libs/ctr_description/ctr_type.h>
 
-inline constexpr ui32 GetMaxBinCount() {
+#include <util/system/types.h>
+
+constexpr ui32 GetMaxBinCount() {
     return 255;
 }
 
-inline constexpr ui32 GetMaxTreeDepth() {
+constexpr ui32 GetMaxTreeDepth() {
     return 16;
 }
 
-inline bool IsSupportedCtrType(ETaskType taskType, ECtrType ctrType) {
+constexpr bool IsSupportedCtrType(ETaskType taskType, ECtrType ctrType) {
     switch (taskType) {
         case ETaskType::CPU: {
             switch (ctrType) {
@@ -46,7 +47,7 @@ inline bool IsSupportedCtrType(ETaskType taskType, ECtrType ctrType) {
 
 
 //for performance reasons max tree-ctr binarization is compile-time constant on GPU
-inline constexpr ui32 GetMaxTreeCtrBinarizationForGpu() {
+constexpr ui32 GetMaxTreeCtrBinarizationForGpu() {
     return 15;
 }
 

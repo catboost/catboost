@@ -15,7 +15,10 @@ TParsedLocation::TParsedLocation(TStringBuf path) {
         path.Skip(1);
     }
 
-    path.Split('/', EndPoint, Service);
+    if (!path.TrySplit('/', EndPoint, Service)) {
+        EndPoint = path;
+        Service = "";
+    }
 
     if (!EndPoint.TryRSplit(':', Host, Port)) {
         Host = EndPoint;

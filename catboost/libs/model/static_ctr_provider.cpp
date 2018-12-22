@@ -1,11 +1,13 @@
 #include "static_ctr_provider.h"
 #include "json_model_helpers.h"
+#include "formula_evaluator.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model_export/export_helpers.h>
 
+#include <util/generic/xrange.h>
 #include <util/generic/set.h>
-
+#include <util/string/cast.h>
 
 
 NJson::TJsonValue TStaticCtrProvider::ConvertCtrsToJson(const TVector<TModelCtr>& neededCtrs) const {
@@ -32,7 +34,7 @@ NJson::TJsonValue TStaticCtrProvider::ConvertCtrsToJson(const TVector<TModelCtr>
                 } else {
                     hashIndexes.insert(bucket.Hash);
                 }
-                hashValue.AppendValue(ToString<ui64>(bucket.Hash));
+                hashValue.AppendValue(ToString(bucket.Hash));
                 if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
                     if (value != NCatboost::TDenseIndexHashView::NotFoundIndex) {
                         auto ctrMean = learnCtr.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
@@ -67,7 +69,7 @@ NJson::TJsonValue TStaticCtrProvider::ConvertCtrsToJson(const TVector<TModelCtr>
 
 void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
                                   const TConstArrayRef<ui8>& binarizedFeatures,
-                                  const TConstArrayRef<int>& hashedCatFeatures,
+                                  const TConstArrayRef<ui32>& hashedCatFeatures,
                                   size_t docCount,
                                   TArrayRef<float> result) {
     if (neededCtrs.empty()) {
@@ -182,38 +184,212 @@ void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
 
 bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const {
     for (const auto& ctr : neededCtrs) {
-        if (!CtrData.LearnCtrs.has(ctr.Base)) {
+        if (!CtrData.LearnCtrs.contains(ctr.Base)) {
             return false;
         }
     }
     return true;
 }
 
-void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature> &floatFeatures,
-                                                const TVector<TOneHotFeature> &oheFeatures,
-                                                const TVector<TCatFeature> &catFeatures) {
+void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& floatFeatures,
+                                                const TVector<TOneHotFeature>& oheFeatures,
+                                                const TVector<TCatFeature>& catFeatures) {
     ui32 currentIndex = 0;
     FloatFeatureIndexes.clear();
     for (const auto& floatFeature : floatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
         for (size_t borderIdx = 0; borderIdx < floatFeature.Borders.size(); ++borderIdx) {
-            TBinFeatureIndexValue featureIdx{currentIndex, false, (ui8)(borderIdx + 1)};
+            TBinFeatureIndexValue featureIdx{currentIndex + (ui32)borderIdx / MAX_VALUES_PER_BIN, false, (ui8)((borderIdx % MAX_VALUES_PER_BIN)+ 1)};
             TFloatSplit split{floatFeature.FeatureIndex, floatFeature.Borders[borderIdx]};
             FloatFeatureIndexes[split] = featureIdx;
         }
-        ++currentIndex;
+        currentIndex += (floatFeature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     OneHotFeatureIndexes.clear();
     for (const auto& oheFeature : oheFeatures) {
-        for (int valueId = 0; valueId < oheFeature.Values.ysize(); ++valueId) {
-            TBinFeatureIndexValue featureIdx{currentIndex, true, (ui8)(valueId + 1)};
+        for (size_t valueId = 0; valueId < oheFeature.Values.size(); ++valueId) {
+            TBinFeatureIndexValue featureIdx{currentIndex + (ui32)valueId / MAX_VALUES_PER_BIN, true, (ui8)((valueId % MAX_VALUES_PER_BIN) + 1)};
             TOneHotSplit feature{oheFeature.CatFeatureIndex, oheFeature.Values[valueId]};
             OneHotFeatureIndexes[feature] = featureIdx;
         }
-        ++currentIndex;
+        currentIndex += (oheFeature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     CatFeatureIndex.clear();
     for (const auto& catFeature : catFeatures) {
-        const int prevSize = CatFeatureIndex.ysize();
-        CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
+        if (catFeature.UsedInModel) {
+            const int prevSize = CatFeatureIndex.ysize();
+            CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
+        }
     }
+}
+
+TIntrusivePtr<ICtrProvider> TStaticCtrProvider::Clone() const {
+    TIntrusivePtr<TStaticCtrProvider> result = new TStaticCtrProvider();
+    result->CtrData = CtrData;
+    return result;
+}
+
+
+/***
+ * ATTENTION!
+ * This function contains simple and mostly incorrect ctr values table merging approach.
+ * In this version we just leave unique values as-is and are using averaging for intersection
+ */
+static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValueTable* target) {
+    Y_ASSERT(!tables.empty());
+    TVector<NCatboost::TDenseIndexHashView> indexViewers;
+    THashSet<NCatboost::TBucket::THashType> uniqueHashes;
+    for (const auto& table : tables) {
+        indexViewers.emplace_back(table->GetIndexHashViewer());
+        for (const auto& bucket : indexViewers.back().GetBuckets()) {
+            if (bucket.Hash != NCatboost::TBucket::InvalidHashValue) {
+                uniqueHashes.insert(bucket.Hash);
+            }
+        }
+    }
+
+    auto hashBuilder = target->GetIndexHashBuilder(uniqueHashes.size());
+    switch (tables.back()->ModelCtrBase.CtrType)
+    {
+    case ECtrType::BinarizedTargetMeanValue:
+    case ECtrType::FloatTargetMeanValue: {
+            TVector<TConstArrayRef<TCtrMeanHistory>> meanHistories;
+            for (const auto& table : tables) {
+                meanHistories.emplace_back(table->GetTypedArrayRefForBlobData<TCtrMeanHistory>());
+            }
+            auto targetBuf = target->AllocateBlobAndGetArrayRef<TCtrMeanHistory>(uniqueHashes.size());
+            for (auto hash : uniqueHashes) {
+                TCtrMeanHistory value = {0.0f, 0};
+                size_t count = 0;
+                for (const auto viewerId : xrange(indexViewers.size())) {
+                    auto index = indexViewers[viewerId].GetIndex(hash);
+                    if (index != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                        value.Add(meanHistories[viewerId][index]);
+                        ++count;
+                    }
+                }
+                value.Count /= count;
+                value.Sum /= count;
+                auto insertIndex = hashBuilder.AddIndex(hash);
+                targetBuf[insertIndex] = value;
+            }
+        }
+        break;
+    case ECtrType::FeatureFreq:
+    case ECtrType::Counter:
+        {
+            TVector<TConstArrayRef<int>> counters;
+            for (const auto& table : tables) {
+                counters.emplace_back(table->GetTypedArrayRefForBlobData<int>());
+            }
+            auto targetBuf = target->AllocateBlobAndGetArrayRef<int>(uniqueHashes.size());
+            for (auto hash : uniqueHashes) {
+                int value = 0;
+                int count = 0;
+                for (const auto viewerId : xrange(indexViewers.size())) {
+                    auto index = indexViewers[viewerId].GetIndex(hash);
+                    if (index != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                        value += counters[viewerId][index];
+                        ++count;
+                    }
+                }
+                Y_ASSERT(count != 0);
+                auto insertIndex = hashBuilder.AddIndex(hash);
+                targetBuf[insertIndex] = value / count;
+            }
+            i64 denominatorSum = 0;
+            for (const auto& table : tables) {
+                denominatorSum += table->CounterDenominator;
+            }
+            target->CounterDenominator = denominatorSum / tables.size();
+        }
+        break;
+    case ECtrType::Buckets:
+    case ECtrType::Borders:
+        {
+            const auto targetClassesCount = tables.back()->TargetClassesCount;
+            TVector<TConstArrayRef<int>> counters;
+            for (const auto& table : tables) {
+                counters.emplace_back(table->GetTypedArrayRefForBlobData<int>());
+            }
+            auto targetBuf = target->AllocateBlobAndGetArrayRef<int>(uniqueHashes.size() * tables.back()->TargetClassesCount);
+            for (auto hash : uniqueHashes) {
+                int count = 0;
+                const auto insertIndex = hashBuilder.AddIndex(hash);
+                TArrayRef<int> insertArrayView(&targetBuf[insertIndex * targetClassesCount], targetClassesCount);
+                for (const auto viewerId : xrange(indexViewers.size())) {
+                    auto index = indexViewers[viewerId].GetIndex(hash);
+                    if (index != NCatboost::TDenseIndexHashView::NotFoundIndex) {
+                        for (int targetClassId : xrange(targetClassesCount)) {
+                            insertArrayView[targetClassId] += counters[viewerId][index * targetClassesCount + targetClassId];
+                        }
+                        ++count;
+                    }
+                }
+                if (count > 1) {
+                    for (auto& value : insertArrayView) {
+                        value /= count;
+                    }
+                }
+            }
+        }
+        break;
+
+    case ECtrType::CtrTypesCount:
+    default:
+        Y_UNREACHABLE();
+    }
+}
+
+TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<const TStaticCtrProvider*>& providers, ECtrTableMergePolicy mergePolicy) {
+    if (providers.empty()) {
+        return TIntrusivePtr<TStaticCtrProvider>();
+    }
+    TIntrusivePtr<TStaticCtrProvider> result = new TStaticCtrProvider();
+    if (providers.size() == 1) {
+        result->CtrData = providers[0]->CtrData;
+        return result;
+    }
+    THashMap<TModelCtrBase, TVector<const TCtrValueTable*>> valuesMap;
+    for (const auto& provider: providers) {
+        for (const auto& [ctrBase, ctrValueTables] : provider->CtrData.LearnCtrs) {
+            valuesMap[ctrBase].push_back(&ctrValueTables);
+        }
+    }
+    for (const auto& [ctrBase, ctrValueTables] : valuesMap) {
+        if (ctrValueTables.size() == 1) {
+            result->CtrData.LearnCtrs[ctrBase] = *(ctrValueTables[0]);
+            continue;
+        }
+        auto& target = result->CtrData.LearnCtrs[ctrBase];
+        target.ModelCtrBase = ctrBase;
+        switch (mergePolicy)
+        {
+        case ECtrTableMergePolicy::FailIfCtrsIntersects:
+            throw TCatBoostException() << "FailIfCtrsIntersects policy forbids model ctr tables intersection";
+        case ECtrTableMergePolicy::LeaveMostDiversifiedTable:
+            {
+                size_t maxCtrTableSize = 0;
+                const TCtrValueTable* maxTable = nullptr;
+                for (const auto* valueTable : ctrValueTables) {
+                    auto ctrSize = valueTable->GetIndexHashViewer().CountNonEmptyBuckets();
+                    if (ctrSize > maxCtrTableSize) {
+                        maxCtrTableSize = ctrSize;
+                        maxTable = valueTable;
+                    }
+                }
+                Y_ASSERT(maxTable != nullptr);
+                result->CtrData.LearnCtrs[ctrBase] = *maxTable;
+            }
+            break;
+        case ECtrTableMergePolicy::IntersectingCountersAverage:
+            MergeBuckets(ctrValueTables, &target);
+            break;
+        default:
+            Y_UNREACHABLE();
+        }
+    }
+    return result;
 }

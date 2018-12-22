@@ -421,6 +421,7 @@ struct RedFsmAp
 	bool bAnyActionGotos;
 	bool bAnyActionCalls;
 	bool bAnyActionRets;
+	bool bAnyActionByValControl;
 	bool bAnyRegActionRets;
 	bool bAnyRegActionByValControl;
 	bool bAnyRegNextStmt;
@@ -456,6 +457,7 @@ struct RedFsmAp
 	bool anyActionGotos()           { return bAnyActionGotos; }
 	bool anyActionCalls()           { return bAnyActionCalls; }
 	bool anyActionRets()            { return bAnyActionRets; }
+	bool anyActionByValControl()    { return bAnyActionByValControl; }
 	bool anyRegActionRets()         { return bAnyRegActionRets; }
 	bool anyRegActionByValControl() { return bAnyRegActionByValControl; }
 	bool anyRegNextStmt()           { return bAnyRegNextStmt; }

@@ -126,7 +126,7 @@ namespace NYT {
             } else {
                 str = negativeInfLiteral;
             }
-            return TString(~str, +str);
+            return TString(str.data(), str.size());
         }
 
     }

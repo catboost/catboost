@@ -55,16 +55,16 @@ bool IsHexNumber(const TWtringBuf s) noexcept {
     return IsHexNumberT(s);
 }
 
-bool IsTrue(const TStringBuf v) {
+bool IsTrue(const TStringBuf v) noexcept {
     if (!v)
         return false;
 
-    return !strnicmp(~v, "da", v.length()) || !strnicmp(~v, "yes", v.length()) || !strnicmp(~v, "on", v.length()) || !strnicmp(~v, "1", v.length()) || !strnicmp(~v, "true", v.length());
+    return !strnicmp(v.data(), "da", v.length()) || !strnicmp(v.data(), "yes", v.length()) || !strnicmp(v.data(), "on", v.length()) || !strnicmp(v.data(), "1", v.length()) || !strnicmp(v.data(), "true", v.length());
 }
 
-bool IsFalse(const TStringBuf v) {
+bool IsFalse(const TStringBuf v) noexcept {
     if (!v)
         return false;
 
-    return !strnicmp(~v, "net", v.length()) || !strnicmp(~v, "no", v.length()) || !strnicmp(~v, "off", v.length()) || !strnicmp(~v, "0", v.length()) || !strnicmp(~v, "false", v.length());
+    return !strnicmp(v.data(), "net", v.length()) || !strnicmp(v.data(), "no", v.length()) || !strnicmp(v.data(), "off", v.length()) || !strnicmp(v.data(), "0", v.length()) || !strnicmp(v.data(), "false", v.length());
 }

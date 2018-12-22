@@ -2,6 +2,7 @@ RECURSE(
     libs
     tools
     python
+    deprecated
 )
 
 

@@ -32,6 +32,7 @@ public:
     }
 };
 
+
 template <typename TKey>
 class TDenseHashSetAdapter: public TDenseHashSet<TKey> {
 private:
@@ -47,7 +48,7 @@ public:
         this->Insert(key);
     }
 
-    Y_FORCE_INLINE bool has(const TKey& key) const {
+    Y_FORCE_INLINE bool contains(const TKey& key) const {
         return this->Has(key);
     }
 };
@@ -106,7 +107,7 @@ size_t BenchGettingFromHashSet(const THashMapType& hashMap, const TString& title
     TSimpleTimer timer;
     size_t foundCount = 0;
     for (ui32 value = 0; value < ElementsCount * 2; ++value) {
-        foundCount += hashMap.has(value);
+        foundCount += hashMap.contains(value);
     }
     Cout << title << ": " << timer.Get() << "\n";
     return foundCount;

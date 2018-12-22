@@ -8,6 +8,9 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
     class IGpuMetric {
     public:
@@ -110,7 +113,8 @@ namespace NCatboostCuda {
         TMetricHolder Eval(const TVector<TVector<double>>& approx,
                            const TVector<float>& target,
                            const TVector<float>& weight,
-                           const TVector<TQueryInfo>& queriesInfo) const;
+                           const TVector<TQueryInfo>& queriesInfo,
+                           NPar::TLocalExecutor* localExecutor) const;
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,

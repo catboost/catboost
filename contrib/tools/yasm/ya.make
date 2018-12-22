@@ -3,9 +3,13 @@
 #    linux-x86_64
 #    windows-x86_64
 
-TOOL()
+PROGRAM()
 
 
+
+IF(MUSL)
+    NO_CLANG_COVERAGE()
+ENDIF()
 
 NO_COMPILER_WARNINGS()
 

@@ -130,7 +130,7 @@ namespace NCatboostCuda {
                 return CatFeaturesCount;
             }
             if (maxFeatures == 0) {
-                ythrow TCatboostException() << "Error: not enough memory for tree-ctrs: " << FreeMemory
+                ythrow TCatBoostException() << "Error: not enough memory for tree-ctrs: " << FreeMemory
                                             << " MB available, need at least "
                                             << (FreeMemory - freeMemoryForDataSet) + memoryForFeature << " MB";
             }

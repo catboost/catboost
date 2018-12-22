@@ -1,6 +1,14 @@
 #pragma once
 
+#include <catboost/cuda/data/binarizations_manager.h>
+
 #include <catboost/libs/data_types/groupid.h>
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data_util/path_with_scheme.h>
+#include <catboost/libs/options/binarization_options.h>
+#include <catboost/libs/options/cat_feature_options.h>
+
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/set.h>
 #include <util/stream/file.h>
@@ -86,3 +94,13 @@ void SavePoolCDToFile(const char* filename, ui32 catFeatures = 1);
 
 void GenerateTestPool(TUnitTestPool& pool, ui32 numFeatures = 319);
 void SavePoolToFile(TUnitTestPool& pool, const char* filename);
+
+
+void LoadTrainingData(NCB::TPathWithScheme poolPath,
+                      NCB::TPathWithScheme cdFilePath,
+                      const NCatboostOptions::TBinarizationOptions& floatFeaturesBinarization,
+                      const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+                      NCB::TTrainingDataProviderPtr* trainingData,
+                      THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager);
+
+

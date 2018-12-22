@@ -5,6 +5,7 @@
 #include "last_getopt_parse_result.h"
 
 #include <util/generic/function.h>
+#include <util/string/iterator.h>
 
 /// see some documentation in
 /// https://wiki.yandex-team.ru/development/poisk/arcadia/util/lastgetopt/
@@ -33,7 +34,7 @@ namespace NLastGetopt {
             const TStringBuf curval(parser->CurValOrDef());
             if (curval.IsInited()) {
                 TConsumer cons = {parser->CurOpt(), Target, RangesDelim};
-                SplitStringTo(curval, ElementsDelim, &cons);
+                StringSplitter(curval).Split(ElementsDelim).AddTo(&cons);
             }
         }
 
@@ -81,7 +82,7 @@ namespace NLastGetopt {
             const TStringBuf curval(parser->CurValOrDef());
             if (curval.IsInited()) {
                 TConsumer cons = {parser->CurOpt(), Target};
-                SplitStringTo(curval, Delim, &cons);
+                StringSplitter(curval).Split(Delim).AddTo(&cons);
             }
         }
 

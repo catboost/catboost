@@ -401,7 +401,7 @@ static inline TBlob ConstructFromString(const TString& s) {
     using TBase = TStringBlobBase<TCounter>;
     THolder<TBase> base(new TBase(s));
 
-    TBlob ret(~base->String(), +base->String(), base.Get());
+    TBlob ret(base->String().data(), base->String().size(), base.Get());
     Y_UNUSED(base.Release());
 
     return ret;

@@ -9,7 +9,7 @@ namespace NCudaLib {
     public:
         explicit TCudaMallocWrapper(ui64 memorySize) {
             Y_UNUSED(memorySize);
-            MATRIXNET_WARNING_LOG << "We don't support maxMemorySize for CUDA-malloc wrapper" << Endl;
+            CATBOOST_WARNING_LOG << "We don't support maxMemorySize for CUDA-malloc wrapper" << Endl;
         }
         template <typename T>
         class TMemoryBlock: private TNonCopyable {

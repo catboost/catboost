@@ -72,4 +72,14 @@ struct DFFlatCodeGen
 		FsmCodeGen(out), FFlatCodeGen(out), DCodeGen(out) {}
 };
 
+/*
+ * D2FFlatCodeGen
+ */
+struct D2FFlatCodeGen
+	: public FFlatCodeGen, public D2CodeGen
+{
+	D2FFlatCodeGen( ostream &out ) : 
+		FsmCodeGen(out), FFlatCodeGen(out), D2CodeGen(out) {}
+};
+
 #endif

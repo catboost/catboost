@@ -1,10 +1,10 @@
 #pragma once
 
-#include <catboost/cuda/data/data_provider.h>
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 namespace NCatboostCuda {
-    ui32 EstimatePinnedMemorySizeInBytesPerDevice(const TDataProvider& dataProvider,
-                                                  const TDataProvider* testProvider,
+    ui32 EstimatePinnedMemorySizeInBytesPerDevice(const NCB::TTrainingDataProvider& dataProvider,
+                                                  const NCB::TTrainingDataProvider* testProvider,
                                                   const TBinarizedFeaturesManager& featuresManager,
                                                   ui32 deviceCount);
 }

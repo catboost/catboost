@@ -1,6 +1,14 @@
 #include "pool_printer.h"
 
+#include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/quantized_pool/serialization.h>
+
+#include <util/generic/xrange.h>
+#include <util/string/cast.h>
 #include <util/string/iterator.h>
+#include <util/system/byteorder.h>
+#include <util/system/unaligned_mem.h>
 
 
 namespace NCB {
@@ -8,37 +16,35 @@ namespace NCB {
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& format,
-        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
+        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     )
         : LineDataReader(GetLineDataReader(testSetPath, format))
         , Delimiter(format.Delimiter)
         , DocId(-1)
     {
-        if (columnsMetaInfo.Defined()) {
-            for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
-                const auto columnType = columnsMetaInfo->Columns[columnId].Type;
-                switch (columnType) {
-                    case EColumn::DocId:
-                        HasDocIdColumn = true;
-                    case EColumn::GroupId:
-                    case EColumn::SubgroupId:
-                        FromColumnTypeToColumnId[columnType] = columnId;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        UpdateColumnTypeInfo(columnsMetaInfo);
     }
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(FromColumnTypeToColumnId.has(columnType),
+        CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
             "You can not output " << ToString(columnType) << " column by type");
         *outStream << GetCell(docId, FromColumnTypeToColumnId[columnType]);
     }
 
     void TDSVPoolColumnsPrinter::OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) {
         *outStream << GetCell(docId, columnId);
+    }
+
+    void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) {
+        if (columnsMetaInfo.Defined()) {
+            for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
+                const auto columnType = columnsMetaInfo->Columns[columnId].Type;
+                FromColumnTypeToColumnId[columnType] = columnId;
+                if (columnType == EColumn::DocId) {
+                    HasDocIdColumn = true;
+                }
+            }
+        }
     }
 
     const TString& TDSVPoolColumnsPrinter::GetCell(ui64 docId, ui32 colId) {
@@ -82,7 +88,7 @@ namespace NCB {
     }
 
     void TQuantizedPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
-        CB_ENSURE(ColumnsInfo.has(columnType),
+        CB_ENSURE(ColumnsInfo.contains(columnType),
             "Pool doesn't have " << ToString(columnType) << " column.");
 
         TString token;
@@ -111,6 +117,10 @@ namespace NCB {
         CB_ENSURE(QuantizedPool.HasStringColumns);
         auto& columnInfo = ColumnsInfo[columnType];
 
+        if (docId == columnInfo.CurrentDocId - 1) {
+            return columnInfo.CurrentToken;
+        }
+
         CB_ENSURE(columnInfo.CurrentDocId == docId, "Only serial lines possible to output.");
         const auto& chunks = QuantizedPool.Chunks[columnInfo.LocalColumnIndex];
         const auto& chunk = chunks[columnInfo.CurrentChunkIndex];
@@ -123,7 +133,7 @@ namespace NCB {
         columnInfo.CurrentOffset += sizeof(ui32);
 
         CB_ENSURE(chunk.Chunk->Quants()->size() - columnInfo.CurrentOffset >= tokenSize);
-        const TString token(reinterpret_cast<const char*>(data + columnInfo.CurrentOffset), tokenSize);
+        columnInfo.CurrentToken = TString(reinterpret_cast<const char*>(data + columnInfo.CurrentOffset), tokenSize);
         columnInfo.CurrentOffset += tokenSize;
         ++columnInfo.CurrentDocId;
 
@@ -131,11 +141,15 @@ namespace NCB {
             columnInfo.CurrentOffset = 0;
             ++columnInfo.CurrentChunkIndex;
         }
-        return token;
+        return columnInfo.CurrentToken;
     }
 
     const TString TQuantizedPoolColumnsPrinter::GetFloatColumnToken(ui64 docId, EColumn columnType) {
         auto& columnInfo = ColumnsInfo[columnType];
+
+        if (docId == columnInfo.CurrentDocId - 1) {
+            return columnInfo.CurrentToken;
+        }
 
         CB_ENSURE(columnInfo.CurrentDocId == docId, "Only serial lines possible to output.");
         const auto& chunks = QuantizedPool.Chunks[columnInfo.LocalColumnIndex];
@@ -145,7 +159,7 @@ namespace NCB {
         const ui8* data = chunk.Chunk->Quants()->data();
 
         CB_ENSURE(chunk.Chunk->Quants()->size() - columnInfo.CurrentOffset >= sizeof(float));
-        const TString token(ToString(ReadUnaligned<float>(data + columnInfo.CurrentOffset)));
+        columnInfo.CurrentToken = ToString(ReadUnaligned<float>(data + columnInfo.CurrentOffset));
         columnInfo.CurrentOffset += sizeof(float);
         ++columnInfo.CurrentDocId;
 
@@ -153,7 +167,7 @@ namespace NCB {
             columnInfo.CurrentOffset = 0;
             ++columnInfo.CurrentChunkIndex;
         }
-        return token;
+        return columnInfo.CurrentToken;
     }
 
 } // namespace NCB

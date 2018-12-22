@@ -9,7 +9,6 @@ import yatest.common
 
 def unpack_python(py_ver):
     arch_name = {
-        "3.4": "python3_4_3_linux.tar.gz",
         "3.5": "python3.5.tar.gz",
         "3.6": "python3.6.tar.gz",
     }[py_ver]
@@ -52,11 +51,6 @@ def unpack_deps(py_ver):
             ]
         ]
 
-        if py_ver == "3.4":
-            deps += [
-                os.path.join(deps_dir, "/numpy-1.14.3-cp34-cp34m-manylinux1_x86_64.whl"),
-            ]
-
         if py_ver == "3.5":
             deps += [
                 os.path.join(deps_dir, dep) for dep in [
@@ -79,6 +73,7 @@ def unpack_deps(py_ver):
 
         files = [
             os.path.join(deps_dir, "numbers.py"),
+            yatest.common.source_path("catboost/pytest/lib/common_helpers.py"),
             yatest.common.source_path("catboost/python-package/ut/large/catboost_pytest_lib.py"),
             yatest.common.source_path("catboost/python-package/ut/large/list_plugin.py"),
         ]

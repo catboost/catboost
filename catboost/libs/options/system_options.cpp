@@ -2,10 +2,9 @@
 
 #include <catboost/libs/options/json_helper.h>
 
+#include <util/charset/utf8.h>
 #include <util/string/cast.h>
 #include <util/system/info.h>
-
-#include <regex>
 
 using namespace NCatboostOptions;
 
@@ -46,7 +45,7 @@ bool TSystemOptions::operator!=(const TSystemOptions& rhs) const {
 void TSystemOptions::Validate() const {
     CB_ENSURE(NumThreads > 0, "thread count should be positive");
     CB_ENSURE(GpuRamPart.GetUnchecked() > 0 && GpuRamPart.GetUnchecked() <= 1.0, "GPU ram part should be in (0, 1]");
-    ParseMemorySizeDescription(CpuUsedRamLimit);
+    ParseMemorySizeDescription(CpuUsedRamLimit.Get());
 }
 
 bool TSystemOptions::IsMaster() const {
@@ -57,32 +56,42 @@ bool TSystemOptions::IsSingleHost() const {
     return NodeType == ENodeType::SingleHost;
 }
 
-ui64 ParseMemorySizeDescription(const TString& description) {
+static bool IsInfinity(const TStringBuf value) {
+    static const TStringBuf examples[] = {
+        "",
+        "no", "none",
+        "off",
+        "inf", "infinity",
+        "unlim", "unlimited"
+    };
+    for (const auto example : examples) {
+        if (example == value) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+ui64 ParseMemorySizeDescription(const TStringBuf description) {
     char* suffixBegin = nullptr;
-
-    double number = StrToD(description.begin(), description.end(), &suffixBegin);
-
+    const double number = StrToD(description.begin(), description.end(), &suffixBegin);
     if (suffixBegin > description.begin() && number >= 0) {
         // `number` is valid
-        const TString& suffix = to_lower(TString(suffixBegin, description.end()));
+        const auto suffix = to_lower(TString(suffixBegin, description.end()));
         if (suffix == "tb") {
             return static_cast<ui64>(number * (1ll << 40));
-        }
-        if (suffix == "gb") {
+        } else if (suffix == "gb") {
             return static_cast<ui64>(number * (1ll << 30));
-        }
-        if (suffix == "mb") {
+        } else if (suffix == "mb") {
             return static_cast<ui64>(number * (1ll << 20));
-        }
-        if (suffix == "kb") {
+        } else if (suffix == "kb") {
             return static_cast<ui64>(number * (1ll << 10));
-        }
-        if (suffix == "b" || suffix.empty()) {
+        } else if (suffix == "b" || suffix.empty()) {
             return static_cast<ui64>(number);
         }
     } else {
-        // No number or negative number
-        if (std::regex_match(description.begin(), description.end(), std::regex("|no(ne)?|off|inf(inity)?|unlim(ited)?", std::regex::icase))) {
+        if (IsInfinity(ToLowerUTF8(description))) {
             return Max<ui64>();
         }
     }

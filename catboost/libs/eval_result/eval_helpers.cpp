@@ -1,15 +1,22 @@
 #include "eval_helpers.h"
 
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/labels/label_helper_builder.h>
+
 #include <library/fast_exp/fast_exp.h>
 
-#include <util/generic/ymath.h>
+#include <util/generic/algorithm.h>
+#include <util/generic/utility.h>
+#include <util/string/cast.h>
+#include <util/generic/array_ref.h>
 
-#include <functional>
+#include <cmath>
+#include <limits>
 
 
-void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax) {
+void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     double maxApprox = *MaxElement(approx.begin(), approx.end());
-    for (int dim = 0; dim < approx.ysize(); ++dim) {
+    for (size_t dim = 0; dim < approx.size(); ++dim) {
         (*softmax)[dim] = approx[dim] - maxApprox;
     }
     FastExpInplace(softmax->data(), softmax->ysize());
@@ -22,22 +29,31 @@ void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax) {
     }
 }
 
-TVector<double> CalcSigmoid(const TVector<double>& approx) {
-    TVector<double> probabilities(approx.size());
-    for (int i = 0; i < approx.ysize(); ++i) {
-        probabilities[i] = 1 / (1 + exp(-approx[i]));
+TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
+    TVector<double> probabilities;
+    probabilities.yresize(approx.size());
+    for (size_t i = 0; i < approx.size(); ++i) {
+        probabilities[i] = 1. / (1. + exp(-approx[i]));
     }
     return probabilities;
 }
 
-static TVector<TVector<double>> CalcSoftmax(const TVector<TVector<double>>& approx, NPar::TLocalExecutor* localExecutor) {
+static TVector<TVector<double>> CalcSoftmax(
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* executor)
+{
     TVector<TVector<double>> probabilities = approx;
-    const int threadCount = localExecutor->GetThreadCount() + 1;
+    probabilities.resize(approx.size());
+    ForEach(probabilities.begin(), probabilities.end(), [&](auto& v) { v.yresize(approx.front().size()); });
+    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+    const int threadCount = executorThreadCount + 1;
     const int blockSize = (approx[0].ysize() + threadCount - 1) / threadCount;
-    auto calcSoftmaxInBlock = [&](const int blockId) {
+    const auto calcSoftmaxInBlock = [&](const int blockId) {
         int lastLineId = Min((blockId + 1) * blockSize, approx[0].ysize());
-        TVector<double> line(approx.size());
-        TVector<double> softmax(approx.size());
+        TVector<double> line;
+        line.yresize(approx.size());
+        TVector<double> softmax;
+        softmax.yresize(approx.size());
         for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
             for (int dim = 0; dim < approx.ysize(); ++dim) {
                 line[dim] = approx[dim][lineInd];
@@ -48,15 +64,24 @@ static TVector<TVector<double>> CalcSoftmax(const TVector<TVector<double>>& appr
             }
         }
     };
-    localExecutor->ExecRange(calcSoftmaxInBlock, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    if (executor) {
+        executor->ExecRange(calcSoftmaxInBlock, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    } else {
+        calcSoftmaxInBlock(0);
+    }
     return probabilities;
 }
 
-static TVector<int> SelectBestClass(const TVector<TVector<double>>& approx, NPar::TLocalExecutor* localExecutor) {
-    TVector<int> classApprox(approx[0].size());
-    const int threadCount = localExecutor->GetThreadCount() + 1;
+static TVector<int> SelectBestClass(
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* executor)
+{
+    TVector<int> classApprox;
+    classApprox.yresize(approx.front().size());
+    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+    const int threadCount = executorThreadCount + 1;
     const int blockSize = (approx[0].ysize() + threadCount - 1) / threadCount;
-    auto selectBestClassInBlock = [&](const int blockId) {
+    const auto selectBestClassInBlock = [&](const int blockId) {
         int lastLineId = Min((blockId + 1) * blockSize, approx[0].ysize());
         for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
             double maxApprox = approx[0][lineInd];
@@ -70,12 +95,28 @@ static TVector<int> SelectBestClass(const TVector<TVector<double>>& approx, NPar
             classApprox[lineInd] = maxApproxId;
         }
     };
-    localExecutor->ExecRange(selectBestClassInBlock, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    if (executor) {
+        executor->ExecRange(selectBestClassInBlock, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    } else {
+        selectBestClassInBlock(0);
+    }
     return classApprox;
 }
 
 bool IsMulticlass(const TVector<TVector<double>>& approx) {
     return approx.size() > 1;
+}
+
+void MakeExternalApprox(
+    const TVector<TVector<double>>& internalApprox,
+    const TExternalLabelsHelper& externalLabelsHelper,
+    TVector<TVector<double>>* resultApprox
+) {
+    resultApprox->resize(externalLabelsHelper.GetExternalApproxDimension());
+    for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
+        int visibleId = externalLabelsHelper.GetExternalIndex(classId);
+        (*resultApprox)[visibleId] = internalApprox[classId];
+    }
 }
 
 TVector<TVector<double>> MakeExternalApprox(
@@ -85,14 +126,7 @@ TVector<TVector<double>> MakeExternalApprox(
     const double inf = std::numeric_limits<double>::infinity();
     TVector<TVector<double>> externalApprox(externalLabelsHelper.GetExternalApproxDimension(),
                                             TVector<double>(internalApprox.back().ysize(), -inf));
-
-    for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
-        int visibleId = externalLabelsHelper.GetExternalIndex(classId);
-
-        for (int docId = 0; docId < externalApprox.back().ysize(); ++docId) {
-            externalApprox[visibleId][docId] = internalApprox[classId][docId];
-        }
-    }
+    MakeExternalApprox(internalApprox, externalLabelsHelper, &externalApprox);
     return externalApprox;
 }
 
@@ -142,7 +176,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
 ) {
     const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
     CB_ENSURE(externalLabelsHelper.IsInitialized() == IsMulticlass(approx),
-              "Inappropriated usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
+              "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
     const auto& externalApprox = externalLabelsHelper.IsInitialized() ?
                                  MakeExternalApprox(approx, externalLabelsHelper) : approx;
     return PrepareEval(predictionType, externalApprox, localExecutor);
@@ -156,35 +190,44 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
     return PrepareEval(predictionType, approx, &executor);
 }
 
-TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
-                                     const TVector<TVector<double>>& approx,
-                                     NPar::TLocalExecutor* localExecutor) {
-    TVector<TVector<double>> result;
+
+void PrepareEval(const EPredictionType predictionType,
+                 const TVector<TVector<double>>& approx,
+                 NPar::TLocalExecutor* executor,
+                 TVector<TVector<double>>* result) {
+
     switch (predictionType) {
         case EPredictionType::Probability:
             if (IsMulticlass(approx)) {
-                result = CalcSoftmax(approx, localExecutor);
+                *result = CalcSoftmax(approx, executor);
             } else {
-                result = {CalcSigmoid(approx[0])};
+                *result = {CalcSigmoid(approx[0])};
             }
             break;
         case EPredictionType::Class:
-            result.resize(1);
-            result[0].reserve(approx.size());
+            result->resize(1);
+            (*result)[0].reserve(approx.size());
             if (IsMulticlass(approx)) {
-                TVector<int> predictions = {SelectBestClass(approx, localExecutor)};
-                result[0].assign(predictions.begin(), predictions.end());
+                TVector<int> predictions = {SelectBestClass(approx, executor)};
+                (*result)[0].assign(predictions.begin(), predictions.end());
             } else {
                 for (const double prediction : approx[0]) {
-                    result[0].push_back(prediction > 0);
+                    (*result)[0].push_back(prediction > 0);
                 }
             }
             break;
         case EPredictionType::RawFormulaVal:
-            result = approx;
+            *result = approx;
             break;
         default:
             Y_ASSERT(false);
     }
+}
+
+TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
+                                     const TVector<TVector<double>>& approx,
+                                     NPar::TLocalExecutor* localExecutor) {
+    TVector<TVector<double>> result;
+    PrepareEval(predictionType, approx, localExecutor, &result);
     return result;
 }

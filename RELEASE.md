@@ -1,3 +1,145 @@
+# Release 0.11.2
+## Changes:
+* Pure GPU implementation of NDCG metric
+* Enabled LQ loss function
+* Fixed NDCG metric on CPU
+* Added `model_sum` mode to command line interface
+* Added SHAP values benchmark (#566)
+* Fixed `random_strength` for `Plain` boosting (#448)
+* Enabled passing a test pool to caret training (#544)
+* Fixed a bug in exporting the model as python code (#556)
+* Fixed label mapper for multiclassification custom labels (#523)
+* Fixed hash type of categorical features (#558)
+* Fixed handling of cross-validation fold count options in python package (#568)
+
+
+# Release 0.11.1
+## Changes:
+* Accelerated formula evaluation by ~15%
+* Improved model application interface
+* Improved compilation time for building GPU version
+* Better handling of stray commas in list arguments
+* Added a benchmark that employs Rossman Store Sales dataset to compare quality of GBDT packages
+* Added references to Catboost papers in R-package CITATION file
+* Fixed a build issue in compilation for GPU
+* Fixed a bug in model applicator
+* Fixed model conversion, #533
+* Returned pre 0.11 behaviour for `best_score_` and `evals_result_` (issue #539)
+* Make valid RECORD in wheel (issue #534)
+
+# Release 0.11.0
+## Changes:
+* Changed default border count for float feature binarization to 254 on CPU to achieve better quality
+* Fixed random seed to `0` by default
+* Support model with more than 254 feature borders or one hot values when doing predictions
+* Added model summation support in python: use `catboost.sum_models()` to sum models with provided weights.
+* Added json model tutorial [json_model_tutorial.ipynb](https://github.com/catboost/catboost/blob/master/catboost/tutorials/apply_model/json_model_tutorial.ipynb)
+
+# Release 0.10.4.1
+## Changes:
+- Bugfix for #518
+
+# Release 0.10.4
+## Breaking changes:
+In python 3 some functions returned dictionaries with keys of type `bytes` - particularly eval_metrics and get_best_score. These are fixed to have keys of type `str`.
+## Changes:
+- New metric NumErrors:greater_than=value
+- New metric and objective L_q:q=value
+- model.score(X, y) - can now work with Pool and labels from Pool
+
+# Release 0.10.3
+## Changes:
+* Added EvalResult output after GPU catboost training
+* Supported prediction type option on GPU
+* Added `get_evals_result()` method and `evals_result_` property to model in python wrapper to allow user access metric values
+* Supported string labels for GPU training in cmdline mode
+* Many improvements in JNI wrapper
+* Updated NDCG metric: speeded up and added NDCG with exponentiation in numerator as a new NDCG mode
+* CatBoost doesn't drop unused features from model after training
+* Write training finish time and catboost build info to model metadata
+* Fix automatic pairs generation for GPU PairLogitPairwise target
+
+# Release 0.10.2
+### Main changes:
+* Fixed Python 3 support in `catboost.FeaturesData`
+* 40% speedup QuerySoftMax CPU training
+
+# Release 0.10.1
+## Improvements
+* 2x Speedup pairwise loss functions
+* For all the people struggling with occasional NaNs in test datasets - now we only write warnings about it
+## Bugfixes
+* We set up default loss_function in `CatBoostClassifier` and `CatBoostRegressor`
+* Catboost write `Warning` and `Error` logs to stderr
+
+# Release 0.10.0
+## Breaking changes
+### R package
+- In R package we have changed parameter name `target` to `label` in method [`save_pool()`](https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-save_pool-docpage/)
+### Python package
+- We don't support Python 3.4 anymore
+- CatBoostClassifier and CatBoostRegressor [`get_params()`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier_get_params-docpage/) method now returns only the params that were explicitly set when constructing the object. That means that CatBoostClassifier and CatBoostRegressor get_params() will not contain 'loss_function' if it was not specified.
+This also means that this code:
+```(python)
+model1 = CatBoostClassifier()
+params = model1.get_params()
+model2 = CatBoost(params)
+```
+will create model2 with default loss_function RMSE, not with Logloss.
+This breaking change is done to support sklearn interface, so that sklearn GridSearchCV can work.
+- We've removed several attributes and changed them to functions. This was needed to avoid sklearn warnings:
+`is_fitted_` => [`is_fitted()`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier_is_fitted-docpage/)
+`metadata_` => [`get_metadata()`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboostclassifier_metadata-docpage/)
+- We removed file with model from constructor of estimator. This was also done to avoid sklearn warnings.
+## Educational materials
+- We added [tutorial](https://github.com/catboost/tutorials/blob/master/ranking/ranking_tutorial.ipynb) for our ranking modes.
+- We published our [slides](https://github.com/catboost/catboost/tree/master/slides), you are very welcome to use them.
+## Improvements
+### All
+- Now it is possible to save model in json format.
+- We have added Java interface for CatBoost model
+- We now have static linkage with CUDA, so you don't have to install any particular version of CUDA to get catboost working on GPU.
+- We implemented both multiclass modes on GPU, it is very fast.
+- It is possible now to use multiclass with string labels, they will be inferred from data
+- Added `use_weights` parameter to [metrics](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/). By default all metrics, except for AUC use weights, but you can disable it. To calculate metric value without weights, you need to set this parameter to false. Example: Accuracy:use_weights=false. This can be done only for custom_metrics or eval_metric, not for the objective function. Objective function always uses weights if they are present in the dataset.
+- We now use snapshot time intervals. It will work much faster if you save snapshot every 5 or 10 minutes instead of saving it on every iteration.
+- Reduced memory consumption by ranking modes.
+- Added automatic feature importance evaluation after completion of GPU training.
+- Allow inexistent indexes in ignored features list
+- Added [new metrics](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/): `LogLikelihoodOfPrediction`, `RecallAt:top=k`, `PrecisionAt:top=k` and `MAP:top=k`.
+- Improved quality for multiclass with weighted datasets.
+- Pairwise modes now support automatic pairs generation (see [tutorial](https://github.com/catboost/tutorials/blob/master/ranking/ranking_tutorial.ipynb) for that).
+- Metric `QueryAverage` is renamed to a more clear `AverageGain`. This is a very important ranking metric. It shows average target value in top k documents of a group.
+Introduced parameter `best_model_min_trees` - the minimal number of trees the best model should have.
+### Python
+- We now support sklearn GridSearchCV: you can pass categorical feature indices when constructing estimator. And then use it in GridSearchCV.
+- We added new method to utils - building of ROC curve: [`get_roc_curve`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_utils_get_roc_curve-docpage/).
+- Added [`get_gpu_device_count()`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_utils_get_gpu_device_count-docpage/) method to python package. This is a way to check if your CUDA devices are available.
+- We implemented automatical selection of decision-boundary using ROC curve. You can select best classification boundary given the maximum FPR or FNR that you allow to the model. Take a look on [`catboost.select_threshold(self, data=None, curve=None, FPR=None, FNR=None, thread_count=-1)`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_utils_select_threshold-docpage/). You can also calculate FPR and FNR for each boundary value.
+- We have added pool slicing: [`pool.slice(doc_indices)`](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_pool_slice-docpage/)
+- Allow GroupId and SubgroupId specified as strings.
+### R package
+- GPU support in R package. You need to use parameter `task_type='GPU'` to enable GPU training.
+- Models in R can be saved/restored by means of R: save/load or saveRDS/readRDS
+## Speedups
+- New way of loading data in Python using [FeaturesData structure](https://tech.yandex.com/catboost/doc/dg/concepts/python-features-data__desc-docpage/). Using FeaturesData will speed up both loading data for training and for prediction. It is especially important for prediction, because it gives around 10 to 20 times python prediction speedup.
+- Training multiclass on CPU ~ 60% speedup
+- Training of ranking modes on CPU ~ 50% speedup
+- Training of ranking modes on GPU ~ 50% speedup for datasets with many features and not very many objects
+- Speedups of metric calculation on GPU. Example of speedup on our internal dataset: training with - AUC eval metric with test dataset with 2kk objects is speeded up 7sec => 0.2 seconds per iteration.
+- Speedup of all modes on CPU training.
+
+We also did a lot of stability improvements, and improved usability of the library, added new parameter synonyms and improved input data validations.
+
+Thanks a lot to all people who created issues on github. And thanks a lot to our contributor @pukhlyakova who implemented many new useful metrics!
+
+# Release 0.9.1.1
+## Bugfixes
+- Fixed #403 bug in cuda train submodule (training crashed without evaluation set)
+- Fixed exception propagation on pool parsing stage
+- Add support of string `GroupId` and `SubgroupId` in python-package
+- Print real class names instead of their labels in eval output
+
 # Release 0.9
 ## Breaking Changes
 - We removed calc_feature_importance parameter from Python and R.
@@ -44,7 +186,7 @@ Now you can use our Jupyter visualization, CatBoost viewer or TensorBoard the sa
 
 ## Improved tools for model analysis
 - We added support of feature combinations to our Shap values implementation.
-- Added Shap values for MultiClass and added an example of it's usage to our Shap tutorial.
+- Added Shap values for MultiClass and added an example of it's usage to our [Shap tutorial](https://github.com/catboost/tutorials/blob/master/model_analysis/shap_values_tutorial.ipynb).
 - Added pretified parameter to get_feature_importance(). With `pretified=True` the function will return list of features with names sorted in descending order by their importance.
 - Improved interfaces for eval-feature functionality
 - Shap values support in R-package
@@ -83,7 +225,7 @@ We added many new metrics that can be used for visualization, overfitting detect
 Added make files for binary with CUDA and for Python package
 
 ## Tutorials
-We created a new repo with tutorials, now you don't have to clone the whole catboost repo to run Jupyter notebook with a tutorial.
+We created a new [repo with tutorials](https://github.com/catboost/tutorials/), now you don't have to clone the whole catboost repo to run Jupyter notebook with a tutorial.
 
 ## Bugfixes
 We have also a set of bugfixes and we are gratefull to everyone who has filled a bugreport, helping us making the library better.
@@ -103,9 +245,9 @@ We want to especially mention @pukhlyakova who implemented lots of useful metric
 
 ## Major Features And Improvements
 - Algorithm for finding most influential training samples for a given object from the 'Finding Influential Training Samples for Gradient Boosted Decision Trees' [paper](https://arxiv.org/pdf/1802.06640.pdf) is implemented. This mode for every object from input pool calculates scores for every object from train pool. A positive score means that the given train object has made a negative contribution to the given test object prediction. And vice versa for negative scores. The higher score modulo - the higher contribution.
-See `get_object_importance` model method in Python package and `ostr` mode in cli-version. Tutorial for Python is available [here](https://github.com/catboost/catboost/blob/master/catboost/tutorials/advanced_tutorials/catboost_object_importance_tutorial.ipynb).
+See `get_object_importance` model method in Python package and `ostr` mode in cli-version. Tutorial for Python is available [here](https://github.com/catboost/tutorials/blob/master/model_analysis/object_importance_tutorial.ipynb).
 More details and examples will be published in documentation soon.
-- We have implemented new way of exploring feature importance - Shap values from [paper](https://arxiv.org/pdf/1706.06060.pdf). This allows to understand which features are most influent for a given object. You can also get more insite about your model, see details in a [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/advanced_tutorials/shap_values_tutorial.ipynb).
+- We have implemented new way of exploring feature importance - Shap values from [paper](https://arxiv.org/pdf/1706.06060.pdf). This allows to understand which features are most influent for a given object. You can also get more insite about your model, see details in a [tutorial](https://github.com/catboost/tutorials/blob/master/model_analysis/shap_values_tutorial.ipynb).
 - Save model as code functionality published. For now you could save model as Python code with categorical features and as C++ code w/o categorical features.
 
 ## Bug Fixes and Other Changes
@@ -134,7 +276,7 @@ As usual we are grateful to all who filed issues or helped resolve them, asked a
 - Python wrapper: added method to write column desctiption file (`catboost.utils.create_cd`).
 - Made improvements to visualization.
 - Support non-numeric values in `GroupId` column.
-- [Tutorials](https://github.com/catboost/catboost/blob/master/catboost/tutorials/README.md) section updated.
+- [Tutorials](https://github.com/catboost/tutorials/blob/master/README.md) section updated.
 
 ## Bug Fixes and Other Changes
 - Fixed problems with eval_metrics (issue #285)
@@ -256,7 +398,7 @@ We are grateful to all who filed issues or helped resolve them, asked and answer
 - `model.shrink` function added in [Python](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_shrink-docpage/) and R wrappers.
 - Added new [training parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `metric_period` that controls output frequency.
 - Added new ranking [metric](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/) `QueryAverage`.
-- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/catboost/blob/master/catboost/tutorials/catboost_custom_loss_tutorial.md).
+- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/tutorials/blob/master/custom_loss/custom_metric_tutorial.md).
 
 ## Bug Fixes and Other Changes
 - Stability improvements and bug fixes
@@ -343,7 +485,7 @@ We are grateful to all who filed issues or helped resolve them, asked and answer
 * Jupyter notebook improvements: for our Python library users that experiment with Jupyter notebooks, we have improved our visualisation tool. Now it is possible to save image of the graph. We also have changed scrolling behaviour so that it is more convenient to scroll the notebook.
 * NaN features support: we also have added simple but effective way of dealing with NaN features. If you have some NaNs in the train set, they will be changed to a value that is less than the minimum value or greater than the maximum value in the dataset (this is configurable), so that it is guaranteed that they are in their own bin, and a split would separates NaN values from all other values. By default, no NaNs are allowed, so you need to use option `nan_mode` for that. When applying a model, NaNs will be treated in the same way for the features where NaN values were seen in train. It is not allowed to have NaN values in test if no NaNs in train for this feature were provided.
 * Snapshotting: we have added snapshotting to our Python and R libraries. So if you think that something can happen with your training, for example machine can reboot, you can use `snapshot_file` parameter - this way after you restart your training it will start from the last completed iteration.
-* R library tutorial: we have added [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/catboost_r_tutorial.ipynb)
+* R library tutorial: we have added [tutorial](https://github.com/catboost/tutorials/blob/master/r_tutorial.ipynb)
 * Logging customization: we have added `allow_writing_files` parameter. By default some files with logging and diagnostics are written on disc, but you can turn it off using by setting this flag to False.
 * Multiclass mode improvements: we have added a new objective for multiclass mode - `MultiClassOneVsAll`. We also added `class_names` param - now you don't have to renumber your classes to be able to use multiclass. And we have added two new metrics for multiclass: `TotalF1` and `MCC` metrics.
 You can use the metrics to look how its values are changing during training or to use overfitting detection or cutting the model by best value of a given metric.

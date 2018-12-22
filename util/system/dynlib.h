@@ -56,7 +56,7 @@ public:
         PLib = nullptr;
         DLib = nullptr;
         if (es.IsDynamic())
-            Open(~es.LibName(), ~es.VtblName());
+            Open(es.LibName().data(), es.VtblName().data());
         else if (es.IsStatic())
             SetSym(es.Symbol());
     }
@@ -64,7 +64,7 @@ public:
         if (this != &es) {
             Close();
             if (es.IsDynamic())
-                Open(~es.LibName(), ~es.VtblName());
+                Open(es.LibName().data(), es.VtblName().data());
             else if (es.IsStatic())
                 SetSym(es.Symbol());
         }

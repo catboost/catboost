@@ -2,6 +2,7 @@
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
+#include <util/system/types.h>
 
 struct TMxTree {
     struct TValsInLeaf {
@@ -17,7 +18,7 @@ int GetMaxSrcFeature(const TVector<TMxTree>& trees);
 
 void ConvertToPercents(TVector<double>& res);
 
-template<class T>
+template <class T>
 TVector<double> CalcEffect(const TVector<TMxTree>& trees,
                            const TVector<TVector<T>>& weightedDocCountInLeaf)
 {
@@ -59,17 +60,18 @@ TVector<double> CalcEffect(const TVector<TMxTree>& trees,
 }
 
 
-TVector<double> CalcFeaturesInfo(TVector<TVector<ui64>> trueDocsPerFeature,
-                                 const ui64 docCount,
-                                 bool symmetric);
+TVector<double> CalcFeaturesInfo(
+    TVector<TVector<ui64>> trueDocsPerFeature,
+    const ui64 docCount,
+    bool symmetric);
 
-TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
-                                          const TVector<double>& info);
+TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect, const TVector<double>& info);
 
 struct TFeaturePairInteractionInfo {
     double Score;
     int Feature1, Feature2;
 
+public:
     TFeaturePairInteractionInfo()
         : Score(0)
         , Feature1(-1)

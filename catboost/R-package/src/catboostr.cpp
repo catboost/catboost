@@ -1,23 +1,36 @@
-#include <catboost/libs/data/pool.h>
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
+#include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/helpers/int_cast.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>
 #include <util/generic/singleton.h>
+#include <util/generic/xrange.h>
+#include <util/string/cast.h>
 #include <util/system/info.h>
+
+#include <algorithm>
+
 
 #if defined(SIZEOF_SIZE_T)
 #undef SIZEOF_SIZE_T
 #endif
 
 #include <Rinternals.h>
+
+
+using namespace NCB;
 
 
 #define R_API_BEGIN()                                               \
@@ -37,8 +50,8 @@
     RestoreOriginalLogger();                                        \
 
 
-typedef TPool* TPoolHandle;
-typedef std::unique_ptr<TPool> TPoolPtr;
+typedef TDataProvider* TPoolHandle;
+typedef TDataProviderPtr TPoolPtr;
 
 typedef TFullModel* TFullModelHandle;
 typedef std::unique_ptr<TFullModel> TFullModelPtr;
@@ -50,14 +63,14 @@ class TRPackageInitializer {
     }
 };
 
-template<typename T>
+template <typename T>
 void _Finalizer(SEXP ext) {
     if (R_ExternalPtrAddr(ext) == NULL) return;
     delete reinterpret_cast<T>(R_ExternalPtrAddr(ext)); // delete allocated memory
     R_ClearExternalPtr(ext);
 }
 
-template<typename T>
+template <typename T>
 static TVector<T> GetVectorFromSEXP(SEXP arg) {
     TVector<T> result(length(arg));
     for (size_t i = 0; i < result.size(); ++i) {
@@ -107,29 +120,28 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
 
     NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
     dsvPoolFormatParams.Format =
-        NCB::TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)),
+        TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)),
                                CHAR(asChar(delimiterParam))[0]};
 
     TStringBuf cdPathWithScheme(CHAR(asChar(cdFileParam)));
     if (!cdPathWithScheme.empty()) {
-        dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme(cdPathWithScheme, "dsv");
+        dsvPoolFormatParams.CdFilePath = TPathWithScheme(cdPathWithScheme, "dsv");
     }
 
     TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
 
-    TPoolPtr poolPtr = std::make_unique<TPool>();
-    NCB::ReadPool(NCB::TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
-                  !pairsPathWithScheme.empty() ?
-                      NCB::TPathWithScheme(pairsPathWithScheme, "dsv") : NCB::TPathWithScheme(),
-                  /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
-                  dsvPoolFormatParams,
-                  TVector<int>(),
-                  UpdateThreadCount(asInteger(threadCountParam)),
-                  asLogical(verboseParam),
-                  poolPtr.get());
-    result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
+    TDataProviderPtr poolPtr = ReadDataset(TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
+                                           !pairsPathWithScheme.empty() ?
+                                               TPathWithScheme(pairsPathWithScheme, "dsv") : TPathWithScheme(),
+                                           /*groupWeightsFilePath=*/TPathWithScheme(),
+                                           dsvPoolFormatParams,
+                                           TVector<ui32>(),
+                                           EObjectsOrder::Undefined,
+                                           UpdateThreadCount(asInteger(threadCountParam)),
+                                           asLogical(verboseParam));
+    result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
-    poolPtr.release();
+    Y_UNUSED(poolPtr.Release());
     R_API_END();
     UNPROTECT(1);
     return result;
@@ -149,8 +161,8 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
     SEXP result = NULL;
     R_API_BEGIN();
     SEXP dataDim = getAttrib(matrixParam, R_DimSymbol);
-    size_t dataRows = static_cast<size_t>(INTEGER(dataDim)[0]);
-    size_t dataColumns = static_cast<size_t>(INTEGER(dataDim)[1]);
+    ui32 dataRows = SafeIntegerCast<ui32>(INTEGER(dataDim)[0]);
+    ui32 dataColumns = SafeIntegerCast<ui32>(INTEGER(dataDim)[1]);
     SEXP baselineDim = getAttrib(baselineParam, R_DimSymbol);
     size_t baselineRows = 0;
     size_t baselineColumns = 0;
@@ -158,76 +170,114 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         baselineRows = static_cast<size_t>(INTEGER(baselineDim)[0]);
         baselineColumns = static_cast<size_t>(INTEGER(baselineDim)[1]);
     }
-    CB_ENSURE(weightParam == R_NilValue || groupWeightParam == R_NilValue,
-              "Pool must have either Weight column or GroupWeight column");
 
-    TPoolPtr poolPtr = std::make_unique<TPool>();
+    auto loaderFunc = [&] (IRawFeaturesOrderDataVisitor* visitor) {
+        TDataMetaInfo metaInfo;
 
-    poolPtr->MetaInfo.FeatureCount = dataColumns;
-    poolPtr->MetaInfo.BaselineCount = baselineColumns;
-    poolPtr->MetaInfo.HasGroupId = groupIdParam != R_NilValue;
-    poolPtr->MetaInfo.HasGroupWeight = groupWeightParam != R_NilValue;
-    poolPtr->MetaInfo.HasSubgroupIds = subgroupIdParam != R_NilValue;
-    poolPtr->MetaInfo.HasWeights = weightParam != R_NilValue || groupWeightParam != R_NilValue;
+        TVector<TString> featureId;
+        if (featureNamesParam != R_NilValue) {
+            for (size_t i = 0; i < dataColumns; ++i) {
+                featureId.push_back(CHAR(asChar(VECTOR_ELT(featureNamesParam, i))));
+            }
+        }
 
-    poolPtr->CatFeatures = GetVectorFromSEXP<int>(catFeaturesParam);
+        metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(dataColumns,
+                                                                 ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
+                                                                 featureId);
 
-    poolPtr->Docs.Resize(
-        dataRows,
-        dataColumns,
-        baselineColumns,
-        poolPtr->MetaInfo.HasGroupId,
-        poolPtr->MetaInfo.HasSubgroupIds
-    );
-    for (size_t i = 0; i < dataRows; ++i) {
-        if (targetParam != R_NilValue) {
-            poolPtr->Docs.Target[i] = static_cast<float>(REAL(targetParam)[i]);
+        metaInfo.HasTarget = targetParam != R_NilValue;
+        metaInfo.BaselineCount = baselineColumns;
+        metaInfo.HasGroupId = groupIdParam != R_NilValue;
+        metaInfo.HasGroupWeight = groupWeightParam != R_NilValue;
+        metaInfo.HasSubgroupIds = subgroupIdParam != R_NilValue;
+        metaInfo.HasWeights = weightParam != R_NilValue;
+
+        visitor->Start(metaInfo, dataRows, EObjectsOrder::Undefined, {});
+
+        TVector<float> target(metaInfo.HasTarget ? dataRows : 0);
+        TVector<float> weights(metaInfo.HasWeights ? dataRows : 0);
+        TVector<float> groupWeights(metaInfo.HasGroupWeight ? dataRows : 0);
+
+        for (ui32 i = 0; i < dataRows; ++i) {
+            if (metaInfo.HasGroupId) {
+                visitor->AddGroupId(i, static_cast<uint32_t>(INTEGER(groupIdParam)[i]));
+            }
+            if (metaInfo.HasSubgroupIds) {
+                visitor->AddSubgroupId(i, static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]));
+            }
+
+            if (targetParam != R_NilValue) {
+                target[i] = static_cast<float>(REAL(targetParam)[i]);
+            }
+            if (weightParam != R_NilValue) {
+                weights[i] = static_cast<float>(REAL(weightParam)[i]);
+            }
+            if (groupWeightParam != R_NilValue) {
+                groupWeights[i] = static_cast<float>(REAL(groupWeightParam)[i]);
+            }
         }
-        if (weightParam != R_NilValue) {
-            poolPtr->Docs.Weight[i] = static_cast<float>(REAL(weightParam)[i]);
+        if (metaInfo.HasTarget) {
+            visitor->AddTarget(target);
         }
-        if (poolPtr->MetaInfo.HasGroupId) {
-            poolPtr->Docs.QueryId[i] = static_cast<uint32_t>(INTEGER(groupIdParam)[i]);
+        if (metaInfo.HasWeights) {
+            visitor->AddWeights(weights);
         }
-        if (groupWeightParam != R_NilValue) {
-            poolPtr->Docs.Weight[i] = static_cast<float>(REAL(groupWeightParam)[i]);
+        if (metaInfo.HasGroupWeight) {
+            visitor->SetGroupWeights(std::move(groupWeights));
         }
-        if (poolPtr->MetaInfo.HasSubgroupIds) {
-            poolPtr->Docs.SubgroupId[i] = static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]);
-        }
-        if (baselineParam != R_NilValue) {
+        if (metaInfo.BaselineCount) {
+            TVector<float> baseline(dataRows);
             for (size_t j = 0; j < baselineColumns; ++j) {
-                poolPtr->Docs.Baseline[j][i] = REAL(baselineParam)[i + baselineRows * j];
+                for (ui32 i = 0; i < dataRows; ++i) {
+                    baseline[i] = static_cast<float>(REAL(baselineParam)[i + baselineRows * j]);
+                }
+                visitor->AddBaseline(j, baseline);
             }
         }
+
         for (size_t j = 0; j < dataColumns; ++j) {
-            poolPtr->Docs.Factors[j][i] = static_cast<float>(REAL(matrixParam)[i + dataRows * j]);  // casting double to float
-        }
-    }
-    if (pairsParam != R_NilValue) {
-        size_t pairsCount = static_cast<size_t>(INTEGER(getAttrib(pairsParam, R_DimSymbol))[0]);
-        for (size_t i = 0; i < pairsCount; ++i) {
-            float weight = 1;
-            if (pairsWeightParam != R_NilValue) {
-                weight = static_cast<float>(REAL(pairsWeightParam)[i]);
+            if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Categorical) {
+                TVector<ui32> catValues;
+                catValues.yresize(dataRows);
+                for (ui32 i = 0; i < dataRows; ++i) {
+                    catValues[i] =
+                        ConvertFloatCatFeatureToIntHash(static_cast<float>(REAL(matrixParam)[i + dataRows * j]));
+                }
+                visitor->AddCatFeature(j, TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(catValues)));
+            } else {
+                TVector<float> floatValues;
+                floatValues.yresize(dataRows);
+                for (ui32 i = 0; i < dataRows; ++i) {
+                    floatValues[i] = static_cast<float>(REAL(matrixParam)[i + dataRows * j]);
+                }
+                visitor->AddFloatFeature(j, TMaybeOwningConstArrayHolder<float>::CreateOwning(std::move(floatValues)));
             }
-            poolPtr->Pairs.emplace_back(
-                static_cast<int>(INTEGER(pairsParam)[i + pairsCount * 0]),
-                static_cast<int>(INTEGER(pairsParam)[i + pairsCount * 1]),
-                weight
-            );
         }
-    }
-    if (featureNamesParam != R_NilValue) {
-        for (size_t i = 0; i < dataColumns; ++i) {
-            poolPtr->FeatureId.push_back(CHAR(asChar(VECTOR_ELT(featureNamesParam, i))));
+
+        if (pairsParam != R_NilValue) {
+            TVector<TPair> pairs;
+            size_t pairsCount = static_cast<size_t>(INTEGER(getAttrib(pairsParam, R_DimSymbol))[0]);
+            for (size_t i = 0; i < pairsCount; ++i) {
+                float weight = 1;
+                if (pairsWeightParam != R_NilValue) {
+                    weight = static_cast<float>(REAL(pairsWeightParam)[i]);
+                }
+                pairs.emplace_back(
+                    static_cast<int>(INTEGER(pairsParam)[i + pairsCount * 0]),
+                    static_cast<int>(INTEGER(pairsParam)[i + pairsCount * 1]),
+                    weight
+                );
+            }
+            visitor->SetPairs(std::move(pairs));
         }
-    } else {
-        poolPtr->FeatureId.assign(dataColumns, TString());
-    }
-    result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
+        visitor->Finish();
+    };
+
+    TDataProviderPtr poolPtr = CreateDataProvider(std::move(loaderFunc));
+
+    result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
-    poolPtr.release();
+    Y_UNUSED(poolPtr.Release());
     R_API_END();
     UNPROTECT(1);
     return result;
@@ -246,7 +296,7 @@ SEXP CatBoostPoolNumRow_R(SEXP poolParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
-    result = ScalarInteger(static_cast<int>(pool->Docs.GetDocCount()));
+    result = ScalarInteger(static_cast<int>(pool->ObjectsGrouping->GetObjectCount()));
     R_API_END();
     return result;
 }
@@ -256,20 +306,25 @@ SEXP CatBoostPoolNumCol_R(SEXP poolParam) {
     R_API_BEGIN();
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     result = ScalarInteger(0);
-    if (pool->Docs.GetDocCount() != 0) {
-        result = ScalarInteger(static_cast<int>(pool->Docs.GetEffectiveFactorCount()));
+    if (pool->ObjectsGrouping->GetObjectCount() != 0) {
+        result = ScalarInteger(static_cast<int>(pool->MetaInfo.GetFeatureCount()));
     }
     R_API_END();
     return result;
 }
 
-SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+SEXP CatBoostGetNumTrees_R(SEXP modelParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     result = ScalarInteger(static_cast<int>(model->ObliviousTrees.GetTreeCount()));
     R_API_END();
     return result;
+}
+
+// TODO(dbakshee): remove this backward compatibility gag in v0.11
+SEXP CatBoostPoolNumTrees_R(SEXP modelParam) {
+    return CatBoostGetNumTrees_R(modelParam);
 }
 
 SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
@@ -279,13 +334,28 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     size = static_cast<size_t>(asInteger(sizeParam));
     offset = static_cast<size_t>(asInteger(offsetParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    const TRawObjectsDataProvider* rawObjectsData
+        = dynamic_cast<const TRawObjectsDataProvider*>(pool->ObjectsData.Get());
+    CB_ENSURE(rawObjectsData, "Cannot Slice quantized features data");
+
     result = PROTECT(allocVector(VECSXP, size));
-    for (size_t i = offset; i < std::min(pool->Docs.GetDocCount(), offset + size); ++i) {
-        SEXP row = PROTECT(allocVector(REALSXP, pool->Docs.GetEffectiveFactorCount() + 2));
-        REAL(row)[0] = pool->Docs.Target[i];
-        REAL(row)[1] = pool->Docs.Weight[i];
-        for (int j = 0; j < pool->Docs.GetEffectiveFactorCount(); ++j) {
-            REAL(row)[j + 2] = pool->Docs.Factors[j][i];
+    ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+    auto target = *pool->RawTargetData.GetTarget();
+    const auto& weights = pool->RawTargetData.GetWeights();
+
+    // TODO(akhropov): get only data for slice objects
+    TVector<TVector<float>> rawFeatures(featureCount); // [flatFeatureIdx][objectIdx]
+    for (auto featureIdx : xrange(featureCount)) {
+        rawFeatures[featureIdx] = rawObjectsData->GetFeatureDataOldFormat(featureIdx);
+    }
+
+    for (size_t i = offset; i < std::min((size_t)pool->GetObjectCount(), offset + size); ++i) {
+        ui32 featureCount = pool->MetaInfo.GetFeatureCount();
+        SEXP row = PROTECT(allocVector(REALSXP, featureCount + 2));
+        REAL(row)[0] = FromString<double>(target[i]);
+        REAL(row)[1] = weights[i];
+        for (ui32 j = 0; j < featureCount; ++j) {
+            REAL(row)[j + 2] = rawFeatures[j].empty() ? 0.0f : rawFeatures[j][i];
         }
         SET_VECTOR_ELT(result, i - offset, row);
     }
@@ -298,32 +368,40 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     SEXP result = NULL;
     R_API_BEGIN();
     TPoolHandle learnPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
+    TDataProviders pools;
+    pools.Learn = learnPool;
+
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
     if (testPoolParam != R_NilValue) {
         TEvalResult evalResult;
         TPoolHandle testPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
+        pools.Test.emplace_back(testPool);
         TrainModel(
             fitParams,
+            nullptr,
             Nothing(),
             Nothing(),
-            TClearablePoolPtrs(*learnPool, {testPool}),
+            pools,
             "",
             modelPtr.get(),
             {&evalResult}
         );
+        Y_UNUSED(pools.Test.back().Release());
     }
     else {
         TrainModel(
             fitParams,
+            nullptr,
             Nothing(),
             Nothing(),
-            TClearablePoolPtrs(*learnPool, {}),
+            pools,
             "",
             modelPtr.get(),
             {}
         );
     }
+    Y_UNUSED(pools.Learn.Release());
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
     modelPtr.release();
@@ -388,15 +466,15 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
     TVector<TVector<double>> prediction = ApplyModelMulti(*model,
-                                                          *pool,
+                                                          *pool->ObjectsData,
                                                           asLogical(verboseParam),
                                                           predictionType,
                                                           asInteger(treeCountStartParam),
                                                           asInteger(treeCountEndParam),
                                                           UpdateThreadCount(asInteger(threadCountParam)));
-    size_t predictionSize = prediction.size() * pool->Docs.GetDocCount();
+    size_t predictionSize = prediction.size() * pool->ObjectsGrouping->GetObjectCount();
     result = PROTECT(allocVector(REALSXP, predictionSize));
-    for (size_t i = 0, k = 0; i < pool->Docs.GetDocCount(); ++i) {
+    for (size_t i = 0, k = 0; i < pool->ObjectsGrouping->GetObjectCount(); ++i) {
         for (size_t j = 0; j < prediction.size(); ++j) {
             REAL(result)[k++] = prediction[j][i];
         }
@@ -440,7 +518,15 @@ SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountPar
 SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeCountEndParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    model->ObliviousTrees.Truncate(asInteger(treeCountStartParam), asInteger(treeCountEndParam));
+    model->Truncate(asInteger(treeCountStartParam), asInteger(treeCountEndParam));
+    R_API_END();
+    return ScalarLogical(1);
+}
+
+SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    model->ObliviousTrees.DropUnusedFeatures();
     R_API_END();
     return ScalarLogical(1);
 }
@@ -460,7 +546,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     SEXP resultDim = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TDataProviderPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     TString fstrType = CHAR(asChar(fstrTypeParam));
 
     const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
@@ -489,22 +575,22 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         setAttrib(result, R_DimSymbol, resultDim);
     } else {
         TVector<TVector<double>> fstr = GetFeatureImportances(fstrType, *model, pool, threadCount, verbose);
-        size_t numDocs = fstr.size();
-        size_t numValues = numDocs > 0 ? fstr[0].size() : 0;
-        size_t resultSize = numDocs * numValues;
+        size_t numRows = fstr.size();
+        size_t numCols = numRows > 0 ? fstr[0].size() : 0;
+        size_t resultSize = numRows * numCols;
         result = PROTECT(allocVector(REALSXP, resultSize));
         size_t r = 0;
-        for (size_t j = 0; j < numValues; ++j) {
-            for (size_t i = 0; i < numDocs; ++i) {
+        for (size_t j = 0; j < numCols; ++j) {
+            for (size_t i = 0; i < numRows; ++i) {
                 REAL(result)[r++] = fstr[i][j];
             }
         }
         PROTECT(resultDim = allocVector(INTSXP, 2));
-        INTEGER(resultDim)[0] = numDocs;
-        INTEGER(resultDim)[1] = numValues;
+        INTEGER(resultDim)[0] = numRows;
+        INTEGER(resultDim)[1] = numCols;
         setAttrib(result, R_DimSymbol, resultDim);
     }
-
+    Y_UNUSED(pool.Release());
     R_API_END();
     UNPROTECT(2);
     return result;
@@ -526,6 +612,7 @@ SEXP CatBoostEvaluateObjectImportances_R(
     TPoolHandle trainPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(trainPoolParam));
     TString ostrType = CHAR(asChar(ostrTypeParam));
     TString updateMethod = CHAR(asChar(updateMethodParam));
+    const bool verbose = false;
     TDStrResult dstrResult = GetDocumentImportances(
         *model,
         *trainPool,
@@ -534,7 +621,8 @@ SEXP CatBoostEvaluateObjectImportances_R(
         asInteger(topSizeParam),
         updateMethod,
         /*importanceValuesSignStr=*/ToString(EImportanceValuesSign::All),
-        UpdateThreadCount(asInteger(threadCountParam))
+        UpdateThreadCount(asInteger(threadCountParam)),
+        verbose
     );
     size_t resultSize = 0;
     if (!dstrResult.Indices.empty()) {

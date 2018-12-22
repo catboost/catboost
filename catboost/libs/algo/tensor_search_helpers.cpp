@@ -2,6 +2,78 @@
 
 #include <catboost/libs/helpers/restorable_rng.h>
 
+THolder<IDerCalcer> BuildError(
+    const NCatboostOptions::TCatBoostOptions& params,
+    const TMaybe<TCustomObjectiveDescriptor>& descriptor
+) {
+    const bool isStoreExpApprox = IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction());
+    switch (params.LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::Logloss:
+        case ELossFunction::CrossEntropy:
+            return MakeHolder<TCrossEntropyError>(isStoreExpApprox);
+        case ELossFunction::RMSE:
+            return MakeHolder<TRMSEError>(isStoreExpApprox);
+        case ELossFunction::MAE:
+        case ELossFunction::Quantile: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParams();
+            if (lossParams.empty()) {
+                return MakeHolder<TQuantileError>(isStoreExpApprox);
+            } else {
+                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                return MakeHolder<TQuantileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
+            }
+        }
+        case ELossFunction::LogLinQuantile: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParams();
+            if (lossParams.empty()) {
+                return MakeHolder<TLogLinQuantileError>(isStoreExpApprox);
+            } else {
+                CB_ENSURE(lossParams.begin()->first == "alpha", "Invalid loss description" << ToString(params.LossFunctionDescription.Get()));
+                return MakeHolder<TLogLinQuantileError>(FromString<float>(lossParams.at("alpha")), isStoreExpApprox);
+            }
+        }
+        case ELossFunction::MAPE:
+            return MakeHolder<TMAPError>(isStoreExpApprox);
+        case ELossFunction::Poisson:
+            return MakeHolder<TPoissonError>(isStoreExpApprox);
+        case ELossFunction::MultiClass:
+            return MakeHolder<TMultiClassError>(isStoreExpApprox);
+        case ELossFunction::MultiClassOneVsAll:
+            return MakeHolder<TMultiClassOneVsAllError>(isStoreExpApprox);
+        case ELossFunction::PairLogit:
+            return MakeHolder<TPairLogitError>(isStoreExpApprox);
+        case ELossFunction::PairLogitPairwise:
+            return MakeHolder<TPairLogitError>(isStoreExpApprox);
+        case ELossFunction::QueryRMSE:
+            return MakeHolder<TQueryRmseError>(isStoreExpApprox);
+        case ELossFunction::QuerySoftMax: {
+            const auto& lossFunctionDescription = params.LossFunctionDescription;
+            const auto& lossParams = lossFunctionDescription->GetLossParams();
+            CB_ENSURE(
+                lossParams.empty() || lossParams.begin()->first == "lambda",
+                "Invalid loss description" << ToString(lossFunctionDescription.Get())
+            );
+
+            const double lambdaReg = NCatboostOptions::GetQuerySoftMaxLambdaReg(lossFunctionDescription);
+            return MakeHolder<TQuerySoftMaxError>(lambdaReg, isStoreExpApprox);
+        }
+        case ELossFunction::YetiRank:
+            return MakeHolder<TPairLogitError>(isStoreExpApprox);
+        case ELossFunction::YetiRankPairwise:
+            return MakeHolder<TPairLogitError>(isStoreExpApprox);
+        case ELossFunction::Lq:
+            return MakeHolder<TLqError>(NCatboostOptions::GetLqParam(params.LossFunctionDescription), isStoreExpApprox);
+        case ELossFunction::Custom:
+            return MakeHolder<TCustomError>(params, descriptor);
+        case ELossFunction::UserPerObjMetric:
+            return MakeHolder<TUserDefinedPerObjectError>(params.LossFunctionDescription->GetLossParams(), isStoreExpApprox);
+        case ELossFunction::UserQuerywiseMetric:
+            return MakeHolder<TUserDefinedQuerywiseError>(params.LossFunctionDescription->GetLossParams(), isStoreExpApprox);
+        default:
+            CB_ENSURE(false, "provided error function is not supported");
+    }
+}
+
 static void GenerateRandomWeights(
     int learnSampleCount,
     float baggingTemperature,
@@ -165,6 +237,74 @@ void Bootstrap(
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
     sampledDocs->Sample(*fold, indices, rand, localExecutor);
+}
+
+void CalcWeightedDerivatives(
+    const IDerCalcer& error,
+    int bodyTailIdx,
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui64 randomSeed,
+    TFold* takenFold,
+    NPar::TLocalExecutor* localExecutor
+) {
+    TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailIdx];
+    const TVector<TVector<double>>& approx = bt.Approx;
+    const TVector<float>& target = takenFold->LearnTarget;
+    const TVector<float>& weight = takenFold->GetLearnWeights();
+    TVector<TVector<double>>* weightedDerivatives = &bt.WeightedDerivatives;
+
+    if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
+        TVector<TQueryInfo> recalculatedQueriesInfo;
+        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
+        if (shouldGenerateYetiRankPairs) {
+            YetiRankRecalculation(*takenFold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &bt.PairwiseWeights);
+        }
+        const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
+
+        const int tailQueryFinish = bt.TailQueryFinish;
+        TVector<TDers> ders((*weightedDerivatives)[0].ysize());
+        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders, localExecutor);
+        for (int docId = 0; docId < ders.ysize(); ++docId) {
+            (*weightedDerivatives)[0][docId] = ders[docId].Der1;
+        }
+        if (params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
+            // In case of YetiRankPairwise loss function we need to store generated pairs for tree structure building.
+            Y_ASSERT(takenFold->BodyTailArr.size() == 1);
+            takenFold->LearnQueriesInfo.swap(recalculatedQueriesInfo);
+        }
+    } else {
+        const int tailFinish = bt.TailFinish;
+        const int approxDimension = approx.ysize();
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, tailFinish);
+        blockParams.SetBlockSize(1000);
+
+        Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
+        if (approxDimension == 1) {
+            localExecutor->ExecRange([&](int blockId) {
+                const int blockOffset = blockId * blockParams.GetBlockSize();
+                error.CalcFirstDerRange(blockOffset, Min<int>(blockParams.GetBlockSize(), tailFinish - blockOffset),
+                    approx[0].data(),
+                    nullptr, // no approx deltas
+                    target.data(),
+                    weight.data(),
+                    (*weightedDerivatives)[0].data());
+            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            localExecutor->ExecRange([&](int blockId) {
+                TVector<double> curApprox(approxDimension);
+                TVector<double> curDelta(approxDimension);
+                NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int z) {
+                    for (int dim = 0; dim < approxDimension; ++dim) {
+                        curApprox[dim] = approx[dim][z];
+                    }
+                    error.CalcDersMulti(curApprox, target[z], weight.empty() ? 1 : weight[z], &curDelta, nullptr);
+                    for (int dim = 0; dim < approxDimension; ++dim) {
+                        (*weightedDerivatives)[dim][z] = curDelta[dim];
+                    }
+                })(blockId);
+            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        }
+    }
 }
 
 void SetBestScore(

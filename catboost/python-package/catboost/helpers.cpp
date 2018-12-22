@@ -4,13 +4,14 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
 void ProcessException() {
     try {
         throw;
-    } catch (const TCatboostException& exc) {
+    } catch (const TCatBoostException& exc) {
         PyErr_SetString(PyCatboostExceptionType, exc.what());
     } catch (const TInterruptException& exc) {
         PyErr_SetString(PyExc_KeyboardInterrupt, exc.what());
@@ -36,7 +37,7 @@ void ResetPythonInterruptHandler() {
 
 TVector<TVector<double>> EvalMetrics(
     const TFullModel& model,
-    const TPool& pool,
+    const NCB::TDataProvider& srcData,
     const TVector<TString>& metricsDescription,
     int begin,
     int end,
@@ -48,7 +49,10 @@ TVector<TVector<double>> EvalMetrics(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
 
-    auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
+    TRestorableFastRng64 rand(0);
+
+    auto metricLossDescriptions = CreateMetricLossDescriptions(metricsDescription);
+    auto metrics = CreateMetrics(metricLossDescriptions, model.ObliviousTrees.ApproxDimension);
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
         begin,
@@ -60,13 +64,20 @@ TVector<TVector<double>> EvalMetrics(
         metrics
     );
 
+    auto processedDataProvider = NCB::CreateModelCompatibleProcessedDataProvider(
+        srcData,
+        metricLossDescriptions,
+        model,
+        &rand,
+        &executor
+    );
+
     if (plotCalcer.HasAdditiveMetric()) {
-        plotCalcer.ProceedDataSetForAdditiveMetrics(pool, /*isProcessBoundaryGroups=*/false);
-        plotCalcer.FinishProceedDataSetForAdditiveMetrics();
+        plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
     }
     if (plotCalcer.HasNonAdditiveMetric()) {
         while (!plotCalcer.AreAllIterationsProcessed()) {
-            plotCalcer.ProceedDataSetForNonAdditiveMetrics(pool);
+            plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
     }

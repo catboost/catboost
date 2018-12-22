@@ -2,15 +2,13 @@ LIBRARY()
 
 
 
-PEERDIR (
+PEERDIR(
     library/lcs
     library/containers/stack_array
 )
 
-SRCS (
+SRCS(
     diff.cpp
 )
 
 END()
-
-NEED_CHECK()

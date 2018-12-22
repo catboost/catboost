@@ -183,7 +183,7 @@ NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedB
         }
     }
     if (tensor.GetSplits().size()) {
-        ythrow TCatboostException() << "Precompute for combination ctrs with float splits is unimplemented yet";
+        ythrow TCatBoostException() << "Precompute for combination ctrs with float splits is unimplemented yet";
     }
     return ctrBinBuilder;
 }
@@ -210,15 +210,18 @@ TVector<TVector<NCB::TCtrConfig>> NCatboostCuda::TBatchedBinarizedCtrsCalcer::Cr
     return result;
 }
 
-TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedBins(const NCatboostCuda::TDataProvider& dataProvider,
+TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedBins(const NCB::TTrainingDataProvider& dataProvider,
                                                                                     ui32 featureManagerFeatureId,
                                                                                     ui32 devId) {
     const ui32 featureId = FeaturesManager.GetDataProviderId(featureManagerFeatureId);
-    const auto& catFeature = dynamic_cast<const ICatFeatureValuesHolder&>(dataProvider.GetFeatureById(featureId));
+
+    const auto& catFeature = **(dataProvider.ObjectsData->GetCatFeature(
+        dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(featureId)
+    ));
     auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
     const ui32 uniqueValues = FeaturesManager.GetBinCount(featureManagerFeatureId);
     auto compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));
-    binsGpu.Write(catFeature.ExtractValues());
+    binsGpu.Write(*catFeature.ExtractValues(LocalExecutor));
     Compress(binsGpu, compressedBinsGpu, uniqueValues);
     return compressedBinsGpu;
 }

@@ -122,7 +122,7 @@ namespace {
         }
 
         void SendReply(TData& data) override {
-            Handle_->SendReply(TString(~data, +data));
+            Handle_->SendReply(TString(data.data(), data.size()));
         }
 
         void SendError(TResponseError, const TString& details) override {

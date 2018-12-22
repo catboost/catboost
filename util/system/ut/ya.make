@@ -2,8 +2,6 @@ UNITTEST_FOR(util)
 
 
 
-NEED_CHECK()
-
 FORK_TESTS()
 
 FORK_SUBTESTS()
@@ -43,6 +41,7 @@ SRCS(
     system/fstat_ut.cpp
     system/getpid_ut.cpp
     system/guard_ut.cpp
+    system/hi_lo_ut.cpp
     system/hostname_ut.cpp
     system/info_ut.cpp
     system/mem_info_ut.cpp

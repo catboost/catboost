@@ -30,10 +30,22 @@ static TPairwiseStats CalcPairwiseStats(
     }
 
     TPairwiseStats pairwiseStats;
-    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(docCount));
+    pairwiseStats.DerSums = ComputeDerSums(
+        weightedDerivativesData,
+        leafCount,
+        bucketCount,
+        leafIndices,
+        [&](ui32 docId) { return bucketIndices[docId]; },
+        NCB::TIndexRange<int>(docCount));
     const auto flatPairs = UnpackPairsFromQueries(queriesInfo);
     const int pairCount = flatPairs.ysize();
-    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(flatPairs, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(pairCount));
+    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(
+        flatPairs,
+        leafCount,
+        bucketCount,
+        leafIndices,
+        [&](ui32 docId) { return bucketIndices[docId]; },
+        NCB::TIndexRange<int>(pairCount));
 
     return pairwiseStats;
 }
@@ -107,7 +119,7 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
     Y_UNIT_TEST(PairwiseScoringTestSmall) {
         TVector<TIndexType> singleIdx = {1, 2, 0, 1, 3, 2, 1, 0, 2, 3};
         const TVector<double> ders = {0.5, -0.5, 1.2, -3.2, 0.1, 0.3, -0.6, 2.5, -1.9, 0.5};
-        TVector<TQueryInfo> queriesInfo = {{0, singleIdx.ysize()}};
+        TVector<TQueryInfo> queriesInfo = {{0, (ui32)singleIdx.size()}};
         TVector<TVector<TCompetitor>>& comps = queriesInfo[0].Competitors;
         comps.resize(ders.size());
         comps[0].push_back({1, 1});
@@ -144,7 +156,7 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         singleIdx[6] += 4;
         singleIdx[9] += 4;
         const TVector<double> ders = {0.5, -0.5, 1.2, -3.2, 0.1, 0.3, -0.6, 2.5, -1.9, 0.5};
-        TVector<TQueryInfo> queriesInfo = {{0, singleIdx.ysize()}};
+        TVector<TQueryInfo> queriesInfo = {{0, (ui32)singleIdx.size()}};
         TVector<TVector<TCompetitor>>& comps = queriesInfo[0].Competitors;
         comps.resize(ders.size());
         comps[0].push_back({1, 1});

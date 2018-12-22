@@ -5,6 +5,7 @@
 #include <library/grid_creator/binarization.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 #include <util/generic/set.h>
@@ -13,18 +14,18 @@
 
 namespace NCB {
 
-    TVector<float> CheckedCopyWithoutNans(const TVector<float>& values, ENanMode nanMode);
+    TVector<float> CheckedCopyWithoutNans(TConstArrayRef<float> values, ENanMode nanMode);
 
     class IGridBuilder {
     public:
         virtual ~IGridBuilder() {
         }
 
-        virtual IGridBuilder& AddFeature(const TVector<float>& feature, ui32 borderCount, ENanMode nanMode) = 0;
+        virtual IGridBuilder& AddFeature(TConstArrayRef<float> feature, ui32 borderCount, ENanMode nanMode) = 0;
 
         virtual const TVector<TVector<float>>& Borders() = 0;
 
-        virtual TVector<float> BuildBorders(const TVector<float>& sortedFeature,
+        virtual TVector<float> BuildBorders(TConstArrayRef<float> sortedFeature,
                                             ui32 borderCount) const = 0;
     };
 
@@ -49,7 +50,7 @@ namespace NCB {
     class TBordersBuilder {
     public:
         TBordersBuilder(IFactory<IGridBuilder>& builderFactory,
-                        const TVector<float>& values)
+                        TConstArrayRef<float> values)
             : BuilderFactory(builderFactory)
             , Values(values)
         {
@@ -58,7 +59,7 @@ namespace NCB {
         TVector<float> operator()(const NCatboostOptions::TBinarizationOptions& description);
     private:
         IFactory<IGridBuilder>& BuilderFactory;
-        const TVector<float>& Values;
+        TConstArrayRef<float> Values;
     };
 
     using TOnCpuGridBuilderFactory = TGridBuilderFactory;

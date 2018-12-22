@@ -14,13 +14,13 @@ namespace NCatboost {
             CB_ENSURE(userParametersJson.empty(), "JSON user params for exporting the model to C++ are not supported");
         };
 
-        void Write(const TFullModel& model, const THashMap<int, TString>* /*catFeaturesHashToString*/ = nullptr) override {
+        void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString = nullptr) override {
             if (model.HasCategoricalFeatures()) {
-                WriteHeaderCatFeatures();
-                WriteModelCatFeatures(model);
+                WriteHeader(/*forCatFeatures*/true);
+                WriteModelCatFeatures(model, catFeaturesHashToString);
                 WriteApplicatorCatFeatures();
             } else {
-                WriteHeader();
+                WriteHeader(/*forCatFeatures*/false);
                 WriteModel(model);
                 WriteApplicator();
             }
@@ -29,10 +29,9 @@ namespace NCatboost {
     private:
         void WriteApplicator();
         void WriteModel(const TFullModel& model);
-        void WriteHeader();
-        void WriteHeaderCatFeatures();
+        void WriteHeader(bool forCatFeatures);
         void WriteCTRStructs();
-        void WriteModelCatFeatures(const TFullModel& model);
+        void WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString);
         void WriteApplicatorCatFeatures();
     };
 }

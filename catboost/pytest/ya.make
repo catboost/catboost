@@ -6,14 +6,6 @@ TEST_SRCS(
     test.py
 )
 
-IF (NOT SANITIZER_TYPE)
-
-    TEST_SRCS(
-        test_gpu.py
-    )
-
-ENDIF()
-
 DEPENDS(
     catboost/tools/limited_precision_dsv_diff
 )
@@ -35,8 +27,14 @@ DEPENDS(
     catboost/app
 )
 
+DATA(
+    arcadia/catboost/pytest/data
+)
+
 END()
 
-RECURSE(
-    lib
+IF(HAVE_CUDA)
+    RECURSE(
+    cuda_tests
 )
+ENDIF()

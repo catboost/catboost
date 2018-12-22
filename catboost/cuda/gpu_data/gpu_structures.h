@@ -2,18 +2,22 @@
 
 #include <util/system/types.h>
 
+#include <limits>
+
 #ifndef __NVCC__
 
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
+
 #include <util/ysaveload.h>
+
 #include <float.h>
 
 #endif
 //struct to make bin-feature from ui32 feature
 // (compressedIndex[Offset] & Mask  should be true
 struct TCBinFeature {
-    ui32 FeatureId = -1;
-    ui32 BinId = -1;
+    ui32 FeatureId = static_cast<ui32>(-1);
+    ui32 BinId = static_cast<ui32>(-1);
 
     bool operator<(const TCBinFeature& other) const {
         return FeatureId < other.FeatureId || (FeatureId == other.FeatureId && BinId < other.BinId);
@@ -59,7 +63,7 @@ struct TBinarizedFeature {
 struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
-    float Score = 10e6;
+    float Score = std::numeric_limits<float>::infinity();
 
     TBestSplitProperties() = default;
 

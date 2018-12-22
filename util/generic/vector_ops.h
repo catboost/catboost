@@ -22,6 +22,7 @@ namespace NVectorOps {
             return Vec().Size();
         }
 
+        Y_PURE_FUNCTION
         inline bool Empty() const noexcept {
             return !Size();
         }
@@ -52,14 +53,6 @@ namespace NVectorOps {
             return (*this)[n];
         }
 
-        inline const T* operator~() const noexcept {
-            return Data();
-        }
-
-        inline size_t operator+() const noexcept {
-            return Size();
-        }
-
         inline explicit operator bool() const noexcept {
             return !Empty();
         }
@@ -87,6 +80,7 @@ namespace NVectorOps {
             return Size();
         }
 
+        Y_PURE_FUNCTION
         inline bool empty() const noexcept {
             return Empty();
         }
@@ -122,7 +116,6 @@ namespace NVectorOps {
         using TBase::Data;
         using TBase::End;
         using TBase::Front;
-        using TBase::operator~;
         using TBase::operator[];
 
         inline T* Data() const noexcept {
@@ -153,10 +146,6 @@ namespace NVectorOps {
             }
 
             return (*this)[n];
-        }
-
-        inline T* operator~() noexcept {
-            return this->Data();
         }
 
         inline T& operator[](size_t n) noexcept {

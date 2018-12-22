@@ -254,11 +254,11 @@ void TCodepageTest::TestUTFFromUnknownPlane() {
     // test TChar version
     // bytebuffer of len writtenbytes contains sampletext of len samplelen chars in utf8
     TUtf16String wtr = CharToWide(TStringBuf(bytebuffer, writtenbytes), CODES_UNKNOWNPLANE);
-    TChar* strend = wtr.begin() + +wtr;
+    TChar* strend = wtr.begin() + wtr.size();
     DecodeUnknownPlane(wtr.begin(), strend, CODES_UTF8);
-    wtr.resize(strend - ~wtr, 'Q');
-    UNIT_ASSERT_VALUES_EQUAL(+wtr, samplelen);
-    for (size_t i = 0; i < +wtr; ++i) {
+    wtr.resize(strend - wtr.data(), 'Q');
+    UNIT_ASSERT_VALUES_EQUAL(wtr.size(), samplelen);
+    for (size_t i = 0; i < wtr.size(); ++i) {
         if (sampletext[i] >= 0x10000) {
             UNIT_ASSERT_VALUES_EQUAL(wtr[i], ' ');
         } else {

@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     detail.cpp
+    GLOBAL loader.cpp
     pool.cpp
     print.cpp
     quantized.cpp
@@ -14,7 +15,9 @@ PEERDIR(
     catboost/idl/pool/flat
     catboost/idl/pool/proto
     catboost/libs/column_description
-    catboost/libs/pool_builder
+    catboost/libs/data_new
+    catboost/libs/data_util
+    catboost/libs/helpers
     catboost/libs/quantization_schema
     catboost/libs/validate_fb
     contrib/libs/flatbuffers

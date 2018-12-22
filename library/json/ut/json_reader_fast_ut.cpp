@@ -58,7 +58,7 @@ namespace NJson {
                     default:
                         return "YOUFAILED";
                     case E_ERROR:
-                        return Sprintf("error: %s", ~Str);
+                        return Sprintf("error: %s", Str.data());
                     case E_DICT_OPEN:
                         return "{";
                     case E_DICT_CLOSE:
@@ -76,9 +76,9 @@ namespace NJson {
                     case E_FLT:
                         return ::ToString(DNum);
                     case E_STR:
-                        return Sprintf("%s", ~Str);
+                        return Sprintf("%s", Str.data());
                     case E_KEY:
-                        return Sprintf("key: %s", ~Str);
+                        return Sprintf("key: %s", Str.data());
                 }
             }
         };
@@ -151,10 +151,10 @@ namespace NJson {
                     UNIT_ASSERT_VALUES_EQUAL_C(e.size(), Events.size(), str);
 
                     for (ui32 i = 0, sz = e.size(); i < sz; ++i) {
-                        UNIT_ASSERT_VALUES_EQUAL_C((int)e[i].Type, (int)Events[i].Type, Sprintf("'%s' %u", ~str, i));
-                        UNIT_ASSERT_VALUES_EQUAL_C(e[i].INum, Events[i].INum, Sprintf("'%s' %u", ~str, i));
-                        UNIT_ASSERT_VALUES_EQUAL_C(e[i].DNum, Events[i].DNum, Sprintf("'%s' %u", ~str, i));
-                        UNIT_ASSERT_VALUES_EQUAL_C(e[i].Str, Events[i].Str, Sprintf("'%s' %u", ~str, i));
+                        UNIT_ASSERT_VALUES_EQUAL_C((int)e[i].Type, (int)Events[i].Type, Sprintf("'%s' %u", str.data(), i));
+                        UNIT_ASSERT_VALUES_EQUAL_C(e[i].INum, Events[i].INum, Sprintf("'%s' %u", str.data(), i));
+                        UNIT_ASSERT_VALUES_EQUAL_C(e[i].DNum, Events[i].DNum, Sprintf("'%s' %u", str.data(), i));
+                        UNIT_ASSERT_VALUES_EQUAL_C(e[i].Str, Events[i].Str, Sprintf("'%s' %u", str.data(), i));
                     }
                 } catch (const yexception&) {
                     Clog << "Exception at '" << str << "'" << Endl;
@@ -232,7 +232,7 @@ public:
 
         TTestHandler h;
         const bool res = ReadJsonFast(json, &h);
-        UNIT_ASSERT_VALUES_EQUAL_C(res, accept, Sprintf("%s (%s)", ~json.ToString(), ~h.Events.back().Str));
+        UNIT_ASSERT_VALUES_EQUAL_C(res, accept, Sprintf("%s (%s)", json.ToString().data(), h.Events.back().Str.data()));
         h.Assert(evs, json.ToString());
     }
 

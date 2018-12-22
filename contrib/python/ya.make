@@ -2,20 +2,27 @@
 
 RECURSE(
     appdirs
+    atomicwrites
+    attrs
     dateutil
+    dateutil/tests
     enum34
+    funcsigs
     Jinja2
     MarkupSafe
+    more-itertools
     numpy
     packaging
     pandas
     pandas/matplotlib
+    pathlib2
+    pluggy
     py
     pyparsing
     pytest
     pytz
     pytz/tests
-    PyYAML
+    scandir
     setuptools
     six
     subprocess32

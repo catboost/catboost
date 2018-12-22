@@ -2,13 +2,9 @@
 
 LIBRARY(zstd)
 
-LICENSE(
-    BSD
-)
 
 
-
-VERSION(1.1.2)
+VERSION(1.3.4)
 
 LICENSE(BSD-3-Clause)
 
@@ -23,6 +19,7 @@ NO_COMPILER_WARNINGS()
 NO_UTIL()
 
 CFLAGS(
+    -DXXH_NAMESPACE=ZSTD_
     -DZSTD_LEGACY_SUPPORT=1
 )
 
@@ -30,15 +27,25 @@ SRCS(
     common/entropy_common.c
     common/error_private.c
     common/fse_decompress.c
+    common/pool.c
+    common/threading.c
     common/xxhash.c
     common/zstd_common.c
     compress/fse_compress.c
     compress/huf_compress.c
     compress/zstd_compress.c
+    compress/zstd_double_fast.c
+    compress/zstd_fast.c
+    compress/zstd_lazy.c
+    compress/zstd_ldm.c
+    compress/zstd_opt.c
+    compress/zstdmt_compress.c
     decompress/huf_decompress.c
     decompress/zstd_decompress.c
+    deprecated/zbuff_common.c
     deprecated/zbuff_compress.c
     deprecated/zbuff_decompress.c
+    dictBuilder/cover.c
     dictBuilder/divsufsort.c
     dictBuilder/zdict.c
     legacy/zstd_v01.c

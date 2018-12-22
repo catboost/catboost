@@ -1,15 +1,29 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/output_file_options.h>
 
+#include <library/getopt/small/last_getopt_opts.h>
+#include <library/grid_creator/binarization.h>
+#include <library/logger/log.h>
+
+#include <util/generic/algorithm.h>
+#include <util/generic/serialized_enum.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/vector.h>
+#include <util/string/cast.h>
+#include <util/string/iterator.h>
 #include <util/string/join.h>
+#include <util/string/split.h>
+#include <util/system/yassert.h>
 
 
 using namespace NCB;
-
-const TString ModelFormatHelp = "Alters format of output file for the model. "
-                                "Supported values {CatboostBinary, AppleCoreML, CPP, Python, json}. Default is CatboostBinary.";
 
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
@@ -24,42 +38,6 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     return result;
 }
 
-TVector<TString> ReadClassNames(const TString& modelInfoParams) {
-    NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
-    TVector<TString> classNames;
-    if (paramsJson.Has("data_processing_options")
-        && paramsJson["data_processing_options"].Has("class_names")) {
-        for (const auto& token : paramsJson["data_processing_options"]["class_names"].GetArraySafe()) {
-            classNames.push_back(token.GetStringSafe());
-        }
-    }
-    return classNames;
-}
-
-void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
-                             NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)
-{
-    parser->AddLongOption("column-description", "[for dsv format] column description file path")
-        .AddLongName("cd")
-        .RequiredArgument("[SCHEME://]PATH")
-        .Handler1T<TStringBuf>([dsvPoolFormatParams](const TStringBuf& str) {
-            dsvPoolFormatParams->CdFilePath = TPathWithScheme(str, "file");
-        });
-
-    parser->AddLongOption("delimiter",
-        "[for dsv format] Learning and training sets delimiter (single char, '<tab>' by default)")
-        .RequiredArgument("SYMBOL")
-        .Handler1T<TString>([dsvPoolFormatParams](const TString& oneChar) {
-            CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
-            dsvPoolFormatParams->Format.Delimiter = oneChar[0];
-        });
-
-    parser->AddLongOption("has-header", "[for dsv format] Read first line as header")
-        .NoArgument()
-        .StoreValue(&dsvPoolFormatParams->Format.HasHeader,
-                    true);
-}
-
 inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
     BindDsvPoolFormatParams(parser, &(loadParamsPtr->DsvPoolFormatParams));
 
@@ -72,11 +50,12 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddLongOption('t', "test-set", "path to one or more test sets")
         .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            for (const auto& path : StringSplitter(str).Split(',')) {
+            for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
                 if (!path.Empty()) {
                     loadParamsPtr->TestSetPaths.emplace_back(path.Token().ToString(), "dsv");
                 }
             }
+            CB_ENSURE(!loadParamsPtr->TestSetPaths.empty(), "Empty test path");
         });
 
     parser->AddLongOption("learn-pairs", "path to learn pairs")
@@ -106,64 +85,38 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            CB_ENSURE(
+                !loadParamsPtr->CvParams.Initialized(),
+                "Cross-validation params have already been initialized"
+            );
             Split(str,
                   '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
             loadParamsPtr->CvParams.Inverted = false;
+            loadParamsPtr->CvParams.Check();
         });
 
     parser->AddCharOption('Y', "inverted cross validation, train on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            CB_ENSURE(
+                !loadParamsPtr->CvParams.Initialized(),
+                "Cross-validation params have already been initialized"
+            );
             Split(str,
                   '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
             loadParamsPtr->CvParams.Inverted = true;
+            loadParamsPtr->CvParams.Check();
         });
 
     parser->AddLongOption("cv-rand", "cross-validation random seed")
         .RequiredArgument("seed")
-        .StoreResult(&loadParamsPtr
-                          ->CvParams.RandSeed);
-
+        .StoreResult(&loadParamsPtr->CvParams.PartitionRandSeed);
 
     parser->AddLongOption("input-borders-file", "file with borders")
             .RequiredArgument("PATH")
             .StoreResult(&loadParamsPtr->BordersFile);
 }
 
-void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {
-    parser->AddLongOption('m', "model-file", "model file name")
-            .RequiredArgument("PATH")
-            .StoreResult(modelFileName)
-            .Handler1T<TString>([modelFileName, modelFormat](const TString& path) {
-                *modelFileName = path;
-                *modelFormat = NCatboostOptions::DefineModelFormat(path);
-
-            })
-            .DefaultValue("model.bin");
-    parser->AddLongOption("model-format")
-            .RequiredArgument("model format")
-            .Handler1T<TString>([modelFormat](const TString& format) {
-                *modelFormat = FromString<EModelType>(format);
-            })
-            .Help(ModelFormatHelp);
-}
-
-
-static TVector<TString> GetAllObjectives() {
-    return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile", "MAPE", "Poisson",
-            "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise", "YetiRank",
-            "YetiRankPairwise", "QueryRMSE", "QuerySoftMax", "QueryCrossEntropy"};
-}
-
-static TVector<TString> GetAllMetrics() {
-    return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile",
-            "MAPE", "Poisson", "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise",
-            "YetiRank", "YetiRankPairwise", "QueryRMSE", "QuerySoftMax", "QueryCrossEntropy", "R2",
-            "AUC", "Accuracy", "Precision", "Recall", "F1", "TotalF1", "MCC", "PairAccuracy", "AverageGain", "QueryAverage",
-            "PFound", "NDCG", "BalancedAccuracy", "BalancedErrorRate", "Kappa", "WKappa", "BrierScore",
-            "MSLE", "MedianAbsoluteError", "ZeroOneLoss", "HammingLoss", "HingeLoss", "SMAPE",
-            "PrecisionAt", "RecallAt", "MAP", "LogLikelihoodOfPrediction"};
-}
 
 void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
@@ -173,23 +126,39 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
-    TVector<TString> lossMetrics = GetAllObjectives();
-    parser.AddLongOption("loss-function",
-                         "Should be one of: " + JoinRange(",", lossMetrics.begin(), lossMetrics.end()) + ". A loss might have params, then params should be written in format Loss:paramName=value.")
-            .RequiredArgument("string")
-            .Handler1T<TString>([plainJsonPtr](const TString& lossDescription) {
-                (*plainJsonPtr)["loss_function"] = lossDescription;
-            });
+    parser
+        .AddLongOption("trigger-core-dump")
+        .NoArgument()
+        .Handler0([] {  Y_FAIL("Aboring on user request"); })
+        .Help("Trigger core dump")
+        .Hidden();
 
-    TVector<TString> customMetrics = GetAllMetrics();
-    parser.AddLongOption("custom-metric",
-                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: " + JoinRange(",", customMetrics.begin(), customMetrics.end()))
-            .AddLongName("custom-loss")
+    const auto allObjectives = GetAllObjectives();
+    const auto lossFunctionDescription = TString::Join(
+        "Should be one of: ",
+        JoinSeq(", ", allObjectives),
+        ". A loss might have params, then params should be written in format Loss:paramName=value.");
+    parser
+        .AddLongOption("loss-function", lossFunctionDescription)
+        .RequiredArgument("string")
+        .Handler1T<TString>([&](const auto& value) {
+            const auto enum_ = FromString<ELossFunction>(TStringBuf(value).Before(':'));
+            CB_ENSURE(IsIn(allObjectives, enum_), "objective is not allowed");
+            (*plainJsonPtr)["loss_function"] = value;
+        });
+
+    const auto customMetricsDescription = TString::Join(
+        "A metric might have parameters, then params should be written in format Loss:paramName=value. Loss should be one of: ",
+        GetEnumAllNames<ELossFunction>());
+    parser.AddLongOption("custom-metric", customMetricsDescription)
+        .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
-        .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {
-            for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',')) {
+        .Handler1T<TString>([&](const TString& lossFunctionsLine) {
+            for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',').SkipEmpty()) {
+                FromString<ELossFunction>(lossFunction.Token().Before(':'));
                 (*plainJsonPtr)["custom_metric"].AppendValue(NJson::TJsonValue(lossFunction.Token()));
             }
+            CB_ENSURE(!(*plainJsonPtr)["custom_metric"].GetArray().empty(), "Empty custom metrics list " << lossFunctionsLine);
         });
 
     parser.AddLongOption("eval-metric")
@@ -205,16 +174,19 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("PATH")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
             (*plainJsonPtr)["result_model_file"] = name;
+            (*plainJsonPtr)["model_format"].AppendValue(ToString(NCatboostOptions::DefineModelFormat(name)));
         });
 
     parser.AddLongOption("model-format")
             .RequiredArgument("comma separated list of formats")
             .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
-                for (const auto& format : StringSplitter(formatsLine).Split(',')) {
-                    (*plainJsonPtr)["model_format"].AppendValue(format.Token());
+                for (const auto& format : StringSplitter(formatsLine).Split(',').SkipEmpty()) {
+                    const auto enum_ = FromString<EModelType>(format.Token());
+                    (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
                 }
+                CB_ENSURE(!(*plainJsonPtr)["model_format"].GetArray().empty(), "Empty model format list " << formatsLine);
             })
-            .Help(ModelFormatHelp + " Corresponding extensions will be added to model-file if more than one format is set.");
+            .Help(BuildModelFormatHelpMessage() + " Corresponding extensions will be added to model-file if more than one format is set.");
 
     parser.AddLongOption("eval-file", "eval output file name")
         .RequiredArgument("PATH")
@@ -270,16 +242,22 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["profile_log"] = name;
         });
 
+    parser.AddLongOption("trace-log", "path for trace log")
+        .RequiredArgument("file")
+        .Handler1T<TString>([](const TString& name) {
+            TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
+        });
+
     parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
-        .RequiredArgument("bool")
+        .OptionalValue("true", "bool")
         .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
         });
 
     parser.AddLongOption("best-model-min-trees", "Minimal number of trees the best model should have.")
         .RequiredArgument("int")
-        .Handler1T<TString>([plainJsonPtr](const TString& bestModelMinTrees) {
-            (*plainJsonPtr)["best_model_min_trees"] = FromString<int>(bestModelMinTrees);
+        .Handler1T<int>([plainJsonPtr](const auto bestModelMinTrees) {
+            (*plainJsonPtr)["best_model_min_trees"] = bestModelMinTrees;
         });
 
     parser.AddLongOption("name", "name to be displayed in visualizator")
@@ -294,16 +272,20 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["train_dir"] = path;
         });
 
-    parser.AddLongOption("verbose", "period of printing metrics to stdout")
-        .RequiredArgument("int")
+    parser.AddLongOption("verbose", "period of printing metrics to stdout; never if 0 or False")
+        .RequiredArgument("PERIOD")
         .Handler1T<TString>([plainJsonPtr](const TString& period) {
-        (*plainJsonPtr)["verbose"] = FromString<int>(period);
-    });
+            try {
+                (*plainJsonPtr)["verbose"] = FromString<int>(period);
+            } catch (...) {
+                (*plainJsonPtr)["verbose"] = int(FromString<bool>(period));
+            }
+        });
 
     parser.AddLongOption("metric-period", "period of calculating metrics")
         .RequiredArgument("int")
-        .Handler1T<TString>([plainJsonPtr](const TString& period) {
-        (*plainJsonPtr)["metric_period"] = FromString<int>(period);
+        .Handler1T<int>([plainJsonPtr](const auto period) {
+        (*plainJsonPtr)["metric_period"] = period;
     });
 
     parser.AddLongOption("snapshot-file", "use progress file for restoring progress after crashes")
@@ -323,20 +305,21 @@ void ParseCommandLine(int argc, const char* argv[],
             .RequiredArgument("Comma separated list of column indexes")
             .Handler1T<TString>([plainJsonPtr](const TString& indexesLine) {
                 (*plainJsonPtr)["output_columns"] = NULL;
-                for (const auto& t : StringSplitter(indexesLine).Split(',')) {
+                for (const auto& t : StringSplitter(indexesLine).Split(',').SkipEmpty()) {
                     (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
-
                 }
+                CB_ENSURE(!(*plainJsonPtr)["output_columns"].GetArray().empty(), "Empty column indexes list " << indexesLine);
             });
 
     parser.AddLongOption("prediction-type")
         .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal. CPU only")
         .Handler1T<TString>([plainJsonPtr](const TString& predictionTypes) {
             (*plainJsonPtr)["output_columns"].AppendValue("DocId");
-            for (const auto& t : StringSplitter(predictionTypes).Split(',')) {
+            for (const auto& t : StringSplitter(predictionTypes).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["prediction_type"].AppendValue(t.Token());
                 (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["prediction_type"].GetArray().empty(), "Empty prediction type list " << predictionTypes);
             (*plainJsonPtr)["output_columns"].AppendValue(ToString(EColumn::Label));
         });
 
@@ -388,24 +371,34 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["permutation_count"] = blockSize;
         });
 
+    const auto boostingTypeHelp = TString::Join(
+        "Set boosting type (",
+        GetEnumAllNames<EBoostingType>(),
+        ") By default CatBoost use dynamic-boosting scheme. For best performance you could set it to ",
+        ToString(EBoostingType::Plain));
     parser
         .AddLongOption("boosting-type")
         .RequiredArgument("BoostingType")
-        .Help("Set boosting type (Dynamic, Plain). By default CatBoost use dynamic-boosting scheme. For best performance you could set it to Plain.")
-        .Handler1T<TString>([plainJsonPtr](const TString& boostingType) {
-            (*plainJsonPtr)["boosting_type"] = boostingType;
+        .Help(boostingTypeHelp)
+        .Handler1T<EBoostingType>([plainJsonPtr](const auto boostingType) {
+            (*plainJsonPtr)["boosting_type"] = ToString(boostingType);
         });
 
+    const auto dataPartitionHelp = TString::Join(
+        "Sets method to split learn samples between multiple workers (GPU only currently). Possible values are: ",
+        GetEnumAllNames<EDataPartitionType>(),
+        ". Default depends on learning mode and dataset.");
     parser
-            .AddLongOption("data-partition")
-            .RequiredArgument("PartitionType")
-            .Help("Sets method to split learn samples between multiple workers (GPU only currently). Posible values FeatureParallel, DocParallel. Default depends on learning mode and dataset.")
-            .Handler1T<TString>([plainJsonPtr](const TString& type) {
-                (*plainJsonPtr)["data_partition"] = type;
-            });
+        .AddLongOption("data-partition")
+        .RequiredArgument("PartitionType")
+        .Help(dataPartitionHelp)
+        .Handler1T<EDataPartitionType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["data_partition"] = ToString(type);
+        });
 
     parser.AddLongOption("od-pval",
-                         "set threshold for overfitting detector and stop matrixnet automaticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
+                         "pValue threshold for overfitting detector. For good results use threshold in [1e-10, 1e-2]."
+                         "Specified test-set is required.")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float pval) {
             (*plainJsonPtr)["od_pval"] = pval;
@@ -420,8 +413,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     parser.AddLongOption("od-type", "Should be one of {IncToDec, Iter}")
         .RequiredArgument("detector-type")
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            (*plainJsonPtr)["od_type"] = type;
+        .Handler1T<EOverfittingDetectorType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["od_type"] = ToString(type);
         });
 
     //tree options
@@ -437,11 +430,14 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["leaf_estimation_iterations"] = iterations;
         });
 
-    parser.AddLongOption("leaf-estimation-backtracking", "Backtracking type (GPU only,  one of None, AnyImprovment, Armijo")
-            .RequiredArgument("str")
-            .Handler1T<TString>([plainJsonPtr](const TString& type) {
-                (*plainJsonPtr)["leaf_estimation_backtracking"] = type;
-            });
+    const auto leafEstimationBacktrackingHelp = TString::Join(
+        "Backtracking type (GPU only); Must be one of: ",
+        GetEnumAllNames<ELeavesEstimationStepBacktracking>());
+    parser.AddLongOption("leaf-estimation-backtracking", leafEstimationBacktrackingHelp)
+        .RequiredArgument("str")
+        .Handler1T<ELeavesEstimationStepBacktracking>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["leaf_estimation_backtracking"] = ToString(type);
+        });
 
     parser.AddLongOption('n', "depth", "tree depth")
         .RequiredArgument("int")
@@ -485,18 +481,25 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("score stdandart deviation multiplier");
 
-    parser.AddLongOption("leaf-estimation-method", "One of {Newton, Gradient}")
+    const auto leafEstimationMethodHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<ELeavesEstimation>());
+    parser.AddLongOption("leaf-estimation-method", leafEstimationMethodHelp)
         .RequiredArgument("method-name")
-        .Handler1T<TString>([plainJsonPtr](const TString& method) {
-            (*plainJsonPtr)["leaf_estimation_method"] = method;
+        .Handler1T<ELeavesEstimation>([plainJsonPtr](const auto method) {
+            (*plainJsonPtr)["leaf_estimation_method"] = ToString(method);
         });
 
+    const auto scoreFunctionHelp = TString::Join(
+        "Could be change during GPU learning only. Change score function to use. ",
+        " Must be one of: ",
+        GetEnumAllNames<EScoreFunction>());
     parser
         .AddLongOption("score-function")
         .RequiredArgument("STRING")
-        .Help("Could be change during GPU learning only. Change score function to use. One of {Correlation, SolarL2}")
-        .Handler1T<TString>([plainJsonPtr](const TString& func) {
-            (*plainJsonPtr)["score_function"] = func;
+        .Help(scoreFunctionHelp)
+        .Handler1T<EScoreFunction>([plainJsonPtr](const auto func) {
+            (*plainJsonPtr)["score_function"] = ToString(func);
         });
 
     parser
@@ -525,16 +528,16 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["dev_max_ctr_complexity_for_borders_cache"] = limit;
         });
 
+    const auto bootstrapTypeHelp = TString::Join(
+        "Bootstrap type. Change default way of sampling documents weights. Must be one of: ",
+        GetEnumAllNames<EBootstrapType>(),
+        ". By default CatBoost uses bayesian bootstrap type");
     parser
         .AddLongOption("bootstrap-type")
         .RequiredArgument("STRING")
-        .Help("Bootstrap type. Change default way of sampling documents weights. One of"
-              " Poisson,"
-              " Bayesian,"
-              " Bernoulli,"
-              " No. By default CatBoost uses bayesian bootstrap type")
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            (*plainJsonPtr)["bootstrap_type"] = type;
+        .Help(bootstrapTypeHelp)
+        .Handler1T<EBootstrapType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["bootstrap_type"] = ToString(type);
         });
 
     parser.AddLongOption("bagging-temperature")
@@ -545,12 +548,16 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default). Available for Bayesian bootstap only");
 
+    const auto samplingFrequencyHelp = TString::Join(
+        "Controls how frequently to sample weights and objects when constructing trees. "
+        "Possible values are ",
+        GetEnumAllNames<ESamplingFrequency>());
     parser.AddLongOption("sampling-frequency")
         .RequiredArgument("string")
-        .Handler1T<TString>([plainJsonPtr](const TString& target) {
-            (*plainJsonPtr)["sampling_frequency"] = target;
+        .Handler1T<ESamplingFrequency>([plainJsonPtr](const ESamplingFrequency target) {
+            (*plainJsonPtr)["sampling_frequency"] = ToString(target);
         })
-        .Help("Controls how frequently to sample weights and objects when constructing trees. Possible values are PerTree and PerTreeLevel.");
+        .Help(samplingFrequencyHelp);
 
     parser
         .AddLongOption("subsample")
@@ -579,28 +586,31 @@ void ParseCommandLine(int argc, const char* argv[],
                          "Ctr description should be written in format CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["simple_ctr"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["simple_ctr"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
     parser.AddLongOption("combinations-ctr",
                          "Ctr description should be written in format CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["combinations_ctr"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["combinations_ctr"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
-    parser.AddLongOption("per-feature-ctr",
-                         "Ctr description should be written in format FeatureId:CtrType:[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
+    parser.AddLongOption("per-feature-ctr")
         .AddLongName("feature-ctr")
-        .RequiredArgument("comma separated list of ctr descriptions")
+        .RequiredArgument("DESC[;DESC...]")
+        .Help("Semicolon separated list of ctr descriptions. Ctr description should be written in format FeatureId:CtrType:[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';').SkipEmpty()) {
                 (*plainJsonPtr)["per_feature_ctr"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["per_feature_ctr"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
     //legacy fallback
@@ -608,15 +618,19 @@ void ParseCommandLine(int argc, const char* argv[],
                          "Ctr description should be written in format FeatureId:CtrType:[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num/denum]. CtrType should be one of: Borders, Buckets, BinarizedTargetMeanValue, Counter. TargetBorderType should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum, Uniform")
         .RequiredArgument("comma separated list of ctr descriptions")
         .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
-            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',')) {
+            for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["ctr_description"].AppendValue(oneCtrConfig.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["ctr_description"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
-    parser.AddLongOption("counter-calc-method", "Should be one of {Full, SkipTest}")
+    const auto counterCalcMethodHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<ECounterCalc>());
+    parser.AddLongOption("counter-calc-method", counterCalcMethodHelp)
         .RequiredArgument("method-name")
-        .Handler1T<TString>([plainJsonPtr](const TString& method) {
-            (*plainJsonPtr).InsertValue("counter_calc_method", method);
+        .Handler1T<ECounterCalc>([plainJsonPtr](const auto method) {
+            (*plainJsonPtr).InsertValue("counter_calc_method", ToString(method));
         });
 
     parser.AddLongOption("ctr-leaf-count-limit",
@@ -668,25 +682,27 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<int>([plainJsonPtr](const int classesCount) {
             (*plainJsonPtr).InsertValue("classes_count", classesCount);
         })
-        .Help("Takes effect only with MutliClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
+        .Help("Takes effect only with MultiClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
 
     parser.AddLongOption("class-names", "names for classes.")
         .RequiredArgument("comma separated list of names")
         .Handler1T<TString>([plainJsonPtr](const TString& namesLine) {
-            for (const auto& t : StringSplitter(namesLine).Split(',')) {
+            for (const auto& t : StringSplitter(namesLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["class_names"].AppendValue(t.Token());
             }
+            CB_ENSURE(!(*plainJsonPtr)["class_names"].GetArray().empty(), "Empty class names list" << namesLine);
         })
-        .Help("Takes effect only with MutliClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
+        .Help("Takes effect only with MultiClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
 
     parser.AddLongOption("class-weights", "Weights for classes.")
         .RequiredArgument("comma separated list of weights")
         .Handler1T<TString>([plainJsonPtr](const TString& weightsLine) {
-            for (const auto& t : StringSplitter(weightsLine).Split(',')) {
+            for (const auto& t : StringSplitter(weightsLine).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["class_weights"].AppendValue(FromString<float>(t.Token()));
             }
+            CB_ENSURE(!(*plainJsonPtr)["class_weights"].GetArray().empty(), "Empty class weights list " << weightsLine);
         })
-        .Help("Takes effect only with MutliClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
+        .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
     parser.AddLongOption('x', "border-count", "count of borders per float feature. Should be in range [1, 255]")
         .RequiredArgument("int")
@@ -694,19 +710,24 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["border_count"] = count;
         });
 
-    parser.AddLongOption("feature-border-type",
-                         "Should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum")
+    const auto featureBorderTypeHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<EBorderSelectionType>());
+    parser.AddLongOption("feature-border-type", featureBorderTypeHelp)
         .RequiredArgument("border-type")
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            (*plainJsonPtr)["feature_border_type"] =
-                type;
+        .Handler1T<EBorderSelectionType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["feature_border_type"] = ToString(type);
         });
 
-    parser.AddLongOption("nan-mode", "Should be one of: {Min, Max, Forbidden}. Default: Min")
+    const auto nanModeHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<ENanMode>(),
+        " Default: ",
+        ToString(ENanMode::Min));
+    parser.AddLongOption("nan-mode", nanModeHelp)
         .RequiredArgument("nan-mode")
-        .Handler1T<TString>([plainJsonPtr](const TString& nanMode) {
-            (*plainJsonPtr)["nan_mode"] =
-                nanMode;
+        .Handler1T<ENanMode>([plainJsonPtr](const auto nanMode) {
+            (*plainJsonPtr)["nan_mode"] = ToString(nanMode);
         });
 
     parser.AddCharOption('T', "worker thread count (default: core count)")
@@ -750,21 +771,25 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["pinned_memory_size"] = param;
             });
 
+    const auto gpuCatFeatureStorageHelp = TString::Join(
+        "GPU only. Must be one of: ",
+        GetEnumAllNames<EGpuCatFeaturesStorage>(),
+        ". Default: ",
+        ToString(EGpuCatFeaturesStorage::GpuRam));
     parser
-            .AddLongOption("gpu-cat-features-storage")
-            .RequiredArgument("String")
-            .Help("GPU only. One of GpuRam, CpuPinnedMemory. Default GpuRam")
-            .Handler1T<TString>([plainJsonPtr](const TString& storage) {
-                (*plainJsonPtr)["gpu_cat_features_storage"] = storage;
-            });
+        .AddLongOption("gpu-cat-features-storage", gpuCatFeatureStorageHelp)
+        .RequiredArgument("String")
+        .Handler1T<EGpuCatFeaturesStorage>([plainJsonPtr](const auto storage) {
+            (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(storage);
+        });
 
+    const auto taskTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ETaskType>());
     parser
-            .AddLongOption("task-type")
-            .RequiredArgument("String")
-            .Help("One of CPU, GPU")
-            .Handler1T<TString>([plainJsonPtr](const TString& taskType) {
-                (*plainJsonPtr)["task_type"] = taskType;
-            });
+        .AddLongOption("task-type", taskTypeHelp)
+        .RequiredArgument("String")
+        .Handler1T<ETaskType>([plainJsonPtr](const auto taskType) {
+            (*plainJsonPtr)["task_type"] = ToString(taskType);
+        });
 
     parser
         .AddLongOption("devices")
@@ -774,12 +799,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["devices"] = devices;
         });
 
+    const auto nodeTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ENodeType>());
     parser
-        .AddLongOption("node-type")
+        .AddLongOption("node-type", nodeTypeHelp)
         .RequiredArgument("String")
-        .Help("One of Master or SingleHost; default is SingleHost")
-        .Handler1T<TString>([plainJsonPtr](const TString& nodeType) {
-            (*plainJsonPtr)["node_type"] = nodeType;
+        .Handler1T<ENodeType>([plainJsonPtr](const auto nodeType) {
+            (*plainJsonPtr)["node_type"] = ToString(nodeType);
         });
 
     parser

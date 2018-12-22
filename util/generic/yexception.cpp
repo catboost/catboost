@@ -91,3 +91,7 @@ void fputs(const std::exception& e, FILE* f) {
     message[len] = 0;
     fputs(message, f);
 }
+
+void ::NPrivate::ThrowYException(const ::NPrivate::TSimpleExceptionMessage& sm) {
+    throw sm.Location + yexception() << sm.Message;
+}

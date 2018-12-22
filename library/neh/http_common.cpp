@@ -130,7 +130,10 @@ namespace {
         out << requestType;
         out << ' ';
         if (isAbsoluteUri) {
-            out << loc.Scheme << AsStringBuf("://") << loc.Host << ':' << loc.Port;
+            out << loc.Scheme << AsStringBuf("://") << loc.Host;
+            if (loc.Port) {
+                out << ':' << loc.Port;
+            }
         }
         out << '/' << loc.Service;
 
@@ -174,7 +177,7 @@ namespace NNeh {
         bool MakeFullRequestImpl(TMessage& msg, const T& urlParams, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
             const NNeh::TParsedLocation loc(msg.Addr);
 
-            if (+content) {
+            if (content.size()) {
                 //content MUST be placed inside POST requests
                 if (!IsEmpty(urlParams)) {
                     if (NeedGetRequestFor(loc)) {
@@ -203,10 +206,10 @@ namespace NNeh {
             }
 
             // ugly but still... https2 will break it :(
-            if ('s' == loc.Scheme[+loc.Scheme - 1]) {
-                msg.Addr.replace(0, +schemeFulls, schemeFulls);
+            if ('s' == loc.Scheme[loc.Scheme.size() - 1]) {
+                msg.Addr.replace(0, schemeFulls.size(), schemeFulls);
             } else {
-                msg.Addr.replace(0, +schemeFull, schemeFull);
+                msg.Addr.replace(0, schemeFull.size(), schemeFull);
             }
 
             return true;
@@ -223,27 +226,3 @@ namespace NNeh {
     }
 }
 
-template <>
-void Out<ERequestType>(IOutputStream& out, ERequestType requestType) {
-    switch (requestType) {
-        case ERequestType::Any:
-            out << AsStringBuf("*");
-            return;
-        case ERequestType::Post:
-            out << AsStringBuf("POST");
-            return;
-        case ERequestType::Get:
-            out << AsStringBuf("GET");
-            return;
-        case ERequestType::Put:
-            out << AsStringBuf("PUT");
-            return;
-        case ERequestType::Delete:
-            out << AsStringBuf("DELETE");
-            return;
-        case ERequestType::Patch:
-            out << AsStringBuf("PATCH");
-            return;
-    }
-    Y_ASSERT(false);
-}

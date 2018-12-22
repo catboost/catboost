@@ -181,7 +181,6 @@
 #include <util/memory/segmented_string_pool.h>
 #include <util/memory/mmapalloc.h>
 #include <util/string/delim_string_iter.h>
-#include <util/draft/bitutils.h>
 #include <util/draft/ip.h>
 #include <util/draft/matrix.h>
 #include <util/draft/date.h>

@@ -1,10 +1,11 @@
 #include "data_utils.h"
-#include <catboost/cuda/cuda_lib/helpers.h>
 
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/generic/set.h>
 
-void NCatboostCuda::GroupSamples(const TVector<TGroupId>& qid, TVector<TVector<ui32>>* qdata) {
+
+void NCatboostCuda::GroupSamples(TConstArrayRef<TGroupId> qid, TVector<TVector<ui32>>* qdata) {
     TSet<TGroupId> knownQids;
     for (ui32 i = 0; i < qid.size(); ++i) {
         auto current = qid[i];
@@ -28,13 +29,4 @@ TVector<ui32> NCatboostCuda::ComputeGroupOffsets(const TVector<TVector<ui32>>& q
         cursor += query.size();
     }
     return offsets;
-}
-
-TVector<ui32> NCatboostCuda::ComputeGroupSizes(const TVector<TVector<ui32>>& gdata) {
-    TVector<ui32> sizes;
-    sizes.resize(gdata.size());
-    for (ui32 i = 0; i < gdata.size(); ++i) {
-        sizes[i] = gdata[i].size();
-    }
-    return sizes;
 }

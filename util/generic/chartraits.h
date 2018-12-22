@@ -114,6 +114,19 @@ namespace NCharTraitsImpl {
             return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar16)) == 0);
         }
     };
+
+    // OS accelerated specialization for wchar32
+    using TCmpWchar32 = TCompareBase<wchar32, TSingleCharBase<wchar32>>;
+
+    template <>
+    struct TEqualBase<wchar32, TCmpWchar32> {
+        static bool Equal(const wchar32* s1, const wchar32* s2) {
+            return TCmpWchar32::Compare(s1, s2) == 0;
+        }
+        static bool Equal(const wchar32* s1, const wchar32* s2, size_t n) {
+            return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar32)) == 0);
+        }
+    };
 }
 
 template <typename TCharType,
@@ -140,7 +153,7 @@ struct TCompareCharTraits: public TSingleCharBase, public TCompareBase, public T
         const TCharType* end = s1 + n1;
 
         for (; s1 != end; ++s1, ++s2) {
-            if (*s2 == 0 || *s1 != *s2) {
+            if (*s2 == 0 || !TSingleCharBase::Equal(*s1, *s2)) {
                 return false;
             }
         }
@@ -251,7 +264,10 @@ template <typename TCharType, typename TLength = TLengthCharTraits<TCharType>, t
 class TFindCharTraits: public NCharTraitsImpl::TFind<TCharType, TLength, TCompare> {
 };
 
+Y_PURE_FUNCTION
 const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t setlen);
+
+Y_PURE_FUNCTION
 const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen);
 
 // OS accelerated specialization
@@ -303,13 +319,13 @@ private:
 
 template <typename TCharType>
 struct THashCharTraits {
-    static size_t GetHash(const TCharType* s, size_t n) {
+    static size_t GetHash(const TCharType* s, size_t n) noexcept {
 // reduce code bloat and cycled includes, declare functions here
 #if defined(_64_) && !defined(NO_CITYHASH)
         extern ui64 CityHash64(const char* buf, size_t len) noexcept;
         return CityHash64((const char*)s, n * sizeof(TCharType));
 #else
-        extern size_t MurmurHashSizeT(const char* buf, size_t len);
+        extern size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
         return MurmurHashSizeT((const char*)s, n * sizeof(TCharType));
 #endif
     }

@@ -26,15 +26,17 @@ namespace NCatboostCuda {
         template <class TUi32>
         TBatchedBinarizedCtrsCalcer(TBinarizedFeaturesManager& featuresManager,
                                     const TCtrTargets<NCudaLib::TMirrorMapping>& ctrTargets,
-                                    const TDataProvider& dataProvider,
+                                    const NCB::TTrainingDataProvider& dataProvider,
                                     const TMirrorBuffer<TUi32>& ctrPermutation,
-                                    const TDataProvider* linkedTest,
-                                    const TMirrorBuffer<TUi32>* testIndices)
+                                    const NCB::TTrainingDataProvider* linkedTest,
+                                    const TMirrorBuffer<TUi32>* testIndices,
+                                    NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , CtrTargets(ctrTargets)
             , DataProvider(dataProvider)
             , LearnIndices(ctrPermutation.ConstCopyView())
             , LinkedTest(linkedTest)
+            , LocalExecutor(localExecutor)
         {
             if (LinkedTest) {
                 CB_ENSURE(testIndices);
@@ -52,17 +54,19 @@ namespace NCatboostCuda {
         TCtrBinBuilder<NCudaLib::TSingleMapping> BuildFeatureTensorBins(const TFeatureTensor& tensor,
                                                                         int devId);
 
-        TSingleBuffer<ui64> BuildCompressedBins(const TDataProvider& dataProvider,
+        TSingleBuffer<ui64> BuildCompressedBins(const NCB::TTrainingDataProvider& dataProvider,
                                                 ui32 featureManagerFeatureId,
                                                 ui32 devId);
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const TCtrTargets<NCudaLib::TMirrorMapping>& CtrTargets;
-        const TDataProvider& DataProvider;
+        const NCB::TTrainingDataProvider& DataProvider;
         TMirrorBuffer<const ui32> LearnIndices;
 
-        const TDataProvider* LinkedTest = nullptr;
+        const NCB::TTrainingDataProvider* LinkedTest = nullptr;
         TMirrorBuffer<const ui32> TestIndices;
+
+        NPar::TLocalExecutor* LocalExecutor;
     };
 }

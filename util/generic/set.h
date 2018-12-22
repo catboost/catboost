@@ -20,6 +20,12 @@ public:
     inline TSet() {
     }
 
+    template <typename TAllocParam>
+    inline explicit TSet(TAllocParam* allocator)
+        : TBase(TKeyCompare(), allocator)
+    {
+    }
+
     template <class It>
     inline TSet(It f, It l)
         : TBase(f, l)
@@ -51,12 +57,17 @@ public:
         return *this;
     }
 
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
+        return TBase::empty();
+    }
+
     inline explicit operator bool() const noexcept {
         return !this->empty();
     }
 
     template <class TheKey>
-    inline bool has(const TheKey& key) const {
+    inline bool contains(const TheKey& key) const {
         return this->find(key) != this->end();
     }
 };
@@ -106,7 +117,17 @@ public:
         return *this;
     }
 
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
+        return TBase::empty();
+    }
+
     inline explicit operator bool() const noexcept {
         return !this->empty();
+    }
+
+    template <class TheKey>
+    inline bool contains(const TheKey& key) const {
+        return this->find(key) != this->end();
     }
 };

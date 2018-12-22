@@ -23,7 +23,7 @@ namespace NCB {
                     break;
             }
 
-            ythrow TCatboostException() << "got unexpected enum " << static_cast<int>(proto);
+            ythrow TCatBoostException() << "got unexpected enum " << static_cast<int>(proto);
         }
 
         inline NIdl::ENanMode NanModeToProto(const ENanMode native) {
@@ -36,7 +36,7 @@ namespace NCB {
                     return NIdl::NM_FORBIDDEN;
             }
 
-            ythrow TCatboostException() << "got unexpected enum " << static_cast<int>(native);
+            ythrow TCatBoostException() << "got unexpected enum " << static_cast<int>(native);
         }
 
         bool IsFakeIndex(ui32 index, const NIdl::TPoolMetainfo& metaInfo);

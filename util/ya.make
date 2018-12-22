@@ -183,6 +183,7 @@ JOIN_SRCS(
     random/mersenne.cpp
     random/normal.cpp
     random/shuffle.cpp
+    random/init_atfork.cpp
 )
 
 JOIN_SRCS(
@@ -243,11 +244,6 @@ JOIN_SRCS(
     string/vector.cpp
 )
 
-# system
-IF (OS_DARWIN)
-    CFLAGS(-Wno-deprecated-declarations)
-ENDIF()
-
 IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)
 ENDIF()
@@ -279,6 +275,7 @@ JOIN_SRCS(
     system/fs.cpp
     system/fstat.cpp
     system/getpid.cpp
+    system/hi_lo.cpp
     system/hostname.cpp
     system/hp_timer.cpp
     system/info.cpp

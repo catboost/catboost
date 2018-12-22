@@ -1,5 +1,13 @@
 #include "pair_logit_pairwise.h"
+
 #include "kernel.h"
+
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_reader.h>
+#include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/cuda_util/transform.h>
+#include <catboost/cuda/gpu_data/bootstrap.h>
+#include <catboost/cuda/gpu_data/non_zero_filter.h>
+
 
 namespace NCatboostCuda {
     TAdditiveStatistic TPairLogitPairwise<NCudaLib::TStripeMapping>::ComputeStats(
@@ -10,6 +18,7 @@ namespace NCatboostCuda {
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
         TVector<float> result;
         auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
+        FillBuffer(tmp, 0.0f);
 
         ApproximatePairLogit(samplesGrouping.GetPairs(),
                              samplesGrouping.GetPairsWeights(),
@@ -42,9 +51,12 @@ namespace NCatboostCuda {
     }
 
     void TPairLogitPairwise<NCudaLib::TStripeMapping>::ApproximateAt(
-            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point, const TStripeBuffer<uint2>& pairs,
+            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
+            const TStripeBuffer<uint2>& pairs,
             const TStripeBuffer<float>& pairWeights, const TStripeBuffer<ui32>& scatterDerIndices,
-            TStripeBuffer<float>* value, TStripeBuffer<float>* der, TStripeBuffer<float>* pairDer2) const {
+            TStripeBuffer<float>* value,
+            TStripeBuffer<float>* der,
+            TStripeBuffer<float>* pairDer2) const {
         PairLogitPairwise(point,
                           pairs,
                           pairWeights,

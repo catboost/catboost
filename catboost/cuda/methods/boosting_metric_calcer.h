@@ -4,6 +4,9 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/targets/gpu_metrics.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
     class IMetricCalcer {
     public:
@@ -19,8 +22,9 @@ namespace NCatboostCuda {
         using TTargetMapping = typename TTarget::TMapping;
         using TConstVec = typename TTarget::TConstVec;
 
-        TMetricCalcer(const TTarget& target)
+        TMetricCalcer(const TTarget& target, NPar::TLocalExecutor* localExecutor)
             : Target(target)
+            , LocalExecutor(localExecutor)
         {
         }
 
@@ -69,7 +73,8 @@ namespace NCatboostCuda {
                 return dynamic_cast<const TCpuFallbackMetric*>(metric)->Eval(PointOnCpu,
                                                                              CpuTarget,
                                                                              CpuWeights,
-                                                                             QueryInfo);
+                                                                             QueryInfo,
+                                                                             LocalExecutor);
             } else {
                 CB_ENSURE(false, "Can't compute metric " << metric->GetCpuMetric().GetDescription() << " during GPU learning");
             }
@@ -133,6 +138,8 @@ namespace NCatboostCuda {
         TVector<float> CpuTarget;
         TVector<float> CpuWeights;
         TVector<TQueryInfo> QueryInfo;
+
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
 }

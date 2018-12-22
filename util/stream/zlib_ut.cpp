@@ -59,7 +59,7 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
         TUnbufferedFileOutput o(ZDATA);
         TZLibCompress c(&o, ZLib::ZLib);
 
-        c.Write(~data, +data);
+        c.Write(data.data(), data.size());
         c.Finish();
         o.Finish();
     }
@@ -81,10 +81,10 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
         {
             TUnbufferedFileOutput o(ZDATA);
             TZLibCompress c1(&o, ZLib::ZLib);
-            c1.Write(~data, +data);
+            c1.Write(data.data(), data.size());
             c1.Finish();
             TZLibCompress c2(&o, ZLib::ZLib);
-            c2.Write(~data2, +data2);
+            c2.Write(data2.data(), data2.size());
             c2.Finish();
             o.Finish();
         }
@@ -117,10 +117,10 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
         {
             TUnbufferedFileOutput o(ZDATA);
             TZLibCompress c1(&o, ZLib::ZLib);
-            c1.Write(~data, +data);
+            c1.Write(data.data(), data.size());
             c1.Finish();
             TZLibCompress c2(&o, ZLib::ZLib);
-            c2.Write(~data2, +data2);
+            c2.Write(data2.data(), data2.size());
             c2.Finish();
             o.Finish();
         }

@@ -3,8 +3,6 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
-#include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
@@ -15,6 +13,7 @@
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/lapack/linear_system.h>
 #include <catboost/libs/quantization/grid_creator.h>
 
 #include <util/system/info.h>
@@ -226,7 +225,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             }
 
             float score = 0;
-            const float* targetPtr = ~linearSystems + matrixOffset + rowSize * (rowSize + 1) / 2;
+            const float* targetPtr = linearSystems.data() + matrixOffset + rowSize * (rowSize + 1) / 2;
             for (ui32 i = 0; i < rowSize; ++i) {
                 score += targetPtr[i] * solutionFloat[i];
             }
@@ -287,8 +286,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
 
             for (ui32 x = 0; x < rowSize; ++x) {
                 if (std::abs(refVectors[refVecOffset + x] - gpuLinearSystems[gpuVecOffset + x]) > 1e-5) {
-                    DumpVec(~refVectors + refVecOffset, rowSize, "reference");
-                    DumpVec(~gpuLinearSystems + gpuVecOffset, rowSize, "gpu");
+                    DumpVec(refVectors.data() + refVecOffset, rowSize, "reference");
+                    DumpVec(gpuLinearSystems.data() + gpuVecOffset, rowSize, "gpu");
                 }
                 UNIT_ASSERT_DOUBLES_EQUAL_C(refVectors[refVecOffset + x], gpuLinearSystems[gpuVecOffset + x], 1e-5, "Policy " << policy << " rowSize " << rowSize << ": " << x << " " << i << " " << refVectors[refVecOffset + x] << " " << gpuLinearSystems[gpuVecOffset + x]);
             }
@@ -299,8 +298,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                     const float valCpu = refMatrices[refMxOffset + row * rowSize + col];
 
                     if (std::abs(valCpu - valGpu) > 1e-5) {
-                        DumpVec(~refMatrices + refMxOffset, matrixSize + 20, "reference");
-                        DumpVec(~gpuLinearSystems + gpuMxOffset, linearSystemSize, "gpu");
+                        DumpVec(refMatrices.data() + refMxOffset, matrixSize + 20, "reference");
+                        DumpVec(gpuLinearSystems.data() + gpuMxOffset, linearSystemSize, "gpu");
                     }
 
                     UNIT_ASSERT_DOUBLES_EQUAL_C(valCpu, valGpu, 1e-5,
@@ -361,9 +360,9 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 const ui32 rowSize = 1u << (currentDepth + 1);
                 ui32 bf = i / (rowSize);
                 const ui32 systemSize = rowSize + (rowSize * (rowSize + 1)) / 2;
-                DumpVec(~computedSystems + bf * systemSize, systemSize, "Linear system");
-                DumpVec(~solutionsCpu + bf * rowSize, rowSize, "CPU");
-                DumpVec(~solutionsGpu + bf * rowSize, rowSize, "GPU");
+                DumpVec(computedSystems.data() + bf * systemSize, systemSize, "Linear system");
+                DumpVec(solutionsCpu.data() + bf * rowSize, rowSize, "CPU");
+                DumpVec(solutionsGpu.data() + bf * rowSize, rowSize, "GPU");
             }
             UNIT_ASSERT_DOUBLES_EQUAL_C(solutionsCpu[i], solutionsGpu[i], 1e-5, i << " " << solutionsCpu[i] << " not equal to " << solutionsGpu[i] << " depth " << (1 << currentDepth));
         }
@@ -542,27 +541,18 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
         catFeatureParams.MaxTensorComplexity = 3;
         catFeatureParams.OneHotMaxSize = oneHotLimit;
-        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
-        TDataProvider dataProvider;
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
+
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         floatBinarization,
+                         catFeatureParams,
+                         &dataProvider,
+                         &featuresManager);
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-
-        TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                 dataProvider);
-
-        {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
-
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
         {
             NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum, binarization);
             NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, binarization);
@@ -577,14 +567,14 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-        TDocParallelDataSetBuilder dataSetsHolderBuilder(featuresManager,
-                                                         dataProvider,
+        TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
+                                                         *dataProvider,
                                                          nullptr);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
-            TreeSearcherTest(dataSet.GetDataSetForPermutation(i), featuresManager, maxDepth, nzDiagWeights);
+            TreeSearcherTest(dataSet.GetDataSetForPermutation(i), *featuresManager, maxDepth, nzDiagWeights);
         }
     }
 

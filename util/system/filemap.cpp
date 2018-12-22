@@ -67,7 +67,7 @@ static inline i64 DownToGranularity(i64 offset) noexcept {
 }
 
 // maybe we should move this function to another .cpp file to avoid unwanted optimization?
-static void PrechargeImpl(TFile f, void* data, size_t dataSize, size_t off, size_t size) {
+void NPrivate::Precharge(const void* data, size_t dataSize, size_t off, size_t size) {
     if (off > dataSize) {
         assert(false);
         return;
@@ -81,38 +81,7 @@ static void PrechargeImpl(TFile f, void* data, size_t dataSize, size_t off, size
     if (dataSize == 0 || size == 0)
         return;
 
-    volatile const char *c = (char*)data + off, *e = c + size;
-#ifdef _freebsd_
-    if (off % PAGE_SIZE) {
-        off = off / PAGE_SIZE * PAGE_SIZE; // align on PAGE_SIZE
-        size = endOff - off;
-        c = (char*)data + off;
-    }
-
-    madvise((void*)c, e - c, MADV_WILLNEED);
-    const size_t rdSize1 = 64 << 20, rdSize2 = 4 << 20;
-    const size_t rdSize = size > rdSize2 * 32 ? rdSize1 : rdSize2;
-    TArrayHolder<char> pages(new char[(rdSize + PAGE_SIZE - 1) / PAGE_SIZE]);
-    TBuffer buf(Min(rdSize, size));
-    ui32 nbufs = 0, nread = 0;
-    for (size_t r = 0; r < size; r += rdSize) {
-        bool needRead = true;
-        size_t toRead = Min(rdSize, size - r);
-        if (mincore((void*)(c + r), toRead, pages.Get()) != -1)
-            needRead = memchr(pages.Get(), 0, (toRead + PAGE_SIZE - 1) / PAGE_SIZE) != 0;
-        if (needRead)
-            f.Pread(buf.Data(), toRead, off + r);
-        madvise((void*)(c + r), toRead, MADV_WILLNEED);
-        for (volatile const char* d = c; d < c + r; d += 512)
-            *d;
-        ++nbufs;
-        nread += needRead;
-    }
-    //warnx("precharge: read %u/%u (blk %" PRISZT ")", nread, nbufs, rdSize);
-    return;
-#else
-    Y_UNUSED(f);
-#endif
+    volatile const char *c = (const char*)data + off, *e = c + size;
     for (; c < e; c += 512)
         *c;
 }
@@ -124,7 +93,7 @@ public:
         Mapping_ = nullptr;
         if (Length_) {
             Mapping_ = CreateFileMapping(File_.GetHandle(), nullptr,
-                                         (Mode_ & oAccessMask) == TFileMap::oRdOnly ? PAGE_READONLY : PAGE_READWRITE,
+                                         (Mode_ & oAccessMask) == TFileMap::oRdWr ? PAGE_READWRITE : PAGE_READONLY,
                                          (DWORD)(Length_ >> 32), (DWORD)(Length_ & 0xFFFFFFFF), nullptr);
             if (Mapping_ == nullptr) {
                 ythrow yexception() << "Can't create file mapping of '" << DbgName_ << "': " << LastSystemErrorText();
@@ -135,8 +104,8 @@ public:
 #elif defined(_unix_)
         if (!(Mode_ & oNotGreedy)) {
             PtrStart_ = mmap((caddr_t) nullptr, Length_,
-                             ((Mode_ & oAccessMask) == oRdOnly) ? PROT_READ : PROT_READ | PROT_WRITE,
-                             MAP_SHARED | MAP_NOCORE, File_.GetHandle(), 0);
+                             (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
+                             ((Mode_ & oAccessMask) == oCopyOnWr ? MAP_PRIVATE : MAP_SHARED) | MAP_NOCORE, File_.GetHandle(), 0);
             if ((MAP_FAILED == PtrStart_) && Length_)
                 ythrow yexception() << "Can't map " << (unsigned long)Length_ << " bytes of file '" << DbgName_ << "' at offset 0: " << LastSystemErrorText();
         } else
@@ -207,7 +176,7 @@ public:
     }
 
     inline bool IsWritable() const noexcept {
-        return (Mode_ & oRdWr);
+        return (Mode_ & oRdWr || Mode_ & oCopyOnWr);
     }
 
     inline TMapResult Map(i64 offset, size_t size) {
@@ -228,14 +197,18 @@ public:
         size += result.Head;
 
 #if defined(_win_)
-        result.Ptr = MapViewOfFile(Mapping_, (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ : FILE_MAP_WRITE,
+        result.Ptr = MapViewOfFile(Mapping_,
+                                   (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ :
+                                       (Mode_ & oAccessMask) == oCopyOnWr ? FILE_MAP_COPY :
+                                       FILE_MAP_WRITE,
                                    HI_32(base), LO_32(base), size);
 #else
 #if defined(_unix_)
         if (Mode_ & oNotGreedy) {
 #endif
-            result.Ptr = mmap((caddr_t) nullptr, size, (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
-                              MAP_SHARED | MAP_NOCORE,
+            result.Ptr = mmap((caddr_t) nullptr, size,
+                              (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
+                              ((Mode_ & oAccessMask) == oCopyOnWr ? MAP_PRIVATE : MAP_SHARED) | MAP_NOCORE,
                               File_.GetHandle(), base);
 
             if (result.Ptr == (char*)(-1)) {
@@ -254,7 +227,7 @@ public:
         }
         NSan::Unpoison(result.Ptr, result.Size);
         if (Mode_ & oPrecharge) {
-            PrechargeImpl(File_, result.Ptr, result.Size, 0, result.Size);
+            NPrivate::Precharge(result.Ptr, result.Size, 0, result.Size);
         }
 
         return result;
@@ -513,7 +486,7 @@ TFileMap::~TFileMap() {
 }
 
 void TFileMap::Precharge(size_t pos, size_t size) const {
-    PrechargeImpl(GetFile(), Ptr(), MappedSize(), pos, size);
+    NPrivate::Precharge(Ptr(), MappedSize(), pos, size);
 }
 
 TMappedAllocation::TMappedAllocation(size_t size, bool shared, void* addr)

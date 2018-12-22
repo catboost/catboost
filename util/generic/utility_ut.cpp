@@ -127,4 +127,36 @@ Y_UNIT_TEST_SUITE(TUtilityTest) {
         UNIT_ASSERT_EQUAL(clamped, hi);
         UNIT_ASSERT_EQUAL(&clamped, &hi);
     }
+
+    Y_UNIT_TEST(TestSecureZero) {
+        constexpr size_t checkSize = 128;
+        char test[checkSize];
+
+        // fill with garbage
+        for (size_t i = 0; i < checkSize; ++i) {
+            test[i] = i;
+        }
+
+        SecureZero(test, checkSize);
+
+        for (size_t i = 0; i < checkSize; ++i) {
+            UNIT_ASSERT_EQUAL(test[i], 0);
+        }
+    }
+
+    Y_UNIT_TEST(TestSecureZeroTemplate) {
+        constexpr size_t checkSize = 128;
+        char test[checkSize];
+
+        // fill with garbage
+        for (size_t i = 0; i < checkSize; ++i) {
+            test[i] = i;
+        }
+
+        SecureZero(test);
+
+        for (size_t i = 0; i < checkSize; ++i) {
+            UNIT_ASSERT_EQUAL(test[i], 0);
+        }
+    }
 };

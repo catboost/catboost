@@ -95,6 +95,7 @@ namespace NCatboostCuda {
             Y_UNUSED(params);
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
+            FillBuffer(tmp, 0.0f);
 
             ApproximateForPermutation(point,
                                       /*indices*/ nullptr,
@@ -325,7 +326,7 @@ namespace NCatboostCuda {
                 TotalWeightedTarget = DotProduct(GetTarget().GetTargets(),
                                                  GetTarget().GetWeights());
                 if (TotalWeightedTarget <= 0) {
-                    ythrow TCatboostException() << "Observation targets and weights should be greater or equal zero. Total weighted target should be greater, than zero";
+                    ythrow TCatBoostException() << "Observation targets and weights should be greater or equal zero. Total weighted target should be greater, than zero";
                 }
             }
         }

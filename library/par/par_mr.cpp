@@ -235,7 +235,10 @@ namespace NPar {
                 }
             } else {
                 // direct request
-                Y_VERIFY((jp.HostId >= 0 && jp.HostId < hostIdCount) || jp.HostId == TJobDescription::ANYWHERE_HOST_ID);
+                Y_VERIFY(
+                    (jp.HostId >= 0 && jp.HostId < hostIdCount) || jp.HostId == TJobDescription::ANYWHERE_HOST_ID,
+                    "jp.HostId=%d, hostIdCount=%d",
+                    jp.HostId, hostIdCount);
                 jr->Descr.ExecList.push_back(jp);
             }
         }

@@ -6,13 +6,13 @@ DISABLE(USE_ASMLIB)
 
 SRCS(
     bind_options.cpp
-    cmd_line.cpp
     main.cpp
     mode_calc.cpp
     mode_eval_metrics.cpp
     mode_fit.cpp
     mode_fstr.cpp
     mode_metadata.cpp
+    mode_model_sum.cpp
     mode_ostr.cpp
     mode_roc.cpp
     mode_run_worker.cpp
@@ -20,22 +20,26 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
-    catboost/libs/train_lib
-    catboost/libs/data
-    catboost/libs/eval_result
-    catboost/libs/fstr
+    catboost/libs/app_helpers
+    catboost/libs/column_description
+    catboost/libs/data_new
+    catboost/libs/data_util
+    catboost/libs/distributed
     catboost/libs/documents_importance
     catboost/libs/helpers
     catboost/libs/init
     catboost/libs/labels
     catboost/libs/logging
+    catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/target
+    catboost/libs/train_lib
     library/getopt/small
     library/grid_creator
     library/json
+    library/logger
     library/svnversion
-    library/threading/local_executor
 )
 
 IF(HAVE_CUDA)

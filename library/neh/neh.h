@@ -58,51 +58,57 @@ namespace NNeh {
         inline TResponse(const TMessage& req,
                          const TString& data,
                          const TDuration& duration)
-            : Request(req)
-            , Data(data)
-            , Duration(duration)
+            : TResponse(req, data, duration, {} /* firstLine */, {} /* headers */, {} /* error */)
         {
         }
 
         inline TResponse(const TMessage& req,
                          const TString& data,
                          const TDuration& duration,
+                         const TString& firstLine,
                          const THttpHeaders& headers)
-            : Request(req)
-            , Data(data)
-            , Duration(duration)
-            , Headers(headers)
+            : TResponse(req, data, duration, firstLine, headers, {} /* error */)
         {
         }
 
-        inline TResponse(const TMessage& req, TErrorRef error, const TDuration& duration, const TString* data = nullptr)
+        inline TResponse(const TMessage& req,
+                         const TString& data,
+                         const TDuration& duration,
+                         const TString& firstLine,
+                         const THttpHeaders& headers,
+                         TErrorRef error)
             : Request(req)
-            , Data(data ? *data : TString())
+            , Data(data)
             , Duration(duration)
+            , FirstLine(firstLine)
+            , Headers(headers)
             , Error_(error)
         {
         }
 
-        inline static TResponseRef FromErrorText(
-            const TMessage& msg,
-            const TString& error,
-            const TDuration& duration) {
-            return new TResponse(msg, new TError(error), duration);
+        inline static TResponseRef FromErrorText(const TMessage& msg, const TString& error, const TDuration& duration) {
+            return new TResponse(msg, {} /* data */, duration, {} /* firstLine */, {} /* headers */, new TError(error));
         }
 
-        inline static TResponseRef FromError(
-            const TMessage& msg,
-            TErrorRef error,
-            const TDuration& duration) {
-            return new TResponse(msg, error, duration);
+        inline static TResponseRef FromError(const TMessage& msg, TErrorRef error, const TDuration& duration) {
+            return new TResponse(msg, {} /* data */, duration, {} /* firstLine */, {} /* headers */, error);
+        }
+
+        inline static TResponseRef FromError(const TMessage& msg, TErrorRef error, const TDuration& duration,
+                                             const TString& data, const TString& firstLine, const THttpHeaders& headers)
+        {
+            return new TResponse(msg, data, duration, firstLine, headers, error);
         }
 
         inline static TResponseRef FromError(
             const TMessage& msg,
             TErrorRef error,
             const TString& data,
-            const TDuration& duration) {
-            return new TResponse(msg, error, duration, &data);
+            const TDuration& duration,
+            const TString& firstLine,
+            const THttpHeaders& headers)
+        {
+            return new TResponse(msg, data, duration, firstLine, headers, error);
         }
 
         inline bool IsError() const {
@@ -128,6 +134,7 @@ namespace NNeh {
         const TMessage Request;
         const TString Data;
         const TDuration Duration;
+        const TString FirstLine;
         THttpHeaders Headers;
 
     private:

@@ -12,7 +12,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     class TCountDownLatch {
     private:
         TAtomic Current;
-        Event EventObject;
+        TSystemEvent EventObject;
 
     public:
         TCountDownLatch(unsigned initial)

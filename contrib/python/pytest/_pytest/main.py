@@ -1,21 +1,26 @@
 """ core implementation of testing process: init, session, runtest loop. """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import contextlib
 import functools
 import os
+import pkgutil
 import sys
 
-import _pytest
-import _pytest._code
+import attr
 import py
-import pytest
-try:
-    from collections import MutableMapping as MappingMixin
-except ImportError:
-    from UserDict import DictMixin as MappingMixin
+import six
 
+import _pytest._code
+from _pytest import nodes
 from _pytest.config import directory_arg
+from _pytest.config import hookimpl
+from _pytest.config import UsageError
+from _pytest.outcomes import exit
 from _pytest.runner import collect_one_node
 
-tracebackcutdir = py.path.local(_pytest.__file__).dirpath()
 
 # exitcodes for the command line
 EXIT_OK = 0
@@ -25,63 +30,145 @@ EXIT_INTERNALERROR = 3
 EXIT_USAGEERROR = 4
 EXIT_NOTESTSCOLLECTED = 5
 
+
 def pytest_addoption(parser):
-    parser.addini("norecursedirs", "directory patterns to avoid for recursion",
-        type="args", default=['.*', 'build', 'dist', 'CVS', '_darcs', '{arch}', '*.egg'])
-    parser.addini("testpaths", "directories to search for tests when no files or directories are given in the command line.",
-        type="args", default=[])
-    #parser.addini("dirpatterns",
+    parser.addini(
+        "norecursedirs",
+        "directory patterns to avoid for recursion",
+        type="args",
+        default=[".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg", "venv"],
+    )
+    parser.addini(
+        "testpaths",
+        "directories to search for tests when no files or directories are given in the "
+        "command line.",
+        type="args",
+        default=[],
+    )
+    # parser.addini("dirpatterns",
     #    "patterns specifying possible locations of test files",
     #    type="linelist", default=["**/test_*.txt",
     #            "**/test_*.py", "**/*_test.py"]
-    #)
+    # )
     group = parser.getgroup("general", "running and selection options")
-    group._addoption('-x', '--exitfirst', action="store_const",
-               dest="maxfail", const=1,
-               help="exit instantly on first error or failed test."),
-    group._addoption('--maxfail', metavar="num",
-               action="store", type=int, dest="maxfail", default=0,
-               help="exit after first num failures or errors.")
-    group._addoption('--strict', action="store_true",
-               help="run pytest in strict mode, warnings become errors.")
-    group._addoption("-c", metavar="file", type=str, dest="inifilename",
-               help="load configuration from `file` instead of trying to locate one of the implicit configuration files.")
-    group._addoption("--continue-on-collection-errors", action="store_true",
-               default=False, dest="continue_on_collection_errors",
-               help="Force test execution even if collection errors occur.")
+    group._addoption(
+        "-x",
+        "--exitfirst",
+        action="store_const",
+        dest="maxfail",
+        const=1,
+        help="exit instantly on first error or failed test.",
+    ),
+    group._addoption(
+        "--maxfail",
+        metavar="num",
+        action="store",
+        type=int,
+        dest="maxfail",
+        default=0,
+        help="exit after first num failures or errors.",
+    )
+    group._addoption(
+        "--strict",
+        action="store_true",
+        help="marks not registered in configuration file raise errors.",
+    )
+    group._addoption(
+        "-c",
+        metavar="file",
+        type=str,
+        dest="inifilename",
+        help="load configuration from `file` instead of trying to locate one of the implicit "
+        "configuration files.",
+    )
+    group._addoption(
+        "--continue-on-collection-errors",
+        action="store_true",
+        default=False,
+        dest="continue_on_collection_errors",
+        help="Force test execution even if collection errors occur.",
+    )
+    group._addoption(
+        "--rootdir",
+        action="store",
+        dest="rootdir",
+        help="Define root directory for tests. Can be relative path: 'root_dir', './root_dir', "
+        "'root_dir/another_dir/'; absolute path: '/home/user/root_dir'; path with variables: "
+        "'$HOME/root_dir'.",
+    )
 
     group = parser.getgroup("collect", "collection")
-    group.addoption('--collectonly', '--collect-only', action="store_true",
-        help="only collect tests, don't execute them."),
-    group.addoption('--pyargs', action="store_true",
-        help="try to interpret all arguments as python packages.")
-    group.addoption("--ignore", action="append", metavar="path",
-        help="ignore path during collection (multi-allowed).")
+    group.addoption(
+        "--collectonly",
+        "--collect-only",
+        action="store_true",
+        help="only collect tests, don't execute them.",
+    ),
+    group.addoption(
+        "--pyargs",
+        action="store_true",
+        help="try to interpret all arguments as python packages.",
+    )
+    group.addoption(
+        "--ignore",
+        action="append",
+        metavar="path",
+        help="ignore path during collection (multi-allowed).",
+    )
+    group.addoption(
+        "--deselect",
+        action="append",
+        metavar="nodeid_prefix",
+        help="deselect item during collection (multi-allowed).",
+    )
     # when changing this to --conf-cut-dir, config.py Conftest.setinitial
     # needs upgrading as well
-    group.addoption('--confcutdir', dest="confcutdir", default=None,
-        metavar="dir", type=functools.partial(directory_arg, optname="--confcutdir"),
-        help="only load conftest.py's relative to specified dir.")
-    group.addoption('--noconftest', action="store_true",
-        dest="noconftest", default=False,
-        help="Don't load any conftest.py files.")
-    group.addoption('--keepduplicates', '--keep-duplicates', action="store_true",
-        dest="keepduplicates", default=False,
-        help="Keep duplicate tests.")
+    group.addoption(
+        "--confcutdir",
+        dest="confcutdir",
+        default=None,
+        metavar="dir",
+        type=functools.partial(directory_arg, optname="--confcutdir"),
+        help="only load conftest.py's relative to specified dir.",
+    )
+    group.addoption(
+        "--noconftest",
+        action="store_true",
+        dest="noconftest",
+        default=False,
+        help="Don't load any conftest.py files.",
+    )
+    group.addoption(
+        "--keepduplicates",
+        "--keep-duplicates",
+        action="store_true",
+        dest="keepduplicates",
+        default=False,
+        help="Keep duplicate tests.",
+    )
+    group.addoption(
+        "--collect-in-virtualenv",
+        action="store_true",
+        dest="collect_in_virtualenv",
+        default=False,
+        help="Don't ignore tests in a local virtualenv directory",
+    )
 
-    group = parser.getgroup("debugconfig",
-        "test session debugging and configuration")
-    group.addoption('--basetemp', dest="basetemp", default=None, metavar="dir",
-               help="base temporary directory for this test run.")
-
-
-def pytest_namespace():
-    collect = dict(Item=Item, Collector=Collector, File=File, Session=Session)
-    return dict(collect=collect)
+    group = parser.getgroup("debugconfig", "test session debugging and configuration")
+    group.addoption(
+        "--basetemp",
+        dest="basetemp",
+        default=None,
+        metavar="dir",
+        help=(
+            "base temporary directory for this test run."
+            "(warning: this directory is removed if it exists)"
+        ),
+    )
 
 
 def pytest_configure(config):
-    pytest.config = config # compatibility
+    __import__("pytest").config = config  # compatibility
 
 
 def wrap_session(config, doit):
@@ -96,17 +183,20 @@ def wrap_session(config, doit):
             config.hook.pytest_sessionstart(session=session)
             initstate = 2
             session.exitstatus = doit(config, session) or 0
-        except pytest.UsageError:
+        except UsageError:
             raise
+        except Failed:
+            session.exitstatus = EXIT_TESTSFAILED
         except KeyboardInterrupt:
             excinfo = _pytest._code.ExceptionInfo()
-            if initstate < 2 and isinstance(
-                    excinfo.value, pytest.exit.Exception):
-                sys.stderr.write('{0}: {1}\n'.format(
-                    excinfo.typename, excinfo.value.msg))
+            exitstatus = EXIT_INTERRUPTED
+            if initstate <= 2 and isinstance(excinfo.value, exit.Exception):
+                sys.stderr.write("{}: {}\n".format(excinfo.typename, excinfo.value.msg))
+                if excinfo.value.returncode is not None:
+                    exitstatus = excinfo.value.returncode
             config.hook.pytest_keyboard_interrupt(excinfo=excinfo)
-            session.exitstatus = EXIT_INTERRUPTED
-        except:
+            session.exitstatus = exitstatus
+        except:  # noqa
             excinfo = _pytest._code.ExceptionInfo()
             config.notify_exception(excinfo, config.option)
             session.exitstatus = EXIT_INTERNALERROR
@@ -118,13 +208,15 @@ def wrap_session(config, doit):
         session.startdir.chdir()
         if initstate >= 2:
             config.hook.pytest_sessionfinish(
-                session=session,
-                exitstatus=session.exitstatus)
+                session=session, exitstatus=session.exitstatus
+            )
         config._ensure_unconfigure()
     return session.exitstatus
 
+
 def pytest_cmdline_main(config):
     return wrap_session(config, _main)
+
 
 def _main(config, session):
     """ default command line protocol for initialization, session,
@@ -137,49 +229,121 @@ def _main(config, session):
     elif session.testscollected == 0:
         return EXIT_NOTESTSCOLLECTED
 
+
 def pytest_collection(session):
     return session.perform_collect()
 
+
 def pytest_runtestloop(session):
-    if (session.testsfailed and
-            not session.config.option.continue_on_collection_errors):
-        raise session.Interrupted(
-            "%d errors during collection" % session.testsfailed)
+    if session.testsfailed and not session.config.option.continue_on_collection_errors:
+        raise session.Interrupted("%d errors during collection" % session.testsfailed)
 
     if session.config.option.collectonly:
         return True
 
     for i, item in enumerate(session.items):
-        nextitem = session.items[i+1] if i+1 < len(session.items) else None
+        nextitem = session.items[i + 1] if i + 1 < len(session.items) else None
         item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+        if session.shouldfail:
+            raise session.Failed(session.shouldfail)
         if session.shouldstop:
             raise session.Interrupted(session.shouldstop)
     return True
 
+
+def _in_venv(path):
+    """Attempts to detect if ``path`` is the root of a Virtual Environment by
+    checking for the existence of the appropriate activate script"""
+    bindir = path.join("Scripts" if sys.platform.startswith("win") else "bin")
+    if not bindir.isdir():
+        return False
+    activates = (
+        "activate",
+        "activate.csh",
+        "activate.fish",
+        "Activate",
+        "Activate.bat",
+        "Activate.ps1",
+    )
+    return any([fname.basename in activates for fname in bindir.listdir()])
+
+
 def pytest_ignore_collect(path, config):
-    p = path.dirpath()
-    ignore_paths = config._getconftest_pathlist("collect_ignore", path=p)
+    ignore_paths = config._getconftest_pathlist("collect_ignore", path=path.dirpath())
     ignore_paths = ignore_paths or []
     excludeopt = config.getoption("ignore")
     if excludeopt:
         ignore_paths.extend([py.path.local(x) for x in excludeopt])
 
-    if path in ignore_paths:
+    if py.path.local(path) in ignore_paths:
         return True
 
-    # Skip duplicate paths.
-    keepduplicates = config.getoption("keepduplicates")
-    duplicate_paths = config.pluginmanager._duplicatepaths
-    if not keepduplicates:
-        if path in duplicate_paths:
-            return True
-        else:
-            duplicate_paths.add(path)
+    allow_in_venv = config.getoption("collect_in_virtualenv")
+    if not allow_in_venv and _in_venv(path):
+        return True
 
     return False
 
 
-class FSHookProxy:
+def pytest_collection_modifyitems(items, config):
+    deselect_prefixes = tuple(config.getoption("deselect") or [])
+    if not deselect_prefixes:
+        return
+
+    remaining = []
+    deselected = []
+    for colitem in items:
+        if colitem.nodeid.startswith(deselect_prefixes):
+            deselected.append(colitem)
+        else:
+            remaining.append(colitem)
+
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = remaining
+
+
+@contextlib.contextmanager
+def _patched_find_module():
+    """Patch bug in pkgutil.ImpImporter.find_module
+
+    When using pkgutil.find_loader on python<3.4 it removes symlinks
+    from the path due to a call to os.path.realpath. This is not consistent
+    with actually doing the import (in these versions, pkgutil and __import__
+    did not share the same underlying code). This can break conftest
+    discovery for pytest where symlinks are involved.
+
+    The only supported python<3.4 by pytest is python 2.7.
+    """
+    if six.PY2:  # python 3.4+ uses importlib instead
+
+        def find_module_patched(self, fullname, path=None):
+            # Note: we ignore 'path' argument since it is only used via meta_path
+            subname = fullname.split(".")[-1]
+            if subname != fullname and self.path is None:
+                return None
+            if self.path is None:
+                path = None
+            else:
+                # original: path = [os.path.realpath(self.path)]
+                path = [self.path]
+            try:
+                file, filename, etc = pkgutil.imp.find_module(subname, path)
+            except ImportError:
+                return None
+            return pkgutil.ImpLoader(fullname, file, filename, etc)
+
+        old_find_module = pkgutil.ImpImporter.find_module
+        pkgutil.ImpImporter.find_module = find_module_patched
+        try:
+            yield
+        finally:
+            pkgutil.ImpImporter.find_module = old_find_module
+    else:
+        yield
+
+
+class FSHookProxy(object):
     def __init__(self, fspath, pm, remove_mods):
         self.fspath = fspath
         self.pm = pm
@@ -190,391 +354,74 @@ class FSHookProxy:
         self.__dict__[name] = x
         return x
 
-class _CompatProperty(object):
-    def __init__(self, name):
-        self.name = name
-
-    def __get__(self, obj, owner):
-        if obj is None:
-            return self
-
-        # TODO: reenable in the features branch
-        # warnings.warn(
-        #     "usage of {owner!r}.{name} is deprecated, please use pytest.{name} instead".format(
-        #         name=self.name, owner=type(owner).__name__),
-        #     PendingDeprecationWarning, stacklevel=2)
-        return getattr(pytest, self.name)
-
-
-
-class NodeKeywords(MappingMixin):
-    def __init__(self, node):
-        self.node = node
-        self.parent = node.parent
-        self._markers = {node.name: True}
-
-    def __getitem__(self, key):
-        try:
-            return self._markers[key]
-        except KeyError:
-            if self.parent is None:
-                raise
-            return self.parent.keywords[key]
-
-    def __setitem__(self, key, value):
-        self._markers[key] = value
-
-    def __delitem__(self, key):
-        raise ValueError("cannot delete key in keywords dict")
-
-    def __iter__(self):
-        seen = set(self._markers)
-        if self.parent is not None:
-            seen.update(self.parent.keywords)
-        return iter(seen)
-
-    def __len__(self):
-        return len(self.__iter__())
-
-    def keys(self):
-        return list(self)
-
-    def __repr__(self):
-        return "<NodeKeywords for node %s>" % (self.node, )
-
-
-class Node(object):
-    """ base class for Collector and Item the test collection tree.
-    Collector subclasses have children, Items are terminal nodes."""
-
-    def __init__(self, name, parent=None, config=None, session=None):
-        #: a unique name within the scope of the parent node
-        self.name = name
-
-        #: the parent collector node.
-        self.parent = parent
-
-        #: the pytest config object
-        self.config = config or parent.config
-
-        #: the session this node is part of
-        self.session = session or parent.session
-
-        #: filesystem path where this node was collected from (can be None)
-        self.fspath = getattr(parent, 'fspath', None)
-
-        #: keywords/markers collected from all scopes
-        self.keywords = NodeKeywords(self)
-
-        #: allow adding of extra keywords to use for matching
-        self.extra_keyword_matches = set()
-
-        # used for storing artificial fixturedefs for direct parametrization
-        self._name2pseudofixturedef = {}
-
-    @property
-    def ihook(self):
-        """ fspath sensitive hook proxy used to call pytest hooks"""
-        return self.session.gethookproxy(self.fspath)
-
-    Module = _CompatProperty("Module")
-    Class = _CompatProperty("Class")
-    Instance = _CompatProperty("Instance")
-    Function = _CompatProperty("Function")
-    File = _CompatProperty("File")
-    Item = _CompatProperty("Item")
-
-    def _getcustomclass(self, name):
-        maybe_compatprop = getattr(type(self), name)
-        if isinstance(maybe_compatprop, _CompatProperty):
-            return getattr(pytest, name)
-        else:
-            cls = getattr(self, name)
-            # TODO: reenable in the features branch
-            # warnings.warn("use of node.%s is deprecated, "
-            #    "use pytest_pycollect_makeitem(...) to create custom "
-            #    "collection nodes" % name, category=DeprecationWarning)
-        return cls
-
-    def __repr__(self):
-        return "<%s %r>" %(self.__class__.__name__,
-                           getattr(self, 'name', None))
-
-    def warn(self, code, message):
-        """ generate a warning with the given code and message for this
-        item. """
-        assert isinstance(code, str)
-        fslocation = getattr(self, "location", None)
-        if fslocation is None:
-            fslocation = getattr(self, "fspath", None)
-        else:
-            fslocation = "%s:%s" % (fslocation[0], fslocation[1] + 1)
-
-        self.ihook.pytest_logwarning.call_historic(kwargs=dict(
-            code=code, message=message,
-            nodeid=self.nodeid, fslocation=fslocation))
-
-    # methods for ordering nodes
-    @property
-    def nodeid(self):
-        """ a ::-separated string denoting its collection tree address. """
-        try:
-            return self._nodeid
-        except AttributeError:
-            self._nodeid = x = self._makeid()
-            return x
-
-    def _makeid(self):
-        return self.parent.nodeid + "::" + self.name
-
-    def __hash__(self):
-        return hash(self.nodeid)
-
-    def setup(self):
-        pass
-
-    def teardown(self):
-        pass
-
-    def _memoizedcall(self, attrname, function):
-        exattrname = "_ex_" + attrname
-        failure = getattr(self, exattrname, None)
-        if failure is not None:
-            py.builtin._reraise(failure[0], failure[1], failure[2])
-        if hasattr(self, attrname):
-            return getattr(self, attrname)
-        try:
-            res = function()
-        except py.builtin._sysex:
-            raise
-        except:
-            failure = sys.exc_info()
-            setattr(self, exattrname, failure)
-            raise
-        setattr(self, attrname, res)
-        return res
-
-    def listchain(self):
-        """ return list of all parent collectors up to self,
-            starting from root of collection tree. """
-        chain = []
-        item = self
-        while item is not None:
-            chain.append(item)
-            item = item.parent
-        chain.reverse()
-        return chain
-
-    def add_marker(self, marker):
-        """ dynamically add a marker object to the node.
-
-        ``marker`` can be a string or pytest.mark.* instance.
-        """
-        from _pytest.mark import MarkDecorator
-        if isinstance(marker, py.builtin._basestring):
-            marker = MarkDecorator(marker)
-        elif not isinstance(marker, MarkDecorator):
-            raise ValueError("is not a string or pytest.mark.* Marker")
-        self.keywords[marker.name] = marker
-
-    def get_marker(self, name):
-        """ get a marker object from this node or None if
-        the node doesn't have a marker with that name. """
-        val = self.keywords.get(name, None)
-        if val is not None:
-            from _pytest.mark import MarkInfo, MarkDecorator
-            if isinstance(val, (MarkDecorator, MarkInfo)):
-                return val
-
-    def listextrakeywords(self):
-        """ Return a set of all extra keywords in self and any parents."""
-        extra_keywords = set()
-        item = self
-        for item in self.listchain():
-            extra_keywords.update(item.extra_keyword_matches)
-        return extra_keywords
-
-    def listnames(self):
-        return [x.name for x in self.listchain()]
-
-    def addfinalizer(self, fin):
-        """ register a function to be called when this node is finalized.
-
-        This method can only be called when this node is active
-        in a setup chain, for example during self.setup().
-        """
-        self.session._setupstate.addfinalizer(fin, self)
-
-    def getparent(self, cls):
-        """ get the next parent node (including ourself)
-        which is an instance of the given class"""
-        current = self
-        while current and not isinstance(current, cls):
-            current = current.parent
-        return current
-
-    def _prunetraceback(self, excinfo):
-        pass
-
-    def _repr_failure_py(self, excinfo, style=None):
-        fm = self.session._fixturemanager
-        if excinfo.errisinstance(fm.FixtureLookupError):
-            return excinfo.value.formatrepr()
-        tbfilter = True
-        if self.config.option.fulltrace:
-            style="long"
-        else:
-            tb = _pytest._code.Traceback([excinfo.traceback[-1]])
-            self._prunetraceback(excinfo)
-            if len(excinfo.traceback) == 0:
-                excinfo.traceback = tb
-            tbfilter = False  # prunetraceback already does it
-            if style == "auto":
-                style = "long"
-        # XXX should excinfo.getrepr record all data and toterminal() process it?
-        if style is None:
-            if self.config.option.tbstyle == "short":
-                style = "short"
-            else:
-                style = "long"
-
-        try:
-            os.getcwd()
-            abspath = False
-        except OSError:
-            abspath = True
-
-        return excinfo.getrepr(funcargs=True, abspath=abspath,
-                               showlocals=self.config.option.showlocals,
-                               style=style, tbfilter=tbfilter)
-
-    repr_failure = _repr_failure_py
-
-class Collector(Node):
-    """ Collector instances create children through collect()
-        and thus iteratively build a tree.
-    """
-
-    class CollectError(Exception):
-        """ an error during collection, contains a custom message. """
-
-    def collect(self):
-        """ returns a list of children (items and collectors)
-            for this collection node.
-        """
-        raise NotImplementedError("abstract")
-
-    def repr_failure(self, excinfo):
-        """ represent a collection failure. """
-        if excinfo.errisinstance(self.CollectError):
-            exc = excinfo.value
-            return str(exc.args[0])
-        return self._repr_failure_py(excinfo, style="short")
-
-    def _memocollect(self):
-        """ internal helper method to cache results of calling collect(). """
-        return self._memoizedcall('_collected', lambda: list(self.collect()))
-
-    def _prunetraceback(self, excinfo):
-        if hasattr(self, 'fspath'):
-            traceback = excinfo.traceback
-            ntraceback = traceback.cut(path=self.fspath)
-            if ntraceback == traceback:
-                ntraceback = ntraceback.cut(excludepath=tracebackcutdir)
-            excinfo.traceback = ntraceback.filter()
-
-class FSCollector(Collector):
-    def __init__(self, fspath, parent=None, config=None, session=None):
-        fspath = py.path.local(fspath) # xxx only for test_resultlog.py?
-        name = fspath.basename
-        if parent is not None:
-            rel = fspath.relto(parent.fspath)
-            if rel:
-                name = rel
-            name = name.replace(os.sep, "/")
-        super(FSCollector, self).__init__(name, parent, config, session)
-        self.fspath = fspath
-
-    def _makeid(self):
-        relpath = self.fspath.relto(self.config.rootdir)
-        if os.sep != "/":
-            relpath = relpath.replace(os.sep, "/")
-        return relpath
-
-class File(FSCollector):
-    """ base class for collecting tests from a file. """
-
-class Item(Node):
-    """ a basic test invocation item. Note that for a single function
-    there might be multiple test invocation items.
-    """
-    nextitem = None
-
-    def __init__(self, name, parent=None, config=None, session=None):
-        super(Item, self).__init__(name, parent, config, session)
-        self._report_sections = []
-
-    def add_report_section(self, when, key, content):
-        if content:
-            self._report_sections.append((when, key, content))
-
-    def reportinfo(self):
-        return self.fspath, None, ""
-
-    @property
-    def location(self):
-        try:
-            return self._location
-        except AttributeError:
-            location = self.reportinfo()
-            # bestrelpath is a quite slow function
-            cache = self.config.__dict__.setdefault("_bestrelpathcache", {})
-            try:
-                fspath = cache[location[0]]
-            except KeyError:
-                fspath = self.session.fspath.bestrelpath(location[0])
-                cache[location[0]] = fspath
-            location = (fspath, location[1], str(location[2]))
-            self._location = location
-            return location
 
 class NoMatch(Exception):
     """ raised if matching cannot locate a matching names. """
 
+
 class Interrupted(KeyboardInterrupt):
     """ signals an interrupted test run. """
-    __module__ = 'builtins' # for py3
 
-class Session(FSCollector):
+    __module__ = "builtins"  # for py3
+
+
+class Failed(Exception):
+    """ signals a stop as failed test run. """
+
+
+@attr.s
+class _bestrelpath_cache(dict):
+    path = attr.ib()
+
+    def __missing__(self, path):
+        r = self.path.bestrelpath(path)
+        self[path] = r
+        return r
+
+
+class Session(nodes.FSCollector):
     Interrupted = Interrupted
+    Failed = Failed
 
     def __init__(self, config):
-        FSCollector.__init__(self, config.rootdir, parent=None,
-                             config=config, session=self)
+        nodes.FSCollector.__init__(
+            self, config.rootdir, parent=None, config=config, session=self, nodeid=""
+        )
         self.testsfailed = 0
         self.testscollected = 0
         self.shouldstop = False
+        self.shouldfail = False
         self.trace = config.trace.root.get("collection")
         self._norecursepatterns = config.getini("norecursedirs")
         self.startdir = py.path.local()
+        self._initialpaths = frozenset()
+        # Keep track of any collected nodes in here, so we don't duplicate fixtures
+        self._node_cache = {}
+        self._bestrelpathcache = _bestrelpath_cache(config.rootdir)
+        # Dirnames of pkgs with dunder-init files.
+        self._pkg_roots = {}
+
         self.config.pluginmanager.register(self, name="session")
 
-    def _makeid(self):
-        return ""
+    def _node_location_to_relpath(self, node_path):
+        # bestrelpath is a quite slow function
+        return self._bestrelpathcache[node_path]
 
-    @pytest.hookimpl(tryfirst=True)
+    @hookimpl(tryfirst=True)
     def pytest_collectstart(self):
+        if self.shouldfail:
+            raise self.Failed(self.shouldfail)
         if self.shouldstop:
             raise self.Interrupted(self.shouldstop)
 
-    @pytest.hookimpl(tryfirst=True)
+    @hookimpl(tryfirst=True)
     def pytest_runtest_logreport(self, report):
-        if report.failed and not hasattr(report, 'wasxfail'):
+        if report.failed and not hasattr(report, "wasxfail"):
             self.testsfailed += 1
             maxfail = self.config.getvalue("maxfail")
             if maxfail and self.testsfailed >= maxfail:
-                self.shouldstop = "stopping after %d failures" % (
-                    self.testsfailed)
+                self.shouldfail = "stopping after %d failures" % (self.testsfailed)
+
     pytest_collectreport = pytest_runtest_logreport
 
     def isinitpath(self, path):
@@ -582,7 +429,7 @@ class Session(FSCollector):
 
     def gethookproxy(self, fspath):
         # check if we have the common case of running
-        # hooks with all conftest.py filesall conftest.py
+        # hooks with all conftest.py files
         pm = self.config.pluginmanager
         my_conftestmodules = pm._getconftestmodules(fspath)
         remove_mods = pm._conftest_plugins.difference(my_conftestmodules)
@@ -598,8 +445,10 @@ class Session(FSCollector):
         hook = self.config.hook
         try:
             items = self._perform_collect(args, genitems)
-            hook.pytest_collection_modifyitems(session=self,
-                config=self.config, items=items)
+            self.config.pluginmanager.check_pending()
+            hook.pytest_collection_modifyitems(
+                session=self, config=self.config, items=items
+            )
         finally:
             hook.pytest_collection_finish(session=self)
         self.testscollected = len(items)
@@ -611,13 +460,14 @@ class Session(FSCollector):
         self.trace("perform_collect", self, args)
         self.trace.root.indent += 1
         self._notfound = []
-        self._initialpaths = set()
+        initialpaths = []
         self._initialparts = []
         self.items = items = []
         for arg in args:
             parts = self._parsearg(arg)
             self._initialparts.append(parts)
-            self._initialpaths.add(parts[0])
+            initialpaths.append(parts[0])
+        self._initialpaths = frozenset(initialpaths)
         rep = collect_one_node(self)
         self.ihook.pytest_collectreport(report=rep)
         self.trace.root.indent -= 1
@@ -626,8 +476,8 @@ class Session(FSCollector):
             for arg, exc in self._notfound:
                 line = "(no name %r in any of %r)" % (arg, exc.args[0])
                 errors.append("not found: %s\n%s" % (arg, line))
-                #XXX: test this
-            raise pytest.UsageError(*errors)
+                # XXX: test this
+            raise UsageError(*errors)
         if not genitems:
             return rep.result
         else:
@@ -637,8 +487,8 @@ class Session(FSCollector):
             return items
 
     def collect(self):
-        for parts in self._initialparts:
-            arg = "::".join(map(str, parts))
+        for initialpart in self._initialparts:
+            arg = "::".join(map(str, initialpart))
             self.trace("processing argument", arg)
             self.trace.root.indent += 1
             try:
@@ -652,44 +502,127 @@ class Session(FSCollector):
             self.trace.root.indent -= 1
 
     def _collect(self, arg):
-        names = self._parsearg(arg)
-        path = names.pop(0)
-        if path.check(dir=1):
-            assert not names, "invalid arg %r" %(arg,)
-            for path in path.visit(fil=lambda x: x.check(file=1),
-                                   rec=self._recurse, bf=True, sort=True):
-                for x in self._collectfile(path):
-                    yield x
-        else:
-            assert path.check(file=1)
-            for x in self.matchnodes(self._collectfile(path), names):
-                yield x
+        from _pytest.python import Package
 
-    def _collectfile(self, path):
+        names = self._parsearg(arg)
+        argpath = names.pop(0)
+
+        # Start with a Session root, and delve to argpath item (dir or file)
+        # and stack all Packages found on the way.
+        # No point in finding packages when collecting doctests
+        if not self.config.option.doctestmodules:
+            pm = self.config.pluginmanager
+            for parent in reversed(argpath.parts()):
+                if pm._confcutdir and pm._confcutdir.relto(parent):
+                    break
+
+                if parent.isdir():
+                    pkginit = parent.join("__init__.py")
+                    if pkginit.isfile():
+                        if pkginit not in self._node_cache:
+                            col = self._collectfile(pkginit, handle_dupes=False)
+                            if col:
+                                if isinstance(col[0], Package):
+                                    self._pkg_roots[parent] = col[0]
+                                # always store a list in the cache, matchnodes expects it
+                                self._node_cache[col[0].fspath] = [col[0]]
+
+        # If it's a directory argument, recurse and look for any Subpackages.
+        # Let the Package collector deal with subnodes, don't collect here.
+        if argpath.check(dir=1):
+            assert not names, "invalid arg %r" % (arg,)
+
+            if six.PY2:
+
+                def filter_(f):
+                    return f.check(file=1) and not f.strpath.endswith("*.pyc")
+
+            else:
+
+                def filter_(f):
+                    return f.check(file=1)
+
+            seen_dirs = set()
+            for path in argpath.visit(
+                fil=filter_, rec=self._recurse, bf=True, sort=True
+            ):
+                dirpath = path.dirpath()
+                if dirpath not in seen_dirs:
+                    # Collect packages first.
+                    seen_dirs.add(dirpath)
+                    pkginit = dirpath.join("__init__.py")
+                    if pkginit.exists():
+                        for x in self._collectfile(pkginit):
+                            yield x
+                            if isinstance(x, Package):
+                                self._pkg_roots[dirpath] = x
+                if dirpath in self._pkg_roots:
+                    # Do not collect packages here.
+                    continue
+
+                for x in self._collectfile(path):
+                    key = (type(x), x.fspath)
+                    if key in self._node_cache:
+                        yield self._node_cache[key]
+                    else:
+                        self._node_cache[key] = x
+                        yield x
+        else:
+            assert argpath.check(file=1)
+
+            if argpath in self._node_cache:
+                col = self._node_cache[argpath]
+            else:
+                collect_root = self._pkg_roots.get(argpath.dirname, self)
+                col = collect_root._collectfile(argpath)
+                if col:
+                    self._node_cache[argpath] = col
+            m = self.matchnodes(col, names)
+            # If __init__.py was the only file requested, then the matched node will be
+            # the corresponding Package, and the first yielded item will be the __init__
+            # Module itself, so just use that. If this special case isn't taken, then all
+            # the files in the package will be yielded.
+            if argpath.basename == "__init__.py":
+                yield next(m[0].collect())
+                return
+            for y in m:
+                yield y
+
+    def _collectfile(self, path, handle_dupes=True):
         ihook = self.gethookproxy(path)
         if not self.isinitpath(path):
             if ihook.pytest_ignore_collect(path=path, config=self.config):
                 return ()
+
+        if handle_dupes:
+            keepduplicates = self.config.getoption("keepduplicates")
+            if not keepduplicates:
+                duplicate_paths = self.config.pluginmanager._duplicatepaths
+                if path in duplicate_paths:
+                    return ()
+                else:
+                    duplicate_paths.add(path)
+
         return ihook.pytest_collect_file(path=path, parent=self)
 
-    def _recurse(self, path):
-        ihook = self.gethookproxy(path.dirpath())
-        if ihook.pytest_ignore_collect(path=path, config=self.config):
-            return
+    def _recurse(self, dirpath):
+        if dirpath.basename == "__pycache__":
+            return False
+        ihook = self.gethookproxy(dirpath.dirpath())
+        if ihook.pytest_ignore_collect(path=dirpath, config=self.config):
+            return False
         for pat in self._norecursepatterns:
-            if path.check(fnmatch=pat):
+            if dirpath.check(fnmatch=pat):
                 return False
-        ihook = self.gethookproxy(path)
-        ihook.pytest_collect_directory(path=path, parent=self)
+        ihook = self.gethookproxy(dirpath)
+        ihook.pytest_collect_directory(path=dirpath, parent=self)
         return True
 
     def _tryconvertpyarg(self, x):
-        """Convert a dotted module name to path.
-
-        """
-        import pkgutil
+        """Convert a dotted module name to path."""
         try:
-            loader = pkgutil.find_loader(x)
+            with _patched_find_module():
+                loader = pkgutil.find_loader(x)
         except ImportError:
             return x
         if loader is None:
@@ -697,7 +630,8 @@ class Session(FSCollector):
         # This method is sometimes invoked when AssertionRewritingHook, which
         # does not define a get_filename method, is already in place:
         try:
-            path = loader.get_filename(x)
+            with _patched_find_module():
+                path = loader.get_filename(x)
         except AttributeError:
             # Retrieve path from AssertionRewritingHook:
             path = loader.modules[x][0].co_filename
@@ -714,10 +648,11 @@ class Session(FSCollector):
         path = self.config.invocation_dir.join(relpath, abs=True)
         if not path.check():
             if self.config.option.pyargs:
-                raise pytest.UsageError("file or package not found: " + arg + " (missing __init__.py?)")
-            else:
-                raise pytest.UsageError("file not found: " + arg)
-        parts[0] = path
+                raise UsageError(
+                    "file or package not found: " + arg + " (missing __init__.py?)"
+                )
+            raise UsageError("file not found: " + arg)
+        parts[0] = path.realpath()
         return parts
 
     def matchnodes(self, matching, names):
@@ -739,12 +674,17 @@ class Session(FSCollector):
         nextnames = names[1:]
         resultnodes = []
         for node in matching:
-            if isinstance(node, pytest.Item):
+            if isinstance(node, nodes.Item):
                 if not names:
                     resultnodes.append(node)
                 continue
-            assert isinstance(node, pytest.Collector)
-            rep = collect_one_node(node)
+            assert isinstance(node, nodes.Collector)
+            key = (type(node), node.nodeid)
+            if key in self._node_cache:
+                rep = self._node_cache[key]
+            else:
+                rep = collect_one_node(node)
+                self._node_cache[key] = rep
             if rep.passed:
                 has_matched = False
                 for x in rep.result:
@@ -756,16 +696,20 @@ class Session(FSCollector):
                 if not has_matched and len(rep.result) == 1 and x.name == "()":
                     nextnames.insert(0, name)
                     resultnodes.extend(self.matchnodes([x], nextnames))
-            node.ihook.pytest_collectreport(report=rep)
+            else:
+                # report collection failures here to avoid failing to run some test
+                # specified in the command line because the module could not be
+                # imported (#134)
+                node.ihook.pytest_collectreport(report=rep)
         return resultnodes
 
     def genitems(self, node):
         self.trace("genitems", node)
-        if isinstance(node, pytest.Item):
+        if isinstance(node, nodes.Item):
             node.ihook.pytest_itemcollected(item=node)
             yield node
         else:
-            assert isinstance(node, pytest.Collector)
+            assert isinstance(node, nodes.Collector)
             rep = collect_one_node(node)
             if rep.passed:
                 for subnode in rep.result:

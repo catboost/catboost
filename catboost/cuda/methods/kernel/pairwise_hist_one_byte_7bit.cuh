@@ -12,7 +12,7 @@ using namespace cooperative_groups;
 
 namespace NKernel {
 
-    template<bool IsFullPass>
+    template <bool IsFullPass>
     struct TSevenBitPairwiseHistUnrollTrait {
 
         static constexpr int InnerUnroll(bool isOneHot) {
@@ -37,7 +37,7 @@ namespace NKernel {
         }
     };
 
-    template<int BlockSize, bool NeedLastBinMask /*is 32 histogram */, class TCmpBins = TCmpBinsWithoutOneHot>
+    template <int BlockSize, bool NeedLastBinMask /*is 32 histogram */, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TSevenBitHistogram {
         TCmpBins CmpBins;
         float* Histogram;
@@ -243,7 +243,7 @@ namespace NKernel {
     };
 
 
-    template<int BlockSize, bool IsFullPass, bool OneHotPass>
+    template <int BlockSize, bool IsFullPass, bool OneHotPass>
     #if __CUDA_ARCH__ <= 350
     __launch_bounds__(BlockSize, 1)
     #else

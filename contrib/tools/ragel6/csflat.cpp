@@ -267,7 +267,11 @@ std::ostream &CSharpFlatCodeGen::COND_KEYS()
 
 	/* Output one last number so we don't have to figure out when the last
 	 * entry is and avoid writing a comma. */
-	out << "(char) " << 0 << "\n";
+	if ( keyOps->alphType->isChar )
+		out << "(char) " << 0 << "\n";
+	else
+		out << 0 << "\n";
+
 	return out;
 }
 
@@ -352,7 +356,11 @@ std::ostream &CSharpFlatCodeGen::KEYS()
 
 	/* Output one last number so we don't have to figure out when the last
 	 * entry is and avoid writing a comma. */
-	out << "(char) " << 0 << "\n";
+	if ( keyOps->alphType->isChar )
+		out << "(char) " << 0 << "\n";
+	else
+		out << 0 << "\n";
+
 	return out;
 }
 
@@ -716,8 +724,8 @@ void CSharpFlatCodeGen::writeExec()
 			redFsm->anyRegActions() || redFsm->anyFromStateActions() )
 	{
 		out << 
-			"	" << actsType << " _acts;\n"
-			"	" << nactsType << " _nacts;\n"; 
+			"	int _acts;\n"
+			"	int _nacts;\n"; 
 	}
 
 	out <<
@@ -877,8 +885,6 @@ void CSharpFlatCodeGen::initVarTypes()
 {
 	slenType = ARRAY_TYPE(MAX(redFsm->maxSpan, redFsm->maxCondSpan));
 	transType = ARRAY_TYPE(redFsm->maxIndex+1);
-	actsType = ARRAY_TYPE(redFsm->maxActionLoc);
-	nactsType = ARRAY_TYPE(redFsm->maxActArrItem);
 	indsType = ARRAY_TYPE(redFsm->maxFlatIndexOffset);
 	condsType = ARRAY_TYPE(redFsm->maxCondIndexOffset);
 }

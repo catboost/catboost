@@ -1,12 +1,14 @@
 #include "grid_creator.h"
 
+#include <util/generic/vector.h>
+
 namespace NCB {
 
     namespace {
         template <EBorderSelectionType type>
         class TGridBuilderBase: public IGridBuilder {
         public:
-            TVector<float> BuildBorders(const TVector<float>& sortedFeature, ui32 borderCount) const override {
+            TVector<float> BuildBorders(TConstArrayRef<float> sortedFeature, ui32 borderCount) const override {
                 TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, ENanMode::Forbidden);
                 auto bordersSet = Binarizer->BestSplit(copy, borderCount, true);
                 TVector<float> borders(bordersSet.begin(), bordersSet.end());
@@ -21,7 +23,7 @@ namespace NCB {
         template <EBorderSelectionType type>
         class TCpuGridBuilder: public TGridBuilderBase<type> {
         public:
-            IGridBuilder& AddFeature(const TVector<float>& feature,
+            IGridBuilder& AddFeature(TConstArrayRef<float> feature,
                                      ui32 borderCount,
                                      ENanMode nanMode) override {
                 TVector<float> sortedFeature = CheckedCopyWithoutNans(feature, nanMode);
@@ -40,7 +42,7 @@ namespace NCB {
         };
     }
 
-    TVector<float> CheckedCopyWithoutNans(const TVector<float>& values, ENanMode nanMode) {
+    TVector<float> CheckedCopyWithoutNans(TConstArrayRef<float> values, ENanMode nanMode) {
         TVector<float> copy;
         copy.reserve(values.size());
         for (ui32 i = 0; i < values.size(); ++i) {

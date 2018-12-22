@@ -19,6 +19,8 @@
 
 #include <util/generic/maybe.h>
 
+#include <functional>
+
 
 namespace NCatboostCuda {
     class TBoostingProgressTracker {
@@ -26,7 +28,8 @@ namespace NCatboostCuda {
         TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                  const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
                                  bool hasTest,
-                                 ui32 cpuApproxDim);
+                                 ui32 cpuApproxDim,
+                                 const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback);
 
         const TErrorTracker& GetErrorTracker() const {
             return ErrorTracker;
@@ -41,8 +44,7 @@ namespace NCatboostCuda {
         }
 
         bool NeedBestTestCursor() const {
-            return false; //TODO(nikitxskv): uncomment with evalFileName will be implemetnted
-            // HasTest && !OutputOptions.CreateEvalFullPath().empty();
+            return HasTest;
         }
 
         size_t GetCurrentIteration() const {
@@ -50,7 +52,9 @@ namespace NCatboostCuda {
         }
 
         bool ShouldStop() const {
-            return (Iteration >= CatboostOptions.BoostingOptions->IterationCount) || ErrorTracker.GetIsNeedStop();
+            return !ContinueTraining ||
+                (Iteration >= CatboostOptions.BoostingOptions->IterationCount) ||
+                ErrorTracker.GetIsNeedStop();
         }
 
         bool IsBestIteration() const {
@@ -64,6 +68,10 @@ namespace NCatboostCuda {
         void MaybeRestoreFromSnapshot(std::function<void(IInputStream*)> loader);
 
         void MaybeSaveSnapshot(std::function<void(IOutputStream*)> saver);
+
+        const TMetricsAndTimeLeftHistory& GetMetricsAndTimeLeftHistory() const {
+            return this->History;
+        }
 
     private:
         void OnFirstCall();
@@ -111,6 +119,8 @@ namespace NCatboostCuda {
         TErrorTracker ErrorTracker;
         TErrorTracker BestModelMinTreesTracker;
 
+        const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& OnEndIterationCallback;
+
         TString LearnToken;
         TVector<const TString> TestTokens;
         bool HasTest = false;
@@ -123,6 +133,7 @@ namespace NCatboostCuda {
         size_t Iteration = 0;
         TInstant LastSnapshotTime = Now();
         bool FirstCall = true;
+        bool ContinueTraining = true;
     };
 
     class TOneIterationProgressTracker {

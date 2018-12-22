@@ -1,9 +1,27 @@
 #pragma once
 
 #include "pool_printer.h"
-#include "eval_helpers.h"
 
-#include <util/generic/hash_set.h>
+#include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/weights.h>
+#include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/labels/external_label_helper.h>
+#include <catboost/libs/options/enums.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/fwd.h>
+#include <util/generic/maybe.h>
+#include <util/generic/hash.h>
+#include <util/generic/ptr.h>
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
+#include <util/stream/output.h>
+#include <util/system/compiler.h>
+#include <util/system/types.h>
+
+#include <utility>
 
 
 namespace NCB {
@@ -19,18 +37,23 @@ namespace NCB {
     };
 
 
-
     template <typename T>
-    class TVectorPrinter: public IColumnPrinter {
+    class TArrayPrinter: public IColumnPrinter {
     public:
-        TVectorPrinter(const TVector<T>& targetRef, const TString& header)
-            : Ref(targetRef)
+        TArrayPrinter(TConstArrayRef<T> array, const TString& header)
+            : Array(NCB::TMaybeOwningConstArrayHolder<T>::CreateNonOwning(array))
+            , Header(header)
+        {
+        }
+
+        TArrayPrinter(TVector<T>&& array, const TString& header)
+            : Array(NCB::TMaybeOwningConstArrayHolder<T>::CreateOwning(std::move(array)))
             , Header(header)
         {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
-            *outStream << Ref[docIndex];
+            *outStream << (*Array)[docIndex];
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -38,10 +61,30 @@ namespace NCB {
         }
 
     private:
-        const TVector<T>& Ref;
+        const NCB::TMaybeOwningConstArrayHolder<T> Array;
         const TString Header;
     };
 
+    class TWeightsPrinter: public IColumnPrinter {
+    public:
+        TWeightsPrinter(const TWeights<float>& weights, const TString& header)
+            : Weights(weights)
+            , Header(header)
+        {
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            *outStream << Weights[docIndex];
+        }
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << Header;
+        }
+
+    private:
+        const TWeights<float>& Weights;
+        const TString Header;
+    };
 
 
     template <typename T>
@@ -77,12 +120,15 @@ namespace NCB {
 
     class TNumColumnPrinter: public IColumnPrinter {
     public:
-        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int colId)
+        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int colId, ui64 docIdOffset)
             : PrinterPtr(printerPtr)
-            , ColId(colId) {}
+            , ColId(colId)
+            , DocIdOffset(docIdOffset)
+        {
+        }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
-            PrinterPtr->OutputColumnByIndex(outStream, docIndex, ColId);
+            PrinterPtr->OutputColumnByIndex(outStream, DocIdOffset + docIndex, ColId);
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -92,16 +138,17 @@ namespace NCB {
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
         int ColId;
+        ui64 DocIdOffset;
     };
 
 
 
     class TCatFeaturePrinter: public IColumnPrinter {
     public:
-        TCatFeaturePrinter(const TVector<float>& hashedValues,
-                           const THashMap<int, TString>& hashToString,
+        TCatFeaturePrinter(TVector<ui32>&& hashedValues,
+                           const THashMap<ui32, TString>& hashToString,
                            const TString& header)
-            : HashedValues(hashedValues)
+            : HashedValues(std::move(hashedValues))
             , HashToString(hashToString)
             , Header(header)
         {
@@ -116,8 +163,8 @@ namespace NCB {
         }
 
     private:
-        const TVector<float>& HashedValues;
-        const THashMap<int, TString>& HashToString;
+        const TVector<ui32> HashedValues;
+        const THashMap<ui32, TString>& HashToString;
         const TString Header;
     };
 
@@ -142,17 +189,19 @@ namespace NCB {
 
 
 
-    template <typename TId>
-    class TGroupOrSubgroupIdPrinter: public IColumnPrinter {
+    class TColumnPrinter: public IColumnPrinter {
     public:
-        TGroupOrSubgroupIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
-                                  EColumn columnType,
-                                  const TString& header)
+        TColumnPrinter(
+            TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+            EColumn columnType,
+            ui64 docIdOffset,
+            const TString& header
+        )
             : PrinterPtr(printerPtr)
             , ColumnType(columnType)
+            , DocIdOffset(docIdOffset)
             , Header(header)
         {
-            CB_ENSURE(PrinterPtr != nullptr, "It is imposible to output GroupId/SubgroupId column without Pool.");
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -160,12 +209,14 @@ namespace NCB {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
-            PrinterPtr->OutputColumnByType(outStream, docIndex, ColumnType);
+            CB_ENSURE(PrinterPtr, "It is imposible to output column without Pool.");
+            PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, ColumnType);
         }
 
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
         EColumn ColumnType;
+        ui64 DocIdOffset;
         TString Header;
     };
 
@@ -173,9 +224,7 @@ namespace NCB {
 
     class TDocIdPrinter: public IColumnPrinter {
     public:
-        TDocIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
-                      ui64 docIdOffset,
-                      const TString& header)
+        TDocIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, ui64 docIdOffset, const TString& header)
             : PrinterPtr(printerPtr)
             , NeedToGenerate(!printerPtr || !printerPtr->HasDocIdColumn)
             , DocIdOffset(docIdOffset)
@@ -191,7 +240,7 @@ namespace NCB {
             if (NeedToGenerate) {
                 *outStream << DocIdOffset + docIndex;
             } else {
-                PrinterPtr->OutputColumnByType(outStream, docIndex, EColumn::DocId);
+                PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, EColumn::DocId);
             }
         }
 
@@ -202,4 +251,10 @@ namespace NCB {
         TString Header;
     };
 
+    TVector<TString> CreatePredictionTypeHeader(
+        ui32 approxDimension,
+        EPredictionType predictionType,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        ui32 startTreeIndex = 0,
+        std::pair<size_t, size_t>* evalParameters = nullptr);
 } // namespace NCB

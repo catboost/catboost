@@ -322,7 +322,7 @@ namespace {
     };
 
     template <class TChar>
-    static Y_NO_RETURN Y_NO_INLINE void ThrowParseError(EParseStatus status, const TChar* data, size_t len, const TChar* pos) {
+    [[noreturn]] static Y_NO_INLINE void ThrowParseError(EParseStatus status, const TChar* data, size_t len, const TChar* pos) {
         Y_ASSERT(status != PS_OK);
 
         typedef TGenericString<TChar> TStringType;

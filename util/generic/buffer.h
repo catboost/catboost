@@ -81,6 +81,7 @@ public:
         return Pos_;
     }
 
+    Y_PURE_FUNCTION
     inline bool Empty() const noexcept {
         return !Size();
     }
@@ -168,18 +169,15 @@ public:
         }
     }
 
-    /*
-     * some helpers...
-     */
-    inline char* operator~() noexcept {
+    inline char* data() noexcept {
         return Data();
     }
 
-    inline const char* operator~() const noexcept {
+    inline const char* data() const noexcept {
         return Data();
     }
 
-    inline size_t operator+() const noexcept {
+    inline size_t size() const noexcept {
         return Size();
     }
 

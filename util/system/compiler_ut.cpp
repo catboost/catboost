@@ -54,4 +54,19 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
 
 #endif
     }
+
+    // define deprecated function
+    [[deprecated]] void bar() {
+        return;
+    }
+
+    Y_UNIT_TEST(TestNoDeprecated) {
+        Y_PRAGMA_DIAGNOSTIC_PUSH
+        Y_PRAGMA_NO_DEPRECATED
+
+        // will be compiled without errors
+        bar();
+
+        Y_PRAGMA_DIAGNOSTIC_POP
+    }
 }

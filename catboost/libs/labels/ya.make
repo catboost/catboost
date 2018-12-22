@@ -8,6 +8,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
 )

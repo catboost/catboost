@@ -125,7 +125,7 @@ public:
      * @returns                         Whether the split was actually performed.
      */
     inline bool TrySplit(TdSelf delim, TdSelf& l, TdSelf& r) const noexcept {
-        return TrySplitOn(TBase::find(delim), l, r, +delim);
+        return TrySplitOn(TBase::find(delim), l, r, delim.size());
     }
 
     /**
@@ -140,7 +140,7 @@ public:
      * @returns                         Whether the split was actually performed.
      */
     inline bool TryRSplit(TdSelf delim, TdSelf& l, TdSelf& r) const noexcept {
-        return TrySplitOn(TBase::rfind(delim), l, r, +delim);
+        return TrySplitOn(TBase::rfind(delim), l, r, delim.size());
     }
 
     inline void Split(TChar delim, TdSelf& l, TdSelf& r) const noexcept {
@@ -208,21 +208,25 @@ public:
 */
 
 public:
+    Y_PURE_FUNCTION
     inline TdSelf After(TChar c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? r : *this;
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf Before(TChar c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? l : *this;
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf RAfter(TChar c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? r : *this;
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf RBefore(TChar c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? l : *this;
@@ -375,41 +379,29 @@ public: // string subsequences
         return *this;
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf SubStr(size_t beg) const noexcept {
         return TdSelf(*this).Skip(beg);
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
         return SubStr(beg).Trunc(len);
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf Head(size_t pos) const noexcept {
         return TdSelf(*this).Trunc(pos);
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf Tail(size_t pos) const noexcept {
         return SubStr(pos);
     }
 
+    Y_PURE_FUNCTION
     inline TdSelf Last(size_t len) const noexcept {
         return TdSelf(*this).RSeek(len);
-    }
-
-    inline TdSelf& operator+=(size_t shift) noexcept {
-        return Skip(shift);
-    }
-
-    inline TdSelf& operator++() noexcept {
-        return Skip(1);
-    }
-
-    inline TdSelf operator+(size_t shift) const noexcept {
-        return SubStr(shift);
-    }
-
-    // defined in a parent, but repeat for overload above
-    inline size_t operator+() const noexcept {
-        return length();
     }
 
     TGenericString<TChar> ToString() const {

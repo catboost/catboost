@@ -1,21 +1,22 @@
 #pragma once
 
-#include "data_provider.h"
-#include "data_utils.h"
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/helpers/exception.h>
+
 #include <util/system/types.h>
+#include <util/generic/fwd.h>
 #include <util/generic/vector.h>
-#include <util/random/shuffle.h>
-#include <numeric>
+
 
 namespace NCatboostCuda {
     class TDataPermutation {
     private:
-        const TDataProvider* DataProvider;
+        const NCB::TTrainingDataProvider* DataProvider;
         ui32 Index;
         ui32 BlockSize;
 
     public:
-        TDataPermutation(const TDataProvider& dataProvider,
+        TDataPermutation(const NCB::TTrainingDataProvider& dataProvider,
                          ui32 index,
                          ui32 blockSize)
             : DataProvider(&dataProvider)
@@ -29,7 +30,7 @@ namespace NCatboostCuda {
 
         void FillOrder(TVector<ui32>& order) const;
         template <class T>
-        TVector<T> Gather(const TVector<T>& src) const {
+        TVector<T> Gather(TConstArrayRef<T> src) const {
             TVector<T> result;
             result.resize(src.size());
 
@@ -70,11 +71,11 @@ namespace NCatboostCuda {
         }
 
         ui64 GetDocCount() const {
-            return DataProvider->GetSampleCount();
+            return DataProvider->GetObjectCount();
         }
     };
 
-    inline TDataPermutation GetPermutation(const TDataProvider& dataProvider,
+    inline TDataPermutation GetPermutation(const NCB::TTrainingDataProvider& dataProvider,
                                            ui32 permutationId,
                                            ui32 blockSize = 1) {
         return TDataPermutation(dataProvider,
@@ -82,7 +83,7 @@ namespace NCatboostCuda {
                                 blockSize);
     }
 
-    inline TDataPermutation GetIdentityPermutation(const TDataProvider& dataProvider) {
+    inline TDataPermutation GetIdentityPermutation(const NCB::TTrainingDataProvider& dataProvider) {
         return GetPermutation(dataProvider,
                               TDataPermutation::IdentityPermutationId(),
                               1);
@@ -91,7 +92,7 @@ namespace NCatboostCuda {
 
     template <class T>
     inline TVector<T> Scatter(const TVector<ui32>& indices, const TVector<T>& src)  {
-        CB_ENSURE(indices.size() == src.size(), "THIS IS A BUG, report to catboost team: Scattter indices count should be equal to scattered data size");
+        CB_ENSURE(indices.size() == src.size(), "THIS IS A BUG, report to catboost team: Scatter indices count should be equal to scattered data size");
 
         TVector<T> result;
         result.resize(src.size());

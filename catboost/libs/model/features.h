@@ -24,6 +24,10 @@ struct TFloatFeature {
     TString FeatureId;
     NCatBoostFbs::ENanValueTreatment NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsIs;
 
+    bool UsedInModel() const {
+        return !Borders.empty();
+    }
+
     bool operator==(const TFloatFeature& other) const {
         return std::tie(HasNans, FeatureIndex, FlatFeatureIndex, Borders, FeatureId) ==
                std::tie(other.HasNans, other.FeatureIndex, other.FlatFeatureIndex, other.Borders, other.FeatureId);
@@ -71,12 +75,8 @@ inline TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
     return result;
 }
 
-TVector<TFloatFeature> CreateFloatFeatures(
-    size_t allFeaturesCount,
-    const THashSet<int>& catFeatures,
-    const TVector<TString>& featureIds);
-
 struct TCatFeature {
+    bool UsedInModel = true;
     int FeatureIndex = -1;
     int FlatFeatureIndex = -1;
     TString FeatureId;
@@ -94,7 +94,8 @@ struct TCatFeature {
             builder,
             FeatureIndex,
             FlatFeatureIndex,
-            FeatureId.empty() ? nullptr : FeatureId.data()
+            FeatureId.empty() ? nullptr : FeatureId.data(),
+            UsedInModel
         );
     }
     void FBDeserialize(const NCatBoostFbs::TCatFeature* fbObj) {
@@ -103,6 +104,7 @@ struct TCatFeature {
         if (fbObj->FeatureId()) {
             FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
         }
+        UsedInModel = fbObj->UsedInModel();
     }
     Y_SAVELOAD_DEFINE(FeatureIndex, FlatFeatureIndex, FeatureId);
 };

@@ -35,7 +35,7 @@ namespace {
     inline void SetThrName(const TParams& p) {
         try {
             if (p.Name) {
-                TThread::CurrentThreadSetName(~p.Name);
+                TThread::CurrentThreadSetName(p.Name.data());
             }
         } catch (...) {
             // ¯\_(ツ)_/¯
@@ -404,14 +404,18 @@ TCurrentThreadLimits::TCurrentThreadLimits() noexcept
     : StackBegin(nullptr)
     , StackLength(0)
 {
-#if defined(_linux_) || defined(_cygwin_)
+#if defined(_linux_) || defined(_cygwin_) || defined(_freebsd_)
     pthread_attr_t attr;
     pthread_attr_init(&attr);
 
+#if defined(_linux_) || defined(_cygwin_)
     Y_VERIFY(pthread_getattr_np(pthread_self(), &attr) == 0, "pthread_getattr failed");
-
+#else
+    Y_VERIFY(pthread_attr_get_np(pthread_self(), &attr) == 0, "pthread_attr_get_np failed");
+#endif
     pthread_attr_getstack(&attr, (void**)&StackBegin, &StackLength);
     pthread_attr_destroy(&attr);
+
 #elif defined(_darwin_)
     StackBegin = pthread_get_stackaddr_np(pthread_self());
     StackLength = pthread_get_stacksize_np(pthread_self());

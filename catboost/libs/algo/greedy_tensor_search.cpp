@@ -5,14 +5,21 @@
 #include "tensor_search_helpers.h"
 #include "tree_print.h"
 
+#include <catboost/libs/data_new/feature_index.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 
+#include <library/dot_product/dot_product.h>
 #include <library/fast_log/fast_log.h>
 
 #include <util/string/builder.h>
 #include <util/system/mem_info.h>
+
+
+using namespace NCB;
+
 
 constexpr size_t MAX_ONLINE_CTR_FEATURES = 50;
 
@@ -22,46 +29,105 @@ void TrimOnlineCTRcache(const TVector<TFold*>& folds) {
     }
 }
 
-static void AddFloatFeatures(const TDataset& learnData,
-                             TLearnContext* ctx,
-                             TBucketStatsCache* statsFromPrevTree,
-                             TCandidateList* candList) {
-    for (int f = 0; f < learnData.AllFeatures.FloatHistograms.ysize(); ++f) {
-        if (learnData.AllFeatures.FloatHistograms[f].empty()) {
-            continue;
+static double CalcDerivativesStDevFromZeroOrderedBoosting(const TFold& fold) {
+    double sum2 = 0;
+    size_t count = 0;
+    for (const auto& bt : fold.BodyTailArr) {
+        for (const auto& perDimensionWeightedDerivatives : bt.WeightedDerivatives) {
+            // TODO(yazevnul): replace with `L2NormSquared` when it's implemented
+            sum2 += DotProduct(
+                perDimensionWeightedDerivatives.data() + bt.BodyFinish,
+                perDimensionWeightedDerivatives.data() + bt.BodyFinish,
+                bt.TailFinish - bt.BodyFinish);
         }
-        TCandidateInfo split;
-        split.SplitCandidate.FeatureIdx = f;
-        split.SplitCandidate.Type = ESplitType::FloatFeature;
 
-        if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-            statsFromPrevTree->Stats.erase(split.SplitCandidate);
-            continue;
-        }
-        candList->emplace_back(TCandidatesInfoList(split));
+        count += bt.TailFinish - bt.BodyFinish;
+    }
+
+    Y_ASSERT(count > 0);
+    return sqrt(sum2 / count);
+}
+
+static double CalcDerivativesStDevFromZeroPlainBoosting(const TFold& fold) {
+    Y_ASSERT(fold.BodyTailArr.size() == 1);
+    Y_ASSERT(fold.BodyTailArr.front().WeightedDerivatives.size() > 0);
+
+    const auto& weightedDerivatives = fold.BodyTailArr.front().WeightedDerivatives;
+
+    double sum2 = 0;
+    for (const auto& perDimensionWeightedDerivatives : weightedDerivatives) {
+        sum2 += DotProduct(
+            perDimensionWeightedDerivatives.data(),
+            perDimensionWeightedDerivatives.data(),
+            perDimensionWeightedDerivatives.size());
+    }
+
+    return sqrt(sum2 / weightedDerivatives.front().size());
+}
+
+static double CalcDerivativesStDevFromZero(const TFold& fold, const EBoostingType boosting) {
+    switch (boosting) {
+        case EBoostingType::Ordered:
+            return CalcDerivativesStDevFromZeroOrderedBoosting(fold);
+        case EBoostingType::Plain:
+            return CalcDerivativesStDevFromZeroPlainBoosting(fold);
     }
 }
 
-static void AddOneHotFeatures(const TDataset& learnData,
+static double CalcDerivativesStDevFromZeroMultiplier(int learnSampleCount, double modelLength) {
+    double modelExpLength = log(static_cast<double>(learnSampleCount));
+    double modelLeft = exp(modelExpLength - modelLength);
+    return modelLeft / (1.0 + modelLeft);
+}
+
+static void AddFloatFeatures(const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
+                             TLearnContext* ctx,
+                             TBucketStatsCache* statsFromPrevTree,
+                             TCandidateList* candList) {
+    learnObjectsData.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Float>(
+        [&](TFloatFeatureIdx floatFeatureIdx) {
+            TCandidateInfo split;
+            split.SplitCandidate.FeatureIdx = (int)*floatFeatureIdx;
+            split.SplitCandidate.Type = ESplitType::FloatFeature;
+
+            if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
+                if (ctx->UseTreeLevelCaching()) {
+                    statsFromPrevTree->Stats.erase(split.SplitCandidate);
+                }
+                return;
+            }
+            candList->emplace_back(TCandidatesInfoList(split));
+        }
+    );
+}
+
+static void AddOneHotFeatures(const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
                               TLearnContext* ctx,
                               TBucketStatsCache* statsFromPrevTree,
                               TCandidateList* candList) {
-    for (int cf = 0; cf < learnData.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
-        if (learnData.AllFeatures.CatFeaturesRemapped[cf].empty() ||
-            !learnData.AllFeatures.IsOneHot[cf]) {
-            continue;
-        }
+    const auto& quantizedFeaturesInfo = *learnObjectsData.GetQuantizedFeaturesInfo();
+    const ui32 oneHotMaxSize = ctx->Params.CatFeatureParams.Get().OneHotMaxSize;
 
-        TCandidateInfo split;
-        split.SplitCandidate.FeatureIdx = cf;
-        split.SplitCandidate.Type = ESplitType::OneHotFeature;
-        if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-            statsFromPrevTree->Stats.erase(split.SplitCandidate);
-            continue;
-        }
+    learnObjectsData.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&](TCatFeatureIdx catFeatureIdx) {
+            auto onLearnOnlyCount = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly;
+            if ((onLearnOnlyCount > oneHotMaxSize) || (onLearnOnlyCount <= 1)) {
+                return;
+            }
 
-        candList->emplace_back(TCandidatesInfoList(split));
-    }
+            TCandidateInfo split;
+            split.SplitCandidate.FeatureIdx = (int)*catFeatureIdx;
+            split.SplitCandidate.Type = ESplitType::OneHotFeature;
+            if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
+                if (ctx->UseTreeLevelCaching()) {
+                    statsFromPrevTree->Stats.erase(split.SplitCandidate);
+                }
+                return;
+            }
+
+            candList->emplace_back(TCandidatesInfoList(split));
+        }
+    );
 }
 
 static void AddCtrsToCandList(const TFold& fold,
@@ -112,35 +178,45 @@ static void DropStatsForProjection(const TFold& fold,
         }
     }
 }
-static void AddSimpleCtrs(const TDataset& learnData,
+static void AddSimpleCtrs(const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
                           TFold* fold,
                           TLearnContext* ctx,
                           TBucketStatsCache* statsFromPrevTree,
                           TCandidateList* candList) {
-    for (int cf = 0; cf < learnData.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
-        if (learnData.AllFeatures.CatFeaturesRemapped[cf].empty() ||
-            learnData.AllFeatures.IsOneHot[cf]) {
-            continue;
-        }
+    const auto& quantizedFeaturesInfo = *learnObjectsData.GetQuantizedFeaturesInfo();
+    const ui32 oneHotMaxSize = ctx->Params.CatFeatureParams.Get().OneHotMaxSize;
 
-        TProjection proj;
-        proj.AddCatFeature(cf);
+    learnObjectsData.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+        [&](TCatFeatureIdx catFeatureIdx) {
+            if (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly <= oneHotMaxSize) {
+                return;
+            }
 
-        if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-            DropStatsForProjection(*fold, *ctx, proj, statsFromPrevTree);
-            continue;
+            TProjection proj;
+            proj.AddCatFeature((int)*catFeatureIdx);
+
+            if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
+                if (ctx->UseTreeLevelCaching()) {
+                    DropStatsForProjection(*fold, *ctx, proj, statsFromPrevTree);
+                }
+                return;
+            }
+            AddCtrsToCandList(*fold, *ctx, proj, candList);
+            fold->GetCtrRef(proj);
         }
-        AddCtrsToCandList(*fold, *ctx, proj, candList);
-        fold->GetCtrRef(proj);
-    }
+    );
 }
 
-static void AddTreeCtrs(const TDataset& learnData,
+static void AddTreeCtrs(const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
                         const TSplitTree& currentTree,
                         TFold* fold,
                         TLearnContext* ctx,
                         TBucketStatsCache* statsFromPrevTree,
                         TCandidateList* candList) {
+    const auto& quantizedFeaturesInfo = *learnObjectsData.GetQuantizedFeaturesInfo();
+    const auto& featuresLayout = *learnObjectsData.GetFeaturesLayout();
+    const ui32 oneHotMaxSize = ctx->Params.CatFeatureParams.Get().OneHotMaxSize;
+
     using TSeenProjHash = THashSet<TProjection>;
     TSeenProjHash seenProj;
 
@@ -159,40 +235,44 @@ static void AddTreeCtrs(const TDataset& learnData,
         if (baseProj.IsEmpty()) {
             continue;
         }
-        for (int cf = 0; cf < learnData.AllFeatures.CatFeaturesRemapped.ysize(); ++cf) {
-            if (learnData.AllFeatures.CatFeaturesRemapped[cf].empty() ||
-                learnData.AllFeatures.IsOneHot[cf] ||
-                ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-                continue;
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+            [&](TCatFeatureIdx catFeatureIdx) {
+                const bool isOneHot =
+                    (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly <= oneHotMaxSize);
+                if (isOneHot || (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm)) {
+                    return;
+                }
+
+                TProjection proj = baseProj;
+                proj.AddCatFeature((int)*catFeatureIdx);
+
+                if (proj.IsRedundant() || proj.GetFullProjectionLength() > ctx->Params.CatFeatureParams->MaxTensorComplexity) {
+                    return;
+                }
+
+                if (addedProjHash.contains(proj)) {
+                    return;
+                }
+
+                addedProjHash.insert(proj);
+
+                AddCtrsToCandList(*fold, *ctx, proj, candList);
+                fold->GetCtrRef(proj);
             }
-
-            TProjection proj = baseProj;
-            proj.AddCatFeature(cf);
-
-            if (proj.IsRedundant() || proj.GetFullProjectionLength() > ctx->Params.CatFeatureParams->MaxTensorComplexity) {
-                continue;
-            }
-
-            if (addedProjHash.has(proj)) {
-                continue;
-            }
-
-            addedProjHash.insert(proj);
-
-            AddCtrsToCandList(*fold, *ctx, proj, candList);
-            fold->GetCtrRef(proj);
-        }
+        );
     }
-    THashSet<TSplitCandidate> candidatesToErase;
-    for (auto& splitCandidate : statsFromPrevTree->Stats) {
-        if (splitCandidate.first.Type == ESplitType::OnlineCtr) {
-            if (!addedProjHash.has(splitCandidate.first.Ctr.Projection)) {
-                candidatesToErase.insert(splitCandidate.first);
+    if (ctx->UseTreeLevelCaching()) {
+        THashSet<TSplitCandidate> candidatesToErase;
+        for (auto& splitCandidate : statsFromPrevTree->Stats) {
+            if (splitCandidate.first.Type == ESplitType::OnlineCtr) {
+                if (!addedProjHash.contains(splitCandidate.first.Ctr.Projection)) {
+                    candidatesToErase.insert(splitCandidate.first);
+                }
             }
         }
-    }
-    for (const auto& splitCandidate : candidatesToErase) {
-        statsFromPrevTree->Stats.erase(splitCandidate);
+        for (const auto& splitCandidate : candidatesToErase) {
+            statsFromPrevTree->Stats.erase(splitCandidate);
+        }
     }
 }
 
@@ -216,9 +296,9 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
 
     auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
     if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
-        MATRIXNET_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
+        CATBOOST_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
         const float GB = (ui64)1024 * 1024 * 1024;
-        MATRIXNET_DEBUG_LOG << "current rss " << currentMemoryUsage / GB << fullNeededMemoryForCtrs / GB << Endl;
+        CATBOOST_DEBUG_LOG << "current rss: " << currentMemoryUsage / GB << " full needed memory: " << fullNeededMemoryForCtrs / GB << Endl;
         size_t currentNonDroppableMemory = currentMemoryUsage;
         size_t maxMemForOtherThreadsApprox = (ui64)(threadCount - 1) * maxMemoryForOneCtr;
         for (auto& candSubList : *candList) {
@@ -237,8 +317,7 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
     }
 }
 
-static void CalcBestScore(const TDataset& learnData,
-        const TDatasetPtrs& testDataPtrs,
+static void CalcBestScore(const TTrainingForCPUDataProviders& data,
         const TVector<int>& splitCounts,
         int currentDepth,
         ui64 randSeed,
@@ -246,17 +325,15 @@ static void CalcBestScore(const TDataset& learnData,
         TCandidateList* candidateList,
         TFold* fold,
         TLearnContext* ctx) {
-    CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
-
+    CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor->GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
     const TFlatPairsInfo pairs = UnpackPairsFromQueries(fold->LearnQueriesInfo);
     TCandidateList& candList = *candidateList;
-    ctx->LocalExecutor.ExecRange([&](int id) {
+    ctx->LocalExecutor->ExecRange([&](int id) {
         auto& candidate = candList[id];
         if (candidate.Candidates[0].SplitCandidate.Type == ESplitType::OnlineCtr) {
             const auto& proj = candidate.Candidates[0].SplitCandidate.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
-                ComputeOnlineCTRs(learnData,
-                                  testDataPtrs,
+                ComputeOnlineCTRs(data,
                                   *fold,
                                   proj,
                                   ctx,
@@ -264,13 +341,13 @@ static void CalcBestScore(const TDataset& learnData,
             }
         }
         TVector<TVector<double>> allScores(candidate.Candidates.size());
-        ctx->LocalExecutor.ExecRange([&](int oneCandidate) {
+        ctx->LocalExecutor->ExecRange([&](int oneCandidate) {
             if (candidate.Candidates[oneCandidate].SplitCandidate.Type == ESplitType::OnlineCtr) {
                 const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
                 Y_ASSERT(!fold->GetCtrRef(proj).Feature.empty());
             }
             TVector<TScoreBin> scoreBins;
-            CalcStatsAndScores(learnData.AllFeatures,
+            CalcStatsAndScores(*data.Learn->ObjectsData,
                                splitCounts,
                                fold->GetAllCtrs(),
                                ctx->SampledDocs,
@@ -280,7 +357,8 @@ static void CalcBestScore(const TDataset& learnData,
                                ctx->Params,
                                candidate.Candidates[oneCandidate].SplitCandidate,
                                currentDepth,
-                               &ctx->LocalExecutor,
+                               ctx->UseTreeLevelCaching(),
+                               ctx->LocalExecutor,
                                &ctx->PrevTreeLevelStats,
                                /*stats3d*/nullptr,
                                /*pairwiseStats*/nullptr,
@@ -295,8 +373,7 @@ static void CalcBestScore(const TDataset& learnData,
     }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-void GreedyTensorSearch(const TDataset& learnData,
-                        const TDatasetPtrs& testDataPtrs,
+void GreedyTensorSearch(const TTrainingForCPUDataProviders& data,
                         const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,
@@ -306,10 +383,10 @@ void GreedyTensorSearch(const TDataset& learnData,
     TSplitTree currentSplitTree;
     TrimOnlineCTRcache({fold});
 
-    int learnSampleCount = learnData.GetSampleCount();
-    int testSampleCount = GetSampleCount(testDataPtrs);
+    ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
+    ui32 testSampleCount = data.GetTestSampleCount();
     TVector<TIndexType> indices(learnSampleCount); // always for all documents
-    MATRIXNET_INFO_LOG << "\n";
+    CATBOOST_INFO_LOG << "\n";
 
     if (!ctx->Params.SystemOptions->IsSingleHost()) {
         MapTensorSearchStart(ctx);
@@ -320,21 +397,23 @@ void GreedyTensorSearch(const TDataset& learnData,
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
             MapBootstrap(ctx);
         } else {
-            Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, &ctx->LocalExecutor, &ctx->Rand);
+            Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, ctx->LocalExecutor, &ctx->Rand);
         }
-        ctx->PrevTreeLevelStats.GarbageCollect();
+        if (ctx->UseTreeLevelCaching()) {
+            ctx->PrevTreeLevelStats.GarbageCollect();
+        }
     }
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TCandidateList candList;
-        AddFloatFeatures(learnData, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddOneHotFeatures(learnData, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddSimpleCtrs(learnData, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
-        AddTreeCtrs(learnData, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddFloatFeatures(*data.Learn->ObjectsData, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddOneHotFeatures(*data.Learn->ObjectsData, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddSimpleCtrs(*data.Learn->ObjectsData, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
+        AddTreeCtrs(*data.Learn->ObjectsData, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
 
         auto IsInCache = [&fold](const TProjection& proj) -> bool {return fold->GetCtrRef(proj).Feature.empty();};
-        auto cpuUsedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit);
+        auto cpuUsedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit.Get());
         SelectCtrsToDropAfterCalc(cpuUsedRamLimit, learnSampleCount + testSampleCount, ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
 
         CheckInterrupted(); // check after long-lasting operation
@@ -342,21 +421,24 @@ void GreedyTensorSearch(const TDataset& learnData,
             if (!ctx->Params.SystemOptions->IsSingleHost()) {
                 MapBootstrap(ctx);
             } else {
-                Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, &ctx->LocalExecutor, &ctx->Rand);
+                Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, ctx->LocalExecutor, &ctx->Rand);
             }
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
 
-        const double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(learnSampleCount, modelLength);
+        const auto scoreStDev =
+            ctx->Params.ObliviousTreeOptions->RandomStrength
+            * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType)
+            * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
             if (isPairwiseScoring) {
-                MapPairwiseCalcScore(scoreStDev, &candList, ctx);
+                MapRemotePairwiseCalcScore(scoreStDev, &candList, ctx);
             } else {
                 MapRemoteCalcScore(scoreStDev, currentSplitTree.GetDepth(), &candList, ctx);
             }
         } else {
             const ui64 randSeed = ctx->Rand.GenRand();
-            CalcBestScore(learnData, testDataPtrs, splitCounts, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
+            CalcBestScore(data, splitCounts, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
         }
 
         size_t maxFeatureValueCount = 1;
@@ -364,7 +446,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             const auto& split = candidate.Candidates[0].SplitCandidate;
             if (split.Type == ESplitType::OnlineCtr) {
                 const auto& proj = split.Ctr.Projection;
-                maxFeatureValueCount = Max(maxFeatureValueCount, fold->GetCtrRef(proj).FeatureValueCount);
+                maxFeatureValueCount = Max(maxFeatureValueCount, fold->GetCtrRef(proj).GetMaxUniqueValueCount());
             }
         }
 
@@ -377,16 +459,18 @@ void GreedyTensorSearch(const TDataset& learnData,
         for (const auto& subList : candList) {
             for (const auto& candidate : subList.Candidates) {
                 double score = candidate.BestScore.GetInstance(ctx->Rand);
-                // MATRIXNET_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = " << score << "\t";
+                // CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = " << score << "\t";
                 TProjection projection = candidate.SplitCandidate.Ctr.Projection;
                 ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
 
                 if (candidate.SplitCandidate.Type == ESplitType::OnlineCtr &&
-                    !ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) &&
+                    !ctx->LearnProgress.UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
                     score != MINIMAL_SCORE)
                 {
-                    score *= pow(1 + fold->GetCtrRef(projection).FeatureValueCount / static_cast<double>(maxFeatureValueCount),
-                                 -ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                    score *= pow(
+                        1 + fold->GetCtrRef(projection).GetUniqueValueCountForType(ctrType) / static_cast<double>(maxFeatureValueCount),
+                        -ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get()
+                    );
                 }
                 if (score > bestScore) {
                     bestScore = score;
@@ -394,7 +478,7 @@ void GreedyTensorSearch(const TDataset& learnData,
                 }
             }
         }
-        // MATRIXNET_INFO_LOG << Endl;
+        // CATBOOST_INFO_LOG << Endl;
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
@@ -409,23 +493,23 @@ void GreedyTensorSearch(const TDataset& learnData,
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             const auto& proj = bestSplit.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
-                ComputeOnlineCTRs(learnData,
-                                  testDataPtrs,
+                ComputeOnlineCTRs(data,
                                   *fold,
                                   proj,
                                   ctx,
                                   &fold->GetCtrRef(proj));
-                DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
+                if (ctx->UseTreeLevelCaching()) {
+                    DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
+                }
             }
         }
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
-            SetPermutedIndices(bestSplit, learnData.AllFeatures, curDepth + 1, *fold, &indices, &ctx->LocalExecutor);
+            SetPermutedIndices(bestSplit, *data.Learn->ObjectsData, curDepth + 1, *fold, &indices, ctx->LocalExecutor);
             if (isSamplingPerTree) {
-                ctx->SampledDocs.UpdateIndices(indices, &ctx->LocalExecutor);
-                // TODO(nikitxskv): Pairwise scoring doesn't use statistics from previous tree level. Need to fix it.
-                if (!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-                    ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, &ctx->LocalExecutor);
+                ctx->SampledDocs.UpdateIndices(indices, ctx->LocalExecutor);
+                if (ctx->UseTreeLevelCaching()) {
+                    ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, ctx->LocalExecutor);
                 }
             }
         } else {
@@ -433,8 +517,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             MapSetIndices(*bestSplitCandidate, ctx);
         }
         currentSplitTree.AddSplit(bestSplit);
-        MATRIXNET_INFO_LOG << BuildDescription(ctx->Layout, bestSplit);
-        MATRIXNET_INFO_LOG << " score " << bestScore << "\n";
+        CATBOOST_INFO_LOG << BuildDescription(*ctx->Layout, bestSplit) << " score " << bestScore << "\n";
 
 
         profile.AddOperation(TStringBuilder() << "Select best split " << curDepth);
@@ -447,7 +530,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         }
         if (redundantIdx != -1) {
             currentSplitTree.DeleteSplit(redundantIdx);
-            MATRIXNET_INFO_LOG << "  tensor " << redundantIdx << " is redundant, remove it and stop\n";
+            CATBOOST_INFO_LOG << "  tensor " << redundantIdx << " is redundant, remove it and stop\n";
             break;
         }
     }

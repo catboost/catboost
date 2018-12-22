@@ -2,8 +2,8 @@ LIBRARY()
 
 
 
-SRCS(main.c)
+SRCS(
+    main.c
+)
 
 END()
-
-NEED_CHECK()

@@ -1,4 +1,4 @@
-PY_LIBRARY()
+PY23_LIBRARY()
 
 LICENSE(
     APACHE
@@ -7,7 +7,7 @@ LICENSE(
  
 
 
-# Version: 16.8
+VERSION(16.8)
 
 # License: BSD or Apache License, Version 2.0
 

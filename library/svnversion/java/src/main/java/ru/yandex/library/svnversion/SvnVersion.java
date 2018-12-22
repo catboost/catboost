@@ -37,7 +37,11 @@ public class SvnVersion {
     }
 
     public static int getProgramSvnRevision() {
-        return Integer.parseInt(SvnConstants.GetProperty("ARCADIA_SOURCE_REVISION", "0").trim());
+        String value = SvnConstants.GetProperty("ARCADIA_SOURCE_REVISION", "0").trim();
+        if ("None".equals(value)) {
+            return 0;
+        }
+        return Integer.parseInt(value);
     }
 
     public static String getProgramScmData() {

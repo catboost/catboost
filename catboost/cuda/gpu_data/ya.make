@@ -1,7 +1,5 @@
 LIBRARY()
 
-NO_WERROR()
-
 
 
 SRCS(
@@ -32,11 +30,13 @@ SRCS(
 
 PEERDIR(
     library/grid_creator
+    library/threading/local_executor
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
     catboost/cuda/data
     catboost/cuda/ctrs
     catboost/libs/ctr_description
+    catboost/libs/data_new
     catboost/libs/helpers
     catboost/libs/quantization
 )

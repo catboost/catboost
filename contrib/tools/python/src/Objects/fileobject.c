@@ -2871,6 +2871,10 @@ Py_UniversalNewlineFread(char *buf, size_t n,
         errno = ENXIO;          /* What can you do... */
         return 0;
     }
+    /* Issue #1706039: Support continued reading from a file even after
+     * EOF was hit.
+     */
+	clearerr(stream);
     if (!f->f_univ_newline)
         return fread(buf, 1, n, stream);
     newlinetypes = f->f_newlinetypes;

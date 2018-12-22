@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/string.h>
-#include <tuple>
+
 #include <utility>
 
 namespace NCatboostOptions {
@@ -88,19 +88,19 @@ namespace NCatboostOptions {
         }
 
         bool operator==(const TOption& rhs) const {
-            return std::tie(Value, OptionName) == std::tie(rhs.Value, rhs.OptionName);
+            return Value == rhs.Value && OptionName == rhs.OptionName;
         }
 
         bool operator!=(const TOption& rhs) const {
             return !(rhs == *this);
         }
 
-        template<typename TComparableType>
+        template <typename TComparableType>
         bool operator==(const TComparableType& otherValue) const {
             return Value == otherValue;
         }
 
-        template<typename TComparableType>
+        template <typename TComparableType>
         bool operator!=(const TComparableType& otherValue) const {
             return Value != otherValue;
         }

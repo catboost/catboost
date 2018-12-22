@@ -50,14 +50,7 @@ struct THash<TGUID> {
     }
 };
 
-/**
- * NOTE: Not fork()-safe, see IGNIETFERRO-610
- **/
 void CreateGuid(TGUID* res);
-
-/**
- * NOTE: Not fork()-safe, see IGNIETFERRO-610
- **/
 TString GetGuidAsString(const TGUID& g);
 TString CreateGuidAsString();
 TGUID GetGuid(const TString& s);

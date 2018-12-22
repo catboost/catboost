@@ -178,19 +178,19 @@ namespace NPlugins {
 
                 switch(desc->cpp_type()) {
                     case FieldDescriptor::CPPTYPE_STRING:
-                        printer->Print(~TString::Join("::google::protobuf::io::PrintJSONString(out, ", scopeName , ");\n"));
+                        printer->Print(TString::Join("::google::protobuf::io::PrintJSONString(out, ", scopeName , ");\n").data());
                         break;
                     case FieldDescriptor::CPPTYPE_ENUM:
-                        printer->Print(~TString::Join("out << int(", scopeName, ");\n"));
+                        printer->Print(TString::Join("out << int(", scopeName, ");\n").data());
                         break;
                     case FieldDescriptor::CPPTYPE_MESSAGE:
-                        printer->Print(~TString::Join(scopeName, ".PrintJSON(out);\n"));
+                        printer->Print(TString::Join(scopeName, ".PrintJSON(out);\n").data());
                         break;
                     default:
                         if (isKey) {
-                            printer->Print(~TString::Join("out << '\"' << ", scopeName, " << '\"';\n"));
+                            printer->Print(TString::Join("out << '\"' << ", scopeName, " << '\"';\n").data());
                         } else {
-                            printer->Print(~TString::Join("out << ", scopeName, ";\n"));
+                            printer->Print(TString::Join("out << ", scopeName, ";\n").data());
                         }
                 }
             }
@@ -706,6 +706,7 @@ namespace NPlugins {
             }
 
             void GenerateClassDefinitionExtension() {
+                GenerateSaveLoadImplementation();
                 GenerateJSONImplementation();
 
                 for (int i = 0; i < NestedTypeCount_; i++) {
@@ -806,7 +807,32 @@ namespace NPlugins {
                 printer.Print(vars, "::google::protobuf::io::TAsJSON<$class$> AsJSON() const {\n");
                 printer.Print(vars, "    return ::google::protobuf::io::TAsJSON<$class$>(*this);\n");
                 printer.Print("}\n");
+                if (!IsLiteRuntimeMessage(Descriptor_)) {
+                    printer.Print("void Save(IOutputStream* output) const;\n");
+                    printer.Print("void Load(IInputStream* input);\n");
+                }
                 printer.Print("// End of Yandex-specific extension\n");
+            }
+
+            void GenerateSaveLoadImplementation() {
+                TProtoStringType fileName = SourceFileName(Descriptor_->file());
+                TProtoStringType scope = "namespace_scope";
+                scoped_ptr<io::ZeroCopyOutputStream> output(
+                    OutputDirectory_->OpenForInsert(fileName, scope));
+                io::Printer printer(output.get(), '$');
+
+                TVariables vars;
+                vars["class"] = Classname_;
+                if (!IsLiteRuntimeMessage(Descriptor_)) {
+                    printer.Print("// Yandex-specific extension\n");
+                    printer.Print(vars, "void $class$::Save(IOutputStream* output) const {\n");
+                    printer.Print("    ::Save(output, static_cast<const ::google::protobuf::Message&>(*this));\n");
+                    printer.Print("}\n");
+                    printer.Print(vars, "void $class$::Load(IInputStream* input) {\n");
+                    printer.Print("    ::Load(input, static_cast<::google::protobuf::Message&>(*this));\n");
+                    printer.Print("}\n");
+                    printer.Print("// End of Yandex-specific extension\n");
+                }
             }
 
             void GenerateDebugStringImplementation() {

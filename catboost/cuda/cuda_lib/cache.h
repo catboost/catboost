@@ -61,7 +61,7 @@ private:
         }
 
         bool Has(const TKey& key) const {
-            return Data.has(key);
+            return Data.contains(key);
         }
 
     private:

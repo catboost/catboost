@@ -12,6 +12,8 @@ def parse_args():
     parser = optparse.OptionParser(option_list=fetch_from.common_options())
 
     parser.add_option('--key', dest='key')
+    parser.add_option('--rename-to', dest='rename_to')
+    parser.add_option('--log-path', dest='log_path')
 
     return parser.parse_args()
 
@@ -28,6 +30,24 @@ def fetch(key):
     return fetched_file, file_name
 
 
+def makedirs(path):
+    try:
+        os.makedirs(path)
+    except OSError:
+        pass
+
+
+def setup_logging(opts):
+    if opts.log_path:
+        log_file_name = opts.log_path
+    else:
+        log_file_name = os.path.basename(__file__) + ".log"
+
+    opts.abs_log_path = os.path.abspath(log_file_name)
+    makedirs(os.path.dirname(opts.abs_log_path))
+    logging.basicConfig(filename=opts.abs_log_path, level=logging.DEBUG)
+
+
 def main(opts, outputs):
     fetched_file, resource_file_name = fetch(opts.key)
 
@@ -35,16 +55,13 @@ def main(opts, outputs):
 
 
 if __name__ == '__main__':
-    log_file_name = os.path.basename(__file__) + ".log"
-    abs_log_path = os.path.abspath(log_file_name)
-    logging.basicConfig(filename=log_file_name, level=logging.DEBUG)
-
     opts, args = parse_args()
+    setup_logging(opts)
 
     try:
         main(opts, args)
     except Exception as e:
         logging.exception(e)
-        print >>sys.stderr, open(abs_log_path).read()
+        print >>sys.stderr, open(opts.abs_log_path).read()
         sys.stderr.flush()
         sys.exit(fetch_from.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)

@@ -12,5 +12,5 @@ private:
 };
 
 inline TString CppDemangle(const TString& name) {
-    return TCppDemangler().Demangle(~name);
+    return TCppDemangler().Demangle(name.data());
 }

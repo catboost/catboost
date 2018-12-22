@@ -257,12 +257,12 @@ void FFlatCodeGen::writeExec()
 	out << ";\n";
 
 	out <<
-		"	" << PTR_CONST() << WIDE_ALPH_TYPE() << POINTER() << "_keys;\n"
-		"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxIndex) << POINTER() << "_inds;\n";
+		"	" << PTR_CONST() << WIDE_ALPH_TYPE() << PTR_CONST_END() << POINTER() << "_keys;\n"
+		"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxIndex) << PTR_CONST_END() << POINTER() << "_inds;\n";
 
 	if ( redFsm->anyConditions() ) {
 		out << 
-			"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxCond) << POINTER() << "_conds;\n"
+			"	" << PTR_CONST() << ARRAY_TYPE(redFsm->maxCond) << PTR_CONST_END() << POINTER() << "_conds;\n"
 			"	" << WIDE_ALPH_TYPE() << " _widec;\n";
 	}
 

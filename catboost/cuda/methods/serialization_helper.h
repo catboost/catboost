@@ -108,7 +108,7 @@ namespace NCatboostCuda {
     private:
         void AddFloatFeature(ui32 featureId) {
             Y_ASSERT(FeaturesManager.IsFloat(featureId));
-            if (FeaturesMap.FloatFeatures.has(featureId)) {
+            if (FeaturesMap.FloatFeatures.contains(featureId)) {
                 return;
             }
             FeaturesMap.FloatFeatures[featureId] = TModelFeaturesMap::TFloatFeature(FeaturesManager.GetDataProviderId(featureId),
@@ -122,7 +122,7 @@ namespace NCatboostCuda {
 
         void AddCtr(ui32 featureId) {
             Y_ASSERT(FeaturesManager.IsCtr(featureId));
-            if (FeaturesMap.Ctrs.has(featureId)) {
+            if (FeaturesMap.Ctrs.contains(featureId)) {
                 return;
             }
             TCtr ctr = FeaturesManager.GetCtr(featureId);
@@ -201,7 +201,8 @@ namespace NCatboostCuda {
         }
         TVector<T> cpuData;
         ::Load(in, cpuData);
-        CB_ENSURE(cpuData.size() == size, "Unconsistent data");
+        const auto expectedBufferSize = size * data->GetColumnCount();
+        CB_ENSURE(cpuData.size() == expectedBufferSize, "Inconsistent data: expected " << expectedBufferSize << ", got " << cpuData.size());
         data->Write(cpuData);
     }
 

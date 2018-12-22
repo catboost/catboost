@@ -39,7 +39,7 @@ namespace NKernel
     };
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     struct TPointHist<2, 1, BLOCK_SIZE> {
         constexpr static int OUTER_HIST_BITS_COUNT = 2;
         constexpr static int INNER_HIST_BITS_COUNT = 1;

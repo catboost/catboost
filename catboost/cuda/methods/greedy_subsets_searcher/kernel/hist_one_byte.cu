@@ -14,7 +14,7 @@ using namespace cooperative_groups;
 namespace NKernel
 {
 
-    template<int Bits,
+    template <int Bits,
              int BlockSize>
     struct TPointHistOneByte {
         const int InnerHistBitsCount = Bits - 5;

@@ -28,7 +28,7 @@ class PyxParser(object):
         self._path = path
         self._includes = []
         self._induced = []
-        retargeted = os.path.join(unit.path(), os.path.basename(path))
+        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
 
         if path.endswith('.pyx'):
             pxd = path[:-4] + '.pxd'
@@ -134,7 +134,7 @@ class PyxParser(object):
 
     def induced_deps(self):
         return {
-            'cpp': ['$S/contrib/tools/python/src/Include/Python.h'] + self._induced
+            'cpp': ['$S/contrib/libs/python/Include/Python.h'] + self._induced
         }
 
 

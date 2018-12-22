@@ -45,7 +45,7 @@ namespace NKernelHost {
                                                Dst.Get(), BorderCount,
                                                stream.GetStream());
             } else {
-                ythrow TCatboostException() << "Error: unsupported binarization for combinations ctrs "
+                ythrow TCatBoostException() << "Error: unsupported binarization for combinations ctrs "
                                             << BorderType;
             }
         }
@@ -226,20 +226,20 @@ namespace NKernelHost {
         }
     };
 
-    class TRemoveQueryMeans: public TKernelBase<NKernel::TRemoveQueryMeansContext, false> {
+    class TRemoveQueryMeans: public TKernelBase<NKernel::TRemoveQueryBiasContext, false> {
     private:
         TCudaBufferPtr<const ui32> Qids;
         TCudaBufferPtr<const ui32> QidsOffsets;
         TCudaBufferPtr<float> Dest;
 
     public:
-        using TKernelContext = NKernel::TRemoveQueryMeansContext;
+        using TKernelContext = NKernel::TRemoveQueryBiasContext;
 
         Y_SAVELOAD_DEFINE(Qids, QidsOffsets, Dest);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QueryMeans = memoryManager.Allocate<float>(QidsOffsets.Size());
+            context->QueryBias = memoryManager.Allocate<float>(QidsOffsets.Size());
             return context;
         }
 
@@ -257,9 +257,45 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream, TKernelContext& context) {
             CB_ENSURE(QidsOffsets.Size());
             const ui32 qCount = QidsOffsets.Size() - 1;
-            NKernel::ComputeGroupMeans(Dest.Get(), nullptr, QidsOffsets.Get(), qCount, context.QueryMeans, stream.GetStream());
-            NKernel::RemoveGroupMeans(context.QueryMeans, Qids.Get(), Dest.Size(), Dest.Get(), stream.GetStream());
+            NKernel::ComputeGroupMeans(Dest.Get(), nullptr, QidsOffsets.Get(), qCount, context.QueryBias, stream.GetStream());
+            NKernel::RemoveGroupBias(context.QueryBias, Qids.Get(), Dest.Size(), Dest.Get(), stream.GetStream());
         }
+    };
+
+    class TRemoveQueryMax: public TKernelBase<NKernel::TRemoveQueryBiasContext, false> {
+     private:
+      TCudaBufferPtr<const ui32> Qids;
+      TCudaBufferPtr<const ui32> QidsOffsets;
+      TCudaBufferPtr<float> Dest;
+
+     public:
+      using TKernelContext = NKernel::TRemoveQueryBiasContext;
+
+      Y_SAVELOAD_DEFINE(Qids, QidsOffsets, Dest);
+
+      THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+          auto context = MakeHolder<TKernelContext>();
+          context->QueryBias = memoryManager.Allocate<float>(QidsOffsets.Size());
+          return context;
+      }
+
+      TRemoveQueryMax() = default;
+
+      TRemoveQueryMax(const TCudaBufferPtr<const ui32> qids,
+                      const TCudaBufferPtr<const ui32> qidOffsets,
+                      TCudaBufferPtr<float> dest)
+          : Qids(qids)
+          , QidsOffsets(qidOffsets)
+          , Dest(dest)
+      {
+      }
+
+      void Run(const TCudaStream& stream, TKernelContext& context) {
+          CB_ENSURE(QidsOffsets.Size());
+          const ui32 qCount = QidsOffsets.Size() - 1;
+          NKernel::ComputeGroupMax(Dest.Get(), QidsOffsets.Get(), qCount, context.QueryBias, stream.GetStream());
+          NKernel::RemoveGroupBias(context.QueryBias, Qids.Get(), Dest.Size(), Dest.Get(), stream.GetStream());
+      }
     };
 
 }
@@ -346,5 +382,14 @@ inline void RemoveQueryMeans(const TCudaBuffer<ui32, TMapping>& qids,
                              TCudaBuffer<float, TMapping>* vec,
                              ui32 stream = 0) {
     using TKernel = NKernelHost::TRemoveQueryMeans;
+    LaunchKernels<TKernel>(vec->NonEmptyDevices(), stream, qids, qidOffsets, *vec);
+};
+
+template <class TMapping>
+inline void RemoveQueryMax(const TCudaBuffer<ui32, TMapping>& qids,
+                           const TCudaBuffer<ui32, TMapping>& qidOffsets,
+                           TCudaBuffer<float, TMapping>* vec,
+                           ui32 stream = 0) {
+    using TKernel = NKernelHost::TRemoveQueryMax;
     LaunchKernels<TKernel>(vec->NonEmptyDevices(), stream, qids, qidOffsets, *vec);
 };

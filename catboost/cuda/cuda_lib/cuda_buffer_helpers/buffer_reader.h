@@ -94,7 +94,7 @@ namespace NCudaLib {
             dst.resize(readSlices.size() * singleSliceSize);
 
             for (ui64 i = 0; i < readSlices.size(); ++i) {
-                SubmitReadAsync(~dst + i * singleSliceSize, readSlices[i]);
+                SubmitReadAsync(dst.data() + i * singleSliceSize, readSlices[i]);
             }
         }
 
@@ -119,7 +119,7 @@ namespace NCudaLib {
                 auto appendOffset = mapping.MemoryOffset(reduceSlice);
                 auto appendSize = mapping.MemorySize(reduceSlice);
                 CB_ENSURE(appendSize == reduceSize, "Error: reduce size should be equal append size");
-                TReducer::Reduce(~dst, ~dst + appendOffset, appendSize);
+                TReducer::Reduce(dst.data(), dst.data() + appendOffset, appendSize);
             }
             dst.resize(reduceSize);
         }

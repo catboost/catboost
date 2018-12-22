@@ -15,7 +15,7 @@ from operator import itemgetter
 if platform.system() == 'Linux':
     try:
         ctypes.CDLL('librt.so')
-    except:
+    except Exception:
         pass
 
 try:
@@ -37,7 +37,7 @@ def get_so_paths(dir_name):
 def get_catboost_bin_module():
     if '_catboost' in sys.modules:
         return sys.modules['_catboost']
-    so_paths = get_so_paths('./gpu') + get_so_paths('./')
+    so_paths = get_so_paths('./')
     for so_path in so_paths:
         try:
             loaded_catboost = imp.load_dynamic('_catboost', so_path)
@@ -60,7 +60,8 @@ _configure_malloc = _catboost._configure_malloc
 CatboostError = _catboost.CatboostError
 _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 compute_wx_test = _catboost.compute_wx_test
-is_classification_loss = _catboost.is_classification_loss
+is_classification_objective = _catboost.is_classification_objective
+is_regression_objective = _catboost.is_regression_objective
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -68,7 +69,7 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 
 
-from contextlib import contextmanager
+from contextlib import contextmanager  # noqa E402
 
 
 _configure_malloc()
@@ -115,44 +116,34 @@ def metric_description_or_str_to_str(description):
     return _metric_description_or_str_to_str(description)
 
 
+def _check_param_type(value, name, types, or_none=True):
+    if not isinstance(value, types + ((type(None),) if or_none else ())):
+        raise CatboostError('Parameter {} should have a type of {}, got {}'.format(name, [t.__class__.__name__ for t in types], type(value).__class__.__name__))
+
+
 def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbose_eval=None, silent=None):
-    if silent is not None:
-        if verbose_eval is not None:
-            raise CatboostError('Only one of the parameters silent and verbose_eval should be set')
-        if verbose is not None:
-            raise CatboostError('Only one of the parameters silent and verbose should be set')
-        if logging_level is not None:
-            raise CatboostError('Only one of the parameters silent and logging_level should be set')
-        if type(silent) != bool:
-            raise CatboostError('silent parameter should be bool.')
-        verbose = not silent
+    _check_param_type(metric_period, 'metric_period', (int,))
+    _check_param_type(verbose, 'verbose', (bool, int))
+    _check_param_type(logging_level, 'logging_level', (str,))
+    _check_param_type(verbose_eval, 'verbose_eval', (bool, int))
+    _check_param_type(silent, 'silent', (bool,))
 
-    if verbose_eval is not None:
-        if verbose is not None:
-            raise CatboostError('Only one of the parameters verbose and verbose_eval should be set.')
-        if not isinstance(verbose_eval, bool) and not isinstance(verbose_eval, int):
-            raise CatboostError('verbose_eval parameter should be bool or int.')
-        verbose = verbose_eval
+    params = locals()
+    exclusive_params = ['verbose', 'logging_level', 'verbose_eval', 'silent']
+    at_most_one = sum([params[exclusive] is not None for exclusive in exclusive_params])
+    if at_most_one > 1:
+        raise CatboostError('Only one of parameters {} should be set'.format(exclusive_params.keys()))
 
+    if verbose is None:
+        if silent is not None:
+            verbose = not silent
+        elif verbose_eval is not None:
+            verbose = verbose_eval
     if verbose is not None:
-        if not isinstance(verbose, bool) and not isinstance(verbose, int):
-            raise CatboostError('verbose should be bool or int.')
-        if type(verbose) == int:
-            if verbose <= 0:
-                raise CatboostError('verbose should be positive.')
-            logging_level = 'Verbose'
-        elif logging_level is not None:
-            raise CatboostError("Only one of the parameters verbose and logging_level should be set.")
-        elif verbose:
-            verbose = None
-            logging_level = 'Verbose'
-        else:
-            verbose = None
-            logging_level = 'Silent'
+        logging_level = 'Verbose' if verbose else 'Silent'
+        verbose = int(verbose)
 
-    if metric_period is not None:
-        if not isinstance(metric_period, int):
-            raise CatboostError('metric_period should be int.')
+    if isinstance(metric_period, int):
         if metric_period <= 0:
             raise CatboostError('metric_period should be positive.')
         if verbose is not None:
@@ -591,7 +582,6 @@ class Pool(_PoolBase):
         """
         if isinstance(data, DataFrame):
             feature_names = list(data.columns)
-            data = data.values
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
@@ -862,6 +852,15 @@ class _CatBoostBase(object):
                 raise CatboostError('You should train the model first.')
         return test_evals
 
+    def get_evals_result(self):
+        return self._object._get_metrics_evals()
+
+    def get_best_score(self):
+        return self._object._get_best_score()
+
+    def get_best_iteration(self):
+        return self._object._get_best_iteration()
+
     def _get_float_feature_indices(self):
         return self._object._get_float_feature_indices()
 
@@ -885,11 +884,15 @@ class _CatBoostBase(object):
         """returns (fstr_values, feature_ids)."""
         return self._object._calc_fstr(fstr_type.name, pool, thread_count, verbose)
 
-    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
-        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
+        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
 
     def _base_shrink(self, ntree_start, ntree_end):
-        return self._object._base_shrink(ntree_start, ntree_end)
+        self._object._base_shrink(ntree_start, ntree_end)
+        self._set_trained_model_attributes()
+
+    def _base_drop_unused_features(self):
+        self._object._base_drop_unused_features()
 
     def _save_model(self, output_file, format, export_parameters, pool):
         import json
@@ -912,6 +915,15 @@ class _CatBoostBase(object):
     def _deserialize_model(self, dump_model_str):
         self._object._deserialize_model(dump_model_str)
 
+    def _sum_models(self, models_base, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
+        if weights is None:
+            weights = [1.0 for _ in models_base]
+        models_inner = [model._object for model in models_base]
+        self._object._sum_models(models_inner, weights, ctr_merge_policy)
+        setattr(self, '_random_seed', 0)
+        setattr(self, '_learning_rate', 0)
+        setattr(self, '_tree_count', self._object._get_tree_count())
+
     def _get_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
@@ -920,8 +932,11 @@ class _CatBoostBase(object):
                 params[key] = value
         return params
 
-    def _is_classification_loss(self, loss_function):
-        return isinstance(loss_function, str) and is_classification_loss(loss_function)
+    def _is_classification_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_classification_objective(loss_function)
+
+    def _is_regression_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_regression_objective(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -936,14 +951,20 @@ class _CatBoostBase(object):
 
     @property
     def tree_count_(self):
+        if not self.is_fitted():
+            raise CatboostError('Model is not fitted.')
         return getattr(self, '_tree_count')
 
     @property
     def random_seed_(self):
+        if not self.is_fitted():
+            raise CatboostError('Model is not fitted.')
         return getattr(self, '_random_seed')
 
     @property
     def learning_rate_(self):
+        if not self.is_fitted():
+            raise CatboostError('Model is not fitted.')
         return getattr(self, '_learning_rate')
 
     @property
@@ -951,6 +972,18 @@ class _CatBoostBase(object):
         if not self.is_fitted():
             raise CatboostError('Model is not fitted.')
         return self._object._get_feature_names()
+
+    @property
+    def evals_result_(self):
+        return self.get_evals_result()
+
+    @property
+    def best_score_(self):
+        return self.get_best_score()
+
+    @property
+    def best_iteration_(self):
+        return self.get_best_iteration()
 
 
 def _check_param_types(params):
@@ -1100,7 +1133,7 @@ class CatBoost(_CatBoostBase):
             self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
         )
 
-        if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
+        if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
@@ -1237,6 +1270,8 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function_type = self.get_param('loss_function')
+        if loss_function_type is None:
+            loss_function_type = self.get_param('objective')
         # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
         if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
             return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
@@ -1302,8 +1337,6 @@ class CatBoost(_CatBoostBase):
                 data=data,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None
             )
-        elif not np.all(set(self._get_cat_feature_indices()).issubset(data.get_cat_feature_indices())):
-            raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
@@ -1312,6 +1345,8 @@ class CatBoost(_CatBoostBase):
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         loss_function = self.get_param('loss_function')
+        if loss_function is None:
+            loss_function = self.get_param('objective')
         while True:
             predictions = staged_predict_iterator.next()
             if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
@@ -1373,8 +1408,6 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
             raise CatboostError("Invalid data type={}, must be catboost.Pool.".format(type(data)))
-        elif not np.all(set(self._get_cat_feature_indices()).issubset(data.get_cat_feature_indices())):
-            raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
             raise CatboostError("Data is empty.")
         if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES):
@@ -1488,7 +1521,9 @@ class CatBoost(_CatBoostBase):
 
         verbose : bool or int
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
-            If positive integer, then it stands for log write period.
+            If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
+            and remaining time.
+
 
         Returns
         -------
@@ -1538,7 +1573,7 @@ class CatBoost(_CatBoostBase):
         elif fstr_type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
+    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1578,11 +1613,25 @@ class CatBoost(_CatBoostBase):
             Number of threads.
             If -1, then the number of threads is set to the number of cores.
 
+        verbose : bool or int
+            If False, then evaluation is not logged. If True, then each possible iteration is logged.
+            If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
+            and remaining time.
+
         Returns
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
-        return self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+
+        if not isinstance(verbose, bool) and not isinstance(verbose, int):
+            raise CatboostError('verbose should be bool or int.')
+        verbose = int(verbose)
+        if verbose < 0:
+            raise CatboostError('verbose should be non-negative.')
+
+        with log_fixup():
+            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
+        return result
 
     def shrink(self, ntree_end, ntree_start=0):
         """
@@ -1598,6 +1647,12 @@ class CatBoost(_CatBoostBase):
         if ntree_start > ntree_end:
             raise CatboostError("ntree_start should be less than ntree_end.")
         self._base_shrink(ntree_start, ntree_end)
+
+    def drop_unused_features(self):
+        """
+        Drop unused features information from model
+        """
+        self._base_drop_unused_features()
 
     def save_model(self, fname, format="cbm", export_parameters=None, pool=None):
         """
@@ -1616,14 +1671,14 @@ class CatBoost(_CatBoostBase):
                 * coreml_model_version : string
                 * coreml_model_author : string
                 * coreml_model_license: string
-        pool : catboost.Pool or tuple (X, y)
-            to get cashes
+        pool : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or catboost.FeaturesData
+            Training pool.
         """
         if not self.is_fitted():
             raise CatboostError("There is no trained model to use save_model(). Use fit() to train model. Then use save_model().")
         if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
-        if pool and not isinstance(pool, Pool):
+        if pool is not None and not isinstance(pool, Pool):
             pool = Pool(
                 data=pool,
                 cat_features=self._get_cat_feature_indices() if not isinstance(pool, FeaturesData) else None
@@ -1846,10 +1901,17 @@ class CatBoostClassifier(CatBoost):
         The given integer should be greater than any of the target values.
         If this parameter is specified the labels for all classes in the input dataset
         should be smaller than the given value.
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
     class_weights : list of floats, [default=None]
         Classes weights. The values are used as multipliers for the object weights.
         If None, all classes are supposed to have weight one.
-        Number of classes indicated by classes_count and class_weights should be the same.
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
+    class_names: list of strings, [default=None]
+        Class names. Allows to redefine the default values for class labels (integer numbers).
+        If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
+        the numbers of classes specified by each of them must be equal.
     one_hot_max_size : int, [default=None]
         Convert the feature to float
         if the number of different values that it takes exceeds the specified value.
@@ -1989,6 +2051,7 @@ class CatBoostClassifier(CatBoost):
         allow_const_label=None,
         classes_count=None,
         class_weights=None,
+        class_names=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,
@@ -2128,7 +2191,7 @@ class CatBoostClassifier(CatBoost):
         params = self._init_params.copy()
         _process_synonyms(params)
         if 'loss_function' in params:
-            self._check_is_classification_loss(params['loss_function'])
+            self._check_is_classification_objective(params['loss_function'])
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
@@ -2297,15 +2360,15 @@ class CatBoostClassifier(CatBoost):
         elif y is None:
             raise CatboostError("y should be specified.")
         correct = []
-        y = np.array(y)
+        y = np.array(y, dtype=np.int32)
         for i, val in enumerate(self.predict(X)):
-            correct.append(1 * (y[i] == val))
+            correct.append(1 * (y[i] == np.int32(val)))
         return np.mean(correct)
 
-    def _check_is_classification_loss(self, loss_function):
-        if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
+    def _check_is_classification_objective(self, loss_function):
+        if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
-                                    "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
+                                "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
 
 class CatBoostRegressor(CatBoost):
@@ -2314,8 +2377,7 @@ class CatBoostRegressor(CatBoost):
 
     Parameters
     ----------
-    Like in CatBoostClassifier, except loss_function, class_weights and
-    classes_count
+    Like in CatBoostClassifier, except loss_function, classes_count, class_names and class_weights
 
     loss_function : string, [default='RMSE']
         'RMSE'
@@ -2324,6 +2386,7 @@ class CatBoostRegressor(CatBoost):
         'LogLinQuantile:alpha=value'
         'Poisson'
         'MAPE'
+        'Lq:q=value'
     """
     def __init__(
         self,
@@ -2584,14 +2647,15 @@ class CatBoostRegressor(CatBoost):
         elif y is None:
             raise CatboostError("y should be specified.")
         error = []
-        y = np.array(y)
+        y = np.array(y, dtype=np.float64)
         for i, val in enumerate(self.predict(X)):
             error.append(pow(y[i] - val, 2))
         return np.sqrt(np.mean(error))
 
     def _check_is_regressor_loss(self, loss_function):
-        if self._is_classification_loss(loss_function):
-            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
+        if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):
+            raise CatboostError("Invalid loss_function='{}': for regressor use "
+                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
@@ -2711,10 +2775,10 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
-       fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
+       fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, iterations_batch_size=100):
     """
     Cross-validate the CatBoost model.
 
@@ -2802,6 +2866,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     snapshot_interval: int, [default=600]
         Interval beetween saving snapshots (seconds)
 
+    iterations_batch_size: int [default:100]
+        Number of iterations to compute for each fold before aggregating results.
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2869,8 +2936,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if snapshot_interval is not None:
         params['snapshot_interval'] = snapshot_interval
 
+    if nfold is None and fold_count is None:
+        fold_count = 3
+    elif fold_count is None:
+        fold_count = nfold
+    else:
+        assert nfold is None or nfold == fold_count
+
     with log_fixup(), plot_wrapper(plot, params):
-        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)
+        return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
+                   as_pandas, iterations_batch_size)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):
@@ -2886,3 +2961,9 @@ class BatchMetricCalcer(_MetricCalcerBase):
         if isinstance(metrics, str):
             metrics = [metrics]
         self._create_calcer(metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, delete_temp_dir_flag)
+
+
+def sum_models(models, weights=None, ctr_merge_policy='IntersectingCountersAverage'):
+    result = CatBoost()
+    result._sum_models(models, weights, ctr_merge_policy)
+    return result

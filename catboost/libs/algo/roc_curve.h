@@ -1,15 +1,20 @@
 #pragma once
 
+#include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/data/pool.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/fwd.h>
 #include <util/generic/vector.h>
+
 
 struct TRocPoint {
     double Boundary = 0.0;
     double FalseNegativeRate = 0.0;
     double FalsePositiveRate = 0.0;
 
+public:
     TRocPoint() = default;
     TRocPoint(
         double boundary,
@@ -24,12 +29,12 @@ struct TRocPoint {
 };
 
 struct TRocCurve {
-    TRocCurve(const TFullModel& model, const TVector<TPool>& pool, int threadCount = 1);
+    TRocCurve(const TFullModel& model, const TVector<NCB::TDataProviderPtr>& datasets, int threadCount = 1);
 
     TRocCurve(
         const TVector<TVector<double>>& approxes,
-        const TVector<TPool>& pool,
-        NPar::TLocalExecutor* localExecutor
+        const TVector<TConstArrayRef<float>>& labels,
+        int threadCount
     );
 
     TRocCurve(const TVector<TRocPoint>& points);
@@ -44,14 +49,15 @@ struct TRocCurve {
 
     TVector<TRocPoint> GetCurvePoints();
 
-    void Output(const TString& outputPath);
+    void OutputRocCurve(const TString& outputPath);
 private:
     TVector<TRocPoint> Points; // Points are sorted by Boundary from higher to lower
     size_t RateCurvesIntersection;
 
+private:
     void BuildCurve(
-        const TVector<TVector<double>>& approxes,
-        const TVector<TPool>& pool,
+        const TVector<TVector<double>>& approxes, // [poolId][docId]
+        const TVector<TConstArrayRef<float>>& labels, // [poolId][docId]
         NPar::TLocalExecutor* localExecutor
     );
 

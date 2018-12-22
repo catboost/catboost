@@ -5,6 +5,7 @@
 #include <catboost/libs/data_util/path_with_scheme.h>
 
 #include <util/stream/fwd.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
 struct TCdParserDefaults {
@@ -34,3 +35,5 @@ THolder<ICdProvider> MakeCdProviderFromFile(const NCB::TPathWithScheme& path);
 // i-th column.
 TVector<TColumn> ReadCD(const NCB::TPathWithScheme& path, const TCdParserDefaults& defaults = {});
 TVector<TColumn> ReadCD(IInputStream* in, const TCdParserDefaults& defaults = {});
+TVector<TColumn> MakeDefaultColumnsDescription(size_t columnsCount);
+TVector<EColumn> GetColumnTypes(TConstArrayRef<TColumn> descriptions);

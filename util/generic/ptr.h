@@ -337,7 +337,7 @@ private:
 
 template <typename T, typename... Args>
 THolder<T> MakeHolder(Args&&... args) {
-    return new T{std::forward<Args>(args)...};
+    return new T(std::forward<Args>(args)...);
 }
 
 /*

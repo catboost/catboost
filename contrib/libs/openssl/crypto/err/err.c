@@ -1010,8 +1010,13 @@ void ERR_remove_state(unsigned long pid)
 }
 #endif
 
-ERR_STATE *y_openssl_err_get_thrlocal();
-void y_openssl_err_set_thrlocal(ERR_STATE *);
+static
+#if defined(_MSC_VER)
+__declspec(thread)
+#else
+__thread
+#endif
+ERR_STATE* thrlocal = NULL;
 
 ERR_STATE *ERR_get_state(void)
 {
@@ -1020,11 +1025,11 @@ ERR_STATE *ERR_get_state(void)
     int i;
     CRYPTO_THREADID tid;
 
-    if (y_openssl_err_get_thrlocal()) {
-        return y_openssl_err_get_thrlocal();
+    if (thrlocal) {
+        return thrlocal;
     }
 
-    y_openssl_err_set_thrlocal(&fallback);
+    thrlocal = &fallback;
 
 
     err_fns_check();
@@ -1057,7 +1062,7 @@ ERR_STATE *ERR_get_state(void)
         if (tmpp)
             ERR_STATE_free(tmpp);
     }
-    y_openssl_err_set_thrlocal(ret);
+    thrlocal = ret;
     return ret;
 }
 

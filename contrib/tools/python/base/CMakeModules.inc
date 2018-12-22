@@ -68,13 +68,9 @@ IF (ARCH_X86_64 OR ARCH_I386)
     IF (OS_CYGWIN)
         #TODO
     ELSE()
-        PEERDIR(contrib/tools/python/src/Modules/_ctypes/libffi)
+        PEERDIR(contrib/deprecated/libffi)
 
-        IF (UNIX)
-            ADDINCL(${PYTHON_SRC_DIR}/Modules/_ctypes/libffi/include)
-        ELSEIF (WIN32)
-            ADDINCL(${PYTHON_SRC_DIR}/Modules/_ctypes/libffi_msvc)
-        ENDIF()
+        ADDINCL(contrib/deprecated/libffi/include)
 
         SRCS(
             Modules/_ctypes/_ctypes.c
@@ -119,12 +115,18 @@ IF(LINUX)
     )
 ENDIF(LINUX)
 
-IF(DARWIN OR OS_CYGWIN)
+IF(DARWIN OR OS_CYGWIN OR OS_IOS)
     SRCS(Modules/_multiprocessing/multiprocessing.c
          Modules/_multiprocessing/semaphore.c
          Modules/_multiprocessing/socket_connection.c
     )
-ENDIF(DARWIN OR OS_CYGWIN)
+ENDIF(DARWIN OR OS_CYGWIN OR OS_IOS)
+
+IF (OS_DARWIN)
+    SRCS(
+        Mac/Modules/_scproxy.c
+    )
+ENDIF()
 
 IF (UNIX)
     ADDINCL(${PYTHON_SRC_DIR}/Modules/expat)
@@ -149,7 +151,7 @@ IF (UNIX)
 
     IF (OS_CYGWIN)
         #PASS
-    ELSEIF (NOT DARWIN)
+    ELSEIF (NOT DARWIN AND NOT OS_IOS)
         EXTRALIBS(crypt)
     ENDIF()
 
@@ -158,7 +160,7 @@ IF (UNIX)
     CFLAGS(-DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DUSE_PYEXPAT_CAPI)
 ENDIF(UNIX)
 
-IF (WIN32)
+IF (OS_WINDOWS)
     ADDINCL(${PYTHON_SRC_DIR}/Modules/expat)
 
     SRCS(Modules/_elementtree.c
@@ -181,5 +183,7 @@ IF (WIN32)
 
     CFLAGS(-DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI)
     CFLAGS(-DEAI_ADDRFAMILY=1 -DHAVE_SOCKADDR_STORAGE=1 -DHAVE_ADDRINFO=1)
-    CFLAGS(/D_WIN64 /D_M_X64)
+    IF (ARCH_X86_64)
+        CFLAGS(/D_WIN64 /D_M_X64)
+    ENDIF()
 ENDIF(WIN32)

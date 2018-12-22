@@ -4,8 +4,6 @@ ELSE()
     EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 
-USE_LINKER_GOLD()
-
 PYTHON_ADDINCL()
 
 # add only headers for dynamic linking
@@ -16,7 +14,8 @@ ADDINCL(
 PEERDIR(
     catboost/libs/train_lib
     catboost/libs/algo
-    catboost/libs/data
+    catboost/libs/cat_feature
+    catboost/libs/data_new
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/init
@@ -24,10 +23,12 @@ PEERDIR(
     catboost/libs/documents_importance
     catboost/libs/eval_result
     catboost/libs/helpers
+    catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    catboost/libs/target
     library/containers/2d_array
     library/json/writer
 )

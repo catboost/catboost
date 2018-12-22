@@ -6,22 +6,22 @@
 #include "par_locked_hash.h"
 
 #include <library/digest/crc32c/crc32c.h>
-
-#include <library/neh/neh.h>
 #include <library/neh/multiclient.h>
+#include <library/neh/neh.h>
 #include <library/neh/rpc.h>
-
-#include <library/netliba/v12/udp_http.h>
 #include <library/netliba/v12/ib_low.h>
+#include <library/netliba/v12/udp_http.h>
+#include <library/threading/atomic/bool.h>
 
-#include <util/thread/pool.h>
+#include <util/generic/hash.h>
+#include <util/generic/strbuf.h>
+#include <util/network/sock.h>
 #include <util/string/builder.h>
 #include <util/string/split.h>
-
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 #include <util/system/mutex.h>
-#include <util/generic/strbuf.h>
-#include <util/generic/hash.h>
-#include <util/network/sock.h>
+#include <util/thread/pool.h>
 
 namespace NPar {
     class TNehRequester: public IRequester {
@@ -52,7 +52,16 @@ namespace NPar {
             TManualEvent Event;
             TAutoPtr<TNetworkResponse> Response;
         };
-        explicit TNehRequester(int port) {
+
+        explicit TNehRequester(
+            int port,
+            TProcessQueryCancelCallback queryCancelCallback,
+            TProcessQueryCallback queryCallback,
+            TProcessReplyCallback replyCallback)
+            : QueryCancelCallback(std::move(queryCancelCallback))
+            , QueryCallback(std::move(queryCallback))
+            , ReplyCallback(std::move(replyCallback))
+        {
             NNeh::SetProtocolOption("tcp2/ServerOutputDeadline", "600s");
             MultiClient = NNeh::CreateMultiClient();
             MultiClientThread = SystemThreadPool()->Run([this]() {
@@ -174,7 +183,7 @@ namespace NPar {
                         --infoDataPtr->RetriesRest;
                         if (infoDataPtr->RetriesRest < 0) {
                             Singleton<TParLogger>()->OutputLogTailToCout();
-                            Y_VERIFY(false, "got unexpected network error, no retries rest");
+                            Y_FAIL("got unexpected network error, no retries rest");
                         }
                         NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                              Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -182,7 +191,7 @@ namespace NPar {
                     } else {
                         if (resp->Data != TStringBuf{"OK"}) {
                             ERROR_LOG << "query info: " << infoDataPtr->ToString() << Endl;
-                            Y_VERIFY(false, "reply isn't OK");
+                            Y_FAIL("reply isn't OK");
                         }
                     }
                 } else if (ev.Type == NNeh::IMultiClient::TEvent::Timeout) {
@@ -192,7 +201,7 @@ namespace NPar {
                     --infoDataPtr->RetriesRest;
                     if (infoDataPtr->RetriesRest < 0) {
                         Singleton<TParLogger>()->OutputLogTailToCout();
-                        Y_VERIFY(false, "got timeout for some request :(");
+                        Y_FAIL("got timeout for some request :(");
                     }
                     NNeh::IMultiClient::TRequest request(infoDataPtr->NehMessage,
                                                          Timeout(*infoDataPtr).ToDeadLine(), infoDataPtr.Release());
@@ -272,7 +281,7 @@ namespace NPar {
             PAR_DEBUG_LOG << "From " << GetHostAndPort() << " sending request " << GetGuidAsString(reqId) << " url: " << url << " data len: " << (data ? data->size() : 0) << Endl;
             InternalSendQuery(address, reqId, url + "@" + ToString(ListenPort), data);
             reqInfo->Event.WaitI();
-            Y_VERIFY(DirectRequestsInfo.EraseValueIfPresent(reqId), "");
+            Y_VERIFY(DirectRequestsInfo.EraseValueIfPresent(reqId));
             return std::move(reqInfo->Response);
         }
 
@@ -296,12 +305,12 @@ namespace NPar {
             messageStream << GetGuidAsString(requestId) << '\xff';
             messageStream << url << '\xff';
             if (data) {
-                const size_t origLen = +*data;
+                const size_t origLen = data->size();
                 QuickLZCompress(data);
-                const size_t compressedLen = +*data;
-                auto val = Crc32c(~*data, +*data);
+                const size_t compressedLen = data->size();
+                auto val = Crc32c(data->data(), data->size());
                 messageStream << val << '\xff';
-                msg.Data.AppendNoAlias(~*data, +*data);
+                msg.Data.AppendNoAlias(data->data(), data->size());
 
                 TVector<char>().swap(*data);
                 PAR_DEBUG_LOG << "From " << GetHostAndPort() << " sending request " << GetGuidAsString(requestId) << " to " << address.GetNehAddr() << " service " << url << " data len: " << origLen << " (compressed: " << compressedLen << ")" << Endl;
@@ -334,6 +343,10 @@ namespace NPar {
         }
 
     private:
+        TProcessQueryCancelCallback QueryCancelCallback;
+        TProcessQueryCallback QueryCallback;
+        TProcessReplyCallback ReplyCallback;
+
         TSpinLockedKeyValueStorage<TGUID, TNetworkAddress, TGUIDHash> RequestsInfo;
         TSpinLockedKeyValueStorage<TGUID, TNetworkAddress, TGUIDHash> IncomingRequestsInfo;
         TSpinLockedKeyValueStorage<TGUID, TIntrusivePtr<TSyncRequestsInfo>, TGUIDHash> DirectRequestsInfo;
@@ -343,13 +356,20 @@ namespace NPar {
         TAutoPtr<IThreadPool::IThread> PingerThread;
         NNeh::IServicesRef ReceiverServices;
         ui16 ListenPort = 0;
-        volatile bool Running = true;
+        NAtomic::TBool Running = true;
     };
 
     class TNetlibaRequester: public IRequester {
     public:
-        explicit TNetlibaRequester(int listenPort)
-            : Requester(NNetliba_v12::CreateHttpUdpRequester(listenPort))
+        explicit TNetlibaRequester(
+            int listenPort,
+            TProcessQueryCancelCallback queryCancelCallback,
+            TProcessQueryCallback queryCallback,
+            TProcessReplyCallback replyCallback)
+            : QueryCancelCallback(std::move(queryCancelCallback))
+            , QueryCallback(std::move(queryCallback))
+            , ReplyCallback(std::move(replyCallback))
+            , Requester(NNetliba_v12::CreateHttpUdpRequester(listenPort))
         {
             PAR_DEBUG_LOG << "Created netliba httpudp requester on port " << listenPort << Endl;
             Requester->EnableReportRequestCancel();
@@ -393,7 +413,7 @@ namespace NPar {
                 THolder<NNetliba_v12::TUdpHttpRequest> nlReq = Requester->GetRequest();
                 if (nlReq) {
                     QuickLZDecompress(&nlReq->Data);
-                    PAR_DEBUG_LOG << "Got request " << ~nlReq->Url << Endl;
+                    PAR_DEBUG_LOG << "Got request " << nlReq->Url.data() << Endl;
                     TAutoPtr<TNetworkRequest> netReq = new TNetworkRequest;
                     netReq->ReqId = nlReq->ReqId;
                     netReq->Url = nlReq->Url;
@@ -431,13 +451,22 @@ namespace NPar {
         }
 
     private:
-        volatile bool Stopped = false;
+        TProcessQueryCancelCallback QueryCancelCallback;
+        TProcessQueryCallback QueryCallback;
+        TProcessReplyCallback ReplyCallback;
+
+        NAtomic::TBool Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
         TAutoPtr<IThreadPool::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;
     };
 
-    TIntrusivePtr<IRequester> CreateRequester(int listenPort) {
+    TIntrusivePtr<IRequester> CreateRequester(
+        int listenPort,
+        IRequester::TProcessQueryCancelCallback processQueryCancelCallback,
+        IRequester::TProcessQueryCallback processQueryCallback,
+        IRequester::TProcessReplyCallback processReplyCallback)
+    {
         auto& settings = TParNetworkSettings::GetRef();
         if (settings.RequesterType == TParNetworkSettings::ERequesterType::AutoDetect) {
             TIntrusivePtr<NNetliba_v12::TIBPort> ibPort = NNetliba_v12::GetIBDevice();
@@ -451,12 +480,20 @@ namespace NPar {
         switch (settings.RequesterType) {
             case TParNetworkSettings::ERequesterType::NEH:
                 DEBUG_LOG << "Creating NEH requester" << Endl;
-                return new TNehRequester(listenPort);
+                return MakeIntrusive<TNehRequester>(
+                    listenPort,
+                    std::move(processQueryCancelCallback),
+                    std::move(processQueryCallback),
+                    std::move(processReplyCallback));
             case TParNetworkSettings::ERequesterType::Netliba:
                 DEBUG_LOG << "Creating Netliba requester" << Endl;
-                return new TNetlibaRequester(listenPort);
+                return MakeIntrusive<TNetlibaRequester>(
+                    listenPort,
+                    std::move(processQueryCancelCallback),
+                    std::move(processQueryCallback),
+                    std::move(processReplyCallback));
             default:
-                Y_VERIFY(0, "Unknown requester type");
+                Y_FAIL("Unknown requester type");
         }
     }
 }

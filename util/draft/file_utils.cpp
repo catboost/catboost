@@ -55,7 +55,7 @@ i64 GetFileSize(const TString& srcLocation) {
         return -1;
 
     TVector<TString> el;
-    Split(~s, " ", el);
+    Split(s.data(), " ", el);
 
     i64 size;
     try {
@@ -73,7 +73,7 @@ TString ResolveLocation(TString fileLocation, const TString& homeDir) {
     size_t delimPos = fileLocation.find(':');
     if ((delimPos == TString::npos) || (delimPos == 1)) {
         if (!resolvepath(fileLocation, homeDir))
-            ythrow yexception() << "Failed to resolve fileLocation " << ~fileLocation << " with homeDir " << ~homeDir;
+            ythrow yexception() << "Failed to resolve fileLocation " << fileLocation.data() << " with homeDir " << homeDir.data();
     }
     return fileLocation;
 }

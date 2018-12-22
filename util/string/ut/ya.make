@@ -2,8 +2,6 @@ UNITTEST_FOR(util)
 
 
 
-NEED_CHECK()
-
 SRCS(
     string/builder_ut.cpp
     string/cast_ut.cpp

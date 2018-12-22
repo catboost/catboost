@@ -15,6 +15,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if 1
+// We don't want to depend on MSVC headers but
+// we have conflicting definitions otherwise due to
+// some other dependency on eh.h.
+#include <__config>
+#include _LIBCPP_MSVC_INCLUDE(eh.h)
+
+#else
 extern "C" {
 typedef void (__cdecl* terminate_handler)();
 _LIBCPP_CRT_FUNC terminate_handler __cdecl set_terminate(
@@ -28,6 +36,7 @@ unexpected_handler __cdecl _get_unexpected();
 
 int __cdecl __uncaught_exceptions();
 }
+#endif
 
 namespace std {
 

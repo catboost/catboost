@@ -34,10 +34,6 @@
 #define SQLITE3_H
 #include <stdarg.h>     /* Needed for the definition of va_list */
 
-#ifdef SQLITE_OS_YANDEX
-#include <util/system/defaults.h>
-#endif
-
 /*
 ** Make sure we can call this stuff from C++.
 */

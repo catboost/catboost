@@ -8,6 +8,7 @@
 
 #include <library/dns/cache.h>
 #include <library/neh/asio/executor.h>
+#include <library/threading/atomic/bool.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>
@@ -252,7 +253,7 @@ namespace {
             }
 
             size_t LoadContent(const char* buf, size_t len) {
-                size_t curContentSize = +Content_ - RequireBytesForComplete_;
+                size_t curContentSize = Content_.size() - RequireBytesForComplete_;
                 size_t useBytes = Min<size_t>(RequireBytesForComplete_, len);
                 memcpy(Content_.begin() + curContentSize, buf, useBytes);
                 RequireBytesForComplete_ -= useBytes;
@@ -496,6 +497,7 @@ namespace {
                 }
 
                 void SetConnection(TConnection* conn) noexcept {
+                    auto g = Guard(AL_);
                     Conn_ = conn;
                 }
 
@@ -593,7 +595,7 @@ namespace {
                 const TParsedLocation Loc_;
                 const TResolvedHost* Addr_;
                 TConnectionRef Conn_;
-                volatile bool Canceled_;
+                NAtomic::TBool Canceled_;
                 TSpinLock IdLock_;
                 volatile TRequestId Id_;
             };
@@ -613,23 +615,23 @@ namespace {
                 public:
                     void AddRequest(const TRequestRef& req) {
                         Requests_.push_back(req);
-                        if (+req->Service() > MemPoolReserve_) {
-                            TRequestHeader* hdr = new (Allocate<TRequestHeader>()) TRequestHeader(req->ReqId(), +req->Service(), +req->Data());
+                        if (req->Service().size() > MemPoolReserve_) {
+                            TRequestHeader* hdr = new (Allocate<TRequestHeader>()) TRequestHeader(req->ReqId(), req->Service().size(), req->Data().size());
                             AddPart(hdr, sizeof(TRequestHeader));
-                            AddPart(~req->Service(), +req->Service());
+                            AddPart(req->Service().data(), req->Service().size());
                         } else {
-                            TRequestHeader* hdr = new (AllocatePlus<TRequestHeader>(+req->Service())) TRequestHeader(req->ReqId(), +req->Service(), +req->Data());
-                            AddPart(hdr, sizeof(TRequestHeader) + +req->Service());
-                            memmove(++hdr, ~req->Service(), +req->Service());
+                            TRequestHeader* hdr = new (AllocatePlus<TRequestHeader>(req->Service().size())) TRequestHeader(req->ReqId(), req->Service().size(), req->Data().size());
+                            AddPart(hdr, sizeof(TRequestHeader) + req->Service().size());
+                            memmove(++hdr, req->Service().data(), req->Service().size());
                         }
-                        AddPart(~req->Data(), +req->Data());
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        AddPart(req->Data().data(), req->Data().size());
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void AddCancelRequest(TRequestId reqId) {
                         TCancelHeader* hdr = new (Allocate<TCancelHeader>()) TCancelHeader(reqId);
                         AddPart(hdr, sizeof(TCancelHeader));
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void Clear() {
@@ -664,7 +666,7 @@ namespace {
 
                 //called from client thread
                 bool Run(TRequestRef& req) {
-                    if (Y_UNLIKELY(State_ == Closed)) {
+                    if (Y_UNLIKELY(AtomicGet(State_) == Closed)) {
                         return false;
                     }
 
@@ -728,7 +730,7 @@ namespace {
 
                 //must be called only from asio thread
                 void ProcessReqsInFlyQueue() {
-                    if (State_ == Closed) {
+                    if (AtomicGet(State_) == Closed) {
                         return;
                     }
 
@@ -772,7 +774,7 @@ namespace {
                 //must be called only after succes aquiring output
                 void SendMessages(bool asioThread) {
                     //DBGOUT("SendMessages");
-                    if (Y_UNLIKELY(State_ == Closed)) {
+                    if (Y_UNLIKELY(AtomicGet(State_) == Closed)) {
                         if (asioThread) {
                             OnError(Error_);
                         } else {
@@ -987,7 +989,7 @@ namespace {
 
                 //must be called only from asio thread
                 void OnError(const TString& err, const i32 systemCode = 0) {
-                    if (State_ != Closed) {
+                    if (AtomicGet(State_) != Closed) {
                         Error_ = err;
                         SystemCode_ = systemCode;
                         AtomicSet(State_, Closed);
@@ -1137,7 +1139,7 @@ namespace {
 
         class TServer: public IRequester {
             typedef TAutoPtr<TTcpAcceptor> TTcpAcceptorPtr;
-            typedef TSimpleSharedPtr<TTcpSocket> TTcpSocketRef;
+            typedef TAtomicSharedPtr<TTcpSocket> TTcpSocketRef;
             class TConnection;
             typedef TIntrusivePtr<TConnection> TConnectionRef;
 
@@ -1215,19 +1217,19 @@ namespace {
                 class TOutputBuffers: public TMultiBuffers {
                 public:
                     void AddResponse(TRequestId reqId, TData& data) {
-                        TResponseHeader* hdr = new (Allocate<TResponseHeader>()) TResponseHeader(reqId, TResponseHeader::Success, +data);
+                        TResponseHeader* hdr = new (Allocate<TResponseHeader>()) TResponseHeader(reqId, TResponseHeader::Success, data.size());
                         ResponseData_.push_back(TAutoPtr<TData>(new TData()));
                         TData& movedData = *ResponseData_.back();
                         movedData.swap(data);
                         AddPart(hdr, sizeof(TResponseHeader));
-                        AddPart(~movedData, +movedData);
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        AddPart(movedData.data(), movedData.size());
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void AddError(TRequestId reqId, TResponseHeader::TErrorCode errCode) {
                         TResponseHeader* hdr = new (Allocate<TResponseHeader>()) TResponseHeader(reqId, errCode, 0);
                         AddPart(hdr, sizeof(TResponseHeader));
-                        IOVec_ = TContIOVector(~Parts_, +Parts_);
+                        IOVec_ = TContIOVector(Parts_.data(), Parts_.size());
                     }
 
                     void Clear() {
@@ -1503,7 +1505,7 @@ namespace {
             private:
                 TServer& Srv_;
                 TTcpSocketRef AS_;
-                volatile bool Canceled_;
+                NAtomic::TBool Canceled_;
                 TString RemoteHost_;
 
                 //input
@@ -1546,11 +1548,11 @@ namespace {
             }
 
             void StartAccept(TTcpAcceptor* a) {
-                TSimpleSharedPtr<TTcpSocket> s(new TTcpSocket(EP_.Size() ? EP_.GetExecutor().GetIOService() : EA_.GetIOService()));
+                const auto s = MakeAtomicShared<TTcpSocket>(EP_.Size() ? EP_.GetExecutor().GetIOService() : EA_.GetIOService());
                 a->AsyncAccept(*s, std::bind(&TServer::OnAccept, this, a, s, _1, _2));
             }
 
-            void OnAccept(TTcpAcceptor* a, TSimpleSharedPtr<TTcpSocket> s, const TErrorCode& ec, IHandlingContext&) {
+            void OnAccept(TTcpAcceptor* a, TTcpSocketRef s, const TErrorCode& ec, IHandlingContext&) {
                 if (Y_UNLIKELY(ec)) {
                     if (ec.Value() == ECANCELED) {
                         return;

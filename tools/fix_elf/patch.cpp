@@ -55,8 +55,8 @@ int NumericStrCmp(TStringBuf s1, TStringBuf s2) {
             }
         }
 
-        ++s1;
-        ++s2;
+        s1.Skip(1);
+        s2.Skip(1);
     }
 
     return 0;

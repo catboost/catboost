@@ -4514,7 +4514,7 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC PyInit_multiarray(void) {
 #else
 #define RETVAL
-PyMODINIT_FUNC init5numpy4core10multiarray(void) {
+PyMODINIT_FUNC initmultiarray(void) {
 #endif
     PyObject *m, *d, *s;
     PyObject *c_api;
@@ -4523,7 +4523,7 @@ PyMODINIT_FUNC init5numpy4core10multiarray(void) {
 #if defined(NPY_PY3K)
     m = PyModule_Create(&moduledef);
 #else
-    m = Py_InitModule("numpy.core.multiarray", array_module_methods);
+    m = Py_InitModule("multiarray", array_module_methods);
 #endif
     if (!m) {
         goto err;

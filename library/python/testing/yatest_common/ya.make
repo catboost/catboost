@@ -1,6 +1,6 @@
 
 
-PY_LIBRARY()
+PY23_LIBRARY()
 
 
 
@@ -10,7 +10,6 @@ PY_SRCS(
     yatest/common/__init__.py
     yatest/common/benchmark.py
     yatest/common/canonical.py
-    yatest/common/cores.py
     yatest/common/environment.py
     yatest/common/errors.py
     yatest/common/legacy.py
@@ -26,9 +25,9 @@ PY_SRCS(
 )
 
 PEERDIR(
+    library/python/cores
     library/python/filelock
+    contrib/python/six
 )
 
 END()
-
-NEED_CHECK()

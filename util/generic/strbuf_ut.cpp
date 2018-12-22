@@ -6,14 +6,14 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
     Y_UNIT_TEST(TestConstructors) {
         TStringBuf str("qwerty");
 
-        UNIT_ASSERT_EQUAL(*~str, 'q');
-        UNIT_ASSERT_EQUAL(+str, 6);
+        UNIT_ASSERT_EQUAL(*str.data(), 'q');
+        UNIT_ASSERT_EQUAL(str.size(), 6);
 
         TStringBuf str1(AsStringBuf("qwe\0rty"));
         TStringBuf str2(str1.data());
         UNIT_ASSERT_VALUES_UNEQUAL(str1, str2);
-        UNIT_ASSERT_VALUES_EQUAL(+str1, 7);
-        UNIT_ASSERT_VALUES_EQUAL(+str2, 3);
+        UNIT_ASSERT_VALUES_EQUAL(str1.size(), 7);
+        UNIT_ASSERT_VALUES_EQUAL(str2.size(), 3);
     }
 
     Y_UNIT_TEST(TestConstExpr) {
@@ -128,9 +128,8 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(str.Empty());
 
         str = qw;
-        UNIT_ASSERT_EQUAL(str.SubStr(1), str + 1);
-        UNIT_ASSERT_EQUAL(str + 2, AsStringBuf("erty"));
-        UNIT_ASSERT_EQUAL(str += 3, qw.SubStr(3));
+        UNIT_ASSERT_EQUAL(str.SubStr(2), AsStringBuf("erty"));
+        UNIT_ASSERT_EQUAL(str.Skip(3), qw.SubStr(3));
         str.Chop(1);
         UNIT_ASSERT_EQUAL(str, AsStringBuf("rt"));
     }

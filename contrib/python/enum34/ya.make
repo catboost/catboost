@@ -1,6 +1,6 @@
 
 
-LIBRARY()
+PY_LIBRARY() # Backport from Python 3.
 
 LICENSE(
     BSD

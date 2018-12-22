@@ -1,0 +1,20 @@
+bibentry(bibtype = "Misc",
+         title = "CatBoost: gradient boosting with categorical features support",
+         author = c(person("Anna Veronika", "Dorogush"),
+                    person("Vasily", "Ershov"),
+                    person("Andrey", "Gulin")
+                    ),
+         year = 2018,
+         url = "https://arxiv.org/abs/1810.11363")
+
+
+bibentry(bibtype = "Misc",
+         title = "CatBoost: unbiased boosting with categorical features",
+         author = c(person("Liudmila", "Prokhorenkova"),
+                    person("Gleb", "Gusev"),
+                    person("Aleksandr", "Vorobev"),
+                    person("Anna Veronika", "Dorogush"),
+                    person("Andrey", "Gulin")
+                    ),
+         year = 2017,
+         url = "https://arxiv.org/abs/1706.09516")

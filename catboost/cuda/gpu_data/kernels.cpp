@@ -12,5 +12,6 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xBBAA006, TCreateKeysForSegmentedDocsSampleKernel)
     REGISTER_KERNEL(0xBBAA007, TFillTakenDocsMaskKernel)
     REGISTER_KERNEL(0xBBAA008, TRemoveQueryMeans)
+    REGISTER_KERNEL(0xBBAA009, TRemoveQueryMax)
 
 }

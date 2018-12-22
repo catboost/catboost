@@ -1,65 +1,93 @@
 #pragma once
 
+#include "feature_index.h"
+
+#include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/exception.h>
+
+#include <library/binsaver/bin_saver.h>
+
 #include <util/generic/map.h>
+#include <util/generic/typetraits.h>
+#include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
 #include <util/system/spinlock.h>
 #include <util/system/tempfile.h>
+#include <util/system/types.h>
 #include <util/ysaveload.h>
+
+
+namespace NCB {
+    struct TCatFeatureUniqueValuesCounts {
+        ui32 OnLearnOnly = 0;
+        ui32 OnAll = 0;
+
+    public:
+        bool operator==(const TCatFeatureUniqueValuesCounts rhs) const {
+            return (OnLearnOnly == rhs.OnLearnOnly) && (OnAll == rhs.OnAll);
+        }
+    };
+
+    // for some reason TCatFeatureUniqueValuesCounts is not std::is_trivial
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeatureUniqueValuesCounts& data) {
+        ui32 checkSum = UpdateCheckSum(init, data.OnLearnOnly);
+        return UpdateCheckSum(checkSum, data.OnAll);
+    }
+}
+
+Y_DECLARE_PODTYPE(NCB::TCatFeatureUniqueValuesCounts);
+
 
 namespace NCB {
 
     class TCatFeaturesPerfectHash {
     public:
-        explicit TCatFeaturesPerfectHash(const TString& storageFile)
+        TCatFeaturesPerfectHash(ui32 catFeatureCount, const TString& storageFile, bool allowWriteFiles)
             : StorageTempFile(storageFile)
+            , CatFeatureUniqValuesCountsVector(catFeatureCount)
+            , FeaturesPerfectHash(catFeatureCount)
+            , AllowWriteFiles(allowWriteFiles)
         {
             HasHashInRam = true;
         }
 
         ~TCatFeaturesPerfectHash() = default;
 
-        const TMap<int, ui32>& GetFeatureIndex(ui32 featureId) const {
+        bool operator==(const TCatFeaturesPerfectHash& rhs) const;
+
+        const TMap<ui32, ui32>& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+            CheckHasFeature(catFeatureIdx);
             if (!HasHashInRam) {
                 Load();
             }
-            CB_ENSURE(FeaturesPerfectHash.has(featureId), "Features #" << featureId << " hash was not found");
-            return FeaturesPerfectHash.at(featureId);
+            return FeaturesPerfectHash[*catFeatureIdx];
         }
 
-        void RegisterId(ui32 featureId) {
-            CB_ENSURE(HasHashInRam, "Can't register new features if hash is stored in file");
-            FeaturesPerfectHash[featureId] = TMap<int, ui32>();
-            CatFeatureUniqueValues[featureId] = 0;
+        // for testing or setting from external sources
+        void UpdateFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx, TMap<ui32, ui32>&& perfectHash);
+
+        TCatFeatureUniqueValuesCounts GetUniqueValuesCounts(const TCatFeatureIdx catFeatureIdx) const {
+            CheckHasFeature(catFeatureIdx);
+            const auto uniqValuesCounts = CatFeatureUniqValuesCountsVector[*catFeatureIdx];
+            return uniqValuesCounts.OnAll > 1 ? uniqValuesCounts : TCatFeatureUniqueValuesCounts();
         }
 
-        ui32 GetUniqueValues(const ui32 featureId) const {
-            if (CatFeatureUniqueValues.has(featureId)) {
-                const ui32 uniqueValues = CatFeatureUniqueValues.at(featureId);
-                return uniqueValues > 1 ? uniqueValues : 0;
-            } else {
-                ythrow TCatboostException() << "Error: unknown feature with id " << featureId;
+        bool HasFeature(const TCatFeatureIdx catFeatureIdx) const {
+            return (size_t)*catFeatureIdx < CatFeatureUniqValuesCountsVector.size();
+        }
+
+        void SetAllowWriteFiles(bool allowWriteFiles) {
+            AllowWriteFiles = allowWriteFiles;
+        }
+
+        void FreeRamIfPossible() const {
+            if (AllowWriteFiles) {
+                Save();
+                TVector<TMap<ui32, ui32>> empty;
+                FeaturesPerfectHash.swap(empty);
+                HasHashInRam = false;
             }
-        }
-
-        bool HasFeature(const ui32 featureId) const {
-            return CatFeatureUniqueValues.has(featureId);
-        }
-
-        void FreeRam() const {
-            Save();
-            TMap<ui32, TMap<int, ui32>> empty;
-            FeaturesPerfectHash.swap(empty);
-            HasHashInRam = false;
-        }
-
-        Y_SAVELOAD_DEFINE(CatFeatureUniqueValues, FeaturesPerfectHash, HasHashInRam);
-
-    private:
-        void Save() const {
-            TOFStream out(StorageTempFile.Name());
-            ::Save(&out, FeaturesPerfectHash);
         }
 
         void Load() const {
@@ -71,13 +99,34 @@ namespace NCB {
             }
         }
 
+        Y_SAVELOAD_DEFINE(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash, HasHashInRam);
+
+        int operator&(IBinSaver& binSaver);
+
+        ui32 CalcCheckSum() const;
+
+    private:
+        void Save() const {
+            TOFStream out(StorageTempFile.Name());
+            ::Save(&out, FeaturesPerfectHash);
+        }
+
     private:
         friend class TCatFeaturesPerfectHashHelper;
 
     private:
+        void CheckHasFeature(const TCatFeatureIdx catFeatureIdx) const {
+            CB_ENSURE_INTERNAL(
+                HasFeature(catFeatureIdx),
+                "Error: unknown categorical feature #" << catFeatureIdx
+            );
+        }
+
+    private:
         TTempFile StorageTempFile;
-        TMap<ui32, ui32> CatFeatureUniqueValues;
-        mutable TMap<ui32, TMap<int, ui32>> FeaturesPerfectHash;
+        TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqValuesCountsVector; // [catFeatureIdx]
+        mutable TVector<TMap<ui32, ui32>> FeaturesPerfectHash; // [catFeatureIdx]
         mutable bool HasHashInRam = true;
+        bool AllowWriteFiles;
     };
 }

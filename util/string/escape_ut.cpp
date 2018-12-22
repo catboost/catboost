@@ -133,7 +133,7 @@ Y_UNIT_TEST_SUITE(TEscapeCTest) {
         char buf[100000];
 
         for (const auto& x : CommonTestData) {
-            char* end = UnescapeC(~x.Expected, +x.Expected, buf);
+            char* end = UnescapeC(x.Expected.data(), x.Expected.size(), buf);
 
             UNIT_ASSERT_VALUES_EQUAL(x.Source, TStringBuf(buf, end));
         }

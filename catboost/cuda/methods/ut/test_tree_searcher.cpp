@@ -3,8 +3,6 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/cuda/data/data_provider.h>
-#include <catboost/cuda/data/load_data.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
@@ -648,26 +646,18 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
         catFeatureParams.MaxTensorComplexity = 3;
         catFeatureParams.OneHotMaxSize = oneHotLimit;
-        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
-        TDataProvider dataProvider;
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
+
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         floatBinarization,
+                         catFeatureParams,
+                         &dataProvider,
+                         &featuresManager);
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                 dataProvider);
-
-        {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
-
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
         {
             NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum, binarization);
             NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, binarization);
@@ -682,15 +672,15 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(featuresManager,
-                                                                    dataProvider,
+        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
+                                                                    *dataProvider,
                                                                     nullptr,
                                                                     1);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             TestPointwiseHistogramForFeatureParallelDataSet(dataSet.GetDataSetForPermutation(i),
-                                                            featuresManager);
+                                                            *featuresManager);
         }
     }
 
@@ -702,26 +692,18 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         NCatboostOptions::TCatFeatureParams catFeatureParams(ETaskType::GPU);
         catFeatureParams.MaxTensorComplexity = 3;
         catFeatureParams.OneHotMaxSize = oneHotLimit;
-        TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
-        TDataProvider dataProvider;
+        NCB::TTrainingDataProviderPtr dataProvider;
+        THolder<TBinarizedFeaturesManager> featuresManager;
+
+        LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                         NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
+                         floatBinarization,
+                         catFeatureParams,
+                         &dataProvider,
+                         &featuresManager);
+
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-        TDataProviderBuilder dataProviderBuilder(featuresManager,
-                                                 dataProvider);
-
-        {
-            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
-            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
-
-            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
-                          NCB::TPathWithScheme(),
-                          NCB::TPathWithScheme(),
-                          dsvPoolFormatParams,
-                          16,
-                          true,
-                          dataProviderBuilder.SetShuffleFlag(false));
-        }
-
         {
             NCatboostOptions::TBinarizationOptions bucketsBinarization(EBorderSelectionType::GreedyLogSum, binarization);
             NCatboostOptions::TBinarizationOptions freqBinarization(EBorderSelectionType::GreedyLogSum, binarization);
@@ -736,15 +718,15 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-        TDocParallelDataSetBuilder dataSetsHolderBuilder(featuresManager,
-                                                         dataProvider,
+        TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,
+                                                         *dataProvider,
                                                          nullptr);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             TestPointwiseHistogramForDocParallelDataSet(dataSet.GetDataSetForPermutation(i),
-                                                        featuresManager);
+                                                        *featuresManager);
         }
     }
 

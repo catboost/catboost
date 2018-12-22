@@ -96,11 +96,11 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
     Y_UNIT_TEST(TestImpossibleResourceRequest) {
         {
             NCB::TResourceConstrainedExecutor executor(NPar::LocalExecutor(), "Memory", 0, false);
-            UNIT_ASSERT_EXCEPTION(executor.Add({1, [](){;}}), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(executor.Add({1, [](){;}}), TCatBoostException);
         }
         {
             NCB::TResourceConstrainedExecutor executor(NPar::LocalExecutor(), "Memory", 5, false);
-            UNIT_ASSERT_EXCEPTION(executor.Add({6, [](){;}}), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(executor.Add({6, [](){;}}), TCatBoostException);
         }
     }
 
@@ -115,13 +115,13 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
                         NCB::TResourceConstrainedExecutor executor(localExecutor, "Memory", 2, false);
                         executor.Add({1, [](){;}});
                         executor.Add({1, [](){;}});
-                        executor.Add({2, [](){ ythrow TCatboostException(); }});
+                        executor.Add({2, [](){ ythrow TCatBoostException(); }});
 
                         if (withExecTasks) {
                             executor.ExecTasks();
                         }
                     }(),
-                    TCatboostException
+                    TCatBoostException
                 );
             }
             {
@@ -133,7 +133,7 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
                         NCB::TResourceConstrainedExecutor executor(localExecutor, "Memory", 2, false);
                         executor.Add({1, [](){;}});
                         executor.Add({1, [](){ FromString<int>("2.9"); }});
-                        executor.Add({0, [](){ ythrow TCatboostException(); }});
+                        executor.Add({0, [](){ ythrow TCatBoostException(); }});
 
                         if (withExecTasks) {
                             executor.ExecTasks();

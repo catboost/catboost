@@ -78,7 +78,7 @@ inline bool YaIsDebuggerPresent() {
 #define Y_ASSERT(a)                            \
     do {                                       \
         if (false) {                           \
-            bool __xxx = static_cast<bool>(a); \
+            auto __xxx = static_cast<bool>(a); \
             Y_UNUSED(__xxx);                   \
         }                                      \
     } while (false)
@@ -86,7 +86,7 @@ inline bool YaIsDebuggerPresent() {
 
 namespace NPrivate {
     /// method should not be used directly
-    Y_NO_RETURN void Panic(const TStaticBuf& file, int line, const char* function, const char* expr, const char* format, ...) noexcept Y_PRINTF_FORMAT(5, 6);
+    [[noreturn]] void Panic(const TStaticBuf& file, int line, const char* function, const char* expr, const char* format, ...) noexcept Y_PRINTF_FORMAT(5, 6);
 }
 
 /// Assert that does not depend on NDEBUG macro and outputs message like printf

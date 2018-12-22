@@ -1,13 +1,24 @@
 #include "query_info_helper.h"
 #include "exception.h"
 
-void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>& groupWeight, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo) {
-    int begin = beginDoc, end = endDoc;
+#include <util/generic/array_ref.h>
+#include <util/generic/vector.h>
+#include <util/stream/labeled.h>
+
+void UpdateQueriesInfo(
+    const TConstArrayRef<TGroupId> queriesId,
+    const TConstArrayRef<float> groupWeight,
+    const TConstArrayRef<ui32> subgroupId,
+    const ui32 beginDoc,
+    const ui32 endDoc,
+    TVector<TQueryInfo>* const queryInfo)
+{
+    ui32 begin = beginDoc, end = endDoc;
     if (begin == end) {
         return;
     }
 
-    int docIdStart = begin, docIdEnd = end;
+    ui32 docIdStart = begin, docIdEnd = end;
     if (queriesId.empty()) {
         queryInfo->emplace_back(docIdStart, docIdEnd);
         if (!subgroupId.empty()) {
@@ -17,8 +28,8 @@ void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>&
     }
 
     TGroupId currentQueryId = queriesId[begin];
-    int currentQuerySize = 0;
-    for (int docId = begin; docId < end; ++docId) {
+    ui32 currentQuerySize = 0;
+    for (ui32 docId = begin; docId < end; ++docId) {
         if (currentQueryId == queriesId[docId]) {
             ++currentQuerySize;
         } else {
@@ -46,56 +57,77 @@ void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>&
     }
 }
 
-TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount) {
-    TVector<int> queriesInfoForDocs;
+TVector<ui32> GetQueryIndicesForDocs(
+    const TConstArrayRef<TQueryInfo> queriesInfo,
+    const ui32 learnSampleCount)
+{
+    TVector<ui32> queriesInfoForDocs;
     queriesInfoForDocs.reserve(learnSampleCount);
-    for (int queryIndex = 0; queryIndex < queriesInfo.ysize(); ++queryIndex) {
+    for (size_t queryIndex = 0; queryIndex < queriesInfo.size(); ++queryIndex) {
         queriesInfoForDocs.insert(queriesInfoForDocs.end(), queriesInfo[queryIndex].End - queriesInfo[queryIndex].Begin, queryIndex);
     }
     return queriesInfoForDocs;
 }
 
-void UpdateQueriesPairs(const TVector<TPair>& pairs, int beginPair, int endPair, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
-    int begin = beginPair, end = endPair;
+void UpdateQueriesPairs(
+    const TConstArrayRef<TPair> pairs,
+    const ui32 beginPair,
+    const ui32 endPair,
+    const TConstArrayRef<ui32> invertedPermutation,
+    TVector<TQueryInfo>* const queryInfo)
+{
+    ui32 begin = beginPair, end = endPair;
     if (begin == end) {
         return;
     }
     TVector<TQueryInfo>& queryInfoRef = *queryInfo;
-    TVector<int> queriesIndices(queryInfoRef.back().End);
-    int currentQueryIndex = 0;
-    for (int docId = 0; docId < queriesIndices.ysize(); ++docId) {
+    TVector<ui32> queriesIndices(queryInfoRef.back().End);
+    ui32 currentQueryIndex = 0;
+    for (ui32 docId = 0; docId < queriesIndices.size(); ++docId) {
         queriesIndices[docId] = currentQueryIndex;
-        if (docId == queryInfoRef[currentQueryIndex].End - 1) {
+        if (docId + 1 == queryInfoRef[currentQueryIndex].End) {
             queryInfoRef[currentQueryIndex].Competitors.resize(queryInfoRef[currentQueryIndex].End - queryInfoRef[currentQueryIndex].Begin);
             ++currentQueryIndex;
         }
     }
 
-    for (int pairId = begin; pairId < end; ++pairId) {
+    for (ui32 pairId = begin; pairId < end; ++pairId) {
         const auto& pair = pairs[pairId];
-        int winnerId = invertedPermutation.empty() ? pair.WinnerId : invertedPermutation[pair.WinnerId];
-        int loserId = invertedPermutation.empty() ? pair.LoserId : invertedPermutation[pair.LoserId];
-        int queryIndex = queriesIndices[winnerId]; // assume that winnerId and loserId belong to the same query
-        CB_ENSURE(queryIndex == queriesIndices[loserId], "Both documents in pair should have the same queryId");
+        ui32 winnerId = invertedPermutation.empty() ? pair.WinnerId : invertedPermutation[pair.WinnerId];
+        ui32 loserId = invertedPermutation.empty() ? pair.LoserId : invertedPermutation[pair.LoserId];
+        ui32 queryIndex = queriesIndices[winnerId]; // assume that winnerId and loserId belong to the same query
+        CB_ENSURE(
+            queryIndex == queriesIndices[loserId],
+            "Both documents in pair should have the same queryId"
+            LabeledOutput(queryIndex, loserId, queriesIndices[loserId]));
         winnerId -= queryInfoRef[queryIndex].Begin;
         loserId -= queryInfoRef[queryIndex].Begin;
         queryInfoRef[queryIndex].Competitors[winnerId].emplace_back(loserId, pair.Weight);
     }
 }
 
-TFlatPairsInfo UnpackPairsFromQueries(const TVector<TQueryInfo>& queries) {
+void UpdateQueriesPairs(
+    const TConstArrayRef<TPair> pairs,
+    const TConstArrayRef<ui32> invertedPermutation,
+    TVector<TQueryInfo>* const queryInfo) {
+    UpdateQueriesPairs(pairs, 0, pairs.size(), invertedPermutation, queryInfo);
+}
+
+TFlatPairsInfo UnpackPairsFromQueries(const TConstArrayRef<TQueryInfo> queries) {
     TFlatPairsInfo pairs;
     for (const auto& query : queries) {
         if (query.Competitors.empty()) {
             continue;
         }
-        const int begin = query.Begin;
-        const int end = query.End;
-        for (int winnerId = begin; winnerId < end; ++winnerId) {
+
+        const ui32 begin = query.Begin;
+        const ui32 end = query.End;
+        for (ui32 winnerId = begin; winnerId < end; ++winnerId) {
             for (const auto& competitor : query.Competitors[winnerId - begin]) {
                 pairs.emplace_back(winnerId, competitor.Id + begin, competitor.SampleWeight);
             }
         }
     }
+    pairs.shrink_to_fit();
     return pairs;
 }

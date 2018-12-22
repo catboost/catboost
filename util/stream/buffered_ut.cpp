@@ -18,7 +18,7 @@ Y_UNIT_TEST_SUITE(TestBufferedIO) {
                 s.append('A' + (r.GenRand() % 10));
             }
 
-            out.Write(~s, +s);
+            out.Write(s.data(), s.size());
         }
     }
 

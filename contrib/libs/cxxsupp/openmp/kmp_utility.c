@@ -18,6 +18,7 @@
 #include "kmp_str.h"
 #include <float.h>
 #include "kmp_i18n.h"
+#include <util/system/cpu_id.h>
 
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
@@ -284,20 +285,17 @@ __kmp_query_cpuid( kmp_cpuinfo_t *p )
     { // Parse CPU brand string for frequency.
 
         union kmp_cpu_brand_string {
-            struct kmp_cpuid buf[ 3 ];
-            char             string[ sizeof( struct kmp_cpuid ) * 3 + 1 ];
+            ui32             buf[ 12 ];
+            char             string[ sizeof( ui32 ) * 12 + 1 ];
         }; // union kmp_cpu_brand_string
         union kmp_cpu_brand_string brand;
-        int i;
 
         memset(&brand, 0, sizeof(brand));
 
         p->frequency = 0;
 
         // Get CPU brand string.
-        for ( i = 0; i < 3; ++ i ) {
-            __kmp_x86_cpuid( 0x80000002 + i, 0, &brand.buf[ i ] );
-        }; // for
+        CpuBrand(brand.buf);
         brand.string[ sizeof( brand.string ) - 1 ] = 0; // Just in case. ;-)
         KA_TRACE( trace_level, ( "cpu brand string: \"%s\"\n", brand.string ) );
 

@@ -47,7 +47,7 @@ namespace {
             TString tmp;
 
             tmp.ReserveAndResize(len);
-            input.Load(tmp.begin(), +tmp);
+            input.Load(tmp.begin(), tmp.size());
 
             return tmp;
         }
@@ -144,21 +144,21 @@ namespace {
 
                     TMemoryOutput out(Buf, sizeof(Buf));
 
-                    ::Save(&out, (ui32)(+reqid + +Data));
-                    out.Write(~reqid, +reqid);
+                    ::Save(&out, (ui32)(reqid.size() + Data.size()));
+                    out.Write(reqid.data(), reqid.size());
 
-                    Y_ASSERT(+reqid == 16);
+                    Y_ASSERT(reqid.size() == 16);
 
                     Len = out.Buf() - Buf;
                 }
 
                 inline void Serialize(TParts& parts) {
                     parts.Push(TStringBuf(Buf, Len));
-                    parts.Push(TStringBuf(~Data, +Data));
+                    parts.Push(TStringBuf(Data.data(), Data.size()));
                 }
 
                 inline size_t Length() const noexcept {
-                    return Len + +Data;
+                    return Len + Data.size();
                 }
 
                 TLinkRef Link;
@@ -267,12 +267,12 @@ namespace {
                     TParts parts;
 
                     while (Dequeue(MQ, responses, 7000)) {
-                        for (size_t i = 0; i < +responses; ++i) {
+                        for (size_t i = 0; i < responses.size(); ++i) {
                             responses[i]->Serialize(parts);
                         }
 
                         {
-                            TContIOVector iovec(~parts, +parts);
+                            TContIOVector iovec(parts.data(), parts.size());
 
                             c->WriteVectorI(S, &iovec);
                         }
@@ -327,7 +327,7 @@ namespace {
             ~TServer() override {
                 Schedule(nullptr);
 
-                for (size_t i = 0; i < +Thrs; ++i) {
+                for (size_t i = 0; i < Thrs.size(); ++i) {
                     Thrs[i]->Join();
                 }
             }
@@ -395,13 +395,13 @@ namespace {
 
                     ::Save(&out, (ui32)MsgLen());
                     ::Save(&out, Guid);
-                    ::Save(&out, (ui32) + Loc.Service);
+                    ::Save(&out, (ui32) Loc.Service.size());
 
-                    if (+Loc.Service > out.Avail()) {
+                    if (Loc.Service.size() > out.Avail()) {
                         parts.Push(TStringBuf(Buf, out.Buf()));
                         parts.Push(Loc.Service);
                     } else {
-                        out.Write(~Loc.Service, +Loc.Service);
+                        out.Write(Loc.Service.data(), Loc.Service.size());
                         parts.Push(TStringBuf(Buf, out.Buf()));
                     }
 
@@ -413,7 +413,7 @@ namespace {
                 }
 
                 inline size_t MsgLen() const noexcept {
-                    return sizeof(Guid.dw) + sizeof(ui32) + +Loc.Service + +Msg.Data;
+                    return sizeof(Guid.dw) + sizeof(ui32) + Loc.Service.size() + Msg.Data.size();
                 }
 
                 void OnError(const TString& errText) {
@@ -462,7 +462,7 @@ namespace {
                         TParts parts;
 
                         while (Dequeue(P->Q, reqs, 7000)) {
-                            for (size_t i = 0; i < +reqs; ++i) {
+                            for (size_t i = 0; i < reqs.size(); ++i) {
                                 TRequestPtr& req = reqs[i];
 
                                 req->Serialize(parts);
@@ -470,7 +470,7 @@ namespace {
                             }
 
                             {
-                                TContIOVector vec(~parts, +parts);
+                                TContIOVector vec(parts.data(), parts.size());
 
                                 c->WriteVectorI(S, &vec);
                             }
@@ -631,7 +631,7 @@ namespace {
             }
 
             inline THandleRef Schedule(const TNehMessage& msg, IOnRecv* fallback, TServiceStatRef& ss) {
-                return Clients[AtomicIncrement(Next) % +Clients]->Schedule(msg, fallback, ss);
+                return Clients[AtomicIncrement(Next) % Clients.size()]->Schedule(msg, fallback, ss);
             }
 
             TVector<TAutoPtr<TClient>> Clients;

@@ -1,9 +1,13 @@
 #include "descent_helpers.h"
+
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <util/generic/algorithm.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/lapack/linear_system.h>
+
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/algorithm.h>
 
 namespace NCatboostCuda {
 
@@ -35,8 +39,9 @@ namespace NCatboostCuda {
 
         class TDirectionEstimator {
         public:
-            TDirectionEstimator(TPointWithFuncInfo&& point)
+            TDirectionEstimator(TPointWithFuncInfo&& point, NPar::TLocalExecutor* localExecutor)
                 : CurrentPoint(std::move(point))
+                , LocalExecutor(localExecutor)
             {
                 UpdateMoveDirection();
             }
@@ -91,7 +96,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(rowSize * numBlocks == CurrentPoint.Point.size());
 
                 MoveDirection.resize(rowSize * numBlocks);
-                NPar::ParallelFor(0, numBlocks, [&](ui32 blockId) {
+                NPar::ParallelFor(*LocalExecutor, 0, numBlocks, [&](ui32 blockId) {
 
                     TVector<double> sigma(rowSize * rowSize);
                     TVector<double> solution(rowSize);
@@ -115,25 +120,33 @@ namespace NCatboostCuda {
         private:
             TPointWithFuncInfo CurrentPoint;
             TVector<float> MoveDirection;
+
+            NPar::TLocalExecutor* LocalExecutor;
         };
     }
 
 
-    TVector<float> TNewtonLikeWalker::Estimate(TVector<float> startPoint)  {
+    TVector<float> TNewtonLikeWalker::Estimate(
+        TVector<float> startPoint,
+        NPar::TLocalExecutor* localExecutor) {
+
         startPoint.resize(Oracle.PointDim());
         const int hessianBlockSize = Oracle.HessianBlockSize();
 
-        TDirectionEstimator estimator([&]() -> TPointWithFuncInfo {
-            TPointWithFuncInfo point(hessianBlockSize);
-            point.Point = startPoint;
-            Oracle.MoveTo(point.Point);
-            Oracle.WriteValueAndFirstDerivatives(&point.Value,
-                                                 &point.Gradient);
+        TDirectionEstimator estimator(
+            [&]() -> TPointWithFuncInfo {
+                TPointWithFuncInfo point(hessianBlockSize);
+                point.Point = startPoint;
+                Oracle.MoveTo(point.Point);
+                Oracle.WriteValueAndFirstDerivatives(&point.Value,
+                                                     &point.Gradient);
 
-            Oracle.WriteSecondDerivatives(&point.Hessian);
+                Oracle.WriteSecondDerivatives(&point.Hessian);
 
-            return point;
-        }());
+                return point;
+            }(),
+            localExecutor
+        );
 
         if (Iterations == 1) {
             TVector<float> result;
@@ -145,7 +158,7 @@ namespace NCatboostCuda {
         {
             const auto& pointInfo = estimator.GetCurrentPoint();
             double gradNorm = pointInfo.GradientNorm();
-            MATRIXNET_DEBUG_LOG << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
+            CATBOOST_DEBUG_LOG << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
         }
 
         TPointWithFuncInfo nextPointWithFuncInfo = estimator.GetCurrentPoint();
@@ -177,7 +190,7 @@ namespace NCatboostCuda {
                     Oracle.WriteSecondDerivatives(&nextPointWithFuncInfo.Hessian);
                     double gradNorm = nextPointWithFuncInfo.GradientNorm();
 
-                    MATRIXNET_DEBUG_LOG
+                    CATBOOST_DEBUG_LOG
                     << "Next point gradient norm: " << gradNorm << " Func value: " << nextPointWithFuncInfo.Value
                     << " Moved with step: " << step << Endl;
                     estimator.NextPoint(nextPointWithFuncInfo);

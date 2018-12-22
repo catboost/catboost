@@ -2,7 +2,6 @@
 
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/pool_builder/pool_builder.h>
 
 #include <util/generic/deque.h>
 #include <util/generic/hash.h>
@@ -58,13 +57,6 @@ namespace NCB {
         TVector<size_t> IgnoredColumnIndices;
 
         TVector<TBlob> Blobs;
-
-        void AddColumn(
-            const size_t featureIndex,
-            const size_t baselineIndex,
-            const EColumn columnType,
-            const size_t localIndex,
-            NCB::IPoolBuilder* builder) const;
     };
 
     struct TQuantizedPoolDigest {

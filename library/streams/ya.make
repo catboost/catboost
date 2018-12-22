@@ -9,5 +9,3 @@ RECURSE(
     lzma
     lzma/ut
 )
-
-NEED_CHECK()

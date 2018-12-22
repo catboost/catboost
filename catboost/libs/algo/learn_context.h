@@ -1,18 +1,21 @@
 #pragma once
 
 #include "online_ctr.h"
-#include <catboost/libs/data_new/features_layout.h>
 #include "fold.h"
 #include "ctr_helper.h"
 #include "split.h"
 #include "calc_score_cache.h"
+#include "custom_objective_descriptor.h"
 
-#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/helpers/restorable_rng.h>
 
 #include <library/json/json_reader.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -21,8 +24,6 @@
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
-#include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 
 struct TLearnProgress {
@@ -38,6 +39,7 @@ struct TLearnProgress {
     int ApproxDimension = 1;
     TLabelConverter LabelConverter;
     EHessianType HessianType;
+    bool EnableSaveLoadApprox = true;
 
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 
@@ -60,27 +62,23 @@ public:
     TCommonContext(const NCatboostOptions::TCatBoostOptions& params,
                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                   int featureCount,
-                   const TVector<int>& catFeatures,
-                   const TVector<TString>& featureId)
+                   NCB::TFeaturesLayoutPtr layout,
+                   NPar::TLocalExecutor* localExecutor)
         : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
         , EvalMetricDescriptor(evalMetricDescriptor)
-        , Layout(featureCount, catFeatures, featureId)
-        , CatFeatures(catFeatures.begin(), catFeatures.end()) {
-        LocalExecutor.RunAdditionalThreads(Params.SystemOptions->NumThreads - 1);
-        CB_ENSURE(static_cast<ui32>(LocalExecutor.GetThreadCount()) == Params.SystemOptions->NumThreads - 1);
-    }
+        , Layout(layout)
+        , LocalExecutor(localExecutor)
+    {}
 
 public:
     NCatboostOptions::TCatBoostOptions Params;
     const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
     const TMaybe<TCustomMetricDescriptor> EvalMetricDescriptor;
-    NCB::TFeaturesLayout Layout;
-    THashSet<int> CatFeatures;
+    NCB::TFeaturesLayoutPtr Layout;
     TCtrHelper CtrsHelper;
-    // TODO(asaitgalin): local executor should be shared by all contexts
-    NPar::TLocalExecutor LocalExecutor;
+    // TODO(asaitgalin): local executor should be shared by all contexts. MLTOOLS-2451.
+    NPar::TLocalExecutor* LocalExecutor;
 };
 
 
@@ -95,27 +93,33 @@ public:
                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                   const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                  int featureCount,
-                  const TVector<int>& catFeatures,
-                  const TVector<TString>& featuresId,
+                  NCB::TFeaturesLayoutPtr layout,
+                  TMaybe<const TRestorableFastRng64*> initRand,
+                  NPar::TLocalExecutor* localExecutor,
                   const TString& fileNamesPrefix = "")
-        : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
+        : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, std::move(layout), localExecutor)
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
         , RootEnvironment(nullptr)
         , SharedTrainData(nullptr)
-        , Profile((int)Params.BoostingOptions->IterationCount) {
+        , Profile((int)Params.BoostingOptions->IterationCount)
+        , UseTreeLevelCachingFlag(false) {
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
-        CB_ENSURE(taskType == ETaskType::CPU, "Error: except learn on CPU task type, got " << taskType);
+        CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);
+
+        if (initRand) {
+            Rand.Advance((**initRand).GetCallCount());
+        }
     }
     ~TLearnContext();
 
     void OutputMeta();
-    void InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs);
+    void InitContext(const NCB::TTrainingForCPUDataProviders& data);
     void SaveProgress();
     bool TryLoadProgress();
+    bool UseTreeLevelCaching() const;
 
 public:
     TRestorableFastRng64 Rand;
@@ -129,5 +133,12 @@ public:
     TObj<NPar::IRootEnvironment> RootEnvironment;
     TObj<NPar::IEnvironment> SharedTrainData;
     TProfileInfo Profile;
+
+private:
+    bool UseTreeLevelCachingFlag;
 };
 
+bool NeedToUseTreeLevelCaching(
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui32 maxBodyTailCount,
+    ui32 approxDimension);

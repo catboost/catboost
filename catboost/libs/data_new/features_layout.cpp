@@ -1,74 +1,201 @@
 #include "features_layout.h"
 
+#include "util.h"
+
 #include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/algorithm.h>
+#include <util/generic/xrange.h>
+
+#include <tuple>
 
 
 using namespace NCB;
 
 
-TFeaturesLayout::TFeaturesLayout(const int featureCount, TVector<int> catFeatureIndices, const TVector<TString>& featureId)
+bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
+    return std::tie(Type, Name, IsIgnored, IsAvailable) ==
+        std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
+}
+
+TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
+    : TFeaturesLayout(featureCount, TVector<ui32>(), TVector<TString>())
+{}
+
+
+TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId)
 {
-    if (featureId.empty()) {
-        ExternalIdxToFeatureId.assign(featureCount, TString());
-    } else {
-        ExternalIdxToFeatureId = featureId;
+    CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
+
+    ExternalIdxToMetaInfo.reserve((size_t)featureCount);
+    for (auto externalFeatureIdx : xrange(featureCount)) {
+        // cat feature will be set later
+        ExternalIdxToMetaInfo.emplace_back(
+            EFeatureType::Float,
+            !featureId.empty() ? featureId[externalFeatureIdx] : ""
+        );
+    }
+    for (auto catFeatureExternalIdx : catFeatureIndices) {
+        CB_ENSURE(
+            catFeatureExternalIdx < featureCount,
+            "Cat feature index (" << catFeatureExternalIdx << ") is out of valid range [0,"
+            << featureCount << ')'
+        );
+        ExternalIdxToMetaInfo[catFeatureExternalIdx].Type = EFeatureType::Categorical;
     }
 
-    InitIndices(featureCount, std::move(catFeatureIndices));
+    for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
+        if (ExternalIdxToMetaInfo[externalFeatureIdx].Type == EFeatureType::Float) {
+            FeatureExternalIdxToInternalIdx.push_back((ui32)FloatFeatureInternalIdxToExternalIdx.size());
+            FloatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+        } else {
+            FeatureExternalIdxToInternalIdx.push_back((ui32)CatFeatureInternalIdxToExternalIdx.size());
+            CatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+        }
+    }
 }
 
 TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures) {
+    TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
+    const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
     for (const TFloatFeature& floatFeature : floatFeatures) {
-        CB_ENSURE(floatFeature.FlatFeatureIndex != -1, "floatFeature.FlatFeatureIndex == -1");
-        if ((size_t)floatFeature.FlatFeatureIndex >= ExternalIdxToFeatureId.size()) {
-            ExternalIdxToFeatureId.resize(floatFeature.FlatFeatureIndex + 1);
+        CB_ENSURE(floatFeature.FlatFeatureIndex >= 0, "floatFeature.FlatFeatureIndex is negative");
+        CB_ENSURE(floatFeature.FeatureIndex >= 0, "floatFeature.FeatureIndex is negative");
+        if ((size_t)floatFeature.FlatFeatureIndex >= ExternalIdxToMetaInfo.size()) {
+            CB_ENSURE(
+                (size_t)floatFeature.FlatFeatureIndex < (size_t)Max<ui32>(),
+                "floatFeature.FlatFeatureIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+            );
+            ExternalIdxToMetaInfo.resize(floatFeature.FlatFeatureIndex + 1, defaultIgnoredMetaInfo);
+            FeatureExternalIdxToInternalIdx.resize(floatFeature.FlatFeatureIndex + 1, internalOrExternalIndexPlaceholder);
         }
-        ExternalIdxToFeatureId[floatFeature.FlatFeatureIndex] = floatFeature.FeatureId;
+        ExternalIdxToMetaInfo[floatFeature.FlatFeatureIndex] =
+            TFeatureMetaInfo(EFeatureType::Float, floatFeature.FeatureId);
+        FeatureExternalIdxToInternalIdx[floatFeature.FlatFeatureIndex] = floatFeature.FeatureIndex;
+        if ((size_t)floatFeature.FeatureIndex >= FloatFeatureInternalIdxToExternalIdx.size()) {
+            FloatFeatureInternalIdxToExternalIdx.resize((size_t)floatFeature.FeatureIndex + 1, internalOrExternalIndexPlaceholder);
+        }
+        FloatFeatureInternalIdxToExternalIdx[floatFeature.FeatureIndex] = floatFeature.FlatFeatureIndex;
     }
 
-    TVector<int> catFeatureIndices;
     for (const TCatFeature& catFeature : catFeatures) {
-        CB_ENSURE(catFeature.FlatFeatureIndex != -1, "catFeature.FlatFeatureIndex == -1");
-        if ((size_t)catFeature.FlatFeatureIndex >= ExternalIdxToFeatureId.size()) {
-            ExternalIdxToFeatureId.resize(catFeature.FlatFeatureIndex + 1);
+        CB_ENSURE(catFeature.FlatFeatureIndex >= 0, "catFeature.FlatFeatureIndex is negative");
+        CB_ENSURE(catFeature.FeatureIndex >= 0, "catFeature.FeatureIndex is negative");
+        if ((size_t)catFeature.FlatFeatureIndex >= ExternalIdxToMetaInfo.size()) {
+            CB_ENSURE(
+                (size_t)catFeature.FlatFeatureIndex < (size_t)Max<ui32>(),
+                "catFeature.FlatFeatureIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+            );
+            ExternalIdxToMetaInfo.resize(catFeature.FlatFeatureIndex + 1, defaultIgnoredMetaInfo);
+            FeatureExternalIdxToInternalIdx.resize(catFeature.FlatFeatureIndex + 1, internalOrExternalIndexPlaceholder);
         }
-        ExternalIdxToFeatureId[catFeature.FlatFeatureIndex] = catFeature.FeatureId;
-        catFeatureIndices.push_back(catFeature.FlatFeatureIndex);
+        ExternalIdxToMetaInfo[catFeature.FlatFeatureIndex] =
+            TFeatureMetaInfo(EFeatureType::Categorical, catFeature.FeatureId);
+        FeatureExternalIdxToInternalIdx[catFeature.FlatFeatureIndex] = catFeature.FeatureIndex;
+        if ((size_t)catFeature.FeatureIndex >= CatFeatureInternalIdxToExternalIdx.size()) {
+            CatFeatureInternalIdxToExternalIdx.resize((size_t)catFeature.FeatureIndex + 1, internalOrExternalIndexPlaceholder);
+        }
+        CatFeatureInternalIdxToExternalIdx[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
     }
-
-    InitIndices(ExternalIdxToFeatureId.size(), std::move(catFeatureIndices));
 }
 
 
-void TFeaturesLayout::InitIndices(const int featureCount, TVector<int> catFeatureIndices) {
-    Sort(catFeatureIndices.begin(), catFeatureIndices.end());
-    if (!catFeatureIndices.empty()) {
-        CB_ENSURE(catFeatureIndices.back() < featureCount, "Invalid cat feature index " << catFeatureIndices.back());
-        CB_ENSURE(catFeatureIndices[0] >= 0, "Cat feature indices should be >= 0");
+bool TFeaturesLayout::operator==(const TFeaturesLayout& rhs) const {
+    return std::tie(
+            ExternalIdxToMetaInfo,
+            FeatureExternalIdxToInternalIdx,
+            CatFeatureInternalIdxToExternalIdx,
+            FloatFeatureInternalIdxToExternalIdx
+        ) == std::tie(
+            rhs.ExternalIdxToMetaInfo,
+            rhs.FeatureExternalIdxToInternalIdx,
+            rhs.CatFeatureInternalIdxToExternalIdx,
+            rhs.FloatFeatureInternalIdxToExternalIdx
+        );
+}
+
+
+TVector<TString> TFeaturesLayout::GetExternalFeatureIds() const {
+    TVector<TString> result;
+    result.reserve(ExternalIdxToMetaInfo.size());
+    for (const auto& metaInfo : ExternalIdxToMetaInfo) {
+        result.push_back(metaInfo.Name);
     }
+    return result;
+}
 
-    ExternalIdxToFeatureType.resize(featureCount, EFeatureType::Float);
-    FeatureExternalIdxToInternalIdx.resize(featureCount);
-
-    int catFeatureCount = catFeatureIndices.size();
-    CatFeatureInternalIdxToExternalIdx.resize(catFeatureCount);
-    FloatFeatureInternalIdxToExternalIdx.resize(featureCount - catFeatureCount);
-
-    for (size_t i = 0; i < catFeatureIndices.size(); ++i) {
-        int externalIdx = catFeatureIndices[i];
-        Y_VERIFY(externalIdx < featureCount, "Cat feature indices must be less than feature count");
-        ExternalIdxToFeatureType[externalIdx] = EFeatureType::Categorical;
-        FeatureExternalIdxToInternalIdx[externalIdx] = i;
-        CatFeatureInternalIdxToExternalIdx[i] = externalIdx;
+void TFeaturesLayout::SetExternalFeatureIds(TConstArrayRef<TString> featureIds) {
+    CheckDataSize(featureIds.size(), ExternalIdxToMetaInfo.size(), "feature names", false, "feature count");
+    for (auto i : xrange(ExternalIdxToMetaInfo.size())) {
+        ExternalIdxToMetaInfo[i].Name = featureIds[i];
     }
+}
 
-    int seenFloatFeatures = 0;
-    for (int externalIdx = 0; externalIdx < featureCount; ++externalIdx) {
-        if (ExternalIdxToFeatureType[externalIdx] == EFeatureType::Float) {
-            FloatFeatureInternalIdxToExternalIdx[seenFloatFeatures] = externalIdx;
-            FeatureExternalIdxToInternalIdx[externalIdx] = seenFloatFeatures;
-            seenFloatFeatures++;
+void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
+    for (auto ignoredFeature : ignoredFeatures) {
+        if (ignoredFeature < GetExternalFeatureCount()) {
+            IgnoreExternalFeature(ignoredFeature);
         }
+    }
+}
+
+
+bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
+    for (const auto& metaInfo : ExternalIdxToMetaInfo) {
+        if (metaInfo.IsAvailable && !metaInfo.IsIgnored) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+void NCB::CheckCompatibleForApply(
+    const TFeaturesLayout& learnFeaturesLayout,
+    const TFeaturesLayout& applyFeaturesLayout,
+    const TString& applyDataName
+) {
+    auto learnFeaturesMetaInfo = learnFeaturesLayout.GetExternalFeaturesMetaInfo();
+    auto applyFeaturesMetaInfo = applyFeaturesLayout.GetExternalFeaturesMetaInfo();
+
+    auto featuresIntersectionSize = Min(learnFeaturesMetaInfo.size(), applyFeaturesMetaInfo.size());
+
+    size_t i = 0;
+    for (; i < featuresIntersectionSize; ++i) {
+        const auto& learnFeatureMetaInfo = learnFeaturesMetaInfo[i];
+        const auto& applyFeatureMetaInfo = applyFeaturesMetaInfo[i];
+
+        if (!learnFeatureMetaInfo.IsAvailable || learnFeatureMetaInfo.IsIgnored) {
+            continue;
+        }
+
+        CB_ENSURE(
+            applyFeatureMetaInfo.IsAvailable,
+            "Feature #" << i
+            << " is used in training data, but not available in " << applyDataName
+        );
+        CB_ENSURE(
+            !applyFeatureMetaInfo.IsIgnored,
+            "Feature #" << i
+            << " is used in training data, but is ignored in " << applyDataName
+        );
+        CB_ENSURE(
+            learnFeatureMetaInfo.Type == applyFeatureMetaInfo.Type,
+            "Feature #" << i << " has type " << learnFeatureMetaInfo.Type << " in training data, but "
+            << applyFeatureMetaInfo.Type << " type in " << applyDataName
+        );
+        CB_ENSURE(
+            !learnFeatureMetaInfo.Name || !applyFeatureMetaInfo.Name ||
+            (learnFeatureMetaInfo.Name == applyFeatureMetaInfo.Name),
+            "Feature #" << i << " has name " << learnFeatureMetaInfo.Type << " in training data, but "
+            << applyFeatureMetaInfo.Type << " name in " << applyDataName
+        );
+    }
+    for (; i < learnFeaturesMetaInfo.size(); ++i) {
+        CB_ENSURE(
+            !learnFeaturesMetaInfo[i].IsAvailable || learnFeaturesMetaInfo[i].IsIgnored,
+            "Feature #" << i
+            << " is used in training data, but not available in " << applyDataName
+        );
     }
 }

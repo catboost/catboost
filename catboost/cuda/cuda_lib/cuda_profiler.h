@@ -56,7 +56,7 @@ namespace NCudaLib {
             }
 
             double mean = Sum / Count;
-            MATRIXNET_INFO_LOG << Label
+            CATBOOST_INFO_LOG << Label
                                << " count " << Count
                                << " mean: " << mean
                                << " max: " << Max

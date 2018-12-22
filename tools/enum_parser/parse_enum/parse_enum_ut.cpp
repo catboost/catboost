@@ -11,11 +11,11 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
     Y_UNIT_TEST(MainTest) {
         TString text = NResource::Find("/enums");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         TEnumParser parser(input);
         const TEnums& enums = parser.Enums;
 
-        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 11u);
+        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 13u);
 
         // check ESimple
         {
@@ -203,11 +203,39 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
             const TItems& it = e.Items;
             UNIT_ASSERT_VALUES_EQUAL(it.size(), 0u);
         }
+
+        // NComposite::NInner::EInCompositeNamespaceSimple
+        {
+            const TEnum& e = enums[11];
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope.size(), 1u);
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope[0], "NComposite::NInner");
+            UNIT_ASSERT_VALUES_EQUAL(e.CppName, "EInCompositeNamespaceSimple");
+            const TItems& it = e.Items;
+            UNIT_ASSERT_VALUES_EQUAL(it.size(), 3u);
+            UNIT_ASSERT_VALUES_EQUAL(it[0].CppName, "one");
+            UNIT_ASSERT_VALUES_EQUAL(*it[1].Value, "2") ;
+        }
+
+        // NOuterSimple::NComposite::NMiddle::NInner::NInnerSimple::TEnumClass::EVeryDeep
+        {
+            const TEnum& e = enums[12];
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope.size(), 4u);
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope[0], "NOuterSimple");
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope[1], "NComposite::NMiddle::NInner");
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope[2], "NInnerSimple");
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope[3], "TEnumClass");
+            UNIT_ASSERT_VALUES_EQUAL(e.CppName, "EVeryDeep");
+            const TItems& it = e.Items;
+            UNIT_ASSERT_VALUES_EQUAL(it.size(), 2u);
+            UNIT_ASSERT_VALUES_EQUAL(it[0].CppName, "Key0");
+            UNIT_ASSERT_VALUES_EQUAL(it[1].CppName, "Key1");
+            UNIT_ASSERT_VALUES_EQUAL(*it[1].Value, "1");
+        }
     }
 
     Y_UNIT_TEST(BadCodeParseTest) {
         TString text = NResource::Find("/badcode");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         TEnumParser parser(input);
         const TEnums& enums = parser.Enums;
 
@@ -229,7 +257,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
     Y_UNIT_TEST(UnbalancedCodeParseTest) {
         // Thanks gotmanov@ for providing this example
         TString text = NResource::Find("/unbalanced");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         try {
             TEnumParser parser(input);
             UNIT_ASSERT(false);
@@ -240,7 +268,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
     Y_UNIT_TEST(AliasBeforeNameTest) {
         TString text = NResource::Find("/alias_before_name");
-        TMemoryInput input(~text, +text);
+        TMemoryInput input(text.data(), text.size());
         try {
             TEnumParser parser(input);
             UNIT_ASSERT(false);

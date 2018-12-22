@@ -25,5 +25,5 @@ TNullLog* CreateDefaultLogger<TNullLog>() {
 NPrivateGlobalLogger::TVerifyEvent::~TVerifyEvent() {
     const TString info = Str();
     FATAL_LOG << info << Endl;
-    Y_FAIL("%s", ~info);
+    Y_FAIL("%s", info.data());
 }

@@ -41,7 +41,7 @@ struct TMuxEventText: public TTestBase {
     }
 
     struct TTestFuncParams {
-        Event SyncEvent;
+        TSystemEvent SyncEvent;
         TMuxEvent TestEvent;
     };
 
@@ -68,5 +68,5 @@ UNIT_TEST_SUITE_REGISTRATION(TMuxEventText);
 
 // TMuxEvent implements Event semantics too
 #include <util/system/event.h> // for pragma once in util/system/event_ut.cpp
-#define Event TMuxEvent
+#define TSystemEvent TMuxEvent
 #include <util/system/event_ut.cpp>

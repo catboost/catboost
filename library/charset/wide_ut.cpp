@@ -230,40 +230,40 @@ void TConversionTest::TestYandexEncoding() {
 
 void TConversionTest::TestRecodeIntoString() {
     TString sYandex(UnicodeText.size() * 4, 'x');
-    const char* sdata = ~sYandex;
+    const char* sdata = sYandex.data();
     TStringBuf sres = NDetail::Recode<wchar16>(UnicodeText, sYandex, CODES_YANDEX);
     UNIT_ASSERT(sYandex == YandexText); // same content
-    UNIT_ASSERT(~sYandex == sdata);     // reserved buffer reused
-    UNIT_ASSERT(~sYandex == ~sres);     // same buffer
-    UNIT_ASSERT(+sYandex == +sres);     // same size
+    UNIT_ASSERT(sYandex.data() == sdata);     // reserved buffer reused
+    UNIT_ASSERT(sYandex.data() == sres.data());     // same buffer
+    UNIT_ASSERT(sYandex.size() == sres.size());     // same size
     TEST_WCHAR32(sYandex, UnicodeText, CODES_YANDEX);
 
     TUtf16String sUnicode;
     sUnicode.reserve(YandexText.size() * 4);
-    const wchar16* wdata = ~sUnicode;
+    const wchar16* wdata = sUnicode.data();
     TWtringBuf wres = NDetail::Recode<char>(YandexText, sUnicode, CODES_YANDEX);
     UNIT_ASSERT(sUnicode == UnicodeText); // same content
-    UNIT_ASSERT(~sUnicode == wdata);      // reserved buffer reused
-    UNIT_ASSERT(~sUnicode == ~wres);      // same buffer
-    UNIT_ASSERT(+sUnicode == +wres);      // same size
+    UNIT_ASSERT(sUnicode.data() == wdata);      // reserved buffer reused
+    UNIT_ASSERT(sUnicode.data() == wres.data());      // same buffer
+    UNIT_ASSERT(sUnicode.size() == wres.size());      // same size
 
     TString sUtf8 = " ";
     size_t scap = sUtf8.capacity();
     sres = NDetail::Recode<wchar16>(UnicodeText, sUtf8, CODES_UTF8);
     UNIT_ASSERT(sUtf8 == UTF8Text);       // same content
     UNIT_ASSERT(sUtf8.capacity() > scap); // increased buffer capacity (supplied was too small)
-    UNIT_ASSERT(~sUtf8 == ~sres);         // same buffer
-    UNIT_ASSERT(+sUtf8 == +sres);         // same size
+    UNIT_ASSERT(sUtf8.data() == sres.data());         // same buffer
+    UNIT_ASSERT(sUtf8.size() == sres.size());         // same size
     TEST_WCHAR32(sUtf8, UnicodeText, CODES_UTF8);
 
     sUnicode.clear();
-    wdata = ~sUnicode;
+    wdata = sUnicode.data();
     TUtf16String copy = sUnicode; // increase ref-counter
     wres = NDetail::Recode<char>(UTF8Text, sUnicode, CODES_UTF8);
     UNIT_ASSERT(sUnicode == UnicodeText); // same content
-    UNIT_ASSERT(~sUnicode != wdata);      // re-allocated (shared buffer supplied)
-    UNIT_ASSERT(~sUnicode == ~wres);      // same buffer
-    UNIT_ASSERT(+sUnicode == +wres);      // same content
+    UNIT_ASSERT(sUnicode.data() != wdata);      // re-allocated (shared buffer supplied)
+    UNIT_ASSERT(sUnicode.data() == wres.data());      // same buffer
+    UNIT_ASSERT(sUnicode.size() == wres.size());      // same content
 }
 
 static TString GenerateJunk(size_t seed) {
@@ -370,7 +370,7 @@ void TConversionTest::TestRecode() {
             UNIT_ASSERT_VALUES_EQUAL(size_t(1), written);
             UNIT_ASSERT_VALUES_EQUAL(rch2, rch);
 
-            if (hash.has(rch)) { // there are some stupid encodings with duplicate characters
+            if (hash.contains(rch)) { // there are some stupid encodings with duplicate characters
                 continue;
             } else {
                 hash.insert(rch);

@@ -99,7 +99,7 @@ Y_UNIT_TEST_SUITE(TRequestServerDataTest) {
         UNIT_ASSERT(rd.CgiParam.Has("haha", "da"));
 
         const TStringBuf appendix = AsStringBuf("&gta=true&gta=new");
-        rd.AppendQueryString(~appendix, +appendix);
+        rd.AppendQueryString(appendix.data(), appendix.size());
         rd.Scan();
 
         UNIT_ASSERT(rd.CgiParam.Has("gta", "true"));

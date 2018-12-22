@@ -5,31 +5,31 @@
 
 namespace NPrivate {
     constexpr double ToRandReal1(const ui32 x) noexcept {
-        return x * (1.0 / 4294967295.0);
+        return x * (double)(1.0 / 4294967295.0);
     }
 
     constexpr double ToRandReal2(const ui32 x) noexcept {
-        return x * (1.0 / 4294967296.0);
+        return x * (double)(1.0 / 4294967296.0);
     }
 
     constexpr double ToRandReal3(const ui32 x) noexcept {
-        return ((double)x + 0.5) * (1.0 / 4294967296.0);
+        return ((double)x + 0.5) * (double)(1.0 / 4294967296.0);
     }
 
     constexpr double ToRandReal1(const ui64 x) noexcept {
-        return (x >> 11) * (1.0 / 9007199254740991.0);
+        return (x >> 11) * (double)(1.0 / 9007199254740991.0);
     }
 
     constexpr double ToRandReal2(const ui64 x) noexcept {
-        return (x >> 11) * (1.0 / 9007199254740992.0);
+        return (x >> 11) * (double)(1.0 / 9007199254740992.0);
     }
 
     constexpr double ToRandReal3(const ui64 x) noexcept {
-        return ((x >> 12) + 0.5) * (1.0 / 4503599627370496.0);
+        return ((x >> 12) + 0.5) * (double)(1.0 / 4503599627370496.0);
     }
 
     constexpr double ToRandReal4(const ui64 x) noexcept {
-        return double(x * (1.0 / 18446744073709551616.0L));
+        return double(x * (double)(1.0 / 18446744073709551616.0L));
     }
 
     template <class T>

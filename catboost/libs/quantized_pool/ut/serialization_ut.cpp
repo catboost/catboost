@@ -167,7 +167,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
         const auto quantizationSchema = NCB::LoadQuantizationSchemaFromPool(path.GetPath());
 
         TString diff;
-        UNIT_ASSERT_C(IsEqual(expectedQuantizationSchema, quantizationSchema, &diff), ~diff);
+        UNIT_ASSERT_C(IsEqual(expectedQuantizationSchema, quantizationSchema, &diff), diff.data());
     }
 }
 

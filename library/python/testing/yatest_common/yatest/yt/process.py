@@ -2,6 +2,8 @@ import os
 import re
 import json
 import shlex
+import base64
+import marshal
 import logging
 import tempfile
 import subprocess
@@ -30,6 +32,7 @@ def execute(
     data_mine_strategy=None,
     operation_spec=None, task_spec=None,
     yt_proxy=None, output_result_path=None,
+    init_func=None, fini_func=None,
 ):
     """
     Executes a command on the YT. Listed below are options whose behavior is different from yatest.common.execute
@@ -50,6 +53,8 @@ def execute(
     :param operation_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
+    :param init_func: Function which will be executed before target program. Use only for debug purposes
+    :param fini_func: Function which will be executed after target program. Use only for debug purposes
     :return: Execution object
     """
     test_tool_bin = _get_test_tool_bin()
@@ -98,7 +103,11 @@ def execute(
     to_download[runner_log_dst] = ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
 
     exec_spec['op_spec'] = _get_spec(
-        default={'max_failed_job_count': 2},
+        default={
+            'max_failed_job_count': 2,
+            # Preventing dangling operations in case when test is get killed - see https://st.yandex-team.ru/DEVTOOLS-4753#1539181402000
+            'time_limit': int(1000 * 60 * 60 * 1.5)  # 1.5h (milliseconds)
+        },
         user=operation_spec,
     )
     exec_spec['task_spec'] = _get_spec(
@@ -106,6 +115,10 @@ def execute(
         user=task_spec,
         mandatory={'job_count': 1},
     )
+    if init_func:
+        exec_spec['init_func'] = _dump_func(init_func)
+    if fini_func:
+        exec_spec['fini_func'] = _dump_func(fini_func)
 
     exec_spec_path = _dump_spec(exec_spec)
 
@@ -248,8 +261,13 @@ def _get_fixed_env(env, strategy):
         'USER',
         'YT_TOKEN',
     ]:
-        if env_var in env:
+        if env_var in env.keys():
             del env[env_var]
+
+    for prefix in ['YA_']:
+        for env_var in env.keys():
+            if env_var.startswith(prefix):
+                del env[env_var]
 
     def fix_path(p):
         res = strategy(p)
@@ -289,12 +307,12 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
             continue
         cmd.append(arg)
 
-    for srcs, dst in [
-        (user_input, input_data),
-        (user_output, output_data),
+    for srcs, dst, local_path_iter in [
+        (user_input, input_data, lambda x: x.values()),
+        (user_output, output_data, lambda x: x.keys()),
     ]:
         if srcs:
-            for path in srcs.values():
+            for path in local_path_iter(srcs):
                 if path and path.startswith('/'):
                     raise InvalidInputError("Don't use abs path for specifying destination path '{}'".format(path))
             dst.update(srcs)
@@ -311,3 +329,16 @@ def _dump_spec(data):
     with open(filename.name, 'w') as afile:
         json.dump(data, afile, indent=4, sort_keys=True)
     return filename.name
+
+
+def _dump_func(func):
+    def encode(d):
+        return base64.b64encode(marshal.dumps(d))
+
+    res = {
+        'code': func.func_code,
+        'defaults': func.__defaults__ or '',
+        'closure': [c.cell_contents for c in func.__closure__] if func.__closure__ else '',
+    }
+
+    return {k: encode(v) for k, v in res.items()}

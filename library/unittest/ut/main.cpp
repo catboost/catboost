@@ -74,7 +74,7 @@ Y_UNIT_TEST_SUITE(TPortManagerTest) {
         TSet<ui16> ports;
         for (int i = 0; i < 1000; i++) {
             ui16 port = pm.GetPort();
-            UNIT_ASSERT_VALUES_EQUAL(ports.has(port), false);
+            UNIT_ASSERT_VALUES_EQUAL(ports.contains(port), false);
             ports.insert(port);
         }
     }

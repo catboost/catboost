@@ -26,7 +26,7 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
 
     Y_UNIT_TEST(TestSubstGlobalNoSubstA) {
         for (const auto& from : ALL_FROM) {
-            const size_t fromSz = +from;
+            const size_t fromSz = from.size();
             const size_t minSz = fromSz;
             const size_t maxSz = fromSz + MIN_FROM_CTX;
             for (size_t sz = minSz; sz <= maxSz; ++sz) {
@@ -42,7 +42,7 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
 
     Y_UNIT_TEST(TestSubstGlobalNoSubstB) {
         for (const auto& from : ALL_FROM) {
-            const size_t fromSz = +from;
+            const size_t fromSz = from.size();
             const size_t minSz = fromSz;
             const size_t maxSz = fromSz + MIN_FROM_CTX;
             for (size_t sz = minSz; sz <= maxSz; ++sz) {
@@ -64,7 +64,7 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
     static void DoTestSubstGlobal(TVector<TString> & parts, const size_t minBeg, const size_t sz,
                                   const TString& from, const size_t fromPos, const size_t numSubst) {
         const size_t numLeft = numSubst - parts.size();
-        for (size_t fromBeg = minBeg; fromBeg <= sz - numLeft * +from; ++fromBeg) {
+        for (size_t fromBeg = minBeg; fromBeg <= sz - numLeft * from.size(); ++fromBeg) {
             if (parts.empty()) {
                 parts.emplace_back(fromBeg, '.');
             } else {
@@ -72,16 +72,16 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
             }
 
             if (numLeft == 1) {
-                parts.emplace_back(sz - fromBeg - +from, '.');
+                parts.emplace_back(sz - fromBeg - from.size(), '.');
                 TString sFrom = JoinSeq(from, parts);
-                UNIT_ASSERT_VALUES_EQUAL_C(+sFrom, sz, sFrom);
+                UNIT_ASSERT_VALUES_EQUAL_C(sFrom.size(), sz, sFrom);
                 for (const auto& to : ALL_TO) {
                     TString sTo = JoinSeq(to, parts);
                     AssertSubstGlobal(sFrom, sTo, from, to, fromPos, numSubst);
                 }
                 parts.pop_back();
             } else {
-                DoTestSubstGlobal(parts, fromBeg + +from, sz, from, fromPos, numSubst);
+                DoTestSubstGlobal(parts, fromBeg + from.size(), sz, from, fromPos, numSubst);
             }
 
             parts.pop_back();
@@ -91,7 +91,7 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
     static void DoTestSubstGlobal(size_t numSubst) {
         TVector<TString> parts;
         for (const auto& from : ALL_FROM) {
-            const size_t fromSz = +from;
+            const size_t fromSz = from.size();
             const size_t minSz = numSubst * fromSz;
             const size_t maxSz = numSubst * (fromSz + MIN_FROM_CTX);
             for (size_t sz = minSz; sz <= maxSz; ++sz) {

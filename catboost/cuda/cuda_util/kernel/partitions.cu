@@ -14,8 +14,8 @@ namespace NKernel {
 
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            int bin0 = sortedBins[i];
-            int bin1 = i ? sortedBins[i - 1] : 0;
+            int bin0 = __ldg(sortedBins + i);
+            int bin1 = i ? __ldg(sortedBins + i - 1) : 0;
 
             if (bin0 != bin1) {
                 int b = bin1;
@@ -86,8 +86,8 @@ namespace NKernel {
         TWriter writer(parts);
 
         while (i < size) {
-            int bin0 = sortedBins[i];
-            int bin1 = i ? sortedBins[i - 1] : -1;
+            int bin0 = __ldg(sortedBins + i);
+            int bin1 = i ? __ldg(sortedBins + i - 1) : -1;
             if (bin0 != bin1) {
                 int b = bin0;
                 while (b > bin1) {
