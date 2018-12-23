@@ -1,7 +1,7 @@
 {
     "test_traceback.test_traceback[custom-default]": {
         "stderr": {
-            "checksum": "4886458068e9063fbc9605ce74b7d725",
+            "checksum": "26a06331e587d488b4fec501f09c7672",
             "uri": "file://test_traceback.test_traceback_custom-default_/stderr.txt"
         },
         "stdout": {
@@ -31,7 +31,7 @@
     },
     "test_traceback.test_traceback[main-default]": {
         "stderr": {
-            "checksum": "4886458068e9063fbc9605ce74b7d725",
+            "checksum": "26a06331e587d488b4fec501f09c7672",
             "uri": "file://test_traceback.test_traceback_main-default_/stderr.txt"
         },
         "stdout": {

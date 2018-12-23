@@ -33,6 +33,7 @@ def test_traceback(mode, entry_point):
     filtered_stderr_path = yc.test_output_path('stderr.txt')
 
     env = os.environ.copy()
+    env.pop('PYTHONPATH', None)  # Do not let program peek into its sources on filesystem
     if entry_point == 'custom':
         env['Y_PYTHON_ENTRY_POINT'] = 'library.python.runtime.test.traceback.crash:main'
 
