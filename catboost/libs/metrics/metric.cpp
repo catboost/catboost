@@ -3249,9 +3249,9 @@ TFairLossMetric::TFairLossMetric(double smoothness)
 
 TMetricHolder TFairLossMetric::EvalSingleThread(
         const TVector<TVector<double>>& approx,
-        TConstArrayref<float> target,
-        TConstArrayref<float> weight,
-        TConstArrayref<TQueryInfo> /*queriesInfo*/,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int begin,
         int end
 ) const {
