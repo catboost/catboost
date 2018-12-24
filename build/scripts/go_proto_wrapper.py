@@ -19,7 +19,7 @@ def move_tree(src_dir, dst_dir):
             os.rename(os.path.join(root, file), os.path.join(dst_subdir, file))
 
 
-def main(args):
+def main(arcadia_prefix, contrib_prefix, args):
     out_dir_orig = None
     out_dir_temp = None
     for i in range(len(args)):
@@ -38,8 +38,13 @@ def main(args):
         print >>sys.stderr, e.output
         return e.returncode
 
-    out_dir_arc = os.path.join(out_dir_temp, 'a.yandex-team.ru')
-    assert os.path.isdir(out_dir_arc), 'Could not find directory "' + out_dir_arc + '" temporary directory'
+    # All Arcadia GO projects should have 'a.yandex-team.ru/' namespace prefix.
+    # If the namespace doesn't start with 'a.yandex-team.ru/' prefix then this
+    # project is from vendor directory under the root of Arcadia.
+    out_dir_arc = os.path.join(out_dir_temp, arcadia_prefix)
+    if not os.path.isdir(out_dir_arc):
+        out_dir_arc = out_dir_temp
+        out_dir_orig = os.path.join(out_dir_orig, contrib_prefix)
 
     move_tree(out_dir_arc, out_dir_orig)
 
@@ -49,4 +54,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main(os.path.normpath(sys.argv[1]), os.path.normpath(sys.argv[2]), sys.argv[3:]))
