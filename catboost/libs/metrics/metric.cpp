@@ -3166,22 +3166,22 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
-/* NormalizedGINI */
+/* NormalizedGini */
 
-THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateBinClassMetric(double border) {
-    return MakeHolder<TNormalizedGINIMetric>(border);
+THolder<TNormalizedGiniMetric> TNormalizedGiniMetric::CreateBinClassMetric(double border) {
+    return MakeHolder<TNormalizedGiniMetric>(border);
 }
 
-THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateMultiClassMetric(int positiveClass) {
+THolder<TNormalizedGiniMetric> TNormalizedGiniMetric::CreateMultiClassMetric(int positiveClass) {
     CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
 
-    auto metric = new TNormalizedGINIMetric();
+    auto metric = new TNormalizedGiniMetric();
     metric->PositiveClass = positiveClass;
     metric->IsMultiClass = true;
     return metric;
 }
 
-TMetricHolder TNormalizedGINIMetric::Eval(
+TMetricHolder TNormalizedGiniMetric::Eval(
         const TVector<TVector<double>>& approx,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weightIn,
@@ -3227,16 +3227,16 @@ TMetricHolder TNormalizedGINIMetric::Eval(
     return error;
 }
 
-TString TNormalizedGINIMetric::GetDescription() const {
+TString TNormalizedGiniMetric::GetDescription() const {
     if (IsMultiClass) {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
-        return BuildDescription(ELossFunction::NormalizedGINI, UseWeights, positiveClass);
+        return BuildDescription(ELossFunction::NormalizedGini, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::NormalizedGINI, UseWeights, MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::NormalizedGini, UseWeights, MakeBorderParam(Border));
     }
 }
 
-void TNormalizedGINIMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TNormalizedGiniMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
@@ -3652,13 +3652,13 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"alpha"};
             break;
         }
-        case ELossFunction::NormalizedGINI: {
+        case ELossFunction::NormalizedGini: {
             if (approxDimension == 1) {
-                result.emplace_back(TNormalizedGINIMetric::CreateBinClassMetric(border));
+                result.emplace_back(TNormalizedGiniMetric::CreateBinClassMetric(border));
                 validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(TNormalizedGINIMetric::CreateMultiClassMetric(i));
+                    result.emplace_back(TNormalizedGiniMetric::CreateMultiClassMetric(i));
                 }
             }
             break;
