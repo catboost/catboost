@@ -108,7 +108,7 @@ def do_compile_asm(args):
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
     cmd = [args.go_asm, '-trimpath', args.build_root]
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
-    cmd += ['-D', 'GOOS_' + args.host_os, '-D', 'GOARCH_' + args.host_arch, '-o', args.output] + args.asm_srcs
+    cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output] + args.asm_srcs
     call(cmd, args.build_root)
 
 
@@ -153,13 +153,15 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     #            |- ${TARGET_OS}_${TARGET_ARCH}
     go_path_root = os.path.join(test_lib_args.output_root, '__go__')
     test_src_dir = os.path.join(go_path_root, 'src')
-    target_os_arch = '_'.join([test_lib_args.host_os, test_lib_args.host_arch])
+    target_os_arch = '_'.join([test_lib_args.targ_os, test_lib_args.targ_arch])
     test_pkg_dir = os.path.join(go_path_root, 'pkg', target_os_arch, os.path.dirname(test_module_path))
     os.makedirs(test_pkg_dir)
 
     my_env = os.environ.copy()
     my_env['GOROOT'] = ''
     my_env['GOPATH'] = go_path_root
+    my_env['GOARCH'] = test_lib_args.targ_arch
+    my_env['GOOS'] = test_lib_args.targ_os
 
     tests = []
     xtests = []
@@ -266,6 +268,8 @@ if __name__ == '__main__':
     parser.add_argument('++tools-root', required=True)
     parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
     parser.add_argument('++host-arch', choices=['amd64'], required=True)
+    parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
+    parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
     parser.add_argument('++peers', nargs='*')
     parser.add_argument('++asmhdr', nargs='?', default=None)
     parser.add_argument('++test-import-path', nargs='?')
