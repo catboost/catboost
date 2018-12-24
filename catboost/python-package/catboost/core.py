@@ -124,7 +124,7 @@ def _check_param_type(value, name, types, or_none=True):
 def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbose_eval=None, silent=None):
     _check_param_type(metric_period, 'metric_period', (int,))
     _check_param_type(verbose, 'verbose', (bool, int))
-    _check_param_type(logging_level, 'logging_level', (str,))
+    _check_param_type(logging_level, 'logging_level', (str, unicode))
     _check_param_type(verbose_eval, 'verbose_eval', (bool, int))
     _check_param_type(silent, 'silent', (bool,))
 
