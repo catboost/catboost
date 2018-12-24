@@ -1,6 +1,7 @@
 #include "info.h"
 #include "madvise.h"
 #include "defaults.h"
+#include "hi_lo.h"
 
 #include <util/generic/buffer.h>
 #include <util/generic/yexception.h>
@@ -201,7 +202,7 @@ public:
                                    (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ :
                                        (Mode_ & oAccessMask) == oCopyOnWr ? FILE_MAP_COPY :
                                        FILE_MAP_WRITE,
-                                   HI_32(base), LO_32(base), size);
+                                   Hi32(base), Lo32(base), size);
 #else
 #if defined(_unix_)
         if (Mode_ & oNotGreedy) {

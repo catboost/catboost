@@ -116,47 +116,6 @@ union u_u64 {
 #endif
 #endif
 
-#ifdef CHECK_LO_HI_MACRO_USAGE
-
-inline void check_64(const ui64&) {
-}
-inline void check_64(const i64&) {
-}
-inline void check_64(const double&) {
-}
-inline void check_32(const ui32&) {
-}
-inline void check_32(const i32&) {
-}
-inline void check_32(const float&) {
-}
-inline void check_16(const ui16&) {
-}
-inline void check_16(const i16&) {
-}
-
-#define LO_32(x) (check_64(x), (ui32&)(*(u_u64*)&x).u.lo32.v)
-#define HI_32(x) (check_64(x), (ui32&)(*(u_u64*)&x).u.hi32.v)
-#define LO_16(x) (check_32(x), (ui16&)(*(u_u32*)&x).u.lo16.v)
-#define HI_16(x) (check_32(x), (ui16&)(*(u_u32*)&x).u.hi16.v)
-#define LO_8(x) (check_16(x), (*(u_u16*)&x).u.lo8)
-#define HI_8(x) (check_16(x), (*(u_u16*)&x).u.hi8)
-#define LO_8_LO_16(x) (check_32(x), (*(u_u32*)&x).u.lo16.u.lo8)
-#define HI_8_LO_16(x) (check_32(x), (*(u_u32*)&x).u.lo16.u.hi8)
-
-#else
-
-#define LO_32(x) ((ui32&)(*(u_u64*)&x).u.lo32.v)
-#define HI_32(x) ((ui32&)(*(u_u64*)&x).u.hi32.v)
-#define LO_16(x) ((ui16&)(*(u_u32*)&x).u.lo16.v)
-#define HI_16(x) ((ui16&)(*(u_u32*)&x).u.hi16.v)
-#define LO_8(x) (*(u_u16*)&x).u.lo8
-#define HI_8(x) (*(u_u16*)&x).u.hi8
-#define LO_8_LO_16(x) (*(u_u32*)&x).u.lo16.u.lo8
-#define HI_8_LO_16(x) (*(u_u32*)&x).u.lo16.u.hi8
-
-#endif // CHECK_LO_HI_MACRO_USAGE
-
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
 #define PRAGMA(x) _Pragma(#x)
 #define RCSID(idstr) PRAGMA(comment(exestr, idstr))

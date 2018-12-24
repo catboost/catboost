@@ -97,6 +97,14 @@ namespace NHiLoPrivate {
     }
 }
 
+/**
+ * Return manipulator object that allows to get and set lower or higher bits of the value.
+ *
+ * @param value Must be a scalar value of sufficient size or a manipulator object obtained by
+ * calling any of the other Hi/Lo functions.
+ *
+ * @{
+ */
 template <class T>
 auto Lo32(T&& value) {
     return NHiLoPrivate::MakeIntRef<0, ui32>(std::forward<T>(value));
@@ -126,3 +134,5 @@ template <class T>
 auto Hi8(T&& value) {
     return NHiLoPrivate::MakeIntRef<1, ui8>(std::forward<T>(value));
 }
+
+/** @} */
