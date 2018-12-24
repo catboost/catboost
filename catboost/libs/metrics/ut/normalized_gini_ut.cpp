@@ -11,7 +11,7 @@ Y_UNIT_TEST(NormalizedGiniTest) {
         TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        TNormalizedGINIMetric metric;
+        TNormalizedGiniMetric metric;
         TMetricHolder score = metric.Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.629629, 1e-5);
@@ -22,7 +22,7 @@ Y_UNIT_TEST(NormalizedGiniTest) {
         TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        TNormalizedGINIMetric metric;
+        TNormalizedGiniMetric metric;
         TMetricHolder score = metric.Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.629629, 1e-5);
@@ -33,7 +33,7 @@ Y_UNIT_TEST(NormalizedGiniTest) {
         TVector<float> weight{1, 1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        TNormalizedGINIMetric metric;
+        TNormalizedGiniMetric metric;
         TMetricHolder score = metric.Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.5, 1e-5);
