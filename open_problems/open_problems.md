@@ -78,3 +78,5 @@ And if this is the case, then time estimates should be updated: time estimate is
 27. Weight in all binarizations.
 
 28. Add CatBoost to https://github.com/apple/turicreate
+
+29. `class_names` parameter in Pool constructor
