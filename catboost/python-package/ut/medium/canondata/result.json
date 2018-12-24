@@ -51,6 +51,10 @@
         "checksum": "0d2145e1d2ef68c2047af3e6a1054623",
         "uri": "file://test.test_cv_CPU_/catboost_training.json"
     },
+    "test.test_cv_custom_loss[CPU]": {
+        "checksum": "00509d298ddcfc1a82e5fec093d642d5",
+        "uri": "file://test.test_cv_custom_loss_CPU_/catboost_training.json"
+    },
     "test.test_cv_logging[CPU]": {
         "checksum": "8da779ebb151cfcf4b48fb4f46e2cb04",
         "uri": "file://test.test_cv_logging_CPU_/catboost_training.json"

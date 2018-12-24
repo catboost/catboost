@@ -47,6 +47,10 @@
         "checksum": "32ac21d50b3098d7f355ecca4a596ae4",
         "uri": "file://test.test_cv_GPU_/catboost_training.json"
     },
+    "test.test_cv_custom_loss[GPU]": {
+        "checksum": "834d0b227cca48b72c88823fd50484ec",
+        "uri": "file://test.test_cv_custom_loss_GPU_/catboost_training.json"
+    },
     "test.test_cv_logging[GPU]": {
         "checksum": "6170cd5b861b847832766479f30fe5ca",
         "uri": "file://test.test_cv_logging_GPU_/catboost_training.json"

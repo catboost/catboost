@@ -93,27 +93,34 @@ static bool HasLossFunctionSomeWhereInPlainOptions(
     const NJson::TJsonValue& plainOptions,
     const ELossFunction lossFunction)
 {
+    bool hasLossFunction = false;
+
+    auto checkLossFunction = [&](const NJson::TJsonValue& metricOrLoss) {
+        const auto& value = metricOrLoss.GetStringSafe();
+        if (FromString<ELossFunction>(TStringBuf(value).Before(':')) == lossFunction) {
+            hasLossFunction = true;
+        }
+    };
+
     for (const TStringBuf optionName : {"loss_function", "eval_metric"}) {
         if (!plainOptions.Has(optionName)) {
             continue;
         }
-
-        const auto& value = plainOptions[optionName].GetStringSafe();
-        if (FromString<ELossFunction>(TStringBuf(value).Before(':')) == lossFunction) {
-            return true;
-        }
+        checkLossFunction(plainOptions[optionName]);
     }
 
-    if (plainOptions.Has("custom_metric")) {
-        for (const auto& json : plainOptions["custom_metric"].GetArraySafe()) {
-            const auto& value = json.GetStringSafe();
-            if (FromString<ELossFunction>(TStringBuf(value).Before(':')) == lossFunction) {
-                return true;
+    if (plainOptions.Has("custom_metric") || plainOptions.Has("custom_loss")) {
+        const NJson::TJsonValue& metrics = plainOptions.Has("custom_metric") ? plainOptions["custom_metric"] : plainOptions["custom_loss"];
+        if (metrics.IsArray()) {
+            for (const auto& metric : metrics.GetArraySafe()) {
+                checkLossFunction(metric);
             }
+        } else {
+            checkLossFunction(metrics);
         }
     }
 
-    return false;
+    return hasLossFunction;
 }
 
 // TODO(yazevnul): split catboost/app into catboost/app/lib and catboost/app so we can write

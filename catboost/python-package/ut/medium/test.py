@@ -1585,6 +1585,22 @@ def test_cv_pairs_generated(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
+def test_cv_custom_loss(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 5,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "custom_loss": "AUC",
+            "task_type": task_type,
+        }
+    )
+    assert "test-AUC-mean" in results
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
