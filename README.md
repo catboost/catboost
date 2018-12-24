@@ -67,7 +67,6 @@ Anna Veronika Dorogush, Andrey Gulin, Gleb Gusev, Nikita Kazeev, Liudmila Ostrou
 Anna Veronika Dorogush, Vasily Ershov, Andrey Gulin ["CatBoost: gradient boosting with categorical features support"](http://learningsys.org/nips17/assets/papers/paper_11.pdf). Workshop on ML Systems
 at NIPS 2017.
 
-Proskura Polina Dmitrievna
 License
 -------
 © YANDEX LLC, 2017-2018. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
