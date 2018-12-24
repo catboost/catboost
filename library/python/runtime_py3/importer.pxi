@@ -237,7 +237,16 @@ class BuiltinSubmoduleImporter(BuiltinImporter):
             return super().find_spec(fullname, None, target)
         else:
             return None
-            
+
+
+def excepthook(*args, **kws):
+    # traceback module cannot be imported at module level, because interpreter
+    # is not fully initialized yet
+
+    import traceback
+
+    return traceback.print_exception(*args, **kws)
+
 
 sys.meta_path.insert(0, BuiltinSubmoduleImporter)
 
@@ -261,3 +270,7 @@ sys.frozen = True
 
 # Set of names of importable modules.
 sys.extra_modules = importer.memory
+
+# Use custom implementation of traceback printer.
+# Built-in printer (PyTraceBack_Print) does not support custom module loaders
+sys.excepthook = excepthook
