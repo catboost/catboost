@@ -80,3 +80,5 @@ And if this is the case, then time estimates should be updated: time estimate is
 28. Add CatBoost to https://github.com/apple/turicreate
 
 29. `class_names` parameter in Pool constructor
+
+30. Validate CoreML model when doing its conversion (MLTOOLS-2761)
