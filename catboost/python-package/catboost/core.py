@@ -1278,7 +1278,7 @@ class CatBoost(_CatBoostBase):
         predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
         if prediction_type == 'Probability':
             predictions = np.transpose([1 - predictions, predictions])
-        if  is_data_single_object:
+        if is_data_single_object:
             return predictions[0]
         return predictions
 
