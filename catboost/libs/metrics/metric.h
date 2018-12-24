@@ -320,9 +320,9 @@ struct TFairLossMetric: public TAdditiveMetric<TFairLossMetric> {
     explicit TFairLossMetric(double smoothness = 2);
     TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end
     ) const;
