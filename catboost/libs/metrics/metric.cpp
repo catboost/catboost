@@ -3183,9 +3183,9 @@ THolder<TNormalizedGINIMetric> TNormalizedGINIMetric::CreateMultiClassMetric(int
 
 TMetricHolder TNormalizedGINIMetric::Eval(
         const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weightIn,
-        const TVector<TQueryInfo>& /*queriesInfo*/,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weightIn,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
         int begin,
         int end,
         NPar::TLocalExecutor& /* executor */
