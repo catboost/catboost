@@ -290,15 +290,15 @@ THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& pa
 THolder<IMetric> MakeAverageGainMetric(float topSize);
 
 
-//Normalized GINI metric
-struct TNormalizedGINIMetric: public TNonAdditiveMetric {
-    explicit TNormalizedGINIMetric(double border = GetDefaultClassificationBorder())
+//Normalized Gini metric
+struct TNormalizedGiniMetric: public TNonAdditiveMetric {
+    explicit TNormalizedGiniMetric(double border = GetDefaultClassificationBorder())
             : Border(border) {
         UseWeights.SetDefaultValue(false);
     }
 
-    static THolder<TNormalizedGINIMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
-    static THolder<TNormalizedGINIMetric> CreateMultiClassMetric(int positiveClass);
+    static THolder<TNormalizedGiniMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TNormalizedGiniMetric> CreateMultiClassMetric(int positiveClass);
     virtual TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             TConstArrayRef<float> target,
