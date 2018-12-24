@@ -301,9 +301,9 @@ struct TNormalizedGINIMetric: public TNonAdditiveMetric {
     static THolder<TNormalizedGINIMetric> CreateMultiClassMetric(int positiveClass);
     virtual TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
             int begin,
             int end,
             NPar::TLocalExecutor& executor) const override;
