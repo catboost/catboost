@@ -17,16 +17,16 @@ def test_titanic():
 def test_adult():
     train, test = adult()
 
-    # CatBoost doesn't support pandas.DataFrame NaNs out of the box for categorical features, and
-    # this dataset has NaNs only for categorical features, so we'll replace them manually with
-    # string "nan"
+    # CatBoost doesn't support pandas.DataFrame NaNs out of the box for categorical features,
+    # so we'll replace them manually with some special string (we'll use "nan")
     #
     # seed issue #571 on GitHub or issue MLTOOLS-2785 in internal tracker.
     #
     # oh, and don't forget to replace missing values with string "nan" when you are going to apply
     # the model!
-    train.fillna(value='nan', inplace=True)
-    test.fillna(value='nan', inplace=True)
+    for dataset in (train, test, ):
+        for name in (name for name, dtype in dict(dataset.dtypes).iteritems() if dtype == np.object):
+            dataset[name].fillna('nan', inplace=True)
 
     X_train, y_train = train.drop('income', axis=1), train.income
     X_test, y_test = test.drop('income', axis=1), test.income
