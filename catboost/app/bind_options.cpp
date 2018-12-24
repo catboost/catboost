@@ -129,7 +129,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("trigger-core-dump")
         .NoArgument()
-        .Handler0([] {  Y_FAIL("Aboring on user request"); })
+        .Handler0([] {  Y_FAIL("Aborting on user request"); })
         .Help("Trigger core dump")
         .Hidden();
 
