@@ -23,7 +23,7 @@ for size in list_sizes:
         actual = np.random.randint(0, 2, size)
         probs = np.random.random(size)
         python_calc = gini_normalized(actual, probs)
-        catboost_calc = eval_metric(actual, probs, "NormalizedGINI")[0]
+        catboost_calc = eval_metric(actual, probs, "NormalizedGini")[0]
         if abs(python_calc - catboost_calc) > 1e-5:
             print("Error:", python_calc, catboost_calc)
             raise
