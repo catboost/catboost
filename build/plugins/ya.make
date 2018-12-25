@@ -9,7 +9,6 @@ PY_SRCS(
     flatc.py
     pyx.py
     swig.py
-    td.py
     xs.py
     yasm.py
 
