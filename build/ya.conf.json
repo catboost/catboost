@@ -69,8 +69,9 @@
         "crypta": { "description": "Run Crypta client" },
         "go": { "description": "Run go tool" },
         "godoc": { "description": "Run godoc tool" },
-        "gofmt": { "description": "Run gofmt tool"},
-        "yo": { "description": "Tool for managing vendor/ directory"}
+        "gofmt": { "description": "Run gofmt tool" },
+        "yo": { "description": "Tool for managing vendor/ directory" },
+        "golangci-lint": { "description": "Linters Runner for Go" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -244,6 +245,15 @@
         "yo": {
             "tools": {
                 "yo": { "bottle": "yo", "executable": "yo" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "golangci-lint": {
+            "tools": {
+                "golangci-lint": { "bottle": "golangci-lint", "executable": "golangci-lint" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1240,6 +1250,15 @@
             },
             "executable": {
                 "yo": ["yo/yo"]
+            }
+        },
+        "golangci-lint": {
+            "formula": {
+                "sandbox_id": [352932977, 352933824],
+                "match": "golangci-lint"
+            },
+            "executable": {
+                "golangci-lint": ["golangci-lint"]
             }
         },
         "hg": {
