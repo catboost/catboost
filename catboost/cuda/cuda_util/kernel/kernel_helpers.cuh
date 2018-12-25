@@ -150,6 +150,7 @@ namespace NKernel {
 
     template <class T, int TileSize, class TOp = TCudaAdd<T>>
     __forceinline__ __device__ T TileReduce(cooperative_groups::thread_block_tile<TileSize> tile, const T threadValue) {
+        tile.sync();
         T val = threadValue;
         TOp op;
         for (int s = tile.size() / 2; s > 0; s >>= 1) {
