@@ -3,17 +3,19 @@
 #include <util/generic/vector.h>
 #include <util/ysaveload.h>
 
+#include <type_traits>
+
 // A vector preallocated on the stack.
 // After exceeding the preconfigured stack space falls back to the heap.
 // Publicly inherits TVector, but disallows swap (and hence shrink_to_fit, also operator= is reimplemented via copying).
 //
 // Inspired by: http://qt-project.org/doc/qt-4.8/qvarlengtharray.html#details
 
-template <typename T, size_t CountOnStack = 256, class Alloc = std::allocator<T>>
+template <typename T, size_t CountOnStack = 256, bool UseFallbackAlloc = true, class Alloc = std::allocator<T>>
 class TStackVec;
 
 template <typename T, class Alloc = std::allocator<T>>
-using TSmallVec = TStackVec<T, 16, Alloc>;
+using TSmallVec = TStackVec<T, 16, true, Alloc>;
 
 namespace NPrivate {
     template <class Alloc, class StackAlloc, typename T, typename U>
@@ -26,10 +28,10 @@ namespace NPrivate {
         typedef StackAlloc other;
     };
 
-    template <typename T, size_t CountOnStack, class Alloc = std::allocator<T>>
+    template <typename T, size_t CountOnStack, bool UseFallbackAlloc, class Alloc = std::allocator<T>>
     class TStackBasedAllocator: public Alloc {
     public:
-        typedef TStackBasedAllocator<T, CountOnStack, Alloc> TSelf;
+        typedef TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, Alloc> TSelf;
 
         using typename Alloc::const_pointer;
         using typename Alloc::const_reference;
@@ -44,23 +46,28 @@ namespace NPrivate {
         };
 
     public:
-        TStackBasedAllocator()
-            : StorageUsed(false)
-        {
-        }
-
         pointer allocate(size_type n, std::allocator<void>::const_pointer hint = nullptr) {
-            if (!StorageUsed && n <= CountOnStack) {
-                StorageUsed = true;
-                return reinterpret_cast<pointer>(StackBasedStorage);
+            if (CountOnStack >= n + StorageSpent) {
+                const auto result = reinterpret_cast<pointer>(&StackBasedStorage[StorageSpent]);
+                StorageSpent += n;
+                ++StackAllocations;
+                return result;
             } else {
+                if constexpr (!UseFallbackAlloc) {
+                    Y_FAIL("Stack storage overflow");
+                }
                 return FallbackAllocator.allocate(n, hint);
             }
         }
 
+
         void deallocate(pointer p, size_type n) {
-            if (p == reinterpret_cast<pointer>(StackBasedStorage)) {
-                StorageUsed = false;
+            if (p >= reinterpret_cast<pointer>(&StackBasedStorage[0]) &&
+                    p < reinterpret_cast<pointer>(&StackBasedStorage[CountOnStack])) {
+                --StackAllocations;
+                if (!StackAllocations) {
+                    StorageSpent = 0;
+                }
             } else {
                 FallbackAllocator.deallocate(p, n);
             }
@@ -72,17 +79,22 @@ namespace NPrivate {
         using Alloc::max_size;
 
     private:
-        char StackBasedStorage[CountOnStack * sizeof(T)];
-        bool StorageUsed;
+        std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
+        // Number of cells (out of CountOnStack) at the beginning of the storage that may be occupied.
+        size_t StorageSpent = 0;
+        // How many blocks of memory are allocated from our storage.
+        // When StackAllocations > 0, only cells with indices greater than StorageSpent are guaranteed to be unused.
+        // When StackAllocations == 0, all cells are unused.
+        size_t StackAllocations = 0;
         Alloc FallbackAllocator;
     };
 }
 
-template <typename T, size_t CountOnStack, class Alloc>
-class TStackVec: public TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, TReboundAllocator<Alloc, T>>> {
+template <typename T, size_t CountOnStack, bool UseFallbackAlloc, class Alloc>
+class TStackVec: public TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>> {
 public:
-    typedef TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, TReboundAllocator<Alloc, T>>> TBase;
-    typedef TStackVec<T, CountOnStack, TReboundAllocator<Alloc, T>> TSelf;
+    typedef TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>> TBase;
+    typedef TStackVec<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>> TSelf;
 
     using typename TBase::const_iterator;
     using typename TBase::const_reverse_iterator;
@@ -116,6 +128,14 @@ public:
         TBase::assign(count, val);
     }
 
+    // NB(eeight) The following four constructors all have a drawback -- we cannot pre-reserve our storage.
+    // This leads to suboptimal stack storage utilization.
+    // For example, if we copy a TStackVec of size one, the new TStackVec would initially have capacity
+    // of only one. After that it is not possible to reallocate to full stack storage because of how c++
+    // allocators work.
+    // Our allocator will try its best and fit successfull allocations into the same stack buffer which
+    // (if CountOnStack is 16) will allow the vector to grow to up to 8 elemets without spilling over
+    // to allocated memory. It looks like this is the best we can do under the circumstances.
     inline TStackVec(const TSelf& src)
         : TBase(src.begin(), src.end())
     {
@@ -160,5 +180,25 @@ public:
 };
 
 template <typename T, size_t CountOnStack, class Alloc>
-class TSerializer<TStackVec<T, CountOnStack, Alloc>>: public TVectorSerializer<TStackVec<T, CountOnStack, Alloc>> {
+class TSerializer<TStackVec<T, CountOnStack, true, Alloc>>: public TVectorSerializer<TStackVec<T, CountOnStack, true, Alloc>> {
+};
+
+template <typename T, size_t CountOnStack, class Alloc>
+class TSerializer<TStackVec<T, CountOnStack, false, Alloc>> {
+public:
+    static void Save(IOutputStream* rh, const TStackVec<T, CountOnStack, false, Alloc>& v) {
+        if constexpr (CountOnStack < 256) {
+            ::Save(rh, (ui8)v.size());
+        } else {
+            ::Save(rh, v.size());
+        }
+        ::SaveArray(rh, v.data(), v.size());
+    }
+
+    static void Load(IInputStream* rh, TStackVec<T, CountOnStack, false, Alloc>& v) {
+        std::conditional_t<CountOnStack < 256, ui8, size_t> size;
+        ::Load(rh, size);
+        v.resize(size);
+        ::LoadPodArray(rh, v.data(), v.size());
+    }
 };
