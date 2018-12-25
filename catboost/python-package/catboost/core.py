@@ -118,7 +118,7 @@ def metric_description_or_str_to_str(description):
 
 def _check_param_type(value, name, types, or_none=True):
     if not isinstance(value, types + ((type(None),) if or_none else ())):
-        raise CatboostError('Parameter {} should have a type of {}, got {}'.format(name, [t.__class__.__name__ for t in types], type(value).__class__.__name__))
+        raise CatboostError('Parameter {} should have a type of {}, got {}'.format(name, types, type(value)))
 
 
 def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbose_eval=None, silent=None):
@@ -130,9 +130,9 @@ def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbo
 
     params = locals()
     exclusive_params = ['verbose', 'logging_level', 'verbose_eval', 'silent']
-    at_most_one = sum([params[exclusive] is not None for exclusive in exclusive_params])
+    at_most_one = sum(params.get(exclusive) is not None for exclusive in exclusive_params)
     if at_most_one > 1:
-        raise CatboostError('Only one of parameters {} should be set'.format(exclusive_params.keys()))
+        raise CatboostError('Only one of parameters {} should be set'.format(exclusive_params))
 
     if verbose is None:
         if silent is not None:
