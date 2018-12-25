@@ -69,7 +69,8 @@
         "crypta": { "description": "Run Crypta client" },
         "go": { "description": "Run go tool" },
         "godoc": { "description": "Run godoc tool" },
-        "gofmt": { "description": "Run gofmt tool"}
+        "gofmt": { "description": "Run gofmt tool"},
+        "yo": { "description": "Tool for managing vendor/ directory"}
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -234,6 +235,15 @@
         "arc": {
             "tools": {
                 "arc": { "bottle": "arc", "executable": "arc" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "yo": {
+            "tools": {
+                "yo": { "bottle": "yo", "executable": "yo" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1221,6 +1231,15 @@
             },
             "executable": {
                 "arc": ["arc"]
+            }
+        },
+        "yo": {
+            "formula": {
+                "sandbox_id": [352878068, 352878060],
+                "match": "yo"
+            },
+            "executable": {
+                "yo": ["yo/yo"]
             }
         },
         "hg": {
