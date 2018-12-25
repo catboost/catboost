@@ -85,6 +85,10 @@
         "checksum": "b238c8e30feedc14aade67be9911e244",
         "uri": "file://test.test_eval_set_GPU_/catboost_training.json"
     },
+    "test.test_eval_set_with_no_target[GPU]": {
+        "checksum": "68d0a1c77bad57ce6b42de3a770603f1",
+        "uri": "file://test.test_eval_set_with_no_target_GPU_/evals.txt"
+    },
     "test.test_export_to_python_no_cat_features[GPU-2]": {
         "checksum": "44f4f9503a6fda1a8a51bd63296cd74d",
         "uri": "file://test.test_export_to_python_no_cat_features_GPU-2_/model.py"

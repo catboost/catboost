@@ -115,6 +115,11 @@ void TMetric::AddHint(const TString& key, const TString& value) {
     Hints[key] = value;
 }
 
+bool TMetric::NeedTarget() const {
+    return GetErrorType() != EErrorType::PairwiseError;
+}
+
+
 /* CrossEntropy */
 
 namespace {
@@ -2894,6 +2899,10 @@ namespace {
         bool IsAdditiveMetric() const final {
             return false;
         }
+        // be conservative by default
+        bool NeedTarget() const override {
+            return true;
+        }
     private:
         TCustomMetricDescriptor Descriptor;
         TMap<TString, TString> Hints;
@@ -3683,6 +3692,16 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics) {
 TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
     return GetSkipMetricOnTrain(GetConstPointers(metrics));
 }
+
+TVector<bool> GetSkipMetricOnTest(bool testHasTarget, const TVector<const IMetric*>& metrics) {
+    TVector<bool> result;
+    result.reserve(metrics.size());
+    for (const auto& metric : metrics) {
+        result.push_back(!testHasTarget && metric->NeedTarget());
+    }
+    return result;
+}
+
 
 TMetricHolder EvalErrors(
         const TVector<TVector<double>>& approx,

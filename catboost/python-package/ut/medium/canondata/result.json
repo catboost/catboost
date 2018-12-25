@@ -89,6 +89,10 @@
         "checksum": "bdaa286c1a43a8892e1e5ac50092ad24",
         "uri": "file://test.test_eval_set_CPU_/catboost_training.json"
     },
+    "test.test_eval_set_with_no_target[CPU]": {
+        "checksum": "c75a3bf293454213dabe9a5bf377baf5",
+        "uri": "file://test.test_eval_set_with_no_target_CPU_/evals.txt"
+    },
     "test.test_export_to_python_no_cat_features[CPU-2]": {
         "checksum": "d7f762f8a08c01e3576d9ef83b63548a",
         "uri": "file://test.test_export_to_python_no_cat_features_CPU-2_/model.py"

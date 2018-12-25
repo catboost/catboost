@@ -768,7 +768,9 @@ TBinClassTarget::TBinClassTarget(
       )
 {
     if (!skipCheck) {
-        CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        if (target) {
+            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        }
         CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
         CheckMaybeEmptyBaseline(baseline, GetObjectCount());
     }
@@ -779,7 +781,9 @@ TBinClassTarget::TBinClassTarget(
 
 
 void TBinClassTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    if (Target) {
+        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    }
     subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
     if (Baseline) {
         subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
@@ -793,7 +797,7 @@ TTargetDataProviderPtr TBinClassTarget::GetSubset(
     return MakeIntrusive<TBinClassTarget>(
         GetSpecification().Description,
         std::move(objectsGrouping),
-        subsetTargetDataCache.Targets.at(Target),
+        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
         subsetTargetDataCache.Weights.at(Weights),
 
         // reuse empty vector
@@ -875,7 +879,9 @@ TMultiClassTarget::TMultiClassTarget(
             classCount >= 2,
             "MultiClass target data must have at least two classes (got " << classCount <<")"
         );
-        CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        if (target) {
+            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        }
         CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
         CheckBaseline(baseline, GetObjectCount(), classCount);
     }
@@ -892,7 +898,9 @@ TMultiClassTarget::TMultiClassTarget(
 
 
 void TMultiClassTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    if (Target) {
+        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    }
     subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
     for (const auto& oneBaseline : Baseline) {
         subsetTargetDataCache->Baselines.emplace(oneBaseline, TSharedVector<float>());
@@ -913,7 +921,7 @@ TTargetDataProviderPtr TMultiClassTarget::GetSubset(
         GetSpecification().Description,
         std::move(objectsGrouping),
         ClassCount,
-        subsetTargetDataCache.Targets.at(Target),
+        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
         subsetTargetDataCache.Weights.at(Weights),
         std::move(subsetBaseline),
         true
@@ -981,7 +989,9 @@ TRegressionTarget::TRegressionTarget(
       )
 {
     if (!skipCheck) {
-        CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        if (target) {
+            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        }
         CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
         CheckMaybeEmptyBaseline(baseline, GetObjectCount());
     }
@@ -991,7 +1001,9 @@ TRegressionTarget::TRegressionTarget(
 }
 
 void TRegressionTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    if (Target) {
+        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    }
     subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
     if (Baseline) {
         subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
@@ -1005,7 +1017,7 @@ TTargetDataProviderPtr TRegressionTarget::GetSubset(
     return MakeIntrusive<TRegressionTarget>(
         GetSpecification().Description,
         std::move(objectsGrouping),
-        subsetTargetDataCache.Targets.at(Target),
+        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
         subsetTargetDataCache.Weights.at(Weights),
 
         // reuse empty vector
@@ -1054,7 +1066,9 @@ TGroupwiseRankingTarget::TGroupwiseRankingTarget(
       )
 {
     if (!skipCheck) {
-        CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        if (target) {
+            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        }
         CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
         CheckMaybeEmptyBaseline(baseline, GetObjectCount());
         CheckGroupInfo(*groupInfo, *ObjectsGrouping, false);
@@ -1066,7 +1080,9 @@ TGroupwiseRankingTarget::TGroupwiseRankingTarget(
 }
 
 void TGroupwiseRankingTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
-    subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    if (Target) {
+        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    }
     subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
     if (Baseline) {
         subsetTargetDataCache->Baselines.emplace(Baseline, TSharedVector<float>());
@@ -1081,7 +1097,7 @@ TTargetDataProviderPtr TGroupwiseRankingTarget::GetSubset(
     return MakeIntrusive<TGroupwiseRankingTarget>(
         GetSpecification().Description,
         std::move(objectsGrouping),
-        subsetTargetDataCache.Targets.at(Target),
+        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
         subsetTargetDataCache.Weights.at(Weights),
 
         // reuse empty vector

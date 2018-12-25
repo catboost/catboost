@@ -1172,6 +1172,35 @@ def test_pairs_generation_with_max_pairs():
             ]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_pairlogit_no_target(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    params = [
+        '--loss-function', 'PairLogit',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.no_target'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    ]
+    fit_catboost_gpu(params)
+
+    return [
+        local_canonical_file(
+            output_eval_path,
+            # TODO(akhropov): why such result instability for Plain. MLTOOLS-2801
+            diff_tool=diff_tool(threshold={'Plain': 0.07, 'Ordered': 1.e-7}[boosting_type])
+        )
+    ]
+
+
 @pytest.mark.parametrize('task_type', ['CPU', 'GPU'])
 def test_learn_without_header_eval_with_header(task_type):
     train_path = yatest.common.test_output_path('airlines_without_header')

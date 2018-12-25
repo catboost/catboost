@@ -44,6 +44,7 @@ namespace NCatboostCuda {
         TBoostingProgressTracker progressTracker(catBoostOptions,
                                                  outputOptions,
                                                  test != nullptr,
+                                                 /*testHasTarget*/ (test != nullptr) && test->MetaInfo.HasTarget,
                                                  approxDimension,
                                                  onEndIterationCallback);
 
@@ -51,7 +52,7 @@ namespace NCatboostCuda {
 
         auto model = boosting.Run();
 
-        if (test) {
+        if (progressTracker.EvalMetricWasCalculated()) {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
@@ -62,6 +63,9 @@ namespace NCatboostCuda {
         if (outputOptions.ShrinkModelToBestIteration()) {
             if (test == nullptr) {
                 CATBOOST_INFO_LOG << "Warning: can't use-best-model without test set. Will skip model shrinking";
+            } else if (!progressTracker.EvalMetricWasCalculated()) {
+                CATBOOST_INFO_LOG << "Warning: can't use-best-model because eval metric was not calculated "
+                    "due to the absence of target data in test set. Will skip model shrinking";
             } else {
                 const auto& errorTracker = progressTracker.GetErrorTracker();
                 const auto& bestModelTracker = progressTracker.GetBestModelMinTreesTracker();

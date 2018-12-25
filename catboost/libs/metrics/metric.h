@@ -112,6 +112,7 @@ struct IMetric {
     virtual bool IsAdditiveMetric() const = 0;
     virtual const TMap<TString, TString>& GetHints() const = 0;
     virtual void AddHint(const TString& key, const TString& value) = 0;
+    virtual bool NeedTarget() const = 0;
     virtual ~IMetric() = default;
 
 public:
@@ -124,6 +125,7 @@ struct TMetric: public IMetric {
     virtual TVector<TString> GetStatDescriptions() const override;
     virtual const TMap<TString, TString>& GetHints() const override;
     virtual void AddHint(const TString& key, const TString& value) override;
+    virtual bool NeedTarget() const override;
 private:
     TMap<TString, TString> Hints;
 };
@@ -309,6 +311,8 @@ TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics)
 
 TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics);
 TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
+
+TVector<bool> GetSkipMetricOnTest(bool testHasTarget, const TVector<const IMetric*>& metrics);
 
 TMetricHolder EvalErrors(
     const TVector<TVector<double>>& approx,

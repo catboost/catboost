@@ -134,12 +134,14 @@ namespace NCB {
         const TWeights<float>& rawGroupWeights,
         ui32 classCount,
         bool isForGpu,
-        TConstArrayRef<float> targetClasses, // [objectIdx], should contain integer values
+
+        // [objectIdx], should contain integer values, can be empty
+        TAtomicSharedPtr<TVector<float>> targetClasses,
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
         NPar::TLocalExecutor* localExecutor)
     {
         CheckDataSize(classWeights.size(), (size_t)classCount, "class weights size", true, "class count");
-        Y_VERIFY(rawWeights.GetSize() == targetClasses.Size());
+        Y_VERIFY(!targetClasses || ((size_t)rawWeights.GetSize() == targetClasses->size()));
 
         if (classWeights.empty() && rawGroupWeights.IsTrivial()) {
             if (isForGpu && rawWeights.IsTrivial()) {
@@ -150,18 +152,22 @@ namespace NCB {
             return MakeIntrusive<TWeights<float>>(rawWeights);
         }
 
+        CB_ENSURE(targetClasses, "Class weights have been specified but target class data is unavailable");
+
         TVector<float> classAdjustedWeights;
         classAdjustedWeights.yresize(rawWeights.GetSize());
+
+        TConstArrayRef<float> targetClassesArray = *targetClasses; // optimization
 
         localExecutor->ExecRangeWithThrow(
             [&] (int i) {
                 // TODO(annaveronika): check class weight not negative.
                 CB_ENSURE(
-                    (size_t)targetClasses[i] < classWeights.size(),
-                    "class " + ToString((size_t)targetClasses[i]) + " is missing in class weights"
+                    (size_t)targetClassesArray[i] < classWeights.size(),
+                    "class " + ToString((size_t)targetClassesArray[i]) + " is missing in class weights"
                 );
                 classAdjustedWeights[i]
-                    = rawWeights[i]*rawGroupWeights[i]*classWeights[(size_t)targetClasses[i]];
+                    = rawWeights[i]*rawGroupWeights[i]*classWeights[(size_t)targetClassesArray[i]];
             },
             0,
             (int)rawWeights.GetSize(),
@@ -346,6 +352,7 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
         bool allowConstLabel,
+        bool metricsThatRequireTargetCanBeSkipped,
         TMaybe<ui32> knownModelApproxDimension,
         ui32 knownClassCount,
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
@@ -430,6 +437,15 @@ namespace NCB {
             localExecutor,
             &classCountInData);
 
+
+        // TODO(akhropov): make GPU also support absence of Target data
+        if (isForGpu && !maybeConvertedTarget) {
+            maybeConvertedTarget = MakeAtomicShared<TVector<float>>(
+                TVector<float>(rawData.GetObjectCount(), 0.0f)
+            );
+        }
+
+
         if (knownClassCount == 0) {
             knownClassCount = classCountInData;
         }
@@ -466,7 +482,10 @@ namespace NCB {
         TTargetDataProviders result;
 
         if (createBinClassTarget) { // binclass
-            CB_ENSURE(maybeConvertedTarget, "Binary classification loss/metrics require label data");
+            CB_ENSURE(
+                metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
+                "Binary classification loss/metrics require label data"
+            );
             CB_ENSURE(
                 (classCount == 0) || (classCount == 2),
                 "Binary classification loss/metric specified but target data is neither positive class"
@@ -478,13 +497,16 @@ namespace NCB {
                 rawData.GetGroupWeights(),
                 (ui32)2,
                 isForGpu,
-                *maybeConvertedTarget,
-                classWeights,
+                maybeConvertedTarget,
+                rawData.GetTarget() ? classWeights : TConstArrayRef<float>(),
                 localExecutor);
 
             oneBaseline = MakeOneBaseline(rawData.GetBaseline());
 
-            if (mainLossFunction && ((*mainLossFunction)->GetLossFunction() == ELossFunction::Logloss)) {
+            if (rawData.GetTarget() &&
+                mainLossFunction &&
+                ((*mainLossFunction)->GetLossFunction() == ELossFunction::Logloss))
+            {
                 PrepareTargetBinary(
                     *maybeConvertedTarget,
                     NCatboostOptions::GetLogLossBorder(**mainLossFunction),
@@ -513,7 +535,10 @@ namespace NCB {
         }
 
         if (createMultiClassTarget) {
-            CB_ENSURE(maybeConvertedTarget, "Multi classification loss/metrics require label data");
+            CB_ENSURE(
+                metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
+                "Multi classification loss/metrics require label data"
+            );
             CB_ENSURE(
                 classCount >= 2,
                 "Multiclass metric/loss specified but target data does not have more than one different labels"
@@ -524,8 +549,8 @@ namespace NCB {
                 rawData.GetGroupWeights(),
                 (ui32)classCount,
                 isForGpu,
-                *maybeConvertedTarget,
-                classWeights,
+                maybeConvertedTarget,
+                rawData.GetTarget() ? classWeights : TConstArrayRef<float>(),
                 localExecutor);
 
             if (!(*labelConverter)->IsInitialized()) {
@@ -557,7 +582,10 @@ namespace NCB {
         }
 
         if (isAnyOfMetrics(IsRegressionMetric)) {
-            CB_ENSURE(maybeConvertedTarget, "Regression loss/metrics require target data");
+            CB_ENSURE(
+                metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
+                "Regression loss/metrics require target data"
+            );
 
             if (!oneBaseline) {
                 oneBaseline = MakeOneBaseline(rawData.GetBaseline());
@@ -581,7 +609,7 @@ namespace NCB {
                 TVector<TPair> generatedPairs;
 
                 if (pairs.empty() && isAnyOfMetrics(IsPairwiseMetric)) {
-                    CB_ENSURE(maybeConvertedTarget, "Pool labels are not provided. Cannot generate pairs.");
+                    CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
 
                     generatedPairs = GeneratePairs(
                         *rawData.GetObjectsGrouping(),
@@ -615,7 +643,10 @@ namespace NCB {
         if (hasGroupNonPairwiseDataMetrics ||
             (!rawData.GetObjectsGrouping()->IsTrivial() && maybeConvertedTarget))
         {
-            CB_ENSURE(maybeConvertedTarget, "Groupwise loss/metrics require target data");
+            CB_ENSURE(
+                metricsThatRequireTargetCanBeSkipped || maybeConvertedTarget,
+                "Groupwise loss/metrics require target data"
+            );
 
             if (!oneBaseline) {
                 oneBaseline = MakeOneBaseline(rawData.GetBaseline());
@@ -766,6 +797,7 @@ namespace NCB {
             updatedMetricsDescriptions,
             /*mainLossFunction*/ Nothing(),
             /*allowConstLabel*/ true,
+            /*metricsThatRequireTargetCanBeSkipped*/ false,
             (ui32)model.ObliviousTrees.ApproxDimension,
             classCount,
             classWeights,

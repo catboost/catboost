@@ -1,8 +1,11 @@
 #include "data.h"
 
+#include "approx_dimension.h"
+
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/data_new/borders_io.h>
 #include <catboost/libs/data_new/quantization.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/target/data_providers.h>
 
@@ -160,6 +163,7 @@ namespace NCB {
             GetMetricDescriptions(*params),
             &params->LossFunctionDescription.Get(),
             dataProcessingOptions.AllowConstLabel.Get(),
+            /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
             /*knownModelApproxDimension*/ Nothing(),
             dataProcessingOptions.ClassesCount.Get(),
             dataProcessingOptions.ClassWeights.Get(),
@@ -174,6 +178,26 @@ namespace NCB {
         }
 
         return trainingData;
+    }
+
+
+    void CheckCompatibilityWithEvalMetric(
+        const NCatboostOptions::TLossDescription& evalMetricDescription,
+        const TTrainingDataProvider& trainingData,
+        ui32 approxDimension) {
+
+        if (trainingData.MetaInfo.HasTarget) {
+            return;
+        }
+
+        auto metrics = CreateMetricFromDescription(evalMetricDescription, (int)approxDimension);
+        for (const auto& metric : metrics) {
+            CB_ENSURE(
+                !metric->NeedTarget(),
+                "Eval metric " << metric->GetDescription() << " needs Target data for test dataset, but "
+                "it is not available"
+            );
+        }
     }
 
 
@@ -222,6 +246,16 @@ namespace NCB {
                     localExecutor,
                     rand));
         }
+
+
+
+        if (params->MetricOptions->EvalMetric.IsSet() && (srcData.Test.size() > 0)) {
+            CheckCompatibilityWithEvalMetric(
+                params->MetricOptions->EvalMetric,
+                *trainingData.Test.back(),
+                GetApproxDimension(*params, *labelConverter));
+        }
+
 
         return trainingData;
     }

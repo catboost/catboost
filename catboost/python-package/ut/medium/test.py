@@ -3540,3 +3540,31 @@ def test_tree_depth_pairwise(task_type):
         with pytest.raises(CatboostError):
             CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 9})
         CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 8})
+
+
+def test_eval_set_with_no_target(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    eval_set_pool = Pool(TEST_FILE, column_description=data_file('train_notarget.cd'))
+    model = CatBoost({'iterations': 2, 'loss_function': 'Logloss', 'task_type': task_type, 'devices': '0'})
+    model.fit(train_pool, eval_set=eval_set_pool)
+
+    evals_path = test_output_path('evals.txt')
+    with open(evals_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(model.get_evals_result())
+    return local_canonical_file(evals_path)
+
+
+def test_eval_set_with_no_target_with_eval_metric(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    eval_set_pool = Pool(TEST_FILE, column_description=data_file('train_notarget.cd'))
+    model = CatBoost(
+        {
+            'iterations': 2,
+            'loss_function': 'Logloss',
+            'eval_metric': 'AUC',
+            'task_type': task_type,
+            'devices': '0'
+        }
+    )
+    with pytest.raises(CatboostError):
+        model.fit(train_pool, eval_set=eval_set_pool)

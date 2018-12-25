@@ -35,6 +35,7 @@
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
 
+#include <util/generic/mapfindptr.h>
 #include <util/generic/scope.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
@@ -149,12 +150,22 @@ static void Train(
         }
     }
 
-    EMetricBestValue bestValueType;
-    float bestPossibleValue;
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
-    metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
-    TErrorTracker errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
-    TErrorTracker bestModelMinTreesTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+
+    TMaybe<TErrorTracker> errorTracker;
+    TMaybe<TErrorTracker> bestModelMinTreesTracker;
+
+    if (metrics[0]->NeedTarget() && (data.Test.size() > 0) && (!data.Test.back()->MetaInfo.HasTarget)) {
+        CATBOOST_WARNING_LOG << "Warning: Eval metric " << metrics[0]->GetDescription() <<
+            " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
+    } else {
+        EMetricBestValue bestValueType;
+        float bestPossibleValue;
+
+        metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
+        errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+        bestModelMinTreesTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+    }
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
@@ -162,7 +173,7 @@ static void Train(
         MapRestoreApproxFromTreeStruct(ctx);
     }
 
-    if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker.IsActive() && hasTest) {
+    if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker && errorTracker->IsActive() && hasTest) {
         CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
@@ -197,13 +208,13 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
-        const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
-        if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric) {
+        const bool calcErrorTrackerMetric = calcAllMetrics || (errorTracker && errorTracker->IsActive());
+        if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric && errorTracker) {
             const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
             const double error = testMetricsHistory[iter].back().at(errorTrackerMetricDescription);
-            errorTracker.AddError(error, iter);
+            errorTracker->AddError(error, iter);
             if (useBestModel && iter + 1 >= ctx->OutputOptions.BestModelMinTrees) {
-                bestModelMinTreesTracker.AddError(error, iter);
+                bestModelMinTreesTracker->AddError(error, iter);
             }
         }
 
@@ -212,8 +223,8 @@ static void Train(
             GetMetricsDescription(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
             testMetricsHistory,
-            errorTracker.GetBestError(),
-            errorTracker.GetBestIteration(),
+            errorTracker ? TMaybe<double>(errorTracker->GetBestError()) : Nothing(),
+            errorTracker ? TMaybe<int>(errorTracker->GetBestIteration()) : Nothing(),
             TProfileResults(timeHistory[iter].PassedTime, timeHistory[iter].RemainingTime),
             learnToken,
             testTokens,
@@ -263,9 +274,9 @@ static void Train(
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
          ++iter)
     {
-        if (errorTracker.GetIsNeedStop()) {
+        if (errorTracker && errorTracker->GetIsNeedStop()) {
             CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
-                << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
+                << " (" << errorTracker->GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
 
@@ -284,21 +295,28 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
-        const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
+        const bool calcErrorTrackerMetric = calcAllMetrics || (errorTracker && errorTracker->IsActive());
 
         CalcErrors(data, metrics, calcAllMetrics, calcErrorTrackerMetric, ctx);
 
         profile.AddOperation("Calc errors");
-        if (hasTest && calcErrorTrackerMetric) {
+        if (hasTest && calcErrorTrackerMetric && errorTracker) {
             const auto testErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
             const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
-            const double error = testErrors.back().at(errorTrackerMetricDescription);
-            errorTracker.AddError(error, iter);
-            if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
-                ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
-            }
-            if (useBestModel && static_cast<int>(iter + 1) >= ctx->OutputOptions.BestModelMinTrees) {
-                bestModelMinTreesTracker.AddError(error, iter);
+
+            // it is possible that metric has not been calculated because it requires target data
+            // that is absent
+            if (!testErrors.empty()) {
+                const double* error = MapFindPtr(testErrors.back(), errorTrackerMetricDescription);
+                if (error) {
+                    errorTracker->AddError(*error, iter);
+                    if (useBestModel && iter == static_cast<ui32>(errorTracker->GetBestIteration())) {
+                        ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
+                    }
+                    if (useBestModel && static_cast<int>(iter + 1) >= ctx->OutputOptions.BestModelMinTrees) {
+                        bestModelMinTreesTracker->AddError(*error, iter);
+                    }
+                }
             }
         }
 
@@ -312,8 +330,8 @@ static void Train(
             GetMetricsDescription(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
             ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory,
-            errorTracker.GetBestError(),
-            errorTracker.GetBestIteration(),
+            errorTracker ? TMaybe<double>(errorTracker->GetBestError()) : Nothing(),
+            errorTracker ? TMaybe<int>(errorTracker->GetBestIteration()) : Nothing(),
             profileResults,
             learnToken,
             testTokens,
@@ -345,18 +363,18 @@ static void Train(
 
     ctx->LearnProgress.Folds.clear();
 
-    if (hasTest) {
+    if (hasTest && errorTracker) {
         CATBOOST_NOTICE_LOG << "\n";
-        CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
-        CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
+        CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker->GetBestError() << "\n";
+        CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker->GetBestIteration() << "\n";
         CATBOOST_NOTICE_LOG << "\n";
     }
 
-    if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
-        const int bestModelIterations = bestModelMinTreesTracker.GetBestIteration() + 1;
+    if (useBestModel && bestModelMinTreesTracker && ctx->Params.BoostingOptions->IterationCount > 0) {
+        const int bestModelIterations = bestModelMinTreesTracker->GetBestIteration() + 1;
         if (0 < bestModelIterations && bestModelIterations < static_cast<int>(ctx->Params.BoostingOptions->IterationCount)) {
             CATBOOST_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
-            if (errorTracker.GetBestIteration() + 1 < ctx->OutputOptions.BestModelMinTrees) {
+            if (errorTracker->GetBestIteration() + 1 < ctx->OutputOptions.BestModelMinTrees) {
                 CATBOOST_NOTICE_LOG << " (min iterations for best model = " << ctx->OutputOptions.BestModelMinTrees << ")";
             }
             CATBOOST_NOTICE_LOG << Endl;

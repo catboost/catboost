@@ -1369,6 +1369,18 @@
             "uri": "file://test_gpu.test_overfit_detector_iter_Plain_/test.eval"
         }
     ],
+    "test_gpu.test_pairlogit_no_target[Ordered]": [
+        {
+            "checksum": "a1520bbe209a27c12c5e2fb9e2bcdb3f",
+            "uri": "file://test_gpu.test_pairlogit_no_target_Ordered_/test.eval"
+        }
+    ],
+    "test_gpu.test_pairlogit_no_target[Plain]": [
+        {
+            "checksum": "5873db08ee93e5f4f594591ba44df33b",
+            "uri": "file://test_gpu.test_pairlogit_no_target_Plain_/test.eval"
+        }
+    ],
     "test_gpu.test_pairs_generation": [
         {
             "checksum": "b14ca2f269c1a26a55666dd3495208fc",
