@@ -433,6 +433,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().SetDefault(EBootstrapType::Bernoulli);
                 ObliviousTreeOptions->BootstrapConfig->GetTakenFraction().SetDefault(0.5);
             }
+
+            CB_ENSURE(!ObliviousTreeOptions->RandomStrength.IsSet() || ObliviousTreeOptions->RandomStrength == 0.0,
+                "Random strength parameter isn't supported for PairLogitPairwise, QueryCrossEntropy, YetiRankPairwise objectives.");
+
             break;
         }
         default: {
