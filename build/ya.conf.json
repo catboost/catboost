@@ -12,6 +12,7 @@
         "c++filt": { "description": "Run c++filt" },
         "nm": { "description": "Run nm" },
         "svn": { "description": "Subversion command-line client" },
+        "zipatcher": { "description": "Apply zipatch from file or Arcanum pull request" },
         "ymake": { "description": "Run ymake", "visible": false },
         "ymake_dev": { "description": "Run ymake dev version", "visible": false },
         "test_tool": { "description": "Test tools for tests", "visible": false },
@@ -760,6 +761,14 @@
                   {"host": {"os": "LINUX"}, "default": true},
                   {"host": {"os": "WIN"}, "default": true},
                   {"host": {"os": "DARWIN", "default": true}}
+            ]
+        },
+        "zipatcher": {
+            "tools": {
+                "zipatcher": { "bottle": "zipatcher", "executable": "zipatcher" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true}
             ]
         },
         "cmake": {
@@ -1732,6 +1741,15 @@
                 "svnadmin": ["svnadmin"],
                 "svnlook": ["svnlook"],
                 "svnversion": ["svnversion"]
+            }
+        },
+        "zipatcher": {
+            "formula": {
+                "sandbox_id": 352945572,
+                "match": "zipatcher"
+            },
+            "executable": {
+                "zipatcher": ["zipatcher"]
             }
         },
         "cmake": {
