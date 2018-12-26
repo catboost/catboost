@@ -11,3 +11,6 @@
 
 * [Export CatBoost Model in JSON format Tutorial](model_export_as_json_tutorial.ipynb)
     * Catboost model could be saved in JSON format and applied.
+
+* [Apply CatBoost model from Java](catboost4j_prediction_tutorial.ipynb)
+    * Explore how to apply CatBoost model from Java application.
