@@ -15,7 +15,7 @@ public class CatBoost4jPredictionTutorial {
         // replacing "foo/bar" with path to your model that classifies data from UCI Adult Dataset.
         //
         // final String adultModelPath = "foo/bar";
-        // tutorial.adultModel = CatBoostModel.loadModel(adultModelPath);
+        // adultModel = CatBoostModel.loadModel(adultModelPath);
     }
 
     public static double sigmoid(final double x) {
