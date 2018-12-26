@@ -11,7 +11,7 @@ public class CatBoost4jPredictionTutorial {
         // Load "adult.cbm" model that we trained withing Jupyter Notebook
         adultModel = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/adult.cbm"));
 
-        // You can also try to load your own model just comment the line above and uncomment two lines below while
+        // You can also try to load your own model just comment out the line above and uncomment two lines below while
         // replacing "foo/bar" with path to your model that classifies data from UCI Adult Dataset.
         //
         // final String adultModelPath = "foo/bar";
