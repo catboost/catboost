@@ -1,3 +1,52 @@
+# Release 0.12.0
+## Breaking changes:
+* Class weights are now taken into account by `eval_metrics()`,
+  `get_feature_importance()`, and `get_object_importance()`.
+  In previous versions the weights were ignored.
+* Parameter `random-strength` for pairwise training (`PairLogitPairwise`,
+  `QueryCrossEntropy`, `YetiRankPairwise`) is not supported anymore.
+* Simultaneous use of `MultiClass` and `MultiClassOneVsAll` metrics is now
+  deprecated.
+
+## New functionality:
+* `cv` method is now supported on GPU.
+* String labels for classes are supported in Python.
+  In multiclassification the string class names are inferred from the data.
+  In binary classification for using string labels you should employ `class_names`
+  parameter and specify which class is negative (0) and which is positive (1).
+  You can also use `class_names` in multiclassification mode to pass all
+  possible class names to the fit function.
+* Borders can now be saved and reused.
+  To save the feature quantization information obtained during training data
+  preprocessing into a text file use cli option `--output-borders-file`.
+  To use the borders for training use cli option `--input-borders-file`.
+  This functionanlity is now supported on CPU and GPU (it was GPU-only in previous versions).
+  File format for the borders is described [here](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_custom-borders-docpage).
+* CLI option `--eval-file` is now supported on GPU.
+
+## Quality improvement:
+* Some cases in binary classification are fixed where training could diverge
+
+## Optimizations:
+* A great speedup of the Python applier (10x)
+* Reduced memory consumption in Python `cv` function (times fold count)
+
+## Benchmarks and tutorials:
+* Added [speed benchmarks](catboost/benchmarks/speed_benchmarks) for CPU and GPU on a variety of different datasets.
+* Added [benchmarks](catboost/benchmarks/ranking) of different ranking modes. In [this tutorial](catboost/tutorials/ranking/ranking_tutorial.ipynb) we compare
+  different ranking modes in CatBoost, XGBoost and LightGBM.
+* Added [tutorial](catboost/tutorials/apply_model/catboost4j_prediction_tutorial.ipynb) for applying model in Java.
+* Added [benchmarks](catboost/benchmarks/shap_speed) of SHAP values calculation for CatBoost, XGBoost and LightGBM.
+  The benchmarks also contain explanation of complexity of this calculation
+  in all the libraries.
+
+We also made a list of stability improvements
+and stricter checks of input data and parameters.
+
+And we are so grateful to our community members @canorbal and @neer201
+for their contribution in this release. Thank you.
+
+
 # Release 0.11.2
 ## Changes:
 * Pure GPU implementation of NDCG metric
