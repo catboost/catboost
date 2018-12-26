@@ -7,6 +7,7 @@ import sys
 import tempfile
 
 
+# GO_FAKEID = snermolaev.181226.102500
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
