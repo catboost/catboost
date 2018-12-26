@@ -5,9 +5,16 @@
 
 class TTempDir {
 public:
+    /// Create new directory in system tmp folder.
     TTempDir();
+
+    /// Create new directory with this fixed name. If it already exists, clear it.
     TTempDir(const TString& tempDir);
+
     ~TTempDir();
+
+    /// Create new directory in given folder.
+    static TTempDir NewTempDir(const TString& root);
 
     const TString& operator()() const {
         return Name();
@@ -24,6 +31,12 @@ public:
     void DoNotRemove();
 
 private:
+    struct TCreationToken {};
+
+    // Prevent people from confusing this ctor with the public one
+    // by requiring additional fake argument.
+    TTempDir(const char* prefix, TCreationToken);
+
     TFsPath TempDir;
     bool Remove;
 };
