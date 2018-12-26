@@ -798,6 +798,7 @@ windows.storage.streams.h
 windows.system.threading.h
 wrl.h
 windows.ui.xaml.h
+Wincrypt.h
 #endif
 #if defined(WINDOWS)
 AccCtrl.h
