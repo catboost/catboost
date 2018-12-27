@@ -82,3 +82,6 @@ And if this is the case, then time estimates should be updated: time estimate is
 29. `class_names` parameter in Pool constructor
 
 30. Validate CoreML model when doing its conversion (MLTOOLS-2761)
+
+31. Classification loss for noizy data: see NeurIPS 2018 paper  
+Generalized Cross Entropy Loss for Training Deep Neural Networks with Noisy Labels
