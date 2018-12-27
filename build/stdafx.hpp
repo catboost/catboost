@@ -185,7 +185,6 @@
 #include <util/draft/matrix.h>
 #include <util/draft/date.h>
 #include <util/draft/enum.h>
-#include <util/draft/file_utils.h>
 #include <util/draft/memory.h>
 #include <util/draft/holder_vector.h>
 #include <util/generic/object_counter.h>
