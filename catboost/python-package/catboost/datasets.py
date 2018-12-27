@@ -73,7 +73,7 @@ def _get_cache_path():
     return os.path.join(os.getcwd(), 'catboost_cached_datasets')
 
 
-def _cached_dataset_load(url, md5, dataset_name, train_file, test_file, header='infer'):
+def _cached_dataset_load(url, md5, dataset_name, train_file, test_file, sep=',', header='infer'):
     dir_path = os.path.join(_get_cache_path(), dataset_name)
     train_path = os.path.join(dir_path, train_file)
     test_path = os.path.join(dir_path, test_file)
@@ -86,7 +86,7 @@ def _cached_dataset_load(url, md5, dataset_name, train_file, test_file, header='
             _extract(file_path, dir_path)
         finally:
             os.remove(file_path)
-    return pd.read_csv(train_path, header=header), pd.read_csv(test_path, header=header)
+    return pd.read_csv(train_path, header=header, sep=sep), pd.read_csv(test_path, header=header, sep=sep)
 
 
 def titanic():
@@ -108,6 +108,27 @@ def msrank():
     md5 = '79c5b67397289c4c8b367c1f34629eae'
     dataset_name, train_file, test_file = 'msrank', 'train.csv', 'test.csv'
     return _cached_dataset_load(url, md5, dataset_name, train_file, test_file, header=None)
+
+
+def epsilon():
+    """
+    Download "epsilon" [1] data set.
+
+    Will return two pandas.DataFrame-s, first with train part (epsilon_normalized) and second with
+    test part (epsilon_normalized.t) of the dataset. Object class will be located in the first
+    column of dataset.
+
+    NOTE: This is a preprocessed version of the dataset. It was converted from libsvm format into
+    tsv (CatBoost doesn't support libsvm format out of the box).
+
+    [1]: https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/datasets/binary.html#epsilon
+    """
+    urls = (
+        'https://proxy.sandbox.yandex-team.ru/785711439',
+        'https://storage.mds.yandex.net/get-devtools-opensource/250854/epsilon.tar.gz', )
+    md5 = '5bbfac403ac673da7d7ee84bd532e973'
+    dataset_name, train_file, test_file = 'epsilon', 'train.tsv', 'test.tsv'
+    return _cached_dataset_load(urls, md5, dataset_name, train_file, test_file, sep='\t', header=None)
 
 
 def adult():
