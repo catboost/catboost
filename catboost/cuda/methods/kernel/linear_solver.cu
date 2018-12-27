@@ -328,6 +328,8 @@ namespace NKernel {
             pseudoRank += val > 1e-9f;
         }
 
+        __syncthreads();
+
         #pragma unroll 8
         for (int row = 0; row < rowSize; ++row) {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
