@@ -408,6 +408,24 @@ CatboostIpython.prototype.updateTracesVisibility = function() {
                         self.filterTracesOne(traces, {cv_stddev_last: true}).forEach(function(trace) {
                             self.setTraceVisibility(trace, false);
                         });
+
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
+
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'learn', cv_avg: true, smoothed: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, smoothed: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
+
+                        self.filterTracesEvery(traces, this.getTraceDefParams({type: 'test', cv_avg: true, best_point: true})).forEach(function(trace) {
+                            self.setTraceVisibility(trace, false);
+                        });
                     }
                 }
 
