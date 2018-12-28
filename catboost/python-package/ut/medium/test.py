@@ -21,7 +21,7 @@ from catboost import (
     train,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
-from pandas import read_table, DataFrame, Series
+from pandas import read_table, DataFrame, Series, Categorical
 from six import PY3
 from six.moves import xrange
 from catboost_pytest_lib import (
@@ -268,6 +268,30 @@ def test_load_dumps():
     pool2 = Pool('test_data_dumps')
     assert _check_data(pool1.get_features(), pool2.get_features())
     assert pool1.get_label() == [int(label) for label in pool2.get_label()]
+
+
+def test_dataframe_with_pandas_categorical_columns():
+    df = DataFrame()
+    df['num_feat_0'] = [0, 1, 0, 2, 3, 1, 2]
+    df['num_feat_1'] = [0.12, 0.8, 0.33, 0.11, 0.0, 1.0, 0.0]
+    df['cat_feat_2'] = Series(['A', 'B', 'A', 'C', 'A', 'A', 'A'], dtype='category')
+    df['cat_feat_3'] = Series(['x', 'x', 'y', 'y', 'y', 'x', 'x'])
+    df['cat_feat_4'] = Categorical(
+        ['large', 'small', 'medium', 'large', 'small', 'small', 'medium'],
+        categories=['small', 'medium', 'large'],
+        ordered=True
+    )
+    df['cat_feat_5'] = [0, 1, 0, 2, 3, 1, 2]
+
+    labels = [0, 1, 1, 0, 1, 0, 1]
+
+    model = CatBoostClassifier(iterations=2)
+    model.fit(X=df, y=labels, cat_features=[2, 3, 4, 5])
+    pred = model.predict(df)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred), fmt='%.8f')
+    return local_canonical_file(preds_path)
 
 
 # feature_matrix is (doc_count x feature_count)

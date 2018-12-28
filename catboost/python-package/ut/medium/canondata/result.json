@@ -75,6 +75,10 @@
         "checksum": "63bed0c6ce8f4ae88010f51fd284485e",
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
+    "test.test_dataframe_with_pandas_categorical_columns": {
+        "checksum": "5f94d483079c4b3a170c5016af378a1e",
+        "uri": "file://test.test_dataframe_with_pandas_categorical_columns/predictions.txt"
+    },
     "test.test_early_stopping_rounds[CPU]": [
         {
             "checksum": "c4c53ab9054b0fd6c45c07ee19d65efd",

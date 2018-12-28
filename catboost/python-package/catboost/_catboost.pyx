@@ -1462,25 +1462,29 @@ cdef object _set_features_order_data_pd_data_frame(
     cdef TVector[TString] cat_factor_data
     cdef ui32 doc_idx
     cdef ui32 flat_feature_idx
-    cdef np.ndarray column_values
+    cdef np.ndarray column_values # for columns that are not of type pandas.Categorical
+    cdef bool_t column_type_is_pandas_Categorical
 
     cat_factor_data.reserve(doc_count)
 
     new_data_holders = []
     for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
-        column_values = column_data.values
+        column_type_is_pandas_Categorical = column_data.dtype.name == 'category'
+        if not column_type_is_pandas_Categorical:
+            column_values = column_data.values
         if is_cat_feature_mask[flat_feature_idx]:
             cat_factor_data.clear()
             for doc_idx in range(doc_count):
                 get_cat_factor_bytes_representation(
                     doc_idx,
                     flat_feature_idx,
-                    column_values[doc_idx],
+                    column_data[doc_idx] if column_type_is_pandas_Categorical else column_values[doc_idx],
                     &factor_string
                 )
                 cat_factor_data.push_back(factor_string)
             builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
-        elif ((column_values.dtype == np.float32) and
+        elif ((not column_type_is_pandas_Categorical) and
+              (column_values.dtype == np.float32) and
               column_values.flags.aligned and
               column_values.flags.c_contiguous
             ):
@@ -1497,7 +1501,10 @@ cdef object _set_features_order_data_pd_data_frame(
                 )
             )
         else:
-            num_factor_data = create_num_factor_data(flat_feature_idx, column_values)
+            num_factor_data = create_num_factor_data(
+                flat_feature_idx,
+                column_values if not column_type_is_pandas_Categorical else np.asarray(column_data)
+            )
             num_factor_data_holder.Reset(num_factor_data.Get())
             builder_visitor[0].AddFloatFeature(
                 flat_feature_idx,
