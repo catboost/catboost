@@ -213,6 +213,7 @@ struct TObliviousTrees {
     size_t GetTreeCount() const {
         return TreeSizes.size();
     }
+
     /**
      * Truncate oblivous trees to contain only trees from [begin; end) interval.
      * @param begin
@@ -355,8 +356,18 @@ struct TFullModel {
         return GetUsedCatFeaturesCount() != 0;
     }
 
+    /**
+     * @return Number of trees in model.
+     */
     size_t GetTreeCount() const {
         return ObliviousTrees.TreeSizes.size();
+    }
+
+    /**
+     * @return Number of dimensions in model.
+     */
+    size_t GetDimensionsCount() const {
+        return ObliviousTrees.ApproxDimension;
     }
 
     /**

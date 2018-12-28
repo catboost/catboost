@@ -15,6 +15,7 @@ C GetIntegerCatFeatureHash
 C GetFloatFeaturesCount
 C GetCatFeaturesCount
 C GetTreeCount
+C GetDimensionsCount
 C CheckModelMetadataHasKey
 C GetModelInfoValueSize
 C GetModelInfoValue

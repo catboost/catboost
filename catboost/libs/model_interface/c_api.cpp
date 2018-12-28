@@ -158,6 +158,10 @@ EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetTreeCount();
 }
 
+EXPORT size_t GetDimensionsCount(ModelCalcerHandle* modelHandle) {
+    return FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+}
+
 EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
     return FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(TStringBuf(keyPtr, keySize));
 }
