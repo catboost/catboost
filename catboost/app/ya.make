@@ -16,6 +16,7 @@ SRCS(
     mode_ostr.cpp
     mode_roc.cpp
     mode_run_worker.cpp
+    GLOBAL signal_handling.cpp
 )
 
 PEERDIR(
