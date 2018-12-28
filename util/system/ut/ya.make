@@ -44,6 +44,7 @@ SRCS(
     system/hi_lo_ut.cpp
     system/hostname_ut.cpp
     system/info_ut.cpp
+    system/interrupt_signals_ut.cpp
     system/mem_info_ut.cpp
     system/mutex_ut.cpp
     system/nice_ut.cpp
