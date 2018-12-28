@@ -336,10 +336,10 @@ namespace NKernel {
             if (col <= row) {
                 float val = __ldg(lower + row * (row + 1) / 2 + col);
                 if (col == row && val <= 1e-7f) {
-                    val += 10.0f;
+                    val += trace / pseudoRank + 0.1f;
                 }
                 if (col == row) {
-                    val += 0.01 * trace / pseudoRank;
+                    val += 0.05f * trace / pseudoRank + 1e-20f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
                 WriteThrough(lower + row * (row + 1) / 2 + col,  val);
