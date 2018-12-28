@@ -89,6 +89,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_roc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_run_worker.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\app\model_metainfo_helpers.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\app\signal_handling.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\app\model_metainfo_helpers.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\app
