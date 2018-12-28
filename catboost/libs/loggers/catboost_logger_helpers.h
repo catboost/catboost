@@ -10,12 +10,15 @@
 
 
 struct TTimeInfo {
-    TTimeInfo(double passedTime, double remainingTime)
-        : PassedTime(passedTime)
-        , RemainingTime(remainingTime)
+    TTimeInfo(const TProfileResults& profileResults)
+        : IterationTime(profileResults.CurrentTime)
+        , PassedTime(profileResults.PassedTime)
+        , RemainingTime(profileResults.RemainingTime)
     {
     }
     TTimeInfo() = default;
+
+    double IterationTime = 0;
     double PassedTime = 0;
     double RemainingTime = 0;
 };

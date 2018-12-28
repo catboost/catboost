@@ -631,7 +631,8 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         int PartitionRandSeed
         bool_t Shuffle
         bool_t Stratified
-        ui32 IterationsBatchSize
+        double MaxTimeSpentOnFixedCostRatio
+        ui32 DevMaxIterationsBatchSize
 
 cdef extern from "catboost/libs/options/check_train_options.h":
     cdef void CheckFitParams(
@@ -2656,7 +2657,8 @@ cdef class _MetadataHashProxy:
 
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
-          bool_t shuffle, bool_t stratified, bool_t as_pandas, int iterations_batch_size):
+          bool_t shuffle, bool_t stratified, bool_t as_pandas, double max_time_spent_on_fixed_cost_ratio,
+          int dev_max_iterations_batch_size):
     prep_params = _PreprocessParams(params)
     cdef TCrossValidationParams cvParams
     cdef TVector[TCVResult] results
@@ -2666,7 +2668,8 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     cvParams.Shuffle = shuffle
     cvParams.Stratified = stratified
     cvParams.Inverted = inverted
-    cvParams.IterationsBatchSize = <ui32>iterations_batch_size
+    cvParams.MaxTimeSpentOnFixedCostRatio = max_time_spent_on_fixed_cost_ratio
+    cvParams.DevMaxIterationsBatchSize = <ui32>dev_max_iterations_batch_size
 
     with nogil:
         SetPythonInterruptHandler()

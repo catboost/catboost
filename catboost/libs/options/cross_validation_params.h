@@ -9,12 +9,15 @@ struct TCrossValidationParams {
     int PartitionRandSeed = 0;
     bool Shuffle = true;
     bool Stratified = false;
-    ui32 IterationsBatchSize = 100;
+    double MaxTimeSpentOnFixedCostRatio = 0.05;
+    ui32 DevMaxIterationsBatchSize = 100000; // useful primarily for tests
 
 public:
     bool Initialized() const {
         return FoldCount != 0;
     }
+
+    void Check() const;
 };
 
 struct TCvDataPartitionParams : public TCrossValidationParams {

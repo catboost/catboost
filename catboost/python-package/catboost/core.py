@@ -2760,7 +2760,8 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None, iterations_batch_size=100):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, max_time_spent_on_fixed_cost_ratio=0.05,
+       dev_max_iterations_batch_size=100000):
     """
     Cross-validate the CatBoost model.
 
@@ -2848,8 +2849,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     snapshot_interval: int, [default=600]
         Interval beetween saving snapshots (seconds)
 
-    iterations_batch_size: int [default:100]
-        Number of iterations to compute for each fold before aggregating results.
+    max_time_spent_on_fixed_cost_ratio: float [default:0.05]
+        Iteration batch sizes are computed to keep time spent on fixed cost computations
+        (spent on fold initialization for each batch) under this ratio.
+        Increasing this parameter will decrease the batch sizes which could be useful to get first batch
+        results sooner in exchange for greater total computation time.
+
+    dev_max_iterations_batch_size: int [default:100000]
+        Max number of iterations to compute for each fold before aggregating results.
+        Should be used only for testing, max_time_spent_on_fixed_cost_ratio is the prefered parameter to be
+        used in normal operation.
 
     Returns
     -------
@@ -2927,7 +2936,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(), plot_wrapper(plot, params):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                   as_pandas, iterations_batch_size)
+                   as_pandas, max_time_spent_on_fixed_cost_ratio, dev_max_iterations_batch_size)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

@@ -1514,7 +1514,7 @@ def test_cv(task_type):
             "eval_metric": "AUC",
             "task_type": task_type,
         },
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" in results
 
@@ -1530,7 +1530,7 @@ def test_cv_query(task_type):
     results = cv(
         pool,
         {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type},
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     assert "train-QueryRMSE-mean" in results
 
@@ -1552,7 +1552,7 @@ def test_cv_pairs(task_type):
             "loss_function": "PairLogit",
             "task_type": task_type
         },
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     assert "train-PairLogit-mean" in results
 
@@ -1574,7 +1574,7 @@ def test_cv_pairs_generated(task_type):
             "loss_function": "PairLogit",
             "task_type": task_type
         },
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     assert "train-PairLogit-mean" in results
 
@@ -1712,7 +1712,7 @@ def test_cv_logging(task_type):
             "loss_function": "Logloss",
             "task_type": task_type
         },
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
@@ -1724,7 +1724,7 @@ def test_cv_with_not_binarized_target(task_type):
     cv(
         pool,
         {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
@@ -1864,7 +1864,7 @@ def test_verbose_int(verbose, task_type):
             pool,
             {"iterations": 10, "learning_rate": 0.03, "loss_function": "Logloss", "task_type": task_type},
             verbose=verbose,
-            iterations_batch_size=6
+            dev_max_iterations_batch_size=6
         )
     assert(_count_lines(tmpfile) == expected_line_count[verbose])
 
@@ -2516,7 +2516,7 @@ def test_learning_rate_auto_set_in_cv(task_type):
     results = cv(
         pool,
         {"iterations": 14, "loss_function": "Logloss", "task_type": task_type},
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
     assert "train-Logloss-mean" in results
 
@@ -2767,7 +2767,7 @@ def test_roc(task_type):
             'thread_count': 4,
             'task_type': task_type
         },
-        iterations_batch_size=6
+        dev_max_iterations_batch_size=6
     )
 
     model = CatBoostClassifier(loss_function='Logloss', iterations=20)
@@ -2933,7 +2933,7 @@ def test_use_loss_if_no_eval_metric_cv(task_type):
         'seed': 0,
         'nfold': 3,
         'early_stopping_rounds': 5,
-        'iterations_batch_size': 20
+        'dev_max_iterations_batch_size': 20
     }
 
     results_1 = cv(train_pool, **cv_params)
@@ -2970,7 +2970,7 @@ def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
         'params': params,
         'nfold': 2,
         'as_pandas': True,
-        'iterations_batch_size': 6
+        'dev_max_iterations_batch_size': 6
     }
 
     cv(train_pool, **cv_params)

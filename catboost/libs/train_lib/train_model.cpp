@@ -323,7 +323,7 @@ static void Train(
         profile.FinishIteration();
 
         TProfileResults profileResults = profile.GetProfileResults();
-        ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory.push_back({profileResults.PassedTime, profileResults.RemainingTime});
+        ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory.push_back(TTimeInfo(profileResults));
 
         Log(
             iter,

@@ -86,8 +86,9 @@ namespace NCatboostCuda {
         const bool calcMetrics = ShouldCalcMetricOnIteration();
 
         ProfileInfo.FinishIteration();
-        History.TimeHistory.push_back({ProfileInfo.GetProfileResults().PassedTime,
-                                       ProfileInfo.GetProfileResults().RemainingTime});
+        auto profileResults = ProfileInfo.GetProfileResults();
+
+        History.TimeHistory.push_back(TTimeInfo(profileResults));
 
         constexpr size_t evalMetricIdx = 0;
         Log((int)Iteration,
@@ -96,7 +97,7 @@ namespace NCatboostCuda {
             History.TestMetricsHistory,
             !IsSkipOnTestFlags[evalMetricIdx] ? TMaybe<double>(ErrorTracker.GetBestError()) : Nothing(),
             !IsSkipOnTestFlags[evalMetricIdx] ? TMaybe<int>(ErrorTracker.GetBestIteration()) : Nothing(),
-            ProfileInfo.GetProfileResults(),
+            profileResults,
             LearnToken,
             TestTokens,
             calcMetrics,

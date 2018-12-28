@@ -28,6 +28,9 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/scope.h>
 #include <util/generic/ymath.h>
+#include <util/stream/labeled.h>
+#include <util/string/cast.h>
+#include <util/system/hp_timer.h>
 
 #include <cmath>
 #include <numeric>
@@ -105,6 +108,53 @@ inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, 
 }
 
 
+static ui32 EstimateUpToIteration(
+    ui32 lastIteration,
+    ui32 batchStartIteration,
+    double batchIterationsTime, // in sec
+    double batchIterationsPlusTrainInitializationTime, // in sec
+    double maxTimeSpentOnFixedCostRatio,
+    ui32 maxIterationsBatchSize,
+    ui32 globalMaxIteration
+) {
+    CB_ENSURE_INTERNAL(batchIterationsTime > 0.0, "batchIterationTime <= 0.0");
+    CB_ENSURE_INTERNAL(
+        batchIterationsPlusTrainInitializationTime > batchIterationsTime,
+        "batchIterationsPlusTrainInitializationTime <= batchIterationsTime"
+    );
+
+    double timeSpentOnFixedCost = batchIterationsPlusTrainInitializationTime - batchIterationsTime;
+    double averageIterationTime = batchIterationsTime / double(lastIteration - batchStartIteration + 1);
+
+    double estimatedToBeUnderFixedCostLimitIterationsBatchSize =
+        std::ceil((1.0 - maxTimeSpentOnFixedCostRatio)*timeSpentOnFixedCost
+           / (maxTimeSpentOnFixedCostRatio*averageIterationTime));
+
+    CATBOOST_DEBUG_LOG << "EstimateUpToIteration:\n\t" <<
+        LabeledOutput(
+            lastIteration,
+            batchIterationsTime,
+            batchIterationsPlusTrainInitializationTime,
+            averageIterationTime) << Endl
+        << '\t' << LabeledOutput(timeSpentOnFixedCost, maxTimeSpentOnFixedCostRatio, globalMaxIteration)
+        << "\n\testimated batch size to be under fixed cost ratio limit: "
+        << estimatedToBeUnderFixedCostLimitIterationsBatchSize << Endl;
+
+    double estimatedUpToIteration = (
+        double(batchStartIteration) + Min(
+            (double)maxIterationsBatchSize,
+            estimatedToBeUnderFixedCostLimitIterationsBatchSize));
+
+    if (estimatedUpToIteration <= (double)lastIteration) {
+        return lastIteration + 1;
+    } else if (double(globalMaxIteration) < estimatedUpToIteration) {
+        return globalMaxIteration;
+    } else {
+        // cast won't overflow because upToIteration has already been compared with globalMaxIteration
+        return (ui32)estimatedUpToIteration;
+    }
+}
+
 
 struct TFoldContext {
     TString NamesPrefix;
@@ -137,20 +187,30 @@ public:
         OutputOptions.Load(outputJsonParams);
     }
 
-    void TrainUpToIteration(
+    void TrainBatch(
         const NJson::TJsonValue& trainOptionsJson,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TLabelConverter& labelConverter,
         TConstArrayRef<THolder<IMetric>> metrics,
         TConstArrayRef<bool> skipMetricOnTrain,
-        size_t upToIteration, // exclusive bound
+        double maxTimeSpentOnFixedCostRatio,
+        ui32 maxIterationsBatchSize,
         size_t globalMaxIteration,
         bool isErrorTrackerActive,
+        ELoggingLevel loggingLevel,
         IModelTrainer* modelTrainer,
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor,
+        TMaybe<ui32>* upToIteration) { // exclusive bound, if not inited - init from profile data
 
+        // don't output data from folds training
         TSetLoggingSilent silentMode;
+
+        const size_t batchStartIteration = MetricValuesOnTest.size();
+        const bool estimateUpToIteration = !upToIteration->Defined();
+        double batchIterationsTime = 0.0; // without initialization time
+
+        THPTimer trainTimer;
 
         modelTrainer->TrainModel(
             true,
@@ -163,8 +223,30 @@ public:
                 size_t iteration = metricsAndTimeHistory.TimeHistory.size() - 1;
 
                 // replay
-                if (iteration < MetricValuesOnTest.size()) {
+                if (iteration < batchStartIteration) {
                     return true;
+                }
+
+                if (estimateUpToIteration) {
+                    TSetLogging inThisScope(loggingLevel);
+
+                    batchIterationsTime += metricsAndTimeHistory.TimeHistory.back().IterationTime;
+
+                    TMaybe<ui32> prevUpToIteration = *upToIteration;
+
+                    *upToIteration = EstimateUpToIteration(
+                        iteration,
+                        batchStartIteration,
+                        batchIterationsTime,
+                        trainTimer.Passed(),
+                        maxTimeSpentOnFixedCostRatio,
+                        maxIterationsBatchSize,
+                        globalMaxIteration);
+
+                    if (*upToIteration != prevUpToIteration) {
+                        CATBOOST_INFO_LOG << "CrossValidation: batch iterations upper bound estimate = "
+                            << **upToIteration << Endl;
+                    }
                 }
 
                 bool calcMetrics = DivisibleOrLastIteration(
@@ -195,7 +277,7 @@ public:
                         metricsAndTimeHistory.TestMetricsHistory.back()[0].at(metricDescription));
                 }
 
-                return (iteration + 1) < upToIteration;
+                return (iteration + 1) < **upToIteration;
             },
             TrainingData,
             labelConverter,
@@ -269,6 +351,8 @@ void CrossValidate(
     const TCrossValidationParams& cvParams,
     TVector<TCVResult>* results
 ) {
+    cvParams.Check();
+
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
@@ -477,30 +561,42 @@ void CrossValidate(
     TProfileInfo profile(globalMaxIteration);
 
     ui32 iteration = 0;
+    ui32 batchStartIteration = 0;
 
-    for (ui32 batchStartIteration = 0;
-         !errorTracker.GetIsNeedStop() && (batchStartIteration < globalMaxIteration);
-         batchStartIteration += cvParams.IterationsBatchSize)
-    {
+    while (!errorTracker.GetIsNeedStop() && (batchStartIteration < globalMaxIteration)) {
         profile.StartIterationBlock();
 
-        ui32 batchEndIteration = Min(
-            batchStartIteration + cvParams.IterationsBatchSize,
-            globalMaxIteration);
+        /* Inited based on profile data after first iteration
+         *
+         * TODO(akhropov): assuming all folds have approximately the same fixed cost/iteration cost ratio
+         * this might not be the case in the future when time-split CV folds or custom CV folds
+         * will be of different size
+         */
+        TMaybe<ui32> batchEndIteration;
 
-        for (auto& foldContext : foldContexts) {
-            foldContext.TrainUpToIteration(
+        for (auto foldIdx : xrange(foldContexts.size())) {
+            THPTimer timer;
+
+            foldContexts[foldIdx].TrainBatch(
                 updatedTrainOptionsJson,
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 labelConverter,
                 metrics,
                 skipMetricOnTrain,
-                batchEndIteration,
+                cvParams.MaxTimeSpentOnFixedCostRatio,
+                cvParams.DevMaxIterationsBatchSize,
                 globalMaxIteration,
                 errorTracker.IsActive(),
+                catBoostOptions.LoggingLevel,
                 modelTrainerHolder.Get(),
-                &localExecutor);
+                &localExecutor,
+                &batchEndIteration);
+
+            Y_ASSERT(batchEndIteration); // should be inited right after the first iteration of the first fold
+            CATBOOST_INFO_LOG << "CrossValidation: Processed batch of iterations [" << batchStartIteration
+                << ',' << *batchEndIteration << ") for fold " << foldIdx << '/' << cvParams.FoldCount
+                << " in " << FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
         }
 
         while (true) {
@@ -573,12 +669,13 @@ void CrossValidate(
                 lastIterInBatch = true;
             }
             ++iteration;
-            if (iteration == batchEndIteration) {
+            if (iteration == *batchEndIteration) {
                 lastIterInBatch = true;
             }
             if (lastIterInBatch) {
                 profile.FinishIterationBlock(iteration - batchStartIteration);
                 oneIterLogger.OutputProfile(profile.GetProfileResults());
+                batchStartIteration = iteration;
                 break;
             }
         }
