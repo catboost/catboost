@@ -130,6 +130,16 @@ constexpr TArrayRef<typename Range::value_type> MakeArrayRef(Range& range) {
     return TArrayRef<typename Range::value_type>(range);
 }
 
+template <class Range>
+constexpr TArrayRef<const typename Range::value_type> MakeConstArrayRef(const Range& range) {
+    return TArrayRef<const typename Range::value_type>(range);
+}
+
+template <class Range>
+constexpr TArrayRef<const typename Range::value_type> MakeConstArrayRef(Range& range) {
+    return TArrayRef<const typename Range::value_type>(range);
+}
+
 template <class T>
 constexpr TArrayRef<T> MakeArrayRef(T* data, size_t size) {
     return TArrayRef<T>(data, size);

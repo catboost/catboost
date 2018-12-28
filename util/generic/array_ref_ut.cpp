@@ -134,4 +134,25 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         static_assert(r2.size() == 4, "r2.size() == 4");
         static_assert(r2.data()[2] == -3, "r2.data()[2] == -3");
     }
+
+    template <typename T>
+    static void Foo(const TConstArrayRef<T>) {
+        // noop
+    }
+
+    Y_UNIT_TEST(TestMakeConstArrayRef) {
+        TVector<int> data;
+
+        // Won't compile because can't deduce `T` for `Foo`
+        // Foo(data);
+
+        // Won't compile because again can't deduce `T` for `Foo`
+        // Foo(MakeArrayRef(data));
+
+        // Success!
+        Foo(MakeConstArrayRef(data));
+
+        const TVector<int> constData;
+        Foo(MakeConstArrayRef(constData));
+    }
 }
