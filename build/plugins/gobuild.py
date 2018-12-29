@@ -31,6 +31,11 @@ def on_go_process_srcs(unit):
         for f in proto_files:
             unit.ongo_proto_cmd(f)
 
+    in_files = filter(lambda x: x.endswith('.in'), go_files)
+    if len(in_files) > 0:
+        for f in in_files:
+            unit.onsrc(f)
+
     s_files = filter(lambda x: x.endswith('.S'), go_files)
     c_files = filter(lambda x: x.endswith('.c'), go_files)
     if len(c_files) + len(s_files) > 0:

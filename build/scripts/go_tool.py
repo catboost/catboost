@@ -56,11 +56,8 @@ def call(cmd, cwd, env=None):
 
 def classify_srcs(srcs, args):
     args.go_srcs = list(filter(lambda x: x.endswith('.go'), srcs))
-    args.c_srcs = list(filter(lambda x: x.endswith('.c'), srcs))
-    args.cxx_srcs = list(filter(lambda x: x.endswith('.cc'), srcs))
     args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
     args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
-    args.packages = list(filter(lambda x: x.endswith('.a'), srcs))
 
 
 def create_import_config(peers, import_map={}, module_map={}):
