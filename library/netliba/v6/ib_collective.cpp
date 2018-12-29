@@ -756,27 +756,49 @@ namespace NNetliba {
                 }
             }
         }
+
+        bool ProcessSendCompletion(const ibv_wc& wc) {
+            Y_VERIFY(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
+            if (wc.opcode & IBV_WC_RECV) {
+                BP->RequestPostRecv();
+                Pending.push_back(TPendingMessage(wc.qp_num, wc.wr_id));
+                BP->PostRecv();
+            } else {
+                WriteCompleted(wc);
+                return true;
+            }
+            return false;
+        }
+
         void WaitCompletion(ibv_wc* res) {
             ibv_wc& wc = *res;
             for (;;) {
                 int rv = CQ->Poll(&wc, 1);
-                if (rv > 0) {
-                    Y_VERIFY(wc.status == IBV_WC_SUCCESS, "WaitForMsg() fail, status %d", (int)wc.status);
-                    if (wc.opcode & IBV_WC_RECV) {
-                        BP->RequestPostRecv();
-                        Pending.push_back(TPendingMessage(wc.qp_num, wc.wr_id));
-                        BP->PostRecv();
-                    } else {
-                        WriteCompleted(wc);
-                        return;
-                    }
+                if (rv > 0 && ProcessSendCompletion(wc)) {
+                   break;
                 }
             }
         }
+
+        bool TryWaitCompletion() override {
+            ibv_wc wc;
+            for (;;) {
+                int rv = CQ->Poll(&wc, 1);
+                if (rv > 0) {
+                    if (ProcessSendCompletion(wc)) {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
         void WaitCompletion() override {
             ibv_wc wc;
             WaitCompletion(&wc);
         }
+
         ui64 WaitForMsg(int qpn) {
             for (TDeque<TPendingMessage>::iterator z = Pending.begin(); z != Pending.end(); ++z) {
                 if (z->QPN == qpn) {

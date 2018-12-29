@@ -143,6 +143,7 @@ namespace NNetliba_v12 {
         virtual int GetSize() = 0;
         virtual int GetGroupTypeCount() = 0;
         virtual int GetQPN(int rank) = 0;
+        virtual bool TryWaitCompletion() = 0;
         virtual void WaitCompletion() = 0;
         virtual void Start(const TCollectiveLinkSet& links) = 0;
         virtual IAllGather* CreateAllGather(const TVector<size_t>& szPerRank) = 0;
