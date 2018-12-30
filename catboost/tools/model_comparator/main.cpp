@@ -1,9 +1,16 @@
+
+#include "onnx.h"
+
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
 #include <library/getopt/small/last_getopt.h>
 
 #include <cmath>
+
+
+using namespace NCB;
+
 
 struct TSubmodelComparison {
     bool StructureIsDifferent = false;
@@ -95,6 +102,7 @@ static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const
     return true;
 }
 
+
 int main(int argc, char** argv) {
     using namespace NLastGetopt;
     double diffLimit = 0.0;
@@ -109,6 +117,37 @@ int main(int argc, char** argv) {
     opts.SetFreeArgTitle(1, "MODEL2");
     TOptsParseResult args(&opts, argc, argv);
     TVector<TString> freeArgs = args.GetFreeArgs();
+
+
+    TMaybe<onnx::ModelProto> onnxModel1 = TryLoadOnnxModel(freeArgs[0]);
+    TMaybe<onnx::ModelProto> onnxModel2 = TryLoadOnnxModel(freeArgs[1]);
+
+    if (onnxModel1 && onnxModel2) {
+        TString diffString;
+        bool modelsAreEqual = Compare(*onnxModel1, *onnxModel2, &diffString);
+        if (modelsAreEqual) {
+            Clog << "Models are equal" << Endl;
+            return 0;
+        }
+        Clog << "ONNX models differ:\n" << diffString << Endl
+             << "MODEL1 = " << freeArgs[0] << Endl
+             << "MODEL2 = " << freeArgs[1] << Endl;
+        return 1;
+    }
+    if (onnxModel1 && !onnxModel2) {
+        Clog << "Cannot compare (not implemented)\n"
+            << "ONNX MODEL1 = " << freeArgs[0] << Endl
+            << "non-ONNX MODEL2 = " << freeArgs[1] << Endl;
+        return 2;
+    }
+    if (!onnxModel1 && onnxModel2) {
+        Clog << "Cannot compare (not implemented)\n"
+            << "non-ONNX MODEL1 = " << freeArgs[0] << Endl
+            << "ONNX MODEL2 = " << freeArgs[1] << Endl;
+        return 2;
+    }
+
+    // both models are non-ONNX - compare loaded as TFullModel
 
     TFullModel model1 = ReadModelAny(freeArgs[0]);
     TFullModel model2 = ReadModelAny(freeArgs[1]);

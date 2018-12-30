@@ -223,7 +223,8 @@ enum class EModelType {
     AppleCoreML    /* "AppleCoreML", "coreml"     */,
     Cpp            /* "Cpp", "CPP", "cpp" */,
     Python         /* "Python", "python" */,
-    Json           /* "Json", "json"       */
+    Json           /* "Json", "json"       */,
+    Onnx           /* "Onnx", "onnx" */
 };
 
 enum class EFinalCtrComputationMode {

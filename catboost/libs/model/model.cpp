@@ -6,6 +6,7 @@
 #include "json_model_helpers.h"
 #include "model_build_helper.h"
 #include "model_export/model_exporter.h"
+#include "onnx_helpers.h"
 #include "static_ctr_provider.h"
 
 #include <catboost/libs/helpers/exception.h>
@@ -120,6 +121,33 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
+void OutputModelOnnx(const TFullModel& model, const TString& modelFile, const NJson::TJsonValue& userParameters) {
+    /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
+     * could be interpreted as nans so that equality comparison won't work for such splits
+     */
+    CB_ENSURE(
+        !model.HasCategoricalFeatures(),
+        "ONNX-ML format export does yet not support categorical features"
+    );
+
+    onnx::ModelProto outModel;
+
+    NCatboost::NOnnx::InitMetadata(model, userParameters, &outModel);
+
+    TMaybe<TString> graphName;
+    if (userParameters.Has("onnx_graph_name")) {
+        graphName = userParameters["onnx_graph_name"].GetStringSafe();
+    }
+
+    NCatboost::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
+
+    TString data;
+    outModel.SerializeToString(&data);
+
+    TOFStream out(modelFile);
+    out.Write(data);
+}
+
 void ExportModel(
         const TFullModel& model,
         const TString& modelFile,
@@ -148,6 +176,15 @@ void ExportModel(
             {
                 CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");
                 OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
+            }
+            break;
+        case EModelType::Onnx:
+            {
+                TStringInput is(userParametersJson);
+                NJson::TJsonValue params;
+                NJson::ReadJsonTree(&is, &params);
+
+                OutputModelOnnx(model, modelFileName, params);
             }
             break;
         default:
