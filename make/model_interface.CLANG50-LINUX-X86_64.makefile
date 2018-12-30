@@ -108,7 +108,10 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a\
         $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
         $(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a\
+        $(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a\
         $(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a\
+        $(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a\
         $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o\
         $(BUILD_ROOT)/tools/fix_elf/fix_elf\
@@ -117,8 +120,8 @@ $(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1\
         $(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model_interface'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t UNKNOWN -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/model/libcatboost-libs-model.a
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' '$(CXX)' catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a library/containers/dense_hash/liblibrary-containers-dense_hash.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboostmodel -o catboost/libs/model_interface/libcatboostmodel.so.1.mf -t UNKNOWN -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_dyn_lib.py' --target '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' --arch=LINUX --soname '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so' --fix-elf '$(BUILD_ROOT)/tools/fix_elf/fix_elf' '$(CXX)' catboost/libs/data_util/line_data_reader.cpp.pic.o catboost/libs/data_util/exists_checker.cpp.pic.o catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o '$(BUILD_ROOT)/catboost/libs/model_interface/c_api.cpp.pic.o' -o '$(BUILD_ROOT)/catboost/libs/model_interface/libcatboostmodel.so.1' -shared -Wl,-soname,libcatboostmodel.so.1 --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/index_range/libcatboost-libs-index_range.a library/containers/2d_array/liblibrary-containers-2d_array.a library/binsaver/liblibrary-binsaver.a catboost/libs/data_types/libcatboost-libs-data_types.a library/object_factory/liblibrary-object_factory.a catboost/libs/data_util/libcatboost-libs-data_util.a tools/enum_parser/enum_serialization_runtime/libtools-enum_parser-enum_serialization_runtime.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/logging/libcatboost-libs-logging.a library/colorizer/liblibrary-colorizer.a library/dbg_output/liblibrary-dbg_output.a contrib/libs/crcutil/libcontrib-libs-crcutil.a library/digest/crc32c/liblibrary-digest-crc32c.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/string_utils/base64/liblibrary-string_utils-base64.a library/digest/md5/liblibrary-digest-md5.a library/malloc/api/liblibrary-malloc-api.a library/threading/local_executor/liblibrary-threading-local_executor.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/json/writer/liblibrary-json-writer.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a library/json/liblibrary-json.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a catboost/libs/options/libcatboost-libs-options.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/coreml/libcontrib-libs-coreml.a contrib/libs/onnx/proto/liblibs-onnx-proto.a contrib/libs/onnx/libcontrib-libs-onnx.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/svnversion/liblibrary-svnversion.a catboost/libs/model/libcatboost-libs-model.a -Wl,--end-group '-Wl,--version-script=$(SOURCE_ROOT)/catboost/libs/model_interface/calcer.exports' -ldl -lrt -Wl,--no-as-needed -Wl,-z,notext -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf\
         ::\
@@ -2943,11 +2946,11 @@ $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/charset/libutil-charset.a\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/libyutil.a\
         $(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a\
         $(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a\
@@ -2960,6 +2963,674 @@ $(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser\
 	mkdir -p '$(BUILD_ROOT)/tools/enum_parser/enum_parser'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name enum_parser -o tools/enum_parser/enum_parser/enum_parser.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a library/colorizer/liblibrary-colorizer.a library/getopt/small/liblibrary-getopt-small.a library/cppparser/liblibrary-cppparser.a tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a
 	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/tools/enum_parser/enum_parser/main.cpp.pic.o' -o '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a library/colorizer/liblibrary-colorizer.a library/getopt/small/liblibrary-getopt-small.a library/cppparser/liblibrary-cppparser.a tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+
+$(BUILD_ROOT)/util/charset/libutil-charset.a.mf\
+        ::\
+        $(BUILD_ROOT)/util/charset/libutil-charset.a\
+
+$(BUILD_ROOT)/util/charset/libutil-charset.a\
+        ::\
+        $(BUILD_ROOT)/util/charset/wide_sse41.cpp.pic.o\
+        $(BUILD_ROOT)/util/charset/all_charset.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/util/charset'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name util-charset -o util/charset/libutil-charset.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/charset/libutil-charset.a' '$(BUILD_ROOT)/util/charset/wide_sse41.cpp.pic.o' '$(BUILD_ROOT)/util/charset/all_charset.cpp.pic.o'
+
+$(BUILD_ROOT)/util/charset/wide_sse41.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/util/charset/wide_sse41.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/charset'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/charset/wide_sse41.cpp.pic.o' '$(SOURCE_ROOT)/util/charset/wide_sse41.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++ -msse4.1
+
+$(BUILD_ROOT)/util/charset/all_charset.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/charset/all_charset.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/charset'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/charset/all_charset.cpp.pic.o' '$(BUILD_ROOT)/util/charset/all_charset.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/charset/all_charset.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/charset/generated/unidata.cpp\
+        $(SOURCE_ROOT)/util/charset/recode_result.cpp\
+        $(SOURCE_ROOT)/util/charset/unicode_table.cpp\
+        $(SOURCE_ROOT)/util/charset/unidata.cpp\
+        $(SOURCE_ROOT)/util/charset/utf8.cpp\
+        $(SOURCE_ROOT)/util/charset/wide.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/charset'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/charset/all_charset.cpp' util/charset/generated/unidata.cpp util/charset/recode_result.cpp util/charset/unicode_table.cpp util/charset/unidata.cpp util/charset/utf8.cpp util/charset/wide.cpp
+
+$(BUILD_ROOT)/util/libyutil.a.mf\
+        ::\
+        $(BUILD_ROOT)/util/libyutil.a\
+
+$(BUILD_ROOT)/util/libyutil.a\
+        ::\
+        $(BUILD_ROOT)/util/digest/city.cpp.pic.o\
+        $(BUILD_ROOT)/util/random/random.cpp.pic.o\
+        $(BUILD_ROOT)/util/string/cast.cc.pic.o\
+        $(BUILD_ROOT)/util/system/context_x86.o\
+        $(BUILD_ROOT)/util/system/valgrind.cpp.pic.o\
+        $(BUILD_ROOT)/util/system/strlcpy.c.pic.o\
+        $(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_datetime.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_digest.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_util.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_folder.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_generic.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_memory.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_network.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_random.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_stream.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_string.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_system_1.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_system_2.cpp.pic.o\
+        $(BUILD_ROOT)/util/all_thread.cpp.pic.o\
+        $(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yutil -o util/libyutil.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/digest/city.cpp.pic.o' '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(BUILD_ROOT)/util/string/cast.cc.pic.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.pic.o' '$(BUILD_ROOT)/util/system/strlcpy.c.pic.o' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o' '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o' '$(BUILD_ROOT)/util/all_digest.cpp.pic.o' '$(BUILD_ROOT)/util/all_util.cpp.pic.o' '$(BUILD_ROOT)/util/all_folder.cpp.pic.o' '$(BUILD_ROOT)/util/all_generic.cpp.pic.o' '$(BUILD_ROOT)/util/all_memory.cpp.pic.o' '$(BUILD_ROOT)/util/all_network.cpp.pic.o' '$(BUILD_ROOT)/util/all_random.cpp.pic.o' '$(BUILD_ROOT)/util/all_stream.cpp.pic.o' '$(BUILD_ROOT)/util/all_string.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o' '$(BUILD_ROOT)/util/all_thread.cpp.pic.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o'
+
+$(BUILD_ROOT)/util/digest/city.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/util/digest/city.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/digest'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/digest/city.cpp.pic.o' '$(SOURCE_ROOT)/util/digest/city.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/random/random.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/util/random/random.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/random'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(SOURCE_ROOT)/util/random/random.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/string/cast.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/util/string/cast.cc\
+
+	mkdir -p '$(BUILD_ROOT)/util/string'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/string/cast.cc.pic.o' '$(SOURCE_ROOT)/util/string/cast.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/util/system/mktemp_system.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/system'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o' '$(SOURCE_ROOT)/util/system/mktemp_system.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_datetime.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_datetime.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o' '$(BUILD_ROOT)/util/all_datetime.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_datetime.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/datetime/base.cpp\
+        $(SOURCE_ROOT)/util/datetime/constants.cpp\
+        $(SOURCE_ROOT)/util/datetime/cputimer.cpp\
+        $(SOURCE_ROOT)/util/datetime/systime.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_datetime.cpp' util/datetime/base.cpp util/datetime/constants.cpp util/datetime/cputimer.cpp util/datetime/systime.cpp
+
+$(BUILD_ROOT)/util/all_digest.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_digest.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_digest.cpp.pic.o' '$(BUILD_ROOT)/util/all_digest.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_digest.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/digest/fnv.cpp\
+        $(SOURCE_ROOT)/util/digest/multi.cpp\
+        $(SOURCE_ROOT)/util/digest/murmur.cpp\
+        $(SOURCE_ROOT)/util/digest/numeric.cpp\
+        $(SOURCE_ROOT)/util/digest/sequence.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_digest.cpp' util/digest/fnv.cpp util/digest/multi.cpp util/digest/murmur.cpp util/digest/numeric.cpp util/digest/sequence.cpp
+
+$(BUILD_ROOT)/util/all_util.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_util.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_util.cpp.pic.o' '$(BUILD_ROOT)/util/all_util.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_util.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/ysafeptr.cpp\
+        $(SOURCE_ROOT)/util/ysaveload.cpp\
+        $(SOURCE_ROOT)/util/str_stl.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_util.cpp' util/ysafeptr.cpp util/ysaveload.cpp util/str_stl.cpp
+
+$(BUILD_ROOT)/util/all_folder.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_folder.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_folder.cpp.pic.o' '$(BUILD_ROOT)/util/all_folder.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_folder.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/folder/dirut.cpp\
+        $(SOURCE_ROOT)/util/folder/filelist.cpp\
+        $(SOURCE_ROOT)/util/folder/fts.cpp\
+        $(SOURCE_ROOT)/util/folder/iterator.cpp\
+        $(SOURCE_ROOT)/util/folder/path.cpp\
+        $(SOURCE_ROOT)/util/folder/pathsplit.cpp\
+        $(SOURCE_ROOT)/util/folder/tempdir.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_folder.cpp' util/folder/dirut.cpp util/folder/filelist.cpp util/folder/fts.cpp util/folder/iterator.cpp util/folder/path.cpp util/folder/pathsplit.cpp util/folder/tempdir.cpp
+
+$(BUILD_ROOT)/util/all_generic.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_generic.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_generic.cpp.pic.o' '$(BUILD_ROOT)/util/all_generic.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_generic.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/generic/scope.cpp\
+        $(SOURCE_ROOT)/util/generic/adaptor.cpp\
+        $(SOURCE_ROOT)/util/generic/algorithm.cpp\
+        $(SOURCE_ROOT)/util/generic/array_ref.cpp\
+        $(SOURCE_ROOT)/util/generic/array_size.cpp\
+        $(SOURCE_ROOT)/util/generic/bitmap.cpp\
+        $(SOURCE_ROOT)/util/generic/bitops.cpp\
+        $(SOURCE_ROOT)/util/generic/bt_exception.cpp\
+        $(SOURCE_ROOT)/util/generic/buffer.cpp\
+        $(SOURCE_ROOT)/util/generic/cast.cpp\
+        $(SOURCE_ROOT)/util/generic/chartraits.cpp\
+        $(SOURCE_ROOT)/util/generic/deque.cpp\
+        $(SOURCE_ROOT)/util/generic/explicit_type.cpp\
+        $(SOURCE_ROOT)/util/generic/fastqueue.cpp\
+        $(SOURCE_ROOT)/util/generic/flags.cpp\
+        $(SOURCE_ROOT)/util/generic/function.cpp\
+        $(SOURCE_ROOT)/util/generic/fwd.cpp\
+        $(SOURCE_ROOT)/util/generic/guid.cpp\
+        $(SOURCE_ROOT)/util/generic/hash.cpp\
+        $(SOURCE_ROOT)/util/generic/hash_primes.cpp\
+        $(SOURCE_ROOT)/util/generic/hash_set.cpp\
+        $(SOURCE_ROOT)/util/generic/hide_ptr.cpp\
+        $(SOURCE_ROOT)/util/generic/intrlist.cpp\
+        $(SOURCE_ROOT)/util/generic/is_in.cpp\
+        $(SOURCE_ROOT)/util/generic/iterator.cpp\
+        $(SOURCE_ROOT)/util/generic/iterator_range.cpp\
+        $(SOURCE_ROOT)/util/generic/lazy_value.cpp\
+        $(SOURCE_ROOT)/util/generic/list.cpp\
+        $(SOURCE_ROOT)/util/generic/map.cpp\
+        $(SOURCE_ROOT)/util/generic/mapfindptr.cpp\
+        $(SOURCE_ROOT)/util/generic/maybe.cpp\
+        $(SOURCE_ROOT)/util/generic/mem_copy.cpp\
+        $(SOURCE_ROOT)/util/generic/noncopyable.cpp\
+        $(SOURCE_ROOT)/util/generic/object_counter.cpp\
+        $(SOURCE_ROOT)/util/generic/ptr.cpp\
+        $(SOURCE_ROOT)/util/generic/queue.cpp\
+        $(SOURCE_ROOT)/util/generic/refcount.cpp\
+        $(SOURCE_ROOT)/util/generic/region.cpp\
+        $(SOURCE_ROOT)/util/generic/reinterpretcast.cpp\
+        $(SOURCE_ROOT)/util/generic/serialized_enum.cpp\
+        $(SOURCE_ROOT)/util/generic/set.cpp\
+        $(SOURCE_ROOT)/util/generic/singleton.cpp\
+        $(SOURCE_ROOT)/util/generic/size_literals.cpp\
+        $(SOURCE_ROOT)/util/generic/stack.cpp\
+        $(SOURCE_ROOT)/util/generic/stlfwd.cpp\
+        $(SOURCE_ROOT)/util/generic/store_policy.cpp\
+        $(SOURCE_ROOT)/util/generic/strbuf.cpp\
+        $(SOURCE_ROOT)/util/generic/strfcpy.cpp\
+        $(SOURCE_ROOT)/util/generic/string.cpp\
+        $(SOURCE_ROOT)/util/generic/typelist.cpp\
+        $(SOURCE_ROOT)/util/generic/type_name.cpp\
+        $(SOURCE_ROOT)/util/generic/typetraits.cpp\
+        $(SOURCE_ROOT)/util/generic/utility.cpp\
+        $(SOURCE_ROOT)/util/generic/va_args.cpp\
+        $(SOURCE_ROOT)/util/generic/vector.cpp\
+        $(SOURCE_ROOT)/util/generic/vector_ops.cpp\
+        $(SOURCE_ROOT)/util/generic/xrange.cpp\
+        $(SOURCE_ROOT)/util/generic/yexception.cpp\
+        $(SOURCE_ROOT)/util/generic/ylimits.cpp\
+        $(SOURCE_ROOT)/util/generic/ymath.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_generic.cpp' util/generic/scope.cpp util/generic/adaptor.cpp util/generic/algorithm.cpp util/generic/array_ref.cpp util/generic/array_size.cpp util/generic/bitmap.cpp util/generic/bitops.cpp util/generic/bt_exception.cpp util/generic/buffer.cpp util/generic/cast.cpp util/generic/chartraits.cpp util/generic/deque.cpp util/generic/explicit_type.cpp util/generic/fastqueue.cpp util/generic/flags.cpp util/generic/function.cpp util/generic/fwd.cpp util/generic/guid.cpp util/generic/hash.cpp util/generic/hash_primes.cpp util/generic/hash_set.cpp util/generic/hide_ptr.cpp util/generic/intrlist.cpp util/generic/is_in.cpp util/generic/iterator.cpp util/generic/iterator_range.cpp util/generic/lazy_value.cpp util/generic/list.cpp util/generic/map.cpp util/generic/mapfindptr.cpp util/generic/maybe.cpp util/generic/mem_copy.cpp util/generic/noncopyable.cpp util/generic/object_counter.cpp util/generic/ptr.cpp util/generic/queue.cpp util/generic/refcount.cpp util/generic/region.cpp util/generic/reinterpretcast.cpp util/generic/serialized_enum.cpp util/generic/set.cpp util/generic/singleton.cpp util/generic/size_literals.cpp util/generic/stack.cpp util/generic/stlfwd.cpp util/generic/store_policy.cpp util/generic/strbuf.cpp util/generic/strfcpy.cpp util/generic/string.cpp util/generic/typelist.cpp util/generic/type_name.cpp util/generic/typetraits.cpp util/generic/utility.cpp util/generic/va_args.cpp util/generic/vector.cpp util/generic/vector_ops.cpp util/generic/xrange.cpp util/generic/yexception.cpp util/generic/ylimits.cpp util/generic/ymath.cpp
+
+$(BUILD_ROOT)/util/all_memory.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_memory.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_memory.cpp.pic.o' '$(BUILD_ROOT)/util/all_memory.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_memory.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/memory/addstorage.cpp\
+        $(SOURCE_ROOT)/util/memory/alloc.cpp\
+        $(SOURCE_ROOT)/util/memory/blob.cpp\
+        $(SOURCE_ROOT)/util/memory/mmapalloc.cpp\
+        $(SOURCE_ROOT)/util/memory/pool.cpp\
+        $(SOURCE_ROOT)/util/memory/segmented_string_pool.cpp\
+        $(SOURCE_ROOT)/util/memory/segpool_alloc.cpp\
+        $(SOURCE_ROOT)/util/memory/smallobj.cpp\
+        $(SOURCE_ROOT)/util/memory/tempbuf.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_memory.cpp' util/memory/addstorage.cpp util/memory/alloc.cpp util/memory/blob.cpp util/memory/mmapalloc.cpp util/memory/pool.cpp util/memory/segmented_string_pool.cpp util/memory/segpool_alloc.cpp util/memory/smallobj.cpp util/memory/tempbuf.cpp
+
+$(BUILD_ROOT)/util/all_network.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_network.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_network.cpp.pic.o' '$(BUILD_ROOT)/util/all_network.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_network.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/network/address.cpp\
+        $(SOURCE_ROOT)/util/network/endpoint.cpp\
+        $(SOURCE_ROOT)/util/network/hostip.cpp\
+        $(SOURCE_ROOT)/util/network/init.cpp\
+        $(SOURCE_ROOT)/util/network/interface.cpp\
+        $(SOURCE_ROOT)/util/network/iovec.cpp\
+        $(SOURCE_ROOT)/util/network/ip.cpp\
+        $(SOURCE_ROOT)/util/network/netloss.cpp\
+        $(SOURCE_ROOT)/util/network/nonblock.cpp\
+        $(SOURCE_ROOT)/util/network/pair.cpp\
+        $(SOURCE_ROOT)/util/network/poller.cpp\
+        $(SOURCE_ROOT)/util/network/pollerimpl.cpp\
+        $(SOURCE_ROOT)/util/network/sock.cpp\
+        $(SOURCE_ROOT)/util/network/socket.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_network.cpp' util/network/address.cpp util/network/endpoint.cpp util/network/hostip.cpp util/network/init.cpp util/network/interface.cpp util/network/iovec.cpp util/network/ip.cpp util/network/netloss.cpp util/network/nonblock.cpp util/network/pair.cpp util/network/poller.cpp util/network/pollerimpl.cpp util/network/sock.cpp util/network/socket.cpp
+
+$(BUILD_ROOT)/util/all_random.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_random.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_random.cpp.pic.o' '$(BUILD_ROOT)/util/all_random.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_random.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/random/common_ops.cpp\
+        $(SOURCE_ROOT)/util/random/easy.cpp\
+        $(SOURCE_ROOT)/util/random/entropy.cpp\
+        $(SOURCE_ROOT)/util/random/fast.cpp\
+        $(SOURCE_ROOT)/util/random/lcg_engine.cpp\
+        $(SOURCE_ROOT)/util/random/mersenne32.cpp\
+        $(SOURCE_ROOT)/util/random/mersenne64.cpp\
+        $(SOURCE_ROOT)/util/random/mersenne.cpp\
+        $(SOURCE_ROOT)/util/random/normal.cpp\
+        $(SOURCE_ROOT)/util/random/shuffle.cpp\
+        $(SOURCE_ROOT)/util/random/init_atfork.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_random.cpp' util/random/common_ops.cpp util/random/easy.cpp util/random/entropy.cpp util/random/fast.cpp util/random/lcg_engine.cpp util/random/mersenne32.cpp util/random/mersenne64.cpp util/random/mersenne.cpp util/random/normal.cpp util/random/shuffle.cpp util/random/init_atfork.cpp
+
+$(BUILD_ROOT)/util/all_stream.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_stream.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_stream.cpp.pic.o' '$(BUILD_ROOT)/util/all_stream.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_stream.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/stream/aligned.cpp\
+        $(SOURCE_ROOT)/util/stream/buffer.cpp\
+        $(SOURCE_ROOT)/util/stream/buffered.cpp\
+        $(SOURCE_ROOT)/util/stream/debug.cpp\
+        $(SOURCE_ROOT)/util/stream/direct_io.cpp\
+        $(SOURCE_ROOT)/util/stream/file.cpp\
+        $(SOURCE_ROOT)/util/stream/format.cpp\
+        $(SOURCE_ROOT)/util/stream/fwd.cpp\
+        $(SOURCE_ROOT)/util/stream/hex.cpp\
+        $(SOURCE_ROOT)/util/stream/holder.cpp\
+        $(SOURCE_ROOT)/util/stream/input.cpp\
+        $(SOURCE_ROOT)/util/stream/labeled.cpp\
+        $(SOURCE_ROOT)/util/stream/length.cpp\
+        $(SOURCE_ROOT)/util/stream/mem.cpp\
+        $(SOURCE_ROOT)/util/stream/multi.cpp\
+        $(SOURCE_ROOT)/util/stream/null.cpp\
+        $(SOURCE_ROOT)/util/stream/output.cpp\
+        $(SOURCE_ROOT)/util/stream/pipe.cpp\
+        $(SOURCE_ROOT)/util/stream/printf.cpp\
+        $(SOURCE_ROOT)/util/stream/str.cpp\
+        $(SOURCE_ROOT)/util/stream/tee.cpp\
+        $(SOURCE_ROOT)/util/stream/tempbuf.cpp\
+        $(SOURCE_ROOT)/util/stream/tokenizer.cpp\
+        $(SOURCE_ROOT)/util/stream/trace.cpp\
+        $(SOURCE_ROOT)/util/stream/walk.cpp\
+        $(SOURCE_ROOT)/util/stream/zerocopy.cpp\
+        $(SOURCE_ROOT)/util/stream/zlib.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_stream.cpp' util/stream/aligned.cpp util/stream/buffer.cpp util/stream/buffered.cpp util/stream/debug.cpp util/stream/direct_io.cpp util/stream/file.cpp util/stream/format.cpp util/stream/fwd.cpp util/stream/hex.cpp util/stream/holder.cpp util/stream/input.cpp util/stream/labeled.cpp util/stream/length.cpp util/stream/mem.cpp util/stream/multi.cpp util/stream/null.cpp util/stream/output.cpp util/stream/pipe.cpp util/stream/printf.cpp util/stream/str.cpp util/stream/tee.cpp util/stream/tempbuf.cpp util/stream/tokenizer.cpp util/stream/trace.cpp util/stream/walk.cpp util/stream/zerocopy.cpp util/stream/zlib.cpp
+
+$(BUILD_ROOT)/util/all_string.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_string.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_string.cpp.pic.o' '$(BUILD_ROOT)/util/all_string.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_string.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/string/ascii.cpp\
+        $(SOURCE_ROOT)/util/string/builder.cpp\
+        $(SOURCE_ROOT)/util/string/cgiparam.cpp\
+        $(SOURCE_ROOT)/util/string/cstriter.cpp\
+        $(SOURCE_ROOT)/util/string/delim_string_iter.cpp\
+        $(SOURCE_ROOT)/util/string/escape.cpp\
+        $(SOURCE_ROOT)/util/string/hex.cpp\
+        $(SOURCE_ROOT)/util/string/iterator.cpp\
+        $(SOURCE_ROOT)/util/string/join.cpp\
+        $(SOURCE_ROOT)/util/string/kmp.cpp\
+        $(SOURCE_ROOT)/util/string/pcdata.cpp\
+        $(SOURCE_ROOT)/util/string/printf.cpp\
+        $(SOURCE_ROOT)/util/string/quote.cpp\
+        $(SOURCE_ROOT)/util/string/scan.cpp\
+        $(SOURCE_ROOT)/util/string/split.cpp\
+        $(SOURCE_ROOT)/util/string/split_iterator.cpp\
+        $(SOURCE_ROOT)/util/string/strip.cpp\
+        $(SOURCE_ROOT)/util/string/strspn.cpp\
+        $(SOURCE_ROOT)/util/string/subst.cpp\
+        $(SOURCE_ROOT)/util/string/type.cpp\
+        $(SOURCE_ROOT)/util/string/url.cpp\
+        $(SOURCE_ROOT)/util/string/util.cpp\
+        $(SOURCE_ROOT)/util/string/vector.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cgiparam.cpp util/string/cstriter.cpp util/string/delim_string_iter.cpp util/string/escape.cpp util/string/hex.cpp util/string/iterator.cpp util/string/join.cpp util/string/kmp.cpp util/string/pcdata.cpp util/string/printf.cpp util/string/quote.cpp util/string/scan.cpp util/string/split.cpp util/string/split_iterator.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/url.cpp util/string/util.cpp util/string/vector.cpp
+
+$(BUILD_ROOT)/util/all_system_1.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_system_1.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_1.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_system_1.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/system/atexit.cpp\
+        $(SOURCE_ROOT)/util/system/backtrace.cpp\
+        $(SOURCE_ROOT)/util/system/compat.cpp\
+        $(SOURCE_ROOT)/util/system/compiler.cpp\
+        $(SOURCE_ROOT)/util/system/condvar.cpp\
+        $(SOURCE_ROOT)/util/system/context.cpp\
+        $(SOURCE_ROOT)/util/system/daemon.cpp\
+        $(SOURCE_ROOT)/util/system/datetime.cpp\
+        $(SOURCE_ROOT)/util/system/defaults.c\
+        $(SOURCE_ROOT)/util/system/demangle.cpp\
+        $(SOURCE_ROOT)/util/system/direct_io.cpp\
+        $(SOURCE_ROOT)/util/system/dynlib.cpp\
+        $(SOURCE_ROOT)/util/system/env.cpp\
+        $(SOURCE_ROOT)/util/system/err.cpp\
+        $(SOURCE_ROOT)/util/system/error.cpp\
+        $(SOURCE_ROOT)/util/system/event.cpp\
+        $(SOURCE_ROOT)/util/system/execpath.cpp\
+        $(SOURCE_ROOT)/util/system/fasttime.cpp\
+        $(SOURCE_ROOT)/util/system/file.cpp\
+        $(SOURCE_ROOT)/util/system/file_lock.cpp\
+        $(SOURCE_ROOT)/util/system/filemap.cpp\
+        $(SOURCE_ROOT)/util/system/flock.cpp\
+        $(SOURCE_ROOT)/util/system/fs.cpp\
+        $(SOURCE_ROOT)/util/system/fstat.cpp\
+        $(SOURCE_ROOT)/util/system/getpid.cpp\
+        $(SOURCE_ROOT)/util/system/hi_lo.cpp\
+        $(SOURCE_ROOT)/util/system/hostname.cpp\
+        $(SOURCE_ROOT)/util/system/hp_timer.cpp\
+        $(SOURCE_ROOT)/util/system/info.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_1.cpp' util/system/atexit.cpp util/system/backtrace.cpp util/system/compat.cpp util/system/compiler.cpp util/system/condvar.cpp util/system/context.cpp util/system/daemon.cpp util/system/datetime.cpp util/system/defaults.c util/system/demangle.cpp util/system/direct_io.cpp util/system/dynlib.cpp util/system/env.cpp util/system/err.cpp util/system/error.cpp util/system/event.cpp util/system/execpath.cpp util/system/fasttime.cpp util/system/file.cpp util/system/file_lock.cpp util/system/filemap.cpp util/system/flock.cpp util/system/fs.cpp util/system/fstat.cpp util/system/getpid.cpp util/system/hi_lo.cpp util/system/hostname.cpp util/system/hp_timer.cpp util/system/info.cpp
+
+$(BUILD_ROOT)/util/all_system_2.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_system_2.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_2.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_system_2.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/system/align.cpp\
+        $(SOURCE_ROOT)/util/system/atomic.cpp\
+        $(SOURCE_ROOT)/util/system/byteorder.cpp\
+        $(SOURCE_ROOT)/util/system/cpu_id.cpp\
+        $(SOURCE_ROOT)/util/system/fhandle.cpp\
+        $(SOURCE_ROOT)/util/system/guard.cpp\
+        $(SOURCE_ROOT)/util/system/interrupt_signals.cpp\
+        $(SOURCE_ROOT)/util/system/madvise.cpp\
+        $(SOURCE_ROOT)/util/system/maxlen.cpp\
+        $(SOURCE_ROOT)/util/system/mem_info.cpp\
+        $(SOURCE_ROOT)/util/system/mktemp.cpp\
+        $(SOURCE_ROOT)/util/system/mlock.cpp\
+        $(SOURCE_ROOT)/util/system/mutex.cpp\
+        $(SOURCE_ROOT)/util/system/nice.cpp\
+        $(SOURCE_ROOT)/util/system/pipe.cpp\
+        $(SOURCE_ROOT)/util/system/platform.cpp\
+        $(SOURCE_ROOT)/util/system/progname.cpp\
+        $(SOURCE_ROOT)/util/system/protect.cpp\
+        $(SOURCE_ROOT)/util/system/rusage.cpp\
+        $(SOURCE_ROOT)/util/system/rwlock.cpp\
+        $(SOURCE_ROOT)/util/system/sanitizers.cpp\
+        $(SOURCE_ROOT)/util/system/sem.cpp\
+        $(SOURCE_ROOT)/util/system/shellcommand.cpp\
+        $(SOURCE_ROOT)/util/system/shmat.cpp\
+        $(SOURCE_ROOT)/util/system/sigset.cpp\
+        $(SOURCE_ROOT)/util/system/spinlock.cpp\
+        $(SOURCE_ROOT)/util/system/spin_wait.cpp\
+        $(SOURCE_ROOT)/util/system/src_location.cpp\
+        $(SOURCE_ROOT)/util/system/sys_alloc.cpp\
+        $(SOURCE_ROOT)/util/system/sysstat.cpp\
+        $(SOURCE_ROOT)/util/system/tempfile.cpp\
+        $(SOURCE_ROOT)/util/system/thread.cpp\
+        $(SOURCE_ROOT)/util/system/tls.cpp\
+        $(SOURCE_ROOT)/util/system/types.cpp\
+        $(SOURCE_ROOT)/util/system/unaligned_mem.cpp\
+        $(SOURCE_ROOT)/util/system/user.cpp\
+        $(SOURCE_ROOT)/util/system/utime.cpp\
+        $(SOURCE_ROOT)/util/system/yassert.cpp\
+        $(SOURCE_ROOT)/util/system/yield.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_2.cpp' util/system/align.cpp util/system/atomic.cpp util/system/byteorder.cpp util/system/cpu_id.cpp util/system/fhandle.cpp util/system/guard.cpp util/system/interrupt_signals.cpp util/system/madvise.cpp util/system/maxlen.cpp util/system/mem_info.cpp util/system/mktemp.cpp util/system/mlock.cpp util/system/mutex.cpp util/system/nice.cpp util/system/pipe.cpp util/system/platform.cpp util/system/progname.cpp util/system/protect.cpp util/system/rusage.cpp util/system/rwlock.cpp util/system/sanitizers.cpp util/system/sem.cpp util/system/shellcommand.cpp util/system/shmat.cpp util/system/sigset.cpp util/system/spinlock.cpp util/system/spin_wait.cpp util/system/src_location.cpp util/system/sys_alloc.cpp util/system/sysstat.cpp util/system/tempfile.cpp util/system/thread.cpp util/system/tls.cpp util/system/types.cpp util/system/unaligned_mem.cpp util/system/user.cpp util/system/utime.cpp util/system/yassert.cpp util/system/yield.cpp
+
+$(BUILD_ROOT)/util/all_thread.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/all_thread.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/all_thread.cpp.pic.o' '$(BUILD_ROOT)/util/all_thread.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/all_thread.cpp\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
+        $(SOURCE_ROOT)/util/thread/fwd.cpp\
+        $(SOURCE_ROOT)/util/thread/lfqueue.cpp\
+        $(SOURCE_ROOT)/util/thread/lfstack.cpp\
+        $(SOURCE_ROOT)/util/thread/pool.cpp\
+        $(SOURCE_ROOT)/util/thread/queue.cpp\
+        $(SOURCE_ROOT)/util/thread/singleton.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_thread.cpp' util/thread/fwd.cpp util/thread/lfqueue.cpp util/thread/lfstack.cpp util/thread/pool.cpp util/thread/queue.cpp util/thread/singleton.cpp
+
+$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/util/datetime/parser.rl6.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/util/datetime'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/util/datetime/parser.rl6.cpp\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/ragel6/ragel6\
+        $(SOURCE_ROOT)/util/datetime/parser.rl6\
+
+	mkdir -p '$(BUILD_ROOT)/util/datetime'
+	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp' '$(SOURCE_ROOT)/util/datetime/parser.rl6'
+
+$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a\
+
+$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a\
+        ::\
+        $(BUILD_ROOT)/library/colorizer/colors.cpp.pic.o\
+        $(BUILD_ROOT)/library/colorizer/output.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/colorizer'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-colorizer -o library/colorizer/liblibrary-colorizer.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a' '$(BUILD_ROOT)/library/colorizer/colors.cpp.pic.o' '$(BUILD_ROOT)/library/colorizer/output.cpp.pic.o'
+
+$(BUILD_ROOT)/library/colorizer/colors.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/colorizer/colors.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/colorizer'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/colorizer/colors.cpp.pic.o' '$(SOURCE_ROOT)/library/colorizer/colors.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/colorizer/output.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/colorizer/output.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/colorizer'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/colorizer/output.cpp.pic.o' '$(SOURCE_ROOT)/library/colorizer/output.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a\
+
+$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a\
+        ::\
+        $(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/modchooser.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/opt.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/opt2.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.pic.o\
+        $(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-getopt-small -o library/getopt/small/liblibrary-getopt-small.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a' '$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/opt.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/opt2.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.pic.o' '$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.pic.o'
+
+$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/last_getopt.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/last_getopt.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/last_getopt_opt.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/last_getopt_opt.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/last_getopt_opts.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/last_getopt_opts.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/last_getopt_parser.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/last_getopt_parser.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/last_getopt_parse_result.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/last_getopt_parse_result.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/modchooser.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/modchooser.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/opt.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/opt.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/opt.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/opt.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/opt2.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/opt2.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/opt2.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/opt2.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/posix_getopt.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/posix_getopt.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/getopt/small/ygetopt.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/getopt/small'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.pic.o' '$(SOURCE_ROOT)/library/getopt/small/ygetopt.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a.mf\
         ::\
@@ -5122,11 +5793,11 @@ $(BUILD_ROOT)/tools/rorescompiler/rorescompiler\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/charset/libutil-charset.a\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/libyutil.a\
         $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
         $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
@@ -5145,6 +5816,110 @@ $(BUILD_ROOT)/tools/rorescompiler/rorescompiler\
 	mkdir -p '$(BUILD_ROOT)/tools/rorescompiler'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name rorescompiler -o tools/rorescompiler/rorescompiler.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a
 	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/tools/rorescompiler/main.cpp.pic.o' -o '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/blockcodecs/liblibrary-blockcodecs.a library/resource/liblibrary-resource.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+
+$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+
+$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-snappy -o contrib/libs/snappy/libcontrib-libs-snappy.a.mf -t LIBRARY -Ya,lics BSD -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/snappy/snappy-sinksource.cc.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-c.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-c.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/snappy'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
+
+$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a\
+        ::\
+        $(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o\
+        $(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-blockcodecs -o library/blockcodecs/liblibrary-blockcodecs.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o' '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
+
+$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/legacy_zstd06.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/legacy_zstd06.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/codecs.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/codecs.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/blockcodecs/stream.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/blockcodecs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o' '$(SOURCE_ROOT)/library/blockcodecs/stream.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/resource/liblibrary-resource.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/resource/liblibrary-resource.a\
+
+$(BUILD_ROOT)/library/resource/liblibrary-resource.a\
+        ::\
+        $(BUILD_ROOT)/library/resource/registry.cpp.pic.o\
+        $(BUILD_ROOT)/library/resource/resource.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/resource'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-resource -o library/resource/liblibrary-resource.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/resource/liblibrary-resource.a' '$(BUILD_ROOT)/library/resource/registry.cpp.pic.o' '$(BUILD_ROOT)/library/resource/resource.cpp.pic.o'
+
+$(BUILD_ROOT)/library/resource/registry.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/resource/registry.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/resource'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/resource/registry.cpp.pic.o' '$(SOURCE_ROOT)/library/resource/registry.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/resource/resource.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/resource/resource.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/resource'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/resource/resource.cpp.pic.o' '$(SOURCE_ROOT)/library/resource/resource.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/tools/rorescompiler/main.cpp.pic.o\
         ::\
@@ -5212,11 +5987,11 @@ $(BUILD_ROOT)/tools/rescompressor/rescompressor\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/charset/libutil-charset.a\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/libyutil.a\
         $(BUILD_ROOT)/contrib/libs/fastlz/libcontrib-libs-fastlz.a\
         $(BUILD_ROOT)/contrib/libs/libbz2/libcontrib-libs-libbz2.a\
@@ -6160,11 +6935,11 @@ $(BUILD_ROOT)/contrib/tools/protoc/protoc\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/charset/libutil-charset.a\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/libyutil.a\
         $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
         $(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a\
@@ -6175,6 +6950,675 @@ $(BUILD_ROOT)/contrib/tools/protoc/protoc\
 	mkdir -p '$(BUILD_ROOT)/contrib/tools/protoc'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name protoc -o contrib/tools/protoc/protoc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a
 	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/protoc/__/__/libs/protobuf/compiler/main.cc.pic.o' -o '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -rdynamic --target=x86_64-linux-gnu -Wl,--start-group contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a util/libyutil.a library/malloc/api/liblibrary-malloc-api.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -lrt -ldl -nodefaultlibs -lpthread -lc -lm
+
+$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
+
+$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/protobuf/any.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/message.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/service.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-protobuf -o contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf -t LIBRARY -Ya,lics BSD3 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a' '$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/any.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/any.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/any.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/any.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/api.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/api.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/arena.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/arena.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/arenastring.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/arenastring.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/compiler/importer.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/compiler'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/compiler/importer.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/compiler/parser.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/compiler'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/compiler/parser.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/descriptor.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/descriptor.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/descriptor.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/descriptor.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/descriptor_database.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/descriptor_database.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/duration.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/duration.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/dynamic_message.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/dynamic_message.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/empty.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/empty.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/extension_set.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/extension_set.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/field_mask.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/field_mask.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/generated_message_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/coded_stream.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/coded_stream.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/printer.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/printer.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/strtod.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/strtod.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/tokenizer.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/tokenizer.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/io'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/json_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/json_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/map_field.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/map_field.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/message.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/message.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/message_lite.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/message_lite.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/messagext.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/messagext.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/messagext_lite.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/messagext_lite.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/reflection_ops.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/reflection_ops.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/repeated_field.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/repeated_field.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/service.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/service.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/source_context.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/source_context.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/struct.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/struct.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/common.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/common.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/int128.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/int128.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/once.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/once.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/status.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/status.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/statusor.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/statusor.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/strutil.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/strutil.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/substitute.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/substitute.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/stubs/time.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/stubs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/stubs/time.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/text_format.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/text_format.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/timestamp.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/timestamp.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/type.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/type.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/unknown_field_set.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/unknown_field_set.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/field_comparator.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/field_comparator.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/utility.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/internal/utility.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/json_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/json_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/message_differencer.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/message_differencer.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/time_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/time_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf/util'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/wire_format.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/wire_format.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/wire_format_lite.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/wire_format_lite.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/protobuf/wrappers.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/protobuf'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/protobuf/wrappers.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -w -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DHAVE_ZLIB -nostdinc++ -std=c++1z -Wno-register -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf\
         ::\
@@ -6647,11 +8091,11 @@ $(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/charset/libutil-charset.a\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/libyutil.a\
         $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
         $(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a\
@@ -7039,6 +8483,404 @@ $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.pic.o\
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
+$(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a\
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-onnx-proto -o contrib/libs/onnx/proto/liblibs-onnx-proto.a.mf -t LIBRARY -Ya,lics MIT -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a' '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/protoc/protoc\
+        $(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide\
+        $(SOURCE_ROOT)/contrib/libs/onnx/proto/onnx_ml.proto\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/onnx/proto/onnx_ml.proto
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+
+$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/protoc/protoc\
+        $(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide\
+        $(SOURCE_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.proto\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/onnx/proto/onnx_operators_ml.proto
+
+$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a\
+
+$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/common/status.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/checker.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/function.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc.pic.o\
+        $(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-onnx -o contrib/libs/onnx/libcontrib-libs-onnx.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/status.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/checker.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/function.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o'
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/status.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/status.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/status.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/status.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/checker.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/checker.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/checker.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/checker.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/shape_inference'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/function.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/function.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/function.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/function.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/onnx'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o' '$(SOURCE_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/onnx' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
 $(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a.mf\
         ::\
         $(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a\
@@ -7060,6 +8902,40 @@ $(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.pic.o\
 	mkdir -p '$(BUILD_ROOT)/library/containers/dense_hash'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.pic.o' '$(SOURCE_ROOT)/library/containers/dense_hash/dense_hash.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
+$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a.mf\
+        ::\
+        $(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a\
+
+$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a\
+        ::\
+        $(BUILD_ROOT)/library/svnversion/svnversion.cpp.pic.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/svnversion'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-svnversion -o library/svnversion/liblibrary-svnversion.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a' '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.pic.o'
+
+$(BUILD_ROOT)/library/svnversion/svnversion.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/library/svnversion/svnversion_data.h\
+        $(SOURCE_ROOT)/library/svnversion/svnversion.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/svnversion'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.pic.o' '$(SOURCE_ROOT)/library/svnversion/svnversion.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/library/svnversion/svnversion_data.h\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/yield_line.py\
+        $(SOURCE_ROOT)/build/scripts/xargs.py\
+        $(SOURCE_ROOT)/build/scripts/svn_version_gen.py\
+
+	mkdir -p '$(BUILD_ROOT)/library/svnversion'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(SOURCE_ROOT)'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(BUILD_ROOT)'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/yield_line.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(PYTHON)'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/xargs.py' -- '$(BUILD_ROOT)/library/svnversion/__args' '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/svn_version_gen.py' '$(BUILD_ROOT)/library/svnversion/svnversion_data.h'
+
 $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
@@ -7076,6 +8952,7 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
+        $(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
@@ -7086,7 +8963,7 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o'
 
 $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o\
         ::\
@@ -7113,7 +8990,7 @@ $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/coreml_helpers.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/coreml_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/coreml_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
         ::\
@@ -7122,7 +8999,7 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
         ::\
@@ -7131,7 +9008,7 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o\
         ::\
@@ -7141,7 +9018,7 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_value_table.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o\
         ::\
@@ -7151,7 +9028,7 @@ $(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/features.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/features.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/features.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/features.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o\
         ::\
@@ -7161,7 +9038,7 @@ $(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/json_model_helpers.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/json_model_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/json_model_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
         ::\
@@ -7185,10 +9062,11 @@ $(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
         $(SOURCE_ROOT)/catboost/libs/model/model.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
         ::\
@@ -7198,7 +9076,18 @@ $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/online_ctr.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/online_ctr.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/online_ctr.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
+        $(SOURCE_ROOT)/catboost/libs/model/onnx_helpers.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/onnx_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
         ::\
@@ -7208,7 +9097,7 @@ $(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/static_ctr_provider.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o\
         ::\
@@ -7218,7 +9107,7 @@ $(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/formula_evaluator.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/formula_evaluator.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/formula_evaluator.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
         ::\
@@ -7228,7 +9117,7 @@ $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o\
         $(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o' '$(SOURCE_ROOT)/catboost/libs/model/model_build_helper.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
         ::\
@@ -7237,7 +9126,7 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/ctr_provider.h_serialized.cpp\
         ::\
@@ -7256,7 +9145,7 @@ $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o\
         $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.pic.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4286128 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp\
         ::\
@@ -7289,11 +9178,11 @@ $(BUILD_ROOT)/tools/fix_elf/fix_elf\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
         $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/charset/libutil-charset.a\
         $(BUILD_ROOT)/contrib/libs/zlib/libcontrib-libs-zlib.a\
         $(BUILD_ROOT)/contrib/libs/double-conversion/libcontrib-libs-double-conversion.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
         $(BUILD_ROOT)/util/libyutil.a\
         $(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a\
         $(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a\
@@ -7618,6 +9507,58 @@ clean\
 	rm -f '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp'
 	rm -f '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser.mf'
+	rm -f '$(BUILD_ROOT)/util/charset/libutil-charset.a' '$(BUILD_ROOT)/util/charset/libutil-charset.a.mf'
+	rm -f '$(BUILD_ROOT)/util/charset/wide_sse41.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/charset/all_charset.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/charset/all_charset.cpp'
+	rm -f '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/libyutil.a.mf'
+	rm -f '$(BUILD_ROOT)/util/digest/city.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/random/random.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/string/cast.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_datetime.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_digest.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_digest.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_util.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_util.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_folder.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_folder.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_generic.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_generic.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_memory.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_memory.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_network.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_network.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_random.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_random.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_stream.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_stream.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_string.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_string.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_system_1.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_system_2.cpp'
+	rm -f '$(BUILD_ROOT)/util/all_thread.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/all_thread.cpp'
+	rm -f '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp'
+	rm -f '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a' '$(BUILD_ROOT)/library/colorizer/liblibrary-colorizer.a.mf'
+	rm -f '$(BUILD_ROOT)/library/colorizer/colors.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/colorizer/output.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a' '$(BUILD_ROOT)/library/getopt/small/liblibrary-getopt-small.a.mf'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_easy_setup.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_opt.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_opts.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_parser.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/last_getopt_parse_result.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/modchooser.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/opt.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/opt2.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/posix_getopt.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/getopt/small/ygetopt.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a' '$(BUILD_ROOT)/library/cppparser/liblibrary-cppparser.a.mf'
 	rm -f '$(BUILD_ROOT)/library/cppparser/parser.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a' '$(BUILD_ROOT)/tools/enum_parser/parse_enum/libtools-enum_parser-parse_enum.a.mf'
@@ -7865,6 +9806,17 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp'
 	rm -f '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler' '$(BUILD_ROOT)/tools/rorescompiler/rorescompiler.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a' '$(BUILD_ROOT)/contrib/libs/snappy/libcontrib-libs-snappy.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-c.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/snappy/snappy-stubs-internal.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a' '$(BUILD_ROOT)/library/blockcodecs/liblibrary-blockcodecs.a.mf'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/legacy_zstd06.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/codecs.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/blockcodecs/stream.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/resource/liblibrary-resource.a' '$(BUILD_ROOT)/library/resource/liblibrary-resource.a.mf'
+	rm -f '$(BUILD_ROOT)/library/resource/registry.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/resource/resource.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/tools/rorescompiler/main.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a' '$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a.mf'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.o'
@@ -7976,6 +9928,89 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.h' '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc'
 	rm -f '$(BUILD_ROOT)/contrib/tools/protoc/protoc' '$(BUILD_ROOT)/contrib/tools/protoc/protoc.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a' '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/any.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/any.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/api.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/arena.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/arenastring.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/importer.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/compiler/parser.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/descriptor_database.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/duration.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/dynamic_message.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/empty.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/extension_set_heavy.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/field_mask.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_reflection.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_table_driven_lite.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/generated_message_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/coded_stream.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/gzip_stream.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/printer.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/strtod.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/tokenizer.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/io/zero_copy_stream_impl_lite.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/json_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/map_field.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/message.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/message_lite.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/messagext.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/messagext_lite.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/reflection_ops.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/repeated_field.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/service.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/source_context.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/struct.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_gcc.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/atomicops_internals_x86_msvc.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/bytestream.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/common.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/int128.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/io_win32.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/mathlimits.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/once.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/status.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/statusor.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringpiece.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/stringprintf.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/structurally_valid.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/strutil.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/substitute.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/stubs/time.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/text_format.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/timestamp.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/type.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/unknown_field_set.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/delimited_message_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_comparator.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/field_mask_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/datapiece.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/default_value_objectwriter.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/error_listener.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/field_mask_utility.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_escaping.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_objectwriter.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/json_stream_parser.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/object_writer.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/proto_writer.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectsource.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/protostream_objectwriter.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/type_info.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/internal/utility.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/json_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/message_differencer.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/time_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/util/type_resolver_util.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a' '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/liblibs-protobuf-protoc.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/code_generator.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/protoc/__/compiler/command_line_interface.cc.pic.o'
@@ -8067,8 +10102,53 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a' '$(BUILD_ROOT)/contrib/libs/onnx/proto/liblibs-onnx-proto.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h' '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.cc'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h' '$(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a' '$(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/interned_strings.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/status.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/ir_pb_converter.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/assertions.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/common/model_helpers.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_manager.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/optimize.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass_registry.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/optimizer/pass.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/checker.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/convert.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/version_converter/helper.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/shape_inference/implementation.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/experiments/experiments_functions.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/logical/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/tensor/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/function.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/data_type_utils.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/nn/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/schema.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/math/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/controlflow/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/generator/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/old.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/rnn/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/defs/reduction/defs.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/onnx/onnx/onnxifi_utils.cc.pic.o'
 	rm -f '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a' '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a.mf'
 	rm -f '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a' '$(BUILD_ROOT)/library/svnversion/liblibrary-svnversion.a.mf'
+	rm -f '$(BUILD_ROOT)/library/svnversion/svnversion.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/svnversion/svnversion_data.h'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.pic.o'
@@ -8078,6 +10158,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/json_model_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/onnx_helpers.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.pic.o'

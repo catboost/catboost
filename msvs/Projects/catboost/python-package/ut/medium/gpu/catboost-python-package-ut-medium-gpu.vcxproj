@@ -495,6 +495,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>{C0251DC8-E401-B1AF-785F-72D686693CB9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\contrib-libs-onnx.vcxproj">
+      <Project>{BA51C351-CD64-A60B-C4C2-2794FC71EE24}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
+      <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
     </ProjectReference>
