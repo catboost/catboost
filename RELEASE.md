@@ -1,3 +1,10 @@
+# Release 0.12.1
+## Changes:
+* Support saving models in ONNX format (only for models without categorical features).
+* Added new dataset to our `catboost.datasets()` -- dataset [epsilon](catboost/benchmarks/model_evaluation_speed), a large dense dataset for binary classification.
+* Speedup of Python `cv` on GPU.
+* Fixed creation of `Pool` from `pandas.DataFrame` with `pandas.Categorical` columns.
+
 # Release 0.12.0
 ## Breaking changes:
 * Class weights are now taken into account by `eval_metrics()`,
@@ -32,7 +39,7 @@
 * Reduced memory consumption in Python `cv` function (times fold count)
 
 ## Benchmarks and tutorials:
-* Added [speed benchmarks](catboost/benchmarks/speed_benchmarks) for CPU and GPU on a variety of different datasets.
+* Added [speed benchmarks](catboost/benchmarks/gpu_vs_cpu_training_speed) for CPU and GPU on a variety of different datasets.
 * Added [benchmarks](catboost/benchmarks/ranking) of different ranking modes. In [this tutorial](catboost/tutorials/ranking/ranking_tutorial.ipynb) we compare
   different ranking modes in CatBoost, XGBoost and LightGBM.
 * Added [tutorial](catboost/tutorials/apply_model/catboost4j_prediction_tutorial.ipynb) for applying model in Java.
