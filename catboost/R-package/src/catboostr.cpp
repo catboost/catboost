@@ -440,7 +440,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         fitParams,
         Nothing(),
         Nothing(),
-        *pool,
+        pool,
         cvParams,
         &cvResults);
 
