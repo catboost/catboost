@@ -211,7 +211,7 @@ bool TLearnContext::TryLoadProgress() {
             CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size() << " trees" << Endl;
         });
         return true;
-    } catch(const TCatboostException&) {
+    } catch(const TCatBoostException&) {
         throw;
     } catch (...) {
         CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "

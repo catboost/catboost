@@ -74,8 +74,8 @@ namespace {
                 if (tokens.ysize() == 3) {
                     columns[index].Id = tokens[2];
                 }
-            } catch (const TCatboostException& e) {
-                throw TCatboostException() << "Incorrect CD file. Invalid line number #" << lineNumber
+            } catch (const TCatBoostException& e) {
+                throw TCatBoostException() << "Incorrect CD file. Invalid line number #" << lineNumber
                     << ": " << e.what();
             }
         }

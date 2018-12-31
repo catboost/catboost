@@ -21,6 +21,7 @@ namespace NCatboostCuda {
     TBoostingProgressTracker::TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                        const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
                                                        bool hasTest,
+                                                       bool testHasTarget,
                                                        ui32 cpuApproxDim,
                                                        const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback)
         : CatboostOptions(catBoostOptions)
@@ -37,6 +38,7 @@ namespace NCatboostCuda {
         , ProfileInfo(catBoostOptions.BoostingOptions->IterationCount)
         , MetricDescriptions(GetMetricsDescription(GetCpuMetrics(Metrics)))
         , IsSkipOnTrainFlags(GetSkipMetricOnTrain(GetCpuMetrics(Metrics)))
+        , IsSkipOnTestFlags(GetSkipMetricOnTest(testHasTarget, GetCpuMetrics(Metrics)))
     {
         if (OutputOptions.AllowWriteFiles()) {
             CreateMetaFile(OutputFiles,
@@ -57,6 +59,11 @@ namespace NCatboostCuda {
             NJson::TJsonValue options;
             CatboostOptions.Save(&options);
             CatBoostOptionsStr = ToString<NJson::TJsonValue>(options);
+        }
+
+        if (HasTest && IsSkipOnTestFlags[0]) {
+            CATBOOST_WARNING_LOG << "Warning: Eval metric " << Metrics[0]->GetMetricDescription() <<
+                " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
         }
     }
 
@@ -79,16 +86,18 @@ namespace NCatboostCuda {
         const bool calcMetrics = ShouldCalcMetricOnIteration();
 
         ProfileInfo.FinishIteration();
-        History.TimeHistory.push_back({ProfileInfo.GetProfileResults().PassedTime,
-                                       ProfileInfo.GetProfileResults().RemainingTime});
+        auto profileResults = ProfileInfo.GetProfileResults();
 
+        History.TimeHistory.push_back(TTimeInfo(profileResults));
+
+        constexpr size_t evalMetricIdx = 0;
         Log((int)Iteration,
             MetricDescriptions,
             History.LearnMetricsHistory,
             History.TestMetricsHistory,
-            ErrorTracker.GetBestError(),
-            ErrorTracker.GetBestIteration(),
-            ProfileInfo.GetProfileResults(),
+            !IsSkipOnTestFlags[evalMetricIdx] ? TMaybe<double>(ErrorTracker.GetBestError()) : Nothing(),
+            !IsSkipOnTestFlags[evalMetricIdx] ? TMaybe<int>(ErrorTracker.GetBestIteration()) : Nothing(),
+            profileResults,
             LearnToken,
             TestTokens,
             calcMetrics,
@@ -126,15 +135,20 @@ namespace NCatboostCuda {
         // In case of changing the order it should be changed in CPU mode also.
         const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
         for (int i = 0; i < Metrics.ysize(); ++i) {
-            if (calcAllMetrics || i == errorTrackerMetricIdx) {
-                auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
-                History.AddTestError(0 /*testIdx*/, Metrics[i]->GetCpuMetric(), metricValue, i == errorTrackerMetricIdx);
+            if (!calcAllMetrics && (i != errorTrackerMetricIdx)) {
+                continue;
+            }
+            if (IsSkipOnTestFlags[i]) {
+                continue;
+            }
 
-                if (i == errorTrackerMetricIdx) {
-                    ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
-                    if (OutputOptions.UseBestModel && static_cast<int>(GetCurrentIteration() + 1) >= OutputOptions.BestModelMinTrees) {
-                        BestModelMinTreesTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
-                    }
+            auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
+            History.AddTestError(0 /*testIdx*/, Metrics[i]->GetCpuMetric(), metricValue, i == errorTrackerMetricIdx);
+
+            if (i == errorTrackerMetricIdx) {
+                ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
+                if (OutputOptions.UseBestModel && static_cast<int>(GetCurrentIteration() + 1) >= OutputOptions.BestModelMinTrees) {
+                    BestModelMinTreesTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
                 }
             }
         }
@@ -159,7 +173,7 @@ namespace NCatboostCuda {
 
                 loader(in);
             });
-        } catch (const TCatboostException&) {
+        } catch (const TCatBoostException&) {
             throw;
         } catch (...) {
             CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << OutputFiles.SnapshotFile << " exception: "
@@ -171,8 +185,12 @@ namespace NCatboostCuda {
 
         // WriteHistory & update ErrorTracker
         for (ui64 iteration = 0; iteration < Iteration; ++iteration) {
+            const int testIdxToLog = 0;
             if (ShouldCalcMetricOnIteration(iteration) && iteration < History.TestMetricsHistory.size()) {
-                const int testIdxToLog = 0;
+                if (IsSkipOnTestFlags[testIdxToLog]) {
+                    continue;
+                }
+
                 const int metricIdxToLog = 0;
                 const TString& metricDescription = Metrics[metricIdxToLog]->GetCpuMetric().GetDescription();
                 const double error = History.TestMetricsHistory[iteration][testIdxToLog].at(metricDescription);
@@ -187,8 +205,8 @@ namespace NCatboostCuda {
                 MetricDescriptions,
                 History.LearnMetricsHistory,
                 History.TestMetricsHistory,
-                ErrorTracker.GetBestError(),
-                ErrorTracker.GetBestIteration(),
+                !IsSkipOnTestFlags[testIdxToLog] ? TMaybe<double>(ErrorTracker.GetBestError()) : Nothing(),
+                !IsSkipOnTestFlags[testIdxToLog] ? TMaybe<int>(ErrorTracker.GetBestIteration()) : Nothing(),
                 TProfileResults(History.TimeHistory[iteration].PassedTime, History.TimeHistory[iteration].RemainingTime),
                 LearnToken,
                 TestTokens,

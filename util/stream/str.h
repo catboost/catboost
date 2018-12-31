@@ -161,13 +161,6 @@ public:
     }
 
     /**
-     * @see Data()
-     */
-    inline const char* operator~() const noexcept {
-        return Data();
-    }
-
-    /**
      * @returns                         Total number of characters in this
      *                                  stream. Note that this is not the same
      *                                  as the total number of characters
@@ -175,13 +168,6 @@ public:
      */
     inline size_t Size() const noexcept {
         return Ptr()->Size();
-    }
-
-    /**
-     * @see Size()
-     */
-    inline size_t operator+() const noexcept {
-        return Size();
     }
 
     /**

@@ -58,7 +58,7 @@ namespace NCudaLib {
                     return true;
                 }
                 if (errorCode != cudaErrorNotReady) {
-                    ythrow TCatboostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode);
+                    ythrow TCatBoostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode);
                 }
                 return false;
             }

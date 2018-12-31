@@ -31,7 +31,7 @@ namespace NCatboostCuda {
             }
 
             if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Poisson) {
-                ythrow TCatboostException() << "Poisson bootstrap is not supported for YetiRankPairwise";
+                ythrow TCatBoostException() << "Poisson bootstrap is not supported for YetiRankPairwise";
             }
 
             {

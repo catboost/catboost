@@ -141,14 +141,6 @@ public:
         return *(Begin() + n);
     }
 
-    inline const char* operator~() const noexcept {
-        return AsCharPtr();
-    }
-
-    inline size_t operator+() const noexcept {
-        return Size();
-    }
-
     /// Shortcut to SubBlob(0, len)
     TBlob SubBlob(size_t len) const;
 

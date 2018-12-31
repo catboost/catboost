@@ -1165,13 +1165,13 @@ def test_multiclass_baseline(boosting_type, loss_function):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline'], [3, 'Baseline'], [4, 'Baseline']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
     cmd = (
@@ -1217,13 +1217,13 @@ def test_multiclass_baseline_lost_class(boosting_type, loss_function):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2]), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2], prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
     cmd = (
@@ -1508,6 +1508,58 @@ def test_cv_for_pairs(is_inverted, boosting_type):
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('bad_cv_params', ['XX', 'YY', 'XY'])
+def test_multiple_cv_spec(bad_cv_params):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    if bad_cv_params == 'XX':
+        cmd += ('-X', '2/10', '-X', '4/7')
+    elif bad_cv_params == 'XY':
+        cmd += ('-X', '2/10', '-Y', '4/7')
+    elif bad_cv_params == 'YY':
+        cmd += ('-Y', '2/10', '-Y', '4/7')
+    else:
+        raise Exception('bad bad_cv_params value:' + bad_cv_params)
+
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('error_type', ['0folds', 'fold_idx_overflow'])
+def test_bad_fold_cv_spec(is_inverted, error_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        ('-Y' if is_inverted else '-X'), {'0folds': '0/0', 'fold_idx_overflow': '3/2'}[error_type],
+        '--eval-file', output_eval_path,
+    )
+
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -2100,25 +2152,49 @@ def test_custom_overfitting_detector_metric(boosting_type):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('loss_function', BINCLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_custom_loss_for_classification(boosting_type):
+def test_custom_loss_for_classification(loss_function, boosting_type):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    custom_metrics = [
+        metric for metric in
+        [
+            'AUC:hints=skip_train~false',
+            'Logloss',
+            'CrossEntropy',
+            'Accuracy',
+            'Precision',
+            'Recall',
+            'F1',
+            'TotalF1',
+            'MCC',
+            'BalancedAccuracy',
+            'BalancedErrorRate',
+            'Kappa',
+            'WKappa',
+            'BrierScore',
+            'ZeroOneLoss',
+            'HammingLoss',
+            'HingeLoss'
+        ]
+        if metric != loss_function
+    ]
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '--loss-function', loss_function,
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
         '--boosting-type', boosting_type,
         '-w', '0.03',
         '-i', '10',
         '-T', '4',
-        '--custom-metric',
-        'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,BalancedAccuracy,BalancedErrorRate,Kappa,WKappa,BrierScore,ZeroOneLoss,HammingLoss,HingeLoss',
+        '--custom-metric', ','.join(custom_metrics),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -2172,7 +2248,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--custom-metric',
-        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss',
+        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -3471,7 +3547,6 @@ def execute_dist_train(cmd):
         with open(hosts_path, 'w') as hosts:
             hosts.write('localhost:' + str(port0) + '\n')
             hosts.write('localhost:' + str(port1) + '\n')
-        hosts.close()
 
         worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
         worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
@@ -3831,6 +3906,10 @@ def test_eval_metrics(metric, metric_period):
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
 def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
+    if metric in MULTICLASS_LOSSES and metric != loss_function:
+        # MultiClass and MultiClassOneVsAll are incompatible
+        return
+
     train, test, cd = data_file(dataset, 'train_small'), data_file(dataset, 'test_small'), data_file(dataset, 'train.cd')
 
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -3882,13 +3961,13 @@ def test_eval_metrics_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -3896,7 +3975,7 @@ def test_eval_metrics_class_names():
         CATBOOST_PATH,
         'fit',
         '--loss-function', 'MultiClass',
-        '--custom-metric', 'TotalF1,MultiClassOneVsAll',
+        '--custom-metric', 'TotalF1,AUC',
         '-f', train_path,
         '-t', test_path,
         '--column-description', cd_path,
@@ -3912,7 +3991,7 @@ def test_eval_metrics_class_names():
     eval_cmd = (
         CATBOOST_PATH,
         'eval-metrics',
-        '--metrics', 'TotalF1,MultiClassOneVsAll',
+        '--metrics', 'TotalF1,AUC',
         '--input-path', test_path,
         '--column-description', cd_path,
         '-m', model_path,
@@ -3986,13 +4065,13 @@ def test_eval_metrics_multiclass_with_baseline(metric_period, metric):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline'], [3, 'Baseline'], [4, 'Baseline']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     output_model_path = yatest.common.test_output_path('model.bin')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -4218,12 +4297,14 @@ def split_test_to(num_tests, test_input_path):
 
 
 # Create a few shuffles from list of test files, for use with `-t` option.
-def create_test_shuffles(test_paths):
+def create_test_shuffles(test_paths, seed=20181219, prng=None):
+    if prng is None:
+        prng = np.random.RandomState(seed=seed)
     num_tests = len(test_paths)
     num_shuffles = num_tests  # if num_tests < 3 else num_tests * (num_tests - 1)
     test_shuffles = set()
     while len(test_shuffles) < num_shuffles:
-        test_shuffles.add(tuple(np.random.permutation(test_paths)))
+        test_shuffles.add(tuple(prng.permutation(test_paths)))
     return [','.join(shuffle) for shuffle in test_shuffles]
 
 
@@ -4269,7 +4350,8 @@ def test_multiple_eval_sets_order_independent(boosting_type, num_tests):
                  '-T', '4',
                  )
     # We use a few shuffles of tests and check equivalence of resulting models
-    test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path))
+    prng = np.random.RandomState(seed=20181219)
+    test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path), prng=prng)
     fit_calc_cksum(fit_stem, calc_stem, test_shuffles)
 
 
@@ -4294,7 +4376,8 @@ def test_multiple_eval_sets_querywise_order_independent(boosting_type, num_tests
                  '-T', '4',
                  )
     # We use a few shuffles of tests and check equivalence of resulting models
-    test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path))
+    prng = np.random.RandomState(seed=20181219)
+    test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path), prng=prng)
     fit_calc_cksum(fit_stem, calc_stem, test_shuffles)
 
 
@@ -4368,19 +4451,23 @@ def test_multiple_eval_sets_err_log():
 @pytest.mark.parametrize('cat_value', ['Normal', 'Quvena', 'Sineco'])
 def test_const_cat_feature(cat_value):
 
-    def make_a_set(nrows, value):
-        label = np.random.randint(0, nrows, [nrows, 1])
+    def make_a_set(nrows, value, seed=20181219, prng=None):
+        if prng is None:
+            prng = np.random.RandomState(seed=seed)
+        label = prng.randint(0, nrows, [nrows, 1])
         feature = np.full([nrows, 1], value, dtype='|S{}'.format(len(value)))
         return np.concatenate([label, feature], axis=1)
 
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target'], [1, 'Categ']], fmt='%s', delimiter='\t')
 
+    prng = np.random.RandomState(seed=20181219)
+
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, make_a_set(10, cat_value), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, make_a_set(10, cat_value, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, make_a_set(10, cat_value), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, make_a_set(10, cat_value, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 
@@ -4452,13 +4539,13 @@ def test_fit_multiclass_with_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 
@@ -4490,13 +4577,13 @@ def test_extract_multiclass_labels_from_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 
@@ -4549,10 +4636,10 @@ def test_save_multiclass_labels_from_data(loss_function):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     cmd = (
         CATBOOST_PATH,
@@ -4587,13 +4674,13 @@ def test_apply_multiclass_labels_from_data(prediction_type):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 
@@ -4654,13 +4741,13 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2]), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2], prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3]), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3], prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 
@@ -4737,13 +4824,13 @@ def test_set_class_names_implicitly():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, INPUT_CLASS_LABELS), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, INPUT_CLASS_LABELS, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, INPUT_CLASS_LABELS), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, INPUT_CLASS_LABELS, prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 

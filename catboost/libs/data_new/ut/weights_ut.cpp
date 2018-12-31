@@ -23,7 +23,7 @@ Y_UNIT_TEST_SUITE(TWeights) {
                 UNIT_ASSERT_VALUES_EQUAL(weights[i], 1.f);
             }
 
-            UNIT_ASSERT_EXCEPTION(weights.GetNonTrivialData(), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(weights.GetNonTrivialData(), TCatBoostException);
         }
 
         // non-trivial
@@ -45,12 +45,12 @@ Y_UNIT_TEST_SUITE(TWeights) {
 
         UNIT_ASSERT_EXCEPTION(
             TWeights<float>(10, TMaybeOwningArrayHolder<float>::CreateOwning(TVector<float>{0.0f, 1.0f})),
-            TCatboostException
+            TCatBoostException
         );
 
         UNIT_ASSERT_EXCEPTION(
             TWeights<float>(TVector<float>{0.0f, -2.0f}),
-            TCatboostException
+            TCatBoostException
         );
     }
 

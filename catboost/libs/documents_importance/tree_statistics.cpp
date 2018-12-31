@@ -3,6 +3,8 @@
 
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
 
 using namespace NCB;
@@ -12,7 +14,8 @@ using namespace NCB;
 
 TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const TFullModel& model,
-    const NCB::TProcessedDataProvider& processedData
+    const NCB::TProcessedDataProvider& processedData,
+    int logPeriod
 ) {
     const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());
     CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
@@ -29,7 +32,13 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     TVector<TTreeStatistics> treeStatistics;
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);
+
+    TImportanceLogger treesLogger(treeCount, "Trees processed", "Processing trees...", logPeriod);
+    TProfileInfo processTreesProfile(treeCount);
+
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {
+        processTreesProfile.StartIterationBlock();
+
         LeafCount = 1 << model.ObliviousTrees.TreeSizes[treeId];
         LeafIndices = BuildIndicesForBinTree(model, binarizedFeatures, treeId);
 
@@ -92,6 +101,10 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
             formulaNumeratorAdding,
             formulaNumeratorMultiplier
         });
+
+        processTreesProfile.FinishIteration();
+        auto profileResults = processTreesProfile.GetProfileResults();
+        treesLogger.Log(profileResults);
     }
     return treeStatistics;
 }

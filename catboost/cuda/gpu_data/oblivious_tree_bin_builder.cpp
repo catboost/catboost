@@ -32,7 +32,7 @@ namespace NCatboostCuda {
                     return CtrSplitBuilder.ComputeAndCacheCtrSplit(DataSet,
                                                                    split);
                 } else {
-                    ythrow TCatboostException() << "Error: unknown feature";
+                    ythrow TCatBoostException() << "Error: unknown feature";
                 }
             }
 

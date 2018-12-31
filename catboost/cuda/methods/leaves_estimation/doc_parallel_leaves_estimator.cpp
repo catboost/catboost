@@ -1,6 +1,6 @@
 #include "doc_parallel_leaves_estimator.h"
 
-void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId) {
+void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId, NPar::TLocalExecutor* localExecutor) {
     auto& task = Tasks.at(taskId);
     auto derCalcer = CreateDerCalcer(task);
 
@@ -12,7 +12,7 @@ void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId) {
     TVector<double> weights;
 
     point.resize(task.Model->BinCount() * task.Model->OutputDim());
-    point = newtonLikeWalker.Estimate(point);
+    point = newtonLikeWalker.Estimate(point, localExecutor);
     derCalcer->WriteWeights(&weights);
     Y_VERIFY(task.Model->BinCount() == weights.size());
 

@@ -63,7 +63,7 @@ template <typename T, typename = std::enable_if_t<std::is_base_of<TCustomOuterSe
 int operator&(T& s, IBinSaver& f);
 
 static bool operator==(const TBlob& l, const TBlob& r) {
-    return TStringBuf(~l, +l) == TStringBuf(~r, +r);
+    return TStringBuf(l.AsCharPtr(), l.Size()) == TStringBuf(r.AsCharPtr(), r.Size());
 }
 
 Y_UNIT_TEST_SUITE(BinSaver){

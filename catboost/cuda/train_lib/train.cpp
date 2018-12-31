@@ -132,7 +132,8 @@ namespace NCatboostCuda {
 
     static inline void EstimatePriors(const NCB::TTrainingDataProvider& dataProvider,
                                       TBinarizedFeaturesManager& featureManager,
-                                      NCatboostOptions::TCatFeatureParams& options) {
+                                      NCatboostOptions::TCatFeatureParams& options,
+                                      NPar::TLocalExecutor* localExecutor) {
         CB_ENSURE(&(featureManager.GetCatFeatureOptions()) == &options, "Error: for consistent catFeature options should be equal to one in feature manager");
 
         bool needSimpleCtrsPriorEstimation = NeedPriorEstimation(options.SimpleCtrs);
@@ -148,7 +149,7 @@ namespace NCatboostCuda {
         TAdaptiveLock lock;
 
         //TODO(noxoomo): locks here are ugly and error prone
-        NPar::ParallelFor(0, (int)featuresLayout.GetCatFeatureCount(), [&](int catFeatureIdx) {
+        NPar::ParallelFor(*localExecutor, 0, (int)featuresLayout.GetCatFeatureCount(), [&](int catFeatureIdx) {
             if (!featuresLayout.GetInternalFeatureMetaInfo((ui32)catFeatureIdx, EFeatureType::Categorical).IsAvailable) {
                 return;
             }
@@ -173,7 +174,7 @@ namespace NCatboostCuda {
                 if (!NeedPriorEstimation(currentFeatureDescription)) {
                     return;
                 }
-                auto values = catFeatureValues.ExtractValues(&NPar::LocalExecutor());
+                auto values = catFeatureValues.ExtractValues(localExecutor);
 
                 for (ui32 i = 0; i < currentFeatureDescription.size(); ++i) {
                     if (currentFeatureDescription[i].Type == ECtrType::Borders && options.TargetBorders->BorderCount == 1u) {
@@ -200,7 +201,8 @@ namespace NCatboostCuda {
                                          const NCB::TTrainingDataProvider* testProvider,
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                          NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                         TBinarizedFeaturesManager& featuresManager) {
+                                         TBinarizedFeaturesManager& featuresManager,
+                                         NPar::TLocalExecutor* localExecutor) {
 
         bool hasTestConstTarget = true;
         bool hasTestPairs = false;
@@ -215,7 +217,7 @@ namespace NCatboostCuda {
                                  &catBoostOptions.BoostingOptions->BoostingType);
 
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
-        EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
+        EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams, localExecutor);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
     }
@@ -228,6 +230,7 @@ namespace NCatboostCuda {
                                                                 TBinarizedFeaturesManager& featuresManager,
                                                                 ui32 approxDimension,
                                                                 const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                NPar::TLocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
@@ -251,10 +254,11 @@ namespace NCatboostCuda {
                                        random,
                                        approxDimension,
                                        onEndIterationCallback,
+                                       localExecutor,
                                        testMultiApprox,
                                        metricsAndTimeHistory);
         } else {
-            ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
+            ythrow TCatBoostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
         }
         return nullptr; // return default to keep compiler happy
     }
@@ -266,7 +270,7 @@ namespace NCatboostCuda {
                 trainDirPath.MkDir();
             }
         } catch (...) {
-            ythrow TCatboostException() << "Can't create working dir: " << path;
+            ythrow TCatBoostException() << "Can't create working dir: " << path;
         }
     }
 
@@ -324,7 +328,8 @@ namespace NCatboostCuda {
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 catBoostOptions,
                 updatedOutputOptions,
-                featuresManager);
+                featuresManager,
+                localExecutor);
 
             NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
             featuresManager.SetTargetBorders(
@@ -350,6 +355,7 @@ namespace NCatboostCuda {
                 featuresManager,
                 approxDimension,
                 onEndIterationCallback,
+                localExecutor,
                 &rawValues,
                 metricsAndTimeHistory);
 

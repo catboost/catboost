@@ -1,14 +1,12 @@
 #pragma once
 
-#include "data_utils.h"
-
 #include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/helpers/exception.h>
 
 #include <util/system/types.h>
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
-#include <util/random/shuffle.h>
-#include <numeric>
+
 
 namespace NCatboostCuda {
     class TDataPermutation {

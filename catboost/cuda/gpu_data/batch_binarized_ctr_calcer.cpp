@@ -183,7 +183,7 @@ NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedB
         }
     }
     if (tensor.GetSplits().size()) {
-        ythrow TCatboostException() << "Precompute for combination ctrs with float splits is unimplemented yet";
+        ythrow TCatBoostException() << "Precompute for combination ctrs with float splits is unimplemented yet";
     }
     return ctrBinBuilder;
 }
@@ -221,7 +221,7 @@ TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedB
     auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
     const ui32 uniqueValues = FeaturesManager.GetBinCount(featureManagerFeatureId);
     auto compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));
-    binsGpu.Write(*catFeature.ExtractValues(&NPar::LocalExecutor()));
+    binsGpu.Write(*catFeature.ExtractValues(LocalExecutor));
     Compress(binsGpu, compressedBinsGpu, uniqueValues);
     return compressedBinsGpu;
 }

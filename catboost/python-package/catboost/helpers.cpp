@@ -11,7 +11,7 @@ extern "C" PyObject* PyCatboostExceptionType;
 void ProcessException() {
     try {
         throw;
-    } catch (const TCatboostException& exc) {
+    } catch (const TCatBoostException& exc) {
         PyErr_SetString(PyCatboostExceptionType, exc.what());
     } catch (const TInterruptException& exc) {
         PyErr_SetString(PyExc_KeyboardInterrupt, exc.what());

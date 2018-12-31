@@ -70,7 +70,7 @@ NJson::TJsonValue NCatboostOptions::ParseCtrDescription(TStringBuf ctrStringDesc
             CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
             ctrJson["prior_estimation"] = param->Value;
         } else {
-            ythrow TCatboostException() << "Unknown ctr param name: " << param->Name;
+            ythrow TCatBoostException() << "Unknown ctr param name: " << param->Name;
         }
         seenParams.insert(name);
         GetNext<TCtrParam>(ctrStringDescription, ':', param);
@@ -130,7 +130,7 @@ TVector<NCatboostOptions::TPrior> NCatboostOptions::GetDefaultPriors(const ECtrT
             return {{0, 1}};
         }
         default: {
-            ythrow TCatboostException() << "Unknown ctr type " << ctrType;
+            ythrow TCatBoostException() << "Unknown ctr type " << ctrType;
         }
     }
 }

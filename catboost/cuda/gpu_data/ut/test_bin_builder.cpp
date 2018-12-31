@@ -227,7 +227,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
                                                                     *dataProvider);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         TVector<ui32> oneHotIds;
         TVector<ui32> catIds;

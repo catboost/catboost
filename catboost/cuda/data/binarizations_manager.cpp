@@ -1,5 +1,6 @@
 #include "binarizations_manager.h"
 
+#include <catboost/libs/ctr_description/ctr_type.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>
@@ -137,7 +138,7 @@ namespace NCatboostCuda {
         } else if (IsFloat(localId)) {
             return 0;
         } else {
-            ythrow TCatboostException() << "Error: unknown feature id #" << localId;
+            ythrow TCatBoostException() << "Error: unknown feature id #" << localId;
         }
     }
 
@@ -343,10 +344,13 @@ namespace NCatboostCuda {
     void TBinarizedFeaturesManager::CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
                                                                     TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const{
         for (const auto& prior : ctrDescription.GetPriors()) {
-            CB_ENSURE(!TargetBorders.empty(), "Enable ctr description should be done after target borders are set");
+            ECtrType type = ctrDescription.Type;
+            if ((type != ECtrType::Counter) && !HasTargetBinarization()) {
+                continue;
+            }
+
             CB_ENSURE(ctrDescription.GetPriors().size(), "Set priors first");
 
-            ECtrType type = ctrDescription.Type;
             TCtrConfig defaultConfig;
 
             defaultConfig.Prior = prior;

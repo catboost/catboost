@@ -18,24 +18,22 @@ namespace NNeh {
         {
         }
 
-        void NotifyResponse(const TString& resp, const THttpHeaders& headers = Default<THttpHeaders>()) {
-            Notify(new TResponse(Msg_, resp, ExecDuration(), headers));
+        void NotifyResponse(const TString& resp, const TString& firstLine = {}, const THttpHeaders& headers = Default<THttpHeaders>()) {
+            Notify(new TResponse(Msg_, resp, ExecDuration(), firstLine, headers));
         }
 
         void NotifyError(const TString& errorText) {
             Notify(TResponse::FromError(Msg_, new TError(errorText), ExecDuration()));
         }
 
-        void NotifyError(const TString& errorText, const TString& data) {
-            Notify(TResponse::FromError(Msg_, new TError(errorText), data, ExecDuration()));
-        }
-
         void NotifyError(TErrorRef error) {
             Notify(TResponse::FromError(Msg_, error, ExecDuration()));
         }
 
-        void NotifyError(TErrorRef error, const TString& data) {
-            Notify(TResponse::FromError(Msg_, error, data, ExecDuration()));
+        /** Calls when asnwer is received and reponse has headers and first line.
+         */
+        void NotifyError(TErrorRef error, const TString& data, const TString& firstLine, const THttpHeaders& headers) {
+            Notify(TResponse::FromError(Msg_, error, data, ExecDuration(), firstLine, headers));
         }
 
         const TMessage& Message() const noexcept {

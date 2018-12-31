@@ -58,7 +58,7 @@ namespace NCB {
                 Load();
             }
         }
-        binSaver.AddMulti(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash);
+        binSaver.AddMulti(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash, AllowWriteFiles);
         if (binSaver.IsReading()) {
             HasHashInRam = true;
         }

@@ -24,9 +24,11 @@ BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 
 
-def generate_random_labeled_set(nrows, nvals, labels):
-    label = np.random.choice(labels, [nrows, 1])
-    feature = np.random.random([nrows, nvals])
+def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
+    if prng is None:
+        prng = np.random.RandomState(seed=seed)
+    label = prng.choice(labels, [nrows, 1])
+    feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
 
 
@@ -1170,6 +1172,35 @@ def test_pairs_generation_with_max_pairs():
             ]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_pairlogit_no_target(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    params = [
+        '--loss-function', 'PairLogit',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.no_target'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    ]
+    fit_catboost_gpu(params)
+
+    return [
+        local_canonical_file(
+            output_eval_path,
+            # TODO(akhropov): why such result instability for Plain. MLTOOLS-2801
+            diff_tool=diff_tool(threshold={'Plain': 0.07, 'Ordered': 1.e-7}[boosting_type])
+        )
+    ]
+
+
 @pytest.mark.parametrize('task_type', ['CPU', 'GPU'])
 def test_learn_without_header_eval_with_header(task_type):
     train_path = yatest.common.test_output_path('airlines_without_header')
@@ -1378,13 +1409,13 @@ def test_multiclass_baseline(loss_function):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline'], [3, 'Baseline'], [4, 'Baseline']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 1000, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 1000, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 1000, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 1000, labels, prng=prng), fmt='%s', delimiter='\t')
 
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -1423,13 +1454,13 @@ def test_multiclass_baseline_lost_class(loss_function):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(num_objects, 10, labels=[1, 2]), fmt='%.5f', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(num_objects, 10, labels=[1, 2], prng=prng), fmt='%.5f', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(num_objects, 10, labels=[0, 1, 2, 3]), fmt='%.5f', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(num_objects, 10, labels=[0, 1, 2, 3], prng=prng), fmt='%.5f', delimiter='\t')
 
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
 
@@ -1798,13 +1829,13 @@ def test_eval_metrics_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -1846,13 +1877,13 @@ def test_fit_multiclass_with_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     learn_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(learn_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(learn_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
@@ -1889,13 +1920,13 @@ def test_extract_multiclass_labels_from_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
@@ -1940,13 +1971,13 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
-    np.random.seed(0)
+    prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2]), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2], prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3]), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3], prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 

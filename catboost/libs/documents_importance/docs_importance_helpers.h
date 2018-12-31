@@ -44,7 +44,8 @@ public:
         const TFullModel& model,
         const NCB::TProcessedDataProvider& processedData,
         const TUpdateMethod& updateMethod,
-        TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor
+        TAtomicSharedPtr<NPar::TLocalExecutor> localExecutor,
+        int logPeriod
     )
         : Model(model)
         , UpdateMethod(updateMethod)
@@ -66,11 +67,11 @@ public:
         Y_ASSERT(leavesEstimationMethod == ELeavesEstimation::Newton);
             treeStatisticsEvaluator = MakeHolder<TNewtonTreeStatisticsEvaluator>(DocCount);
         }
-        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, processedData);
+        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, processedData, logPeriod);
     }
 
     // Getting the importance of all train objects for all objects from pool.
-    TVector<TVector<double>> GetDocumentImportances(const NCB::TProcessedDataProvider& processedData);
+    TVector<TVector<double>> GetDocumentImportances(const NCB::TProcessedDataProvider& processedData, int logPeriod = 0);
 
 private:
     // Evaluate first derivatives at the final approxes

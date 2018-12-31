@@ -175,7 +175,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
             NCB::LoadQuantizationSchema(
                 NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
                 &mxFormatBorders),
-            TCatboostException);
+            TCatBoostException);
     }
 
     Y_UNIT_TEST(TestLoadInMatrixNetFormatInconsistentNanModes2) {
@@ -188,7 +188,7 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
             NCB::LoadQuantizationSchema(
                 NCB::EQuantizationSchemaSerializationFormat::Matrixnet,
                 &mxFormatBorders),
-            TCatboostException);
+            TCatBoostException);
     }
 
     Y_UNIT_TEST(TestSaveInMatrixNetFormat1) {

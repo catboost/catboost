@@ -85,17 +85,27 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            CB_ENSURE(
+                !loadParamsPtr->CvParams.Initialized(),
+                "Cross-validation params have already been initialized"
+            );
             Split(str,
                   '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
             loadParamsPtr->CvParams.Inverted = false;
+            loadParamsPtr->CvParams.Check();
         });
 
     parser->AddCharOption('Y', "inverted cross validation, train on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            CB_ENSURE(
+                !loadParamsPtr->CvParams.Initialized(),
+                "Cross-validation params have already been initialized"
+            );
             Split(str,
                   '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
             loadParamsPtr->CvParams.Inverted = true;
+            loadParamsPtr->CvParams.Check();
         });
 
     parser->AddLongOption("cv-rand", "cross-validation random seed")
@@ -119,7 +129,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("trigger-core-dump")
         .NoArgument()
-        .Handler0([] {  Y_FAIL("Aboring on user request"); })
+        .Handler0([] {  Y_FAIL("Aborting on user request"); })
         .Help("Trigger core dump")
         .Hidden();
 

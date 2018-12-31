@@ -159,6 +159,9 @@ int main(int argc, char** argv) {
         colon[0] = '\0';
         func_name = colon + 1;
     }
+    if (module_name[0] == '\0') {
+        module_name = "library.python.runtime_py3.entry_points";
+    }
 
     if (!func_name) {
         sts = RunModule(module_name);

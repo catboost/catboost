@@ -2,6 +2,8 @@
 #include "ders_helpers.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -17,7 +19,7 @@ using namespace NCB;
 
 
 TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
-    const TProcessedDataProvider& processedData
+    const TProcessedDataProvider& processedData, int logPeriod
 ) {
     const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());
     CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
@@ -28,15 +30,28 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures, treeId);
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
+
     UpdateFinalFirstDerivatives(leafIndices, GetTarget(processedData.TargetData));
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
+    const size_t docBlockSize = 1000;
+    TImportanceLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
+    TProfileInfo processDocumentsProfile(DocCount);
 
-    LocalExecutor->ExecRange([&] (int docId) {
-        // The derivative of leaf values with respect to train doc weight.
-        TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
-        UpdateLeavesDerivatives(docId, &leafDerivatives);
-        GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
-    }, NPar::TLocalExecutor::TExecRangeParams(0, DocCount), NPar::TLocalExecutor::WAIT_COMPLETE);
+    for (size_t start = 0; start < DocCount; start += docBlockSize) {
+        const size_t end = Min<size_t>(start + docBlockSize, DocCount);
+        processDocumentsProfile.StartIterationBlock();
+
+        LocalExecutor->ExecRange([&] (int docId) {
+            // The derivative of leaf values with respect to train doc weight.
+            TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
+            UpdateLeavesDerivatives(docId, &leafDerivatives);
+            GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
+        }, NPar::TLocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
+
+        processDocumentsProfile.FinishIterationBlock(end - start);
+        auto profileResults = processDocumentsProfile.GetProfileResults();
+        documentsLogger.Log(profileResults);
+        }
     return documentImportances;
 }
 

@@ -6,13 +6,19 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/metrics/metric.h>
 
+#include <util/generic/maybe.h>
+
+
 struct TTimeInfo {
-    TTimeInfo(double passedTime, double remainingTime)
-        : PassedTime(passedTime)
-        , RemainingTime(remainingTime)
+    TTimeInfo(const TProfileResults& profileResults)
+        : IterationTime(profileResults.CurrentTime)
+        , PassedTime(profileResults.PassedTime)
+        , RemainingTime(profileResults.RemainingTime)
     {
     }
     TTimeInfo() = default;
+
+    double IterationTime = 0;
     double PassedTime = 0;
     double RemainingTime = 0;
 };
@@ -91,8 +97,8 @@ void Log(
     const TVector<TString>& metricsDescription,
     const TVector<THashMap<TString, double>>& learnErrorsHistory,
     const TVector<TVector<THashMap<TString, double>>>& testErrorsHistory, // [iter][test][metric]
-    double bestErrorValue,
-    int bestIteration,
+    TMaybe<double> bestErrorValue,
+    TMaybe<int> bestIteration,
     const TProfileResults& profileResults,
     const TString& learnToken,
     const TVector<const TString>& testTokens,

@@ -36,6 +36,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/options
+    library/threading/local_executor
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

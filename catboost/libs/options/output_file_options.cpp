@@ -17,6 +17,8 @@ TString NCatboostOptions::GetModelExtensionFromType(const EModelType modelType) 
             return "cpp";
         case EModelType::Python:
             return "py";
+        case EModelType::Onnx:
+            return "onnx";
     }
 }
 

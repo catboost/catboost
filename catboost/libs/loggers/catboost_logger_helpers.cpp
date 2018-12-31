@@ -162,8 +162,8 @@ void Log(
         const TVector<TString>& metricsDescription,
         const TVector<THashMap<TString, double>>& learnErrorsHistory, // [iter][metric]
         const TVector<TVector<THashMap<TString, double>>>& testErrorsHistory, // [iter][test][metric]
-        double bestErrorValue,
-        int bestIteration,
+        TMaybe<double> bestErrorValue,
+        TMaybe<int> bestIteration,
         const TProfileResults& profileResults,
         const TString& learnToken,
         const TVector<const TString>& testTokens,
@@ -195,14 +195,17 @@ void Log(
 
                 for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
                     const TString& metricDescription = metricsDescription[metricIdx];
-                    double testError = testErrors.at(metricDescription);
-                    bool isMainMetric = metricIdx == 0;
 
-                    if (testIdx == testCount - 1) {
-                        // Only last test should be followed by 'best:'
-                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription, testError, bestErrorValue, bestIteration, isMainMetric));
-                    } else {
-                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription + ":" + ToString(testIdx), testError, isMainMetric));
+                    if (testErrors.contains(metricDescription)) {
+                        double testError = testErrors.at(metricDescription);
+                        bool isMainMetric = metricIdx == 0;
+
+                        if ((testIdx == testCount - 1) && bestErrorValue) {
+                            // Only last test should be followed by 'best:'
+                            oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription, testError, *bestErrorValue, *bestIteration, isMainMetric));
+                        } else {
+                            oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription + ":" + ToString(testIdx), testError, isMainMetric));
+                        }
                     }
                 }
             }

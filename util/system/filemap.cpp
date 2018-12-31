@@ -1,6 +1,7 @@
 #include "info.h"
 #include "madvise.h"
 #include "defaults.h"
+#include "hi_lo.h"
 
 #include <util/generic/buffer.h>
 #include <util/generic/yexception.h>
@@ -93,7 +94,7 @@ public:
         Mapping_ = nullptr;
         if (Length_) {
             Mapping_ = CreateFileMapping(File_.GetHandle(), nullptr,
-                                         (Mode_ & oAccessMask) == TFileMap::oRdOnly ? PAGE_READONLY : PAGE_READWRITE,
+                                         (Mode_ & oAccessMask) == TFileMap::oRdWr ? PAGE_READWRITE : PAGE_READONLY,
                                          (DWORD)(Length_ >> 32), (DWORD)(Length_ & 0xFFFFFFFF), nullptr);
             if (Mapping_ == nullptr) {
                 ythrow yexception() << "Can't create file mapping of '" << DbgName_ << "': " << LastSystemErrorText();
@@ -104,8 +105,8 @@ public:
 #elif defined(_unix_)
         if (!(Mode_ & oNotGreedy)) {
             PtrStart_ = mmap((caddr_t) nullptr, Length_,
-                             ((Mode_ & oAccessMask) == oRdOnly) ? PROT_READ : PROT_READ | PROT_WRITE,
-                             MAP_SHARED | MAP_NOCORE, File_.GetHandle(), 0);
+                             (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
+                             ((Mode_ & oAccessMask) == oCopyOnWr ? MAP_PRIVATE : MAP_SHARED) | MAP_NOCORE, File_.GetHandle(), 0);
             if ((MAP_FAILED == PtrStart_) && Length_)
                 ythrow yexception() << "Can't map " << (unsigned long)Length_ << " bytes of file '" << DbgName_ << "' at offset 0: " << LastSystemErrorText();
         } else
@@ -176,7 +177,7 @@ public:
     }
 
     inline bool IsWritable() const noexcept {
-        return (Mode_ & oRdWr);
+        return (Mode_ & oRdWr || Mode_ & oCopyOnWr);
     }
 
     inline TMapResult Map(i64 offset, size_t size) {
@@ -197,14 +198,18 @@ public:
         size += result.Head;
 
 #if defined(_win_)
-        result.Ptr = MapViewOfFile(Mapping_, (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ : FILE_MAP_WRITE,
-                                   HI_32(base), LO_32(base), size);
+        result.Ptr = MapViewOfFile(Mapping_,
+                                   (Mode_ & oAccessMask) == oRdOnly ? FILE_MAP_READ :
+                                       (Mode_ & oAccessMask) == oCopyOnWr ? FILE_MAP_COPY :
+                                       FILE_MAP_WRITE,
+                                   Hi32(base), Lo32(base), size);
 #else
 #if defined(_unix_)
         if (Mode_ & oNotGreedy) {
 #endif
-            result.Ptr = mmap((caddr_t) nullptr, size, (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
-                              MAP_SHARED | MAP_NOCORE,
+            result.Ptr = mmap((caddr_t) nullptr, size,
+                              (Mode_ & oAccessMask) == oRdOnly ? PROT_READ : PROT_READ | PROT_WRITE,
+                              ((Mode_ & oAccessMask) == oCopyOnWr ? MAP_PRIVATE : MAP_SHARED) | MAP_NOCORE,
                               File_.GetHandle(), base);
 
             if (result.Ptr == (char*)(-1)) {

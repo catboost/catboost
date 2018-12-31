@@ -594,7 +594,11 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             *metaInfo.FeaturesLayout,
             TConstArrayRef<ui32>(),
-            binarizationOptions
+            binarizationOptions,
+            /*floatFeaturesAllowNansInTestOnly*/true,
+
+            // be conservative here, it will be reset using SetAllowWriteFiles later if needed
+            /*allowWriteFiles*/false
         );
     }
 }
@@ -986,9 +990,9 @@ void NCB::TQuantizedForCPUObjectsDataProvider::Check() const {
             Data.CatFeatures,
             "TQuantizedCatValuesHolder"
         );
-    } catch (const TCatboostException& e) {
+    } catch (const TCatBoostException& e) {
         // not ythrow to avoid double line info in exception message
-        throw TCatboostException() << "Incompatible with TQuantizedForCPUObjectsDataProvider: " << e.what();
+        throw TCatBoostException() << "Incompatible with TQuantizedForCPUObjectsDataProvider: " << e.what();
     }
 }
 

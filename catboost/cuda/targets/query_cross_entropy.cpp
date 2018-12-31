@@ -157,7 +157,7 @@ namespace NCatboostCuda {
         }
 
         if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Poisson) {
-            ythrow TCatboostException() << "Poisson bootstrap is not supported for LLMax";
+            ythrow TCatBoostException() << "Poisson bootstrap is not supported for LLMax";
         }
 
         if (queriesSampleRate < 1.0 || HasBigQueries()) {

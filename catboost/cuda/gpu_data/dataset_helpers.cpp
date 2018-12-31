@@ -104,13 +104,15 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
 
 namespace NCatboostCuda {
     TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager, const TVector<float>& targets) {
-        CB_ENSURE(featuresManager.HasTargetBinarization(),
-                  "Error: No target binarization found. Can't make binarized target. Probably input labels columns was constant") ;
-        auto& borders = featuresManager.GetTargetBorders();
-
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(targets,
-                                                      ENanMode::Forbidden,
-                                                      borders);
+        TVector<ui8> binarizedTarget;
+        if (featuresManager.HasTargetBinarization()) {
+            auto& borders = featuresManager.GetTargetBorders();
+            binarizedTarget = NCB::BinarizeLine<ui8>(targets,
+                                                     ENanMode::Forbidden,
+                                                     borders);
+        } else {
+            binarizedTarget.resize(targets.size(), 0);
+        }
 
         TMirrorBuffer<ui8> binarizedTargetGpu = TMirrorBuffer<ui8>::Create(NCudaLib::TMirrorMapping(binarizedTarget.size()));
         binarizedTargetGpu.Write(binarizedTarget);

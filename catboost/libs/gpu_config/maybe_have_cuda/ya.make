@@ -9,7 +9,7 @@ PEERDIR(
 
 IF(HAVE_CUDA)
     PEERDIR(
-        build/cuda
+        build/platform/cuda
     )
     SRCS(
         get_gpu_device_count_cuda.cpp

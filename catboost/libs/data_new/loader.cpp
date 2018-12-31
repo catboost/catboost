@@ -86,8 +86,8 @@ namespace NCB {
                     );
                 }
                 pairs.push_back(std::move(pair));
-            } catch (const TCatboostException& e) {
-                throw TCatboostException() << "Incorrect file with pairs. Invalid line number #" << lineNumber
+            } catch (const TCatBoostException& e) {
+                throw TCatBoostException() << "Incorrect file with pairs. Invalid line number #" << lineNumber
                     << ": " << e.what();
             }
         }
@@ -127,8 +127,8 @@ namespace NCB {
                     ++groupIdCursor;
                 }
                 groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
-            } catch (const TCatboostException& e) {
-                throw TCatboostException() << "Incorrect file with group weights. Invalid line number #"
+            } catch (const TCatBoostException& e) {
+                throw TCatBoostException() << "Incorrect file with group weights. Invalid line number #"
                     << lineNumber << ": " << e.what();
             }
         }

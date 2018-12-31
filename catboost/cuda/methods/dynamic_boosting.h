@@ -18,6 +18,9 @@
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/math_utils.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate,
               class TWeakLearner_>
@@ -42,6 +45,8 @@ namespace NCatboostCuda {
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
+
+        NPar::TLocalExecutor* LocalExecutor;
 
     private:
         struct TFold {
@@ -126,7 +131,7 @@ namespace NCatboostCuda {
                 = DataProvider->ObjectsData->GetOrder() == NCB::EObjectsOrder::Ordered ?
                   1
                   : Config.PermutationCount;
-            return dataSetsHolderBuilder.BuildDataSet(permutationCount);
+            return dataSetsHolderBuilder.BuildDataSet(permutationCount, LocalExecutor);
         }
 
         TPermutationTarget CreateTargets(const TFeatureParallelDataSetsHolder& dataSets) const {
@@ -227,10 +232,10 @@ namespace NCatboostCuda {
             const double step = Config.LearningRate;
             auto startTimeBoosting = Now();
 
-            TMetricCalcer<TObjective> metricCalcer(target.GetTarget(estimationPermutation));
+            TMetricCalcer<TObjective> metricCalcer(target.GetTarget(estimationPermutation), LocalExecutor);
             THolder<TMetricCalcer<TObjective>> testMetricCalcer;
             if (testTarget) {
-                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget);
+                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget, LocalExecutor);
             }
 
             auto snapshotSaver = [&](IOutputStream* out) {
@@ -376,7 +381,7 @@ namespace NCatboostCuda {
                                                         cursor.Estimation.ConstCopyView(),
                                                         &models.Estimation);
                         }
-                        estimator.Estimate();
+                        estimator.Estimate(LocalExecutor);
                     }
                     //
                     models.Foreach([&](TWeakModel& model) {
@@ -470,13 +475,15 @@ namespace NCatboostCuda {
                          const NCatboostOptions::TLossDescription& targetOptions,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
-                         TWeakLearner& weak)
+                         TWeakLearner& weak,
+                         NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , CatFeaturesStorage(catFeaturesStorage)
             , Random(random)
             , Weak(weak)
             , Config(config)
             , TargetOptions(targetOptions)
+            , LocalExecutor(localExecutor)
         {
         }
 

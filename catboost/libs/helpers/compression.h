@@ -145,7 +145,7 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
     params.SetBlockSize(indexHelper.GetEntriesPerType() * 8192);
 
     NPar::LocalExecutor().ExecRange([&](int blockIdx) {
-        NPar::LocalExecutor().BlockedLoopBody(params, [&](int i) {
+        NPar::TLocalExecutor::BlockedLoopBody(params, [&](int i) {
             const ui32 offset = indexHelper.Offset((ui32)i);
             const ui32 shift = indexHelper.Shift((ui32)i);
             CB_ENSURE((data[i] & mask) == data[i], TStringBuilder() << "Error: key contains too many bits: max bits per key: allowed " << bitsPerKey << ", observe key " << static_cast<ui64>(data[i]));

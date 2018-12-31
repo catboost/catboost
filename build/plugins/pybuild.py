@@ -19,7 +19,7 @@ def to_build_root(path, unit):
 
 
 def pb2_arg(path, mod, unit):
-    return '{}_pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
+    return '{}__int___pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
 def proto_arg(path, mod, unit):
     return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
@@ -35,10 +35,10 @@ def ev_cc_arg(path, unit):
 
 
 def pb2_grpc_arg(path, mod, unit):
-    return '{}_pb2_grpc.py={}_pb2_grpc'.format(stripext(to_build_root(path, unit)), mod)
+    return '{}__int___pb2_grpc.py={}_pb2_grpc'.format(stripext(to_build_root(path, unit)), mod)
 
 def ev_arg(path, mod, unit):
-    return '{}_ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
+    return '{}__int___ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
 def gly_arg(path, mod, unit):
     return '{}.py={}'.format(stripext(to_build_root(path, unit)), mod)
@@ -354,7 +354,7 @@ def onpy_srcs(unit, *args):
             unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
 
         proto_paths = [path for path, mod in protos]
-        unit.ongenerate_py_protos(proto_paths)
+        unit.ongenerate_py_protos_internal(proto_paths)
         unit.onpy_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
 
         if grpc:
@@ -382,7 +382,7 @@ def onpy_srcs(unit, *args):
         if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
-        unit.ongenerate_py_evs([path for path, mod in evs])
+        unit.ongenerate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 
         if optimize_proto:

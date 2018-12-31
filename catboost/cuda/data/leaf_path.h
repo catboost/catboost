@@ -1,6 +1,18 @@
 #pragma once
 
-#include <catboost/cuda/data/feature.h>
+#include "feature.h"
+
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/hash.h>
+
+#include <util/digest/multi.h>
+#include <util/generic/vector.h>
+#include <util/system/types.h>
+#include <util/str_stl.h>
+#include <util/ysaveload.h>
+
+#include <tuple>
+
 
 namespace NCatboostCuda {
 

@@ -214,7 +214,7 @@ static void PrintHumanReadable(
                 PrintHumanReadableStringColumn(pool, columnType, output);
             }
         } else {
-            ythrow TCatboostException() << "unexpected column type " << columnType;
+            ythrow TCatBoostException() << "unexpected column type " << columnType;
         }
     }
 }
@@ -235,5 +235,5 @@ void NCB::PrintQuantizedPool(
             break;
     }
 
-    ythrow TCatboostException() << "unknown format";
+    ythrow TCatBoostException() << "unknown format";
 }

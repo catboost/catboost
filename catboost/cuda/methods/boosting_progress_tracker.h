@@ -28,6 +28,7 @@ namespace NCatboostCuda {
         TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                  const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
                                  bool hasTest,
+                                 bool testHasTarget,
                                  ui32 cpuApproxDim,
                                  const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback);
 
@@ -71,6 +72,10 @@ namespace NCatboostCuda {
 
         const TMetricsAndTimeLeftHistory& GetMetricsAndTimeLeftHistory() const {
             return this->History;
+        }
+
+        bool EvalMetricWasCalculated() const {
+            return HasTest && !IsSkipOnTestFlags[0];
         }
 
     private:
@@ -128,6 +133,7 @@ namespace NCatboostCuda {
 
         TVector<TString> MetricDescriptions;
         TVector<bool> IsSkipOnTrainFlags;
+        TVector<bool> IsSkipOnTestFlags;
         TVector<TVector<double>> BestTestCursor;
 
         size_t Iteration = 0;

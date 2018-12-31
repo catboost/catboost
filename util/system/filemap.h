@@ -51,8 +51,9 @@ struct TMemoryMapCommon {
     enum EOpenModeFlag {
         oRdOnly = 1,
         oRdWr = 2,
+        oCopyOnWr = 4,
 
-        oAccessMask = 3,
+        oAccessMask = 7,
         oNotGreedy = 8,
         oPrecharge = 16,
     };

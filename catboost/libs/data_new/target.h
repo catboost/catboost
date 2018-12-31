@@ -397,8 +397,8 @@ namespace NCB {
 
 
         // after preprocessing - enumerating labels if necessary, etc.
-        TConstArrayRef<float> GetTarget() const { // [objectIdx]
-            return *Target;
+        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
+            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
         }
 
         // after preprocessing - adjusted for classes, group etc. weights
@@ -458,8 +458,8 @@ namespace NCB {
         }
 
         // after preprocessing - enumerating labels if necessary, etc.
-        TConstArrayRef<float> GetTarget() const { // [objectIdx]
-            return *Target;
+        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
+            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
         }
 
         // after preprocessing - adjusted for classes, group etc. weights
@@ -519,8 +519,8 @@ namespace NCB {
         ) const override;
 
 
-        TConstArrayRef<float> GetTarget() const { // [objectIdx]
-            return *Target;
+        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
+            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
         }
 
         // after preprocessing - adjusted for group etc. weights
@@ -546,7 +546,7 @@ namespace NCB {
         );
 
     protected:
-        TSharedVector<float> Target; // [objectIdx]
+        TSharedVector<float> Target; // [objectIdx], can be nullptr
         TSharedWeights<float> Weights; // [objectIdx]
         TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
     };
@@ -578,8 +578,8 @@ namespace NCB {
         ) const override;
 
 
-        TConstArrayRef<float> GetTarget() const { // [objectIdx]
-            return *Target;
+        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
+            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
         }
 
         // after preprocessing - adjusted for group etc. weights
@@ -609,7 +609,7 @@ namespace NCB {
         );
 
     protected:
-        TSharedVector<float> Target; // [objectIdx]
+        TSharedVector<float> Target; // [objectIdx], can be nullptr
         TSharedWeights<float> Weights; // [objectIdx]
         TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
         TSharedVector<TQueryInfo> GroupInfo;

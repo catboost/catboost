@@ -685,6 +685,7 @@ SEXP CatBoostEvaluateObjectImportances_R(
     TPoolHandle trainPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(trainPoolParam));
     TString ostrType = CHAR(asChar(ostrTypeParam));
     TString updateMethod = CHAR(asChar(updateMethodParam));
+    const bool verbose = false;
     TDStrResult dstrResult = GetDocumentImportances(
         *model,
         *trainPool,
@@ -693,7 +694,8 @@ SEXP CatBoostEvaluateObjectImportances_R(
         asInteger(topSizeParam),
         updateMethod,
         /*importanceValuesSignStr=*/ToString(EImportanceValuesSign::All),
-        UpdateThreadCount(asInteger(threadCountParam))
+        UpdateThreadCount(asInteger(threadCountParam)),
+        verbose
     );
     size_t resultSize = 0;
     if (!dstrResult.Indices.empty()) {

@@ -17,7 +17,7 @@ bool NeedTargetClassifier(const ECtrType ctr) {
             return true;
         }
         default: {
-            ythrow TCatboostException() << "Unknown ctr type " << ctr;
+            ythrow TCatBoostException() << "Unknown ctr type " << ctr;
         }
     }
 }
@@ -35,7 +35,7 @@ bool IsPermutationDependentCtrType(const ECtrType ctr) {
             return false;
         }
         default: {
-            ythrow TCatboostException() << "Unknown ctr type " << ctr;
+            ythrow TCatBoostException() << "Unknown ctr type " << ctr;
         }
     }
 }

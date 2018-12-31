@@ -3,6 +3,7 @@
 #include <library/threading/future/future.h>
 
 #include <util/generic/utility.h>
+#include <util/system/atomic.h>
 #include <util/system/event.h>
 #include <util/system/thread.h>
 #include <util/system/tls.h>
@@ -346,15 +347,15 @@ void NPar::TLocalExecutor::ClearLPQueue() {
 }
 
 int NPar::TLocalExecutor::GetQueueSize() const noexcept {
-    return Impl_->QueueSize;
+    return AtomicGet(Impl_->QueueSize);
 }
 
 int NPar::TLocalExecutor::GetMPQueueSize() const noexcept {
-    return Impl_->MPQueueSize;
+    return AtomicGet(Impl_->MPQueueSize);
 }
 
 int NPar::TLocalExecutor::GetLPQueueSize() const noexcept {
-    return Impl_->LPQueueSize;
+    return AtomicGet(Impl_->LPQueueSize);
 }
 
 int NPar::TLocalExecutor::GetWorkerThreadId() const noexcept {
@@ -362,7 +363,7 @@ int NPar::TLocalExecutor::GetWorkerThreadId() const noexcept {
 }
 
 int NPar::TLocalExecutor::GetThreadCount() const noexcept {
-    return Impl_->ThreadCount;
+    return AtomicGet(Impl_->ThreadCount);
 }
 
 //////////////////////////////////////////////////////////////////////////

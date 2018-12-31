@@ -531,7 +531,8 @@ namespace NCB {
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
                 *featuresLayout,
                 TConstArrayRef<ui32>(),
-                NCatboostOptions::TBinarizationOptions()
+                NCatboostOptions::TBinarizationOptions(),
+                false
             );
             quantizedFeaturesInfo->LoadNonSharedPart(binSaver);
             TQuantizedObjectsData quantizedObjectsData;

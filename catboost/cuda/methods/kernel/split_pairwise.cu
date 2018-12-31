@@ -44,8 +44,8 @@ namespace NKernel {
         const int N = PartCount / logicalWarpSize;
         thread_block_tile<logicalWarpSize> groupTile = tiled_partition<logicalWarpSize>(this_thread_block());
 
-        float sum0[N];
-        float sum1[N];
+        double sum0[N];
+        double sum1[N];
         for (int i = 0; i < N; ++i) {
             sum0[i] = 0;
             sum1[i] = 0;

@@ -646,11 +646,15 @@ int ResolvePath(const char* rel, const char* abs, char res[/*MAXPATHLEN*/], bool
     return 0;
 }
 
-TString ResolvePath(const char* path, bool isDir) {
+TString ResolvePath(const char* rel, const char* abs, bool isdir) {
     char buf[PATH_MAX];
-    if (ResolvePath(path, nullptr, buf, isDir))
-        ythrow yexception() << "cannot resolve path: \"" << path << "\"";
+    if (ResolvePath(rel, abs, buf, isdir))
+        ythrow yexception() << "cannot resolve path: \"" << rel << "\"";
     return buf;
+}
+
+TString ResolvePath(const char* path, bool isDir) {
+    return ResolvePath(path, nullptr, isDir);
 }
 
 TString StripFileComponent(const TString& fileName) {

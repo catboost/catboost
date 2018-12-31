@@ -74,3 +74,14 @@ ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в 
 And if this is the case, then time estimates should be updated: time estimate is made based on previous timings. In case if one of these parameters has changed, previous time estimates become not trustable.
 
 26. AUC for MultiClass
+
+27. Weight in all binarizations.
+
+28. Add CatBoost to https://github.com/apple/turicreate
+
+29. `class_names` parameter in Pool constructor
+
+30. Validate CoreML model when doing its conversion (MLTOOLS-2761)
+
+31. Classification loss for noizy data: see NeurIPS 2018 paper  
+Generalized Cross Entropy Loss for Training Deep Neural Networks with Noisy Labels

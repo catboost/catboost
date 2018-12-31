@@ -118,21 +118,21 @@ def metric_description_or_str_to_str(description):
 
 def _check_param_type(value, name, types, or_none=True):
     if not isinstance(value, types + ((type(None),) if or_none else ())):
-        raise CatboostError('Parameter {} should have a type of {}, got {}'.format(name, [t.__class__.__name__ for t in types], type(value).__class__.__name__))
+        raise CatboostError('Parameter {} should have a type of {}, got {}'.format(name, types, type(value)))
 
 
 def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbose_eval=None, silent=None):
     _check_param_type(metric_period, 'metric_period', (int,))
     _check_param_type(verbose, 'verbose', (bool, int))
-    _check_param_type(logging_level, 'logging_level', (str,))
+    _check_param_type(logging_level, 'logging_level', (string_types,))
     _check_param_type(verbose_eval, 'verbose_eval', (bool, int))
     _check_param_type(silent, 'silent', (bool,))
 
     params = locals()
     exclusive_params = ['verbose', 'logging_level', 'verbose_eval', 'silent']
-    at_most_one = sum([params[exclusive] is not None for exclusive in exclusive_params])
+    at_most_one = sum(params.get(exclusive) is not None for exclusive in exclusive_params)
     if at_most_one > 1:
-        raise CatboostError('Only one of parameters {} should be set'.format(exclusive_params.keys()))
+        raise CatboostError('Only one of parameters {} should be set'.format(exclusive_params))
 
     if verbose is None:
         if silent is not None:
@@ -884,8 +884,8 @@ class _CatBoostBase(object):
         """returns (fstr_values, feature_ids)."""
         return self._object._calc_fstr(fstr_type.name, pool, thread_count, verbose)
 
-    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
-        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
+        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
 
     def _base_shrink(self, ntree_start, ntree_end):
         self._object._base_shrink(ntree_start, ntree_end)
@@ -1263,6 +1263,8 @@ class CatBoost(_CatBoostBase):
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function_type = self.get_param('loss_function')
+        if loss_function_type is None:
+            loss_function_type = self.get_param('objective')
         # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
         if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
             return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
@@ -1327,6 +1329,8 @@ class CatBoost(_CatBoostBase):
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
         loss_function = self.get_param('loss_function')
+        if loss_function is None:
+            loss_function = self.get_param('objective')
         while True:
             predictions = staged_predict_iterator.next()
             if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
@@ -1499,7 +1503,9 @@ class CatBoost(_CatBoostBase):
 
         verbose : bool or int
             If False, then evaluation is not logged. If True, then each possible iteration is logged.
-            If positive integer, then it stands for log write period.
+            If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
+            and remaining time.
+
 
         Returns
         -------
@@ -1549,7 +1555,7 @@ class CatBoost(_CatBoostBase):
         elif fstr_type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
+    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1589,11 +1595,25 @@ class CatBoost(_CatBoostBase):
             Number of threads.
             If -1, then the number of threads is set to the number of cores.
 
+        verbose : bool or int
+            If False, then evaluation is not logged. If True, then each possible iteration is logged.
+            If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
+            and remaining time.
+
         Returns
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
-        return self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
+
+        if not isinstance(verbose, bool) and not isinstance(verbose, int):
+            raise CatboostError('verbose should be bool or int.')
+        verbose = int(verbose)
+        if verbose < 0:
+            raise CatboostError('verbose should be non-negative.')
+
+        with log_fixup():
+            result = self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
+        return result
 
     def shrink(self, ntree_end, ntree_start=0):
         """
@@ -2740,7 +2760,8 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
        verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
-       save_snapshot=None, snapshot_file=None, snapshot_interval=None, iterations_batch_size=100):
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None, max_time_spent_on_fixed_cost_ratio=0.05,
+       dev_max_iterations_batch_size=100000):
     """
     Cross-validate the CatBoost model.
 
@@ -2828,8 +2849,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     snapshot_interval: int, [default=600]
         Interval beetween saving snapshots (seconds)
 
-    iterations_batch_size: int [default:100]
-        Number of iterations to compute for each fold before aggregating results.
+    max_time_spent_on_fixed_cost_ratio: float [default:0.05]
+        Iteration batch sizes are computed to keep time spent on fixed cost computations
+        (spent on fold initialization for each batch) under this ratio.
+        Increasing this parameter will decrease the batch sizes which could be useful to get first batch
+        results sooner in exchange for greater total computation time.
+
+    dev_max_iterations_batch_size: int [default:100000]
+        Max number of iterations to compute for each fold before aggregating results.
+        Should be used only for testing, max_time_spent_on_fixed_cost_ratio is the prefered parameter to be
+        used in normal operation.
 
     Returns
     -------
@@ -2907,7 +2936,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     with log_fixup(), plot_wrapper(plot, params):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
-                   as_pandas, iterations_batch_size)
+                   as_pandas, max_time_spent_on_fixed_cost_ratio, dev_max_iterations_batch_size)
 
 
 class BatchMetricCalcer(_MetricCalcerBase):

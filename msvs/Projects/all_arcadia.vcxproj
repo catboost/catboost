@@ -35,8 +35,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\cuda\build-cuda.vcxproj">
-      <Project>2B3A11A1-3302-EA3C-4933-FD6C802962AE</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.vcxproj">
+      <Project>18ED0C1C-3127-4315-3368-E63B97EFA8F1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\R-package\catboost-R-package.vcxproj">
       <Project>A865CAE7-8B3F-B9B7-2CEA-DB5FE65BBE46</Project>
@@ -79,6 +79,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\catboost-cuda-methods.vcxproj">
       <Project>B414E7D1-BF71-311C-0E2C-D6B4527D7528</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\methods\ut\catboost-cuda-methods-ut.vcxproj">
+      <Project>4473AB4F-FF95-F56D-D937-DB5070FD536D</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
       <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
@@ -407,6 +410,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\contrib-libs-onnx.vcxproj">
+      <Project>BA51C351-CD64-A60B-C4C2-2794FC71EE24</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
+      <Project>53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
     </ProjectReference>
@@ -449,11 +458,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
       <Project>32EDAE47-C9E0-5490-205B-6A1DB239D8BA</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.vcxproj">
+      <Project>2A505A08-73FD-9F97-DBC1-5BC70FFD9C70</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
+      <Project>B19D597D-A363-F744-6165-C68C1835DD61</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\pydateutil.vcxproj">
       <Project>751337F2-2FB8-B6C6-2106-D3D0FD4C4D66</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
       <Project>A4701379-95E5-BF2B-2E20-B71461B5CC55</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
+      <Project>7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
+      <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\pycore-src-multiarray.vcxproj">
       <Project>27240284-1593-7CC6-D071-39FB18DABC88</Project>
@@ -479,6 +500,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pandas\pycontrib-python-pandas.vcxproj">
       <Project>50ABD1DF-7FBD-F57F-B784-76CA0F88E2F8</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.vcxproj">
+      <Project>09B94D29-C8D9-195E-BE7A-2CF5517C1312</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\pycontrib-python-pluggy.vcxproj">
+      <Project>655F3AA8-7E17-5AF6-E453-0AD94235E99C</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\pycontrib-python-py.vcxproj">
       <Project>965E6429-AE78-1C06-E2DA-1B781FCDB7AA</Project>
     </ProjectReference>
@@ -490,6 +517,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.vcxproj">
       <Project>45CA8061-AE16-9692-4CE9-60B4968D9B52</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\contrib-python-scandir.vcxproj">
+      <Project>3801D285-214E-7AC0-0EC2-28446F46D262</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>

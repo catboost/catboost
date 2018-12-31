@@ -606,7 +606,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                                                          *dataProvider,
                                                          nullptr);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             TComputeByBlocksConfig config;

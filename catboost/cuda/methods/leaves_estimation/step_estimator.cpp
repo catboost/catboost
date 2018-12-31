@@ -80,7 +80,7 @@ namespace NCatboostCuda {
                 return new TArmijoStepEstimation(currentPoint, gradientAtPoint, moveDirection);
             }
             default: {
-                ythrow TCatboostException() << "Unknown step estimator type " << type;
+                ythrow TCatBoostException() << "Unknown step estimator type " << type;
             }
         }
     }

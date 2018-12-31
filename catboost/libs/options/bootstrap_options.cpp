@@ -9,20 +9,20 @@ namespace NCatboostOptions {
         switch (type) {
             case EBootstrapType::Bayesian: {
                 if (TakenFraction.IsSet()) {
-                    ythrow TCatboostException()
+                    ythrow TCatBoostException()
                         << "Error: bayesian bootstrap doesn't support taken fraction option";
                 }
                 break;
             }
             case EBootstrapType::No: {
                 if (BaggingTemperature.IsSet() || TakenFraction.IsSet()) {
-                    ythrow TCatboostException() << "Error: you shoudn't provide bootstrap options if bootstrap is disabled";
+                    ythrow TCatBoostException() << "Error: you shoudn't provide bootstrap options if bootstrap is disabled";
                 }
                 break;
             }
             case EBootstrapType::Poisson: {
                 if (TaskType == ETaskType::CPU) {
-                    ythrow TCatboostException()
+                    ythrow TCatBoostException()
                         << "Error: poisson bootstrap is not supported on CPU";
                 }
                 break;
@@ -30,7 +30,7 @@ namespace NCatboostOptions {
             default: {
                 Y_ASSERT(type == EBootstrapType::Bernoulli);
                 if (BaggingTemperature.IsSet()) {
-                    ythrow TCatboostException() << "Error: bagging temperature available for bayesian bootstrap only";
+                    ythrow TCatBoostException() << "Error: bagging temperature available for bayesian bootstrap only";
                 }
                 break;
             }

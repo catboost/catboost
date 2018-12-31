@@ -677,7 +677,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                                                     nullptr,
                                                                     1);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             TestPointwiseHistogramForFeatureParallelDataSet(dataSet.GetDataSetForPermutation(i),
                                                             *featuresManager);
@@ -722,7 +722,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                                          *dataProvider,
                                                          nullptr);
 
-        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
+        auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             TestPointwiseHistogramForDocParallelDataSet(dataSet.GetDataSetForPermutation(i),

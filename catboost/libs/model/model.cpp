@@ -6,6 +6,7 @@
 #include "json_model_helpers.h"
 #include "model_build_helper.h"
 #include "model_export/model_exporter.h"
+#include "onnx_helpers.h"
 #include "static_ctr_provider.h"
 
 #include <catboost/libs/helpers/exception.h>
@@ -34,9 +35,13 @@ static ui32 GetModelFormatDescriptor() {
 
 static const char* CURRENT_CORE_FORMAT_STRING = "FlabuffersModel_v1";
 
-void OutputModel(const TFullModel& model, const TString& modelFile) {
-    TOFStream f(modelFile);
-    Save(&f, model);
+void OutputModel(const TFullModel& model, IOutputStream* const out) {
+    Save(out, model);
+}
+
+void OutputModel(const TFullModel& model, const TStringBuf modelFile) {
+    TOFStream f(TString{modelFile});  // {} because of the most vexing parse
+    OutputModel(model, &f);
 }
 
 static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
@@ -116,6 +121,33 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
+void OutputModelOnnx(const TFullModel& model, const TString& modelFile, const NJson::TJsonValue& userParameters) {
+    /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
+     * could be interpreted as nans so that equality comparison won't work for such splits
+     */
+    CB_ENSURE(
+        !model.HasCategoricalFeatures(),
+        "ONNX-ML format export does yet not support categorical features"
+    );
+
+    onnx::ModelProto outModel;
+
+    NCatboost::NOnnx::InitMetadata(model, userParameters, &outModel);
+
+    TMaybe<TString> graphName;
+    if (userParameters.Has("onnx_graph_name")) {
+        graphName = userParameters["onnx_graph_name"].GetStringSafe();
+    }
+
+    NCatboost::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
+
+    TString data;
+    outModel.SerializeToString(&data);
+
+    TOFStream out(modelFile);
+    out.Write(data);
+}
+
 void ExportModel(
         const TFullModel& model,
         const TString& modelFile,
@@ -146,6 +178,15 @@ void ExportModel(
                 OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
             }
             break;
+        case EModelType::Onnx:
+            {
+                TStringInput is(userParametersJson);
+                NJson::TJsonValue params;
+                NJson::ReadJsonTree(&is, &params);
+
+                OutputModelOnnx(model, modelFileName, params);
+            }
+            break;
         default:
             TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter = NCatboost::CreateCatboostModelExporter(modelFile, format, userParametersJson, addFileFormatExtension);
             if (!modelExporter) {
@@ -160,7 +201,7 @@ void ExportModel(
 
 TString SerializeModel(const TFullModel& model) {
     TStringStream ss;
-    Save(&ss, model);
+    OutputModel(model, &ss);
     return ss.Str();
 }
 

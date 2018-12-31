@@ -328,16 +328,18 @@ namespace NKernel {
             pseudoRank += val > 1e-9f;
         }
 
+        __syncthreads();
+
         #pragma unroll 8
         for (int row = 0; row < rowSize; ++row) {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
             if (col <= row) {
                 float val = __ldg(lower + row * (row + 1) / 2 + col);
                 if (col == row && val <= 1e-7f) {
-                    val += 10.0f;
+                    val += trace / pseudoRank + 0.1f;
                 }
                 if (col == row) {
-                    val += 0.01 * trace / pseudoRank;
+                    val += 0.05f * trace / pseudoRank + 1e-20f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
                 WriteThrough(lower + row * (row + 1) / 2 + col,  val);

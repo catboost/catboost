@@ -176,7 +176,7 @@ namespace NCB {
                             }
                         }
                     } catch (yexception& e) {
-                        throw TCatboostException() << "Column " << tokenCount << " (type "
+                        throw TCatBoostException() << "Column " << tokenCount << " (type "
                             << columnsDescription[tokenCount].Type << ", value = \"" << token
                             << "\"): " << e.what();
                     }
@@ -194,7 +194,7 @@ namespace NCB {
                     << ", found " << tokenCount
                 );
             } catch (yexception& e) {
-                throw TCatboostException() << "Error in dsv data. Line " <<
+                throw TCatBoostException() << "Error in dsv data. Line " <<
                     AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": " << e.what();
             }
         };

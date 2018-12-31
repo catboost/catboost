@@ -61,6 +61,36 @@ else:
         """
         __slots__ = ()
 
+        def replace(self, *args, **kwargs):
+            """
+            Return a datetime with the same attributes, except for those
+            attributes given new values by whichever keyword arguments are
+            specified. Note that tzinfo=None can be specified to create a naive
+            datetime from an aware datetime with no conversion of date and time
+            data.
+
+            This is reimplemented in ``_DatetimeWithFold`` because pypy3 will
+            return a ``datetime.datetime`` even if ``fold`` is unchanged.
+            """
+            argnames = (
+                'year', 'month', 'day', 'hour', 'minute', 'second',
+                'microsecond', 'tzinfo'
+            )
+
+            for arg, argname in zip(args, argnames):
+                if argname in kwargs:
+                    raise TypeError('Duplicate argument: {}'.format(argname))
+
+                kwargs[argname] = arg
+
+            for argname in argnames:
+                if argname not in kwargs:
+                    kwargs[argname] = getattr(self, argname)
+
+            dt_class = self.__class__ if kwargs.get('fold', 1) else datetime
+
+            return dt_class(**kwargs)
+
         @property
         def fold(self):
             return 1
@@ -383,12 +413,3 @@ class tzrangebase(_tzinfo):
         return "%s(...)" % self.__class__.__name__
 
     __reduce__ = object.__reduce__
-
-
-def _total_seconds(td):
-    # Python 2.6 doesn't have a total_seconds() method on timedelta objects
-    return ((td.seconds + td.days * 86400) * 1000000 +
-            td.microseconds) // 1000000
-
-
-_total_seconds = getattr(timedelta, 'total_seconds', _total_seconds)

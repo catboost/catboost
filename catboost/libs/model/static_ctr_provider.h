@@ -98,7 +98,7 @@ public:
     }
 
     NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>&) const override {
-        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void CalcCtrs(
@@ -107,24 +107,24 @@ public:
         const TConstArrayRef<ui32>& ,
         size_t,
         TArrayRef<float>) override {
-        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& ,
         const TVector<TOneHotFeature>& ,
         const TVector<TCatFeature>& ) override {
-        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
     bool IsSerializable() const override {
         return true;
     }
     void AddCtrCalcerData(TCtrValueTable&& ) override {
-        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void DropUnusedTables(TConstArrayRef<TModelCtrBase>) override {
-        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void Save(IOutputStream* out) const override {
@@ -133,7 +133,7 @@ public:
     }
 
     void Load(IInputStream*) override {
-        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     TString ModelPartIdentifier() const override {

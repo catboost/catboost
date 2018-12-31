@@ -6,8 +6,8 @@
 #include <catboost/libs/helpers/cpu_random.h>
 
 #include <util/system/types.h>
-#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 
@@ -72,16 +72,5 @@ namespace NCatboostCuda {
             }
         }
     }
-
-    template <class T>
-    void ApplyPermutation(const TVector<ui64>& order,
-                          TVector<T>& data) {
-        if (data.size()) {
-            TVector<T> tmp(data.begin(), data.end());
-            for (ui32 i = 0; i < order.size(); ++i) {
-                data[i] = tmp[order[i]];
-            }
-        }
-    };
 
 }

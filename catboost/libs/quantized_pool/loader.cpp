@@ -219,7 +219,7 @@ namespace NCB {
                 // not supperted by CatBoost at all
             case EColumn::Prediction: {
                 // can't be present in quantized pool
-                ythrow TCatboostException() << "Unexpected column type " << columnType;
+                ythrow TCatBoostException() << "Unexpected column type " << columnType;
             }
         }
     }

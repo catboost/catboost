@@ -4,8 +4,6 @@ ELSE()
     EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 
-USE_LINKER_GOLD()
-
 PYTHON_ADDINCL()
 
 # add only headers for dynamic linking

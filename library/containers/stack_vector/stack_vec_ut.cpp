@@ -2,6 +2,15 @@
 
 #include <library/unittest/registar.h>
 
+namespace {
+    struct TNotCopyAssignable {
+        const int Value;
+    };
+
+    static_assert(std::is_copy_constructible_v<TNotCopyAssignable>);
+    static_assert(!std::is_copy_assignable_v<TNotCopyAssignable>);
+}
+
 Y_UNIT_TEST_SUITE(TStackBasedVectorTest) {
     Y_UNIT_TEST(TestCreateEmpty) {
         TStackVec<int> ints;
@@ -19,14 +28,9 @@ Y_UNIT_TEST_SUITE(TStackBasedVectorTest) {
 
     Y_UNIT_TEST(TestReallyOnStack) {
         TStackVec<int> ints(5);
-#ifdef _LIBCPP_MEMORY // USE_STL_LIBCXX_TRUNK
         // Depends on libc++ std::vector layout, which is now __begin__, then __end__,
         // then __end_cap_ which is a __compressed_pair<pointer, allocator_type>
         UNIT_ASSERT_EQUAL((const char*)ints.data(), ((const char*)&ints) + 3 * sizeof(TStackVec<int>::pointer));
-#else
-        // Depends on STLPort's std::vector layout, which is now _M_start, _M_finish, then AllocProxy
-        UNIT_ASSERT_EQUAL((const char*)ints.data(), ((const char*)&ints) + 2 * sizeof(TStackVec<int>::pointer));
-#endif
     }
 
     Y_UNIT_TEST(TestFallback) {
@@ -59,5 +63,33 @@ Y_UNIT_TEST_SUITE(TStackBasedVectorTest) {
         for (size_t i = 0; i < ints3.size(); ++i) {
             UNIT_ASSERT_EQUAL(ints3[i], (int)i);
         }
+    }
+
+    Y_UNIT_TEST(TestCappedSize) {
+        TStackVec<int, 8, false> ints;
+        ints.push_back(1);
+        ints.push_back(2);
+
+        auto intsCopy = ints;
+        UNIT_ASSERT_VALUES_EQUAL(intsCopy.capacity(), 8);
+
+        for (int i = 2; i != 8; ++i) {
+            intsCopy.push_back(i);
+        }
+        // Just verify that the program did not crash.
+    }
+
+    Y_UNIT_TEST(TestCappedSizeWithNotCopyAssignable) {
+        TStackVec<TNotCopyAssignable, 8, false> values;
+        values.push_back({1});
+        values.push_back({2});
+
+        auto valuesCopy = values;
+        UNIT_ASSERT_VALUES_EQUAL(valuesCopy.capacity(), 8);
+
+        for (int i = 2; i != 8; ++i) {
+            valuesCopy.push_back({i});
+        }
+        // Just verify that the program did not crash.
     }
 }

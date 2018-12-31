@@ -17,6 +17,8 @@
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/stream/format.h>
 
 
@@ -47,15 +49,18 @@ namespace NCatboostCuda {
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
+        NPar::TLocalExecutor* LocalExecutor;
+
     private:
         inline static TDocParallelDataSetsHolder CreateDocParallelDataSet(TBinarizedFeaturesManager& manager,
                                                                           const NCB::TTrainingDataProvider& dataProvider,
                                                                           const NCB::TTrainingDataProvider* test,
-                                                                          ui32 permutationCount) {
+                                                                          ui32 permutationCount,
+                                                                          NPar::TLocalExecutor* localExecutor) {
             TDocParallelDataSetBuilder dataSetsHolderBuilder(manager,
                                                              dataProvider,
                                                              test);
-            return dataSetsHolderBuilder.BuildDataSet(permutationCount);
+            return dataSetsHolderBuilder.BuildDataSet(permutationCount, localExecutor);
         }
 
         struct TBoostingState {
@@ -82,7 +87,11 @@ namespace NCatboostCuda {
             const auto& dataProvider = *DataProvider;
             THolder<TBoostingState> state(new TBoostingState);
 
-            state->DataSets = CreateDocParallelDataSet(FeaturesManager, dataProvider, TestDataProvider, permutationCount);
+            state->DataSets = CreateDocParallelDataSet(FeaturesManager,
+                                                       dataProvider,
+                                                       TestDataProvider,
+                                                       permutationCount,
+                                                       LocalExecutor);
 
             for (ui32 i = 0; i < permutationCount; ++i) {
                 state->Targets.push_back(CreateTarget(state->DataSets.GetDataSetForPermutation(i)));
@@ -252,10 +261,10 @@ namespace NCatboostCuda {
 
             auto startTimeBoosting = Now();
 
-            TMetricCalcer<TObjective> learnMetricCalcer(*learnTarget[estimationPermutation]);
+            TMetricCalcer<TObjective> learnMetricCalcer(*learnTarget[estimationPermutation], LocalExecutor);
             THolder<TMetricCalcer<TObjective>> testMetricCalcer;
             if (testTarget) {
-                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget);
+                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget, LocalExecutor);
             }
 
             auto snapshotSaver = [&](IOutputStream* out) {
@@ -307,7 +316,7 @@ namespace NCatboostCuda {
                                                     (*learnCursors)[permutation],
                                                     &iterationModels[permutation]);
                     }
-                    estimator.Estimate();
+                    estimator.Estimate(LocalExecutor);
                 }
                 //
                 for (auto& iterationModel : iterationModels) {
@@ -365,15 +374,16 @@ namespace NCatboostCuda {
                   const NCatboostOptions::TLossDescription& targetOptions,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
-                  TWeakLearner& weak
-                  )
+                  TWeakLearner& weak,
+                  NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)
             , BaseIterationSeed(random.NextUniformL())
             , Weak(weak)
             , Config(config)
-            , TargetOptions(targetOptions) {
-        }
+            , TargetOptions(targetOptions)
+            , LocalExecutor(localExecutor)
+        {}
 
         virtual ~TBoosting() = default;
 

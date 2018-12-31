@@ -44,7 +44,7 @@ namespace NCatboostCuda {
                     break;
                 }
                 default: {
-                    ythrow TCatboostException() << "Unknown bootstrap type " << config.GetBootstrapType();
+                    ythrow TCatBoostException() << "Unknown bootstrap type " << config.GetBootstrapType();
                 }
             }
         }

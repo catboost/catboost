@@ -132,27 +132,33 @@ void CalcErrors(
             }
             const auto& targetData = testDataPtr->TargetData;
 
-            auto target = GetMaybeTarget(targetData).GetOrElse(TConstArrayRef<float>());
+            auto maybeTarget = GetMaybeTarget(targetData);
+            auto target = maybeTarget.GetOrElse(TConstArrayRef<float>());
             auto weights = GetWeights(targetData);
             auto queryInfo = GetGroupInfo(targetData);
 
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
-                if (calcAllMetrics || i == errorTrackerMetricIdx) {
-                    const auto& additiveStats = EvalErrors(
-                        testApprox,
-                        target,
-                        weights,
-                        queryInfo,
-                        errors[i],
-                        ctx->LocalExecutor
-                    );
-                    bool updateBestIteration = (i == 0) && (testIdx == trainingDataProviders.Test.size() - 1);
-                    ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(testIdx,
-                                                                          *errors[i].Get(),
-                                                                          errors[i]->GetFinalError(additiveStats),
-                                                                          updateBestIteration);
+                if (!calcAllMetrics && (i != errorTrackerMetricIdx)) {
+                    continue;
                 }
+                if (!maybeTarget && errors[i]->NeedTarget()) {
+                    continue;
+                }
+
+                const auto& additiveStats = EvalErrors(
+                    testApprox,
+                    target,
+                    weights,
+                    queryInfo,
+                    errors[i],
+                    ctx->LocalExecutor
+                );
+                bool updateBestIteration = (i == 0) && (testIdx == trainingDataProviders.Test.size() - 1);
+                ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(testIdx,
+                                                                      *errors[i].Get(),
+                                                                      errors[i]->GetFinalError(additiveStats),
+                                                                      updateBestIteration);
             }
         }
     }

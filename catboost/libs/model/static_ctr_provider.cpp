@@ -368,7 +368,7 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
         switch (mergePolicy)
         {
         case ECtrTableMergePolicy::FailIfCtrsIntersects:
-            throw TCatboostException() << "FailIfCtrsIntersects policy forbids model ctr tables intersection";
+            throw TCatBoostException() << "FailIfCtrsIntersects policy forbids model ctr tables intersection";
         case ECtrTableMergePolicy::LeaveMostDiversifiedTable:
             {
                 size_t maxCtrTableSize = 0;

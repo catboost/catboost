@@ -29,12 +29,14 @@ namespace NCatboostCuda {
                                     const NCB::TTrainingDataProvider& dataProvider,
                                     const TMirrorBuffer<TUi32>& ctrPermutation,
                                     const NCB::TTrainingDataProvider* linkedTest,
-                                    const TMirrorBuffer<TUi32>* testIndices)
+                                    const TMirrorBuffer<TUi32>* testIndices,
+                                    NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , CtrTargets(ctrTargets)
             , DataProvider(dataProvider)
             , LearnIndices(ctrPermutation.ConstCopyView())
             , LinkedTest(linkedTest)
+            , LocalExecutor(localExecutor)
         {
             if (LinkedTest) {
                 CB_ENSURE(testIndices);
@@ -64,5 +66,7 @@ namespace NCatboostCuda {
 
         const NCB::TTrainingDataProvider* LinkedTest = nullptr;
         TMirrorBuffer<const ui32> TestIndices;
+
+        NPar::TLocalExecutor* LocalExecutor;
     };
 }

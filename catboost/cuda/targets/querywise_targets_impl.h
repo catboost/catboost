@@ -326,7 +326,7 @@ namespace NCatboostCuda {
                 TotalWeightedTarget = DotProduct(GetTarget().GetTargets(),
                                                  GetTarget().GetWeights());
                 if (TotalWeightedTarget <= 0) {
-                    ythrow TCatboostException() << "Observation targets and weights should be greater or equal zero. Total weighted target should be greater, than zero";
+                    ythrow TCatBoostException() << "Observation targets and weights should be greater or equal zero. Total weighted target should be greater, than zero";
                 }
             }
         }

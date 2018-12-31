@@ -462,7 +462,8 @@ namespace NCatboostCuda {
     TMetricHolder TCpuFallbackMetric::Eval(const TVector<TVector<double>>& approx,
                                            const TVector<float>& target,
                                            const TVector<float>& weight,
-                                           const TVector<TQueryInfo>& queriesInfo) const {
+                                           const TVector<TQueryInfo>& queriesInfo,
+                                           NPar::TLocalExecutor* localExecutor) const {
         const IMetric& metric = GetCpuMetric();
         const int start = 0;
         const int end = static_cast<const int>(metric.GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
@@ -476,7 +477,7 @@ namespace NCatboostCuda {
                            queriesInfo,
                            start,
                            end,
-                           NPar::LocalExecutor());
+                           *localExecutor);
     }
 
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {

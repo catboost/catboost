@@ -138,7 +138,7 @@ namespace NCatboostCuda {
         }
     }
 
-    void TObliviousTreeLeavesEstimator::Estimate() {
+    void TObliviousTreeLeavesEstimator::Estimate(NPar::TLocalExecutor* localExecutor) {
         CreatePartStats();
         ComputePartWeights();
 
@@ -152,7 +152,7 @@ namespace NCatboostCuda {
 
         TVector<float> point;
         point.resize(totalLeavesCount);
-        point = newtonLikeWalker.Estimate(point);
+        point = newtonLikeWalker.Estimate(point, localExecutor);
 
 
         for (ui32 taskId = 0; taskId < TaskHelpers.size(); ++taskId) {

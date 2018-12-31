@@ -2,6 +2,8 @@ LIBRARY()
 
 
 
+CFLAGS(-DONNX_ML=1 -DONNX_NAMESPACE=onnx)
+
 SRCS(
     coreml_helpers.cpp
     ctr_data.cpp
@@ -11,6 +13,7 @@ SRCS(
     json_model_helpers.cpp
     model.cpp
     online_ctr.cpp
+    onnx_helpers.cpp
     static_ctr_provider.cpp
     formula_evaluator.cpp
     model_build_helper.cpp
@@ -27,10 +30,12 @@ PEERDIR(
     catboost/libs/model/model_export
     contrib/libs/coreml
     contrib/libs/flatbuffers
+    contrib/libs/onnx
     library/binsaver
     library/containers/dense_hash
     library/json
     library/object_factory
+    library/svnversion
     library/threading/local_executor
 )
 

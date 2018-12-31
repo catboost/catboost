@@ -2,7 +2,15 @@
 # CHANGES:
 # - some_str is replaced, trying to create unicode strings
 #
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import types
+
+from six import text_type
+
 
 def format_exception_only(etype, value):
     """Format the exception part of a traceback.
@@ -27,9 +35,12 @@ def format_exception_only(etype, value):
     #
     # Clear these out first because issubtype(string1, SyntaxError)
     # would throw another exception and mask the original problem.
-    if (isinstance(etype, BaseException) or
-        isinstance(etype, types.InstanceType) or
-        etype is None or type(etype) is str):
+    if (
+        isinstance(etype, BaseException)
+        or isinstance(etype, types.InstanceType)
+        or etype is None
+        or type(etype) is str
+    ):
         return [_format_final_exc_line(etype, value)]
 
     stype = etype.__name__
@@ -45,37 +56,39 @@ def format_exception_only(etype, value):
         pass
     else:
         filename = filename or "<string>"
-        lines.append('  File "%s", line %d\n' % (filename, lineno))
+        lines.append('  File "{}", line {}\n'.format(filename, lineno))
         if badline is not None:
             if isinstance(badline, bytes):  # python 2 only
-                badline = badline.decode('utf-8', 'replace')
-            lines.append(u'    %s\n' % badline.strip())
+                badline = badline.decode("utf-8", "replace")
+            lines.append("    {}\n".format(badline.strip()))
             if offset is not None:
-                caretspace = badline.rstrip('\n')[:offset].lstrip()
+                caretspace = badline.rstrip("\n")[:offset].lstrip()
                 # non-space whitespace (likes tabs) must be kept for alignment
-                caretspace = ((c.isspace() and c or ' ') for c in caretspace)
+                caretspace = ((c.isspace() and c or " ") for c in caretspace)
                 # only three spaces to account for offset1 == pos 0
-                lines.append('   %s^\n' % ''.join(caretspace))
+                lines.append("   {}^\n".format("".join(caretspace)))
         value = msg
 
     lines.append(_format_final_exc_line(stype, value))
     return lines
 
+
 def _format_final_exc_line(etype, value):
     """Return a list of a single line -- normal case for format_exception_only"""
     valuestr = _some_str(value)
     if value is None or not valuestr:
-        line = "%s\n" % etype
+        line = "{}\n".format(etype)
     else:
-        line = "%s: %s\n" % (etype, valuestr)
+        line = "{}: {}\n".format(etype, valuestr)
     return line
+
 
 def _some_str(value):
     try:
-        return unicode(value)
+        return text_type(value)
     except Exception:
         try:
-            return str(value)
+            return bytes(value).decode("UTF-8", "replace")
         except Exception:
             pass
-    return '<unprintable %s object>' % type(value).__name__
+    return "<unprintable {} object>".format(type(value).__name__)

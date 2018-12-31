@@ -13,6 +13,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/object_factory/object_factory.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>
 
@@ -30,6 +31,7 @@ namespace NCatboostCuda {
             TGpuAwareRandom& random,
             ui32 approxDimension,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+            NPar::TLocalExecutor* localExecutor,
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 

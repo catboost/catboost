@@ -1,14 +1,23 @@
 import argparse
 import copy
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 
 
+# GO_FAKEID = snermolaev.181226.102500
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
+
+
+def get_symlink_or_copyfile():
+    os_symlink = getattr(os, 'symlink', None)
+    if os_symlink is None:
+        os_symlink = shutil.copyfile
+    return os_symlink
 
 
 def copy_args(args):
@@ -47,11 +56,8 @@ def call(cmd, cwd, env=None):
 
 def classify_srcs(srcs, args):
     args.go_srcs = list(filter(lambda x: x.endswith('.go'), srcs))
-    args.c_srcs = list(filter(lambda x: x.endswith('.c'), srcs))
-    args.cxx_srcs = list(filter(lambda x: x.endswith('.cc'), srcs))
     args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
     args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
-    args.packages = list(filter(lambda x: x.endswith('.a'), srcs))
 
 
 def create_import_config(peers, import_map={}, module_map={}):
@@ -100,7 +106,7 @@ def do_compile_asm(args):
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
     cmd = [args.go_asm, '-trimpath', args.build_root]
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
-    cmd += ['-D', 'GOOS_' + args.host_os, '-D', 'GOARCH_' + args.host_arch, '-o', args.output] + args.asm_srcs
+    cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output] + args.asm_srcs
     call(cmd, args.build_root)
 
 
@@ -145,36 +151,45 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     #            |- ${TARGET_OS}_${TARGET_ARCH}
     go_path_root = os.path.join(test_lib_args.output_root, '__go__')
     test_src_dir = os.path.join(go_path_root, 'src')
-    target_os_arch = '_'.join([test_lib_args.host_os, test_lib_args.host_arch])
+    target_os_arch = '_'.join([test_lib_args.targ_os, test_lib_args.targ_arch])
     test_pkg_dir = os.path.join(go_path_root, 'pkg', target_os_arch, os.path.dirname(test_module_path))
     os.makedirs(test_pkg_dir)
 
     my_env = os.environ.copy()
     my_env['GOROOT'] = ''
     my_env['GOPATH'] = go_path_root
+    my_env['GOARCH'] = test_lib_args.targ_arch
+    my_env['GOOS'] = test_lib_args.targ_os
 
     tests = []
     xtests = []
 
     # Get the list of "internal" tests
     os.makedirs(os.path.join(test_src_dir, test_module_path))
-    os.symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
+    os_symlink = get_symlink_or_copyfile()
+    os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
     cmd = [test_miner, '-tests', test_module_path]
-    tests = (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n')
+    tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
+    test_main_found = '#TestMain' in tests
 
     # Get the list of "external" tests
     if xtest_lib_args:
         xtest_module_path = xtest_lib_args.module_path
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
-        os.symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
+        os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-tests', xtest_module_path]
-        xtests = (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n')
+        xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
+
+    shutil.rmtree(go_path_root)
 
     content = """package main
 
 import (
-    "os"
-    "testing"
+"""
+    if not test_main_found:
+        content += """    "os"
+"""
+    content += """    "testing"
     "testing/internal/testdeps"
 """
     if len(tests) > 0:
@@ -193,7 +208,12 @@ import (
 
     content += """func main() {
     m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)
-    os.Exit(m.Run())
+"""
+    if test_main_found:
+        content += '    _test.TestMain(m)'
+    else:
+        content += '    os.Exit(m.Run())'
+    content += """
 }
 """
     # print >>sys.stderr, content
@@ -246,6 +266,8 @@ if __name__ == '__main__':
     parser.add_argument('++tools-root', required=True)
     parser.add_argument('++host-os', choices=['linux', 'darwin', 'windows'], required=True)
     parser.add_argument('++host-arch', choices=['amd64'], required=True)
+    parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
+    parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
     parser.add_argument('++peers', nargs='*')
     parser.add_argument('++asmhdr', nargs='?', default=None)
     parser.add_argument('++test-import-path', nargs='?')
@@ -261,8 +283,9 @@ if __name__ == '__main__':
     args.go_link = os.path.join(args.tool_root, 'link')
     args.go_asm = os.path.join(args.tool_root, 'asm')
     args.go_pack = os.path.join(args.tool_root, 'pack')
+    args.output = os.path.normpath(args.output)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
-    args.output_root = os.path.dirname(args.output)
+    args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
     args.module_map = {}
 
@@ -304,5 +327,5 @@ if __name__ == '__main__':
         print >>sys.stderr, e.output
         exit_code = e.returncode
     except Exception as e:
-        print >>sys.stderr, "Unhadled excpetion [{}]...".format(str(e))
+        print >>sys.stderr, "Unhandled exception [{}]...".format(str(e))
     sys.exit(exit_code)

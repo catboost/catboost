@@ -63,7 +63,8 @@ public:
     }
 
     inline size_t ReadTo(TString& st, char to) {
-        TString res;
+        st.clear();
+
         TString s_tmp;
 
         size_t ret = 0;
@@ -80,24 +81,20 @@ public:
             }
 
             const size_t a_len(MemInput_.Avail());
-            ret += MemInput_.ReadTo(s_tmp, to);
-            const size_t s_len = s_tmp.length();
-
-            /*
-             * mega-optimization
-             */
-            if (res.empty()) {
-                res.swap(s_tmp);
+            size_t s_len = 0;
+            if (st.empty()) {
+                ret += MemInput_.ReadTo(st, to);
+                s_len = st.length();
             } else {
-                res += s_tmp;
+                ret += MemInput_.ReadTo(s_tmp, to);
+                s_len = s_tmp.length();
+                st.append(s_tmp);
             }
 
             if (s_len != a_len) {
                 break;
             }
         }
-
-        st.swap(res);
 
         return ret;
     }

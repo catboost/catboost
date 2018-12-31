@@ -56,8 +56,10 @@
 #endif
 
 #ifdef _DARWIN_
+#ifndef __IOS__
 {"_multiprocessing", init_multiprocessing},
 {"_scproxy", init_scproxy},
+#endif
 #endif
 
 #ifdef _CYGWIN_

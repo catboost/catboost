@@ -115,6 +115,11 @@ void TMetric::AddHint(const TString& key, const TString& value) {
     Hints[key] = value;
 }
 
+bool TMetric::NeedTarget() const {
+    return GetErrorType() != EErrorType::PairwiseError;
+}
+
+
 /* CrossEntropy */
 
 namespace {
@@ -2894,6 +2899,10 @@ namespace {
         bool IsAdditiveMetric() const final {
             return false;
         }
+        // be conservative by default
+        bool NeedTarget() const override {
+            return true;
+        }
     private:
         TCustomMetricDescriptor Descriptor;
         TMap<TString, TString> Hints;
@@ -3684,6 +3693,16 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
     return GetSkipMetricOnTrain(GetConstPointers(metrics));
 }
 
+TVector<bool> GetSkipMetricOnTest(bool testHasTarget, const TVector<const IMetric*>& metrics) {
+    TVector<bool> result;
+    result.reserve(metrics.size());
+    for (const auto& metric : metrics) {
+        result.push_back(!testHasTarget && metric->NeedTarget());
+    }
+    return result;
+}
+
+
 TMetricHolder EvalErrors(
         const TVector<TVector<double>>& approx,
         TConstArrayRef<float> target,
@@ -3899,14 +3918,17 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
 
 void CheckPreprocessedTarget(
     TConstArrayRef<float> target,
-    ELossFunction lossFunction,
+    const NCatboostOptions::TLossDescription& lossDesciption,
     bool isLearnData,
     bool allowConstLabel
 ) {
+    ELossFunction lossFunction = lossDesciption.GetLossFunction();
     if (isLearnData && (lossFunction == ELossFunction::Logloss)) {
+        auto border = NCatboostOptions::GetLogLossBorder(lossDesciption);
         auto targetBounds = CalcMinMax(target);
-        CB_ENSURE(targetBounds.Min == 0, "All train targets are greater than border");
-        CB_ENSURE(targetBounds.Max == 1, "All train targets are smaller than border");
+        CB_ENSURE(targetBounds.Min <= border, "All train targets are greater than border " << border);
+        CB_ENSURE(targetBounds.Max > border,
+                  "All train targets are smaller than or equal to border " << border);
     }
     if (isLearnData && (lossFunction != ELossFunction::PairLogit)) {
         auto targetBounds = CalcMinMax(target);
@@ -3923,7 +3945,9 @@ void CheckPreprocessedTarget(
         CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
     }
 
-    if (IsMultiClassMetric(lossFunction)) {
-        CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
+    if (IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction)) {
+        CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }),
+                  "metric/loss-function " << lossFunction << " is a Multiclassification metric, "
+                  " each target label should be a nonnegative integer");
     }
 }

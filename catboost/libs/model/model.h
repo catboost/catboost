@@ -620,7 +620,8 @@ struct TFullModel {
     }
 };
 
-void OutputModel(const TFullModel& model, const TString& modelFile);
+void OutputModel(const TFullModel& model, TStringBuf modelFile);
+void OutputModel(const TFullModel& model, IOutputStream* out);
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format = EModelType::CatboostBinary);
 

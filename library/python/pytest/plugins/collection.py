@@ -16,6 +16,7 @@ class LoadedModule(_pytest.python.Module):
         self.fspath = py.path.local()
         self.parent = session
         self.keywords = {}
+        self.own_markers = []
 
     @property
     def nodeid(self):

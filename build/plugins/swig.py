@@ -47,7 +47,7 @@ class Swig(iw.CustomCommand):
         if self._swig_lang == 'perl':
             self._out_name = modname + '.pm'
             self._flags.append('-shadow')
-            unit.onpeerdir(['contrib/libs/platform/perl'])
+            unit.onpeerdir(['build/platform/perl'])
 
         if self._swig_lang == 'java':
             self._out_name = os.path.splitext(os.path.basename(self._path))[0] + '.jsrc'

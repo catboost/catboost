@@ -13,6 +13,7 @@ import pytest
 import _pytest
 import _pytest.mark
 import signal
+import inspect
 
 try:
     import resource
@@ -131,8 +132,6 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    pytest.register_assert_rewrite('__tests__')
-
     config.option.continue_on_collection_errors = True
 
     # XXX Strip java contrib from dep_roots - it's python-irrelevant code,
@@ -429,6 +428,21 @@ def pytest_collectreport(report):
             sys.stderr.write(yatest_lib.tools.to_utf8(report.longrepr))
 
 
+@pytest.mark.tryfirst
+def pytest_pyfunc_call(pyfuncitem):
+    testfunction = pyfuncitem.obj
+    if pyfuncitem._isyieldedfunction():
+        retval = testfunction(*pyfuncitem._args)
+    else:
+        funcargs = pyfuncitem.funcargs
+        testargs = {}
+        for arg in pyfuncitem._fixtureinfo.argnames:
+            testargs[arg] = funcargs[arg]
+        retval = testfunction(**testargs)
+    pyfuncitem.retval = retval
+    return True
+
+
 def pytest_runtest_makereport(item, call):
 
     def makereport(item, call):
@@ -477,8 +491,8 @@ def pytest_runtest_makereport(item, call):
             pytest.config.ya_trace_reporter.on_finish_test_class(test_item)
 
     rep = makereport(item, call)
-    if hasattr(call, 'result') and call.result:
-        result = call.result
+    if hasattr(item, 'retval') and item.retval is not None:
+        result = item.retval
         if not pytest.config.from_ya_test:
             ti = TestItem(rep, result, pytest.config.option.test_suffix)
             tr = pytest.config.pluginmanager.getplugin('terminalreporter')
@@ -523,6 +537,13 @@ def pytest_runtest_makereport(item, call):
     finally:
         logreport(rep, result)
     return rep
+
+
+def pytest_make_parametrize_id(config, val, argname):
+    # Avoid <, > symbols in canondata file names
+    if inspect.isfunction(val) and val.__name__ == "<lambda>":
+        return str(argname)
+    return None
 
 
 def get_formatted_error(report):
@@ -589,7 +610,7 @@ class TestItem(object):
         elif report.outcome == "skipped":
             if hasattr(report, 'wasxfail'):
                 self._status = 'xfail'
-                self.set_error(report.wasxfail)
+                self.set_error(report.wasxfail, 'imp')
             else:
                 self._status = 'skipped'
                 self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
@@ -619,11 +640,11 @@ class TestItem(object):
     def error(self):
         return self._error
 
-    def set_error(self, entry):
-        if isinstance(entry, _pytest.runner.BaseReport):
+    def set_error(self, entry, marker='bad'):
+        if isinstance(entry, _pytest.reports.BaseReport):
             self._error = get_formatted_error(entry)
         else:
-            self._error = "[[bad]]" + str(entry)
+            self._error = "[[{}]]{}".format(marker, entry)
 
     @property
     def duration(self):
@@ -699,9 +720,9 @@ class TraceReportGenerator(object):
         self.trace('subtest-started', message)
 
     def on_finish_test_case(self, test_item):
-        if test_item.result:
+        if test_item.result is not None:
             try:
-                result = canon.serialize(test_item.result[0])
+                result = canon.serialize(test_item.result)
             except Exception as e:
                 yatest_logger.exception("Error while serializing test results")
                 test_item.set_error("Invalid test result: {}".format(e))

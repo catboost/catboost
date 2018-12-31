@@ -5,6 +5,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/target/data_providers.h>
 
 #include <util/generic/cast.h>
@@ -116,7 +117,8 @@ TDStrResult GetDocumentImportances(
     int topSize,
     const TString& updateMethodStr,
     const TString& importanceValuesSignStr,
-    int threadCount
+    int threadCount,
+    int logPeriod
 ) {
     if (topSize == -1) {
         topSize = SafeIntegerCast<int>(trainData.ObjectsData->GetObjectCount());
@@ -124,11 +126,11 @@ TDStrResult GetDocumentImportances(
         CB_ENSURE(topSize >= 0, "Top size should be nonnegative integer or -1 (for unlimited top size).");
     }
 
+    TSetLoggingVerbose inThisScope;
+
     TUpdateMethod updateMethod = ParseUpdateMethod(updateMethodStr);
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
     EImportanceValuesSign importanceValuesSign = FromString<EImportanceValuesSign>(importanceValuesSignStr);
-
-
 
     TRestorableFastRng64 rand(0);
 
@@ -156,9 +158,9 @@ TDStrResult GetDocumentImportances(
     );
     ExecuteTasksInParallel(&tasks, localExecutor.Get());
 
-    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, *trainProcessedData, updateMethod, localExecutor);
+    TDocumentImportancesEvaluator leafInfluenceEvaluator(model, *trainProcessedData, updateMethod, localExecutor, logPeriod);
     const TVector<TVector<double>> documentImportances
-        = leafInfluenceEvaluator.GetDocumentImportances(*testProcessedData);
+        = leafInfluenceEvaluator.GetDocumentImportances(*testProcessedData, logPeriod);
     return GetFinalDocumentImportances(documentImportances, dstrType, topSize, importanceValuesSign);
 }
 

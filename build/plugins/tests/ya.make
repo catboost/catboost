@@ -14,7 +14,6 @@ TEST_SRCS(
     test_swig.py
     test_pyx.py
     test_xs.py
-    test_td.py
     test_fortran.py
     test_flatc.py
 )

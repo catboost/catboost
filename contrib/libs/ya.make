@@ -25,12 +25,10 @@ RECURSE(
     lzmasdk
     musl-1.1.20
     nayuki_md5
+    onnx
     openssl
     openssl/apps
     openssl/dynamic
-    platform
-    platform/python
-    platform/python/ldflags
     protobuf
     protobuf/java
     protobuf/python

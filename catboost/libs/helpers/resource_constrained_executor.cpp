@@ -39,7 +39,7 @@ namespace NCB {
             if (LenientMode) {
                 CATBOOST_WARNING_LOG << message.Str() << Endl;
             } else {
-                ythrow TCatboostException() << message.Str();
+                ythrow TCatBoostException() << message.Str();
             }
         }
 
