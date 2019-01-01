@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
     }
 
     if (entry_point == NULL) {
-        fprintf(stderr, "No entry point, did you forget PY3_MAIN?\n");
+        fprintf(stderr, "No entry point, did you forget PY_MAIN?\n");
         goto error;
     }
 
