@@ -356,7 +356,7 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
             CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
                 CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, resultsPtr);
-            } else { // mutliclass model
+            } else { // multiclass model
                 CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, model.ObliviousTrees.ApproxDimension, resultsPtr);
             }
         } else {
@@ -366,7 +366,7 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
             CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
                 CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVecUI32, resultsPtr);
-            } else { // mutliclass model
+            } else { // multiclass model
                 CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVecUI32, model.ObliviousTrees.ApproxDimension, resultsPtr);
             }
         }
@@ -446,7 +446,7 @@ inline void CalcTreesSingleDocImpl(
         }
         if (IsSingleClassModel) { // single class model
             result += treeLeafPtr[index];
-        } else { // mutliclass model
+        } else { // multiclass model
             auto leafValuePtr = treeLeafPtr + index * model.ObliviousTrees.ApproxDimension;
             for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
                 results[classId] += leafValuePtr[classId];
