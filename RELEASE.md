@@ -1,3 +1,8 @@
+# Release 0.12.1.1
+## Changes:
+* Fixed Python compatibility issue in dataset downloading
+* Added `sampling_type` parameter for `YetiRankPairwise` loss
+
 # Release 0.12.1
 ## Changes:
 * Support saving models in ONNX format (only for models without categorical features).
