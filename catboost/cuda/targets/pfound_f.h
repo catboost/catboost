@@ -125,6 +125,7 @@ namespace NCatboostCuda {
 
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRankPairwise);
+            SamplingType = NCatboostOptions::GetYetiRankSamplingType(targetOptions);
             PermutationCount = NCatboostOptions::GetYetiRankPermutations(targetOptions);
             Decay = NCatboostOptions::GetYetiRankDecay(targetOptions);
         }
@@ -138,6 +139,7 @@ namespace NCatboostCuda {
 
     private:
         mutable THolder<TQuerywiseSampler> QueriesSampler;
+        ESamplingType SamplingType = ESamplingType::Groupwise;
         ui32 PermutationCount = 10;
         float Decay = 0.99;
     };

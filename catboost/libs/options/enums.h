@@ -17,6 +17,11 @@ enum class ESamplingFrequency {
     PerTreeLevel
 };
 
+enum class ESamplingType {
+    Groupwise,
+    Docwise
+};
+
 enum class EFeatureType {
     Float,
     Categorical

@@ -26,8 +26,15 @@ namespace NCatboostCuda {
             target->PointDer2OrWeights.Clear();
 
             double queriesSampleRate = 1.0;
+            double docwiseSampleRate = 1.0;
             if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bernoulli) {
-                queriesSampleRate = bootstrapConfig.GetTakenFraction();
+                const double sampleRate = bootstrapConfig.GetTakenFraction();
+                if (SamplingType == ESamplingType::Groupwise) {
+                    queriesSampleRate = sampleRate;
+                } else {
+                    CB_ENSURE(SamplingType == ESamplingType::Docwise);
+                    docwiseSampleRate = sampleRate;
+                }
             }
 
             if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Poisson) {
@@ -38,7 +45,7 @@ namespace NCatboostCuda {
                 auto guard = NCudaLib::GetProfiler().Profile("Queries sampler in -YetiRankPairwise");
                 querywiseSampler.SampleQueries(TParent::GetRandom(),
                                                queriesSampleRate,
-                                               1.0,
+                                               docwiseSampleRate,
                                                GetMaxQuerySize(),
                                                sampledGrouping,
                                                &sampledDocs);
