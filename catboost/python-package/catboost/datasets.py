@@ -5,13 +5,7 @@ import os
 import pandas as pd
 import tarfile
 import tempfile
-import urllib
-
-try:
-    from urllib.request import urlretrieve
-except ImportError:
-    from urllib import urlretrieve
-
+import six
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +50,9 @@ def _cached_download(url, md5, dst):
 
     for u in urls:
         try:
-            urlretrieve(u, dst, reporthook=reporthook)
+            six.moves.urllib.request.urlretrieve(u, dst, reporthook=reporthook)
             break
-        except (urllib.URLError, IOError):
+        except (six.moves.urllib.error.URLError, IOError):
             logger.debug('failed to download from %s', u)
     else:
         raise RuntimeError('failed to download from %s', urls)
@@ -74,6 +68,10 @@ def _get_cache_path():
 
 
 def _cached_dataset_load(url, md5, dataset_name, train_file, test_file, sep=',', header='infer'):
+    # TODO(yazevnul): this is not thread safe (or process safe?), we should take a file lock when
+    # enter this function to avoid dataset being overwritten or corrupted or something else that may
+    # have happen when OS operated simultaneously on the same file. Same thing should probably be
+    # done with `_cached_download`.
     dir_path = os.path.join(_get_cache_path(), dataset_name)
     train_path = os.path.join(dir_path, train_file)
     test_path = os.path.join(dir_path, test_file)
