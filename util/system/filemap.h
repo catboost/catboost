@@ -88,6 +88,7 @@ public:
     i64 Length() const noexcept;
     bool IsOpen() const noexcept;
     bool IsWritable() const noexcept;
+    EOpenMode GetMode() const noexcept;
     TFile GetFile() const noexcept;
 
     void SetSequential();
@@ -146,6 +147,10 @@ public:
 
     inline bool IsWritable() const noexcept {
         return Map_.IsWritable();
+    }
+
+    EOpenMode GetMode() const noexcept {
+        return Map_.GetMode();
     }
 
     inline void* Ptr() const noexcept {
