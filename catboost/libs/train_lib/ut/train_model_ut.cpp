@@ -1,8 +1,8 @@
-
 #include <catboost/libs/data_new/data_provider_builders.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/ut_helpers/data_provider.h>
 
 #include <library/unittest/registar.h>
 
@@ -33,39 +33,6 @@ static void FillWithRandom(TArrayRef<float> array, Prng& prng) {
     }
 }
 
-static TDataProviderPtr SmallFloatPool() {
-    return CreateDataProvider(
-        [&] (IRawFeaturesOrderDataVisitor* visitor) {
-            TDataMetaInfo metaInfo;
-            metaInfo.HasTarget = true;
-            metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
-                (ui32)3,
-                TVector<ui32>{},
-                TVector<TString>{}
-            );
-
-            visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
-
-            visitor->AddFloatFeature(
-                0,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f})
-            );
-            visitor->AddFloatFeature(
-                1,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f})
-            );
-            visitor->AddFloatFeature(
-                2,
-                TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f})
-            );
-
-            visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f});
-
-            visitor->Finish();
-        }
-    );
-}
-
 Y_UNIT_TEST_SUITE(TrainModelTests) {
     Y_UNIT_TEST(TrainWithoutNansTestWithNans) {
         // Train doesn't have NaNs, so TrainModel implicitly forbids them (during quantization), but
@@ -77,34 +44,23 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
         TDataProviders dataProviders;
 
-
-        dataProviders.Learn = SmallFloatPool();
-
-        dataProviders.Test.emplace_back(
-            CreateDataProvider(
-                [&] (IRawFeaturesOrderDataVisitor* visitor) {
-                    visitor->Start(dataProviders.Learn->MetaInfo, 1, EObjectsOrder::Undefined, {});
-
-                    visitor->AddFloatFeature(
-                        0,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(
-                            TVector<float>{std::numeric_limits<float>::quiet_NaN()}
-                        )
-                    );
-                    visitor->AddFloatFeature(
-                        1,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f})
-                    );
-                    visitor->AddFloatFeature(
-                        2,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f})
-                    );
-                    visitor->AddTarget(TVector<float>{1.0f});
-
-                    visitor->Finish();
-                }
-            )
-        );
+        const TStringBuf cdStr = (
+            "0\tLabel\n"
+            "1\tNum\n"
+            "2\tNum\n"
+            "3\tNum\n");
+        dataProviders.Learn = NCB::MakeDataProviderFromText(
+            cdStr,
+            R"(
+            1 0.5 1.5 2.5
+            0 0.7 6.4 2.4
+            0.2 2.0 1.0 6.0
+            )");
+        dataProviders.Test.push_back(NCB::MakeDataProviderFromText(
+            cdStr,
+            R"(
+                1 nan 1.5 2.5
+            )"));
 
         TFullModel model;
         TEvalResult evalResult;
@@ -139,7 +95,16 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         TTempDir trainDir;
 
         TDataProviders dataProviders;
-        dataProviders.Learn = SmallFloatPool();
+        dataProviders.Learn = NCB::MakeDataProviderFromText(
+            "0\tLabel\n"
+            "1\tNum\n"
+            "2\tNum\n"
+            "3\tNum\n",
+            R"(
+            1 0.5 1.5 2.5
+            0 0.7 6.4 2.4
+            0.2 2.0 1.0 6.0
+            )");
         dataProviders.Test.push_back(dataProviders.Learn);
 
         TFullModel model;
