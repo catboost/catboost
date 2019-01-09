@@ -5,27 +5,26 @@
 
 #include <new>
 
-template <class T>
-class TAdditionalStorage {
-    union TInfo {
+namespace NPrivate {
+    class TAdditionalStorageInfo {
     public:
-        inline TInfo(size_t length) noexcept {
-            Data_.Length = length;
+        constexpr TAdditionalStorageInfo(size_t length) noexcept
+            : Length_(length)
+        {
         }
 
-        inline ~TInfo() = default;
-
-        inline size_t Length() const noexcept {
-            return Data_.Length;
+        constexpr size_t Length() const noexcept {
+            return Length_;
         }
 
     private:
-        TAligner Aligner_;
-
-        struct {
-            size_t Length;
-        } Data_;
+        size_t Length_;
     };
+}
+
+template <class T>
+class alignas(::NPrivate::TAdditionalStorageInfo) TAdditionalStorage {
+    using TInfo = ::NPrivate::TAdditionalStorageInfo;
 
 public:
     inline TAdditionalStorage() noexcept = default;
@@ -33,9 +32,13 @@ public:
     inline ~TAdditionalStorage() = default;
 
     inline void* operator new(size_t len1, size_t len2) {
-        void* data = ::operator new(sizeof(TInfo) + len1 + len2);
+        static_assert(alignof(T) >= alignof(TInfo));
+        Y_ASSERT(len1 == sizeof(T));
+        void* data = ::operator new(CombinedSizeOfInstanceWithTInfo() + len2);
+        void* info = InfoPtr(static_cast<T*>(data));
+        Y_UNUSED(new (info) TInfo(len2));
 
-        return 1 + new (data) TInfo(len2);
+        return data;
     }
 
     inline void operator delete(void* ptr) noexcept {
@@ -55,22 +58,34 @@ public:
     }
 
     inline void* AdditionalData() const noexcept {
-        return 1 + (T*)this;
+        return (char*)(static_cast<const T*>(this)) + CombinedSizeOfInstanceWithTInfo();
     }
 
     static inline T* ObjectFromData(void* data) noexcept {
-        return ((T*)data) - 1;
+        return reinterpret_cast<T*>(static_cast<char*>(data) - CombinedSizeOfInstanceWithTInfo());
     }
 
     inline size_t AdditionalDataLength() const noexcept {
-        return (((TInfo*)((void*)(T*)this)) - 1)->Length();
+        return InfoPtr(static_cast<const T*>(this))->Length();
     }
 
 private:
     static inline void DoDelete(void* ptr) noexcept {
-        TInfo* info = (TInfo*)ptr - 1;
+        TInfo* info = InfoPtr(static_cast<T*>(ptr));
         info->~TInfo();
-        ::operator delete((void*)info);
+        ::operator delete(ptr);
+    }
+
+    static constexpr size_t CombinedSizeOfInstanceWithTInfo() noexcept {
+        return AlignUp(sizeof(T), alignof(TInfo)) + sizeof(TInfo);
+    }
+
+    static constexpr TInfo* InfoPtr(T* instance) noexcept {
+        return const_cast<TInfo*>(InfoPtr(static_cast<const T*>(instance)));
+    }
+
+    static constexpr const TInfo* InfoPtr(const T* instance) noexcept {
+        return reinterpret_cast<const TInfo*>(reinterpret_cast<const char*>(instance) + CombinedSizeOfInstanceWithTInfo() - sizeof(TInfo));
     }
 
 private:
