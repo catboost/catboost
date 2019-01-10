@@ -417,6 +417,11 @@ namespace NLastGetopt {
             return DefaultValue("0").StoreResult(target, true);
         }
 
+        // Similar to store_true in Python's argparse
+        TOpt& StoreTrue(bool* target) {
+            return NoArgument().SetFlag(target);
+        }
+
         template <typename TpVal, typename T, typename TpFunc>
         TOpt& StoreMappedResultT(T* target, const TpFunc& func) {
             return Handler1T<TpVal>(NPrivate::TStoreMappedResultFunctor<T, TpFunc, TpVal>(target, func));

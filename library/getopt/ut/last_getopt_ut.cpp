@@ -445,16 +445,20 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
     }
 
     Y_UNIT_TEST(TestSetFlag) {
-        bool a = false, b = true;
+        bool a = false, b = true, c = false, d = true;
 
         TOptsNoDefault opts;
         opts.AddLongOption('a', "alpha").NoArgument().SetFlag(&a);
         opts.AddLongOption('b', "beta").NoArgument().SetFlag(&b);
+        opts.AddCharOption('c').StoreTrue(&c);
+        opts.AddCharOption('d').StoreTrue(&d);
 
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "-a"}));
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "-a", "-c"}));
 
         UNIT_ASSERT(a);
         UNIT_ASSERT(!b);
+        UNIT_ASSERT(c);
+        UNIT_ASSERT(!d);
     }
 
     Y_UNIT_TEST(TestDefaultValue) {
