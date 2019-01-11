@@ -78,7 +78,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\ut_helpers\ut\data_provider_ut.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\ut_helpers\ut\dsv_parser_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
