@@ -1,9 +1,9 @@
 #include "data_provider.h"
-#include "dsv_parser.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data_new/dsv_parser.h>
 #include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/data_new/loader.h>
 #include <catboost/libs/data_new/meta_info.h>

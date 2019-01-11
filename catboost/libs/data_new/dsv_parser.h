@@ -15,8 +15,6 @@ namespace NCB {
 }
 
 namespace NCB {
-    // TODO(yazevnul): replace 8-scopes-deep, 2-try-catch-deep, 100+ lines long lambda in DSV file
-    // loading routine of CatBoost (see cb_dsv_loader.cpp) with this.
     class TDsvLineParser {
         public:
             TDsvLineParser(
@@ -42,8 +40,8 @@ namespace NCB {
             struct TErrorContext {
                 EErrorType Type = EErrorType::Unknown;
                 TString Token;
-                ui32 ColumnIdx = -1;
-                ui32 FlatFeatureIdx = -1;
+                TMaybe<ui32> ColumnIdx;
+                TMaybe<ui32> FlatFeatureIdx;
                 TMaybe<EColumn> ColumnType;  // Doesn't have proper default
             };
 
@@ -67,10 +65,6 @@ namespace NCB {
 
             TArrayRef<float> NumericFeaturesBuffer_;
             TArrayRef<ui32> CategoricalFeaturesBuffer_;
-
-            // TODO(yazevnul): this should be `IDatasetVisitor` instead, in general we cat utilize
-            // any kind of visitor except for quantized ones. And within `HandleToken`
-            // implementation we should behave differently based on visitor interface subtype.
             IRawObjectsOrderDataVisitor* Visitor_ = nullptr;
     };
 }

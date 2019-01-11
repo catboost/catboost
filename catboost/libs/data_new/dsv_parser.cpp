@@ -1,9 +1,9 @@
 #include "dsv_parser.h"
+#include "features_layout.h"
+#include "loader.h"
+#include "visitor.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/features_layout.h>
-#include <catboost/libs/data_new/loader.h>
-#include <catboost/libs/data_new/visitor.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/scope.h>
@@ -11,8 +11,6 @@
 #include <util/string/cast.h>
 #include <util/string/escape.h>
 #include <util/string/iterator.h>
-
-static constexpr ui32 INVALID_UI32 = -1;
 
 NCB::TDsvLineParser::TDsvLineParser(
     char delimiter,
@@ -60,7 +58,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             EColumn::Baseline == columnType ||
             EColumn::Timestamp == columnType;
         if (isNonEmptyColumnType) {
-            return TErrorContext{EErrorType::EmptyToken, {}, columnIdx, INVALID_UI32, columnType};
+            return TErrorContext{EErrorType::EmptyToken, {}, columnIdx, {}, columnType};
         }
     }
 
@@ -97,7 +95,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             if (float weight; TryFromString(token, weight)) {
                 Visitor_->AddWeight(inBlockIdx, weight);
             } else {
-                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, INVALID_UI32, columnType};
+                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, {}, columnType};
             }
             break;
         } case EColumn::Label: {
@@ -110,7 +108,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             if (float groupWeight; TryFromString(token, groupWeight)) {
                 Visitor_->AddGroupWeight(inBlockIdx, groupWeight);
             } else {
-                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, INVALID_UI32, columnType};
+                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, {}, columnType};
             }
             break;
         } case EColumn::SubgroupId: {
@@ -120,7 +118,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             if (float baseline; TryFromString(token, baseline)) {
                 Visitor_->AddBaseline(inBlockIdx, baselineIdx, baseline);
             } else {
-                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, INVALID_UI32, columnType};
+                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, {}, columnType};
             }
             ++baselineIdx;
             break;
@@ -128,7 +126,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             if (ui64 timestamp; TryFromString(token, timestamp)) {
                 Visitor_->AddTimestamp(inBlockIdx, timestamp);
             } else {
-                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, INVALID_UI32, columnType};
+                return TErrorContext{EErrorType::FailedToParseFloat, TString(token), columnIdx, {}, columnType};
             }
             break;
         } case EColumn::Auxiliary:
@@ -136,7 +134,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             break;
         } case EColumn::Sparse:
           case EColumn::Prediction: {
-            return TErrorContext{EErrorType::ColumnTypeIsNotSupported, TString(token), columnIdx, INVALID_UI32, columnType};
+            return TErrorContext{EErrorType::ColumnTypeIsNotSupported, TString(token), columnIdx, {}, columnType};
         }
     }
 
@@ -154,7 +152,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::Parse(
         Y_DEFER { ++columnIdx; };
 
         if (columnIdx >= ColumnDescriptions_.size()) {
-            return TErrorContext{EErrorType::TooManyColumns, {}, columnIdx, INVALID_UI32, {}};
+            return TErrorContext{EErrorType::TooManyColumns, {}, columnIdx, {}, {}};
         }
 
         if (auto errorContext = HandleToken(token, inBlockIdx, columnIdx, &flatFeatureIdx, &baselineIdx)) {
@@ -163,7 +161,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::Parse(
     }
 
     if (columnIdx != ColumnDescriptions_.size()) {
-        return TErrorContext{EErrorType::NotEnoughColumns, {}, columnIdx, INVALID_UI32, {}};
+        return TErrorContext{EErrorType::NotEnoughColumns, {}, columnIdx, {}, {}};
     }
 
     if (NumericFeaturesBuffer_) {

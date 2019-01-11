@@ -1,9 +1,9 @@
+
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/data_new/dsv_parser.h>
 #include <catboost/libs/data_new/meta_info.h>
 #include <catboost/libs/data_new/visitor.h>
 #include <catboost/libs/helpers/resource_holder.h>
-#include <catboost/libs/ut_helpers/dsv_parser.h>
-
 #include <library/unittest/registar.h>
 
 #include <util/generic/maybe.h>
@@ -29,6 +29,7 @@ static void SetAtIdx(T value, size_t idx, TVector<T>* arr) {
 
 namespace {
     struct TTestVisitor : public IRawObjectsOrderDataVisitor {
+    public:
         ui32 InBlockObjectIdx = -1;
         bool StartCalled = false;
         bool StartNextBlockCalled = false;
@@ -44,6 +45,7 @@ namespace {
         TMaybe<float> Weight;
         TMaybe<float> GroupWeight;
 
+    public:
         explicit TTestVisitor(ui32 inBlockObjectIdx)
             : InBlockObjectIdx(inBlockObjectIdx)
         {
