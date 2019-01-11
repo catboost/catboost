@@ -96,14 +96,14 @@ def _load_numeric_only_dataset(path, row_count, column_count, sep='\t'):
     # - can't use `pandas.read_csv` because it may result in 5x overhead
     # - can't use `numpy.loadtxt` because it may result in 3x overhead
     # And both mentioned above solutions are very slow compared to the one implemented below.
-    dataset = np.zeros((row_count, column_count, ), dtype=np.float32)
+    dataset = np.zeros((row_count, column_count, ), dtype=np.float32, order='F')
     with open(path, 'rb') as f:
         for line_idx, line in enumerate(f):
             # `str.split()` is too slow, use `numpy.fromstring()`
             row = np.fromstring(line, dtype=np.float32, sep=sep)
             assert row.size == column_count, 'got too many columns at line %d (expected %d columns, got %d)' % (line_idx + 1, column_count, row.size)
             # doing `dataset[line_idx][:]` instead of `dataset[line_idx]` is here on purpose,
-            # otherwise we'll reallocate memory, while here we just do a memcpy
+            # otherwise we may reallocate memory, while here we just copy
             dataset[line_idx][:] = row
 
     assert line_idx + 1 == row_count, 'got too many lines (expected %d lines, got %d)' % (row_count, line_idx + 1)
