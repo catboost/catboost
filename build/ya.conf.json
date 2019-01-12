@@ -1254,11 +1254,11 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [359021958, 359021966],
+                "sandbox_id": [360631808, 360631809],
                 "match": "yo"
             },
             "executable": {
-                "yo": ["yo/yo"]
+                "yo": ["yo"]
             }
         },
         "golangci-lint": {
