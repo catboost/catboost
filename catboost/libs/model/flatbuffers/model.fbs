@@ -12,7 +12,7 @@ table TObliviousTrees {
     ApproxDimension:int;
     TreeSplits:[int];
     TreeSizes:[int];
-    TreeStartOffsets:[int]; // unnessesary, but useful for zero copy loaded model
+    TreeStartOffsets:[int]; // unnecessary, but useful for zero copy loaded model
 
     CatFeatures:[TCatFeature];
     FloatFeatures:[TFloatFeature];
