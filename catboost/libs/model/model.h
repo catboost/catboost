@@ -24,7 +24,8 @@ class TModelPartsCachingSerializer;
     We use oblivious trees - symmetric trees that has the same binary condition on each level.
     So each leaf index is determined by binary vector with length equal to evaluated tree depth.
 
-    That allows us to evaluate model predictions very fast (even without planned SIMD optimizations) compared to asymmetric trees.
+    That allows us to evaluate model predictions very fast (even without planned SIMD optimizations)
+    compared to asymmetric trees.
 
     Our oblivious tree model can contain float, one-hot and CTR binary conditions:
     - Float condition - float feature value is greater than float border
@@ -46,7 +47,7 @@ struct TRepackedBin {
 };
 
 struct TObliviousTrees {
-
+public:
     /**
      * This structure stores model metadata. Should be kept up to date
      */
@@ -69,8 +70,10 @@ struct TObliviousTrees {
         * |     ui16     |   ui8   |   ui8  |
         * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
         *
-        * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or one hot feature.
-        * TODO(kirillovs): Currently we don't support models with more than 255 splits for a feature, but this will be fixed soon.
+        * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
+        *  one hot feature.
+        * TODO(kirillovs): Currently we don't support models with more than 255 splits for a feature, but this
+        *  will be fixed soon.
         */
 
 
@@ -84,6 +87,7 @@ struct TObliviousTrees {
         TVector<size_t> TreeFirstLeafOffsets;
     };
 
+public:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
 
@@ -123,12 +127,41 @@ struct TObliviousTrees {
     //! CTR features used in model
     TVector<TCtrFeature> CtrFeatures;
 
+public:
+    bool operator==(const TObliviousTrees& other) const {
+        return std::tie(
+            ApproxDimension,
+            TreeSplits,
+            TreeSizes,
+            TreeStartOffsets,
+            LeafValues,
+            CatFeatures,
+            FloatFeatures,
+            OneHotFeatures,
+            CtrFeatures)
+          == std::tie(
+            other.ApproxDimension,
+            other.TreeSplits,
+            other.TreeSizes,
+            other.TreeStartOffsets,
+            other.LeafValues,
+            other.CatFeatures,
+            other.FloatFeatures,
+            other.OneHotFeatures,
+            other.CtrFeatures);
+    }
+
+    bool operator!=(const TObliviousTrees& other) const {
+        return !(*this == other);
+    }
+
     /**
      * Method for oblivious trees serialization with repeated parts caching
      * @param serializer our caching flatbuffers serializator
      * @return offset in flatbuffer
      */
-    flatbuffers::Offset<NCatBoostFbs::TObliviousTrees> FBSerialize(TModelPartsCachingSerializer& serializer) const;
+    flatbuffers::Offset<NCatBoostFbs::TObliviousTrees> FBSerialize(
+        TModelPartsCachingSerializer& serializer) const;
 
     /**
      * Deserialize from flatbuffers object
@@ -172,8 +205,10 @@ struct TObliviousTrees {
         FEATURES_ARRAY_DESERIALIZER(CtrFeatures)
 #undef FEATURES_ARRAY_DESERIALIZER
     }
+
     /**
-     * Internal usage only. Insert binary conditions tree with proper TreeSizes and TreeStartOffsets modification
+     * Internal usage only.
+     * Insert binary conditions tree with proper TreeSizes and TreeStartOffsets modification.
      * @param binSplits
      */
     void AddBinTree(const TVector<int>& binSplits) {
@@ -187,29 +222,6 @@ struct TObliviousTrees {
         }
     }
 
-    bool operator==(const TObliviousTrees& other) const {
-        return std::tie(ApproxDimension,
-                        TreeSplits,
-                        TreeSizes,
-                        TreeStartOffsets,
-                        LeafValues,
-                        CatFeatures,
-                        FloatFeatures,
-                        OneHotFeatures,
-                        CtrFeatures)
-           == std::tie(other.ApproxDimension,
-                       other.TreeSplits,
-                       other.TreeSizes,
-                       other.TreeStartOffsets,
-                       other.LeafValues,
-                       other.CatFeatures,
-                       other.FloatFeatures,
-                       other.OneHotFeatures,
-                       other.CtrFeatures);
-    }
-    bool operator!=(const TObliviousTrees& other) const {
-        return !(*this == other);
-    }
     size_t GetTreeCount() const {
         return TreeSizes.size();
     }
@@ -227,7 +239,8 @@ struct TObliviousTrees {
      void DropUnusedFeatures();
 
     /**
-     * Internal usage only. Updates metadata UsedModelCtrs and BinFeatures vectors to contain all features currently used in model.
+     * Internal usage only. Updates metadata UsedModelCtrs and BinFeatures vectors to contain all features
+     *  currently used in model.
      * Should be called after any modifications.
      */
     void UpdateMetadata() const;
@@ -326,6 +339,7 @@ struct TObliviousTrees {
             FloatFeatures.empty() ? 0 : FloatFeatures.back().FlatFeatureIndex + 1
         );
     }
+
 private:
     mutable TMaybe<TMetaData> MetaData;
 };
@@ -333,7 +347,8 @@ private:
 /*!
  * \brief Full model class - contains all the data for model evaluation
  *
- * This class contains oblivious trees data, key-value dictionary for model metadata storage and CtrProvider holder.
+ * This class contains oblivious trees data, key-value dictionary for model metadata storage and CtrProvider
+ *  holder.
  */
 struct TFullModel {
     TObliviousTrees ObliviousTrees;
@@ -342,6 +357,17 @@ struct TFullModel {
      */
     THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
+
+public:
+    TFullModel() = default;
+
+    bool operator==(const TFullModel& other) const {
+        return ObliviousTrees == other.ObliviousTrees;
+    }
+
+    bool operator!=(const TFullModel& other) const {
+        return !(*this == other);
+    }
 
     void Swap(TFullModel& other) {
         DoSwap(ObliviousTrees, other.ObliviousTrees);
@@ -423,16 +449,6 @@ struct TFullModel {
         return ObliviousTrees.GetNumCatFeatures();
     }
 
-    TFullModel() = default;
-
-    bool operator==(const TFullModel& other) const {
-        return ObliviousTrees == other.ObliviousTrees;
-    }
-
-    bool operator!=(const TFullModel& other) const {
-        return !(*this == other);
-    }
-
     /**
      * Serialize model to stream
      * @param s IOutputStream ptr
@@ -456,25 +472,38 @@ struct TFullModel {
 
     /**
      * Special interface for model evaluation on transposed dataset layout
-     * @param[in] transposedFeatures transposed flat features vector. First dimension is feature index, second dimension is object index.
+     * @param[in] transposedFeatures transposed flat features vector. First dimension is feature index,
+     *  second dimension is object index.
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[in] treeStart Index of first tree in model to start evaluation
-     * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate trees 2..5 use treeStart = 2, treeEnd = 6
+     * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate
+     *  trees 2..5 use treeStart = 2, treeEnd = 6
      * @param[out] results Flat double vector with indexation [objectIndex * ApproxDimension + classId].
      * For single class models it is just [objectIndex]
      */
-    void CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transposedFeatures, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlatTransposed(
+        TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results) const;
 
     /**
-     * Special interface for model evaluation on flat feature vectors. Flat here means that float features and categorical feature are in the same float array.
-     * @param[in] features vector of flat features array reference. First dimension is object index, second dimension is feature index.
+     * Special interface for model evaluation on flat feature vectors. Flat here means that float features and
+     *  categorical feature are in the same float array.
+     * @param[in] features vector of flat features array reference. First dimension is object index, second
+     *  dimension is feature index.
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[in] treeStart Index of first tree in model to start evaluation
-     * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate trees 2..5 use treeStart = 2, treeEnd = 6
+     * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate
+     *  trees 2..5 use treeStart = 2, treeEnd = 6
      * @param[out] results Flat double vector with indexation [objectIndex * ApproxDimension + classId].
      * For single class models it is just [objectIndex]
      */
-    void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlat(
+        TConstArrayRef<TConstArrayRef<float>> features,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results) const;
 
     /**
      * Call CalcFlat on all model trees
@@ -487,17 +516,24 @@ struct TFullModel {
 
     /**
      * Same as CalcFlat method but for one object
-     * @param[in] features flat features array reference. First dimension is object index, second dimension is feature index.
+     * @param[in] features flat features array reference. First dimension is object index, second dimension is
+     *  feature index.
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[in] treeStart Index of first tree in model to start evaluation
-     * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate trees 2..5 use treeStart = 2, treeEnd = 6
+     * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate
+     *  trees 2..5 use treeStart = 2, treeEnd = 6
      * @param[out] results double vector with indexation [classId].
      */
-    void CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlatSingle(
+        TConstArrayRef<float> features,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results) const;
 
     /**
      * CalcFlatSingle on all trees in the model
-     * @param[in] features flat features array reference. First dimension is object index, second dimension is feature index.
+     * @param[in] features flat features array reference. First dimension is object index, second dimension is
+     *  feature index.
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[out] results double vector with indexation [classId].
      */
@@ -518,7 +554,8 @@ struct TFullModel {
      * @param[in] floatFeatures vector of float features values array references
      * @param[in] catFeatures vector of hashed categorical features values array references
      * @param[in] incrementStep tree count on each prediction stage
-     * @return vector of vector of double - first index is for stage id, second is for [objectIndex * ApproxDimension + classId]
+     * @return vector of vector of double - first index is for stage id, second is for
+     *  [objectIndex * ApproxDimension + classId]
      */
     TVector<TVector<double>> CalcTreeIntervals(
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
@@ -543,11 +580,12 @@ struct TFullModel {
      * @param[in] treeEnd
      * @param[out] results results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-              TConstArrayRef<TConstArrayRef<int>> catFeatures,
-              size_t treeStart,
-              size_t treeEnd,
-              TArrayRef<double> results) const;
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results) const;
 
     /**
      * Evaluate raw formula predictions on user data. Uses all model trees
@@ -555,9 +593,11 @@ struct TFullModel {
      * @param catFeatures hashed cat feature values
      * @param results results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-              TConstArrayRef<TConstArrayRef<int>> catFeatures,
-              TArrayRef<double> results) const {
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
+        TArrayRef<double> results) const {
+
         Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
     }
 
@@ -567,9 +607,11 @@ struct TFullModel {
      * @param catFeatures
      * @param result indexation is [classId]
      */
-    void Calc(TConstArrayRef<float> floatFeatures,
-              TConstArrayRef<int> catFeatures,
-              TArrayRef<double> result) const {
+    void Calc(
+        TConstArrayRef<float> floatFeatures,
+        TConstArrayRef<int> catFeatures,
+        TArrayRef<double> result) const {
+
         const TConstArrayRef<float> floatFeaturesArray[] = {floatFeatures};
         const TConstArrayRef<int> catFeaturesArray[] = {catFeatures};
         Calc(floatFeaturesArray, catFeaturesArray, result);
@@ -583,11 +625,12 @@ struct TFullModel {
      * @param treeEnd
      * @param results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-              TConstArrayRef<TVector<TStringBuf>> catFeatures,
-              size_t treeStart,
-              size_t treeEnd,
-              TArrayRef<double> results) const;
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results) const;
 
     /**
      * Evaluate raw formula predictions for objects. Uses all model trees.
@@ -595,9 +638,11 @@ struct TFullModel {
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-              TConstArrayRef<TVector<TStringBuf>> catFeatures,
-              TArrayRef<double> results) const {
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TArrayRef<double> results) const {
+
         Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
     }
 
@@ -634,7 +679,10 @@ struct TFullModel {
 void OutputModel(const TFullModel& model, TStringBuf modelFile);
 void OutputModel(const TFullModel& model, IOutputStream* out);
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
-TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format = EModelType::CatboostBinary);
+TFullModel ReadModel(
+    const void* binaryBuffer,
+    size_t binaryBufferSize,
+    EModelType format = EModelType::CatboostBinary);
 
 /**
  * Export model in our binary or protobuf CoreML format
@@ -646,13 +694,14 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
  * @param featureId
  * @param catFeaturesHashToString
  */
-void ExportModel(const TFullModel& model,
-                 const TString& modelFile,
-                 EModelType format,
-                 const TString& userParametersJson = "",
-                 bool addFileFormatExtension = false,
-                 const TVector<TString>* featureId=nullptr,
-                 const THashMap<ui32, TString>* catFeaturesHashToString=nullptr);
+void ExportModel(
+    const TFullModel& model,
+    const TString& modelFile,
+    EModelType format,
+    const TString& userParametersJson = "",
+    bool addFileFormatExtension = false,
+    const TVector<TString>* featureId=nullptr,
+    const THashMap<ui32, TString>* catFeaturesHashToString=nullptr);
 
 /**
  * Serialize model to string
