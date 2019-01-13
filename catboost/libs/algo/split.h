@@ -1,11 +1,20 @@
 #pragma once
 
-#include "index_hash_calcer.h"
 #include "projection.h"
 
 #include <catboost/libs/data_new/quantized_features_info.h>
+#include <catboost/libs/model/split.h>
 
 #include <library/binsaver/bin_saver.h>
+
+#include <util/digest/multi.h>
+#include <util/generic/vector.h>
+#include <util/system/types.h>
+#include <util/str_stl.h>
+#include <util/ysaveload.h>
+
+#include <tuple>
+
 
 struct TCtr {
     TProjection Projection;
