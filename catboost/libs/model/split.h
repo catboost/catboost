@@ -2,11 +2,9 @@
 
 #include "online_ctr.h"
 
-#include <util/system/types.h>
-#include <util/system/yassert.h>
-#include <util/str_stl.h>
-#include <util/ysaveload.h>
+#include <util/digest/multi.h>
 
+#include <library/binsaver/bin_saver.h>
 
 inline bool IsTrueHistogram(ui8 bucket, ui8 splitIdx) {
     return bucket > splitIdx;

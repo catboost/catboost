@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/generic/vector.h>
-#include <util/system/types.h>
 
 /*
 * Specially designed hash functions for low

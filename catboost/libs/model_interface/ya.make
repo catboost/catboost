@@ -8,7 +8,6 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/cat_feature
     catboost/libs/model
 )
 

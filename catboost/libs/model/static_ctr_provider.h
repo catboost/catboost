@@ -5,10 +5,10 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <util/generic/hash.h>
-#include <util/generic/utility.h>
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
 
-#include <functional>
+#include <util/system/mutex.h>
 
 
 struct TStaticCtrProvider: public ICtrProvider {

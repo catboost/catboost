@@ -1,10 +1,6 @@
 #include "formula_evaluator.h"
 
-#include <util/generic/algorithm.h>
 #include <util/stream/format.h>
-#include <util/system/compiler.h>
-
-#include <cstring>
 
 #ifdef _sse2_
 #include <emmintrin.h>

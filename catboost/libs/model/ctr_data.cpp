@@ -1,7 +1,5 @@
-#include "ctr_data.h"
-
 #include <catboost/libs/helpers/exception.h>
-
+#include "ctr_data.h"
 #include <util/generic/set.h>
 
 

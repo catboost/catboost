@@ -2,11 +2,6 @@
 
 #include "model_exporter.h"
 
-#include <catboost/libs/helpers/exception.h>
-
-#include <util/stream/file.h>
-
-
 namespace NCatboost {
     class TCatboostModelToCppConverter: public ICatboostModelExporter {
     private:

@@ -4,19 +4,10 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <util/generic/array_ref.h>
-#include <util/generic/hash.h>
-#include <util/generic/utility.h>
-#include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
-#include <util/system/platform.h>
-#include <util/system/types.h>
-#include <util/system/yassert.h>
 
-#include <algorithm>
-#include <functional>
-#include <limits>
+#include <util/system/platform.h>
 
 #ifdef _sse2_
 #include <emmintrin.h>

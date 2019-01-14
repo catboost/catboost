@@ -1,11 +1,7 @@
 #include "coreml_helpers.h"
 #include "model_build_helper.h"
-
 #include <catboost/libs/helpers/exception.h>
-
-#include <util/generic/bitops.h>
 #include <util/generic/set.h>
-#include <util/generic/vector.h>
 
 
 using namespace CoreML::Specification;

@@ -5,7 +5,6 @@
 #include "online_ctr.h"
 #include "tree_print.h"
 
-#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/data_new/model_dataset_compatibility.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
