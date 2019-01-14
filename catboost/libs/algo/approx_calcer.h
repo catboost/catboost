@@ -42,7 +42,6 @@ void UpdateBucketsSimple(
 void CalcMixedModelSimple(
     const TVector<TSum>& buckets,
     const TArray2D<double>& pairwiseWeightSums,
-    int iteration,
     const NCatboostOptions::TCatBoostOptions& params,
     double sumAllWeights,
     int allDocCount,

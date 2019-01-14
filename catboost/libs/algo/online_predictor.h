@@ -12,75 +12,81 @@
 
 
 struct TSum {
-    TVector<double> SumDerHistory;
-    TVector<double> SumDer2History;
+    double SumDer = 0.0;
+    double SumDer2 = 0.0;
     double SumWeights = 0.0;
 
-    TSum() = default;
-    explicit TSum(int iterationCount, int approxDimension = 1,
-            EHessianType hessianType = EHessianType::Symmetric)
-        : SumDerHistory(iterationCount)
-        , SumDer2History(iterationCount) {
+    explicit TSum(int approxDimension = 1, EHessianType hessianType = EHessianType::Symmetric) {
         Y_ASSERT(approxDimension == 1);
         Y_ASSERT(hessianType == EHessianType::Symmetric);
     }
 
     bool operator==(const TSum& other) const {
-        return SumDerHistory == other.SumDerHistory &&
+        return SumDer == other.SumDer &&
                SumWeights == other.SumWeights &&
-               SumDer2History == other.SumDer2History;
+               SumDer2 == other.SumDer2;
+    }
+
+    inline void SetZeroDers() {
+        SumDer = 0.0;
+        SumDer2 = 0.0;
     }
 
     inline void AddDerWeight(double delta, double weight, int gradientIteration) {
-        SumDerHistory[gradientIteration] += delta;
+        SumDer += delta;
         if (gradientIteration == 0) {
             SumWeights += weight;
         }
     }
 
-    inline void AddDerDer2(double delta, double der2, int gradientIteration) {
-        SumDerHistory[gradientIteration] += delta;
-        SumDer2History[gradientIteration] += der2;
+    inline void AddDerDer2(double delta, double der2) {
+        SumDer += delta;
+        SumDer2 += der2;
     }
-    SAVELOAD(SumDerHistory, SumDer2History, SumWeights);
+    SAVELOAD(SumDer, SumDer2, SumWeights);
 };
 
 struct TSumMulti {
-    TVector<TVector<double>> SumDerHistory; // [gradIter][approxIdx]
-    TVector<THessianInfo> SumDer2History; // [gradIter][approxIdx1][approxIdx2]
+    TVector<double> SumDer; // [approxIdx]
+    THessianInfo SumDer2; // [approxIdx1][approxIdx2]
     double SumWeights = 0.0;
 
     TSumMulti() = default;
 
-    explicit TSumMulti(int iterationCount, int approxDimension, EHessianType hessianType)
-    : SumDerHistory(iterationCount, TVector<double>(approxDimension))
-    , SumDer2History(iterationCount, THessianInfo(approxDimension, hessianType))
+    explicit TSumMulti(int approxDimension, EHessianType hessianType)
+    : SumDer(approxDimension)
+    , SumDer2(approxDimension, hessianType)
     {}
 
     bool operator==(const TSumMulti& other) const {
-        return SumDerHistory == other.SumDerHistory &&
+        return SumDer == other.SumDer &&
                SumWeights == other.SumWeights &&
-               SumDer2History == other.SumDer2History;
+               SumDer2 == other.SumDer2;
+    }
+
+    inline void SetZeroDers() {
+        Fill(SumDer.begin(), SumDer.end(),  0.0);
+        Fill(SumDer2.Data.begin(), SumDer2.Data.end(), 0.0);
     }
 
     void AddDerWeight(const TVector<double>& delta, double weight, int gradientIteration) {
-        Y_ASSERT(delta.ysize() == SumDerHistory[gradientIteration].ysize());
-        for (int dim = 0; dim < SumDerHistory[gradientIteration].ysize(); ++dim) {
-            SumDerHistory[gradientIteration][dim] += delta[dim];
+        Y_ASSERT(delta.ysize() == SumDer.ysize());
+        for (int dim = 0; dim < SumDer.ysize(); ++dim) {
+            SumDer[dim] += delta[dim];
         }
         if (gradientIteration == 0) {
             SumWeights += weight;
         }
     }
 
-    void AddDerDer2(const TVector<double>& delta, const THessianInfo& der2, int gradientIteration) {
-        Y_ASSERT(delta.ysize() == SumDerHistory[gradientIteration].ysize());
-        for (int dim = 0; dim < SumDerHistory[gradientIteration].ysize(); ++dim) {
-            SumDerHistory[gradientIteration][dim] += delta[dim];
+    void AddDerDer2(const TVector<double>& delta, const THessianInfo& der2) {
+        Y_ASSERT(delta.ysize() == SumDer.ysize());
+        for (int dim = 0; dim < SumDer.ysize(); ++dim) {
+            SumDer[dim] += delta[dim];
         }
-        SumDer2History[gradientIteration].AddDer2(der2);
+        SumDer2.AddDer2(der2);
     }
-    SAVELOAD(SumDerHistory, SumDer2History, SumWeights);
+    SAVELOAD(SumDer, SumDer2, SumWeights);
 };
 
 inline double CalcAverage(double sumDelta,
@@ -93,11 +99,10 @@ inline double CalcAverage(double sumDelta,
 }
 
 inline double CalcModelGradient(const TSum& ss,
-                                int gradientIteration,
                                 float l2Regularizer,
                                 double sumAllWeights,
                                 int allDocCount) {
-    return CalcAverage(ss.SumDerHistory[gradientIteration],
+    return CalcAverage(ss.SumDer,
                        ss.SumWeights,
                        l2Regularizer,
                        sumAllWeights,
@@ -105,15 +110,14 @@ inline double CalcModelGradient(const TSum& ss,
 }
 
 inline void CalcModelGradientMulti(const TSumMulti& ss,
-                                   int gradientIteration,
                                    float l2Regularizer,
                                    double sumAllWeights,
                                    int allDocCount,
                                    TVector<double>* res) {
-    const int approxDimension = ss.SumDerHistory[gradientIteration].ysize();
+    const int approxDimension = ss.SumDer.ysize();
     res->resize(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
-        (*res)[dim] = CalcAverage(ss.SumDerHistory[gradientIteration][dim],
+        (*res)[dim] = CalcAverage(ss.SumDer[dim],
                                   ss.SumWeights,
                                   l2Regularizer,
                                   sumAllWeights,
@@ -130,19 +134,17 @@ inline double CalcModelNewtonBody(double sumDer,
 }
 
 inline double CalcModelNewton(const TSum& ss,
-                              int gradientIteration,
                               float l2Regularizer,
                               double sumAllWeights,
                               int allDocCount) {
-    return CalcModelNewtonBody(ss.SumDerHistory[gradientIteration],
-                               ss.SumDer2History[gradientIteration],
+    return CalcModelNewtonBody(ss.SumDer,
+                               ss.SumDer2,
                                l2Regularizer,
                                sumAllWeights,
                                allDocCount);
 }
 
 void CalcModelNewtonMulti(const TSumMulti& ss,
-                          int gradientIteration,
                           float l2Regularizer,
                           double sumAllWeights,
                           int allDocCount,

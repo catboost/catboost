@@ -18,14 +18,14 @@ inline void AddSampleToBucketNewtonMulti(
     const TVector<double>& approx,
     float target,
     double weight,
-    int iteration,
+    int,
     TVector<double>* curDer,
     THessianInfo* curDer2,
     TSumMulti* bucket
 ) {
     Y_ASSERT(curDer != nullptr && curDer2 != nullptr);
     error.CalcDersMulti(approx, target, weight, curDer, curDer2);
-    bucket->AddDerDer2(*curDer, *curDer2, iteration);
+    bucket->AddDerDer2(*curDer, *curDer2);
 }
 
 inline void AddSampleToBucketGradientMulti(
@@ -75,7 +75,6 @@ template <typename TCalcModel>
 void CalcMixedModelMulti(
     TCalcModel CalcModel,
     const TVector<TSumMulti>& buckets,
-    int iteration,
     float l2Regularizer,
     double sumAllWeights,
     int docCount,
@@ -84,7 +83,7 @@ void CalcMixedModelMulti(
     const int leafCount = buckets.ysize();
     TVector<double> avrg;
     for (int leaf = 0; leaf < leafCount; ++leaf) {
-        CalcModel(buckets[leaf], iteration, l2Regularizer, sumAllWeights, docCount, &avrg);
+        CalcModel(buckets[leaf], l2Regularizer, sumAllWeights, docCount, &avrg);
         for (int dim = 0; dim < avrg.ysize(); ++dim) {
             (*curLeafValues)[dim][leaf] = avrg[dim];
         }

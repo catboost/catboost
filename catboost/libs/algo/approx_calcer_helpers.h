@@ -14,19 +14,19 @@ inline void UpdateBucket<ELeavesEstimation::Gradient>(const TDers& der, double w
 }
 
 template <>
-inline void UpdateBucket<ELeavesEstimation::Newton>(const TDers& der, double, int it, TSum* bucket) {
-    bucket->AddDerDer2(der.Der1, der.Der2, it);
+inline void UpdateBucket<ELeavesEstimation::Newton>(const TDers& der, double, int, TSum* bucket) {
+    bucket->AddDerDer2(der.Der1, der.Der2);
 }
 
 template <ELeavesEstimation LeafEstimationType>
-inline double CalcModel(const TSum&, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount);
+inline double CalcModel(const TSum&, float l2Regularizer, double sumAllWeights, int allDocCount);
 
 template <>
-inline double CalcModel<ELeavesEstimation::Gradient>(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
-    return CalcModelGradient(ss, gradientIteration, l2Regularizer, sumAllWeights, allDocCount);
+inline double CalcModel<ELeavesEstimation::Gradient>(const TSum& ss, float l2Regularizer, double sumAllWeights, int allDocCount) {
+    return CalcModelGradient(ss, l2Regularizer, sumAllWeights, allDocCount);
 }
 
 template <>
-inline double CalcModel<ELeavesEstimation::Newton>(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
-    return CalcModelNewton(ss, gradientIteration, l2Regularizer, sumAllWeights, allDocCount);
+inline double CalcModel<ELeavesEstimation::Newton>(const TSum& ss, float l2Regularizer, double sumAllWeights, int allDocCount) {
+    return CalcModelNewton(ss, l2Regularizer, sumAllWeights, allDocCount);
 }

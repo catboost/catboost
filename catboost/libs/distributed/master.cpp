@@ -221,9 +221,13 @@ void MapSetApproxes(const IDerCalcer& error, const TSplitTree& splitTree, TConst
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
     const int approxDimension = ctx->LearnProgress.ApproxDimension;
     const int leafCount = splitTree.GetLeafCount();
-    TVector<TSum> buckets(leafCount, TSum(gradientIterations, approxDimension, error.GetHessianType()));
+    TVector<TSum> buckets(leafCount, TSum(approxDimension, error.GetHessianType()));
     averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
     for (int it = 0; it < gradientIterations; ++it) {
+        for (auto& bucket : buckets) {
+            bucket.SetZeroDers();
+        }
+
         TPairwiseBuckets pairwiseBuckets;
         TApproxDefs::SetPairwiseBucketsSize(leafCount, &pairwiseBuckets);
         const auto bucketsFromAllWorkers = ApplyMapper<TBucketUpdater>(workerCount, ctx->SharedTrainData);
@@ -232,15 +236,15 @@ void MapSetApproxes(const IDerCalcer& error, const TSplitTree& splitTree, TConst
             const auto& workerBuckets = bucketsFromAllWorkers[workerIdx].Data.first;
             for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
                 if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
-                    buckets[leafIdx].AddDerWeight(workerBuckets[leafIdx].SumDerHistory[it], workerBuckets[leafIdx].SumWeights, it);
+                    buckets[leafIdx].AddDerWeight(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumWeights, it);
                 } else {
                     Y_ASSERT(ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
-                    buckets[leafIdx].AddDerDer2(workerBuckets[leafIdx].SumDerHistory[it], workerBuckets[leafIdx].SumDer2History[it], it);
+                    buckets[leafIdx].AddDerDer2(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumDer2);
                 }
             }
             TApproxDefs::AddPairwiseBuckets(bucketsFromAllWorkers[workerIdx].Data.second, &pairwiseBuckets);
         }
-        const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, it, *ctx);
+        const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, *ctx);
         AddElementwise(leafValues, averageLeafValues);
         // calc model and update approx deltas on workers
         ApplyMapper<TDeltaUpdater>(workerCount, ctx->SharedTrainData, leafValues);
@@ -285,14 +289,13 @@ struct TSetApproxesSimpleDefs {
     }
     static TVector<TVector<double>> CalcLeafValues(const TVector<TSumType>& buckets,
         const TPairwiseBuckets& pairwiseBuckets,
-        int iterationNum,
         const TLearnContext& ctx
     ) {
         const size_t leafCount = buckets.size();
         TVector<TVector<double>> leafValues(/*dimensionCount*/ 1, TVector<double>(leafCount));
         const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
         const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
-        CalcMixedModelSimple(buckets, pairwiseBuckets, iterationNum, ctx.Params, sumAllWeights, allDocCount, &leafValues[0]);
+        CalcMixedModelSimple(buckets, pairwiseBuckets, ctx.Params, sumAllWeights, allDocCount, &leafValues[0]);
         return leafValues;
     }
 };
@@ -306,7 +309,6 @@ struct TSetApproxesMultiDefs {
     static void AddPairwiseBuckets(const TPairwiseBuckets& /*increment*/, TPairwiseBuckets* /*total*/) {}
     static TVector<TVector<double>> CalcLeafValues(const TVector<TSumType>& buckets,
         const TPairwiseBuckets& /*pairwiseBuckets*/,
-        int iterationNum,
         const TLearnContext& ctx
     ) {
         const int dimensionCount = ctx.LearnProgress.ApproxDimension;
@@ -317,10 +319,10 @@ struct TSetApproxesMultiDefs {
         const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
         const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
         if (estimationMethod == ELeavesEstimation::Newton) {
-            CalcMixedModelMulti(CalcModelNewtonMulti, buckets, iterationNum, l2Regularizer, sumAllWeights, allDocCount, &leafValues);
+            CalcMixedModelMulti(CalcModelNewtonMulti, buckets, l2Regularizer, sumAllWeights, allDocCount, &leafValues);
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-            CalcMixedModelMulti(CalcModelGradientMulti, buckets, iterationNum, l2Regularizer, sumAllWeights, allDocCount, &leafValues);
+            CalcMixedModelMulti(CalcModelGradientMulti, buckets, l2Regularizer, sumAllWeights, allDocCount, &leafValues);
         }
         return leafValues;
     }

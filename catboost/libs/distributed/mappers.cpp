@@ -305,6 +305,9 @@ void TBucketSimpleUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TI
     TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize);
 
+    for (auto& bucket : localData.Buckets) {
+        bucket.SetZeroDers();
+    }
     UpdateBucketsSimple(localData.Indices,
         localData.Progress.AveragingFold,
         localData.Progress.AveragingFold.BodyTailArr[0],
@@ -343,10 +346,10 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
         Fill(dimensionDelta.begin(), dimensionDelta.end(), GetNeutralApprox(localData.StoreExpApprox));
     }
     localData.Buckets.resize(splitTree->Data.GetLeafCount());
-    Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations));
+    Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum());
     localData.MultiBuckets.resize(splitTree->Data.GetLeafCount());
     Fill(localData.MultiBuckets.begin(), localData.MultiBuckets.end(),
-        TSumMulti(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations, approxDimension, trainData->HessianType)
+        TSumMulti(approxDimension, trainData->HessianType)
     );
     localData.PairwiseBuckets.SetSizes(splitTree->Data.GetLeafCount(), splitTree->Data.GetLeafCount());
     localData.PairwiseBuckets.FillZero();
@@ -403,6 +406,9 @@ void TBucketMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TIn
     const auto error = BuildError(localData.Params, /*custom objective*/ Nothing());
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
 
+    for (auto& bucket : localData.MultiBuckets) {
+        bucket.SetZeroDers();
+    }
     if (estimationMethod == ELeavesEstimation::Newton) {
         UpdateBucketsMulti(AddSampleToBucketNewtonMulti,
             localData.Indices,
