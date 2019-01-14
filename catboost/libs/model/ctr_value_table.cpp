@@ -1,7 +1,14 @@
 #include "ctr_value_table.h"
+
 #include "flatbuffers_serializer_helper.h"
+
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
+
+#include <util/generic/fwd.h>
+#include <util/generic/ptr.h>
 #include <util/stream/input.h>
+#include <util/stream/output.h>
+#include <util/system/compiler.h>
 #include <util/ysaveload.h>
 
 

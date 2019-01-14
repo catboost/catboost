@@ -12,6 +12,7 @@
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/helpers/int_cast.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>

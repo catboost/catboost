@@ -2,15 +2,20 @@
 
 #include "hash.h"
 
+#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
+
 #include <catboost/libs/ctr_description/ctr_type.h>
 
-#include <library/containers/dense_hash/dense_hash.h>
+#include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/vector.h>
+#include <util/stream/fwd.h>
+#include <util/str_stl.h>
 #include <util/ysaveload.h>
-#include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
-#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
+
+#include <tuple>
+
 
 class TModelPartsCachingSerializer;
 

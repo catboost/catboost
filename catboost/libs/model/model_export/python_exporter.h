@@ -2,6 +2,11 @@
 
 #include "model_exporter.h"
 
+#include <catboost/libs/helpers/exception.h>
+
+#include <util/stream/file.h>
+
+
 namespace NCatboost {
     class TCatboostModelToPythonConverter: public ICatboostModelExporter {
     private:

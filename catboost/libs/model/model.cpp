@@ -9,7 +9,7 @@
 #include "onnx_helpers.h"
 #include "static_ctr_provider.h"
 
-#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
@@ -20,12 +20,17 @@
 
 #include <library/json/json_reader.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/buffer.h>
+#include <util/generic/fwd.h>
+#include <util/generic/variant.h>
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/stream/buffer.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
 #include <util/stream/str.h>
+
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 

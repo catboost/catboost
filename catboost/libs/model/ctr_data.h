@@ -1,8 +1,16 @@
 #pragma once
 
 #include "ctr_value_table.h"
+
+#include <util/generic/hash.h>
+#include <util/stream/fwd.h>
 #include <util/system/mutex.h>
 #include <util/system/guard.h>
+#include <util/system/yassert.h>
+#include <util/ysaveload.h>
+
+#include <exception>
+
 
 struct TCtrData {
     THashMap<TModelCtrBase, TCtrValueTable> LearnCtrs;

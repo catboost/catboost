@@ -4,8 +4,11 @@
 
 #include <catboost/libs/model/flatbuffers/features.fbs.h>
 
-#include <util/generic/hash_set.h>
 #include <util/generic/string.h>
+#include <util/generic/vector.h>
+#include <util/ysaveload.h>
+
+#include <tuple>
 
 
 struct TFloatFeature {
