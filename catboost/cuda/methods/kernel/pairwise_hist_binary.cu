@@ -187,7 +187,8 @@ namespace NKernel {
                                         const ui32 featureCount,
                                         const ui32 binFeatureCount,
                                         const ui32* compressedIndex,
-                                        const uint2* pairs, ui32 pairCount,
+                                        const uint2* pairs,
+                                        ui32 /*pairCount*/,
                                         const float* weight,
                                         const TDataPartition* partition,
                                         ui32 partCount,
@@ -197,7 +198,7 @@ namespace NKernel {
                                         int parallelStreams,
                                         TCudaStream stream) {
 
-        assert(featureCount == binFeatureCount);
+        Y_ASSERT(featureCount == binFeatureCount);
 
         if (featureCount > 0) {
             const int blockSize = 768;

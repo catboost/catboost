@@ -326,7 +326,8 @@ namespace NKernel {
                                           const ui32 featureCount,
                                           const ui32 halfByteFeatureCount,
                                           const ui32* compressedIndex,
-                                          const uint2* pairs, ui32 pairCount,
+                                          const uint2* pairs,
+                                          ui32 /*pairCount*/,
                                           const float* weight,
                                           const TDataPartition* partition,
                                           ui32 partCount,
@@ -335,7 +336,7 @@ namespace NKernel {
                                           float* histogram,
                                           int parallelStreams,
                                           TCudaStream stream) {
-        assert(featureCount == halfByteFeatureCount);
+        Y_ASSERT(featureCount == halfByteFeatureCount);
         if (featureCount > 0) {
             const int blockSize = 384;
             dim3 numBlocks;
