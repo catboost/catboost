@@ -1,4 +1,3 @@
-import re
 import os
 
 import _import_wrapper as iw
@@ -6,11 +5,6 @@ import _common as common
 
 
 _SWIG_LIB_PATH = 'contrib/tools/swig/Lib'
-
-_PREDEFINED_INCLUDES = [
-    os.path.join(_SWIG_LIB_PATH, 'python', 'python.swg'),
-    os.path.join(_SWIG_LIB_PATH, 'swig.swg'),
-]
 
 
 class Swig(iw.CustomCommand):
@@ -93,54 +87,5 @@ class Swig(iw.CustomCommand):
         self.call(cmd)
 
 
-class SwigParser(object):
-    def __init__(self, path, unit):
-        self._path = path
-        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
-        with open(path, 'rb') as f:
-            includes, induced = SwigParser.parse_includes(f.readlines())
-
-        self._includes = unit.resolve_include([retargeted] + _PREDEFINED_INCLUDES + includes)
-        self._induced = unit.resolve_include([retargeted] + induced) if induced else []
-
-    @staticmethod
-    def parse_includes(content):
-        includes = []
-        induced = []
-        in_block = False
-
-        include_pattern = re.compile('\%(include|import|insert *\([^\)]*\)) *("|<)([^">]*)')
-        induced_pattern = re.compile('include *("|<)([^">]*)')
-
-        for line in content:
-            line = line.lstrip()
-            if not in_block and line.startswith('%include') or line.startswith('%import') or line.startswith('%insert'):
-                m = include_pattern.match(line)
-                if m and m.group(3):
-                    includes.append(m.group(3))
-
-            elif line.startswith('%{'):
-                in_block = True
-            elif line.startswith('%begin') or line.startswith('%header'):
-                if line.find('%{'):
-                    in_block = True
-            elif line.startswith('%}'):
-                in_block = False
-            elif in_block and line.startswith('#'):
-                m = induced_pattern.search(line)
-                if m and m.group(2):
-                    induced.append(m.group(2))
-        return (includes, induced)
-
-    def includes(self):
-        return self._includes
-
-    def induced_deps(self):
-        return {
-            'h+cpp': self._induced
-        }
-
-
 def init():
     iw.addrule('swg', Swig)
-    iw.addparser('swg', SwigParser)

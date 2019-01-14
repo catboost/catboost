@@ -1,7 +1,3 @@
-import os
-
-from _xsyn_includes import get_all_includes
-
 import _import_wrapper as iw
 import _common as common
 
@@ -34,19 +30,5 @@ class Xsyn(iw.CustomCommand):
                                 self.resolve_path(common.get(self.input, 2)), 'dontuse'], stdout=common.get(self.output, 0))
 
 
-class XsynParser(object):
-    def __init__(self, path, unit):
-        self._path = path
-        self._includes = []
-        retargeted = os.path.join(unit.path(), os.path.relpath(path, unit.resolve(unit.path())))
-
-        self._includes = get_all_includes(path)
-        self._includes = unit.resolve_include([retargeted] + self._includes) if self._includes else []
-
-    def includes(self):
-        return self._includes
-
-
 def init():
     iw.addrule('xsyn', Xsyn)
-    iw.addparser('xsyn', XsynParser)
