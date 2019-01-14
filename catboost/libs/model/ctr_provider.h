@@ -119,36 +119,6 @@ inline void CalcHashes(
     }
 }
 
-template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
-inline void CalcHashes(
-    const TFeatureCombination& featureCombination,
-    const TFloatFeatureAccessor& floatFeatureAccessor,
-    const TCatFeatureAccessor& catFeatureAccessor,
-    size_t docCount,
-    TVector<ui64>* result) {
-    result->resize(docCount);
-    std::fill(result->begin(), result->end(), 0);
-    ui64* ptr = result->data();
-    for (auto catFeatureIndex : featureCombination.CatFeatures) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)(int)catFeatureAccessor(catFeatureIndex, docId));
-        }
-    }
-    for (const auto& floatFeature : featureCombination.BinFeatures) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)(floatFeatureAccessor(floatFeature.FloatFeature, docId) > floatFeature.Split));
-        }
-    }
-    for (auto oheFeature : featureCombination.OneHotFeatures) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)(catFeatureAccessor(oheFeature.CatFeatureIdx, docId) == oheFeature.Value));
-        }
-    }
-};
-
 enum class ECtrTableMergePolicy {
     FailIfCtrsIntersects,
     LeaveMostDiversifiedTable,
