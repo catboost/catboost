@@ -1738,7 +1738,7 @@ class CatBoostClassifier(CatBoost):
     iterations : int, [default=500]
         Max count of trees.
         range: [1,+inf]
-    learning_rate : float, [default=0.03]
+    learning_rate : float, [default value is selected automatically for binary classification with other parameters set to default. In all other cases default is 0.03]
         Step size shrinkage used in update to prevents overfitting.
         range: (0,1]
     depth : int, [default=6]
