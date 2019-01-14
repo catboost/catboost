@@ -5,10 +5,11 @@
 #include "pathsplit.h"
 #include "path.h"
 
+#include <util/generic/yexception.h>
+#include <util/system/compiler.h>
 #include <util/system/fs.h>
 #include <util/system/maxlen.h>
 #include <util/system/yassert.h>
-#include <util/generic/yexception.h>
 
 void SlashFolderLocal(TString& folder) {
     if (!folder)
@@ -466,7 +467,12 @@ int RemoveTempDir(const char* dirName) {
         path[++len] = 0;
     }
     ptr = path + len;
+    // TODO(yazevnul|IGNIETFERRO-1070): remove these macroses by replacing `readdir_r` with proper
+    // alternative
+    Y_PRAGMA_DIAGNOSTIC_PUSH
+    Y_PRAGMA_NO_DEPRECATED
     while ((ret = readdir_r(dir, &ent, &pent)) == 0 && pent == &ent) {
+    Y_PRAGMA_DIAGNOSTIC_POP
         if (!strcmp(ent.d_name, ".") || !strcmp(ent.d_name, ".."))
             continue;
 #ifdef DT_DIR

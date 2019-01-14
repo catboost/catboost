@@ -33,9 +33,10 @@
  * $OpenBSD: fts.c,v 1.22 1999/10/03 19:22:22 millert Exp $
  */
 
-#include <util/system/defaults.h>
-#include <util/system/compat.h>
 #include <util/memory/tempbuf.h>
+#include <util/system/compat.h>
+#include <util/system/compiler.h>
+#include <util/system/defaults.h>
 #include <util/system/error.h>
 
 #include <stdlib.h>
@@ -701,7 +702,12 @@ yfts_children(FTS * sp, int instr)
 }
 
 static inline struct dirent* yreaddir(DIR* dir, struct dirent* de) {
+    // TODO(yazevnul|IGNIETFERRO-1070): remove these macroses by replacing `readdir_r` with proper
+    // alternative
+    Y_PRAGMA_DIAGNOSTIC_PUSH
+    Y_PRAGMA_NO_DEPRECATED
     if (readdir_r(dir, de, &de) == 0) {
+    Y_PRAGMA_DIAGNOSTIC_POP
         return de;
     }
 
