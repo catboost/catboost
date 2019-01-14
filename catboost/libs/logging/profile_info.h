@@ -110,7 +110,7 @@ public:
                              ProfileData.PassedTime / (ProfileData.PassedIterations - InitIterations - ProfileData.BadIterations);
         ProfileData.PassedIterations += blockSize;
         if (CurrentTime < 0 || CurrentTime / blockSize / MAX_TIME_RATIO > averageTime) {
-            CATBOOST_WARNING_LOG << "\nIteration with suspicious time " << FloatToString(CurrentTime, PREC_NDIGITS, 3)
+            CATBOOST_DEBUG_LOG << "\nIteration with suspicious time " << FloatToString(CurrentTime, PREC_NDIGITS, 3)
                 << " sec ignored in overall statistics." << Endl;
             ProfileData.BadIterations += blockSize;
         } else {
