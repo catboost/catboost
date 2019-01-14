@@ -17,7 +17,7 @@ public:
     using size_type = typename TBase::size_type;
     using value_type = typename TBase::value_type;
 
-    inline TDeque()
+    inline TDeque() noexcept(std::is_nothrow_default_constructible<TBase>::value)
         : TBase()
     {
     }
