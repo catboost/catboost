@@ -11,7 +11,7 @@
 namespace {
     struct TInit {
         inline TInit() noexcept {
-            (void)AtFork;
+            (void)&AtFork;
 
 #if defined(_unix_)
             Y_VERIFY(pthread_atfork(nullptr, AtFork, nullptr) == 0, "it happens");
