@@ -1,10 +1,9 @@
 #pragma once
 
-#include <catboost/libs/model/model.h>
+#include "model.h"
 
-#include <catboost/libs/helpers/exception.h>
+#include <util/generic/array_ref.h>
 
-#include <util/generic/set.h>
 
 class TObliviousTreeBuilder {
 public:

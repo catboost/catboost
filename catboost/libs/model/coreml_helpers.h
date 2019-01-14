@@ -5,7 +5,7 @@
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
 
-#include <library/json/json_reader.h>
+#include <library/json/json_value.h>
 
 namespace NCatboost {
     namespace NCoreML {

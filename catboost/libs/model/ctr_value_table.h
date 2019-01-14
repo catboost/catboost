@@ -1,14 +1,19 @@
 #pragma once
 
 #include "online_ctr.h"
-#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
 
 #include <catboost/libs/helpers/dense_hash_view.h>
-#include <util/generic/vector.h>
+#include <catboost/libs/model/flatbuffers/ctr_data.fbs.h>
+
+#include <util/generic/array_ref.h>
 #include <util/generic/variant.h>
+#include <util/generic/vector.h>
+#include <util/stream/fwd.h>
+#include <util/system/types.h>
+
+#include <algorithm>
 #include <tuple>
-#include <util/stream/input.h>
-#include <util/stream/output.h>
+
 
 class TCtrValueTable {
     struct TSolidTable {

@@ -1,5 +1,6 @@
 #include "c_api.h"
 
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/singleton.h>

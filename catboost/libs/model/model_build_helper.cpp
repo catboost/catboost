@@ -1,6 +1,14 @@
 #include "model_build_helper.h"
 
+#include <catboost/libs/helpers/exception.h>
+
+#include <util/generic/algorithm.h>
+#include <util/generic/hash.h>
+#include <util/generic/hash_set.h>
+#include <util/generic/set.h>
 #include <util/generic/xrange.h>
+#include <util/generic/ylimits.h>
+
 
 TObliviousTreeBuilder::TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures, int approxDimension)
     : ApproxDimension(approxDimension)

@@ -22,7 +22,6 @@ SRCS(
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/ctr_description
-    catboost/libs/data_util
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model/flatbuffers
@@ -34,9 +33,7 @@ PEERDIR(
     library/binsaver
     library/containers/dense_hash
     library/json
-    library/object_factory
     library/svnversion
-    library/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(ctr_provider.h)

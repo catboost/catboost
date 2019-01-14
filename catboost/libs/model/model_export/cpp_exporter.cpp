@@ -2,6 +2,8 @@
 
 #include "export_helpers.h"
 
+#include <catboost/libs/model/static_ctr_provider.h>
+
 #include <library/resource/resource.h>
 
 #include <util/generic/map.h>
@@ -9,7 +11,6 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
-#include <util/stream/file.h>
 
 namespace NCatboost {
     using namespace NCatboostModelExportHelpers;

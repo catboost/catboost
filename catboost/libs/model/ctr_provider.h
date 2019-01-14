@@ -8,7 +8,13 @@
 #include <library/json/json_value.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/ptr.h>
+#include <util/generic/vector.h>
+#include <util/stream/fwd.h>
+#include <util/system/types.h>
 #include <util/system/yassert.h>
+
+#include <algorithm>
 
 
 class ICtrProvider : public TThrRefBase {

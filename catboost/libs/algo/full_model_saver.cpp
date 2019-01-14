@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/static_ctr_provider.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/system_options.h>
 

@@ -1,19 +1,30 @@
 #pragma once
 
+#include "ctr_provider.h"
 #include "features.h"
 #include "online_ctr.h"
 #include "split.h"
-#include "static_ctr_provider.h"
 
-#include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/output_file_options.h>
 
-#include <library/json/json_reader.h>
+#include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
+#include <util/generic/hash.h>
+#include <util/generic/hash_set.h>
+#include <util/generic/ptr.h>
+#include <util/generic/strbuf.h>
+#include <util/generic/string.h>
+#include <util/generic/utility.h>
+#include <util/generic/vector.h>
+#include <util/stream/fwd.h>
+#include <util/stream/mem.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
 
-#include <util/stream/file.h>
-#include <util/system/mutex.h>
+#include <tuple>
+
 
 class TModelPartsCachingSerializer;
 
