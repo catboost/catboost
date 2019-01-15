@@ -130,7 +130,9 @@ static bool EnableDefrag = true;
 
 template <class T>
 inline T* DoCas(T* volatile* target, T* exchange, T* compare) {
-#ifdef _WIN32
+#if defined(__has_builtin) && __has_builtin(__sync_val_compare_and_swap)
+    return __sync_val_compare_and_swap(target, compare, exchange);
+#elif defined(_WIN32)
 #ifdef _64_
     return (T*)_InterlockedCompareExchange64((__int64*)target, (__int64)exchange, (__int64)compare);
 #else
