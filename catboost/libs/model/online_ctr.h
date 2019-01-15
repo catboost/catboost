@@ -20,13 +20,15 @@
 class TModelPartsCachingSerializer;
 
 struct TFloatSplit {
+    int FloatFeature = 0;
+    float Split = 0.f;
+
+public:
     TFloatSplit() = default;
     TFloatSplit(int feature, float split)
         : FloatFeature(feature)
         , Split(split)
     {}
-    int FloatFeature = 0;
-    float Split = 0.f;
 
     bool operator==(const TFloatSplit& other) const {
         return std::tie(FloatFeature, Split) == std::tie(other.FloatFeature, other.Split);
@@ -51,14 +53,16 @@ struct THash<TFloatSplit> {
 };
 
 struct TOneHotSplit {
+    int CatFeatureIdx = 0;
+    int Value = 0;
+
+public:
     TOneHotSplit() = default;
 
     TOneHotSplit(int featureIdx, int value)
         : CatFeatureIdx(featureIdx)
         , Value(value)
     {}
-    int CatFeatureIdx = 0;
-    int Value = 0;
 
     bool operator==(const TOneHotSplit& other) const {
         return CatFeatureIdx == other.CatFeatureIdx && Value == other.Value;
@@ -88,13 +92,7 @@ struct TFeatureCombination {
     TVector<TFloatSplit> BinFeatures;
     TVector<TOneHotSplit> OneHotFeatures;
 
-    void Clear() {
-        CatFeatures.clear();
-        BinFeatures.clear();
-        OneHotFeatures.clear();
-    }
-
-    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
+public:
     bool operator==(const TFeatureCombination& other) const {
         return std::tie(CatFeatures, BinFeatures, OneHotFeatures) ==
             std::tie(other.CatFeatures, other.BinFeatures, other.OneHotFeatures);
@@ -108,6 +106,14 @@ struct TFeatureCombination {
         return std::tie(CatFeatures, BinFeatures, OneHotFeatures) <
                std::tie(other.CatFeatures, other.BinFeatures, other.OneHotFeatures);
     }
+
+    void Clear() {
+        CatFeatures.clear();
+        BinFeatures.clear();
+        OneHotFeatures.clear();
+    }
+
+    Y_SAVELOAD_DEFINE(CatFeatures, BinFeatures, OneHotFeatures)
 
     bool IsSingleCatFeature() const {
         return BinFeatures.empty() && OneHotFeatures.empty() && CatFeatures.ysize() == 1;
@@ -160,8 +166,7 @@ struct TModelCtrBase {
     ECtrType CtrType = ECtrType::Borders;
     int TargetBorderClassifierIdx = 0; // TODO(kirillovs): remove after @annaveronika implement map
 
-    Y_SAVELOAD_DEFINE(Projection, CtrType);
-
+public:
     bool operator==(const TModelCtrBase& other) const {
         return std::tie(Projection, CtrType) ==
                std::tie(other.Projection, other.CtrType);
@@ -175,6 +180,8 @@ struct TModelCtrBase {
         return std::tie(Projection, CtrType) <
                std::tie(other.Projection, other.CtrType);
     }
+
+    Y_SAVELOAD_DEFINE(Projection, CtrType);
 
     size_t GetHash() const {
         return MultiHash(Projection.GetHash(), CtrType, TargetBorderClassifierIdx);
@@ -206,14 +213,7 @@ struct TModelCtr{
     float Shift = 0.0f;
     float Scale = 1.0f;
 
-    inline void Save(IOutputStream* s) const {
-        ::SaveMany(s, Base, TargetBorderIdx, PriorNum, PriorDenom, Shift, Scale);
-    }
-
-    inline void Load(IInputStream* s) {
-        ::LoadMany(s, Base, TargetBorderIdx, PriorNum, PriorDenom, Shift, Scale);
-    }
-
+public:
     TModelCtr() = default;
 
     bool operator==(const TModelCtr& other) const {
@@ -239,6 +239,14 @@ struct TModelCtr{
         return (ctr + Shift) * Scale;
     }
 
+    inline void Save(IOutputStream* s) const {
+        ::SaveMany(s, Base, TargetBorderIdx, PriorNum, PriorDenom, Shift, Scale);
+    }
+
+    inline void Load(IInputStream* s) {
+        ::LoadMany(s, Base, TargetBorderIdx, PriorNum, PriorDenom, Shift, Scale);
+    }
+
     flatbuffers::Offset<NCatBoostFbs::TModelCtr> FBSerialize(TModelPartsCachingSerializer& serializer) const;
     void FBDeserialize(const NCatBoostFbs::TModelCtr* fbObj) {
         Base.FBDeserialize(fbObj->Base());
@@ -261,15 +269,12 @@ struct TModelCtrSplit {
     TModelCtr Ctr;
     float Border = 0.0f;
 
+public:
     TModelCtrSplit() = default;
     TModelCtrSplit(const TModelCtr& ctr, float border)
         : Ctr(ctr)
         , Border(border)
     {}
-
-    size_t GetHash() const {
-        return MultiHash(Ctr, Border);
-    }
 
     bool operator==(const TModelCtrSplit& other) const {
         return std::tie(Ctr, Border) == std::tie(other.Ctr, other.Border);
@@ -282,6 +287,11 @@ struct TModelCtrSplit {
     bool operator<(const TModelCtrSplit& other) const {
         return std::tie(Ctr, Border) < std::tie(other.Ctr, other.Border);
     }
+
+    size_t GetHash() const {
+        return MultiHash(Ctr, Border);
+    }
+
     Y_SAVELOAD_DEFINE(Ctr, Border);
 };
 
@@ -294,6 +304,8 @@ struct THash<TModelCtrSplit> {
 
 struct TCtrHistory {
     int N[2];
+
+public:
     void Clear() {
         N[0] = 0;
         N[1] = 0;
@@ -304,6 +316,8 @@ struct TCtrHistory {
 struct TCtrMeanHistory {
     float Sum;
     int Count;
+
+public:
     bool operator==(const TCtrMeanHistory& other) const {
         return std::tie(Sum, Count) == std::tie(other.Sum, other.Count);
     }

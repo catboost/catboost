@@ -15,6 +15,7 @@
 struct TCtrData {
     THashMap<TModelCtrBase, TCtrValueTable> LearnCtrs;
 
+public:
     bool operator==(const TCtrData& other) const {
         return LearnCtrs == other.LearnCtrs;
     }
@@ -28,12 +29,18 @@ struct TCtrData {
     void Load(IInputStream* s);
 };
 
-struct TCtrDataStreamWriter {
+class TCtrDataStreamWriter {
+public:
     TCtrDataStreamWriter(IOutputStream* out, size_t expectedCtrTablesCount)
         : StreamPtr(out)
         , ExpectedWritesCount(expectedCtrTablesCount)
     {
         ::SaveSize(StreamPtr, ExpectedWritesCount);
+    }
+    ~TCtrDataStreamWriter() {
+        if (!std::uncaught_exception()) {
+            Y_VERIFY(WritesCount == ExpectedWritesCount);
+        }
     }
     void SaveOneCtr(const TCtrValueTable& valTable) {
         with_lock (StreamLock) {
@@ -42,11 +49,7 @@ struct TCtrDataStreamWriter {
             ::SaveMany(StreamPtr, valTable);
         }
     }
-    ~TCtrDataStreamWriter() {
-        if (!std::uncaught_exception()) {
-            Y_VERIFY(WritesCount == ExpectedWritesCount);
-        }
-    }
+
 private:
     IOutputStream* StreamPtr = nullptr;
     TMutex StreamLock;

@@ -81,6 +81,8 @@ struct TBinFeatureIndexValue {
     ui32 BinIndex = 0;
     bool CheckValueEqual = 0;
     ui8 Value = 0;
+
+public:
     TBinFeatureIndexValue() = default;
     TBinFeatureIndexValue(ui32 binIndex, bool checkValueEqual, ui8 value)
         : BinIndex(binIndex)
@@ -125,4 +127,6 @@ enum class ECtrTableMergePolicy {
     IntersectingCountersAverage
 };
 
-TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(const TVector<TIntrusivePtr<ICtrProvider>>& providers, ECtrTableMergePolicy mergePolicy);
+TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(
+    const TVector<TIntrusivePtr<ICtrProvider>>& providers,
+    ECtrTableMergePolicy mergePolicy);

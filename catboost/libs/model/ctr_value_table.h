@@ -19,6 +19,8 @@ class TCtrValueTable {
     struct TSolidTable {
         TVector<NCatboost::TBucket> IndexBuckets;
         TVector<ui8> CTRBlob;
+
+    public:
         bool operator==(const TSolidTable& other) const {
             return std::tie(IndexBuckets, CTRBlob) == std::tie(other.IndexBuckets, other.CTRBlob);
         }
@@ -27,6 +29,7 @@ class TCtrValueTable {
         TConstArrayRef<NCatboost::TBucket> IndexBuckets;
         TConstArrayRef<ui8> CTRBlob;
 
+    public:
         bool operator==(const TThinTable& other) const {
             return std::tie(IndexBuckets, CTRBlob) == std::tie(other.IndexBuckets, other.CTRBlob);
         }
@@ -41,6 +44,11 @@ public:
     TCtrValueTable()
         : Impl(TSolidTable())
     {
+    }
+
+    bool operator==(const TCtrValueTable& other) const {
+        return std::tie(CounterDenominator, TargetClassesCount, Impl) ==
+               std::tie(other.CounterDenominator, other.TargetClassesCount, other.Impl);
     }
 
     template <typename T>
@@ -92,11 +100,6 @@ public:
     void Load(IInputStream* s);
 
     void LoadSolid(void* buf, size_t length);
-
-    bool operator==(const TCtrValueTable& other) const {
-        return std::tie(CounterDenominator, TargetClassesCount, Impl) ==
-               std::tie(other.CounterDenominator, other.TargetClassesCount, other.Impl);
-    }
 
 public:
     TModelCtrBase ModelCtrBase;

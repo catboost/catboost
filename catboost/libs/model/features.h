@@ -12,14 +12,6 @@
 
 
 struct TFloatFeature {
-    TFloatFeature() = default;
-    TFloatFeature(bool hasNans, int featureIndex, int flatFeatureIndex, const TVector<float>& borders, const TString& featureId = "")
-        : HasNans(hasNans)
-        , FeatureIndex(featureIndex)
-        , FlatFeatureIndex(flatFeatureIndex)
-        , Borders(borders)
-        , FeatureId(featureId)
-    {}
     bool HasNans = false;
     int FeatureIndex = -1;
     int FlatFeatureIndex = -1;
@@ -27,9 +19,21 @@ struct TFloatFeature {
     TString FeatureId;
     NCatBoostFbs::ENanValueTreatment NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsIs;
 
-    bool UsedInModel() const {
-        return !Borders.empty();
-    }
+public:
+    TFloatFeature() = default;
+    TFloatFeature(
+        bool hasNans,
+        int featureIndex,
+        int flatFeatureIndex,
+        const TVector<float>& borders,
+        const TString& featureId = ""
+    )
+        : HasNans(hasNans)
+        , FeatureIndex(featureIndex)
+        , FlatFeatureIndex(flatFeatureIndex)
+        , Borders(borders)
+        , FeatureId(featureId)
+    {}
 
     bool operator==(const TFloatFeature& other) const {
         return std::tie(HasNans, FeatureIndex, FlatFeatureIndex, Borders, FeatureId) ==
@@ -37,6 +41,10 @@ struct TFloatFeature {
     }
     bool operator!=(const TFloatFeature& other) const {
         return !(*this == other);
+    }
+
+    bool UsedInModel() const {
+        return !Borders.empty();
     }
 
     flatbuffers::Offset<NCatBoostFbs::TFloatFeature> FBSerialize(flatbuffers::FlatBufferBuilder& builder) const {
@@ -84,6 +92,7 @@ struct TCatFeature {
     int FlatFeatureIndex = -1;
     TString FeatureId;
 
+public:
     bool operator==(const TCatFeature& other) const {
         return std::tie(FeatureIndex, FlatFeatureIndex, FeatureId) ==
                std::tie(other.FeatureIndex, other.FlatFeatureIndex, other.FeatureId);
@@ -117,7 +126,7 @@ struct TOneHotFeature {
     TVector<int> Values;
     TVector<TString> StringValues;
 
-    Y_SAVELOAD_DEFINE(CatFeatureIndex, Values);
+public:
     bool operator==(const TOneHotFeature& other) const {
         return std::tie(CatFeatureIndex, Values) == std::tie(other.CatFeatureIndex, other.Values);
     }
@@ -125,7 +134,9 @@ struct TOneHotFeature {
         return !(*this == other);
     }
 
-    flatbuffers::Offset<NCatBoostFbs::TOneHotFeature> FBSerialize(flatbuffers::FlatBufferBuilder& builder) const {
+    flatbuffers::Offset<NCatBoostFbs::TOneHotFeature> FBSerialize(
+        flatbuffers::FlatBufferBuilder& builder
+    ) const {
         std::vector<flatbuffers::Offset<flatbuffers::String>> vectorOfStringOffsets;
         if (!StringValues.empty()) {
             for (auto strValue : StringValues) {
@@ -155,6 +166,7 @@ struct TOneHotFeature {
             }
         }
     }
+    Y_SAVELOAD_DEFINE(CatFeatureIndex, Values);
 };
 
 class TModelPartsCachingSerializer;
@@ -162,7 +174,8 @@ class TModelPartsCachingSerializer;
 struct TCtrFeature {
     TModelCtr Ctr;
     TVector<float> Borders;
-    Y_SAVELOAD_DEFINE(Ctr, Borders);
+
+public:
     bool operator==(const TCtrFeature& other) const {
         return std::tie(Ctr, Borders) == std::tie(other.Ctr, other.Borders);
     }
@@ -179,4 +192,5 @@ struct TCtrFeature {
             Borders.assign(fbObj->Borders()->begin(), fbObj->Borders()->end());
         }
     }
+    Y_SAVELOAD_DEFINE(Ctr, Borders);
 };
