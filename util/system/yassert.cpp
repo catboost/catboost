@@ -15,6 +15,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifdef CLANG_COVERAGE
+extern "C" int __llvm_profile_write_file(void);
+#endif
+
 namespace {
     struct TPanicLockHolder: public TAdaptiveLock {
     };
@@ -49,6 +53,11 @@ void ::NPrivate::Panic(const TStaticBuf& file, int line, const char* function, c
         Cerr << r;
 #ifndef WITH_VALGRIND
         PrintBackTrace();
+#endif
+#ifdef CLANG_COVERAGE
+        if (__llvm_profile_write_file()) {
+            Cerr << "Failed to dump clang coverage" << Endl;
+        }
 #endif
     } catch (...) {
         // ¯\_(ツ)_/¯
