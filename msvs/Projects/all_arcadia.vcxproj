@@ -128,6 +128,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>DC2F8CD1-9883-449F-5F63-13AE540A462A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\py3idl-pool-proto.vcxproj">
+      <Project>AA1E95AE-5E15-0C9F-B9C2-997127EECA6D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\pyidl-pool-proto.vcxproj">
+      <Project>8F579ED4-B988-95A5-75F0-AA316528E62D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-prediction\src\native\catboost4j-prediction.vcxproj">
       <Project>E4F2A889-133D-9E4F-6DAD-8897A1E9F474</Project>
     </ProjectReference>
@@ -431,6 +437,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\protoc\libs-protobuf-protoc.vcxproj">
       <Project>14A8CC70-8353-091C-5E93-D6A6861D1D6C</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.vcxproj">
+      <Project>EBFCFEB6-7F53-5434-3E5A-016929A7E62D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj">
+      <Project>1529DFE3-5177-2C02-3975-17E5F54C498D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
+      <Project>5B790388-FDEE-2F70-2F9B-EDB49D07DACF</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
       <Project>FAF7DF94-9999-63CD-ABB9-ED295B68DFD7</Project>
     </ProjectReference>
@@ -529,6 +544,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
+      <Project>3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>045AAA08-9E22-8E9E-4CC3-999EEA7560DE</Project>
