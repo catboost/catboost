@@ -25,9 +25,9 @@ def just_do_it(args):
             parts.append([])
         else:
             parts[-1].append(arg)
-    if len(parts) != 4 or len(parts[0]) != 3:
+    if len(parts) != 4 or len(parts[0]) != 4:
         raise Exception('Bad call')
-    main_out, app_name, module_dir = parts[0]
+    xcode_root, main_out, app_name, module_dir = parts[0]
     inputs, binaries, storyboard_user_flags = parts[1:]
     plists, storyboards, signs, nibs, resources, signed_resources, plist_jsons, strings = [], [], [], [], [], [], [], []
     for i in inputs:
@@ -86,7 +86,7 @@ def just_do_it(args):
         replaced_templates['$(' + k + ')'] = v
         replaced_templates['${' + k + '}'] = v
     make_main_plist(plists, os.path.join(app_dir, 'Info.plist'), replaced_templates)
-    link_storyboards(storyboards, app_name, app_dir, storyboard_user_flags)
+    link_storyboards(os.path.join(xcode_root, 'Contents/Developer/usr/bin/ibtool'), storyboards, app_name, app_dir, storyboard_user_flags)
     if resources:
         extract_resources(resources, app_dir)
     if signed_resources:
@@ -149,7 +149,7 @@ def make_main_plist(inputs, out, replaced_parameters):
     subprocess.check_call(['/usr/bin/plutil', '-convert', 'binary1', out])
 
 
-def link_storyboards(archives, app_name, app_dir, flags):
+def link_storyboards(ibtool, archives, app_name, app_dir, flags):
     unpacked = []
     for arc in archives:
         unpacked.append(os.path.splitext(arc)[0] + 'c')
@@ -160,7 +160,7 @@ def link_storyboards(archives, app_name, app_dir, flags):
         '--module', app_name,
         '--link', app_dir,
     ]
-    subprocess.check_call(['/usr/bin/xcrun', 'ibtool'] + flags +
+    subprocess.check_call([ibtool] + flags +
                           ['--errors', '--warnings', '--notices', '--output-format', 'human-readable-text'] +
                           unpacked)
 
