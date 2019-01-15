@@ -181,8 +181,12 @@ namespace NCudaLib {
 
     private:
         void WaitAllTaskToSubmit() {
+            ui32 i = 0;
             while (CheckRunningTasks()) {
-                SchedYield();
+                ++i;
+                if (i % 1000 == 0) {
+                    SchedYield();
+                }
             }
         }
 
