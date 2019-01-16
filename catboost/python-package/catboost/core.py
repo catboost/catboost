@@ -2087,6 +2087,7 @@ class CatBoostClassifier(CatBoost):
             if key not in not_params and value is not None:
                 params[key] = value
 
+        self._estimator_type = 'classifier'
         super(CatBoostClassifier, self).__init__(params)
 
     @property
@@ -2453,6 +2454,7 @@ class CatBoostRegressor(CatBoost):
             if key not in not_params and value is not None:
                 params[key] = value
 
+        self._estimator_type = 'regressor'
         super(CatBoostRegressor, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
