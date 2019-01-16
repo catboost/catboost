@@ -1,8 +1,11 @@
 #!/bin/sh -e
 
 rev=338120
+output_dir="libcxx-r$rev"
 
-svn export https://llvm.org/svn/llvm-project/libcxx/trunk@$rev libcxx-r$rev
-cd libcxx-r$rev
+svn checkout --depth=files --non-interactive https://llvm.org/svn/llvm-project/libcxx/trunk@$rev "$output_dir"
+cd "$output_dir"
 
-rm -r benchmarks cmake docs fuzzing lib test utils www CMakeLists.txt TODO.TXT .arcconfig .gitignore include/CMakeLists.txt appveyor.yml appveyor-reqs-install.cmd
+svn update --revision=$rev include src
+svn update --set-depth=exclude --revision=$rev CMakeLists.txt TODO.TXT .arcconfig .gitignore include/CMakeLists.txt appveyor.yml appveyor-reqs-install.cmd
+rm -rf .svn
