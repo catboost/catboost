@@ -55,6 +55,7 @@
         "rsync": {"description": "Run RSync"},
         "yt": {"description": "Run YT client"},
         "yp-util": {"description": "Run YP useful stuff"},
+        "yp": {"description": "Run low level YP client"},
         "yndexer": {"description": "Run Yndexer"},
         "ytyndexer": {"description": "Run YtYndexer"},
         "ymakeyndexer": {"description": "Run ymake ydx converter"},
@@ -817,6 +818,15 @@
         "yp-util": {
             "tools": {
                 "yp-util": { "bottle": "yp-util", "executable": "yp-util" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "yp": {
+            "tools": {
+                "yp": { "bottle": "yp", "executable": "yp" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1651,6 +1661,15 @@
             },
             "executable": {
                 "yp-util": ["yp_cli"]
+            }
+        },
+        "yp": {
+            "formula": {
+                "sandbox_id":  [362550511],
+                "match": "yp"
+            },
+            "executable": {
+                "yp": ["yp"]
             }
         },
         "vim": {
