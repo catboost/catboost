@@ -42,7 +42,7 @@
 13. Добавить новые способы анализа фичей:
 Для каждой флотной фичи строить графики, как от нее зависит таргет и прогноз. Добавить подсчет и отрисовку графиков в cmldine, python.
 
-14. Сделать пример использования CatBoost GPU в качестве Kaggle kernel.
+14. Example of Kaggle GPU kernel in tutorials.
 
 15. Задача, в которой надо разбираться:
 One-hot encoding in CoreML
@@ -51,9 +51,9 @@ One-hot encoding in CoreML
 
 16. Automatic `class_weights`/`scale_pos_weight` 
 
-17. Написать режим предсказания, в какой лист попадет объект.
+17. Mode of prediction that predicts which leaf is the object in.
 
-18. в cv разрешить свойство функций ошибок `skip_train`
+18. Allow `skip_train` `loss_function` property in cv method.
 
 19. shap values on subset
 Визуализация для shap values работает только на каком-то не очень большом числе объектов. Надо для визуализации сделать семплирование.
@@ -62,9 +62,9 @@ One-hot encoding in CoreML
 
 21. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
 
-22. попарные метрики `mode_eval_metrics`
+22. Pairwise metrics in `mode_eval_metrics`
 
-23. Переименовать Custom в UserDefined
+23. Rename Custom to UserDefined
 for user defined objectives.
 ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в названии и описании кастом убрать тоже
 
@@ -85,3 +85,5 @@ And if this is the case, then time estimates should be updated: time estimate is
 
 31. Classification loss for noizy data: see NeurIPS 2018 paper  
 Generalized Cross Entropy Loss for Training Deep Neural Networks with Noisy Labels
+
+32. Add CatBoostClassifier `predict_log_proba` and `decision_function` methods to support better sklearn API
