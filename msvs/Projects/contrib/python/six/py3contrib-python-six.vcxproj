@@ -172,7 +172,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
+"/place/sandbox-data/tasks/3/2/362613523/tmp/tmp.7iV9ezEr5i/v3/716727139/python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,7 +183,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
+"/place/sandbox-data/tasks/3/2/362613523/tmp/tmp.7iV9ezEr5i/v3/716727139/python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
