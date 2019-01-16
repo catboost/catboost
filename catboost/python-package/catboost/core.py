@@ -2934,6 +2934,12 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     else:
         assert nfold is None or nfold == fold_count
 
+    if 'cat_features' in params:
+        if set(pool.get_cat_feature_indices()) != set(params['cat_features']):
+            raise CatboostError("categorical features in params are different from ones in pool " + str(params['cat_features']) +
+                                " vs " + str(pool.get_cat_feature_indices()))
+        del params['cat_features']
+
     with log_fixup(), plot_wrapper(plot, params):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
                    as_pandas, max_time_spent_on_fixed_cost_ratio, dev_max_iterations_batch_size)
