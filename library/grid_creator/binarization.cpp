@@ -16,28 +16,28 @@ namespace {
     class TMedianInBinBinarizer: public IBinarizer {
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int bordersCount,
+                                    int maxBordersCount,
                                     bool isSorted) const override;
     };
 
     class TMedianPlusUniformBinarizer: public IBinarizer {
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int bordersCount,
+                                    int maxBordersCount,
                                     bool isSorted) const override;
     };
 
     class TMinEntropyBinarizer: public IBinarizer {
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int bordersCount,
+                                    int maxBordersCount,
                                     bool isSorted) const override;
     };
 
     class TMaxSumLogBinarizer: public IBinarizer {
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int bordersCount,
+                                    int maxBordersCount,
                                     bool isSorted) const override;
     };
 
@@ -45,14 +45,14 @@ namespace {
     class TMedianBinarizer: public IBinarizer {
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int bordersCount,
+                                    int maxBordersCount,
                                     bool isSorted) const override;
     };
 
     class TUniformBinarizer: public IBinarizer {
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
-                                    int bordersCount,
+                                    int maxBordersCount,
                                     bool isSorted) const override;
     };
 }
@@ -79,8 +79,8 @@ namespace NSplitSelection {
 }
 
 // TODO(yazevnul): fix memory use estimation
-size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSelectionType type) {
-    size_t bestSplitSize = docsCount * ((bordersCount + 2) * sizeof(size_t) + 4 * sizeof(double));
+size_t CalcMemoryForFindBestSplit(int maxBordersCount, size_t docsCount, EBorderSelectionType type) {
+    size_t bestSplitSize = docsCount * ((maxBordersCount + 2) * sizeof(size_t) + 4 * sizeof(double));
     if (type == EBorderSelectionType::MinEntropy || type == EBorderSelectionType::MaxLogSum) {
         bestSplitSize += docsCount * 3 * sizeof(float);
     }
@@ -88,7 +88,7 @@ size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSel
 }
 
 THashSet<float> BestSplit(TVector<float>& features,
-                          int bordersCount,
+                          int maxBordersCount,
                           EBorderSelectionType type,
                           bool nanValueIsInfty,
                           bool featuresAreSorted) {
@@ -105,7 +105,7 @@ THashSet<float> BestSplit(TVector<float>& features,
     }
 
     const auto binarizer = NSplitSelection::MakeBinarizer(type);
-    return binarizer->BestSplit(features, bordersCount, true);
+    return binarizer->BestSplit(features, maxBordersCount, true);
 }
 
 namespace {
@@ -144,11 +144,11 @@ static double Penalty(double weight, double, EPenaltyType type) {
 
 template <typename TWeightType>
 static void BestSplit(const TVector<TWeightType>& weights,
-                      size_t bordersCount,
+                      size_t maxBordersCount,
                       TVector<size_t>& thresholds,
                       EPenaltyType type,
                       ESF mode) {
-    size_t bins = bordersCount + 1;
+    size_t bins = maxBordersCount + 1;
     // Safety checks
     if (bins <= 1 || weights.empty()) {
         return;
@@ -639,12 +639,12 @@ static float RegularBorder(float border, const TVector<float>& sortedValues) {
 
 static THashSet<float> BestSplit(const TVector<float>& values,
                                  const TVector<float>& weight,
-                                 size_t bordersCount,
+                                 size_t maxBordersCount,
                                  EPenaltyType type) {
     // Positions after which threshold should be inserted.
     TVector<size_t> thresholds;
-    thresholds.reserve(bordersCount);
-    BestSplit(weight, bordersCount, thresholds, type, E_RLM2);
+    thresholds.reserve(maxBordersCount);
+    BestSplit(weight, maxBordersCount, thresholds, type, E_RLM2);
 
     THashSet<float> borders;
     borders.reserve(thresholds.size());
@@ -658,7 +658,7 @@ static THashSet<float> BestSplit(const TVector<float>& values,
 
 static THashSet<float> SplitWithGuaranteedOptimum(
     TVector<float>& featureValues,
-    int bordersCount,
+    int maxBordersCount,
     EPenaltyType type,
     bool isSorted) {
     if (!isSorted) {
@@ -682,19 +682,19 @@ static THashSet<float> SplitWithGuaranteedOptimum(
             weights.back()++;
         }
     }
-    return BestSplit(features, weights, bordersCount, type);
+    return BestSplit(features, weights, maxBordersCount, type);
 }
 
 static THashSet<float> GenerateMedianBorders(
-    const TVector<float>& featureValues, int bordersCount) {
+    const TVector<float>& featureValues, int maxBordersCount) {
     THashSet<float> result;
     ui64 total = featureValues.size();
     if (total == 0 || featureValues.front() == featureValues.back()) {
         return result;
     }
 
-    for (int i = 0; i < bordersCount; ++i) {
-        ui64 i1 = (i + 1) * total / (bordersCount + 1);
+    for (int i = 0; i < maxBordersCount; ++i) {
+        ui64 i1 = (i + 1) * total / (maxBordersCount + 1);
         i1 = Min(i1, total - 1);
         float val1 = featureValues[i1];
         if (val1 != featureValues[0]) {
@@ -705,25 +705,25 @@ static THashSet<float> GenerateMedianBorders(
 }
 
 THashSet<float> TMinEntropyBinarizer::BestSplit(
-    TVector<float>& featureValues, int bordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MinEntropy, isSorted);
+    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
+    return SplitWithGuaranteedOptimum(featureValues, maxBordersCount, EPenaltyType::MinEntropy, isSorted);
 }
 
 THashSet<float> TMaxSumLogBinarizer::BestSplit(
-    TVector<float>& featureValues, int bordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MaxSumLog, isSorted);
+    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
+    return SplitWithGuaranteedOptimum(featureValues, maxBordersCount, EPenaltyType::MaxSumLog, isSorted);
 }
 
 THashSet<float> TMedianBinarizer::BestSplit(
-    TVector<float>& featureValues, int bordersCount, bool isSorted) const {
+    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
     }
-    return GenerateMedianBorders(featureValues, bordersCount);
+    return GenerateMedianBorders(featureValues, maxBordersCount);
 }
 
 THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
-    TVector<float>& featureValues, int bordersCount, bool isSorted) const {
+    TVector<float>& featureValues, int maxBordersCount, bool isSorted) const {
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
     }
@@ -732,8 +732,8 @@ THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
         return THashSet<float>();
     }
 
-    int halfBorders = bordersCount / 2;
-    THashSet<float> borders = GenerateMedianBorders(featureValues, bordersCount - halfBorders);
+    int halfBorders = maxBordersCount / 2;
+    THashSet<float> borders = GenerateMedianBorders(featureValues, maxBordersCount - halfBorders);
 
     // works better on rel approximation with quadratic loss
     float minValue = featureValues.front();
@@ -748,7 +748,7 @@ THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
 }
 
 THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
-                                                int bordersCount,
+                                                int maxBordersCount,
                                                 bool isSorted) const {
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
@@ -762,8 +762,8 @@ THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
     float maxValue = featureValues.back();
 
     THashSet<float> borders;
-    for (int i = 0; i < bordersCount; ++i) {
-        borders.insert(minValue + (i + 1) * (maxValue - minValue) / (bordersCount + 1));
+    for (int i = 0; i < maxBordersCount; ++i) {
+        borders.insert(minValue + (i + 1) * (maxValue - minValue) / (maxBordersCount + 1));
     }
 
     return borders;
@@ -848,7 +848,7 @@ namespace {
 }
 
 THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
-                                                 int bordersCount, bool isSorted) const {
+                                                 int maxBordersCount, bool isSorted) const {
     THashSet<float> borders;
     if (featureValues.size()) {
         if (!isSorted) {
@@ -858,7 +858,7 @@ THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
         std::priority_queue<TFeatureBin> splits;
         splits.push(TFeatureBin(0, (ui32) featureValues.size(), featureValues.begin(), featureValues.end()));
 
-        while (splits.size() <= (ui32) bordersCount && splits.top().CanSplit()) {
+        while (splits.size() <= (ui32) maxBordersCount && splits.top().CanSplit()) {
             TFeatureBin top = splits.top();
             splits.pop();
             splits.push(top.Split());
