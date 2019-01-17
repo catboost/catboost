@@ -452,15 +452,6 @@ namespace {
                 ctx.LearnProgress.LabelConverter = labelConverter;
             }
 
-            TVector<ELossFunction> metrics;
-            if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {
-                metrics.push_back(ctx.Params.MetricOptions->EvalMetric->GetLossFunction());
-            }
-            metrics.push_back(ctx.Params.LossFunctionDescription->GetLossFunction());
-            for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
-                metrics.push_back(metric.GetLossFunction());
-            }
-
             ctx.OutputMeta();
 
             const auto& quantizedFeaturesInfo = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
