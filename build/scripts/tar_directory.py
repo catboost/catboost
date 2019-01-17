@@ -13,8 +13,10 @@ def main(args):
     tar, source, prefix = args[0], args[1], None
     if len(args) == 3:
         prefix = args[2]
-    if is_exe('/usr/bin/tar'):
-        os.execv('/usr/bin/tar', ['/usr/bin/tar', '-cf', tar] + (['-C', prefix] if prefix else []) + [source])
+    for tar_exe in ('/usr/bin/tar', '/bin/tar'):
+        if is_exe(tar_exe):
+            source = os.path.relpath(source, prefix)
+            os.execv(tar_exe, [tar_exe, '-cf', tar] + (['-C', prefix] if prefix else []) + [source])
     else:
         with tarfile.open(tar, 'w') as out:
             out.add(os.path.abspath(source), arcname=os.path.relpath(source, prefix) if prefix else None)
