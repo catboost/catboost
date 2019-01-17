@@ -149,6 +149,9 @@ static void Train(
             CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
         }
     }
+    if (!hasTest && !ctx->Params.MetricOptions->CustomMetrics->empty()) {
+        CATBOOST_WARNING_LOG << "Warning: Custom metrics will not be evaluated because there are no test datasets" << Endl;
+    }
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
