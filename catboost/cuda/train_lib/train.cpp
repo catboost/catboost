@@ -197,24 +197,28 @@ namespace NCatboostCuda {
         });
     }
 
-    static void SetDataDependentDefaults(const NCB::TTrainingDataProvider& dataProvider,
-                                         const NCB::TTrainingDataProvider* testProvider,
-                                         NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                         NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                         TBinarizedFeaturesManager& featuresManager,
-                                         NPar::TLocalExecutor* localExecutor) {
+    static void SetDataDependentDefaultsForGpu(const NCB::TTrainingDataProvider& dataProvider,
+                                               const NCB::TTrainingDataProvider* testProvider,
+                                               NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                               NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                               TBinarizedFeaturesManager& featuresManager,
+                                               NPar::TLocalExecutor* localExecutor) {
 
         bool hasTestConstTarget = true;
         bool hasTestPairs = false;
+        ui32 testPoolSize = 0;
         if (testProvider) {
             hasTestConstTarget = IsConst(GetTarget(testProvider->TargetData));
             hasTestPairs = testProvider->TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking));
+            testPoolSize = testProvider->GetObjectCount();
         }
 
-        UpdateUseBestModel(testProvider != nullptr, hasTestConstTarget, hasTestPairs, &outputOptions.UseBestModel);
-        UpdateLearningRate(dataProvider.GetObjectCount(), outputOptions.UseBestModel.Get(), &catBoostOptions);
-        UpdateBoostingTypeOption(dataProvider.GetObjectCount(),
-                                 &catBoostOptions.BoostingOptions->BoostingType);
+        SetDataDependentDefaults(dataProvider.GetObjectCount(),
+                                 testPoolSize,
+                                 hasTestConstTarget,
+                                 hasTestPairs,
+                                 &outputOptions.UseBestModel,
+                                 &catBoostOptions);
 
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams, localExecutor);
@@ -323,7 +327,7 @@ namespace NCatboostCuda {
 
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
-            SetDataDependentDefaults(
+            SetDataDependentDefaultsForGpu(
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 catBoostOptions,
