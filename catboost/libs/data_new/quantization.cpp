@@ -16,6 +16,7 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
+#include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/random/shuffle.h>
@@ -475,7 +476,7 @@ namespace NCB {
                 TResourceConstrainedExecutor resourceConstrainedExecutor(
                     *localExecutor,
                     "CPU RAM",
-                    options.CpuRamLimit - cpuRamUsage,
+                    options.CpuRamLimit - Min(cpuRamUsage, options.CpuRamLimit),
                     true
                 );
 

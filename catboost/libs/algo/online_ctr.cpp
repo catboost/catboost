@@ -720,7 +720,7 @@ void CalcFinalCtrsAndSaveToModel(
         NCB::TResourceConstrainedExecutor finalCtrExecutor(
             localExecutor,
             "CPU RAM",
-            cpuRamLimit - cpuRamUsage,
+            cpuRamLimit - Min(cpuRamLimit, cpuRamUsage),
             true
         );
 
