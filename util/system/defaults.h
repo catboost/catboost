@@ -66,56 +66,6 @@
 
 #include "types.h"
 
-typedef ui16 alias_hack ui16a;
-typedef ui32 alias_hack ui32a;
-typedef ui64 alias_hack ui64a;
-
-#if defined(__cplusplus)
-#if defined(_big_endian_)
-union u_u16 {
-    ui16a v;
-    struct {
-        ui8 hi8, lo8;
-    } u;
-} alias_hack;
-union u_u32 {
-    ui32a v;
-    float alias_hack f;
-    struct {
-        u_u16 hi16, lo16;
-    } u;
-} alias_hack;
-union u_u64 {
-    ui64a v;
-    double alias_hack f;
-    struct {
-        u_u32 hi32, lo32;
-    } u;
-} alias_hack;
-#else /* _little_endian_ */
-union u_u16 {
-    ui16a v;
-    struct {
-        ui8 lo8, hi8;
-    } alias_hack u;
-} alias_hack;
-union u_u32 {
-    ui32a v;
-    float alias_hack f;
-    struct {
-        u_u16 lo16, hi16;
-    } u;
-} alias_hack;
-union u_u64 {
-    ui64a v;
-    double alias_hack f;
-    struct {
-        u_u32 lo32, hi32;
-    } u;
-} alias_hack;
-#endif
-#endif
-
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
 #define PRAGMA(x) _Pragma(#x)
 #define RCSID(idstr) PRAGMA(comment(exestr, idstr))
