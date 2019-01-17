@@ -31,10 +31,6 @@ IF (OS_LINUX AND NOT CATBOOST_OPENSOURCE)
     )
 ENDIF()
 
-IF (CATBOOST_OPENSOURCE)
-    CFLAGS(-DCATBOOST_OPENSOURCE=1)
-ENDIF()
-
 PEERDIR(
     library/threading/mux_event
     library/binsaver
