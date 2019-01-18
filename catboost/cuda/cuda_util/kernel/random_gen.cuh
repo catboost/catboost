@@ -4,9 +4,7 @@
 
 
 namespace NKernel {
-    __forceinline__ __device__
-
-    ui64 AdvanceSeed(ui64* seed) {
+    __forceinline__ __host__ __device__ ui64 AdvanceSeed(ui64* seed) {
         ui32 v = *seed >> 32;
         ui32 u = *seed & 0xFFFFFFFF;
         v = 36969 * (v & 0xFFFF) + (v >> 16);
@@ -15,7 +13,7 @@ namespace NKernel {
         return *seed;
     }
 
-    __forceinline__ __device__ ui64 AdvanceSeed(ui64* seed, int k) {
+    __forceinline__ __host__ __device__ ui64 AdvanceSeed(ui64* seed, int k) {
         for (int i = 0; i < k; ++i) {
             AdvanceSeed(seed);
         }
@@ -23,7 +21,7 @@ namespace NKernel {
     }
 
 
-    __forceinline__ __device__ double NextUniform(ui64* seed) {
+    __forceinline__ __host__ __device__ double NextUniform(ui64* seed) {
         ui64 x = AdvanceSeed(seed);
         ui32 v = x >> 32;
         ui32 u = x & 0xFFFFFFFF;
@@ -49,7 +47,7 @@ namespace NKernel {
         return v * 2.328306435996595e-10f;
     }
 
-    __forceinline__ __device__ float NextNormal(ui64* seed) {
+    __forceinline__ __host__ __device__ float NextNormal(ui64* seed) {
         float a = NextUniform(seed);
         float b = NextUniform(seed);
         return sqrtf(-2.0f * logf(a)) * cosf(2.0f * CUDART_PI_F * b);

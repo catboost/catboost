@@ -17,12 +17,13 @@
 
 namespace NCatboostCuda {
 
+    template <class TTreeModel>
     class TGreedyTreeLikeStructureSearcher {
     public:
         using TDataSet = TDocParallelDataSet;
         using TVec = TStripeBuffer<float>;
         using TSampelsMapping = NCudaLib::TStripeMapping;
-        using TModel = TObliviousTreeModel;
+        using TModel = TTreeModel;
     public:
         TGreedyTreeLikeStructureSearcher(const TBinarizedFeaturesManager& featuresManager,
                                          const TTreeStructureSearcherOptions& searcherOptions)
@@ -46,6 +47,7 @@ namespace NCatboostCuda {
             TGreedySearchHelper searchHelper(dataSet,
                                              FeaturesManager,
                                              SearcherOptions,
+                                             objective.GetDim() + 1,
                                              objective.GetRandom()
                                              );
 

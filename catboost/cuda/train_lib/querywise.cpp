@@ -2,9 +2,9 @@
 #include <catboost/cuda/targets/querywise_targets_impl.h>
 
 namespace NCatboostCuda {
-    using TMultiClassTrainer = TGpuTrainer<TQuerywiseTargetsImpl>;
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> QrmseRegistrator(ELossFunction::QueryRMSE);
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> QsoftmaxRegistrator(ELossFunction::QuerySoftMax);
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> PairLogitRegistrator(ELossFunction::PairLogit);
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> YetiRankRegistrator(ELossFunction::YetiRank);
+    using TQuerywiseTrainer = TGpuTrainer<TQuerywiseTargetsImpl>;
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QrmseRegistrator(GetTrainerFactoryKey(ELossFunction::QueryRMSE));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QsoftmaxRegistrator(GetTrainerFactoryKey(ELossFunction::QuerySoftMax));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit));
+    TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> YetiRankRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRank));
 }

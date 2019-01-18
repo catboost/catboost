@@ -10,6 +10,8 @@ void FillBuffer(
     std::remove_const_t<T> value,
     ui32 streamId = 0);
 
+
+
 template <typename T, class TMapping>
 void MakeSequence(NCudaLib::TCudaBuffer<T, TMapping>& buffer, ui32 stream = 0);
 

@@ -37,13 +37,6 @@ namespace NKernel
     };
 
     template <>
-    struct TUnrollsTrait<0, ELoadType::FourElements> {
-        constexpr static int Outer() {
-            return 1;
-        }
-    };
-
-    template <>
     struct TDeclarePassInnerOuterBitsTrait<0> {
         constexpr static int Inner() {
             return 0;
@@ -253,6 +246,13 @@ namespace NKernel
                 }
             }
             __syncthreads();
+        }
+    };
+
+    template <>
+    struct TUnrollsTrait<0, ELoadType::FourElements> {
+        constexpr static int Outer() {
+            return 1;
         }
     };
 

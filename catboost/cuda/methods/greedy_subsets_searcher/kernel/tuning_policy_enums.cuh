@@ -48,4 +48,36 @@ namespace NKernel {
         }
     };
 
+
+
+    template <ELoadSize Size>
+    struct TLoadSizeHist2;
+
+    template <>
+    struct TLoadSizeHist2<ELoadSize::OneElement> {
+        static constexpr int Size() {
+            return 1;
+        }
+    };
+
+
+    template <>
+    struct TLoadSizeHist2<ELoadSize::TwoElements> {
+        static constexpr int Size() {
+            return 2;
+        }
+    };
+
+
+    template <>
+    struct TLoadSizeHist2<ELoadSize::FourElements> {
+        static constexpr int Size() {
+            #if __CUDA_ARCH__ < 700
+            return 4;
+            #else
+            return 8;
+            #endif
+        }
+    };
+
 }

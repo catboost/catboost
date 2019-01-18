@@ -72,4 +72,63 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream, TKernelContext& context) const;
     };
 
+
+
+    class TSplitPointsSingleLeafKernel: public TKernelBase<NKernel::TSplitPointsContext> {
+    private:
+        ui32 StatsPerKernel;
+        TCudaBufferPtr<const ui32> CompressedIndex;
+
+        TCFeature Feature;
+        ui32 FeatureBin;
+        ui32 LeafIdToSplit;
+        ui32 RightLeafIdAfterSplit;
+
+
+        TCudaBufferPtr<TDataPartition> PartitionsGpu;
+        TCudaHostBufferPtr<TDataPartition> PartitionsCpu;
+        TCudaBufferPtr<double> PartitionStats;
+
+        TCudaBufferPtr<ui32> Indices;
+        TCudaBufferPtr<float> Statistics;
+
+        ui32 BinFeatureCount;
+        TCudaBufferPtr<float> Histograms;
+    public:
+        TSplitPointsSingleLeafKernel(ui32 statsPerKernel,
+                                       TCudaBufferPtr<const unsigned int> compressedIndex,
+                                       TCFeature featuresToSplit,
+                                       ui32 featureBin,
+                                       ui32 leafIdToSplit,
+                                       ui32 rightLeafIdAfterSplit,
+                                       TCudaBufferPtr<TDataPartition> partitionsGpu,
+                                       TCudaHostBufferPtr<TDataPartition> partitionsCpu,
+                                       TCudaBufferPtr<double> partitionStats,
+                                       TCudaBufferPtr<unsigned int> indices,
+                                       TCudaBufferPtr<float> stats,
+                                       ui32 binFeatureCount,
+                                       TCudaBufferPtr<float> histograms);
+
+        using TKernelContext = NKernel::TSplitPointsContext;
+
+        Y_SAVELOAD_DEFINE(StatsPerKernel,
+                          Feature,
+                          FeatureBin,
+                          LeafIdToSplit,
+                          RightLeafIdAfterSplit,
+                          PartitionsGpu,
+                          PartitionsCpu,
+                          PartitionStats,
+                          Indices,
+                          Statistics,
+                          BinFeatureCount,
+                          Histograms);
+
+        TSplitPointsSingleLeafKernel() = default;
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& manager) const;
+
+        void Run(const TCudaStream& stream, TKernelContext& context) const;
+    };
+
 }

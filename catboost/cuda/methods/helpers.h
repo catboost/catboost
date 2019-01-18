@@ -38,6 +38,13 @@ namespace NCatboostCuda {
                                                const TFeatureParallelDataSet& dataSet,
                                                const TObliviousTreeStructure& structure);
 
+    TString SplitConditionToString(const TBinarizedFeaturesManager& featuresManager, const TBinarySplit& split);
+
+    TString SplitConditionToString(
+        const TBinarizedFeaturesManager& featuresManager,
+        const TBinarySplit& split,
+        ESplitValue value);
+
     void PrintBestScore(const TBinarizedFeaturesManager& featuresManager,
                         const TBinarySplit& bestSplit,
                         double score,

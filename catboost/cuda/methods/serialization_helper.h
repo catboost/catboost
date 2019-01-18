@@ -6,6 +6,8 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
+#include <catboost/cuda/models/region_model.h>
+#include <catboost/cuda/models/non_symmetric_tree.h>
 #include <utility>
 #include <catboost/libs/logging/logging.h>
 
@@ -82,13 +84,48 @@ namespace NCatboostCuda {
         }
     };
 
+    template <>
+    class TFeatureIdsRemaper<TRegionModel> {
+    public:
+        static TRegionModel Remap(TBinarizedFeaturesManager& featuresManager,
+                                  const TModelFeaturesMap& map,
+                                  const TRegionModel& src) {
+            TRegionStructure structure = src.GetStructure();
+            for (ui32 i = 0; i < structure.Splits.size(); ++i) {
+                structure.Splits[i].FeatureId = UpdateFeatureId(featuresManager, map, structure.Splits[i].FeatureId);
+            }
+            return TRegionModel(std::move(structure),
+                                src.GetValues(),
+                                src.GetWeights(),
+                                src.OutputDim());
+        }
+    };
+
+
+    template <>
+    class TFeatureIdsRemaper<TNonSymmetricTree> {
+    public:
+        static TNonSymmetricTree Remap(TBinarizedFeaturesManager& featuresManager,
+                                       const TModelFeaturesMap& map,
+                                       const TNonSymmetricTree& src) {
+            auto structure = src.GetStructure();
+            for (ui32 i = 0; i < structure.GetNodes().size(); ++i) {
+                structure.GetNodes()[i].FeatureId = UpdateFeatureId(featuresManager, map, structure.GetNodes()[i].FeatureId);
+            }
+            return TNonSymmetricTree(std::move(structure),
+                                     src.GetValues(),
+                                     src.GetWeights(),
+                                     src.OutputDim());
+        }
+    };
+
     template <class TModel>
     class TModelFeaturesBuilder;
 
     class TModelFeaturesMapUpdater {
     public:
         TModelFeaturesMapUpdater(const TBinarizedFeaturesManager& featuresManager,
-                                 TModelFeaturesMap& featuresMap)
+                                 TModelFeaturesMap & featuresMap)
             : FeaturesManager(featuresManager)
             , FeaturesMap(featuresMap)
         {
@@ -150,6 +187,30 @@ namespace NCatboostCuda {
                           TModelFeaturesMap& modelFeatures) {
             for (const auto& split : model.GetStructure().Splits) {
                 TModelFeaturesMapUpdater(manager, modelFeatures).AddFeature(split.FeatureId);
+            }
+        }
+    };
+
+    template <>
+    class TModelFeaturesBuilder<TRegionModel> {
+    public:
+        static void Write(const TBinarizedFeaturesManager& manager,
+                          const TRegionModel& model,
+                          TModelFeaturesMap& modelFeatures) {
+            for (const auto& split : model.GetStructure().Splits) {
+                TModelFeaturesMapUpdater(manager, modelFeatures).AddFeature(split.FeatureId);
+            }
+        }
+    };
+
+    template <>
+    class TModelFeaturesBuilder<TNonSymmetricTree> {
+    public:
+        static void Write(const TBinarizedFeaturesManager& manager,
+                          const TNonSymmetricTree& model,
+                          TModelFeaturesMap& modelFeatures) {
+            for (const auto& split : model.GetStructure().GetNodes()) {
+                TModelFeaturesMapUpdater(manager, modelFeatures).AddFeature((ui32)split.FeatureId);
             }
         }
     };

@@ -3,5 +3,5 @@
 
 namespace NCatboostCuda {
     using TPFoundFTrainer = TPairwiseGpuTrainer<TPFoundF>;
-    TGpuTrainerFactory::TRegistrator<TPFoundFTrainer> PFoundRegistrator(ELossFunction::YetiRankPairwise);
+    TGpuTrainerFactory::TRegistrator<TPFoundFTrainer> PFoundRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRankPairwise));
 }

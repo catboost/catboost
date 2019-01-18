@@ -288,7 +288,7 @@ namespace NKernel {
                     float2 localStats1[N];
                     float2 localStats2[N];
 
-                    #pragma unroll
+                    #pragma unroll N
                     for (int k = 0; k < N; ++k) {
                         localBins[k] = Ldg((uint2*) bins, warpSize * k);
                     }
@@ -297,7 +297,7 @@ namespace NKernel {
                     #pragma unroll
                     for (int k = 0; k < N; ++k) {
                         localStats1[k] = Ldg((float2*) stats, warpSize * k);
-                        localStats2[k] = Ldg((float2*)(stats +  statsLineSize), warpSize * k);
+                        localStats2[k] = Ldg((float2*)(stats + statsLineSize), warpSize * k);
                     }
 
                     stats += stripeSize;
@@ -327,7 +327,7 @@ namespace NKernel {
                 for (int j = 0; j < iterCount; ++j) {
                     int2 localIndices[N];
 
-                    #pragma unroll
+                    #pragma unroll N
                     for (int k = 0; k < N; ++k) {
                         localIndices[k] = Ldg((int2*)indices, warpSize * k);
                     }
@@ -336,13 +336,13 @@ namespace NKernel {
                     float2 localStats2[N];
                     uint2 localBins[N];
 
-                    #pragma unroll
+                    #pragma unroll N
                     for (int k = 0; k < N; ++k) {
                         localBins[k].x = Ldg(cindex, localIndices[k].x);
                         localBins[k].y = Ldg(cindex, localIndices[k].y);
                     }
 
-                    #pragma unroll
+                    #pragma unroll N
                     for (int k = 0; k < N; ++k) {
                         localStats1[k] = Ldg((float2*)stats, warpSize * k);
                         localStats2[k] = Ldg((float2*)(stats + statsLineSize), warpSize * k);
@@ -492,7 +492,7 @@ namespace NKernel {
     #undef ALIGN_MEMORY_GATHER
 
 
-    template <class THist, int BlockSize, int GroupSize>
+    template <class THist, int BlockSize, int GroupSize, bool SkipFirst>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
@@ -504,12 +504,10 @@ namespace NKernel {
             const ui32* __restrict__ bins,
             ui32 binsLineSize,
             const float* __restrict__ stats,
-            const short firstStatIdx, const short statCount,
             const int statsLineSize,
             const TDataPartition* __restrict__ partitions,
             const ui32* partIds,
             float* __restrict__ binSums) {
-
         const int partId = partIds[blockIdx.y];
         TDataPartition partition = partitions[partId];
 
@@ -529,7 +527,7 @@ namespace NKernel {
             return;
         }
 
-        stats += (firstStatIdx + 2 * blockIdx.z) * statsLineSize;
+        stats += ((SkipFirst ? 1 : 0) + 2 * blockIdx.z) * statsLineSize;
 
         constexpr int histSize = THist::GetHistSize();
         __shared__ float smem[histSize];
@@ -547,17 +545,19 @@ namespace NKernel {
 
         __syncthreads();
 
-        hist.AddToGlobalMemory(firstStatIdx + 2 * blockIdx.z, statCount,
+        const int statCount = gridDim.z * 2 + (SkipFirst ? 1 : 0);
+
+        hist.AddToGlobalMemory((SkipFirst ? 1 : 0) + 2 * blockIdx.z, statCount,
                                activeBlockCount,
                                features,
                                fCount,
-                               firstStatIdx + blockIdx.y,
-                               statCount,
+                               blockIdx.y,
+                               gridDim.y,
                                binSums);
     }
 
 
-    template <class THist, int BlockSize, int GroupSize>
+    template <class THist, int BlockSize, int GroupSize, bool SkipFirst>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
@@ -568,7 +568,6 @@ namespace NKernel {
             const ui32* __restrict__ cindex,
             const int* __restrict__ indices,
             const float* __restrict__ stats,
-            const short firstStatIdx, const short statCount,
             const int statsLineSize,
             const TDataPartition* __restrict__ partitions,
             const ui32* partIds,
@@ -594,7 +593,7 @@ namespace NKernel {
             return;
         }
 
-        stats += (firstStatIdx + 2 * blockIdx.z) * statsLineSize;
+        stats += ((SkipFirst ? 1 : 0)  + 2 * blockIdx.z) * statsLineSize;
 
         constexpr int histSize = THist::GetHistSize();
         __shared__ float smem[histSize];
@@ -613,7 +612,8 @@ namespace NKernel {
 
         __syncthreads();
 
-        hist.AddToGlobalMemory(firstStatIdx + 2 * blockIdx.z,
+        const int statCount = (SkipFirst ? 1 : 0) + 2 * gridDim.z;
+        hist.AddToGlobalMemory((SkipFirst ? 1 : 0) + 2 * blockIdx.z,
                                statCount,
                                activeBlockCount,
                                features,
@@ -623,4 +623,142 @@ namespace NKernel {
                                binSums);
 
     }
+
+
+
+
+    /* Single part */
+
+
+    template <class THist, int BlockSize, int GroupSize, bool SkipFirst>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesDirectLoadsTwoStastImpl(
+        const TFeatureInBlock* __restrict__ features,
+        int fCount,
+        const ui32* __restrict__ bins,
+        ui32 binsLineSize,
+        const float* __restrict__ stats,
+        const int statsLineSize,
+        const TDataPartition* __restrict__ partitions,
+        const ui32 partId,
+        float* __restrict__ binSums) {
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+        bins += (binsLineSize * (blockIdx.x / maxBlocksPerPart));
+        features += featureOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Direct);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats += ((SkipFirst ? 1 : 0) + 2 * blockIdx.z) * statsLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
+        TComputeHistogramTwoStats<THist>::Compute(bins,
+                                                  stats,
+                                                  statsLineSize,
+                                                  partition.Offset,
+                                                  partition.Size,
+                                                  localBlockIdx,
+                                                  activeBlockCount,
+                                                  hist
+        );
+
+        __syncthreads();
+
+        const int statCount = gridDim.z * 2 + (SkipFirst ? 1 : 0);
+
+        hist.AddToGlobalMemory((SkipFirst ? 1 : 0) + 2 * blockIdx.z, statCount,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               0,
+                               1,
+                               binSums);
+    }
+
+
+    template <class THist, int BlockSize, int GroupSize, bool SkipFirst>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesTwoStatsGatherImpl(
+        const TFeatureInBlock* __restrict__ features, int fCount,
+        const ui32* __restrict__ cindex,
+        const int* __restrict__ indices,
+        const float* __restrict__ stats,
+        const int statsLineSize,
+        const TDataPartition* __restrict__ partitions,
+        const ui32 partId,
+        float* __restrict__ binSums) {
+
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+
+        features += featureOffset;
+        cindex += features->CompressedIndexOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Gather);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats += ((SkipFirst ? 1 : 0)  + 2 * blockIdx.z) * statsLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
+        TComputeHistogramTwoStats<THist>::Compute(cindex,
+                                                  indices,
+                                                  stats,
+                                                  statsLineSize,
+                                                  partition.Offset,
+                                                  partition.Size,
+                                                  localBlockIdx,
+                                                  activeBlockCount,
+                                                  hist
+        );
+
+        __syncthreads();
+
+        const int statCount = (SkipFirst ? 1 : 0) + 2 * gridDim.z;
+        hist.AddToGlobalMemory((SkipFirst ? 1 : 0) + 2 * blockIdx.z,
+                               statCount,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               0,
+                               1,
+                               binSums);
+
+    }
+
+
 }

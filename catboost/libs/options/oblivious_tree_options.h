@@ -43,5 +43,8 @@ namespace NCatboostOptions {
         TGpuOnlyOption<EScoreFunction> ScoreFunction;
         TGpuOnlyOption<ui32> MaxCtrComplexityForBordersCaching;
         TGpuOnlyOption<ELeavesEstimationStepBacktracking> LeavesEstimationBacktrackingType;
+        TGpuOnlyOption<EGrowingPolicy> GrowingPolicy;
+        TGpuOnlyOption<ui32> MaxLeavesCount;
+        TGpuOnlyOption<double> MinSamplesInLeaf;
     };
 }

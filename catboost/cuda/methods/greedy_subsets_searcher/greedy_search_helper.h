@@ -15,13 +15,14 @@ namespace NCatboostCuda {
         TGreedySearchHelper(const TDocParallelDataSet& dataSet,
                             const TBinarizedFeaturesManager& featuresManager,
                             const TTreeStructureSearcherOptions& options,
+                            ui32 statCount,
                             TGpuAwareRandom& random
                             )
             : FeaturesManager(featuresManager)
             , Options(options)
             , SplitPropsHelper(dataSet,
                                featuresManager,
-                               GetComputeByBlocksHelper(dataSet, options))
+                               GetComputeByBlocksHelper(dataSet, options, statCount))
            , Random(random) {
         }
 
@@ -43,17 +44,17 @@ namespace NCatboostCuda {
 
         bool ShouldTerminate(const TPointsSubsets& subsets);
 
-        void MarkTerminal(TPointsSubsets* subsets);
+        void MarkTerminal(const TVector<ui32>& ids, TPointsSubsets* subsets);
 
         bool AreAllTerminal(const TPointsSubsets& subsets,
                             const TVector<ui32>& leaves);
 
         void SelectLeavesToSplit(const TPointsSubsets& subsets,
-                                 TVector<ui32>* leavesToSkip,
                                  TVector<ui32>* leavesToSplit);
 
         void SelectLeavesToVisit(const TPointsSubsets& subsets,
-                                 TVector<ui32>* leavesToVisit);
+                                 TVector<ui32>* leavesToVisit
+                                 );
 
         bool IsObliviousSplit() const {
             return Options.Policy == EGrowingPolicy::ObliviousTree;

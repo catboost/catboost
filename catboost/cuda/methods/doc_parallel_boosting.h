@@ -31,7 +31,6 @@ namespace NCatboostCuda {
         using TWeakLearner = TWeakLearner_;
         using TResultModel = TAdditiveModel<typename TWeakLearner::TResultModel>;
         using TWeakModel = typename TWeakLearner::TResultModel;
-        using TWeakModelStructure = typename TWeakLearner::TWeakModelStructure;
         using TVec = typename TObjective::TVec;
         using TConstVec = typename TObjective::TConstVec;
         using TDataSet = TDocParallelDataSet;

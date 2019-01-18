@@ -29,6 +29,10 @@ namespace NCatboostCuda {
         One,
     };
 
+    inline ui32 GetSplitValue(ESplitValue value) {
+        return value == ESplitValue::Zero ? 0 : 1;
+    }
+
     struct TBinarySplit {
         ui32 FeatureId = 0; //from feature manager
         ui32 BinIdx = 0;
@@ -47,6 +51,10 @@ namespace NCatboostCuda {
 
         bool operator<(const TBinarySplit& other) const {
             return std::tie(FeatureId, BinIdx, SplitType) < std::tie(other.FeatureId, other.BinIdx, other.SplitType);
+        }
+
+        bool operator<=(const TBinarySplit& other) const {
+            return std::tie(FeatureId, BinIdx, SplitType) <= std::tie(other.FeatureId, other.BinIdx, other.SplitType);
         }
 
         bool operator==(const TBinarySplit& other) const {

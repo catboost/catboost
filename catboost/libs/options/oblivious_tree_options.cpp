@@ -24,6 +24,10 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , ScoreFunction("score_function", EScoreFunction::Correlation, taskType)
       , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
       , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovment, taskType)
+      , GrowingPolicy("growing_policy", EGrowingPolicy::ObliviousTree, taskType)
+      , MaxLeavesCount("max_leaves_count", 31, taskType)
+      , MinSamplesInLeaf("min_samples_in_leaf", 1, taskType)
+
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
 
@@ -46,7 +50,11 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
             &PairwiseNonDiagReg,
             &LeavesEstimationBacktrackingType,
             &SamplingFrequency,
-            &DevScoreCalcObjBlockSize);
+            &DevScoreCalcObjBlockSize,
+            &GrowingPolicy,
+            &MaxLeavesCount,
+            &MinSamplesInLeaf
+            );
 
     Validate();
 }
@@ -59,20 +67,25 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
             PairwiseNonDiagReg,
             LeavesEstimationBacktrackingType,
             MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, SamplingFrequency,
-            DevScoreCalcObjBlockSize);
+            DevScoreCalcObjBlockSize,
+            GrowingPolicy,
+            MaxLeavesCount,
+            MinSamplesInLeaf
+            );
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TObliviousTreeLearnerOptions& rhs) const {
     return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg, RandomStrength,
             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching,
-            PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize
+            PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
+            GrowingPolicy, MaxLeavesCount, MinSamplesInLeaf
             ) ==
         std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
                 rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
                 rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
                 rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType,
-                rhs.DevScoreCalcObjBlockSize);
+                rhs.DevScoreCalcObjBlockSize, rhs.GrowingPolicy, rhs.MaxLeavesCount, rhs.MinSamplesInLeaf);
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator!=(const TObliviousTreeLearnerOptions& rhs) const {

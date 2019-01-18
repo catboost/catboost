@@ -78,6 +78,13 @@ enum class EBootstrapType {
     No
 };
 
+enum class EGrowingPolicy {
+    ObliviousTree,
+    Lossguide,
+    Levelwise,
+    Region
+};
+
 enum class ENanMode {
     Min,
     Max,

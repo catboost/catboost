@@ -30,11 +30,25 @@ namespace NKernel {
                              TSplitPointsContext& context,
                              TCudaStream stream);
 
+
+    void SortByFlagsInLeaf(ui32 leafId,const TDataPartition* partsCpu,
+                           TSplitPointsContext& context,
+                           TCudaStream stream);
+
     void UpdatePartitionsAfterSplit(const ui32* leftLeafs,
                                     const ui32* rightLeafs,
                                     ui32 leavesCount,
                                     const bool* sortedFlag,
                                     TDataPartition* parts,
+                                    TDataPartition* partsCpu,
+                                    TCudaStream stream);
+
+    void UpdatePartitionAfterSplit(const ui32 leftLeaf,
+                                    const ui32 rightLeaf,
+                                    ui32 leafSize,
+                                    const bool* sortedFlag,
+                                    TDataPartition* parts,
+                                    TDataPartition* partsCpu,
                                     TCudaStream stream);
 
     void SplitAndMakeSequenceInLeaves(const ui32* compressedIndex,
@@ -46,6 +60,18 @@ namespace NKernel {
                                       bool* splitFlags,
                                       ui32* indices,
                                       TCudaStream stream);
+
+    void SplitAndMakeSequenceInLeaf(const ui32* compressedIndex,
+                                    const ui32* loadIndices,
+                                    const TDataPartition* parts,
+                                    ui32 leafId,
+                                    ui32 leafSize,
+                                    TCFeature splitFeature,
+                                    ui32 splitBin,
+                                    bool* splitFlags,
+                                    ui32* indices,
+                                    TCudaStream stream);
+
 
 
     template <class T>
@@ -67,5 +93,47 @@ namespace NKernel {
                         ui32 numStats,
                         ui32 lineSize,
                         TCudaStream stream);
+
+
+    template <int Size>
+    void GatherInplaceLeqSize(const ui32* leaf, ui32 leavesCount,
+                              const TDataPartition* parts,
+                              const ui32* map,
+                              float* stats, ui32 statCount,
+                              ui64 lineSize,
+                              ui32* indices,
+                              TCudaStream stream);
+
+    template <int Size>
+    void GatherInplaceSingleLeaf(const ui32 leaf,
+                                 const TDataPartition* parts,
+                                 const ui32* map,
+                                 float* stats, ui32 statCount,
+                                 ui64 lineSize,
+                                 ui32* indices,
+                                 TCudaStream stream);
+
+    template <class T>
+    void GatherLeaf(const ui32 leafId, const ui32 leafSize,
+                    const TDataPartition* parts,
+                    const T* src,
+                    const ui32* map,
+                    T* dst,
+                    ui32 numStats,
+                    ui32 lineSize,
+                    TCudaStream stream);
+
+    template <class T>
+    void CopyLeaf(const ui32 leafId, const ui32 leafSize,
+                  const TDataPartition* parts,
+                  const T* src,
+                  T* dst,
+                  ui32 numStats,
+                  ui32 lineSize,
+                  TCudaStream stream);
+
+
+    ui32 FastSortSize();
+
 
 }

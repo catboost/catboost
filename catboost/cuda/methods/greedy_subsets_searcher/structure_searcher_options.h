@@ -9,12 +9,7 @@
 #include <catboost/cuda/methods/weak_target_helpers.h>
 
 namespace NCatboostCuda {
-    enum class EGrowingPolicy {
-        ObliviousTree,
-        Leafwise,
-        Levelwise,
-        Region
-    };
+
 
     struct TTreeStructureSearcherOptions {
         EScoreFunction ScoreFunction = EScoreFunction::Correlation;
@@ -24,7 +19,7 @@ namespace NCatboostCuda {
         double L2Reg = 3.0;
         EGrowingPolicy Policy = EGrowingPolicy::ObliviousTree;
 
-        ui32 MinLeafSize = 0;
+        double MinLeafSize = 1;
         double RandomStrength = 0;
     };
 }

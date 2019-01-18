@@ -67,36 +67,81 @@ bool NCatboostCuda::HasPermutationDependentSplit(const NCatboostCuda::TOblivious
     return false;
 }
 
-void NCatboostCuda::PrintBestScore(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
-                                   const NCatboostCuda::TBinarySplit& bestSplit, double score, ui32 depth) {
+
+TString NCatboostCuda::SplitConditionToString(
+    const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
+    const NCatboostCuda::TBinarySplit& split) {
     TString splitTypeMessage;
 
-    if (bestSplit.SplitType == EBinSplitType::TakeBin) {
+    if (split.SplitType == EBinSplitType::TakeBin) {
         splitTypeMessage = "TakeBin";
     } else {
-        const auto& borders =  featuresManager.GetBorders(bestSplit.FeatureId);
-        auto nanMode = featuresManager.GetNanMode(bestSplit.FeatureId);
+        const auto& borders =  featuresManager.GetBorders(split.FeatureId);
+        auto nanMode = featuresManager.GetNanMode(split.FeatureId);
         TStringBuilder messageBuilder;
         if (nanMode == ENanMode::Forbidden) {
-            messageBuilder << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx];
+            messageBuilder << ">" << featuresManager.GetBorders(split.FeatureId)[split.BinIdx];
         } else if (nanMode == ENanMode::Min) {
-            if (bestSplit.BinIdx > 0) {
-                messageBuilder << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx - 1];
+            if (split.BinIdx > 0) {
+                messageBuilder << ">" << featuresManager.GetBorders(split.FeatureId)[split.BinIdx - 1];
             } else {
                 messageBuilder << "== -inf (nan)";
             }
         } else {
             Y_VERIFY(nanMode == ENanMode::Max);
-            if (bestSplit.BinIdx < borders.size()) {
-                messageBuilder << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx];
+            if (split.BinIdx < borders.size()) {
+                messageBuilder << ">" << featuresManager.GetBorders(split.FeatureId)[split.BinIdx];
             } else {
-                Y_VERIFY(bestSplit.BinIdx == borders.size());
+                Y_VERIFY(split.BinIdx == borders.size());
                 messageBuilder << "== +inf (nan)";
             }
         }
 
         splitTypeMessage = messageBuilder;
     }
+    return splitTypeMessage;
+}
+
+
+TString NCatboostCuda::SplitConditionToString(
+    const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
+    const NCatboostCuda::TBinarySplit& split,
+    ESplitValue value) {
+    TString splitTypeMessage;
+    const bool inverse = value == ESplitValue::Zero;
+
+    if (split.SplitType == EBinSplitType::TakeBin) {
+        splitTypeMessage = inverse ? "SkipBin" : "TakeBin";
+    } else {
+        const auto& borders =  featuresManager.GetBorders(split.FeatureId);
+        auto nanMode = featuresManager.GetNanMode(split.FeatureId);
+        TStringBuilder messageBuilder;
+        if (nanMode == ENanMode::Forbidden) {
+            messageBuilder << (inverse ? "<=" : ">") << featuresManager.GetBorders(split.FeatureId)[split.BinIdx];
+        } else if (nanMode == ENanMode::Min) {
+            if (split.BinIdx > 0) {
+                messageBuilder << (inverse ? "<=" : ">") << featuresManager.GetBorders(split.FeatureId)[split.BinIdx - 1];
+            } else {
+                messageBuilder << (inverse ? "!=" : "==") << " -inf (nan)";
+            }
+        } else {
+            Y_VERIFY(nanMode == ENanMode::Max);
+            if (split.BinIdx < borders.size()) {
+                messageBuilder << (inverse ? "<=" : ">") << featuresManager.GetBorders(split.FeatureId)[split.BinIdx];
+            } else {
+                Y_VERIFY(split.BinIdx == borders.size());
+                messageBuilder << (inverse ? "!=" : "==") << " +inf (nan)";
+            }
+        }
+
+        splitTypeMessage = messageBuilder;
+    }
+    return splitTypeMessage;
+}
+
+void NCatboostCuda::PrintBestScore(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
+                                   const NCatboostCuda::TBinarySplit& bestSplit, double score, ui32 depth) {
+    TString splitTypeMessage = SplitConditionToString(featuresManager, bestSplit);
     TStringBuilder logEntry;
     logEntry
         << "Best split for depth " << depth << ": " << bestSplit.FeatureId << " / " << bestSplit.BinIdx << " ("
@@ -125,3 +170,4 @@ NCatboostCuda::TBinarySplit NCatboostCuda::ToSplit(const NCatboostCuda::TBinariz
     }
     return bestSplit;
 }
+

@@ -23,6 +23,7 @@ namespace NCatboostCuda {
                                               const TComputeByBlocksConfig& splitPropsConfig)
             : DataSet(dataSet)
             , CompressedIndexStorage(dataSet.GetCompressedIndex().GetStorage())
+            , StreamsCount(splitPropsConfig.StreamCount)
         {
             Rebuild(splitPropsConfig);
         }
@@ -99,6 +100,10 @@ namespace NCatboostCuda {
             return BinarizedFeatures;
         }
 
+
+        ui32 GetStreamCount() const {
+            return StreamsCount;
+        }
     private:
         void Rebuild(const TComputeByBlocksConfig& splitPropsConfig);
 
@@ -128,10 +133,10 @@ namespace NCatboostCuda {
         TStripeBuffer<TCBinFeature> BinFeatures;
 
         //TODO(noxoomo): tune it
-        const ui32 StreamsCount = 2;
+        ui32 StreamsCount = 3;
     };
 
     TComputeSplitPropertiesByBlocksHelper& GetComputeByBlocksHelper(const TDocParallelDataSet& dataSet,
-                                                                    const TTreeStructureSearcherOptions& options);
+                                                                    const TTreeStructureSearcherOptions& options, ui32 statCount);
 
 }

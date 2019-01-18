@@ -10,9 +10,36 @@
 
 #include <catboost/cuda/methods/greedy_subsets_searcher/kernel/histogram_utils.cuh>
 #include <catboost/cuda/methods/greedy_subsets_searcher/kernel/hist.cuh>
+#include <catboost/cuda/methods/greedy_subsets_searcher/kernel/hist_single_leaf.cuh>
 #include <catboost/cuda/methods/greedy_subsets_searcher/kernel/gather_bins.cuh>
 
 namespace NKernelHost {
+
+
+    template <class T>
+    class TZeroBuffer : public TStatelessKernel {
+    private:
+        TCudaBufferPtr<T> Buffer;
+
+    public:
+        TZeroBuffer(TCudaBufferPtr<T> ptr)
+        : Buffer(ptr) {
+
+        }
+
+        TZeroBuffer() = default;
+
+        Y_SAVELOAD_DEFINE(Buffer);
+
+        void Run(const TCudaStream& stream) const {
+            ui64 size = Buffer.Size() * sizeof(T);
+            void* ptr = Buffer.Get();
+
+            CUDA_SAFE_CALL(cudaMemsetAsync(ptr, 0, size, stream.GetStream()));
+        }
+    };
+
+
     class TWriteInitPartitions: public TStatelessKernel {
     private:
         TCudaHostBufferPtr<TDataPartition> PartCpu;
@@ -119,6 +146,48 @@ namespace NKernelHost {
         }
     };
 
+
+
+    class TWriteReducesHistogramKernel: public TStatelessKernel {
+    private:
+        ui32 BlockOffset;
+        ui32 HistBlockSize;
+        ui32 HistogramId;
+        ui32 StatCount;
+        TCudaBufferPtr<const float> BlockHistogram;
+        ui32 BinFeatureCount;
+        TCudaBufferPtr<float> DstHistogram;
+
+    public:
+        TWriteReducesHistogramKernel() = default;
+
+        TWriteReducesHistogramKernel(ui32 blockOffset,
+                                      ui32 histBlockSize,
+                                      ui32 histogramId,
+                                      ui32 statCount,
+                                      TCudaBufferPtr<const float> blockHistogram,
+                                      ui32 binFeatureCount,
+                                      TCudaBufferPtr<float> dstHistogram)
+            : BlockOffset(blockOffset)
+              , HistBlockSize(histBlockSize)
+              , HistogramId(histogramId)
+              , StatCount(statCount)
+              , BlockHistogram(blockHistogram)
+              , BinFeatureCount(binFeatureCount)
+              , DstHistogram(dstHistogram)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(BlockOffset, HistBlockSize, HistogramId, StatCount, BlockHistogram, BinFeatureCount,
+                          DstHistogram);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::WriteReducesHistogram(BlockOffset, HistBlockSize, HistogramId,
+                                            StatCount, BlockHistogram.Get(), BinFeatureCount, DstHistogram.Get(),
+                                            stream.GetStream());
+        }
+    };
+
     class TZeroHistogramsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> HistIds;
@@ -148,7 +217,37 @@ namespace NKernelHost {
         }
     };
 
-    class TSubstractHistgoramsKernel: public TStatelessKernel {
+
+    class TZeroHistogramKernel: public TStatelessKernel {
+    private:
+        ui32 HistId;
+        ui32 StatCount;
+        ui32 BinFeatureCount;
+        TCudaBufferPtr<float> DstHistogram;
+
+    public:
+        TZeroHistogramKernel() = default;
+
+        TZeroHistogramKernel(ui32 histId,
+                              ui32 statCount,
+                              ui32 binFeatureCount,
+                              TCudaBufferPtr<float> dstHistogram)
+            : HistId(histId)
+              , StatCount(statCount)
+              , BinFeatureCount(binFeatureCount)
+              , DstHistogram(dstHistogram)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(HistId, StatCount, BinFeatureCount, DstHistogram);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::ZeroHistogram(HistId, StatCount, BinFeatureCount, DstHistogram.Get(),
+                                   stream.GetStream());
+        }
+    };
+
+    class TSubstractHistogramsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> FromIds;
         TCudaBufferPtr<const ui32> WhatIds;
@@ -157,9 +256,9 @@ namespace NKernelHost {
         TCudaBufferPtr<float> DstHistogram;
 
     public:
-        TSubstractHistgoramsKernel() = default;
+        TSubstractHistogramsKernel() = default;
 
-        TSubstractHistgoramsKernel(TCudaBufferPtr<const ui32> fromIds, TCudaBufferPtr<const ui32> whatIds,
+        TSubstractHistogramsKernel(TCudaBufferPtr<const ui32> fromIds, TCudaBufferPtr<const ui32> whatIds,
                                    ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> dstHistogram)
             : FromIds(fromIds)
             , WhatIds(whatIds)
@@ -179,7 +278,37 @@ namespace NKernelHost {
         }
     };
 
-    class TScanHistgoramsKernel: public TStatelessKernel {
+
+    class TSubstractHistogramKernel: public TStatelessKernel {
+    private:
+        ui32 FromId;
+        ui32 WhatId;
+        ui32 StatCount;
+        ui32 BinFeatureCount;
+        TCudaBufferPtr<float> DstHistogram;
+
+    public:
+        TSubstractHistogramKernel() = default;
+
+        TSubstractHistogramKernel(ui32 fromIds, ui32 whatIds,
+                                   ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> dstHistogram)
+            : FromId(fromIds)
+              , WhatId(whatIds)
+              , StatCount(statCount)
+              , BinFeatureCount(binFeatureCount)
+              , DstHistogram(dstHistogram)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(FromId, WhatId, StatCount, BinFeatureCount, DstHistogram);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::SubstractHistgoram(FromId, WhatId, StatCount, BinFeatureCount,
+                                         DstHistogram.Get(), stream.GetStream());
+        }
+    };
+
+    class TScanHistogramsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TBinarizedFeature> Features;
         TCudaBufferPtr<const ui32> Ids;
@@ -188,9 +317,9 @@ namespace NKernelHost {
         TCudaBufferPtr<float> Histograms;
 
     public:
-        TScanHistgoramsKernel() = default;
+        TScanHistogramsKernel() = default;
 
-        TScanHistgoramsKernel(TCudaBufferPtr<const TBinarizedFeature> features, TCudaBufferPtr<const ui32> ids,
+        TScanHistogramsKernel(TCudaBufferPtr<const TBinarizedFeature> features, TCudaBufferPtr<const ui32> ids,
                               ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> histograms)
             : Features(features)
             , Ids(ids)
@@ -203,8 +332,41 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Features, Ids, StatCount, BinFeatureCount, Histograms);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::ScanHistgorams(Features.Get(), Features.Size(),
+            NKernel::ScanHistograms(Features.Get(), Features.Size(),
                                     Ids.Get(), Ids.Size(),
+                                    StatCount, BinFeatureCount, Histograms.Get(),
+                                    stream.GetStream());
+        }
+    };
+
+
+    class TScanHistogramKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const TBinarizedFeature> Features;
+        ui32 Id;
+        ui32 StatCount;
+        ui32 BinFeatureCount;
+        TCudaBufferPtr<float> Histograms;
+
+    public:
+        TScanHistogramKernel() = default;
+
+        TScanHistogramKernel(TCudaBufferPtr<const TBinarizedFeature> features,
+                             ui32 id,
+                              ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> histograms)
+            : Features(features)
+              , Id(id)
+              , StatCount(statCount)
+              , BinFeatureCount(binFeatureCount)
+              , Histograms(histograms)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Features, Id, StatCount, BinFeatureCount, Histograms);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::ScanHistogram(Features.Get(), Features.Size(),
+                                    Id,
                                     StatCount, BinFeatureCount, Histograms.Get(),
                                     stream.GetStream());
         }
@@ -399,6 +561,202 @@ namespace NKernelHost {
             }
         }
     };
+
+
+
+    /* Single histograms */
+
+    class TComputeSingleHistKernelLoadByIndex: public TStatelessKernel {
+    private:
+        NCatboostCuda::EFeaturesGroupingPolicy Policy;
+        int MaxBins;
+        TCudaBufferPtr<const TFeatureInBlock> Groups;
+        TCudaBufferPtr<const TDataPartition> Parts;
+        ui32 PartId;
+        TCudaBufferPtr<const ui32> Cindex;
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<const float> Stats;
+        TCudaBufferPtr<float> Histograms;
+
+    public:
+        TComputeSingleHistKernelLoadByIndex() = default;
+
+        TComputeSingleHistKernelLoadByIndex(NCatboostCuda::EFeaturesGroupingPolicy policy,
+                                      int maxBins,
+                                      TCudaBufferPtr<const TFeatureInBlock> groups,
+                                      TCudaBufferPtr<const TDataPartition> parts,
+                                      ui32 partId,
+                                      TCudaBufferPtr<const ui32> cindex,
+                                      TCudaBufferPtr<const ui32> indices,
+                                      TCudaBufferPtr<const float> stats,
+                                      TCudaBufferPtr<float> histograms)
+            : Policy(policy)
+              , MaxBins(maxBins)
+              , Groups(groups)
+              , Parts(parts)
+              , PartId(partId)
+              , Cindex(cindex)
+              , Indices(indices)
+              , Stats(stats)
+              , Histograms(histograms)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Policy, MaxBins, Groups, Parts, PartId, Cindex, Indices, Stats, Histograms);
+
+        void Run(const TCudaStream& stream) const {
+            if (Policy == NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures) {
+                NKernel::ComputeHistBinary(Groups.Get(),
+                                           Groups.Size(),
+                                           Parts.Get(),
+                                           PartId,
+                                           Cindex.Get(),
+                                           reinterpret_cast<const int*>(Indices.Get()),
+                                           Stats.Get(),
+                                           Stats.GetColumnCount(),
+                                           Stats.AlignedColumnSize(),
+                                           Histograms.Get(),
+                                           stream.GetStream());
+
+            } else if (Policy == NCatboostCuda::EFeaturesGroupingPolicy::HalfByteFeatures) {
+                NKernel::ComputeHistHalfByte(Groups.Get(),
+                                             Groups.Size(),
+                                             Parts.Get(),
+                                             PartId,
+                                             Cindex.Get(),
+                                             reinterpret_cast<const int*>(Indices.Get()),
+                                             Stats.Get(),
+                                             Stats.GetColumnCount(),
+                                             Stats.AlignedColumnSize(),
+                                             Histograms.Get(),
+                                             stream.GetStream());
+
+            } else {
+                CB_ENSURE(Policy == NCatboostCuda::EFeaturesGroupingPolicy::OneByteFeatures);
+                NKernel::ComputeHistOneByte(MaxBins,
+                                            Groups.Get(),
+                                            Groups.Size(),
+                                            Parts.Get(),
+                                            PartId,
+                                            Cindex.Get(),
+                                            reinterpret_cast<const int*>(Indices.Get()),
+                                            Stats.Get(),
+                                            Stats.GetColumnCount(),
+                                            Stats.AlignedColumnSize(),
+                                            Histograms.Get(),
+                                            stream.GetStream());
+            }
+        }
+    };
+
+    class TComputeSingleHistKernelGatherBins: public TStatelessKernel {
+    private:
+        NCatboostCuda::EFeaturesGroupingPolicy Policy;
+        int MaxBins;
+        TCudaBufferPtr<const TFeatureInBlock> FeaturesInBlock;
+        TCudaBufferPtr<const TDataPartition> Parts;
+        ui32 PartId;
+
+        TCudaBufferPtr<const ui32> Cindex;
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<const float> Stats;
+
+        TCudaBufferPtr<ui32> TempIndex;
+        TCudaBufferPtr<float> Histograms;
+
+    public:
+        TComputeSingleHistKernelGatherBins() = default;
+
+        TComputeSingleHistKernelGatherBins(NCatboostCuda::EFeaturesGroupingPolicy policy,
+                                     int maxBins,
+                                     TCudaBufferPtr<const TFeatureInBlock> groups,
+                                     TCudaBufferPtr<const TDataPartition> parts,
+                                     ui32 partId,
+                                     TCudaBufferPtr<const ui32> cindex,
+                                     TCudaBufferPtr<const ui32> indices,
+                                     TCudaBufferPtr<const float> stats,
+                                     TCudaBufferPtr<ui32> tempBins,
+                                     TCudaBufferPtr<float> histograms)
+            : Policy(policy)
+              , MaxBins(maxBins)
+              , FeaturesInBlock(groups)
+              , Parts(parts)
+              , PartId(partId)
+              , Cindex(cindex)
+              , Indices(indices)
+              , Stats(stats)
+              , TempIndex(tempBins)
+              , Histograms(histograms)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Policy, MaxBins, FeaturesInBlock, Parts, PartId, Cindex, Indices, Stats, Histograms, TempIndex);
+
+        void Run(const TCudaStream& stream) const {
+            const int featuresPerInt = NCatboostCuda::GetFeaturesPerInt(Policy);
+            NKernel::GatherCompressedIndex(FeaturesInBlock.Get(),
+                                           FeaturesInBlock.Size(),
+                                           featuresPerInt,
+                                           Parts.Get(),
+                                           PartId,
+                                           Indices.Get(),
+                                           Cindex.Get(),
+                                           TempIndex.AlignedColumnSize(),
+                                           TempIndex.Get(),
+                                           stream.GetStream());
+
+            if (Policy == NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures) {
+                NKernel::ComputeHistBinary(FeaturesInBlock.Get(),
+                                           FeaturesInBlock.Size(),
+                                           Parts.Get(),
+                                           PartId,
+                                           TempIndex.Get(),
+                                           TempIndex.AlignedColumnSize(),
+                                           Stats.Get(),
+                                           Stats.GetColumnCount(),
+                                           Stats.AlignedColumnSize(),
+                                           Histograms.Get(),
+                                           stream.GetStream());
+
+            } else if (Policy == NCatboostCuda::EFeaturesGroupingPolicy::HalfByteFeatures) {
+                NKernel::ComputeHistHalfByte(FeaturesInBlock.Get(),
+                                             FeaturesInBlock.Size(),
+                                             Parts.Get(),
+                                             PartId,
+                                             TempIndex.Get(),
+                                             TempIndex.AlignedColumnSize(),
+                                             Stats.Get(),
+                                             Stats.GetColumnCount(),
+                                             Stats.AlignedColumnSize(),
+                                             Histograms.Get(),
+                                             stream.GetStream());
+
+            } else {
+                CB_ENSURE(Policy == NCatboostCuda::EFeaturesGroupingPolicy::OneByteFeatures);
+                NKernel::ComputeHistOneByte(MaxBins,
+                                            FeaturesInBlock.Get(),
+                                            FeaturesInBlock.Size(),
+                                            Parts.Get(),
+                                            PartId,
+                                            TempIndex.Get(),
+                                            TempIndex.AlignedColumnSize(),
+                                            Stats.Get(),
+                                            Stats.GetColumnCount(),
+                                            Stats.AlignedColumnSize(),
+                                            Histograms.Get(),
+                                            stream.GetStream());
+            }
+        }
+    };
+}
+
+
+template <typename T, class TMapping>
+void ZeroBuffer(
+    NCudaLib::TCudaBuffer<T, TMapping>& buffer,
+    ui32 streamId = 0) {
+    using TKernel = NKernelHost::TZeroBuffer<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), streamId, buffer);
 }
 
 inline void WriteInitPartitions(const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& indices,
@@ -463,64 +821,189 @@ namespace NCatboostCuda {
         }
     }
 
+    inline static void FastUpdateLeavesSizes(const TVector<ui32>& ids,
+                                             TPointsSubsets* subsets) {
+        const ui32 devCount = static_cast<const ui32>(NCudaLib::GetCudaManager().GetDeviceCount());
+
+        for (const auto newId : ids) {
+            TVector<TDataPartition> partsCpu;
+            auto currentParts = NCudaLib::ParallelStripeView(subsets->PartitionsCpu, TSlice(newId, newId + 1));
+            currentParts.Read(partsCpu);
+
+            ui32 partSize = 0;
+            for (ui32 dev = 0; dev < devCount; ++dev) {
+                partSize += partsCpu[dev].Size;
+            }
+            subsets->Leaves[newId].Size = partSize;
+        }
+    }
+
     /* this one split points. Everything, except histograms will be good after */
     void TSplitPropertiesHelper::MakeSplit(const TVector<ui32>& leavesToSplit,
-                                           TPointsSubsets* subsets) {
+                                           TPointsSubsets* subsets,
+                                           TVector<ui32>* leftIdsPtr,
+                                           TVector<ui32>* rightIdsPtr
+                                           ) {
         const ui32 leavesCount = static_cast<const ui32>(subsets->Leaves.size());
         const ui32 newLeaves = static_cast<const ui32>(leavesToSplit.size());
-        auto& profiler = NCudaLib::GetProfiler();
-        auto guard = profiler.Profile(TStringBuilder() << "Leaves split #" << newLeaves << " leaves");
-        if (newLeaves == 0) {
-            return;
+        if (newLeaves == 1) {
+            MakeSplit(leavesToSplit[0], subsets, leftIdsPtr, rightIdsPtr);
+        } else {
+            auto& profiler = NCudaLib::GetProfiler();
+            auto guard = profiler.Profile(TStringBuilder() << "Leaves split #" << newLeaves << " leaves");
+            if (newLeaves == 0) {
+                return;
+            }
+            subsets->Leaves.resize(leavesCount + newLeaves);
+
+            TVector<ui32>& leftIds = *leftIdsPtr;
+            TVector<ui32>& rightIds = *rightIdsPtr;
+            leftIds.clear();
+            rightIds.clear();
+
+            TVector<ui32> splitBins;
+
+            TStripeBuffer<TCFeature> splitFeaturesGpu;
+            {
+                NCudaLib::TParallelStripeVectorBuilder<TCFeature> splitsFeaturesBuilder;
+
+                for (size_t i = 0; i < newLeaves; ++i) {
+                    const ui32 leftId = leavesToSplit[i];
+                    const ui32 rightId = static_cast<const ui32>(leavesCount + i);
+
+                    TLeaf leaf = subsets->Leaves[leftId];
+
+                    Y_VERIFY(subsets->Leaves[leftId].BestSplit.Defined());
+
+                    TBinarySplit splitFeature = ToSplit(FeaturesManager,
+                                                        subsets->Leaves[leftId].BestSplit);
+
+                    TLeaf left = SplitLeaf(leaf, splitFeature, ESplitValue::Zero);
+                    TLeaf right = SplitLeaf(leaf, splitFeature, ESplitValue::One);
+
+                    subsets->Leaves[leftId] = left;
+                    subsets->Leaves[rightId] = right;
+
+                    splitsFeaturesBuilder.Add(DataSet.GetTCFeature(splitFeature.FeatureId));
+                    splitBins.push_back(splitFeature.BinIdx);
+
+                    leftIds.push_back(leftId);
+                    rightIds.push_back(rightId);
+                }
+                splitsFeaturesBuilder.Build(splitFeaturesGpu);
+            }
+
+            const TSlice binsSlice = TSlice(0, splitBins.size());
+            const TSlice leftIdsSlice = TSlice(binsSlice.Right, binsSlice.Right + leftIds.size());
+            const TSlice rightIdsSlice = TSlice(leftIdsSlice.Right, leftIdsSlice.Right + rightIds.size());
+
+            auto allUi32Data = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(rightIdsSlice.Right));
+            auto allUi32DataCpu = TMirrorHostBuffer<ui32>::Create(NCudaLib::TMirrorMapping(rightIdsSlice.Right));
+
+            auto splitBinsGpu = allUi32Data.SliceView(binsSlice);
+            auto leftIdsGpu = allUi32Data.SliceView(leftIdsSlice);
+            auto rightIdsGpu = allUi32Data.SliceView(rightIdsSlice);
+            auto leftIdsCpu = allUi32DataCpu.SliceView(leftIdsSlice);
+
+            {
+                TVector<ui32> tmp;
+                tmp.insert(tmp.end(), splitBins.begin(), splitBins.end());
+                tmp.insert(tmp.end(), leftIds.begin(), leftIds.end());
+                tmp.insert(tmp.end(), rightIds.begin(), rightIds.end());
+                allUi32DataCpu.Write(tmp);
+                allUi32Data.Copy(allUi32DataCpu);
+            }
+
+            /*
+             * Allocates temp memory
+             * Makes segmented sequence
+             * Write parts flags
+             * Makes segmented sort
+             * Segmented gather for each stats + indices
+             * Update part offsets and sizes
+             * Update part stats
+             * copy histograms for new leaves so we could skip complex "choose leaf to compute" logic
+             */
+            {
+                auto guard = profiler.Profile(TStringBuilder() << "Split points kernel #" << newLeaves << " leaves");
+
+                using TKernel = NKernelHost::TSplitPointsKernel;
+
+                const ui32 statsPerKernel = 8;
+
+                LaunchKernels<TKernel>(subsets->Partitions.NonEmptyDevices(),
+                                       0,
+                                       statsPerKernel,
+                                       DataSet.GetCompressedIndex().GetStorage(),
+                                       splitFeaturesGpu,
+                                       splitBinsGpu,
+                                       leftIdsGpu,
+                                       rightIdsGpu,
+                                       leftIdsCpu,
+                                       subsets->Partitions,
+                                       subsets->PartitionsCpu,
+                                       subsets->PartitionStats,
+                                       subsets->Target.Indices,
+                                       subsets->Target.StatsToAggregate,
+                                       ComputeByBlocksHelper.BinFeatureCount(),
+                                       subsets->Histograms);
+            }
+            {
+                //here faster to read everything
+                if (leavesToSplit.size() == 1) {
+                    //fast path for lossguide learning
+                    Y_VERIFY(leftIds.size() == 1);
+                    Y_VERIFY(rightIds.size() == 1);
+                    TVector<ui32> ids = {leftIds[0], rightIds[0]};
+                    FastUpdateLeavesSizes(ids, subsets);
+                } else {
+                    RebuildLeavesSizes(subsets);
+                }
+            }
         }
+    }
+
+
+    void TSplitPropertiesHelper::MakeSplit(
+        const ui32 leafId,
+        TPointsSubsets* subsets,
+        TVector<ui32>* leftIdsPtr,
+        TVector<ui32>* rightIdsPtr) {
+        NCudaLib::GetCudaManager().DefaultStream().Synchronize();
+
+        auto& profiler = NCudaLib::GetProfiler();
+        auto guard = profiler.Profile(TStringBuilder() << "Leaves split #" << 1 << " leaves");
+
+        const ui32 leavesCount = static_cast<const ui32>(subsets->Leaves.size());
+        const ui32 newLeaves = 1;
 
         subsets->Leaves.resize(leavesCount + newLeaves);
 
-        NCudaLib::TParallelStripeVectorBuilder<TCFeature> splitsFeaturesBuilder;
+        TVector<ui32>& leftIds = *leftIdsPtr;
+        TVector<ui32>& rightIds = *rightIdsPtr;
+        leftIds.clear();
+        rightIds.clear();
 
-        TVector<ui32> leftIds;
-        TVector<ui32> rightIds;
-        TVector<ui32> splitBins;
+        const ui32 leftId = leafId;
+        const ui32 rightId = static_cast<const ui32>(leavesCount);
 
-        for (size_t i = 0; i < newLeaves; ++i) {
-            const ui32 leftId = leavesToSplit[i];
-            const ui32 rightId = static_cast<const ui32>(leavesCount + i);
+        TLeaf leaf = subsets->Leaves[leftId];
 
-            TLeaf leaf = subsets->Leaves[leftId];
+        Y_VERIFY(subsets->Leaves[leftId].BestSplit.Defined());
 
-            Y_VERIFY(subsets->Leaves[leftId].BestSplit.Defined());
+        TBinarySplit binarySplit = ToSplit(FeaturesManager,
+                                            subsets->Leaves[leftId].BestSplit);
 
-            TBinarySplit splitFeature = ToSplit(FeaturesManager,
-                                                subsets->Leaves[leftId].BestSplit);
+        TLeaf left = SplitLeaf(leaf, binarySplit, ESplitValue::Zero);
+        TLeaf right = SplitLeaf(leaf, binarySplit, ESplitValue::One);
 
-            TLeaf left = SplitLeaf(leaf, splitFeature, ESplitValue::Zero);
-            TLeaf right = SplitLeaf(leaf, splitFeature, ESplitValue::One);
+        subsets->Leaves[leftId] = left;
+        subsets->Leaves[rightId] = right;
 
-            subsets->Leaves[leftId] = left;
-            subsets->Leaves[rightId] = right;
-
-            splitsFeaturesBuilder.Add(DataSet.GetTCFeature(splitFeature.FeatureId));
-            splitBins.push_back(splitFeature.BinIdx);
-
-            leftIds.push_back(leftId);
-            rightIds.push_back(rightId);
-        }
+        auto splitFeature =  DataSet.GetTCFeature(binarySplit.FeatureId);
+        const ui32 splitBin = binarySplit.BinIdx;
 
 
-        auto splitBinsGpu = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(splitBins.size()));
-        splitBinsGpu.Write(splitBins);
-
-        TStripeBuffer<TCFeature> splitFeaturesGpu;
-        splitsFeaturesBuilder.Build(splitFeaturesGpu);
-
-        auto leftIdsGpu = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leftIds.size()));
-        auto leftIdsCpu = NCudaLib::TCudaBuffer<ui32, NCudaLib::TMirrorMapping, NCudaLib::EPtrType::CudaHost>::Create(NCudaLib::TMirrorMapping(leftIds.size()));
-
-        leftIdsCpu.Write(leftIds);
-        leftIdsGpu.Copy(leftIdsCpu);
-
-        auto rightIdsGpu = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(rightIds.size()));
-        rightIdsGpu.Write(rightIds);
 
         /*
          * Allocates temp memory
@@ -533,7 +1016,9 @@ namespace NCatboostCuda {
          * copy histograms for new leaves so we could skip complex "choose leaf to compute" logic
          */
         {
-            using TKernel = NKernelHost::TSplitPointsKernel;
+            auto guard = profiler.Profile(TStringBuilder() << "Split points kernel #" << newLeaves << " leaves");
+
+            using TKernel = NKernelHost::TSplitPointsSingleLeafKernel;
 
             const ui32 statsPerKernel = 8;
 
@@ -541,11 +1026,10 @@ namespace NCatboostCuda {
                                    0,
                                    statsPerKernel,
                                    DataSet.GetCompressedIndex().GetStorage(),
-                                   splitFeaturesGpu,
-                                   splitBinsGpu,
-                                   leftIdsGpu,
-                                   rightIdsGpu,
-                                   leftIdsCpu,
+                                   splitFeature,
+                                   splitBin,
+                                   leftId,
+                                   rightId,
                                    subsets->Partitions,
                                    subsets->PartitionsCpu,
                                    subsets->PartitionStats,
@@ -554,13 +1038,16 @@ namespace NCatboostCuda {
                                    ComputeByBlocksHelper.BinFeatureCount(),
                                    subsets->Histograms);
         }
-
-        //here faster to read everything
-        RebuildLeavesSizes(subsets);
+        TVector<ui32> ids = {leftId, rightId};
+        leftIds = {leftId};
+        rightIds = {rightId};
+        FastUpdateLeavesSizes(ids, subsets);
     }
 
     TPointsSubsets TSplitPropertiesHelper::CreateInitialSubsets(TOptimizationTarget&& target, ui32 maxLeaves) {
         TPointsSubsets subsets;
+        subsets.Leaves.reserve(maxLeaves + 1);
+
         subsets.Target = std::move(target);
 
         const ui32 statsDim = static_cast<const ui32>(subsets.Target.StatsToAggregate.GetColumnCount());
@@ -591,6 +1078,7 @@ namespace NCatboostCuda {
                               &subsets.PartitionStats);
 
         subsets.Leaves.push_back(TLeaf());
+
         RebuildLeavesSizes(&subsets);
         return subsets;
     }
@@ -603,13 +1091,24 @@ namespace NCatboostCuda {
                                                         const TVector<ui32>& leavesToCompute,
                                                         TPointsSubsets* subsetsPtr) {
 
+        if (leavesToCompute.size() == 0) {
+            return;
+        }
         auto& subsets = *subsetsPtr;
         ui32 activeStreamsCount = Min<ui32>(MaxStreamCount, ComputeByBlocksHelper.GetBlockCount());
 
         const ui32 statsCount = static_cast<const ui32>(subsets.Target.StatsToAggregate.GetColumnCount());
         const ui32 leavesCount = static_cast<const ui32>(leavesToCompute.size());
-        auto leavesGpu = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leavesCount));
-        leavesGpu.Write(leavesToCompute);
+
+
+        TMaybe<ui32> singleLeaf;
+        TMaybe<TMirrorBuffer<ui32>> leavesGpu;
+        if (leavesToCompute.size() > 1) {
+            leavesGpu = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leavesCount));
+            (*leavesGpu).Write(leavesToCompute);
+        } else {
+            singleLeaf = leavesToCompute[0];
+        }
 
 
         TVector<TStripeBuffer<float>> tempHistograms(activeStreamsCount);
@@ -648,7 +1147,9 @@ namespace NCatboostCuda {
             }
         }
 
-        NCudaLib::GetCudaManager().Barrier();
+        if (!IsOnlyDefaultStream()) {
+            NCudaLib::GetCudaManager().Barrier();
+        }
 
         for (ui32 blockId = 0; blockId < ComputeByBlocksHelper.GetBlockCount(); ++blockId) {
             ui32 streamId = GetStream(blockId);
@@ -658,38 +1159,75 @@ namespace NCatboostCuda {
             auto& blockHistograms = tempHistograms[blockId % activeStreamsCount];
 
             blockHistograms.Reset(ComputeByBlocksHelper.BlockHistogramsMapping(blockId, leavesCount, statsCount));
-            FillBuffer(blockHistograms, 0.0f, streamId);
+//            FillBuffer(blockHistograms, 0.0f, streamId);
+            ZeroBuffer(blockHistograms, streamId);
 
-            if (loadPolicy == ELoadFromCompressedIndexPolicy::LoadByIndexBins) {
-                using TKernel = NKernelHost::TComputeHistKernelLoadByIndex;
-                LaunchKernels<TKernel>(blockHistograms.NonEmptyDevices(),
-                                       streamId,
-                                       policy,
-                                       maxBins,
-                                       blockFeatures,
-                                       subsets.Partitions,
-                                       leavesGpu,
-                                       DataSet.GetCompressedIndex().GetStorage(),
-                                       subsets.Target.Indices,
-                                       subsets.Target.StatsToAggregate,
-                                       blockHistograms);
+            if (leavesGpu) {
+                if (loadPolicy == ELoadFromCompressedIndexPolicy::LoadByIndexBins) {
+                    using TKernel = NKernelHost::TComputeHistKernelLoadByIndex;
+                    LaunchKernels<TKernel>(blockHistograms.NonEmptyDevices(),
+                                           streamId,
+                                           policy,
+                                           maxBins,
+                                           blockFeatures,
+                                           subsets.Partitions,
+                                           *leavesGpu,
+                                           DataSet.GetCompressedIndex().GetStorage(),
+                                           subsets.Target.Indices,
+                                           subsets.Target.StatsToAggregate,
+                                           blockHistograms);
 
+                } else {
+                    CB_ENSURE(loadPolicy == ELoadFromCompressedIndexPolicy::GatherBins);
+                    using TKernel = NKernelHost::TComputeHistKernelGatherBins;
+
+                    LaunchKernels<TKernel>(blockHistograms.NonEmptyDevices(),
+                                           streamId,
+                                           policy,
+                                           maxBins,
+                                           blockFeatures,
+                                           subsets.Partitions,
+                                           *leavesGpu,
+                                           DataSet.GetCompressedIndex().GetStorage(),
+                                           subsets.Target.Indices,
+                                           subsets.Target.StatsToAggregate,
+                                           tempGatheredCompressedIndex[blockId % activeStreamsCount],
+                                           blockHistograms);
+                }
             } else {
-                CB_ENSURE(loadPolicy == ELoadFromCompressedIndexPolicy::GatherBins);
-                using TKernel = NKernelHost::TComputeHistKernelGatherBins;
+                CB_ENSURE(singleLeaf);
 
-                LaunchKernels<TKernel>(blockHistograms.NonEmptyDevices(),
-                                       streamId,
-                                       policy,
-                                       maxBins,
-                                       blockFeatures,
-                                       subsets.Partitions,
-                                       leavesGpu,
-                                       DataSet.GetCompressedIndex().GetStorage(),
-                                       subsets.Target.Indices,
-                                       subsets.Target.StatsToAggregate,
-                                       tempGatheredCompressedIndex[blockId % activeStreamsCount],
-                                       blockHistograms);
+                if (loadPolicy == ELoadFromCompressedIndexPolicy::LoadByIndexBins) {
+                    using TKernel = NKernelHost::TComputeSingleHistKernelLoadByIndex;
+                    LaunchKernels<TKernel>(blockHistograms.NonEmptyDevices(),
+                                           streamId,
+                                           policy,
+                                           maxBins,
+                                           blockFeatures,
+                                           subsets.Partitions,
+                                           *singleLeaf,
+                                           DataSet.GetCompressedIndex().GetStorage(),
+                                           subsets.Target.Indices,
+                                           subsets.Target.StatsToAggregate,
+                                           blockHistograms);
+
+                } else {
+                    CB_ENSURE(loadPolicy == ELoadFromCompressedIndexPolicy::GatherBins);
+                    using TKernel = NKernelHost::TComputeSingleHistKernelGatherBins;
+
+                    LaunchKernels<TKernel>(blockHistograms.NonEmptyDevices(),
+                                           streamId,
+                                           policy,
+                                           maxBins,
+                                           blockFeatures,
+                                           subsets.Partitions,
+                                           *singleLeaf,
+                                           DataSet.GetCompressedIndex().GetStorage(),
+                                           subsets.Target.Indices,
+                                           subsets.Target.StatsToAggregate,
+                                           tempGatheredCompressedIndex[blockId % activeStreamsCount],
+                                           blockHistograms);
+                }
             }
 
             auto reducedMapping = ComputeByBlocksHelper.ReducedBlockHistogramsMapping(blockId, leavesCount, statsCount);
@@ -697,13 +1235,24 @@ namespace NCatboostCuda {
                           reducedMapping,
                           false,
                           streamId);
-            {
+            if (leavesGpu) {
                 using TKernel = NKernelHost::TWriteReducesHistogramsKernel;
                 LaunchKernels<TKernel>(subsets.Histograms.NonEmptyDevices(),
                                        streamId,
                                        ComputeByBlocksHelper.GetWriteOffset(blockId),
                                        ComputeByBlocksHelper.GetWriteSizes(blockId),
-                                       leavesGpu,
+                                       *leavesGpu,
+                                       statsCount,
+                                       blockHistograms,
+                                       ComputeByBlocksHelper.BinFeatureCount(),
+                                       subsets.Histograms);
+            } else {
+                using TKernel = NKernelHost::TWriteReducesHistogramKernel;
+                LaunchKernels<TKernel>(subsets.Histograms.NonEmptyDevices(),
+                                       streamId,
+                                       ComputeByBlocksHelper.GetWriteOffset(blockId),
+                                       ComputeByBlocksHelper.GetWriteSizes(blockId),
+                                       *singleLeaf,
                                        statsCount,
                                        blockHistograms,
                                        ComputeByBlocksHelper.BinFeatureCount(),
@@ -711,14 +1260,26 @@ namespace NCatboostCuda {
             }
         }
 
-        NCudaLib::GetCudaManager().Barrier();
+        if (!IsOnlyDefaultStream()) {
+            NCudaLib::GetCudaManager().Barrier();
+        }
 
-        {
-            using TKernel = NKernelHost::TScanHistgoramsKernel;
+        if (leavesGpu) {
+            using TKernel = NKernelHost::TScanHistogramsKernel;
             LaunchKernels<TKernel>(subsets.Histograms.NonEmptyDevices(),
                                    0,
                                    ComputeByBlocksHelper.GetFeatures(),
-                                   leavesGpu,
+                                   *leavesGpu,
+                                   subsets.GetStatCount(),
+                                   ComputeByBlocksHelper.BinFeatureCount(),
+                                   subsets.Histograms);
+        } else {
+            CB_ENSURE(singleLeaf);
+            using TKernel = NKernelHost::TScanHistogramKernel;
+            LaunchKernels<TKernel>(subsets.Histograms.NonEmptyDevices(),
+                                   0,
+                                   ComputeByBlocksHelper.GetFeatures(),
+                                   *singleLeaf,
                                    subsets.GetStatCount(),
                                    ComputeByBlocksHelper.BinFeatureCount(),
                                    subsets.Histograms);
@@ -777,7 +1338,7 @@ namespace NCatboostCuda {
                 bigLeaves.push_back(bigLeafId);
             }
         }
-        auto guard = profiler.Profile(TStringBuilder() << "Compute histograms for #" << subsets->Leaves.size() << " leaves");
+        auto guard = profiler.Profile(TStringBuilder() << "Compute histograms for #" << computeLeaves.size() << " leaves");
 
         //TODO(noxoomo): load by index for 2 stats
         const ELoadFromCompressedIndexPolicy loadPolicy = subsets->Leaves.size() == 1 || subsets->GetStatCount() <= 2
@@ -819,16 +1380,30 @@ namespace NCatboostCuda {
 
     void TSplitPropertiesHelper::ZeroLeavesHistograms(const TVector<ui32>& leaves,
                                                       TPointsSubsets* subsets) {
-        auto ids = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leaves.size()));
-        ids.Write(leaves);
-        using TKernel = NKernelHost::TZeroHistogramsKernel;
 
-        LaunchKernels<TKernel>(subsets->Histograms.NonEmptyDevices(),
-                               0,
-                               ids,
-                               subsets->GetStatCount(),
-                               ComputeByBlocksHelper.BinFeatureCount(),
-                               subsets->Histograms);
+        if (leaves.size() <= 2) {
+            for (auto leaf : leaves) {
+                using TKernel = NKernelHost::TZeroHistogramKernel;
+
+                LaunchKernels<TKernel>(subsets->Histograms.NonEmptyDevices(),
+                                       0,
+                                       leaf,
+                                       subsets->GetStatCount(),
+                                       ComputeByBlocksHelper.BinFeatureCount(),
+                                       subsets->Histograms);
+            }
+        } else {
+            auto ids = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(leaves.size()));
+            ids.Write(leaves);
+            using TKernel = NKernelHost::TZeroHistogramsKernel;
+
+            LaunchKernels<TKernel>(subsets->Histograms.NonEmptyDevices(),
+                                   0,
+                                   ids,
+                                   subsets->GetStatCount(),
+                                   ComputeByBlocksHelper.BinFeatureCount(),
+                                   subsets->Histograms);
+        }
     }
 
     void TSplitPropertiesHelper::SubstractHistograms(const TVector<ui32>& from,
@@ -836,23 +1411,53 @@ namespace NCatboostCuda {
                                                      TPointsSubsets* subsets) {
         Y_VERIFY(from.size() == what.size());
 
-        auto fromIds = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(from.size()));
-        auto whatIds = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(what.size()));
+        if (from.size() <= 2) {
+            using TKernel = NKernelHost::TSubstractHistogramKernel;
+            for (ui32 i = 0; i < from.size(); ++i) {
+                LaunchKernels<TKernel>(subsets->Histograms.NonEmptyDevices(),
+                                       0,
+                                       from[i],
+                                       what[i],
+                                       subsets->GetStatCount(),
+                                       ComputeByBlocksHelper.BinFeatureCount(),
+                                       subsets->Histograms);
+            }
+        } else {
+            auto ids = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(2 * from.size()));
+            {
+                TVector<ui32> tmp;
+                tmp.insert(tmp.end(), from.begin(), from.end());
+                tmp.insert(tmp.end(), what.begin(), what.end());
+                ids.Write(tmp);
+            }
+            auto fromIds = ids.SliceView(TSlice(0, from.size()));
+            auto whatIds = ids.SliceView(TSlice(from.size(), 2 * from.size()));
 
-        fromIds.Write(from);
-        whatIds.Write(what);
+            using TKernel = NKernelHost::TSubstractHistogramsKernel;
 
-        using TKernel = NKernelHost::TSubstractHistgoramsKernel;
-
-        LaunchKernels<TKernel>(subsets->Histograms.NonEmptyDevices(),
-                               0,
-                               fromIds,
-                               whatIds,
-                               subsets->GetStatCount(),
-                               ComputeByBlocksHelper.BinFeatureCount(),
-                               subsets->Histograms);
+            LaunchKernels<TKernel>(subsets->Histograms.NonEmptyDevices(),
+                                   0,
+                                   fromIds,
+                                   whatIds,
+                                   subsets->GetStatCount(),
+                                   ComputeByBlocksHelper.BinFeatureCount(),
+                                   subsets->Histograms);
+        }
     }
 
+    bool TSplitCandidate::operator<(const TSplitCandidate& rhs) const {
+        return Score < rhs.Score;
+    }
+
+    bool TSplitCandidate::operator>(const TSplitCandidate& rhs) const {
+        return rhs < *this;
+    }
+    bool TSplitCandidate::operator<=(const TSplitCandidate& rhs) const {
+        return !(rhs < *this);
+    }
+    bool TSplitCandidate::operator>=(const TSplitCandidate& rhs) const {
+        return !(*this < rhs);
+    }
 }
 
 namespace NCudaLib {
@@ -860,8 +1465,18 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xD2DAA1, NKernelHost::TCopyHistogramsKernel);
     REGISTER_KERNEL(0xD2DAA2, NKernelHost::TWriteReducesHistogramsKernel);
     REGISTER_KERNEL(0xD2DAA3, NKernelHost::TZeroHistogramsKernel);
-    REGISTER_KERNEL(0xD2DAA4, NKernelHost::TScanHistgoramsKernel);
+    REGISTER_KERNEL(0xD2DAA4, NKernelHost::TScanHistogramsKernel);
     REGISTER_KERNEL(0xD2DAA5, NKernelHost::TComputeHistKernelLoadByIndex);
     REGISTER_KERNEL(0xD2DAA6, NKernelHost::TComputeHistKernelGatherBins);
-    REGISTER_KERNEL(0xD2DAA7, NKernelHost::TSubstractHistgoramsKernel);
+    REGISTER_KERNEL(0xD2DAA7, NKernelHost::TSubstractHistogramsKernel);
+    REGISTER_KERNEL(0xD2DAA8, NKernelHost::TZeroHistogramKernel);
+    REGISTER_KERNEL(0xD2DAA9, NKernelHost::TSubstractHistogramKernel);
+    REGISTER_KERNEL(0xD2DAB0, NKernelHost::TScanHistogramKernel);
+    REGISTER_KERNEL(0xD2DAB1, NKernelHost::TComputeSingleHistKernelLoadByIndex);
+    REGISTER_KERNEL(0xD2DAB2, NKernelHost::TComputeSingleHistKernelGatherBins);
+    REGISTER_KERNEL(0xD2DAB3, NKernelHost::TWriteReducesHistogramKernel);
+    REGISTER_KERNEL_TEMPLATE(0xD2DAB4, NKernelHost::TZeroBuffer, float);
+
+
+
 }

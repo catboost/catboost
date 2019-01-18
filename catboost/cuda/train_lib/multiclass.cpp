@@ -3,6 +3,6 @@
 
 namespace NCatboostCuda {
     using TMultiClassTrainer = TGpuTrainer<TMultiClassificationTargets>;
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassRegistrator(ELossFunction::MultiClass);
-    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllRegistrator(ELossFunction::MultiClassOneVsAll);
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClass));
+    TGpuTrainerFactory::TRegistrator<TMultiClassTrainer> MulticlassOneVsAllRegistrator(GetTrainerFactoryKey(ELossFunction::MultiClassOneVsAll));
 }

@@ -36,6 +36,9 @@ SRCS(
     greedy_subsets_searcher/kernel/gather_bins.cu
     greedy_subsets_searcher/kernel/hist.cu
     greedy_subsets_searcher/kernel/hist_one_byte.cu
+    greedy_subsets_searcher/kernel/hist_2_one_byte_5bit.cu
+    greedy_subsets_searcher/kernel/hist_2_one_byte_6bit.cu
+    greedy_subsets_searcher/kernel/hist_2_one_byte_7bit.cu
     greedy_subsets_searcher/kernel/hist_half_byte.cu
     greedy_subsets_searcher/kernel/hist_binary.cu
     greedy_subsets_searcher/kernel/histogram_utils.cu
@@ -68,6 +71,7 @@ SRCS(
     tree_ctr_datasets_visitor.cpp
     serialization_helper.cpp
     pointwise_optimization_subsets.cpp
+
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
     pairwise_oblivious_trees/pairwise_scores_calcer.cpp
     pairwise_oblivious_trees/blocked_histogram_helper.cpp

@@ -3,6 +3,6 @@
 
 namespace NCatboostCuda {
     using TQueryCrossEntropyTrainer = TPairwiseGpuTrainer<TQueryCrossEntropy>;
-    TGpuTrainerFactory::TRegistrator<TQueryCrossEntropyTrainer> QueryCrossEntropyRegistrator(ELossFunction::QueryCrossEntropy);
+    TGpuTrainerFactory::TRegistrator<TQueryCrossEntropyTrainer> QueryCrossEntropyRegistrator(GetTrainerFactoryKey(ELossFunction::QueryCrossEntropy));
 
 }

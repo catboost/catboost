@@ -182,9 +182,11 @@ namespace NCatboostCuda {
                                      target->Weights);
         }
 
+
         (*scoreStdDev) = ComputeScoreStdDev(ModelLengthMultiplier,
                                             TreeConfig.RandomStrength,
                                             *target);
+
 
         indices->Reset(target->WeightedTarget.GetMapping());
         objective.GetTarget().WriteIndices(*indices);

@@ -48,9 +48,9 @@ namespace NCudaLib {
     }
 
     //reduce-scatter followed by resharding
-    template <class T>
+    template <class T, NCudaLib::EPtrType PtrType = NCudaLib::EPtrType::CudaDevice>
     inline void AllReduceThroughMaster(const TStripeBuffer<T>& tmp,
-                                       TMirrorBuffer<std::remove_const_t<T>>& dst,
+                                       TCudaBuffer<std::remove_const_t<T>, NCudaLib::TMirrorMapping, PtrType>& dst,
                                        ui32 stream = 0,
                                        bool compress = false) {
         Y_UNUSED(compress);

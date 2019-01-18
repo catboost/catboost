@@ -195,4 +195,226 @@ namespace NKernel {
        ComputeObliviousTreeBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
     }
 
+
+
+    __global__ void AddRegionImpl(const TCFeature* features,
+                                  const TRegionDirection* splits,
+                                  const float* leaves, ui32 depth,
+                                  const ui32* cindex,
+                                  const ui32* readIndices,
+                                  const ui32* writeIndices,
+                                  ui32 size,
+                                  float* cursor,
+                                  ui32 cursorAlignSize,
+                                  ui32 cursorDim) {
+
+        ui32 tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+        const int maxDepth = 32;
+        __shared__ ui32 masksLocal[maxDepth];
+        __shared__ ui32 valuesLocal[maxDepth];
+        __shared__ ui64 offsetsLocal[maxDepth];
+        __shared__ ui32 takeEqualAndSplitDirection[maxDepth];
+
+
+        if (threadIdx.x < depth) {
+            const int level = threadIdx.x;
+            TCFeature feature = features[level];
+            TRegionDirection split = splits[level];
+            const ui32 value =(ui32)(split.Bin) << feature.Shift;
+            const ui32 mask = feature.Mask << feature.Shift;
+
+            masksLocal[level] = mask;
+            valuesLocal[level] = value;
+            takeEqualAndSplitDirection[level] = (feature.OneHotFeature ? 1 : 0) | (split.Value << 1);
+            offsetsLocal[level] = feature.Offset;
+        }
+        __syncthreads();
+
+        while (tid < size) {
+            const ui32 loadIdx = readIndices ? readIndices[tid] : tid;
+            ui32 bin = 0;
+
+            #pragma unroll 8
+            for (ui32 level = 0; level < depth; ++level) {
+                const ui32 value = valuesLocal[level];
+                const ui32 mask = masksLocal[level];
+                const ui32 featureVal = __ldg(cindex + offsetsLocal[level] + loadIdx) & mask;
+                const ui32 tmp = takeEqualAndSplitDirection[level];
+                const bool takeEqual = (tmp & 1);
+                const ui32 split = (takeEqual ? (featureVal == value) : featureVal > value);
+                const bool shouldContinue = split == (tmp >> 1);
+                if (shouldContinue) {
+                    ++bin;
+                } else {
+                    break;
+                }
+            }
+            const ui32 writeIdx = writeIndices ? writeIndices[tid] : tid;
+
+            for (int dim = 0; dim < cursorDim; ++dim) {
+                cursor[writeIdx + dim * cursorAlignSize] += __ldg(leaves + bin * cursorDim + dim);
+            }
+            tid += blockDim.x  * gridDim.x;
+        }
+    }
+
+
+    __global__ void ComputeRegionBinsImpl(const TCFeature* features,
+                                          const TRegionDirection* splits,
+                                          ui32 depth,
+                                          const ui32* cindex,
+                                          const ui32* readIndices,
+                                          const ui32* writeIndices,
+                                          ui32* cursor,
+                                          ui32 size) {
+
+        ui32 tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+        const int maxDepth = 32;
+        __shared__ ui32 masksLocal[maxDepth];
+        __shared__ ui32 valuesLocal[maxDepth];
+        __shared__ ui64 offsetsLocal[maxDepth];
+        __shared__ ui32 takeEqualAndSplitDirection[maxDepth];
+
+
+        if (threadIdx.x < depth) {
+            const int level = threadIdx.x;
+            TCFeature feature = features[level];
+            TRegionDirection split = splits[level];
+            const ui32 value =(ui32)(split.Bin) << feature.Shift;
+            const ui32 mask = feature.Mask << feature.Shift;
+
+            masksLocal[level] = mask;
+            valuesLocal[level] = value;
+            takeEqualAndSplitDirection[level] = (feature.OneHotFeature ? 1 : 0) | (split.Value << 1);
+            offsetsLocal[level] = feature.Offset;
+        }
+        __syncthreads();
+
+        while (tid < size) {
+            ui32 bin = 0;
+            const ui32 loadIdx = readIndices ? readIndices[tid] : tid;
+
+            #pragma unroll 8
+            for (ui32 level = 0; level < depth; ++level) {
+                const ui32 value = valuesLocal[level];
+                const ui32 mask = masksLocal[level];
+                const ui32 featureVal = __ldg(cindex + offsetsLocal[level] + loadIdx) & mask;
+                const ui32 tmp = takeEqualAndSplitDirection[level];
+                const bool takeEqual = (tmp & 1);
+                const ui32 split = (takeEqual ? (featureVal == value) : featureVal > value);
+                const bool shouldContinue = split == (tmp >> 1);
+                if (shouldContinue) {
+                    ++bin;
+                } else {
+                    break;
+                }
+            }
+            const ui32 writeIdx = writeIndices ? writeIndices[tid] : tid;
+            cursor[writeIdx] = bin;
+            tid += blockDim.x  * gridDim.x;
+        }
+    }
+
+
+    //doc parallel routines
+    void AddRegion(const TCFeature* features,
+                   const TRegionDirection* splits,
+                   const float* leaves, ui32 depth,
+                   const ui32* cindex,
+                   const ui32* readIndices,
+                   const ui32* writeIndices,
+                   ui32 size,
+                   float* cursor,
+                   ui32 cursorDim,
+                   ui32 cursorAlignSize,
+                   TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
+        AddRegionImpl<< <numBlocks, blockSize, 0, stream>>>(features, splits, leaves, depth, cindex, readIndices, writeIndices, size, cursor, cursorAlignSize, cursorDim);
+    }
+
+    void ComputeRegionBins(const TCFeature* features, const TRegionDirection* bins, ui32 depth,
+                           const ui32* cindex,
+                           const ui32* readIndices,
+                           const ui32* writeIndices,
+                           ui32* cursor,
+                           ui32 size,
+                           TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
+        ComputeRegionBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, depth, cindex, readIndices, writeIndices, cursor, size);
+    }
+
+
+    __global__ void ComputeNonSymmetricDecisionTreeBinsImpl(const TCFeature* features,
+                                                            const TTreeNode* nodes,
+                                                            const ui32* cindex,
+                                                            const ui32* readIndices,
+                                                            const ui32* writeIndices,
+                                                            ui32* cursor,
+                                                            ui32 size) {
+
+        ui32 tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+
+        if  (tid < size) {
+            const ui32 loadIdx = readIndices ? readIndices[tid] : tid;
+
+
+            ui32 bin = 0;
+            while (true) {
+                TTreeNode node = Ldg(nodes);
+                TCFeature feature = Ldg(features);
+
+                const ui32 featureVal = (__ldg(cindex + feature.Offset  + loadIdx) >> feature.Shift) & feature.Mask;
+                const bool split = (feature.OneHotFeature ? (featureVal == node.Bin) : featureVal > node.Bin);
+
+                bool stop = false;
+
+                if (split) {
+                    bin += node.LeftSubtree;
+                    stop = node.RightSubtree == 1;
+                    if (!stop) {
+                        nodes += node.LeftSubtree;
+                        features += node.LeftSubtree;
+                    }
+                } else {
+                    stop = node.LeftSubtree == 1;
+                    if (!stop) {
+                        nodes += 1;
+                        features += 1;
+                    }
+                }
+
+                if (stop) {
+                    break;
+                }
+            }
+
+            const ui32 writeIdx = writeIndices ? writeIndices[tid] : tid;
+            cursor[writeIdx] = bin;
+        }
+    }
+
+
+    void ComputeNonSymmetricDecisionTreeBins(const TCFeature* features,
+                                             const TTreeNode* nodes,
+                                             const ui32* cindex,
+                                             const ui32* readIndices,
+                                             const ui32* writeIndices,
+                                             ui32* cursor,
+                                             ui32 size,
+                                             TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
+        ComputeNonSymmetricDecisionTreeBinsImpl<< <numBlocks, blockSize, 0, stream>>>(features, nodes, cindex, readIndices, writeIndices, cursor, size);
+    }
+
+
+
 }

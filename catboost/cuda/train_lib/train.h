@@ -38,6 +38,53 @@ namespace NCatboostCuda {
         virtual ~IGpuTrainer() = default;
     };
 
-    using TGpuTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IGpuTrainer, ELossFunction>;
+
+    struct TGpuTrainerFactoryKey {
+        ELossFunction Loss;
+        EGrowingPolicy GrowingPolicy;
+
+
+        TGpuTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy)
+                : Loss(loss)
+                , GrowingPolicy(policy) {
+
+        }
+
+        bool operator==(const TGpuTrainerFactoryKey& rhs) const {
+            return std::tie(Loss, GrowingPolicy) == std::tie(rhs.Loss, rhs.GrowingPolicy);
+        }
+
+        bool operator!=(const TGpuTrainerFactoryKey& rhs) const {
+            return !(rhs == *this);
+        }
+
+        ui64 GetHash() const {
+            return MultiHash(Loss, GrowingPolicy);
+        }
+
+        bool operator<(const TGpuTrainerFactoryKey& key) const {
+            return GetHash() < key.GetHash();
+        }
+    };
+
+    inline TGpuTrainerFactoryKey GetTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy = EGrowingPolicy::ObliviousTree) {
+        return TGpuTrainerFactoryKey(loss, policy);
+    }
+
+    inline TGpuTrainerFactoryKey GetTrainerFactoryKey(const NCatboostOptions::TCatBoostOptions& options) {
+        return TGpuTrainerFactoryKey(options.LossFunctionDescription->GetLossFunction(),
+                                     options.ObliviousTreeOptions->GrowingPolicy);
+    }
+
+    using TGpuTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IGpuTrainer, TGpuTrainerFactoryKey>;
 
 }
+
+
+
+template <>
+struct THash<NCatboostCuda::TGpuTrainerFactoryKey> {
+    inline size_t operator()(const NCatboostCuda::TGpuTrainerFactoryKey& key) const {
+        return key.GetHash();
+    }
+};

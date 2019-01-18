@@ -339,9 +339,50 @@ namespace NKernel {
                                        double* tempVars,
                                        double* statSums,
                                        TCudaStream stream) {
-        //TODO(noxoomo): if it'll be "slow", could be made in one kernel
-        UpdatePartitionsProps(parts, leftPartIds, partCount, source, statCount, statLineSize, tempVarsCount, tempVars, statSums, stream);
-        UpdatePartitionsProps(parts, rightPartIds, partCount, source, statCount, statLineSize, tempVarsCount, tempVars, statSums, stream);
+
+        const ui32 blockSize = 512;
+
+        dim3 numBlocks;
+
+        numBlocks.y = 2 * partCount;
+        numBlocks.z = statCount;
+        numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
+        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+
+        UpdatePartitionsPropsForSplitImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(leftPartIds, rightPartIds, parts, source, statLineSize, tempVars);
+        {
+            const ui32 saveBlockSize = 256;
+            const ui32 numSaveBlocks = (numBlocks.y * numBlocks.z + saveBlockSize - 1) / saveBlockSize;
+            SaveResultsForSplitImpl<<<numSaveBlocks, saveBlockSize, 0, stream>>>(leftPartIds, rightPartIds, tempVars, 2 * partCount, statCount, numBlocks.x, statSums);
+        }
+    }
+
+    void UpdatePartitionsPropsForSingleSplit(const TDataPartition* parts,
+                                             const ui32 leftPartId,
+                                             const ui32 rightPartId,
+                                             const float* source,
+                                             ui32 statCount,
+                                             ui64 statLineSize,
+                                             ui32 tempVarsCount,
+                                             double* tempVars,
+                                             double* statSums,
+                                             TCudaStream stream) {
+        const ui32 blockSize = 512;
+
+        dim3 numBlocks;
+
+        numBlocks.y = 2;
+        numBlocks.z = statCount;
+        numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
+        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+
+        UpdatePartitionsPropsForSingleSplitImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(leftPartId, rightPartId, parts, source, statLineSize, tempVars);
+        {
+            const ui32 saveBlockSize = 256;
+            const ui32 numSaveBlocks = (numBlocks.y * numBlocks.z + saveBlockSize - 1) / saveBlockSize;
+            SaveResultsForSingleSplitImpl<<<numSaveBlocks, saveBlockSize, 0, stream>>>(leftPartId, rightPartId, tempVars, statCount, numBlocks.x, statSums);
+        }
+
     }
 
 

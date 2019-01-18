@@ -477,7 +477,7 @@ namespace NKernel {
             const ui32* __restrict__ bins,
             ui32 binsLineSize,
             const float* __restrict__ stats,
-            short firstStatIdx, short statCount,
+            short statCount,
             const int statLineSize,
             const TDataPartition* __restrict__ partitions,
             const ui32* partIds,
@@ -502,7 +502,7 @@ namespace NKernel {
             return;
         }
 
-        stats += (firstStatIdx + blockIdx.z) * statLineSize;
+        stats +=  blockIdx.z * statLineSize;
 
         constexpr int histSize = THist::GetHistSize();
         __shared__ float smem[histSize];
@@ -519,7 +519,7 @@ namespace NKernel {
 
         __syncthreads();
 
-        hist.AddToGlobalMemory(firstStatIdx + blockIdx.z,
+        hist.AddToGlobalMemory(blockIdx.z,
                                statCount,
                                activeBlockCount,
                                features,
@@ -541,7 +541,7 @@ namespace NKernel {
             const ui32* __restrict__ cindex,
             const int* __restrict__ indices,
             const float* __restrict__ stats,
-            short firstStatIdx, short statCount,
+            short statCount,
             const int statLineSize,
             const TDataPartition* __restrict__ partitions,
             const ui32* partIds,
@@ -560,74 +560,6 @@ namespace NKernel {
 
         const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
         const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Gather);
-        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
-                                         maxBlocksPerPart);
-
-        if (localBlockIdx >= activeBlockCount) {
-            return;
-        }
-
-        stats += (firstStatIdx + blockIdx.z) * statLineSize;
-
-        constexpr int histSize = THist::GetHistSize();
-        __shared__ float smem[histSize];
-        THist hist(smem);
-
-        TComputeHistogram<THist>::Compute(cindex,
-                                          indices,
-                                          stats,
-                                          partition.Offset,
-                                          partition.Size,
-                                          localBlockIdx,
-                                          activeBlockCount,
-                                          hist
-        );
-
-        __syncthreads();
-
-        hist.AddToGlobalMemory(firstStatIdx + blockIdx.z,
-                               statCount,
-                               activeBlockCount,
-                               features,
-                               fCount,
-                               blockIdx.y,
-                               gridDim.y,
-                               binSums);
-
-    }
-
-
-
-
-    template <class THist, int BlockSize, int GroupSize>
-#if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BlockSize, 2)
-#else
-    __launch_bounds__(BlockSize, 1)
-#endif
-    __global__ void ComputeSplitPropertiesDirectLoadsImpl(
-            const TFeatureInBlock* __restrict__ features,
-            int fCount,
-            const ui32* __restrict__ bins,
-            ui32 binsLineSize,
-            const float* __restrict__ stats,
-            const int statLineSize,
-            const TDataPartition* __restrict__ partitions,
-            const ui32* partIds,
-            float* __restrict__ binSums) {
-
-        const int partId = partIds[blockIdx.y];
-        TDataPartition partition = partitions[partId];
-
-
-        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
-        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
-        bins += (binsLineSize * (blockIdx.x / maxBlocksPerPart));
-        features += featureOffset;
-        fCount = min(fCount - featureOffset, GroupSize);
-
-        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
-        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Direct);
         const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
                                          maxBlocksPerPart);
 
@@ -641,6 +573,73 @@ namespace NKernel {
         __shared__ float smem[histSize];
         THist hist(smem);
 
+        TComputeHistogram<THist>::Compute(cindex,
+                                          indices,
+                                          stats,
+                                          partition.Offset,
+                                          partition.Size,
+                                          localBlockIdx,
+                                          activeBlockCount,
+                                          hist
+        );
+
+        __syncthreads();
+
+        hist.AddToGlobalMemory(blockIdx.z,
+                               statCount,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               blockIdx.y,
+                               gridDim.y,
+                               binSums);
+
+    }
+
+
+
+    template <class THist, int BlockSize, int GroupSize>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesDirectLoadsImpl(
+        const TFeatureInBlock* __restrict__ features,
+        int fCount,
+        const ui32* __restrict__ bins,
+        ui32 binsLineSize,
+        const float* __restrict__ stats,
+        const int statLineSize,
+        const TDataPartition* __restrict__ partitions,
+        const ui32* partIds,
+        float* __restrict__ binSums) {
+
+        const int partId = partIds[blockIdx.y];
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+        bins += (binsLineSize * (blockIdx.x / maxBlocksPerPart));
+        features += featureOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Direct);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats +=  blockIdx.z * statLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
         TComputeHistogram<THist>::Compute(bins,
                                           stats,
                                           partition.Offset,
@@ -670,14 +669,14 @@ namespace NKernel {
     __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesGatherImpl(
-            const TFeatureInBlock* __restrict__ features, int fCount,
-            const ui32* __restrict__ cindex,
-            const int* __restrict__ indices,
-            const float* __restrict__ stats,
-            const int statLineSize,
-            const TDataPartition* __restrict__ partitions,
-            const ui32* partIds,
-            float* __restrict__ binSums) {
+        const TFeatureInBlock* __restrict__ features, int fCount,
+        const ui32* __restrict__ cindex,
+        const int* __restrict__ indices,
+        const float* __restrict__ stats,
+        const int statLineSize,
+        const TDataPartition* __restrict__ partitions,
+        const ui32* partIds,
+        float* __restrict__ binSums) {
 
         const int partId = partIds[blockIdx.y];
         TDataPartition partition = partitions[partId];
@@ -699,8 +698,7 @@ namespace NKernel {
             return;
         }
 
-
-        stats += (blockIdx.z) * statLineSize;
+        stats += blockIdx.z * statLineSize;
 
         constexpr int histSize = THist::GetHistSize();
         __shared__ float smem[histSize];
@@ -725,6 +723,272 @@ namespace NKernel {
                                fCount,
                                blockIdx.y,
                                gridDim.y,
+                               binSums);
+
+    }
+
+
+
+
+
+
+
+    /* single histogram */
+
+    template <class THist, int BlockSize, int GroupSize>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesDirectLoadsImpl(
+        const TFeatureInBlock* __restrict__ features,
+        int fCount,
+        const ui32* __restrict__ bins,
+        ui32 binsLineSize,
+        const float* __restrict__ stats,
+        short statCount,
+        const int statLineSize,
+        const TDataPartition* __restrict__ partitions,
+        ui32 partId,
+        float* __restrict__ binSums) {
+
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+        bins += (binsLineSize * (blockIdx.x / maxBlocksPerPart));
+        features += featureOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Direct);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats +=  blockIdx.z * statLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
+        TComputeHistogram<THist>::Compute(bins,
+                                          stats,
+                                          partition.Offset,
+                                          partition.Size,
+                                          localBlockIdx,
+                                          activeBlockCount,
+                                          hist
+        );
+
+        __syncthreads();
+
+        hist.AddToGlobalMemory(blockIdx.z,
+                               statCount,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               0,
+                               1,
+                               binSums);
+    }
+
+
+    template <class THist, int BlockSize, int GroupSize>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesGatherImpl(
+        const TFeatureInBlock* __restrict__ features, int fCount,
+        const ui32* __restrict__ cindex,
+        const int* __restrict__ indices,
+        const float* __restrict__ stats,
+        short statCount,
+        const int statLineSize,
+        const TDataPartition* __restrict__ partitions,
+        const ui32 partId,
+        float* __restrict__ binSums) {
+
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+
+        features += featureOffset;
+        cindex += features->CompressedIndexOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Gather);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats += blockIdx.z * statLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
+        TComputeHistogram<THist>::Compute(cindex,
+                                          indices,
+                                          stats,
+                                          partition.Offset,
+                                          partition.Size,
+                                          localBlockIdx,
+                                          activeBlockCount,
+                                          hist
+        );
+
+        __syncthreads();
+
+        hist.AddToGlobalMemory(blockIdx.z,
+                               statCount,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               0,
+                               1,
+                               binSums);
+
+    }
+
+
+
+    template <class THist, int BlockSize, int GroupSize>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesDirectLoadsImpl(
+        const TFeatureInBlock* __restrict__ features,
+        int fCount,
+        const ui32* __restrict__ bins,
+        ui32 binsLineSize,
+        const float* __restrict__ stats,
+        const int statLineSize,
+        const TDataPartition* __restrict__ partitions,
+        ui32 partId,
+        float* __restrict__ binSums) {
+
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+        bins += (binsLineSize * (blockIdx.x / maxBlocksPerPart));
+        features += featureOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Direct);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats +=  blockIdx.z * statLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
+        TComputeHistogram<THist>::Compute(bins,
+                                          stats,
+                                          partition.Offset,
+                                          partition.Size,
+                                          localBlockIdx,
+                                          activeBlockCount,
+                                          hist
+        );
+
+        __syncthreads();
+
+        hist.AddToGlobalMemory(blockIdx.z,
+                               gridDim.z,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               0,
+                               1,
+                               binSums);
+    }
+
+
+    template <class THist, int BlockSize, int GroupSize>
+#if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+#else
+    __launch_bounds__(BlockSize, 1)
+#endif
+    __global__ void ComputeSplitPropertiesGatherImpl(
+        const TFeatureInBlock* __restrict__ features, int fCount,
+        const ui32* __restrict__ cindex,
+        const int* __restrict__ indices,
+        const float* __restrict__ stats,
+        const int statLineSize,
+        const TDataPartition* __restrict__ partitions,
+        ui32 partId,
+        float* __restrict__ binSums) {
+
+        TDataPartition partition = partitions[partId];
+
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + GroupSize - 1) / GroupSize);
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * GroupSize;
+
+        features += featureOffset;
+        cindex += features->CompressedIndexOffset;
+        fCount = min(fCount - featureOffset, GroupSize);
+
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = THist::BlockLoadSize(ECIndexLoadType::Gather);
+        const int activeBlockCount = min((partition.Size + minDocsPerBlock - 1) / minDocsPerBlock,
+                                         maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
+
+        stats += blockIdx.z * statLineSize;
+
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
+        THist hist(smem);
+
+        TComputeHistogram<THist>::Compute(cindex,
+                                          indices,
+                                          stats,
+                                          partition.Offset,
+                                          partition.Size,
+                                          localBlockIdx,
+                                          activeBlockCount,
+                                          hist
+        );
+
+        __syncthreads();
+
+        hist.AddToGlobalMemory(blockIdx.z,
+                               gridDim.z,
+                               activeBlockCount,
+                               features,
+                               fCount,
+                               0,
+                               1,
                                binSums);
 
     }

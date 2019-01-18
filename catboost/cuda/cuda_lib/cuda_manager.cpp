@@ -54,6 +54,7 @@ void TCudaManager::StopChild() {
 
     FreeComputationStreams();
     WaitComplete();
+
     State = nullptr;
     OnStopChildEvent.Signal();
 }
@@ -63,6 +64,7 @@ void TCudaManager::StartChild(TCudaManager& parent,
                               TManualEvent& stopEvent) {
     CB_ENSURE(!State, "Error: can't start, state already exists");
     State = parent.State;
+
     IsChildManager = true;
     DevicesList = devices;
     OnStopChildEvent = stopEvent;

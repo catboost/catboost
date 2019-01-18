@@ -11,6 +11,13 @@ void ReorderBins(
     ui64 stream = 0);
 
 template <class TMapping>
+void ReorderOneBit(
+    NCudaLib::TCudaBuffer<ui32, TMapping>& bins,
+    NCudaLib::TCudaBuffer<ui32, TMapping>& indices,
+    int offset,
+    ui32 stream = 0);
+
+template <class TMapping>
 void ReorderBins(
     NCudaLib::TCudaBuffer<ui32, TMapping>& bins,
     NCudaLib::TCudaBuffer<ui32, TMapping>& indices,

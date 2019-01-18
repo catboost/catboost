@@ -84,7 +84,7 @@ namespace NCatboostCuda {
                     for (ui32 leaf = 0; leaf < model.BinCount(); ++leaf) {
                         const double val = values[outputDim * leaf + dim];
                         leafValues[dim][leaf] = val;
-                    }
+                     }
                 }
             }
 

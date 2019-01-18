@@ -37,6 +37,8 @@ namespace NKernel {
                            float* histograms,
                            TCudaStream stream);
 
+
+
     void ComputeHistOneByte(int maxBins,
                             const TFeatureInBlock* features,
                             const int fCount,
@@ -51,6 +53,7 @@ namespace NKernel {
                             float* histograms,
                             TCudaStream stream);
 
+
     void ComputeHistOneByte(int maxBins,
                             const TFeatureInBlock* groups,
                             const int fCount,
@@ -64,6 +67,9 @@ namespace NKernel {
                             ui32 statLineSize,
                             float* histograms,
                             TCudaStream stream);
+
+
+
 
     void ComputeHistHalfByte(const TFeatureInBlock* features,
                              const int fCount,
@@ -90,6 +96,15 @@ namespace NKernel {
                              ui32 statLineSize,
                              float* histograms,
                              TCudaStream stream);
+
+
+
+
+
+
+
+
+
 
 
 

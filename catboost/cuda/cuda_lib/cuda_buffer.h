@@ -490,6 +490,17 @@ using TMirrorBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TMirrorMapping>;
 template <class T>
 using TSingleBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TSingleMapping>;
 
+
+
+template <class T>
+using TStripeHostBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost>;
+
+template <class T>
+using TMirrorHostBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TMirrorMapping, NCudaLib::EPtrType::CudaHost>;
+
+template <class T>
+using TSingleHostBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TSingleMapping, NCudaLib::EPtrType::CudaHost>;
+
 namespace NCudaLib {
     template <class T, EPtrType Type>
     inline TCudaBuffer<const T, TStripeMapping, Type> StripeView(const TCudaBuffer<const T, TMirrorMapping, Type>& buffer,

@@ -1,3 +1,4 @@
+
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
@@ -2082,7 +2083,10 @@ class CatBoostClassifier(CatBoost):
         data_partition=None,
         metadata=None,
         early_stopping_rounds=None,
-        cat_features=None
+        cat_features=None,
+        growing_policy=None,
+        min_samples_in_leaf=None,
+        max_leaves_count=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -2451,7 +2455,10 @@ class CatBoostRegressor(CatBoost):
         data_partition=None,
         metadata=None,
         early_stopping_rounds=None,
-        cat_features=None
+        cat_features=None,
+        growing_policy=None,
+        min_samples_in_leaf=None,
+        max_leaves_count=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]

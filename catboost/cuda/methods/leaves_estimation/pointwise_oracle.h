@@ -71,6 +71,7 @@ namespace NCatboostCuda {
         TVector<float> CurrentPoint;
         TVector<double> WeightsCpu;
         TMaybe<TVector<double>> DerAtPoint;
+        TMaybe<TVector<double>> Der2AtPoint;
     };
 
 

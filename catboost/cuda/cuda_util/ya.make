@@ -28,6 +28,7 @@ SRCS(
    kernel/partitions.cu
    kernel/random.cu
    kernel/reduce.cu
+   kernel/reorder_one_bit.cu
    kernel/scan.cu
    kernel/segmented_scan.cu
    kernel/segmented_sort.cu

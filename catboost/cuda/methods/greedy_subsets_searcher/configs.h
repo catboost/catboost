@@ -12,9 +12,12 @@ namespace NCatboostCuda {
 
     struct TComputeByBlocksConfig {
         double SampleRate = 1.0;
+        bool ForceOneBlockPerPolicy = false;
+        ui32 StreamCount = 1;
+        //TODO(noxoomo): get rid of this, used in tests only currently
         ELoadFromCompressedIndexPolicy LoadPolicyAfterSplit = ELoadFromCompressedIndexPolicy::GatherBins;
         ELoadFromCompressedIndexPolicy LoadPolicyFromScratch = ELoadFromCompressedIndexPolicy::LoadByIndexBins;
-        bool ForceOneBlockPerPolicy = false;
+
 
         bool operator==(const TComputeByBlocksConfig& rhs) const {
             return std::tie(SampleRate, LoadPolicyAfterSplit, LoadPolicyFromScratch,

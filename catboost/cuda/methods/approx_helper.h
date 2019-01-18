@@ -21,6 +21,7 @@ namespace NCatboostCuda {
                 pointOnCpu[column][i] = point[column * docCount + i];
             }
         }
+
         if (oneMoreApproxAsZeroes) {
             //make it zeroes for CPU compatibility
             pointOnCpu.resize(columnCount + 1);

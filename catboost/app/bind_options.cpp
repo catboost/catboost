@@ -445,6 +445,25 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["depth"] = depth;
         });
 
+
+    parser.AddLongOption("growing-policy", "Tree growing policy")
+            .RequiredArgument("Type (ObliviousTree, Region,…)")
+            .Handler1T<TString>([plainJsonPtr](const TString& policy) {
+                (*plainJsonPtr)["growing_policy"] = policy;
+            });
+
+    parser.AddLongOption("max-leaves-count", "Max leaves count")
+        .RequiredArgument("INT")
+        .Handler1T<ui32>([plainJsonPtr](const ui32 maxLeavesCount) {
+            (*plainJsonPtr)["max_leaves_count"] = maxLeavesCount;
+        });
+
+    parser.AddLongOption("min-samples-in-leaf", "Minimum number of samples in leaf")
+        .RequiredArgument("Double")
+        .Handler1T<double>([plainJsonPtr](double minSamples) {
+            (*plainJsonPtr)["min_samples_in_leaf"] = minSamples;
+        });
+
     parser.AddLongOption("l2-leaf-reg", "Regularization value. Should be >= 0")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float reg) {

@@ -20,9 +20,24 @@ namespace NCatboostCuda {
 
         EHistogramsType HistogramsType = EHistogramsType::Zeroes;
         TBestSplitProperties BestSplit;
+
+        void UpdateBestSplit(const TBestSplitProperties& best) {
+            BestSplit = best;
+        }
+
         bool IsTerminal = false;
     };
 
+    struct TSplitCandidate {
+        int LeafIdx = -1;
+        double Score = 0;
+
+        bool operator<(const TSplitCandidate& rhs) const;
+        bool operator>(const TSplitCandidate& rhs) const;
+        bool operator<=(const TSplitCandidate& rhs) const;
+        bool operator>=(const TSplitCandidate& rhs) const;
+
+    };
 
     struct TPointsSubsets {
         /* this are ders + weights that will be splitted between leaves during search */
@@ -42,6 +57,7 @@ namespace NCatboostCuda {
 
         //existed leaves
         TVector<TLeaf> Leaves; //existed leaves
+
 
         ui32 GetStatCount() const {
             return static_cast<int>(Target.StatsToAggregate.GetColumnCount());
@@ -68,8 +84,14 @@ namespace NCatboostCuda {
             : DataSet(dataSet)
             , FeaturesManager(featuresManager)
             , ComputeByBlocksHelper(helper)
-            , MaxStreamCount(2)
-        {
+            , MaxStreamCount(helper.GetStreamCount()) {
+            if (MaxStreamCount > 1) {
+                for (ui32 i = 0; i < MaxStreamCount; ++i) {
+                    Streams.push_back(NCudaLib::GetCudaManager().RequestStream());
+                }
+            } else {
+                Streams.push_back(NCudaLib::GetCudaManager().DefaultStream());
+            }
         }
 
         TPointsSubsets CreateInitialSubsets(TOptimizationTarget&& target,
@@ -79,13 +101,34 @@ namespace NCatboostCuda {
         void BuildNecessaryHistograms(TPointsSubsets* subsets);
 
         void MakeSplit(const TVector<ui32>& leafIds,
-                       TPointsSubsets* subsets);
+                       TPointsSubsets* subsets,
+                       TVector<ui32>* leftIds,
+                       TVector<ui32>* rightIds
+                       );
+
+        void MakeSplit(const TVector<ui32>& leafIds,
+                       TPointsSubsets* subsets) {
+            TVector<ui32> leftIds;
+            TVector<ui32> rightIds;
+            MakeSplit(leafIds, subsets, &leftIds, &rightIds);
+        }
 
         const TDocParallelDataSet& GetDataSet() const {
             return DataSet;
         }
 
     private:
+        void MakeSplit(const ui32 leafId,
+                       TPointsSubsets* subsets,
+                       TVector<ui32>* leftIds,
+                       TVector<ui32>* rightIds
+        );
+    private:
+
+        bool IsOnlyDefaultStream() const {
+            return Streams.size() == 0 || (Streams.size() == 1 && Streams.back().GetId() == 0);
+        }
+
         ui32 GetStream(size_t i) const {
             if (Streams.size()) {
                 return Streams[i % Streams.size()].GetId();

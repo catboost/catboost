@@ -10,6 +10,7 @@
 
 #include <util/stream/labeled.h>
 
+
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;

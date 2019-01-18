@@ -180,6 +180,11 @@ namespace NKernel {
         cub::ThreadStore<cub::STORE_WT>(data, val);
     }
 
+    template <typename T>
+    __forceinline__ __device__ void StoreCS(T* data, T val) {
+        cub::ThreadStore<cub::STORE_CS>(data, val);
+    }
+
     template <class U, class V>
     struct TPair {
         U First;

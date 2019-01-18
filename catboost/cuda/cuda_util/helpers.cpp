@@ -131,7 +131,7 @@ static TDistributedObject<std::remove_const_t<T>> TailImpl(const TCudaBuffer<T, 
     using TKernel = TTailKernel<std::remove_const_t<T>, EPtrType::CudaHost>;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, data, result);
 
-    TVector<ui32> resultVec;
+    TVector<std::remove_const_t<T>> resultVec;
     result.Read(resultVec, stream);
     auto res = CreateDistributedObject<std::remove_const_t<T>>(0);
     for (ui32 i = 0; i < NCudaLib::GetCudaManager().GetDeviceCount(); ++i) {
@@ -149,7 +149,10 @@ static TDistributedObject<std::remove_const_t<T>> TailImpl(const TCudaBuffer<T, 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL,
     ui32,
-    const ui32);
+    const ui32,
+    ui64,
+    const ui64
+    );
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 
@@ -203,7 +206,7 @@ TStripeMapping CreateMappingFromTailImpl(
     auto tailSizes = Tail(data, stream);
     NCudaLib::TMappingBuilder<TStripeMapping> builder;
     for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
-        builder.SetSizeAt(dev, tailSizes.At(dev) + additionalData);
+        builder.SetSizeAt(dev, tailSizes.At(dev) + (ui64)additionalData);
     }
     return builder.Build(objectSize);
 }
@@ -221,7 +224,9 @@ TStripeMapping CreateMappingFromTailImpl(
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL,
     ui32,
-    const ui32);
+    ui64,
+    const ui32,
+    const ui64);
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 
@@ -230,4 +235,5 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0xFFFF01, TDumpPtrs, ui32);
     REGISTER_KERNEL_TEMPLATE(0xFFFF02, TDumpPtrs, int);
     REGISTER_KERNEL_TEMPLATE_2(0xFFFF03, TTailKernel, ui32, EPtrType::CudaHost);
+    REGISTER_KERNEL_TEMPLATE_2(0xFFFF04, TTailKernel, ui64, EPtrType::CudaHost);
 }

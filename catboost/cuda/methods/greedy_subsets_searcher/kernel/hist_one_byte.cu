@@ -1,9 +1,8 @@
 #include "hist.cuh"
-
+#include "hist_2_one_byte_base.cuh"
 #include "tuning_policy_enums.cuh"
 #include "compute_hist_loop_one_stat.cuh"
-#include "compute_hist_loop_two_stats.cuh"
-#include "hist_2_one_byte.cuh"
+
 #include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
@@ -281,42 +280,51 @@ namespace NKernel
                             TCudaStream stream) {
 
 
+            #define PASS(Bits, NumStats)\
+            const int blockSize =  384;\
+            dim3 numBlocks;\
+            numBlocks.z = NumStats;\
+            numBlocks.y = partCount;\
+            const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
+            const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
+            numBlocks.x = (fCount + 3) / 4;\
+            numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
+            using THist = TPointHistOneByte<Bits, blockSize>;\
+            ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
+                            features,\
+                            fCount,\
+                            bins, binsLineSize,\
+                            stats, numStats, \
+                            statLineSize,\
+                            parts,\
+                            partIds,\
+                            histograms);
 
-
-        #define PASS(Bits, FirstStat)\
-        const int blockSize =  384;\
-        dim3 numBlocks;\
-        numBlocks.z = (numStats - FirstStat);\
-        numBlocks.y = partCount;\
-        const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
-        const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
-        numBlocks.x = (fCount + 3) / 4;\
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
-        using THist = TPointHistOneByte<Bits, blockSize>;\
-        ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
-                        features,\
-                        fCount,\
-                        bins, binsLineSize,\
-                        stats, FirstStat, numStats, \
-                        statLineSize,\
-                        parts,\
-                        partIds,\
-                        histograms);
-
-        if (partCount) {
-            if (maxBins <= 32) {
-                PASS(5, 0)
-            } else if (maxBins <= 64) {
-                PASS(6, 0)
-            } else if (maxBins <= 128) {
-                PASS(7, 0)
-            } else if (maxBins <= 255) {
-                PASS(8, 0)
-            } else {
-                CB_ENSURE(false, "Unsupported bits count " << maxBins);
+            #define HIST2_PASS(Bits)\
+            if (numStats % 2 != 0) {\
+                PASS(Bits, 1)\
+                ComputeHist2OneByteBits<Bits, true>(features, fCount, parts, partIds, partCount, bins, binsLineSize, stats, numStats, statLineSize, histograms, stream);\
+            } else {\
+                ComputeHist2OneByteBits<Bits, false>(features, fCount, parts, partIds, partCount, bins, binsLineSize, stats, numStats, statLineSize, histograms, stream);\
             }
-        }
-        #undef PASS
+
+            if (partCount) {
+                if (maxBins <= 32) {
+                    HIST2_PASS(5)
+                } else if (maxBins <= 64) {
+                    HIST2_PASS(6)
+//                    PASS(6, numStats)
+                } else if (maxBins <= 128) {
+                    HIST2_PASS(7)
+//                    PASS(7, numStats)
+                } else if (maxBins <= 255) {
+                    PASS(8, numStats)
+                } else {
+                    CB_ENSURE(false, "Unsupported bits count " << maxBins);
+                }
+            }
+            #undef PASS
+            #undef HIST2_PASS
     }
 
     void ComputeHistOneByte(int maxBins,
@@ -333,103 +341,180 @@ namespace NKernel
                             float* histograms,
                             TCudaStream stream) {
 
-//TODO(noxoomo): use pass with 2 stats per kernel when it'll give speed-up
-
-//        #define PASS(Bits, FirstStat, NumStatsInPass)\
-//        const int blockSize =  384;\
-//        dim3 numBlocks;\
-//        numBlocks.z = NumStatsInPass;\
-//        numBlocks.y = partCount;\
-//        const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
-//        const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
-//        const int groupCount = (fCount + 3) / 4;\
-//        numBlocks.x = groupCount;\
-//        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
-//        using THist = TPointHistOneByte<Bits, blockSize>;\
-//        ComputeSplitPropertiesGatherImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
-//                        features,\
-//                        fCount,\
-//                        cindex,\
-//                        indices,\
-//                        stats, FirstStat, numStats, \
-//                        statLineSize,\
-//                        parts,\
-//                        partIds,\
-//                        histograms);
-
-
-//        #define PASS_2_STATS(Bits, FirstStat, NumStatsInPass)\
-//        const int blockSize =  384;\
-//        dim3 numBlocks;\
-//        numBlocks.z = NumStatsInPass / 2;\
-//        numBlocks.y = partCount;\
-//        const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
-//        const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
-//        const int groupCount = (fCount + 3) / 4;\
-//        numBlocks.x = groupCount;\
-//        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
-//        using THist = TPointHist2OneByte<Bits, blockSize>;\
-//        ComputeSplitPropertiesTwoStatsGatherImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
-//                        features,\
-//                        fCount,\
-//                        cindex,\
-//                        indices,\
-//                        stats, FirstStat, numStats, \
-//                        statLineSize,\
-//                        parts,\
-//                        partIds,\
-//                        histograms);
-
-//        if (numStats % 2 == 0) {
-//            PASS_2_STATS(5, 0, numStats)
-//        } else {
-//            PASS(5, 0, 1)
-//            if (numStats > 1) {
-//                PASS_2_STATS(5, 1, numStats - 1)
-//            }
-//        }
-
-
-#define PASS(Bits)\
+        #define PASS(Bits, NumStats)\
         const int blockSize =  384;\
         dim3 numBlocks;\
-        numBlocks.z = numStats;\
+        numBlocks.z = NumStats;\
         numBlocks.y = partCount;\
         const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
         const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
         const int groupCount = (fCount + 3) / 4;\
         numBlocks.x = groupCount;\
-        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
+        numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
         using THist = TPointHistOneByte<Bits, blockSize>;\
         ComputeSplitPropertiesGatherImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
                         features,\
                         fCount,\
                         cindex,\
                         indices,\
-                        stats,  \
+                        stats, numStats, \
                         statLineSize,\
                         parts,\
                         partIds,\
                         histograms);
 
+        #define HIST2_PASS(Bits)\
+            if (numStats % 2 != 0) {\
+                PASS(Bits, 1)\
+                ComputeHist2OneByteBits<Bits, true>(features, fCount, parts, partIds, partCount, cindex, indices, stats, numStats, statLineSize, histograms, stream);\
+            } else {\
+                ComputeHist2OneByteBits<Bits, false>(features, fCount, parts, partIds, partCount, cindex, indices, stats, numStats, statLineSize, histograms, stream);\
+            }
+
+
         if (partCount) {
             if (maxBins <= 32) {
-              PASS(5)
+                HIST2_PASS(5)
             } else if (maxBins <= 64) {
-//                PASS(6, 0, numStats)
-                PASS(6)
+                HIST2_PASS(6)
+//                PASS(6, numStats)
             } else if (maxBins <= 128) {
-//                PASS(7, 0, numStats)
-                PASS(7)
+                HIST2_PASS(7)
+//                PASS(7, numStats)
             } else if (maxBins <= 255) {
-//                PASS(8, 0, numStats)
-                PASS(8)
+                PASS(8, numStats)
             } else {
                 CB_ENSURE(false, "Unsupported bins count " << maxBins);
             }
         }
         #undef PASS
-//        #undef PASS_2_STATS
+        #undef HIST2_PASS
+    }
+
+
+
+    /*
+     * Single part
+     */
+
+    void ComputeHistOneByte(int maxBins,
+                            const TFeatureInBlock* features,
+                            const int fCount,
+                            const TDataPartition* parts,
+                            const ui32 partId,
+                            const ui32* bins,
+                            ui32 binsLineSize,
+                            const float* stats,
+                            ui32 numStats,
+                            ui32 statLineSize,
+                            float* histograms,
+                            TCudaStream stream) {
+
+
+        #define PASS(Bits, NumStats)\
+            const int blockSize =  384;\
+            dim3 numBlocks;\
+            numBlocks.z = NumStats;\
+            numBlocks.y = 1;\
+            const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
+            const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
+            numBlocks.x = (fCount + 3) / 4;\
+            numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));\
+            using THist = TPointHistOneByte<Bits, blockSize>;\
+            ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
+                            features,\
+                            fCount,\
+                            bins, binsLineSize,\
+                            stats, numStats, \
+                            statLineSize,\
+                            parts,\
+                            partId,\
+                            histograms);
+
+        #define HIST2_PASS(Bits)\
+            if (numStats % 2 != 0) {\
+                PASS(Bits, 1)\
+                ComputeHist2OneByteBits<Bits, true>(features, fCount, parts, partId, bins, binsLineSize, stats, numStats, statLineSize, histograms, stream);\
+            } else {\
+                ComputeHist2OneByteBits<Bits, false>(features, fCount, parts, partId, bins, binsLineSize, stats, numStats, statLineSize, histograms, stream);\
+            }
+
+        if (maxBins <= 32) {
+            HIST2_PASS(5)
+        } else if (maxBins <= 64) {
+            HIST2_PASS(6)
+//                    PASS(6, numStats)
+        } else if (maxBins <= 128) {
+            HIST2_PASS(7)
+//                    PASS(7, numStats)
+        } else if (maxBins <= 255) {
+            PASS(8, numStats)
+        } else {
+            CB_ENSURE(false, "Unsupported bits count " << maxBins);
+        }
+        #undef PASS
+        #undef HIST2_PASS
+    }
+
+    void ComputeHistOneByte(int maxBins,
+                            const TFeatureInBlock* features,
+                            const int fCount,
+                            const TDataPartition* parts,
+                            const ui32 partId,
+                            const ui32* cindex,
+                            const int* indices,
+                            const float* stats,
+                            ui32 numStats,
+                            ui32 statLineSize,
+                            float* histograms,
+                            TCudaStream stream) {
+
+        #define PASS(Bits, NumStats)\
+        const int blockSize =  384;\
+        dim3 numBlocks;\
+        numBlocks.z = NumStats;\
+        numBlocks.y = 1;\
+        const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;\
+        const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();\
+        const int groupCount = (fCount + 3) / 4;\
+        numBlocks.x = groupCount;\
+        numBlocks.x *= CeilDivide(2 * maxActiveBlocks, (int)(numBlocks.y * numBlocks.z * numBlocks.x));\
+        using THist = TPointHistOneByte<Bits, blockSize>;\
+        ComputeSplitPropertiesGatherImpl<THist, blockSize, 4><<<numBlocks, blockSize, 0, stream>>>(\
+                        features,\
+                        fCount,\
+                        cindex,\
+                        indices,\
+                        stats, numStats, \
+                        statLineSize,\
+                        parts,\
+                        partId,\
+                        histograms);
+
+        #define HIST2_PASS(Bits)\
+            if (numStats % 2 != 0) {\
+                PASS(Bits, 1)\
+                ComputeHist2OneByteBits<Bits, true>(features, fCount, parts, partId, cindex, indices, stats, numStats, statLineSize, histograms, stream);\
+            } else {\
+                ComputeHist2OneByteBits<Bits, false>(features, fCount, parts, partId, cindex, indices, stats, numStats, statLineSize, histograms, stream);\
+            }
+
+
+        if (maxBins <= 32) {
+            HIST2_PASS(5)
+        } else if (maxBins <= 64) {
+            HIST2_PASS(6)
+//                PASS(6, numStats)
+        } else if (maxBins <= 128) {
+            HIST2_PASS(7)
+//                PASS(7, numStats)
+        } else if (maxBins <= 255) {
+            PASS(8, numStats)
+        } else {
+            CB_ENSURE(false, "Unsupported bins count " << maxBins);
+        }
+        #undef PASS
+        #undef HIST2_PASS
     }
 
 }

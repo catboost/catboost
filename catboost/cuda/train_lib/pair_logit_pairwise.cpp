@@ -3,5 +3,5 @@
 
 namespace NCatboostCuda {
     using TTPairwisePaitLogitTrainer = TPairwiseGpuTrainer<TPairLogitPairwise>;
-    TGpuTrainerFactory::TRegistrator<TTPairwisePaitLogitTrainer> PairwisePairLogitRegistratort(ELossFunction::PairLogitPairwise);
+    TGpuTrainerFactory::TRegistrator<TTPairwisePaitLogitTrainer> PairwisePairLogitRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogitPairwise));
 }

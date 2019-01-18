@@ -46,15 +46,9 @@ namespace NKernel {
         line[threadIdx.x] = sumWeightedTarget;
         const float totalSumWeightedTarget = WarpReduce(x, line + localQid * 32, 32);
 
-        if (x == 0) {
-            resultMaxApprox[localQid] = totalMaxApprox;
-            resultSumWeightedTarget[localQid] = totalSumWeightedTarget;
-        }
-        __syncthreads();
-
         if (x == 0 && (qid < qCount)) {
-            maximals[localQid] = resultMaxApprox[localQid];
-            sumWeightedTargets[localQid] = resultSumWeightedTarget[localQid];
+            maximals[localQid] = totalMaxApprox;
+            sumWeightedTargets[localQid] = totalSumWeightedTarget;
         }
     }
 
@@ -66,8 +60,7 @@ namespace NKernel {
                               TCudaStream stream) {
         const int blockSize = 128;
         const int numBlocks = (qCount * 32 + 127) / blockSize;
-        if (numBlocks > 0)
-        {
+        if (numBlocks > 0) {
             ComputeGroupMaximalsImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (target, weights, approxExp, qOffsets, qOffsetsBias, qSizes, qCount, maximals, sumWeightedTargets);
         }
     }
@@ -87,7 +80,7 @@ namespace NKernel {
         const float apprExp = __expf(approx - apprMax) * weight;
 
         if (i < size) {
-            approxExp[i] = (weight > 0) ? apprExp : 0;
+            approxExp[i] = apprExp;
         }
     }
 
@@ -148,8 +141,7 @@ namespace NKernel {
                           float* approxExpSum, TCudaStream stream) {
         const int blockSize = 128;
         const int numBlocks = (qCount * 32 + 127) / blockSize;
-        if (numBlocks > 0)
-        {
+        if (numBlocks > 0) {
             ComputeGroupSumsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(approxExp, qOffsets, qOffsetsBias, qSizes, qCount, approxExpSum);
         }
     }
@@ -173,7 +165,7 @@ namespace NKernel {
         const float targetVal = i < size ?  target[i] : 0;
         const float weight =  (weights && (i < size)) ? weights[i] : 1.0f;
         const float approx =  i < size ? approxExp[i] : 0;
-        const ui32 qid = __ldg(qids + i);
+        const ui32 qid = i < size ? __ldg(qids + i) : 0;
         const float approxSum = i < size ? __ldg(approxExpSum + qid) : 0;
         const float sumTargets = i < size ? __ldg(sumWeightedTargets + qid) : 0;
 

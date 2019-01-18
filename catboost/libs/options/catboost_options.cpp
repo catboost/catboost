@@ -455,6 +455,18 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
+        if (ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
+            ObliviousTreeOptions->MaxDepth.SetDefault(16);
+        }
+        if (ObliviousTreeOptions->MaxLeavesCount.IsDefault() && ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
+            const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
+            ObliviousTreeOptions->MaxLeavesCount.SetDefault(maxLeaves);
+
+            if (ObliviousTreeOptions->GrowingPolicy != EGrowingPolicy::Lossguide) {
+                CB_ENSURE(ObliviousTreeOptions->MaxLeavesCount == maxLeaves,
+                          "max_leaves_count options works only with lossguide tree growing");
+            }
+        }
     }
 
     SetLeavesEstimationDefault();

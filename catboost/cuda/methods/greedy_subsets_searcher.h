@@ -2,11 +2,15 @@
 
 #include "helpers.h"
 
-#include "catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h"
+#include <catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h>
+#include <catboost/cuda/models/add_region_doc_parallel.h>
+#include <catboost/cuda/models/add_non_symmetric_tree_doc_parallel.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/models/oblivious_model.h>
+#include <catboost/cuda/models/region_model.h>
+#include <catboost/cuda/models/non_symmetric_tree.h>
 #include <catboost/cuda/methods/leaves_estimation/leaves_estimation_config.h>
 #include <catboost/cuda/methods/greedy_subsets_searcher/structure_searcher_template.h>
 #include <catboost/cuda/methods/leaves_estimation/doc_parallel_leaves_estimator.h>
@@ -18,19 +22,24 @@ namespace NCatboostCuda {
         TTreeStructureSearcherOptions options;
         options.ScoreFunction = config.ScoreFunction;
         options.BootstrapOptions = config.BootstrapConfig;
-        options.MaxLeaves = 1 << config.MaxDepth;
         options.MaxDepth = config.MaxDepth;
-        options.MinLeafSize = 0;
+        options.MinLeafSize = config.MinSamplesInLeaf;
         options.L2Reg = config.L2Reg;
-        options.Policy = EGrowingPolicy::ObliviousTree;
+        options.Policy = config.GrowingPolicy;
+        if (config.GrowingPolicy == EGrowingPolicy::Region) {
+            options.MaxLeaves = config.MaxDepth + 1;
+        } else {
+            options.MaxLeaves = config.MaxLeavesCount;
+        }
+
         options.RandomStrength = config.RandomStrength;
         return options;
     }
 
+    template <class TTreeModel>
     class TGreedySubsetsSearcher {
     public:
-        using TResultModel = TObliviousTreeModel;
-        using TWeakModelStructure = TObliviousTreeStructure;
+        using TResultModel = TTreeModel;
         using TDataSet = TDocParallelDataSet;
 
         TGreedySubsetsSearcher(const TBinarizedFeaturesManager& featuresManager,
@@ -50,11 +59,10 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TGreedyTreeLikeStructureSearcher  CreateStructureSearcher(double randomStrengthMult) {
+        TGreedyTreeLikeStructureSearcher<TTreeModel>  CreateStructureSearcher(double randomStrengthMult) {
             TTreeStructureSearcherOptions options=  StructureSearcherOptions;
             options.RandomStrength *= randomStrengthMult;
-            return TGreedyTreeLikeStructureSearcher(FeaturesManager,
-                                                    options);
+            return TGreedyTreeLikeStructureSearcher<TTreeModel>(FeaturesManager, options);
         }
 
         TDocParallelLeavesEstimator CreateEstimator() {
@@ -63,8 +71,8 @@ namespace NCatboostCuda {
         }
 
         template <class TDataSet>
-        TAddDocParallelObliviousTree CreateAddModelValue(bool useStreams = false) {
-            return TAddDocParallelObliviousTree(useStreams);
+        TAddModelDocParallel<TTreeModel> CreateAddModelValue(bool useStreams = false) {
+            return TAddModelDocParallel<TTreeModel>(useStreams);
         }
 
     private:

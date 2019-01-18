@@ -131,4 +131,80 @@ namespace NKernel {
     }
 
 
+
+    /* one part */
+
+    void ComputeHistHalfByte(const TFeatureInBlock* features,
+                             const int fCount,
+                             const TDataPartition* parts,
+                             const ui32 partId,
+                             const ui32* bins,
+                             ui32 binsLineSize,
+                             const float* stats,
+                             ui32 numStats,
+                             ui32 statLineSize,
+                             float* histograms,
+                             TCudaStream stream) {
+
+        const int blockSize =  768;
+        dim3 numBlocks;
+        numBlocks.z = numStats;
+        numBlocks.y = 1;
+
+        const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;
+        const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
+
+        numBlocks.x = (fCount + 7) / 8;
+        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+
+        ComputeSplitPropertiesDirectLoadsImpl<THist, blockSize, 8><<<numBlocks, blockSize, 0, stream>>>(
+            features,
+                fCount,
+                bins,
+                binsLineSize,
+                stats,
+                statLineSize,
+                parts,
+                partId,
+                histograms);
+
+
+    }
+
+    void ComputeHistHalfByte(const TFeatureInBlock* features,
+                             const int fCount,
+                             const TDataPartition* parts,
+                             const ui32 partId,
+                             const ui32* cindex,
+                             const int* indices,
+                             const float* stats,
+                             ui32 numStats,
+                             ui32 statLineSize,
+                             float* histograms,
+                             TCudaStream stream) {
+        const int blockSize =  768;
+        dim3 numBlocks;
+        numBlocks.z = numStats;
+        numBlocks.y = 1;
+
+        const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;
+        const int maxActiveBlocks = blocksPerSm * TArchProps::SMCount();
+
+        numBlocks.x = (fCount + 7) / 8;
+        numBlocks.x *= CeilDivide(maxActiveBlocks, (int)(numBlocks.x * numBlocks.y * numBlocks.z));
+
+        ComputeSplitPropertiesGatherImpl<THist, blockSize, 8><<<numBlocks, blockSize, 0, stream>>>(
+            features,
+                fCount,
+                cindex,
+                indices,
+                stats,
+                statLineSize,
+                parts,
+                partId,
+                histograms);
+
+    }
+
+
 }

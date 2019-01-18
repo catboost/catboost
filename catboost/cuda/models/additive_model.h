@@ -31,6 +31,10 @@ namespace NCatboostCuda {
             WeakModels.push_back(std::move(weak));
         }
 
+        ui32 OutputDim() const {
+            return WeakModels.back().OutputDim();
+        }
+
         void AddWeakModel(const TInner& weak) {
             WeakModels.push_back(weak);
         }

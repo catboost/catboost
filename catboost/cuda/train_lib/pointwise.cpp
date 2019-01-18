@@ -4,14 +4,14 @@
 namespace NCatboostCuda {
     using TPointwiseTrainer = TGpuTrainer<TPointwiseTargetsImpl>;
 
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoisson(ELossFunction::Poisson);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMape(ELossFunction::MAPE);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMae(ELossFunction::MAE);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantile(ELossFunction::Quantile);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantile(ELossFunction::LogLinQuantile);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRMSE(ELossFunction::RMSE);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogloss(ELossFunction::Logloss);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropy(ELossFunction::CrossEntropy);
-    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLq(ELossFunction::Lq);
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRMSE(GetTrainerFactoryKey(ELossFunction::RMSE));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoisson(GetTrainerFactoryKey(ELossFunction::Poisson));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMape(GetTrainerFactoryKey(ELossFunction::MAPE));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorMae(GetTrainerFactoryKey(ELossFunction::MAE));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorQuantile(GetTrainerFactoryKey(ELossFunction::Quantile));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogLinQuantile(GetTrainerFactoryKey(ELossFunction::LogLinQuantile));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLogloss(GetTrainerFactoryKey(ELossFunction::Logloss));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropy(GetTrainerFactoryKey(ELossFunction::CrossEntropy));
+    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLq(GetTrainerFactoryKey(ELossFunction::Lq));
 
 }

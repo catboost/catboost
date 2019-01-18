@@ -17,12 +17,11 @@ using namespace std;
 using namespace NCudaLib;
 
 Y_UNIT_TEST_SUITE(TReorderTest) {
-    void RunReorderTest() {
+    void RunReorderTest(ui32 bits = 2) {
         TRandom rand(42);
         const ui32 expCount = 4;
-        const ui32 binCount = 4;
         const ui32 devCount = GetDeviceCount();
-
+        const ui32 binCount = 1 << bits;
         for (ui32 i = 0; i < expCount; ++i) {
             auto binsMapping = TStripeMapping::SplitBetweenDevices(devCount * (rand.NextUniformL() % 1000000));
 
@@ -54,7 +53,11 @@ Y_UNIT_TEST_SUITE(TReorderTest) {
 
             auto indices = TStripeBuffer<ui32>::CopyMapping(bins);
             MakeSequence(indices);
-            ReorderBins(bins, indices, 0, 2);
+            if (bits == 1) {
+                ReorderOneBit(bins, indices, 0);
+            } else {
+                ReorderBins(bins, indices, 0, bits);
+            }
 
             TVector<TDataPartition> partsCpu;
             auto partsGpuMapping = binsMapping.RepeatOnAllDevices(binCount);
@@ -86,8 +89,8 @@ Y_UNIT_TEST_SUITE(TReorderTest) {
 
     Y_UNIT_TEST(TestReorder) {
         auto stopCudaManagerGuard = StartCudaManager();
-        {
-            RunReorderTest();
+        for (auto bits : {1, 2}) {
+            RunReorderTest(bits);
         }
     }
 }

@@ -7,10 +7,17 @@ SRCS(
     GLOBAL train.cpp
     GLOBAL query_cross_entropy.cpp
     GLOBAL pointwise.cpp
+    GLOBAL pointwise_region.cpp
     GLOBAL querywise.cpp
     GLOBAL pfound_f.cpp
     GLOBAL pair_logit_pairwise.cpp
     GLOBAL multiclass.cpp
+    GLOBAL pointwise_region.cpp
+    GLOBAL multiclass_region.cpp
+    GLOBAL querywise_region.cpp
+    GLOBAL pointwise_non_symmetric.cpp
+    GLOBAL querywise_non_symmetric.cpp
+    GLOBAL multiclass_non_symmetric.cpp
 )
 
 PEERDIR(
