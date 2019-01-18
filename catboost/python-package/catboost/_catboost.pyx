@@ -1263,7 +1263,9 @@ class FeaturesData(object):
                 for i, name in enumerate(feature_names):
                     if type(name) != str:
                         raise CatboostError(
-                            'type of {}_feature_names[{}]: expected str, found {}'
+                            'type of {}_feature_names[{}]: expected str, found {}'.format(
+                                part_name, i, type(name)
+                            )
                         )
                 if feature_data.shape[1] != len(feature_names):
                     raise CatboostError(
