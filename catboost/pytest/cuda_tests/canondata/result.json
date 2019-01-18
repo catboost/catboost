@@ -1049,6 +1049,30 @@
             "uri": "file://test_gpu.test_group_weights_file_quantized/first.eval"
         }
     ],
+    "test_gpu.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain]": [
+        {
+            "checksum": "563ecf85ce53b4ebcd3926c639a94184",
+            "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
+        }
+    ],
+    "test_gpu.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered]": [
+        {
+            "checksum": "dba6a8742f1465d23f2b5138e346fdb0",
+            "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/test.eval"
+        }
+    ],
+    "test_gpu.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain]": [
+        {
+            "checksum": "06055cbeca9c6338c368d243112903f3",
+            "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/test.eval"
+        }
+    ],
+    "test_gpu.test_groupwise_with_cat_features[loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain]": [
+        {
+            "checksum": "0a11971ba41324b7b969ba82906c0607",
+            "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
+        }
+    ],
     "test_gpu.test_has_time[Ordered]": [
         {
             "checksum": "0a205d56a44ce6ca1059749a5969d6da",

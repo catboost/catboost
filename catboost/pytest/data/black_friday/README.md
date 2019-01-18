@@ -1,0 +1,1 @@
+Small subset of dataset from https://www.kaggle.com/mehdidag/black-friday
