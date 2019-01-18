@@ -1,3 +1,10 @@
+# Release 0.12.2
+## Changes:
+* Fixed loading of `epsilon` dataset into memory
+* Fixed multiclass accuracy computation on GPU
+* Improved error handling
+* Some other minor fixes
+
 # Release 0.12.1.1
 ## Changes:
 * Fixed Python compatibility issue in dataset downloading
