@@ -134,7 +134,7 @@ private:
     size_t                  __size_;
     value_type *            __base_;
     _LIBCPP_INLINE_VISIBILITY dynarray () noexcept :  __size_(0), __base_(nullptr) {}
-
+    
     static inline _LIBCPP_INLINE_VISIBILITY
     value_type* __allocate(size_t __count) {
         if (numeric_limits<size_t>::max() / sizeof (value_type) <= __count)
@@ -145,8 +145,8 @@ private:
     }
 
     static inline _LIBCPP_INLINE_VISIBILITY
-    void __deallocate_value( value_type* __ptr ) noexcept {
-        _VSTD::__libcpp_deallocate (static_cast<void *>(__ptr), __alignof(value_type));
+    void __deallocate_value(value_type* __ptr ) noexcept {
+        _VSTD::__libcpp_deallocate(static_cast<void *>(__ptr), __alignof(value_type));
     }
 
 public:
@@ -262,7 +262,7 @@ dynarray<_Tp>::dynarray(const dynarray& __d) : dynarray ()
 template <class _Tp>
 inline
 dynarray<_Tp>::~dynarray()
-{
+{ 
     value_type *__data = data () + __size_;
     for ( size_t i = 0; i < __size_; ++i )
         (--__data)->value_type::~value_type();
@@ -301,5 +301,5 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // if _LIBCPP_STD_VER > 11
+#endif  // if _LIBCPP_STD_VER > 11 
 #endif  // _LIBCPP_DYNARRAY
