@@ -175,6 +175,12 @@ EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle);
 
 /**
+ * Get number of dimensions in model
+ * @param calcer model handle
+ */
+EXPORT size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
+
+/**
  * Check if model metadata holds some value for provided key
  * @param calcer model handle
  */

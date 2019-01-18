@@ -12,9 +12,10 @@
 #include <util/generic/deque.h>
 #include <util/generic/hash.h>
 #include <util/generic/vector.h>
+#include <util/stream/labeled.h>
 #include <util/stream/output.h>
-#include <util/system/unaligned_mem.h>
 #include <util/system/byteorder.h>
+#include <util/system/unaligned_mem.h>
 
 using NCB::NQuantizationDetail::IsDoubleColumn;
 using NCB::NQuantizationDetail::IsFloatColumn;
@@ -46,22 +47,18 @@ static TDeque<NCB::TQuantizedPool::TChunkDescription> GetChunksSortedByOffset(
 
 static size_t GetMaxFeatureCountInChunk(const NCB::NIdl::TQuantizedFeatureChunk& chunk) {
     return size_t(8)
-        * sizeof(*chunk.Quants()->begin())
+        * sizeof(decltype(*chunk.Quants()->begin()))
         * chunk.Quants()->size()
         / static_cast<size_t>(chunk.BitsPerDocument());
 }
 
-static void PrintHumanReadableNumericChunk(
+template <typename T>
+static void PrintHumanReadableNumericChunkImpl(
     const NCB::TQuantizedPool::TChunkDescription& chunk,
     const NCB::NIdl::TFeatureQuantizationSchema* const schema,
     IOutputStream* const output) {
 
-    // TODO(yazevnul): support rest of bitness options
-    // TODO(yazevnul): generated enum members are ugly, maybe rename them?
-    CB_ENSURE(chunk.Chunk->BitsPerDocument() == NCB::NIdl::EBitsPerDocumentFeature_BPDF_8);
-    CB_ENSURE(chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk));
-
-    TUnalignedMemoryIterator<ui8> borderIndexIt{
+    TUnalignedMemoryIterator<T> borderIndexIt{
         chunk.Chunk->Quants()->data(),
         chunk.Chunk->Quants()->size()};
     for (size_t i = 0; i < chunk.DocumentCount; ++i, (void)borderIndexIt.Next()) {
@@ -70,8 +67,8 @@ static void PrintHumanReadableNumericChunk(
         }
 
         if (schema) {
-            const auto index = borderIndexIt.Cur();
-            if (index >= schema->GetBorders().size()) {
+            const auto index = static_cast<size_t>(borderIndexIt.Cur());
+            if (index >= static_cast<size_t>(schema->GetBorders().size())) {
                 (*output) << '>' << *schema->GetBorders().rbegin();
             } else {
                 (*output) << '<' << schema->GetBorders(borderIndexIt.Cur());
@@ -80,6 +77,61 @@ static void PrintHumanReadableNumericChunk(
             // `operator <<` treats `ui8` as character, so we force it to treat it like a number
             (*output) << static_cast<ui64>(borderIndexIt.Cur());
         }
+    }
+}
+
+static void PrintHumanReadableNumericChunk(
+    const NCB::TQuantizedPool::TChunkDescription& chunk,
+    const NCB::NIdl::TFeatureQuantizationSchema* const schema,
+    IOutputStream* const output) {
+
+    CB_ENSURE(
+        chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk),
+        LabeledOutput(chunk.DocumentCount, GetMaxFeatureCountInChunk(*chunk.Chunk)));
+
+    // TODO(yazevnul): support rest of bitness options
+    switch (const auto bitsPerDocument = chunk.Chunk->BitsPerDocument()) {
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_8:
+            PrintHumanReadableNumericChunkImpl<ui8>(chunk, schema, output);
+            break;
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_16:
+            PrintHumanReadableNumericChunkImpl<ui16>(chunk, schema, output);
+            break;
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_32:
+            PrintHumanReadableNumericChunkImpl<ui32>(chunk, schema, output);
+            break;
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_64:
+            PrintHumanReadableNumericChunkImpl<ui64>(chunk, schema, output);
+            break;
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_1:
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_2:
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_4:
+            ythrow TCatBoostException() << LabeledOutput((int)bitsPerDocument) << " is not supported";
+        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_UKNOWN:
+            ythrow TCatBoostException() << "invalid value";
+    }
+}
+
+static void PrintHumanReadableNumericChunks(
+    const TDeque<NCB::TQuantizedPool::TChunkDescription>& chunks,
+    const NCB::NIdl::TFeatureQuantizationSchema* const schema,
+    const bool chunkWise,
+    IOutputStream* const output) {
+
+    if (chunkWise) {
+        for (const auto& chunk : chunks) {
+            (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
+            PrintHumanReadableNumericChunk(chunk, schema, output);
+            (*output) << '\n';
+        }
+        return;
+    }
+
+    for (size_t i = 0, iEnd = chunks.size(); i < iEnd; ++i) {
+        if (i > 0) {
+            (*output) << ' ';
+        }
+        PrintHumanReadableNumericChunk(chunks[i], schema, output);
     }
 
     (*output) << '\n';
@@ -91,7 +143,9 @@ static void PrintHumanReadableChunk(
     IOutputStream* const output) {
 
     CB_ENSURE(static_cast<size_t>(chunk.Chunk->BitsPerDocument()) == sizeof(T) * 8);
-    CB_ENSURE(chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk));
+    CB_ENSURE(
+        chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk),
+        LabeledOutput(chunk.DocumentCount, GetMaxFeatureCountInChunk(*chunk.Chunk)));
 
     TUnalignedMemoryIterator<T> it(
         chunk.Chunk->Quants()->data(),
@@ -104,14 +158,38 @@ static void PrintHumanReadableChunk(
         (*output) << it.Cur();
     }
 
+}
+
+template <typename T>
+static void PrintHumanReadableChunks(
+    const TDeque<NCB::TQuantizedPool::TChunkDescription>& chunks,
+    const bool chunkWise,
+    IOutputStream* const output) {
+
+    if (chunkWise) {
+        for (const auto& chunk : chunks) {
+            (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
+            PrintHumanReadableChunk<T>(chunk, output);
+            (*output) << '\n';
+        }
+        return;
+    }
+
+    for (size_t i = 0, iEnd = chunks.size(); i < iEnd; ++i) {
+        if (i > 0) {
+            (*output) << ' ';
+        }
+
+        PrintHumanReadableChunk<T>(chunks[i], output);
+    }
+
     (*output) << '\n';
 }
+
 
 static void PrintHumanReadableStringChunk(
     const NCB::TQuantizedPool::TChunkDescription& chunk,
     IOutputStream* const output) {
-
-    CB_ENSURE(chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk));
 
     const ui8* data = chunk.Chunk->Quants()->data();
     size_t dataSizeLeft = chunk.Chunk->Quants()->size();
@@ -120,23 +198,22 @@ static void PrintHumanReadableStringChunk(
             (*output) << ' ';
         }
 
-        CB_ENSURE(dataSizeLeft >= sizeof(ui32));
+        CB_ENSURE(dataSizeLeft >= sizeof(ui32), LabeledOutput(i, dataSizeLeft));
         const ui32 tokenSize = LittleToHost(ReadUnaligned<ui32>(data));
         data += sizeof(ui32);
         dataSizeLeft -= sizeof(ui32);
 
-        CB_ENSURE(dataSizeLeft >= tokenSize);
+        CB_ENSURE(dataSizeLeft >= tokenSize, LabeledOutput(i, dataSizeLeft, tokenSize));
         (*output) << TStringBuf(reinterpret_cast<const char*>(data), tokenSize);
         data += tokenSize;
         dataSizeLeft -= tokenSize;
     }
-
-    (*output) << '\n';
 }
 
-static void PrintHumanReadableStringColumn(
+static void PrintHumanReadableStringChunks(
     const NCB::TQuantizedPool& pool,
     const EColumn columnType,
+    const bool chunkWise,
     IOutputStream* const output) {
 
     ui32 localIndex = 0;
@@ -147,19 +224,38 @@ static void PrintHumanReadableStringColumn(
     } else if (columnType == EColumn::SubgroupId) {
         localIndex = pool.StringSubgroupIdLocalIndex;
     } else {
-        CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
+        CB_ENSURE(false, LabeledOutput(columnType) << "; Should be one of: " << EColumn::DocId << ", " << EColumn::GroupId << ", " << EColumn::SubgroupId);
     }
 
-    for (const auto& chunk : GetChunksSortedByOffset(pool.Chunks[localIndex])) {
-        PrintHumanReadableStringChunk(chunk, output);
+    const auto chunks = GetChunksSortedByOffset(pool.Chunks[localIndex]);
+
+    if (chunkWise) {
+        for (const auto& chunk : chunks) {
+            (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
+            PrintHumanReadableStringChunk(chunk, output);
+            (*output) << '\n';
+        }
+        return;
     }
+
+    for (size_t i = 0, iEnd = chunks.size(); i < iEnd; ++i) {
+        if (i > 0) {
+            (*output) << ' ';
+        }
+
+        PrintHumanReadableStringChunk(chunks[i], output);
+    }
+
+    (*output) << '\n';
 }
 
 static void PrintHumanReadable(
     const NCB::TQuantizedPool& pool,
-    const NCB::TPrintQuantizedPoolParameters&,
-    const bool resolveBorders,
+    const NCB::TPrintQuantizedPoolParameters& params,
     IOutputStream* const output) {
+
+    const auto resolveBorders = params.ResolveBorders;
+    const auto chunkWise = params.Format == NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise;
 
     (*output) << pool.ColumnIndexToLocalIndex.size() << ' ' << pool.DocumentCount << '\n';
 
@@ -189,32 +285,31 @@ static void PrintHumanReadable(
         (*output) << '\n';
 
         if (columnType == EColumn::Categ || columnType == EColumn::Sparse || columnType == EColumn::Auxiliary) {
-            CB_ENSURE(chunks.empty());
+            CB_ENSURE(chunks.empty(), LabeledOutput(columnIndex));
             continue;
         } if (columnType == EColumn::Num) {
             const auto& quantizationSchema = featureIndexToSchema.at(featureIndex);
-            for (const auto& chunk : chunks) {
-                (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
-                PrintHumanReadableNumericChunk(chunk, resolveBorders ? &quantizationSchema : nullptr, output);
-            }
+            PrintHumanReadableNumericChunks(
+                chunks,
+                resolveBorders ? &quantizationSchema : nullptr,
+                chunkWise,
+                output);
         } else if (IsRequiredColumn(columnType)) {
-            for (const auto& chunk : chunks) {
-                (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
-                if (IsFloatColumn(columnType)) {
-                    PrintHumanReadableChunk<float>(chunk, output);
-                } else if (IsDoubleColumn(columnType)) {
-                    PrintHumanReadableChunk<double>(chunk, output);
-                } else if (IsUi32Column(columnType)) {
-                    PrintHumanReadableChunk<ui32>(chunk, output);
-                } else if (IsUi64Column(columnType)) {
-                    PrintHumanReadableChunk<ui64>(chunk, output);
-                }
+            if (IsFloatColumn(columnType)) {
+                PrintHumanReadableChunks<float>(chunks, chunkWise, output);
+            } else if (IsDoubleColumn(columnType)) {
+                PrintHumanReadableChunks<double>(chunks, chunkWise, output);
+            } else if (IsUi32Column(columnType)) {
+                PrintHumanReadableChunks<ui32>(chunks, chunkWise, output);
+            } else if (IsUi64Column(columnType)) {
+                PrintHumanReadableChunks<ui64>(chunks, chunkWise, output);
             }
+
             if (pool.HasStringColumns && IsStringColumn(columnType)) {
-                PrintHumanReadableStringColumn(pool, columnType, output);
+                PrintHumanReadableStringChunks(pool, columnType, chunkWise, output);
             }
         } else {
-            ythrow TCatBoostException() << "unexpected column type " << columnType;
+            ythrow TCatBoostException() << "unexpected " << LabeledOutput(columnType, columnIndex);
         }
     }
 }
@@ -225,11 +320,9 @@ void NCB::PrintQuantizedPool(
     IOutputStream* const output) {
 
     switch (params.Format) {
-        case NCB::EQuantizedPoolPrintFormat::HumanReadable:
-            ::PrintHumanReadable(pool, params, false, output);
-            return;
-        case NCB::EQuantizedPoolPrintFormat::HumanReadableResolveBorders:
-            ::PrintHumanReadable(pool, params, true, output);
+        case NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise:
+        case NCB::EQuantizedPoolPrintFormat::HumanReadableColumnWise:
+            ::PrintHumanReadable(pool, params, output);
             return;
         case NCB::EQuantizedPoolPrintFormat::Unknown:
             break;

@@ -31,7 +31,7 @@
 
 namespace NCB {
 
-    // hack to extract provate data from inside providers
+    // hack to extract private data from inside providers
     class TRawBuilderDataHelper {
     public:
         static TRawBuilderData Extract(TRawDataProvider&& rawDataProvider) {

@@ -1,4 +1,5 @@
 #include "cb_dsv_loader.h"
+#include "dsv_parser.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/data_util/exists_checker.h>
@@ -80,122 +81,27 @@ namespace NCB {
     void TCBDsvDataLoader::ProcessBlock(IRawObjectsOrderDataVisitor* visitor) {
         visitor->StartNextBlock(AsyncRowProcessor.GetParseBufferSize());
 
-        auto& columnsDescription = DataMetaInfo.ColumnsInfo->Columns;
-
-        auto parseBlock = [&](TString& line, int lineIdx) {
-            const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
-
-            ui32 featureId = 0;
-            ui32 baselineIdx = 0;
+        auto parseBlock = [&](TString& line, int inBlockIdx) {
+            const auto* const featuresLayout = DataMetaInfo.FeaturesLayout.Get();
 
             TVector<float> floatFeatures;
-            floatFeatures.yresize(featuresLayout.GetFloatFeatureCount());
+            floatFeatures.yresize(featuresLayout->GetFloatFeatureCount());
 
             TVector<ui32> catFeatures;
-            catFeatures.yresize(featuresLayout.GetCatFeatureCount());
+            catFeatures.yresize(featuresLayout->GetCatFeatureCount());
 
-            size_t tokenCount = 0;
-            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
-            try {
-                for (const auto& token : tokens) {
-                    try {
-                        switch (columnsDescription[tokenCount].Type) {
-                            case EColumn::Categ: {
-                                if (!FeatureIgnored[featureId]) {
-                                    const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
-                                    if (IsNanValue(token)) {
-                                        catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, "nan");
-                                    } else {
-                                        catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, token);
-                                    }
-                                }
-                                ++featureId;
-                                break;
-                            }
-                            case EColumn::Num: {
-                                if (!FeatureIgnored[featureId]) {
-                                    if (!TryParseFloatFeatureValue(
-                                            token,
-                                            &floatFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
-                                         ))
-                                    {
-                                        CB_ENSURE(
-                                            false,
-                                            "Factor " << featureId << " cannot be parsed as float."
-                                            " Try correcting column description file."
-                                        );
-                                    }
-                                }
-                                ++featureId;
-                                break;
-                            }
-                            case EColumn::Label: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for Label");
-                                visitor->AddTarget(lineIdx, TString(token));
-                                break;
-                            }
-                            case EColumn::Weight: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for weight");
-                                visitor->AddWeight(lineIdx, FromString<float>(token));
-                                break;
-                            }
-                            case EColumn::Auxiliary: {
-                                break;
-                            }
-                            case EColumn::GroupId: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
-                                visitor->AddGroupId(lineIdx, CalcGroupIdFor(token));
-                                break;
-                            }
-                            case EColumn::GroupWeight: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
-                                visitor->AddGroupWeight(lineIdx, FromString<float>(token));
-                                break;
-                            }
-                            case EColumn::SubgroupId: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
-                                visitor->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
-                                break;
-                            }
-                            case EColumn::Baseline: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for Baseline");
-                                visitor->AddBaseline(lineIdx, baselineIdx, FromString<float>(token));
-                                ++baselineIdx;
-                                break;
-                            }
-                            case EColumn::DocId: {
-                                break;
-                            }
-                            case EColumn::Timestamp: {
-                                CB_ENSURE(token.length() != 0, "empty values not supported for Timestamp");
-                                visitor->AddTimestamp(lineIdx, FromString<ui64>(token));
-                                break;
-                            }
-                            default: {
-                                CB_ENSURE(false, "wrong column type");
-                            }
-                        }
-                    } catch (yexception& e) {
-                        throw TCatBoostException() << "Column " << tokenCount << " (type "
-                            << columnsDescription[tokenCount].Type << ", value = \"" << token
-                            << "\"): " << e.what();
-                    }
-                    ++tokenCount;
-                }
-                if (!floatFeatures.empty()) {
-                    visitor->AddAllFloatFeatures(lineIdx, floatFeatures);
-                }
-                if (!catFeatures.empty()) {
-                    visitor->AddAllCatFeatures(lineIdx, catFeatures);
-                }
-                CB_ENSURE(
-                    tokenCount == columnsDescription.size(),
-                    "wrong columns number: expected " << columnsDescription.ysize()
-                    << ", found " << tokenCount
-                );
-            } catch (yexception& e) {
-                throw TCatBoostException() << "Error in dsv data. Line " <<
-                    AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": " << e.what();
+            TDsvLineParser parser(
+                FieldDelimiter,
+                DataMetaInfo.ColumnsInfo->Columns,
+                FeatureIgnored,
+                featuresLayout,
+                floatFeatures,
+                catFeatures,
+                visitor);
+
+            if (const auto errCtx = parser.Parse(line, inBlockIdx)) {
+                const auto lineIdx = AsyncRowProcessor.GetLinesProcessed() + inBlockIdx + 1;
+                ythrow TDsvLineParser::MakeException(errCtx.GetRef()) << "; " << LabeledOutput(lineIdx);
             }
         };
 

@@ -48,8 +48,3 @@ static inline T Align(T t) noexcept {
     return AlignUp(t);
 }
 
-union TAligner {
-    void* Data1;
-    long double Data2;
-    unsigned long long int Data3;
-};

@@ -1,25 +1,28 @@
 #pragma once
 
-#include <catboost/libs/model/model.h>
+#include "model.h"
 
-#include <catboost/libs/helpers/exception.h>
+#include <util/generic/array_ref.h>
 
-#include <util/generic/set.h>
 
 class TObliviousTreeBuilder {
 public:
-    TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures, int approxDimension);
+    TObliviousTreeBuilder(
+        const TVector<TFloatFeature>& allFloatFeatures,
+        const TVector<TCatFeature>& allCategoricalFeatures,
+        int approxDimension);
     void AddTree(
-            const TVector<TModelSplit>& modelSplits,
-            const TVector<TVector<double>>& treeLeafValues,
-            TConstArrayRef<double> treeLeafWeights);
+        const TVector<TModelSplit>& modelSplits,
+        const TVector<TVector<double>>& treeLeafValues,
+        TConstArrayRef<double> treeLeafWeights);
     void AddTree(
-            const TVector<TModelSplit>& modelSplits,
-            TConstArrayRef<double> treeLeafValues,
-            TConstArrayRef<double> treeLeafWeights);
+        const TVector<TModelSplit>& modelSplits,
+        TConstArrayRef<double> treeLeafValues,
+        TConstArrayRef<double> treeLeafWeights);
     void AddTree(
-            const TVector<TModelSplit>& modelSplits,
-            const TVector<TVector<double>>& treeLeafValues) {
+        const TVector<TModelSplit>& modelSplits,
+        const TVector<TVector<double>>& treeLeafValues) {
+
         AddTree(modelSplits, treeLeafValues, TVector<double>());
     }
     TObliviousTrees Build();

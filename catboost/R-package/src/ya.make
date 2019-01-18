@@ -11,6 +11,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/cat_feature
     catboost/libs/data_util
     catboost/libs/data_new
     catboost/libs/documents_importance

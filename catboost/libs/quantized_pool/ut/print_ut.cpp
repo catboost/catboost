@@ -145,7 +145,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
         TStringOutput humanReadablePoolInput{humanReadablePool};
         NCB::PrintQuantizedPool(
             pool,
-            {NCB::EQuantizedPoolPrintFormat::HumanReadable},
+            {NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise},
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2 2
@@ -166,7 +166,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
         TStringOutput humanReadablePoolInput{humanReadablePool};
         NCB::PrintQuantizedPool(
             pool,
-            {NCB::EQuantizedPoolPrintFormat::HumanReadableResolveBorders},
+            {NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise, true},
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2 2
@@ -187,7 +187,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
         TStringOutput humanReadablePoolInput{humanReadablePool};
         NCB::PrintQuantizedPool(
             pool,
-            {NCB::EQuantizedPoolPrintFormat::HumanReadable},
+            {NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise},
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2 2
@@ -205,7 +205,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
         TStringOutput humanReadablePoolInput{humanReadablePool};
         NCB::PrintQuantizedPool(
             pool,
-            {NCB::EQuantizedPoolPrintFormat::HumanReadable},
+            {NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise},
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(3 2
@@ -218,8 +218,29 @@ Y_UNIT_TEST_SUITE(PrintTests) {
 7 GroupId 1
 0 3
 1 2 3
+0 3
 01 02 03
 )";
         UNIT_ASSERT_VALUES_EQUAL(humanReadablePool, expected);
     }
+
+    Y_UNIT_TEST(TestColumnWiseFormat) {
+        const auto pool = MakeQuantizedPool();
+
+        TString humanReadablePool;
+        TStringOutput humanReadablePoolInput{humanReadablePool};
+        NCB::PrintQuantizedPool(
+            pool,
+            {NCB::EQuantizedPoolPrintFormat::HumanReadableColumnWise},
+            &humanReadablePoolInput);
+
+        static const TStringBuf expected = R"(2 2
+1 Num 1 0
+2 0 0
+5 Label 1
+0.5 1.5 0
+)";
+        UNIT_ASSERT_VALUES_EQUAL(humanReadablePool, expected);
+    }
+
 }

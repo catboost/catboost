@@ -1,6 +1,9 @@
 #include "ctr_provider.h"
 #include "static_ctr_provider.h"
 
+#include <catboost/libs/helpers/exception.h>
+
+
 TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(const TVector<TIntrusivePtr<ICtrProvider>>& providers, ECtrTableMergePolicy mergePolicy) {
     TVector<const TStaticCtrProvider*> nonEmptyStaticProviders;
     for (const auto& provider : providers) {

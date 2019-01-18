@@ -25,7 +25,10 @@ namespace NCudaLib {
 
         const T& Get() final {
             if (!IsSet) {
-                Future.Wait();
+                TSpinWaitHelper::Wait(TDuration::Max(), [&]() -> bool {
+                    return Future.HasValue();
+                });
+//                Future.Wait();
                 Result = Future.GetValue(TDuration::Max());
                 IsSet = true;
             }
@@ -98,7 +101,14 @@ namespace NCudaLib {
         }
 
         void WaitComplete() final {
+            TSpinWaitHelper::Wait(TDuration::Max(), [&]() -> bool {
+                return Event.HasValue();
+            });
             Event.GetValue(TDuration::Max())->WaitComplete();
+//            TSpinWaitHelper::Wait(TDuration::Max(), [&]() -> bool {
+//                return event->IsComplete();
+//            });
+
             IsCompleteFlag = true;
         }
     };

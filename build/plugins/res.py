@@ -44,33 +44,6 @@ def onfat_resource(unit, *args):
         unit.onsrcs(['GLOBAL', output])
 
 
-def onfrom_sandbox(unit, *args):
-    """
-    @usage: FROM_SANDBOX([FILE] resource_id OUT_[NOAUTO] <files from resource>)
-    Downloads the archive from sandbox by resource number, unpack (if the FILE keyword is not specified), and add the files with the specified names to the assembly.
-    If the files do not compile, then you need to use the parameter OUT_NOAUTO.
-
-    What is Sandbox?
-    - General-purpose distributed task execution system (internal service).
-    """
-    unit.onsetup_from_sandbox(filter_out_by_keyword(list(args), 'AUTOUPDATED'))
-    res_id = args[0]
-    if res_id == "FILE":
-        res_id = args[1]
-    unit.onadd_check(["check.resource", res_id])
-
-
-def onfrom_mds(unit, *args):
-    """
-    @usage: FROM_MDS([FILE] key OUT_[NOAUTO] <files from resource>)
-    """
-    unit.onsetup_from_mds(list(args))
-    key = args[0]
-    if key == "FILE":
-        key = args[1]
-    unit.onadd_check(["check.mds", key])
-
-
 def onresource_files(unit, *args):
     """
     RESOURCE_FILES([PREFIX {prefix}] {path}) expands into

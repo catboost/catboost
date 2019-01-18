@@ -47,6 +47,8 @@ namespace NCatboostOptions {
 
     int GetYetiRankPermutations(const TLossDescription& lossFunctionConfig);
 
+    ESamplingType GetYetiRankSamplingType(const TLossDescription& lossFunctionConfig);
+
     double GetYetiRankDecay(const TLossDescription& lossFunctionConfig);
 
     double GetLqParam(const TLossDescription& lossFunctionConfig);

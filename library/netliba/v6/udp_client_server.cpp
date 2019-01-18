@@ -15,6 +15,7 @@
 #include <library/netliba/socket/socket.h>
 
 #include <util/random/random.h>
+#include <util/system/sanitizers.h>
 
 namespace NNetliba {
     // rely on UDP checksum in packets, check crc only for complete packets
@@ -664,9 +665,9 @@ namespace NNetliba {
     static void SendPing(TNetSocket& s, const sockaddr_in6& toAddress, int selfNetworkOrderPort) {
         char pktBuf[UDP_PACKET_SIZE_FULL];
         char* pktData = pktBuf + UDP_LOW_LEVEL_HEADER_SIZE;
-#ifdef WITH_VALGRIND
-        Zero(pktBuf);
-#endif
+        if (NSan::MSanIsOn()) {
+            Zero(pktBuf);
+        }
         Write(&pktData, (int)0);
         Write(&pktData, (char)PING);
         Write(&pktData, selfNetworkOrderPort);

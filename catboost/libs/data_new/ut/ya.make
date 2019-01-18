@@ -6,6 +6,7 @@ SRCS(
     borders_io_ut.cpp
     columns_ut.cpp
     data_provider_ut.cpp
+    dsv_parser_ut.cpp
     external_columns_ut.cpp
     features_layout_ut.cpp
     load_data_from_dsv_ut.cpp

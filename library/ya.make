@@ -106,6 +106,12 @@ ELSE()
 )
 ENDIF()
 
+IF (NOT SANITIZER_TYPE)
+    RECURSE(
+    
+)
+ENDIF()
+
 CHECK_DEPENDENT_DIRS(
     ALLOW_ONLY
     library

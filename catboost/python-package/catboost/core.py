@@ -1730,6 +1730,9 @@ class CatBoost(_CatBoostBase):
 
 
 class CatBoostClassifier(CatBoost):
+
+    _estimator_type = 'classifier'
+
     """
     Implementation of the scikit-learn API for CatBoost classification.
 
@@ -1738,7 +1741,7 @@ class CatBoostClassifier(CatBoost):
     iterations : int, [default=500]
         Max count of trees.
         range: [1,+inf]
-    learning_rate : float, [default=0.03]
+    learning_rate : float, [default value is selected automatically for binary classification with other parameters set to default. In all other cases default is 0.03]
         Step size shrinkage used in update to prevents overfitting.
         range: (0,1]
     depth : int, [default=6]
@@ -2354,6 +2357,9 @@ class CatBoostClassifier(CatBoost):
 
 
 class CatBoostRegressor(CatBoost):
+
+    _estimator_type = 'regressor'
+
     """
     Implementation of the scikit-learn API for CatBoost regression.
 
@@ -2933,6 +2939,12 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         fold_count = nfold
     else:
         assert nfold is None or nfold == fold_count
+
+    if 'cat_features' in params:
+        if set(pool.get_cat_feature_indices()) != set(params['cat_features']):
+            raise CatboostError("categorical features in params are different from ones in pool " + str(params['cat_features']) +
+                                " vs " + str(pool.get_cat_feature_indices()))
+        del params['cat_features']
 
     with log_fixup(), plot_wrapper(plot, params):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,

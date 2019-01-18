@@ -22,6 +22,17 @@ namespace NKernel {
                                        double* statSums,
                                        TCudaStream stream);
 
+    void UpdatePartitionsPropsForSingleSplit(const TDataPartition* parts,
+                                       const ui32 leftPartId,
+                                       const ui32 rightPartId,
+                                       const float* source,
+                                       ui32 statCount,
+                                       ui64 statLineSize,
+                                       ui32 tempVarsCount,
+                                       double* partResults,
+                                       double* statSums,
+                                       TCudaStream stream);
+
 
     void UpdatePartitionsProps(const TDataPartition* parts,
                                const ui32* partIds, ui32 partCount,

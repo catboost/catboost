@@ -1,11 +1,12 @@
+#include "dirut.h"
 #include "path.h"
 #include "pathsplit.h"
 
-#include <util/system/fs.h>
-#include <util/system/file.h>
-#include <util/system/platform.h>
-#include "dirut.h"
 #include <util/generic/yexception.h>
+#include <util/system/compiler.h>
+#include <util/system/file.h>
+#include <util/system/fs.h>
+#include <util/system/platform.h>
 
 struct TFsPath::TSplit: public TAtomicRefCount<TSplit>, public TPathSplit {
     inline TSplit(const TStringBuf path)
@@ -201,7 +202,12 @@ void TFsPath::ListNames(TVector<TString>& children) const {
     for (;;) {
         struct dirent de;
         struct dirent* ok;
+        // TODO(yazevnul|IGNIETFERRO-1070): remove these macroses by replacing `readdir_r` with proper
+        // alternative
+        Y_PRAGMA_DIAGNOSTIC_PUSH
+        Y_PRAGMA_NO_DEPRECATED
         int r = readdir_r(dir.Get(), &de, &ok);
+        Y_PRAGMA_DIAGNOSTIC_POP
         if (r != 0)
             ythrow TIoSystemError() << "failed to readdir " << Path_;
         if (ok == nullptr)

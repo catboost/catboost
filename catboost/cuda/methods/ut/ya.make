@@ -9,7 +9,7 @@ ENDIF()
 SRCS(
     test_tree_searcher.cpp
     test_pairwise_tree_searcher.cpp
-    test_mutlistat_histograms.cpp
+    test_multistat_histograms.cpp
 )
 
 PEERDIR(

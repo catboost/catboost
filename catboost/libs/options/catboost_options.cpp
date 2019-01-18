@@ -396,6 +396,9 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
+        const auto& lossParams = LossFunctionDescription->GetLossParams();
+        CB_ENSURE(!(lossFunction == ELossFunction::YetiRankPairwise && lossParams.contains("sampling_type")),
+                  "Parameter sampling_type is not supported for YetiRankPairwise objective for CPU learning");
     }
 
     ValidateCtrs(CatFeatureParams->SimpleCtrs, lossFunction, false);

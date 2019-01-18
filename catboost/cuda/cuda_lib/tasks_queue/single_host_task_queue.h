@@ -28,10 +28,16 @@ namespace NCudaLib {
 
             auto fastWaitInterval = TDuration::Seconds(1);
             auto startTime = TInstant::Now();
+
+            ui64 fastIters = 10000;
+            ui64 i = 0;
             while ((TInstant::Now() - startTime) < fastWaitInterval) {
-                SchedYield();
+                ++i;
                 if (!InputTaskQueue.IsEmpty()) {
                     return;
+                }
+                if (i % fastIters == 0) {
+                    SchedYield();
                 }
             }
             if (InputTaskQueue.IsEmpty()) {

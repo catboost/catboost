@@ -9,13 +9,14 @@ namespace NCB {
 
 namespace NCB {
     enum class EQuantizedPoolPrintFormat : ui8 {
-        Unknown                     = 0,
-        HumanReadable               = 1,
-        HumanReadableResolveBorders = 2
+        Unknown                 = 0,
+        HumanReadableChunkWise  = 1,
+        HumanReadableColumnWise = 2
     };
 
     struct TPrintQuantizedPoolParameters {
         EQuantizedPoolPrintFormat Format = EQuantizedPoolPrintFormat::Unknown;
+        bool ResolveBorders = false;
     };
 
     // Print quantized pool in readable format.

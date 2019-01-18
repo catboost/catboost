@@ -9,7 +9,7 @@ namespace NKernel {
 
 
 
-    template <int BlockSize>
+    template <int BlockSize, int N = 1>
     __forceinline__ __device__  double ComputeSum(const float* __restrict__ stat, ui32 offset, ui32 size, int blockIdx, int blockCount) {
 
         float4 sum;
@@ -60,6 +60,7 @@ namespace NKernel {
         stat += localIdx;
 
         if (size > 0) {
+            #pragma unroll N
             for (int i = 0; i < iterCount; ++i) {
                 const float4* stat4 = (const float4*) stat;
                 float4 val = Ldg(stat4);
@@ -102,39 +103,46 @@ namespace NKernel {
     __global__ void UpdatePartitionsPropsForOffsetsImpl(const ui32* offsets,
                                                         const float* source,
                                                         ui64 statLineSize,
+                                                        ui32 partCount,
                                                         double* statPartSums) {
 
-        const ui32 partOffset = __ldg(offsets + blockIdx.y);
-        const ui32 partSize = __ldg(offsets + blockIdx.y + 1) - partOffset;
+        ui32 partId = blockIdx.y;
         const ui32 statId = blockIdx.z;
-
-        __shared__ volatile double localBuffer[BlockSize];
         source += statId * statLineSize;
 
-        const int minDocsPerBlock = BlockSize * 16;
-        const int effectiveBlockCount = min(gridDim.x, (partSize + minDocsPerBlock - 1) / minDocsPerBlock);
+        while (partId < partCount) {
 
-        double result = 0;
+            const ui32 partOffset = __ldg(offsets + partId);
+            const ui32 partSize = __ldg(offsets + partId + 1) - partOffset;
 
-        if (blockIdx.x < effectiveBlockCount) {
-            const int blockId = blockIdx.x % effectiveBlockCount;
+            __shared__ volatile double localBuffer[BlockSize];
 
-            localBuffer[threadIdx.x] = ComputeSum <BlockSize> (source, partOffset, partSize, blockId, effectiveBlockCount);
-            __syncthreads();
+            const int minDocsPerBlock = BlockSize * 16;
+            const int effectiveBlockCount = min(gridDim.x, (partSize + minDocsPerBlock - 1) / minDocsPerBlock);
 
-            result = FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
-        }
+            double result = 0;
 
-        if (threadIdx.x == 0) {
-            const int statCount = gridDim.z;
-            const int partCount = gridDim.y;
-            const int lineSize = statCount * partCount;
-            ui64 idx = blockIdx.x * lineSize + blockIdx.y * statCount + statId;
-            statPartSums[idx]  = result;
+            if (blockIdx.x < effectiveBlockCount) {
+                const int blockId = blockIdx.x % effectiveBlockCount;
+
+                localBuffer[threadIdx.x] = ComputeSum < BlockSize > (source, partOffset, partSize, blockId, effectiveBlockCount);
+                __syncthreads();
+
+                result = FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
+            }
+
+            if (threadIdx.x == 0) {
+                const int statCount = gridDim.z;
+                const int lineSize = statCount * partCount;
+                ui64 idx = blockIdx.x * lineSize + partId * statCount + statId;
+                statPartSums[idx] = result;
+            }
+
+            partId += gridDim.y;
         }
     }
 
-        template <int BlockSize>
+    template <int BlockSize>
     __launch_bounds__(BlockSize, 2)
     __global__ void UpdatePartitionsPropsImpl(const ui32* partIds,
                                               const TDataPartition* parts,
@@ -158,7 +166,7 @@ namespace NKernel {
         if (blockIdx.x < effectiveBlockCount) {
             const int blockId = blockIdx.x % effectiveBlockCount;
 
-            localBuffer[threadIdx.x] = ComputeSum < BlockSize > (source, part.Offset, part.Size, blockId, effectiveBlockCount);
+            localBuffer[threadIdx.x] = ComputeSum <BlockSize>(source, part.Offset, part.Size, blockId, effectiveBlockCount);
             __syncthreads();
 
             result = FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
@@ -200,6 +208,126 @@ namespace NKernel {
     }
 
 
+    template <int BlockSize>
+    __launch_bounds__(BlockSize, 2)
+    __global__ void UpdatePartitionsPropsForSplitImpl(const ui32* leftPartIds,
+                                                      const ui32* rightPartIds,
+                                                      const TDataPartition* parts,
+                                                      const float* source,
+                                                      ui64 statLineSize,
+                                                      double* tempVars) {
+        const ui32 sourcePartCount = gridDim.y  / 2;
+        const bool isLeft = blockIdx.y < sourcePartCount;
+        const ui32* partIds = isLeft ? leftPartIds : rightPartIds;
+        const ui32 leafId = partIds[isLeft ? blockIdx.y : blockIdx.y - sourcePartCount];
+        TDataPartition part = parts[leafId];
+
+        const ui32 statId = blockIdx.z;
+
+        __shared__ volatile double localBuffer[BlockSize];
+        source += statId * statLineSize;
+
+
+        const int minDocsPerBlock = BlockSize;
+        const int effectiveBlockCount = min(gridDim.x, (part.Size + minDocsPerBlock - 1) / minDocsPerBlock);
+
+        double result = 0;
+
+        if (blockIdx.x < effectiveBlockCount) {
+            const int blockId = blockIdx.x % effectiveBlockCount;
+            localBuffer[threadIdx.x] = ComputeSum<BlockSize, 4>(source, part.Offset, part.Size, blockId, effectiveBlockCount);
+            __syncthreads();
+            result = FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
+        }
+
+        if (threadIdx.x == 0) {
+            tempVars[gridDim.z * gridDim.y * blockIdx.x + blockIdx.y * gridDim.z + blockIdx.z] = result;
+        }
+    }
+
+
+    template <int BlockSize>
+    __launch_bounds__(BlockSize, 2)
+    __global__ void UpdatePartitionsPropsForSingleSplitImpl(const ui32 leftPartId,
+                                                      const ui32 rightPartId,
+                                                      const TDataPartition* parts,
+                                                      const float* source,
+                                                      ui64 statLineSize,
+                                                      double* tempVars) {
+//        const ui32 sourcePartCount = 2;
+        const bool isLeft = blockIdx.y == 0;
+        const ui32 leafId = isLeft ? leftPartId : rightPartId;
+        TDataPartition part = parts[leafId];
+
+        const ui32 statId = blockIdx.z;
+
+        __shared__ volatile double localBuffer[BlockSize];
+        source += statId * statLineSize;
+
+
+        const int minDocsPerBlock = BlockSize;
+        const int effectiveBlockCount = min(gridDim.x, (part.Size + minDocsPerBlock - 1) / minDocsPerBlock);
+
+        double result = 0;
+
+        if (blockIdx.x < effectiveBlockCount) {
+            const int blockId = blockIdx.x % effectiveBlockCount;
+            localBuffer[threadIdx.x] = ComputeSum<BlockSize, 4>(source, part.Offset, part.Size, blockId, effectiveBlockCount);
+            __syncthreads();
+            result = FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
+        }
+
+        if (threadIdx.x == 0) {
+            tempVars[gridDim.z * gridDim.y * blockIdx.x + blockIdx.y * gridDim.z + blockIdx.z] = result;
+        }
+    }
+
+
+    template <class TOutput>
+    __global__ void SaveResultsForSplitImpl(const ui32* leftPartIds,
+                                            const ui32* rightPartIds,
+                                            const double* tempVars,
+                                            ui32 partCount,
+                                            ui32 statCount,
+                                            int tempVarsBlockCount,
+                                            TOutput* statSums) {
+
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        const ui32 statId = i % statCount;
+        const ui32 y =  i / statCount;
+        if (i < partCount * statCount) {
+            const ui32 leafId = (y < partCount / 2) ? leftPartIds[y] : rightPartIds[y - partCount / 2];
+            double total = 0;
+            for (int x = 0; x < tempVarsBlockCount; ++x) {
+                total += __ldg(tempVars + i);
+                tempVars += statCount * partCount;
+            }
+            statSums[leafId * statCount + statId] = total;
+        }
+    }
+
+    template <class TOutput>
+    __global__ void SaveResultsForSingleSplitImpl(const ui32 leftPartId,
+                                                  const ui32 rightPartId,
+                                                  const double* tempVars,
+                                                  ui32 statCount,
+                                                  int tempVarsBlockCount,
+                                                  TOutput* statSums) {
+
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+        const ui32 statId = i % statCount;
+        const ui32 y =  i / statCount;
+        if (i < 2 * statCount) {
+            const ui32 leafId = y == 0 ? leftPartId : rightPartId;
+            double total = 0;
+            for (int x = 0; x < tempVarsBlockCount; ++x) {
+                total += __ldg(tempVars + i);
+                tempVars += statCount * 2;
+            }
+            statSums[leafId * statCount + statId] = total;
+        }
+    }
+
     void UpdatePartitionsPropsForSplit(const TDataPartition* parts,
                                        const ui32* leftPartIds,
                                        const ui32* rightPartIds,
@@ -232,12 +360,12 @@ namespace NKernel {
 
         dim3 numBlocks;
 
-        numBlocks.y = count;
+        numBlocks.y = min(count, 65535);
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
         Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
 
-        UpdatePartitionsPropsForOffsetsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, tempVars);
+        UpdatePartitionsPropsForOffsetsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, count, tempVars);
         {
             const ui32 saveBlockSize = 256;
             const ui32 numSaveBlocks = (count * statCount + saveBlockSize - 1) / saveBlockSize;

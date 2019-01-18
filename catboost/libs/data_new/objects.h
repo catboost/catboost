@@ -283,7 +283,7 @@ namespace NCB {
         TRawObjectsData Data;
     };
 
-    // for use while building and storing this part in TRawObjectsDataProvider
+    // for use while building and storing this part in TQuantizedObjectsDataProvider
     struct TQuantizedObjectsData {
     public:
         /* some feature holders can contain nullptr

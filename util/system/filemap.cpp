@@ -396,6 +396,10 @@ bool TMemoryMap::IsWritable() const noexcept {
     return Impl_->IsWritable();
 }
 
+TMemoryMap::EOpenMode TMemoryMap::GetMode() const noexcept {
+    return Impl_->GetMode();
+}
+
 TFile TMemoryMap::GetFile() const noexcept {
     return Impl_->GetFile();
 }

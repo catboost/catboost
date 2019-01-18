@@ -31,14 +31,14 @@ IF (OS_LINUX AND NOT CATBOOST_OPENSOURCE)
     )
 ENDIF()
 
+IF (CATBOOST_OPENSOURCE)
+    CFLAGS(-DCATBOOST_OPENSOURCE=yes)
+ENDIF()
+
 PEERDIR(
     library/threading/mux_event
     library/binsaver
     library/netliba/socket
 )
-
-IF (SANITIZER_TYPE STREQUAL "memory")
-    CFLAGS(-DWITH_VALGRIND)
-ENDIF()
 
 END()

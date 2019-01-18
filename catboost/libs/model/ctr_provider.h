@@ -8,7 +8,13 @@
 #include <library/json/json_value.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/ptr.h>
+#include <util/generic/vector.h>
+#include <util/stream/fwd.h>
+#include <util/system/types.h>
 #include <util/system/yassert.h>
+
+#include <algorithm>
 
 
 class ICtrProvider : public TThrRefBase {
@@ -75,6 +81,8 @@ struct TBinFeatureIndexValue {
     ui32 BinIndex = 0;
     bool CheckValueEqual = 0;
     ui8 Value = 0;
+
+public:
     TBinFeatureIndexValue() = default;
     TBinFeatureIndexValue(ui32 binIndex, bool checkValueEqual, ui8 value)
         : BinIndex(binIndex)
@@ -113,40 +121,12 @@ inline void CalcHashes(
     }
 }
 
-template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
-inline void CalcHashes(
-    const TFeatureCombination& featureCombination,
-    const TFloatFeatureAccessor& floatFeatureAccessor,
-    const TCatFeatureAccessor& catFeatureAccessor,
-    size_t docCount,
-    TVector<ui64>* result) {
-    result->resize(docCount);
-    std::fill(result->begin(), result->end(), 0);
-    ui64* ptr = result->data();
-    for (auto catFeatureIndex : featureCombination.CatFeatures) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)(int)catFeatureAccessor(catFeatureIndex, docId));
-        }
-    }
-    for (const auto& floatFeature : featureCombination.BinFeatures) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)(floatFeatureAccessor(floatFeature.FloatFeature, docId) > floatFeature.Split));
-        }
-    }
-    for (auto oheFeature : featureCombination.OneHotFeatures) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            ptr[docId] = CalcHash(ptr[docId],
-                                  (ui64)(catFeatureAccessor(oheFeature.CatFeatureIdx, docId) == oheFeature.Value));
-        }
-    }
-};
-
 enum class ECtrTableMergePolicy {
     FailIfCtrsIntersects,
     LeaveMostDiversifiedTable,
     IntersectingCountersAverage
 };
 
-TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(const TVector<TIntrusivePtr<ICtrProvider>>& providers, ECtrTableMergePolicy mergePolicy);
+TIntrusivePtr<ICtrProvider> MergeCtrProvidersData(
+    const TVector<TIntrusivePtr<ICtrProvider>>& providers,
+    ECtrTableMergePolicy mergePolicy);

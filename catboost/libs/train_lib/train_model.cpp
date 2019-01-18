@@ -149,6 +149,9 @@ static void Train(
             CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
         }
     }
+    if (!hasTest && !ctx->Params.MetricOptions->CustomMetrics->empty()) {
+        CATBOOST_WARNING_LOG << "Warning: Custom metrics will not be evaluated because there are no test datasets" << Endl;
+    }
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
@@ -447,15 +450,6 @@ namespace {
             ctx.LearnProgress.ApproxDimension = GetApproxDimension(updatedParams, labelConverter);
             if (ctx.LearnProgress.ApproxDimension > 1) {
                 ctx.LearnProgress.LabelConverter = labelConverter;
-            }
-
-            TVector<ELossFunction> metrics;
-            if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {
-                metrics.push_back(ctx.Params.MetricOptions->EvalMetric->GetLossFunction());
-            }
-            metrics.push_back(ctx.Params.LossFunctionDescription->GetLossFunction());
-            for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
-                metrics.push_back(metric.GetLossFunction());
             }
 
             ctx.OutputMeta();

@@ -5,13 +5,7 @@ import os
 import pandas as pd
 import tarfile
 import tempfile
-import urllib
-
-try:
-    from urllib.request import urlretrieve
-except ImportError:
-    from urllib import urlretrieve
-
+import six
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +50,9 @@ def _cached_download(url, md5, dst):
 
     for u in urls:
         try:
-            urlretrieve(u, dst, reporthook=reporthook)
+            six.moves.urllib.request.urlretrieve(u, dst, reporthook=reporthook)
             break
-        except (urllib.URLError, IOError):
+        except (six.moves.urllib.error.URLError, IOError):
             logger.debug('failed to download from %s', u)
     else:
         raise RuntimeError('failed to download from %s', urls)
@@ -73,7 +67,11 @@ def _get_cache_path():
     return os.path.join(os.getcwd(), 'catboost_cached_datasets')
 
 
-def _cached_dataset_load(url, md5, dataset_name, train_file, test_file, sep=',', header='infer'):
+def _cached_dataset_download(url, md5, dataset_name, train_file, test_file):
+    # TODO(yazevnul): this is not thread safe (or process safe?), we should take a file lock when
+    # enter this function to avoid dataset being overwritten or corrupted or something else that may
+    # have happen when OS operated simultaneously on the same file. Same thing should probably be
+    # done with `_cached_download`.
     dir_path = os.path.join(_get_cache_path(), dataset_name)
     train_path = os.path.join(dir_path, train_file)
     test_path = os.path.join(dir_path, test_file)
@@ -86,28 +84,52 @@ def _cached_dataset_load(url, md5, dataset_name, train_file, test_file, sep=',',
             _extract(file_path, dir_path)
         finally:
             os.remove(file_path)
+    return train_path, test_path
+
+
+def _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep=',', header='infer'):
+    train_path, test_path = _cached_dataset_download(url, md5, dataset_name, train_file, test_file)
     return pd.read_csv(train_path, header=header, sep=sep), pd.read_csv(test_path, header=header, sep=sep)
+
+
+def _load_numeric_only_dataset(path, row_count, column_count, sep='\t'):
+    # - can't use `pandas.read_csv` because it may result in 5x overhead
+    # - can't use `numpy.loadtxt` because it may result in 3x overhead
+    # And both mentioned above solutions are very slow compared to the one implemented below.
+    dataset = np.zeros((row_count, column_count, ), dtype=np.float32, order='F')
+    with open(path, 'rb') as f:
+        for line_idx, line in enumerate(f):
+            # `str.split()` is too slow, use `numpy.fromstring()`
+            row = np.fromstring(line, dtype=np.float32, sep=sep)
+            assert row.size == column_count, 'got too many columns at line %d (expected %d columns, got %d)' % (line_idx + 1, column_count, row.size)
+            # doing `dataset[line_idx][:]` instead of `dataset[line_idx]` is here on purpose,
+            # otherwise we may reallocate memory, while here we just copy
+            dataset[line_idx][:] = row
+
+    assert line_idx + 1 == row_count, 'got too many lines (expected %d lines, got %d)' % (row_count, line_idx + 1)
+
+    return pd.DataFrame(dataset)
 
 
 def titanic():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/titanic.tar.gz'
     md5 = '9c8bc61d545c6af244a1d37494df3fc3'
     dataset_name, train_file, test_file = 'titanic', 'train.csv', 'test.csv'
-    return _cached_dataset_load(url, md5, dataset_name, train_file, test_file)
+    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file)
 
 
 def amazon():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/amazon.tar.gz'
     md5 = '8fe3eec12bfd9c4c532b24a181d0aa2c'
     dataset_name, train_file, test_file = 'amazon', 'train.csv', 'test.csv'
-    return _cached_dataset_load(url, md5, dataset_name, train_file, test_file)
+    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file)
 
 
 def msrank():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/msrank_10k.tar.gz'
     md5 = '79c5b67397289c4c8b367c1f34629eae'
     dataset_name, train_file, test_file = 'msrank', 'train.csv', 'test.csv'
-    return _cached_dataset_load(url, md5, dataset_name, train_file, test_file, header=None)
+    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, header=None)
 
 
 def epsilon():
@@ -128,7 +150,10 @@ def epsilon():
         'https://storage.mds.yandex.net/get-devtools-opensource/250854/epsilon.tar.gz', )
     md5 = '5bbfac403ac673da7d7ee84bd532e973'
     dataset_name, train_file, test_file = 'epsilon', 'train.tsv', 'test.tsv'
-    return _cached_dataset_load(urls, md5, dataset_name, train_file, test_file, sep='\t', header=None)
+    train_path, test_path = _cached_dataset_download(urls, md5, dataset_name, train_file, test_file)
+    return (
+        _load_numeric_only_dataset(train_path, 400000, 2001, sep='\t'),
+        _load_numeric_only_dataset(test_path, 100000, 2001, sep='\t'))
 
 
 def adult():

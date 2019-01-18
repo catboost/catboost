@@ -85,15 +85,16 @@ namespace NHiLoPrivate {
         return value.GetPtr();
     }
 
-    template <size_t Offset, class TRepr, class T>
+    template <bool IsLow, class TRepr, class T>
     auto MakeIntRef(T&& value) {
         using TRef = typename TReferenceType<typename std::decay<T>::type>::TType;
         static_assert(
                 std::is_scalar<TRef>::value,
                 "Hi* and Lo* functions can be applied only to scalar values");
-        static_assert(sizeof(TRef) >= sizeof(TRepr) + Offset, "Requested bit range is not within provided value");
+        static_assert(sizeof(TRef) >= sizeof(TRepr), "Requested bit range is not within provided value");
+        constexpr size_t offset = IsLow ? 0 : sizeof(TRef) - sizeof(TRepr);
 
-        return MakeIntRef<TRepr>(CharPtrOf(std::forward<T>(value)) + Offset);
+        return MakeIntRef<TRepr>(CharPtrOf(std::forward<T>(value)) + offset);
     }
 }
 
@@ -107,32 +108,32 @@ namespace NHiLoPrivate {
  */
 template <class T>
 auto Lo32(T&& value) {
-    return NHiLoPrivate::MakeIntRef<0, ui32>(std::forward<T>(value));
+    return NHiLoPrivate::MakeIntRef<true, ui32>(std::forward<T>(value));
 }
 
 template <class T>
 auto Hi32(T&& value) {
-    return NHiLoPrivate::MakeIntRef<4, ui32>(std::forward<T>(value));
+    return NHiLoPrivate::MakeIntRef<false, ui32>(std::forward<T>(value));
 }
 
 template <class T>
 auto Lo16(T&& value) {
-    return NHiLoPrivate::MakeIntRef<0, ui16>(std::forward<T>(value));
+    return NHiLoPrivate::MakeIntRef<true, ui16>(std::forward<T>(value));
 }
 
 template <class T>
 auto Hi16(T&& value) {
-    return NHiLoPrivate::MakeIntRef<2, ui16>(std::forward<T>(value));
+    return NHiLoPrivate::MakeIntRef<false, ui16>(std::forward<T>(value));
 }
 
 template <class T>
 auto Lo8(T&& value) {
-    return NHiLoPrivate::MakeIntRef<0, ui8>(std::forward<T>(value));
+    return NHiLoPrivate::MakeIntRef<true, ui8>(std::forward<T>(value));
 }
 
 template <class T>
 auto Hi8(T&& value) {
-    return NHiLoPrivate::MakeIntRef<1, ui8>(std::forward<T>(value));
+    return NHiLoPrivate::MakeIntRef<false, ui8>(std::forward<T>(value));
 }
 
 /** @} */

@@ -22,7 +22,7 @@ namespace NKernel {
         float tmpScore = 0;
 
         float classApprox[ElementsPerThread];
-        ui8 targetClass[ElementsPerThread];
+        ui16 targetClass[ElementsPerThread];
         float sumExpApproxForAllClasses[ElementsPerThread];
 
         float weight[ElementsPerThread];
@@ -35,7 +35,7 @@ namespace NKernel {
             for (int j = 0; j < ElementsPerThread; ++j) {
                 const int idx = tid + j * BlockSize;
                 loadApproxIndex[j] = loadPredictionsIndices && idx < size ? __ldg(loadPredictionsIndices + idx) : idx;
-                targetClass[j] = idx < size ? static_cast<ui8>(__ldg(targetClasses + idx)) : 0;
+                targetClass[j] = idx < size ? static_cast<ui16>(__ldg(targetClasses + idx)) : 0;
 
 
                 maxApprox[j] = 0;
@@ -178,7 +178,7 @@ namespace NKernel {
                                TCudaStream stream) {
 
         const ui32 blockSize = 256;
-        const ui32 elementsPerThreads = 2;
+        const ui32 elementsPerThreads = 1;
         const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
 
         //TODO: get rid of this
@@ -201,7 +201,7 @@ namespace NKernel {
                              TCudaStream stream) {
 
         const ui32 blockSize = 256;
-        const ui32 elementsPerThreads = 2;
+        const ui32 elementsPerThreads = 1;
         const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
 
 
@@ -224,7 +224,7 @@ namespace NKernel {
 
         float tmpScore = 0;
 
-        ui8 targetClass[ElementsPerThread];
+        ui16 targetClass[ElementsPerThread];
         float weight[ElementsPerThread];
         ui32 loadPredictionIndex[ElementsPerThread];
 
@@ -232,7 +232,7 @@ namespace NKernel {
         for (int j = 0; j < ElementsPerThread; ++j) {
             const int idx = tid + j * BlockSize;
             loadPredictionIndex[j] = loadPredictionsIndices && idx < size ? __ldg(loadPredictionsIndices + idx) : idx;
-            targetClass[j] = idx < size ? static_cast<ui8>(__ldg(targetClasses + idx)) : 0;
+            targetClass[j] = idx < size ? static_cast<ui16>(__ldg(targetClasses + idx)) : 0;
             weight[j] = (weights && (idx < size)) ? weights[idx] : 1.0f;
         }
 
@@ -318,8 +318,9 @@ namespace NKernel {
                                TCudaStream stream) {
 
         const ui32 blockSize = 256;
-        const ui32 elementsPerThreads = 2;
+        const ui32 elementsPerThreads = 1;
         const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        CB_ENSURE(numClasses <= 65536);
 
         //TODO: get rid of this
         if (functionValue) {
@@ -343,6 +344,7 @@ namespace NKernel {
         const ui32 blockSize = 256;
         const ui32 elementsPerThreads = 2;
         const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+        CB_ENSURE(numClasses <= 65536);
 
 
         if (numBlocks) {
@@ -360,7 +362,7 @@ namespace NKernel {
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
 
         if (i < size) {
-            const ui32 targetClass =  static_cast<ui8>(__ldg(targetClasses + i));
+            const ui32 targetClass =  static_cast<ui16>(__ldg(targetClasses + i));
             float bestApprox = NegativeInfty();
             int bestClass = -1;
 
@@ -388,6 +390,7 @@ namespace NKernel {
                                   TCudaStream stream) {
         const int blockSize = 256;
         const int numBlocks = (size + blockSize - 1) / blockSize;
+        CB_ENSURE(numClasses < 65536);
         if (numBlocks) {
             BuildConfusionMatrixBinsImpl << < numBlocks, blockSize, 0, stream >> >(targetClasses, numClasses, size, predictions, predictionsDim, predictionsAlignSize, isBinClass, bins);
         }

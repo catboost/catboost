@@ -8,18 +8,18 @@
 namespace {
     struct TBestSplitInput {
         TVector<float> Values;
-        int BordersCount = 0;
+        int MaxBordersCount = 0;
         EBorderSelectionType GridType= EBorderSelectionType::Median;
         bool NanValueIsInfinity = false;
     };
 
     enum : int {
-        MAX_BORDERS_COUNT = 1024
+        MAX_BORDERS_COUNT_UPPER_LIMIT = 1024
     };
 
     enum : size_t {
-        MAX_VALUES_SIZE = 1ULL * 1024 * 1024,
-        MAX_RAM_SIZE    = 4ULL * 1024 * 1024 * 1024
+        VALUES_SIZE_UPPER_LIMIT = 1ULL * 1024 * 1024,
+        RAM_SIZE_UPPER_LIMIT    = 4ULL * 1024 * 1024 * 1024
     };
 }
 
@@ -45,11 +45,11 @@ static bool TryParse(const ui8* data, size_t size, TBestSplitInput* const input)
         return false;
     }
 
-    input->BordersCount = ReadUnaligned<int>(data);
+    input->MaxBordersCount = ReadUnaligned<int>(data);
     data += sizeof(int);
     size -= sizeof(int);
 
-    if (input->BordersCount <= 0 || input->BordersCount > MAX_BORDERS_COUNT) {
+    if (input->MaxBordersCount <= 0 || input->MaxBordersCount > MAX_BORDERS_COUNT_UPPER_LIMIT) {
         return false;
     }
 
@@ -73,15 +73,15 @@ static bool TryParse(const ui8* data, size_t size, TBestSplitInput* const input)
     size -= 1;
 
     const auto valuesSize = size / sizeof(float);
-    if (valuesSize > MAX_VALUES_SIZE) {
+    if (valuesSize > VALUES_SIZE_UPPER_LIMIT) {
         return false;
     }
 
     const auto memoryUseUpperBound = 2ULL * CalcMemoryForFindBestSplit(
-        input->BordersCount,
+        input->MaxBordersCount,
         valuesSize,
         input->GridType);
-    if (memoryUseUpperBound > MAX_RAM_SIZE) {
+    if (memoryUseUpperBound > RAM_SIZE_UPPER_LIMIT) {
         return false;
     }
 
@@ -97,6 +97,6 @@ extern "C" int LLVMFuzzerTestOneInput(const ui8* const data, const size_t size) 
         return 0;
     }
 
-    BestSplit(input.Values, input.BordersCount, input.GridType, input.NanValueIsInfinity);
+    BestSplit(input.Values, input.MaxBordersCount, input.GridType, input.NanValueIsInfinity);
     return 0;
 }

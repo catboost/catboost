@@ -41,7 +41,7 @@ Here we compare the most popular GBDT libraries: CatBoost, XGBoost, LightGBM.
 Ranking task type can be solved using different methods, e.g. the simplest one is to fit regression on labels 
 taken from experts, also there are such methods as pairwise and listwise ranking. 
 More information about different objectives in CatBoost you may find in 
-[ranking tutorial](../../tutorials/ranking/ranking_tutorial.ipynb).
+[ranking tutorial](https://github.com/catboost/tutorials/blob/master/ranking/ranking_tutorial.ipynb).
 
 * **For CatBoost** we evaluate objectives: RMSE, QueryRMSE, PairLogit, PairLogitPairwise, YetiRank, YetiRankPairwise
 * **For XGBoost**: reg:linear, xgb-lmart-ndcg, xgb-pairwise

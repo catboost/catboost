@@ -1,5 +1,9 @@
 #include "split.h"
+
 #include "learn_context.h"
+#include "online_ctr.h"
+
+#include <util/system/yassert.h>
 
 using namespace NCB;
 

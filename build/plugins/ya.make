@@ -5,12 +5,9 @@ PY_LIBRARY()
 PY_SRCS(
     code_generator.py
     gobuild.py
-    fortran.py
     flatc.py
     pyx.py
     swig.py
-    xs.py
-    yasm.py
 
     _common.py
     _custom_command.py

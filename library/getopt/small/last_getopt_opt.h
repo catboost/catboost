@@ -234,7 +234,7 @@ namespace NLastGetopt {
     *  @return optional value
     *  throws exception if optional value wasn't set
     */
-        TString GetOptionalValue() const {
+        const TString& GetOptionalValue() const {
             return *OptionalValue_;
         }
 
@@ -259,7 +259,7 @@ namespace NLastGetopt {
     *  @return default value
     *  throws exception if <default value> wasn't set
     */
-        TString GetDefaultValue() const {
+        const TString& GetDefaultValue() const {
             return *DefaultValue_;
         }
 
@@ -415,6 +415,11 @@ namespace NLastGetopt {
         // Sugar for storing flags (option without arguments) to boolean vars
         TOpt& SetFlag(bool* target) {
             return DefaultValue("0").StoreResult(target, true);
+        }
+
+        // Similar to store_true in Python's argparse
+        TOpt& StoreTrue(bool* target) {
+            return NoArgument().SetFlag(target);
         }
 
         template <typename TpVal, typename T, typename TpFunc>

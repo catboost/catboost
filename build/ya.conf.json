@@ -55,6 +55,7 @@
         "rsync": {"description": "Run RSync"},
         "yt": {"description": "Run YT client"},
         "yp-util": {"description": "Run YP useful stuff"},
+        "yp": {"description": "Run low level YP client"},
         "yndexer": {"description": "Run Yndexer"},
         "ytyndexer": {"description": "Run YtYndexer"},
         "ymakeyndexer": {"description": "Run ymake ydx converter"},
@@ -823,6 +824,15 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "yp": {
+            "tools": {
+                "yp": { "bottle": "yp", "executable": "yp" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "jq": {
             "tools": {
                 "jq": { "bottle": "jq", "executable": "jq" }
@@ -1200,7 +1210,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [354619487],
+                "sandbox_id": [362928494],
                 "match": "ymake"
             },
             "executable": {
@@ -1218,7 +1228,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": [353026643],
+                "sandbox_id": [361194349],
                 "match": "test_tool"
             },
             "executable": {
@@ -1245,7 +1255,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [355230313],
+                "sandbox_id": [363633874],
                 "match": "arc"
             },
             "executable": {
@@ -1254,11 +1264,11 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [355033617, 355033622],
+                "sandbox_id": [361379374, 360631809],
                 "match": "yo"
             },
             "executable": {
-                "yo": ["yo/yo"]
+                "yo": ["yo"]
             }
         },
         "golangci-lint": {
@@ -1653,6 +1663,15 @@
                 "yp-util": ["yp_cli"]
             }
         },
+        "yp": {
+            "formula": {
+                "sandbox_id":  [362550511],
+                "match": "yp"
+            },
+            "executable": {
+                "yp": ["yp"]
+            }
+        },
         "vim": {
             "formula": {
                 "sandbox_id": 82345405,
@@ -1745,7 +1764,7 @@
         },
         "zipatcher": {
             "formula": {
-                "sandbox_id": 355188223,
+                "sandbox_id": 358941237,
                 "match": "zipatcher"
             },
             "executable": {

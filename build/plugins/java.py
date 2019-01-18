@@ -113,6 +113,11 @@ def onjava_module(unit, *args):
         data['UBERJAR_HIDE_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_HIDE_EXCLUDE_VALUE', args_delim)
         data['UBERJAR_PATH_EXCLUDE'] = extract_macro_calls(unit, 'UBERJAR_PATH_EXCLUDE_VALUE', args_delim)
 
+    if unit.get('WITH_JDK_VALUE') == 'yes':
+        if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':
+            ymake.report_configure_error('{}: JDK export supported only for JAVA_PROGRAM module type'.format(unit.path()))
+        data['WITH_JDK'] = extract_macro_calls(unit, 'WITH_JDK_VALUE', args_delim)
+
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:
             unit.onpeerdir(p)

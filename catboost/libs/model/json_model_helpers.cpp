@@ -1,12 +1,17 @@
 #include "json_model_helpers.h"
-#include "formula_evaluator.h"
 
-#include <catboost/libs/helpers/dense_hash_view.h>
+#include "static_ctr_provider.h"
+
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
+#include <library/json/json_reader.h>
 #include <library/json/json_writer.h>
+
 #include <util/string/builder.h>
 #include <util/string/cast.h>
+#include <util/stream/file.h>
+#include <util/stream/str.h>
+#include <util/system/yassert.h>
 
 
 using namespace NJson;

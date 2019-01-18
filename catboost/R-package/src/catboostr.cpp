@@ -14,6 +14,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mem_copy.h>

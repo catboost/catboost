@@ -99,7 +99,7 @@ static TString QuantizedPoolToString(const NCB::TQuantizedPool& pool) {
     TStringOutput output{str};
     NCB::PrintQuantizedPool(
         pool,
-        {NCB::EQuantizedPoolPrintFormat::HumanReadable},
+        {NCB::EQuantizedPoolPrintFormat::HumanReadableChunkWise},
         &output);
     return str;
 }

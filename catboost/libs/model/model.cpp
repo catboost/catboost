@@ -9,7 +9,7 @@
 #include "onnx_helpers.h"
 #include "static_ctr_provider.h"
 
-#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
@@ -20,12 +20,17 @@
 
 #include <library/json/json_reader.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/buffer.h>
+#include <util/generic/fwd.h>
+#include <util/generic/variant.h>
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/stream/buffer.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
 #include <util/stream/str.h>
+
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
@@ -58,13 +63,13 @@ static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
 
         try {
             CheckFitParams(result);
-        }
-        catch (...) {
+        } catch (...) {
             result.EraseValue(param.first);
 
             NJson::TJsonValue badParam;
             badParam[param.first] = param.second;
-            CATBOOST_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(badParam) << " is ignored, because it cannot be parsed." << Endl;
+            CATBOOST_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(badParam)
+                << " is ignored, because it cannot be parsed." << Endl;
         }
     }
     return result;
@@ -102,7 +107,11 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
     return ReadModel(&bs, format);
 }
 
-void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const NJson::TJsonValue& userParameters) {
+void OutputModelCoreML(
+    const TFullModel& model,
+    const TString& modelFile,
+    const NJson::TJsonValue& userParameters) {
+
     CoreML::Specification::Model outModel;
     outModel.set_specificationversion(1);
 
@@ -121,7 +130,11 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
-void OutputModelOnnx(const TFullModel& model, const TString& modelFile, const NJson::TJsonValue& userParameters) {
+void OutputModelOnnx(
+    const TFullModel& model,
+    const TString& modelFile,
+    const NJson::TJsonValue& userParameters) {
+
     /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
      * could be interpreted as nans so that equality comparison won't work for such splits
      */
@@ -149,18 +162,21 @@ void OutputModelOnnx(const TFullModel& model, const TString& modelFile, const NJ
 }
 
 void ExportModel(
-        const TFullModel& model,
-        const TString& modelFile,
-        const EModelType format,
-        const TString& userParametersJson,
-        bool addFileFormatExtension,
-        const TVector<TString>* featureId,
-        const THashMap<ui32, TString>* catFeaturesHashToString
-) {
+    const TFullModel& model,
+    const TString& modelFile,
+    const EModelType format,
+    const TString& userParametersJson,
+    bool addFileFormatExtension,
+    const TVector<TString>* featureId,
+    const THashMap<ui32, TString>* catFeaturesHashToString) {
+
     const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
     switch (format) {
         case EModelType::CatboostBinary:
-            CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");
+            CB_ENSURE(
+                userParametersJson.empty(),
+                "JSON user params for CatBoost model export are not supported"
+            );
             OutputModel(model, modelFileName);
             break;
         case EModelType::AppleCoreML:
@@ -174,7 +190,10 @@ void ExportModel(
             break;
         case EModelType::Json:
             {
-                CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");
+                CB_ENSURE(
+                    userParametersJson.empty(),
+                    "JSON user params for CatBoost model export are not supported"
+                );
                 OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
             }
             break;
@@ -188,7 +207,13 @@ void ExportModel(
             }
             break;
         default:
-            TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter = NCatboost::CreateCatboostModelExporter(modelFile, format, userParametersJson, addFileFormatExtension);
+            TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter
+                = NCatboost::CreateCatboostModelExporter(
+                    modelFile,
+                    format,
+                    userParametersJson,
+                    addFileFormatExtension
+                );
             if (!modelExporter) {
                 TStringBuilder err;
                 err << "Export to " << format << " format is not supported";
@@ -222,12 +247,16 @@ void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     const auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
         TVector<TModelSplit> modelSplits;
-        for (int splitIdx = TreeStartOffsets[treeIdx]; splitIdx < TreeStartOffsets[treeIdx] + TreeSizes[treeIdx]; ++splitIdx) {
+        for (int splitIdx = TreeStartOffsets[treeIdx];
+             splitIdx < TreeStartOffsets[treeIdx] + TreeSizes[treeIdx];
+             ++splitIdx)
+        {
             modelSplits.push_back(MetaData->BinFeatures[TreeSplits[splitIdx]]);
         }
         TArrayRef<double> leafValuesRef(
             LeafValues.begin() + leafOffsets[treeIdx],
-            LeafValues.begin() + leafOffsets[treeIdx] + ApproxDimension * (1u << TreeSizes[treeIdx]));
+            LeafValues.begin() + leafOffsets[treeIdx] + ApproxDimension * (1u << TreeSizes[treeIdx])
+        );
         builder.AddTree(modelSplits, leafValuesRef, LeafWeights[treeIdx]);
     }
     *this = builder.Build();
@@ -254,9 +283,9 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     TVector<double> flatLeafWeights;
     for (const auto& oneTreeLeafWeights: LeafWeights) {
         flatLeafWeights.insert(
-                flatLeafWeights.end(),
-                oneTreeLeafWeights.begin(),
-                oneTreeLeafWeights.end()
+            flatLeafWeights.end(),
+            oneTreeLeafWeights.begin(),
+            oneTreeLeafWeights.end()
         );
     }
     return NCatBoostFbs::CreateTObliviousTreesDirect(
@@ -311,7 +340,8 @@ void TObliviousTrees::UpdateMetadata() const {
             bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
             bf.SplitIdx = (borderId % MAX_VALUES_PER_BIN) + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+        ref.EffectiveBinFeaturesBucketCount
+            += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     for (const auto& feature : CatFeatures) {
         if (!feature.UsedInModel) {
@@ -329,7 +359,8 @@ void TObliviousTrees::UpdateMetadata() const {
             bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + valueId / MAX_VALUES_PER_BIN;
             bf.SplitIdx = (valueId % MAX_VALUES_PER_BIN) + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount += (feature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+        ref.EffectiveBinFeaturesBucketCount
+            += (feature.Values.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     for (size_t i = 0; i < CtrFeatures.size(); ++i) {
         const auto& feature = CtrFeatures[i];
@@ -342,12 +373,16 @@ void TObliviousTrees::UpdateMetadata() const {
             bf.FeatureIdx = ref.EffectiveBinFeaturesBucketCount + borderId / MAX_VALUES_PER_BIN;
             bf.SplitIdx = (borderId % MAX_VALUES_PER_BIN) + 1;
         }
-        ref.EffectiveBinFeaturesBucketCount += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
+        ref.EffectiveBinFeaturesBucketCount
+            += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
     for (const auto& binSplit : TreeSplits) {
         const auto& feature = ref.BinFeatures[binSplit];
         const auto& featureIndex = splitIds[binSplit];
-        Y_ENSURE(featureIndex.FeatureIdx <= 0xffff, "To many features in model, ask catboost team for support");
+        Y_ENSURE(
+            featureIndex.FeatureIdx <= 0xffff,
+            "To many features in model, ask catboost team for support"
+        );
         TRepackedBin rb;
         rb.FeatureIndex = featureIndex.FeatureIdx;
         if (feature.Type != ESplitType::OneHotFeature) {
@@ -366,15 +401,19 @@ void TObliviousTrees::DropUnusedFeatures() {
     UpdateMetadata();
 }
 
-void TFullModel::CalcFlat(TConstArrayRef<TConstArrayRef<float>> features,
-                          size_t treeStart,
-                          size_t treeEnd,
-                          TArrayRef<double> results) const {
+void TFullModel::CalcFlat(
+    TConstArrayRef<TConstArrayRef<float>> features,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results) const {
+
     const auto expectedFlatVecSize = ObliviousTrees.GetFlatFeatureVectorExpectedSize();
     for (const auto& flatFeaturesVec : features) {
-        CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
-                  "insufficient flat features vector size: " << flatFeaturesVec.size()
-                                                             << " expected: " << expectedFlatVecSize);
+        CB_ENSURE(
+            flatFeaturesVec.size() >= expectedFlatVecSize,
+            "insufficient flat features vector size: " << flatFeaturesVec.size()
+            << " expected: " << expectedFlatVecSize
+        );
     }
     CalcGeneric(
         *this,
@@ -391,8 +430,16 @@ void TFullModel::CalcFlat(TConstArrayRef<TConstArrayRef<float>> features,
     );
 }
 
-void TFullModel::CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
-    CB_ENSURE(ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= features.size(), "Not enough features provided");
+void TFullModel::CalcFlatSingle(
+    TConstArrayRef<float> features,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results) const {
+
+    CB_ENSURE(
+        ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= features.size(),
+        "Not enough features provided"
+    );
     CalcGeneric(
         *this,
         [&features](const TFloatFeature& floatFeature, size_t ) -> float {
@@ -408,11 +455,16 @@ void TFullModel::CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart
     );
 }
 
-void TFullModel::CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
-                                    size_t treeStart,
-                                    size_t treeEnd,
-                                    TArrayRef<double> results) const {
-    CB_ENSURE(ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= transposedFeatures.size(), "Not enough features provided");
+void TFullModel::CalcFlatTransposed(
+    TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results) const {
+
+    CB_ENSURE(
+        ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= transposedFeatures.size(),
+        "Not enough features provided"
+    );
     CalcGeneric(
         *this,
         [&transposedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
@@ -428,26 +480,38 @@ void TFullModel::CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transp
     );
 }
 
-void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                      TConstArrayRef<TConstArrayRef<int>> catFeatures,
-                      size_t treeStart,
-                      size_t treeEnd,
-                      TArrayRef<double> results) const {
+void TFullModel::Calc(
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TConstArrayRef<int>> catFeatures,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results) const {
+
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
-    CB_ENSURE(ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
-    CB_ENSURE(ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorical features provided");
+    CB_ENSURE(
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        "Model has float features but no float features provided"
+    );
+    CB_ENSURE(
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        "Model has categorical features but no categorical features provided"
+    );
     for (const auto& floatFeaturesVec : floatFeatures) {
-        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
-                  "insufficient float features vector size: " << floatFeaturesVec.size()
-                                                              << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize());
+        CB_ENSURE(
+            floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
+            "insufficient float features vector size: " << floatFeaturesVec.size()
+            << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize()
+        );
     }
     for (const auto& catFeaturesVec : catFeatures) {
-        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
-                  "insufficient cat features vector size: " << catFeaturesVec.size()
-                                                            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize());
+        CB_ENSURE(
+            catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
+            "insufficient cat features vector size: " << catFeaturesVec.size()
+            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize()
+        );
     }
     CalcGeneric(
         *this,
@@ -464,24 +528,38 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     );
 }
 
-void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                      TConstArrayRef<TVector<TStringBuf>> catFeatures, size_t treeStart, size_t treeEnd,
-                      TArrayRef<double> results) const {
+void TFullModel::Calc(
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TVector<TStringBuf>> catFeatures,
+    size_t treeStart,
+    size_t treeEnd,
+    TArrayRef<double> results) const {
+
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
-    CB_ENSURE(ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
-    CB_ENSURE(ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorical features provided");
+    CB_ENSURE(
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        "Model has float features but no float features provided"
+    );
+    CB_ENSURE(
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        "Model has categorical features but no categorical features provided"
+    );
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     for (const auto& floatFeaturesVec : floatFeatures) {
-        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
-                  "insufficient float features vector size: " << floatFeaturesVec.size()
-                                                              << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize());
+        CB_ENSURE(
+            floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
+            "insufficient float features vector size: " << floatFeaturesVec.size()
+            << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize()
+        );
     }
     for (const auto& catFeaturesVec : catFeatures) {
-        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
-                  "insufficient cat features vector size: " << catFeaturesVec.size()
-                                                            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize());
+        CB_ENSURE(
+            catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
+            "insufficient cat features vector size: " << catFeaturesVec.size()
+            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize()
+        );
     }
     CalcGeneric(
         *this,
@@ -502,21 +580,32 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
     TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     TConstArrayRef<TConstArrayRef<int>> catFeatures,
     size_t incrementStep) const {
+
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
-    CB_ENSURE(ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
-    CB_ENSURE(ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorial features provided");
+    CB_ENSURE(
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        "Model has float features but no float features provided"
+    );
+    CB_ENSURE(
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        "Model has categorical features but no categorial features provided"
+    );
     for (const auto& floatFeaturesVec : floatFeatures) {
-        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
-                  "insufficient float features vector size: " << floatFeaturesVec.size()
-                                                              << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize());
+        CB_ENSURE(
+            floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
+            "insufficient float features vector size: " << floatFeaturesVec.size()
+            << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize()
+        );
     }
     for (const auto& catFeaturesVec : catFeatures) {
-        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
-                  "insufficient cat features vector size: " << catFeaturesVec.size()
-                                                            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize());
+        CB_ENSURE(
+            catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
+            "insufficient cat features vector size: " << catFeaturesVec.size()
+            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize()
+        );
     }
     return CalcTreeIntervalsGeneric(
         *this,
@@ -533,11 +622,14 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
 TVector<TVector<double>> TFullModel::CalcTreeIntervalsFlat(
     TConstArrayRef<TConstArrayRef<float>> features,
     size_t incrementStep) const {
+
     const auto expectedFlatVecSize = ObliviousTrees.GetFlatFeatureVectorExpectedSize();
     for (const auto& flatFeaturesVec : features) {
-        CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
-                  "insufficient flat features vector size: " << flatFeaturesVec.size()
-                                                             << " expected: " << expectedFlatVecSize);
+        CB_ENSURE(
+            flatFeaturesVec.size() >= expectedFlatVecSize,
+            "insufficient flat features vector size: " << flatFeaturesVec.size()
+            << " expected: " << expectedFlatVecSize
+        );
     }
     return CalcTreeIntervalsGeneric(
         *this,
@@ -564,10 +656,12 @@ void TFullModel::Save(IOutputStream* s) const {
             serializer.FlatbufBuilder,
             serializer.FlatbufBuilder.CreateString(
                 key_value.first.c_str(),
-                key_value.first.size()),
+                key_value.first.size()
+            ),
             serializer.FlatbufBuilder.CreateString(
                 key_value.second.c_str(),
-                key_value.second.size())
+                key_value.second.size()
+            )
         );
         infoMap.push_back(keyValueOffset);
     }
@@ -640,11 +734,15 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
 
     for (const TFloatFeature& feature : forest.FloatFeatures) {
         featuresIdxs.push_back(feature.FlatFeatureIndex);
-        featuresNames.push_back(feature.FeatureId == "" ? ToString(feature.FlatFeatureIndex) : feature.FeatureId);
+        featuresNames.push_back(
+            feature.FeatureId == "" ? ToString(feature.FlatFeatureIndex) : feature.FeatureId
+        );
     }
     for (const TCatFeature& feature : forest.CatFeatures) {
         featuresIdxs.push_back(feature.FlatFeatureIndex);
-        featuresNames.push_back(feature.FeatureId == "" ? ToString(feature.FlatFeatureIndex) : feature.FeatureId);
+        featuresNames.push_back(
+            feature.FeatureId == "" ? ToString(feature.FlatFeatureIndex) : feature.FeatureId
+        );
     }
 
     TVector<int> featuresOrder(featuresIdxs.size());
@@ -694,6 +792,7 @@ namespace {
 
         TVariant<TUnknownFeature, TFloatFeature, TCatFeature> FeatureVariant;
 
+    public:
         TFlatFeature() = default;
 
         void CheckedSet(const TFloatFeature& other) {
@@ -703,15 +802,28 @@ namespace {
             TFloatFeature& floatFeature = Get<TFloatFeature>(FeatureVariant);
             CB_ENSURE(floatFeature.FlatFeatureIndex == other.FlatFeatureIndex);
             CB_ENSURE(HoldsAlternative<TFloatFeature>(FeatureVariant),
-                "Feature type mismatch: Categorical != Float for flat feature index: " << other.FlatFeatureIndex);
-            CB_ENSURE(floatFeature.FeatureIndex == other.FeatureIndex,
-                "Internal feature index mismatch: " << floatFeature.FeatureIndex << " != " << other.FeatureIndex << " flat feature index: " << floatFeature.FlatFeatureIndex);
-            CB_ENSURE(floatFeature.FeatureId.empty() || floatFeature.FeatureId == other.FeatureId,
-                "Feature name mismatch: " << floatFeature.FeatureId << " != " << other.FeatureId << " flat feature index: " << floatFeature.FlatFeatureIndex);
+                "Feature type mismatch: Categorical != Float for flat feature index: "
+                << other.FlatFeatureIndex
+            );
+            CB_ENSURE(
+                floatFeature.FeatureIndex == other.FeatureIndex,
+                "Internal feature index mismatch: " << floatFeature.FeatureIndex << " != "
+                << other.FeatureIndex << " flat feature index: " << floatFeature.FlatFeatureIndex
+            );
+            CB_ENSURE(
+                floatFeature.FeatureId.empty() || floatFeature.FeatureId == other.FeatureId,
+                "Feature name mismatch: " << floatFeature.FeatureId << " != " << other.FeatureId
+                << " flat feature index: " << floatFeature.FlatFeatureIndex
+            );
             floatFeature.FeatureId = other.FeatureId;
-            if (floatFeature.NanValueTreatment != NCatBoostFbs::ENanValueTreatment_AsIs && other.NanValueTreatment != NCatBoostFbs::ENanValueTreatment_AsIs) {
-                CB_ENSURE(floatFeature.NanValueTreatment == other.NanValueTreatment,
-                    "Nan value treatment differs: " << (int)floatFeature.NanValueTreatment << " != " << (int)other.NanValueTreatment);
+            if (floatFeature.NanValueTreatment != NCatBoostFbs::ENanValueTreatment_AsIs &&
+                other.NanValueTreatment != NCatBoostFbs::ENanValueTreatment_AsIs)
+            {
+                CB_ENSURE(
+                    floatFeature.NanValueTreatment == other.NanValueTreatment,
+                    "Nan value treatment differs: " << (int)floatFeature.NanValueTreatment << " != "
+                    << (int)other.NanValueTreatment
+                );
             }
             floatFeature.HasNans |= other.HasNans;
         }
@@ -721,12 +833,21 @@ namespace {
             }
             TCatFeature& catFeature = Get<TCatFeature>(FeatureVariant);
             CB_ENSURE(catFeature.FlatFeatureIndex == other.FlatFeatureIndex);
-            CB_ENSURE(HoldsAlternative<TCatFeature>(FeatureVariant),
-                      "Feature type mismatch: Float != Categorical for flat feature index: " << other.FlatFeatureIndex);
-            CB_ENSURE(catFeature.FeatureIndex == other.FeatureIndex,
-                      "Internal feature index mismatch: " << catFeature.FeatureIndex << " != " << other.FeatureIndex << " flat feature index: " << catFeature.FlatFeatureIndex);
-            CB_ENSURE(catFeature.FeatureId.empty() || catFeature.FeatureId == other.FeatureId,
-                      "Feature name mismatch: " << catFeature.FeatureId << " != " << other.FeatureId << " flat feature index: " << catFeature.FlatFeatureIndex);
+            CB_ENSURE(
+                HoldsAlternative<TCatFeature>(FeatureVariant),
+                "Feature type mismatch: Float != Categorical for flat feature index: "
+                << other.FlatFeatureIndex
+            );
+            CB_ENSURE(
+                catFeature.FeatureIndex == other.FeatureIndex,
+                "Internal feature index mismatch: " << catFeature.FeatureIndex << " != " << other.FeatureIndex
+                << " flat feature index: " << catFeature.FlatFeatureIndex
+            );
+            CB_ENSURE(
+                catFeature.FeatureId.empty() || catFeature.FeatureId == other.FeatureId,
+                "Feature name mismatch: " << catFeature.FeatureId << " != " << other.FeatureId
+                << " flat feature index: " << catFeature.FlatFeatureIndex
+            );
             catFeature.FeatureId = other.FeatureId;
         }
     };
@@ -744,23 +865,34 @@ namespace {
     };
 }
 
-static void StreamModelTreesToBuilder(const TObliviousTrees& trees, double leafMultiplier, TObliviousTreeBuilder* builder) {
+static void StreamModelTreesToBuilder(
+    const TObliviousTrees& trees,
+    double leafMultiplier,
+    TObliviousTreeBuilder* builder) {
+
     const auto& binFeatures = trees.GetBinFeatures();
     const auto& leafOffsets = trees.GetFirstLeafOffsets();
     for (size_t treeIdx = 0; treeIdx < trees.TreeSizes.size(); ++treeIdx) {
         TVector<TModelSplit> modelSplits;
-        for (int splitIdx = trees.TreeStartOffsets[treeIdx]; splitIdx < trees.TreeStartOffsets[treeIdx] + trees.TreeSizes[treeIdx]; ++splitIdx) {
+        for (int splitIdx = trees.TreeStartOffsets[treeIdx];
+             splitIdx < trees.TreeStartOffsets[treeIdx] + trees.TreeSizes[treeIdx];
+             ++splitIdx)
+        {
             modelSplits.push_back(binFeatures[trees.TreeSplits[splitIdx]]);
         }
         if (leafMultiplier == 1.0) {
             TConstArrayRef<double> leafValuesRef(
-                    trees.LeafValues.begin() + leafOffsets[treeIdx],
-                    trees.LeafValues.begin() + leafOffsets[treeIdx] + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx]));
+                trees.LeafValues.begin() + leafOffsets[treeIdx],
+                trees.LeafValues.begin() + leafOffsets[treeIdx]
+                    + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx])
+            );
             builder->AddTree(modelSplits, leafValuesRef, trees.LeafWeights[treeIdx]);
         } else {
             TVector<double> leafValues(
-                    trees.LeafValues.begin() + leafOffsets[treeIdx],
-                    trees.LeafValues.begin() + leafOffsets[treeIdx] + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx]));
+                trees.LeafValues.begin() + leafOffsets[treeIdx],
+                trees.LeafValues.begin() + leafOffsets[treeIdx]
+                    + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx])
+            );
             for (auto& leafValue: leafValues) {
                 leafValue *= leafMultiplier;
             }
@@ -772,8 +904,8 @@ static void StreamModelTreesToBuilder(const TObliviousTrees& trees, double leafM
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
-    ECtrTableMergePolicy ctrMergePolicy
-) {
+    ECtrTableMergePolicy ctrMergePolicy) {
+
     CB_ENSURE(!modelVector.empty(), "empty model vector unexpected");
     CB_ENSURE(modelVector.size() == weights.size());
     const auto approxDimension = modelVector.back()->ObliviousTrees.ApproxDimension;
@@ -781,9 +913,15 @@ TFullModel SumModels(
     TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
     for (const auto& model : modelVector) {
         Y_ASSERT(model != nullptr);
-        CB_ENSURE(model->ObliviousTrees.ApproxDimension == approxDimension,
-                  "Approx dimensions don't match: " << model->ObliviousTrees.ApproxDimension << " != " << approxDimension);
-        maxFlatFeatureVectorSize = Max(maxFlatFeatureVectorSize, model->ObliviousTrees.GetFlatFeatureVectorExpectedSize());
+        CB_ENSURE(
+            model->ObliviousTrees.ApproxDimension == approxDimension,
+            "Approx dimensions don't match: " << model->ObliviousTrees.ApproxDimension << " != "
+            << approxDimension
+        );
+        maxFlatFeatureVectorSize = Max(
+            maxFlatFeatureVectorSize,
+            model->ObliviousTrees.GetFlatFeatureVectorExpectedSize()
+        );
         ctrProviders.push_back(model->CtrProvider);
     }
     TVector<TFlatFeature> flatFeatureInfoVector(maxFlatFeatureVectorSize);

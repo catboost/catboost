@@ -1,5 +1,6 @@
 #include "c_api.h"
 
+#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/singleton.h>
@@ -156,6 +157,10 @@ EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle) {
 
 EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetTreeCount();
+}
+
+EXPORT size_t GetDimensionsCount(ModelCalcerHandle* modelHandle) {
+    return FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
 }
 
 EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {

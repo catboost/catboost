@@ -39,5 +39,7 @@ RECURSE(
     target
     train_lib
     train_lib/ut
+    ut_helpers
+    ut_helpers/ut
     validate_fb
 )

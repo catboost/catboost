@@ -3,7 +3,6 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/parallel_tasks.h>
-#include <catboost/libs/logging/logging.h>
 
 #include <library/binsaver/util_stream_io.h>
 
@@ -1256,7 +1255,6 @@ TConstArrayRef<float> NCB::GetWeights(const TTargetDataProviders& targetDataProv
                 ;
         }
     }
-    CATBOOST_WARNING_LOG << "no Weights data in targetDataProviders";
     return {};
 }
 

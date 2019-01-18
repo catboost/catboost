@@ -2,9 +2,11 @@
 
 #include "online_ctr.h"
 
-#include <util/digest/multi.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
+#include <util/str_stl.h>
+#include <util/ysaveload.h>
 
-#include <library/binsaver/bin_saver.h>
 
 inline bool IsTrueHistogram(ui8 bucket, ui8 splitIdx) {
     return bucket > splitIdx;
@@ -26,8 +28,7 @@ struct TModelSplit {
     TModelCtrSplit OnlineCtr;
     TOneHotSplit OneHotFeature;
 
-    Y_SAVELOAD_DEFINE(Type, FloatFeature, OnlineCtr, OneHotFeature);
-
+public:
     TModelSplit() = default;
 
     explicit TModelSplit(const TFloatSplit& floatFeature)
@@ -48,21 +49,11 @@ struct TModelSplit {
     {
     }
 
-    size_t GetHash() const {
-        if (Type == ESplitType::FloatFeature) {
-            return FloatFeature.GetHash();
-        } else if (Type == ESplitType::OnlineCtr) {
-            return OnlineCtr.GetHash();
-        } else {
-            Y_ASSERT(Type == ESplitType::OneHotFeature);
-            return OneHotFeature.GetHash();
-        }
-    }
-
     bool operator==(const TModelSplit& other) const {
-        return Type == other.Type && ((Type == ESplitType::FloatFeature && FloatFeature == other.FloatFeature) ||
-                                      (Type == ESplitType::OnlineCtr && OnlineCtr == other.OnlineCtr) ||
-                                      (Type == ESplitType::OneHotFeature && OneHotFeature == other.OneHotFeature));
+        return Type == other.Type &&
+            ((Type == ESplitType::FloatFeature && FloatFeature == other.FloatFeature) ||
+             (Type == ESplitType::OnlineCtr && OnlineCtr == other.OnlineCtr) ||
+             (Type == ESplitType::OneHotFeature && OneHotFeature == other.OneHotFeature));
     }
 
     bool operator<(const TModelSplit& other) const {
@@ -81,6 +72,19 @@ struct TModelSplit {
             return OneHotFeature < other.OneHotFeature;
         }
     }
+
+    size_t GetHash() const {
+        if (Type == ESplitType::FloatFeature) {
+            return FloatFeature.GetHash();
+        } else if (Type == ESplitType::OnlineCtr) {
+            return OnlineCtr.GetHash();
+        } else {
+            Y_ASSERT(Type == ESplitType::OneHotFeature);
+            return OneHotFeature.GetHash();
+        }
+    }
+
+    Y_SAVELOAD_DEFINE(Type, FloatFeature, OnlineCtr, OneHotFeature);
 };
 
 template <>

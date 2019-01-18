@@ -5,18 +5,19 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/json/json_value.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <util/generic/hash.h>
+#include <util/generic/utility.h>
 
-#include <util/system/mutex.h>
+#include <functional>
 
 
-struct TStaticCtrProvider: public ICtrProvider {
+class TStaticCtrProvider: public ICtrProvider {
 public:
     TStaticCtrProvider() = default;
     explicit TStaticCtrProvider(TCtrData& ctrData)
         : CtrData(ctrData)
     {}
+    ~TStaticCtrProvider() override {}
 
     bool HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const override;
 
@@ -72,7 +73,7 @@ public:
 
     virtual TIntrusivePtr<ICtrProvider> Clone() const override;
 
-    ~TStaticCtrProvider() override {}
+public:
     TCtrData CtrData;
 private:
     THashMap<TFloatSplit, TBinFeatureIndexValue> FloatFeatureIndexes;
@@ -80,10 +81,11 @@ private:
     THashMap<TOneHotSplit, TBinFeatureIndexValue> OneHotFeatureIndexes;
 };
 
-struct TStaticCtrOnFlightSerializationProvider: public ICtrProvider {
+class TStaticCtrOnFlightSerializationProvider: public ICtrProvider {
 public:
     using TCtrParallelGenerator = std::function<void(const TVector<TModelCtrBase>&, TCtrDataStreamWriter*)>;
 
+public:
     TStaticCtrOnFlightSerializationProvider(
         TVector<TModelCtrBase> ctrBases,
         TCtrParallelGenerator ctrParallelGenerator
@@ -92,13 +94,15 @@ public:
         , CtrParallelGenerator(ctrParallelGenerator)
     {
     }
+    ~TStaticCtrOnFlightSerializationProvider() = default;
 
     bool HasNeededCtrs(const TVector<TModelCtr>& ) const override {
         return false;
     }
 
     NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>&) const override {
-        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException()
+            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void CalcCtrs(
@@ -107,24 +111,30 @@ public:
         const TConstArrayRef<ui32>& ,
         size_t,
         TArrayRef<float>) override {
-        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+
+        ythrow TCatBoostException()
+            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& ,
         const TVector<TOneHotFeature>& ,
         const TVector<TCatFeature>& ) override {
-        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+
+        ythrow TCatBoostException()
+            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
     bool IsSerializable() const override {
         return true;
     }
     void AddCtrCalcerData(TCtrValueTable&& ) override {
-        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException()
+            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void DropUnusedTables(TConstArrayRef<TModelCtrBase>) override {
-        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException()
+            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void Save(IOutputStream* out) const override {
@@ -133,17 +143,19 @@ public:
     }
 
     void Load(IInputStream*) override {
-        ythrow TCatBoostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
+        ythrow TCatBoostException()
+            << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     TString ModelPartIdentifier() const override {
         return "static_provider_v1";
     }
 
-    ~TStaticCtrOnFlightSerializationProvider() = default;
 private:
     TVector<TModelCtrBase> CtrBases;
     TCtrParallelGenerator CtrParallelGenerator;
 };
 
-TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<const TStaticCtrProvider*>& providers, ECtrTableMergePolicy mergePolicy);
+TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(
+    const TVector<const TStaticCtrProvider*>& providers,
+    ECtrTableMergePolicy mergePolicy);

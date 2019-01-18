@@ -4,18 +4,17 @@
 
 
 void CalcModelNewtonMulti(const TSumMulti& ss,
-                          int gradientIteration,
                           float l2Regularizer,
                           double sumAllWeights,
                           int allDocCount,
                           TVector<double>* res) {
-    TVector<double> total1st = ss.SumDerHistory[gradientIteration];
+    TVector<double> total1st = ss.SumDer;
     for (auto& elem : total1st) {
         elem = -elem;
     }
 
     l2Regularizer *= sumAllWeights / allDocCount;
-    SolveNewtonEquation(ss.SumDer2History[gradientIteration],
+    SolveNewtonEquation(ss.SumDer2,
                         total1st,
                         l2Regularizer,
                         res);

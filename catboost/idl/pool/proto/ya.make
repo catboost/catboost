@@ -1,6 +1,8 @@
 
 
-LIBRARY()
+PROTO_LIBRARY()
+
+EXCLUDE_TAGS(JAVA_PROTO)
 
 SRCS(
     metainfo.proto

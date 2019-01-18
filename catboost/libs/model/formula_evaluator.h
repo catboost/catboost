@@ -4,10 +4,19 @@
 
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/generic/array_ref.h>
+#include <util/generic/hash.h>
+#include <util/generic/utility.h>
+#include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
-
 #include <util/system/platform.h>
+#include <util/system/types.h>
+#include <util/system/yassert.h>
+
+#include <algorithm>
+#include <functional>
+#include <limits>
 
 #ifdef _sse2_
 #include <emmintrin.h>
@@ -21,14 +30,18 @@ inline void OneHotBinsFromTransposedCatFeatures(
     const THashMap<int, int> catFeaturePackedIndex,
     const size_t docCount,
     ui8*& result,
-    TVector<ui32>& transposedHash) {
+    TVector<ui32>& transposedHash
+) {
     for (const auto& oheFeature : OneHotFeatures) {
         const auto catIdx = catFeaturePackedIndex.at(oheFeature.CatFeatureIndex);
         for (size_t docId = 0; docId < docCount; ++docId) {
             static_assert(sizeof(int) >= sizeof(i32));
             const int val = *reinterpret_cast<i32*>(&(transposedHash[catIdx * docCount + docId]));
             ui8* writePosition = &result[docId];
-            for (size_t blockStart = 0; blockStart < oheFeature.Values.size(); blockStart += MAX_VALUES_PER_BIN) {
+            for (size_t blockStart = 0;
+                 blockStart < oheFeature.Values.size();
+                 blockStart += MAX_VALUES_PER_BIN)
+            {
                 const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, oheFeature.Values.size());
                 for (size_t borderIdx = blockStart; borderIdx < blockEnd; ++borderIdx) {
                     *writePosition |= (ui8)(val == oheFeature.Values[borderIdx]) * (borderIdx - blockStart + 1);
@@ -73,8 +86,10 @@ Y_FORCE_INLINE void BinarizeFloatsNonSse(
             const size_t blockEnd = Min(blockStart + MAX_VALUES_PER_BIN, borders.size());
             for (size_t borderId = blockStart; borderId < blockEnd; ++borderId) {
                 const auto border = borders[borderId];
-                writePtr[0] += (val[0] > border) + ((val[1] > border) << 8) + ((val[2] > border) << 16) + ((val[3] > border) << 24);
-                writePtr[1] += (val[4] > border) + ((val[5] > border) << 8) + ((val[6] > border) << 16) + ((val[7] > border) << 24);
+                writePtr[0] += (val[0] > border) + ((val[1] > border) << 8) + ((val[2] > border) << 16)
+                    + ((val[3] > border) << 24);
+                writePtr[1] += (val[4] > border) + ((val[5] > border) << 8) + ((val[6] > border) << 16)
+                    + ((val[7] > border) << 24);
             }
             writePtr = (ui32*)((ui8*)writePtr + docCount);
         }
@@ -110,7 +125,14 @@ Y_FORCE_INLINE void BinarizeFloats(
     ui8*& result,
     const float nanSubstitutionValue = 0.0f
 ) {
-    BinarizeFloatsNonSse<UseNanSubstitution, TFloatFeatureAccessor>(docCount, floatAccessor, borders, start, result, nanSubstitutionValue);
+    BinarizeFloatsNonSse<UseNanSubstitution, TFloatFeatureAccessor>(
+        docCount,
+        floatAccessor,
+        borders,
+        start,
+        result,
+        nanSubstitutionValue
+    );
 };
 
 #else
@@ -234,7 +256,8 @@ inline void BinarizeFeatures(
                 [&floatFeature, floatAccessor](size_t index) { return floatAccessor(floatFeature, index); },
                 floatFeature.Borders,
                 start,
-                resultPtr);
+                resultPtr
+            );
         } else {
             const float infinity = std::numeric_limits<float>::infinity();
             if (floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsFalse) {
@@ -244,7 +267,8 @@ inline void BinarizeFeatures(
                     floatFeature.Borders,
                     start,
                     resultPtr,
-                    -infinity);
+                    -infinity
+                );
             } else {
                 Y_ASSERT(floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsTrue);
                 BinarizeFloats<true>(
@@ -253,7 +277,8 @@ inline void BinarizeFeatures(
                     floatFeature.Borders,
                     start,
                     resultPtr,
-                    infinity);
+                    infinity
+                );
             }
         }
     }
@@ -265,13 +290,22 @@ inline void BinarizeFeatures(
                 continue;
             }
             catFeaturePackedIndexes[catFeature.FeatureIndex] = usedFeatureIdx;
-            for (size_t docId = 0, writeIdx = usedFeatureIdx * docCount; docId < docCount; ++docId, ++writeIdx) {
+            for (size_t docId = 0, writeIdx = usedFeatureIdx * docCount;
+                 docId < docCount;
+                 ++docId, ++writeIdx)
+            {
                 transposedHash[writeIdx] = catFeatureAccessor(catFeature, start + docId);
             }
             ++usedFeatureIdx;
         }
         Y_ASSERT(model.GetUsedCatFeaturesCount() == (size_t)usedFeatureIdx);
-        OneHotBinsFromTransposedCatFeatures(model.ObliviousTrees.OneHotFeatures, catFeaturePackedIndexes, docCount, resultPtr, transposedHash);
+        OneHotBinsFromTransposedCatFeatures(
+            model.ObliviousTrees.OneHotFeatures,
+            catFeaturePackedIndexes,
+            docCount,
+            resultPtr,
+            transposedHash
+        );
         if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
             model.CtrProvider->CalcCtrs(
                 model.ObliviousTrees.GetUsedModelCtrs(),
@@ -289,7 +323,8 @@ inline void BinarizeFeatures(
                 [ctrFloatsPtr](size_t index) { return ctrFloatsPtr[index]; },
                 ctr.Borders,
                 0,
-                resultPtr);
+                resultPtr
+            );
         }
     }
 }
@@ -330,8 +365,8 @@ inline void CalcGeneric(
     size_t docCount,
     size_t treeStart,
     size_t treeEnd,
-    TArrayRef<double> results)
-{
+    TArrayRef<double> results
+) {
     size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
     blockSize = Min(blockSize, docCount);
     const size_t binSlots = blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
@@ -360,14 +395,14 @@ inline void CalcGeneric(
             ctrs
         );
         calcTrees(
-                model,
-                binFeatures.data(),
-                1,
-                nullptr,
-                treeStart,
-                treeEnd,
-                results.data()
-            );
+            model,
+            binFeatures.data(),
+            1,
+            nullptr,
+            treeStart,
+            treeEnd,
+            results.data()
+        );
         return;
     }
 
@@ -411,12 +446,15 @@ class TFeatureCachedTreeEvaluator {
 public:
     template <typename TFloatFeatureAccessor,
              typename TCatFeatureAccessor>
-    TFeatureCachedTreeEvaluator(const TFullModel& model,
-                                TFloatFeatureAccessor floatFeatureAccessor,
-                                TCatFeatureAccessor catFeaturesAccessor,
-                                size_t docCount)
-            : Model(model)
-            , DocCount(docCount) {
+    TFeatureCachedTreeEvaluator(
+        const TFullModel& model,
+        TFloatFeatureAccessor floatFeatureAccessor,
+        TCatFeatureAccessor catFeaturesAccessor,
+        size_t docCount
+    )
+        : Model(model)
+        , DocCount(docCount)
+    {
         size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
         BlockSize = Min(blockSize, docCount);
         CalcFunction = GetCalcTreesFunction(Model, BlockSize);
@@ -425,16 +463,17 @@ public:
         {
             for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
                 const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-                TVector<ui8> binFeatures(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * blockSize);
+                TVector<ui8> binFeatures(
+                    model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * blockSize);
                 BinarizeFeatures(
-                        model,
-                        floatFeatureAccessor,
-                        catFeaturesAccessor,
-                        blockStart,
-                        blockStart + docCountInBlock,
-                        binFeatures,
-                        transposedHash,
-                        ctrs
+                    model,
+                    floatFeatureAccessor,
+                    catFeaturesAccessor,
+                    blockStart,
+                    blockStart + docCountInBlock,
+                    binFeatures,
+                    transposedHash,
+                    ctrs
                 );
                 BinFeatures.push_back(std::move(binFeatures));
             }

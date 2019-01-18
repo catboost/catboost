@@ -7,7 +7,7 @@
 #include <util/generic/serialized_enum.h>
 #include <util/generic/vector.h>
 
-static const TConstArrayRef<size_t> BORDER_COUNT_VALUES = {1, 10, 128};
+static const TConstArrayRef<size_t> MAX_BORDER_COUNT_VALUES = {1, 10, 128};
 static const TConstArrayRef<bool> NAN_IS_INFINITY_VALUES = {true, false};
 
 template <typename C, typename F>
@@ -26,9 +26,9 @@ Y_UNIT_TEST_SUITE(BinarizationTests) {
     Y_UNIT_TEST(TestEmpty) {
         ForEachEnumValue<EBorderSelectionType>([](const auto borderSelectionAlgorithm) {
             ForEachValue(NAN_IS_INFINITY_VALUES, [&](const auto nanIsInfinity) {
-                ForEachValue(BORDER_COUNT_VALUES, [&](const auto borderCount) {
+                ForEachValue(MAX_BORDER_COUNT_VALUES, [&](const auto maxBorderCount) {
                     TVector<float> values;
-                    BestSplit(values, borderCount, borderSelectionAlgorithm, nanIsInfinity);
+                    BestSplit(values, maxBorderCount, borderSelectionAlgorithm, nanIsInfinity);
                 });
             });
         });

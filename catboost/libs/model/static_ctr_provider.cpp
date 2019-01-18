@@ -2,7 +2,6 @@
 #include "json_model_helpers.h"
 #include "formula_evaluator.h"
 
-#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model_export/export_helpers.h>
 
 #include <util/generic/xrange.h>
