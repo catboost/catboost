@@ -59,9 +59,9 @@ namespace NCatboostCuda {
                 ui32 cpuFeaturesSize = 104857600 + 1.05 * EstimatePinnedMemorySizeInBytesPerDevice(learn, test,
                                                                                                    featuresManager,
                                                                                                    devCount);
-                ui64 currentSize = catBoostOptions.SystemOptions->PinnedMemorySize;
+                ui64 currentSize = ParseMemorySizeDescription(catBoostOptions.SystemOptions->PinnedMemorySize.Get());
                 if (currentSize < cpuFeaturesSize) {
-                    catBoostOptions.SystemOptions->PinnedMemorySize = cpuFeaturesSize;
+                    catBoostOptions.SystemOptions->PinnedMemorySize = ToString(cpuFeaturesSize);
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace NCatboostCuda {
         NCudaLib::TDeviceRequestConfig config;
         const auto& systemOptions = options.SystemOptions.Get();
         config.DeviceConfig = systemOptions.Devices;
-        config.PinnedMemorySize = systemOptions.PinnedMemorySize;
+        config.PinnedMemorySize = ParseMemorySizeDescription(systemOptions.PinnedMemorySize.Get());
         config.GpuMemoryPartByWorker = systemOptions.GpuRamPart;
         return config;
     }
