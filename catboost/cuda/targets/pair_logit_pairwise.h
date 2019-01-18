@@ -16,7 +16,6 @@
 #include <util/generic/map.h>
 #include <util/generic/string.h>
 
-
 namespace NCatboostCuda {
     template <class TSamplesMapping>
     class TPairLogitPairwise;
@@ -38,8 +37,6 @@ namespace NCatboostCuda {
                       random) {
             Init(targetOptions);
         }
-
-
 
         TPairLogitPairwise(TPairLogitPairwise&& other)
             : TParent(std::move(other))
@@ -71,7 +68,6 @@ namespace NCatboostCuda {
         static constexpr bool IsMinOptimal() {
             return true;
         }
-
 
         ELossFunction GetScoreMetricType() const {
             return ELossFunction::PairLogit;
@@ -111,7 +107,5 @@ namespace NCatboostCuda {
     private:
         mutable double PairsTotalWeight = 0;
     };
-
-
 
 }

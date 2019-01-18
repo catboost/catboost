@@ -17,9 +17,7 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
-
 namespace NCatboostCuda {
-
     struct TEstimationTaskHelper {
         THolder<IPermutationDerCalcer> DerCalcer;
 
@@ -49,7 +47,7 @@ namespace NCatboostCuda {
     /*
      * Oblivious tree batch estimator
      */
-    class TObliviousTreeLeavesEstimator : public ILeavesEstimationOracle {
+    class TObliviousTreeLeavesEstimator: public ILeavesEstimationOracle {
     private:
         TVector<TEstimationTaskHelper> TaskHelpers;
         TVector<TSlice> TaskSlices;
@@ -74,7 +72,7 @@ namespace NCatboostCuda {
             return leaves.SliceView(TaskSlices[taskId]);
         }
 
-        void NormalizeDerivatives(TVector<double >& derOrDer2);
+        void NormalizeDerivatives(TVector<double>& derOrDer2);
 
         void CreatePartStats();
 
@@ -110,13 +108,12 @@ namespace NCatboostCuda {
         void WriteValueAndFirstDerivatives(double* value,
                                            TVector<double>* gradient) final;
 
-        void WriteSecondDerivatives(TVector<double >* secondDer) final;
+        void WriteSecondDerivatives(TVector<double>* secondDer) final;
 
         void WriteWeights(TVector<double>* dst) final {
             dst->resize(LeafWeights.size());
             Copy(LeafWeights.begin(), LeafWeights.end(), dst->begin());
         }
-
 
         template <class TTarget, class TDataSet>
         TObliviousTreeLeavesEstimator& AddEstimationTask(TScopedCacheHolder& scopedCache,

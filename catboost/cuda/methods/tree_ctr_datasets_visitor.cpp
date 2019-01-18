@@ -57,7 +57,7 @@ namespace NCatboostCuda {
 
         { //we don't need complex logic here. this should be pretty fast
             bool shouldReturn = false;
-            with_lock(Lock) {
+            with_lock (Lock) {
                 if (bestSplitProperties.Score < BestScore) {
                     BestScore = bestSplitProperties.Score;
                     BestBin = bestSplitProperties.BinId;
@@ -98,7 +98,7 @@ namespace NCatboostCuda {
         for (auto& entry : bordersMap) {
             if (!FeaturesManager.IsKnown(entry.first)) {
                 TVector<float> borders(entry.second.begin(), entry.second.end());
-                with_lock(Lock) {
+                with_lock (Lock) {
                     Y_ASSERT(!FeaturesManager.IsKnown(entry.first)); //we can't add one ctr from 2 different threads.
                     FeaturesManager.AddCtr(entry.first, std::move(borders));
                 }

@@ -70,13 +70,11 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 };
 
                 if (FeaturesManager.IsFloat(split.FeatureId)) {
-                    const auto floatFeatureIdx
-                        = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
+                    const auto floatFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
                     auto& valuesHolder = **(DataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
                     updateKeys(valuesHolder.ExtractValues(&NPar::LocalExecutor()));
                 } else if (FeaturesManager.IsCat(split.FeatureId)) {
-                    const auto catFeatureIdx
-                        = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
+                    const auto catFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
                     auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
                     updateKeys(valuesHolder.ExtractValues(&NPar::LocalExecutor()));
                 }
@@ -87,8 +85,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 ui32 binarization = 0;
                 CB_ENSURE(FeaturesManager.IsCat(featureId));
 
-                const auto catFeatureIdx
-                    = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
+                const auto catFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
                 auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
                 NCB::TMaybeOwningArrayHolder<ui32> splitBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                 binarization = DataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll;
@@ -115,16 +112,14 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                    ui32 depth,
                    TVector<ui32>& bins) {
             if (FeaturesManager.IsFloat(split.FeatureId)) {
-                const auto floatFeatureIdx
-                    = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
+                const auto floatFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
                 auto& valuesHolder = **(DataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
                 auto featureBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     bins[i] |= (featureBins[i] > split.BinIdx) << depth;
                 }
             } else if (FeaturesManager.IsCat(split.FeatureId)) {
-                const auto catFeatureIdx
-                    = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
+                const auto catFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
                 auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
                 auto featureBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                 for (ui32 i = 0; i < bins.size(); ++i) {
@@ -210,7 +205,6 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
 
         NCB::TTrainingDataProviderPtr dataProvider;
@@ -222,7 +216,6 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                          NCatboostOptions::TCatFeatureParams(ETaskType::GPU),
                          &dataProvider,
                          &featuresManager);
-
 
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
                                                                     *dataProvider);

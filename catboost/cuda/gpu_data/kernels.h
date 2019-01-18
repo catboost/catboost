@@ -9,7 +9,6 @@
 
 #include <library/grid_creator/binarization.h>
 
-
 namespace NKernelHost {
     class TFindBordersKernel: public TStatelessKernel {
     private:
@@ -263,39 +262,39 @@ namespace NKernelHost {
     };
 
     class TRemoveQueryMax: public TKernelBase<NKernel::TRemoveQueryBiasContext, false> {
-     private:
-      TCudaBufferPtr<const ui32> Qids;
-      TCudaBufferPtr<const ui32> QidsOffsets;
-      TCudaBufferPtr<float> Dest;
+    private:
+        TCudaBufferPtr<const ui32> Qids;
+        TCudaBufferPtr<const ui32> QidsOffsets;
+        TCudaBufferPtr<float> Dest;
 
-     public:
-      using TKernelContext = NKernel::TRemoveQueryBiasContext;
+    public:
+        using TKernelContext = NKernel::TRemoveQueryBiasContext;
 
-      Y_SAVELOAD_DEFINE(Qids, QidsOffsets, Dest);
+        Y_SAVELOAD_DEFINE(Qids, QidsOffsets, Dest);
 
-      THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
-          auto context = MakeHolder<TKernelContext>();
-          context->QueryBias = memoryManager.Allocate<float>(QidsOffsets.Size());
-          return context;
-      }
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            context->QueryBias = memoryManager.Allocate<float>(QidsOffsets.Size());
+            return context;
+        }
 
-      TRemoveQueryMax() = default;
+        TRemoveQueryMax() = default;
 
-      TRemoveQueryMax(const TCudaBufferPtr<const ui32> qids,
-                      const TCudaBufferPtr<const ui32> qidOffsets,
-                      TCudaBufferPtr<float> dest)
-          : Qids(qids)
-          , QidsOffsets(qidOffsets)
-          , Dest(dest)
-      {
-      }
+        TRemoveQueryMax(const TCudaBufferPtr<const ui32> qids,
+                        const TCudaBufferPtr<const ui32> qidOffsets,
+                        TCudaBufferPtr<float> dest)
+            : Qids(qids)
+            , QidsOffsets(qidOffsets)
+            , Dest(dest)
+        {
+        }
 
-      void Run(const TCudaStream& stream, TKernelContext& context) {
-          CB_ENSURE(QidsOffsets.Size());
-          const ui32 qCount = QidsOffsets.Size() - 1;
-          NKernel::ComputeGroupMax(Dest.Get(), QidsOffsets.Get(), qCount, context.QueryBias, stream.GetStream());
-          NKernel::RemoveGroupBias(context.QueryBias, Qids.Get(), Dest.Size(), Dest.Get(), stream.GetStream());
-      }
+        void Run(const TCudaStream& stream, TKernelContext& context) {
+            CB_ENSURE(QidsOffsets.Size());
+            const ui32 qCount = QidsOffsets.Size() - 1;
+            NKernel::ComputeGroupMax(Dest.Get(), QidsOffsets.Get(), qCount, context.QueryBias, stream.GetStream());
+            NKernel::RemoveGroupBias(context.QueryBias, Qids.Get(), Dest.Size(), Dest.Get(), stream.GetStream());
+        }
     };
 
 }

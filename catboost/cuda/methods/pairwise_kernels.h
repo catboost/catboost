@@ -15,7 +15,6 @@
 
 #include <cmath>
 
-
 namespace NKernelHost {
     inline ui32 GetRowSizeFromLinearSystemSize(ui32 systemSize) {
         return static_cast<ui32>((-3 + sqrt(9 + 8 * systemSize)) / 2);
@@ -304,6 +303,7 @@ namespace NKernelHost {
         bool FullPass;
         TCudaBufferPtr<float> Histogram;
         int ParallelStreamsCount;
+
     public:
         TComputePairwiseHistogramKernel() = default;
 
@@ -321,8 +321,7 @@ namespace NKernelHost {
                                         ui32 histLineSize,
                                         bool fullPass,
                                         TCudaBufferPtr<float> histogram,
-                                        int parallelStreams
-        )
+                                        int parallelStreams)
             : Policy(policy)
             , Features(features)
             , FeaturesCpu(featuresCpu)
@@ -355,8 +354,7 @@ namespace NKernelHost {
                           HistLineSize,
                           FullPass,
                           Histogram,
-                          ParallelStreamsCount
-        );
+                          ParallelStreamsCount);
 
         void Run(const TCudaStream& stream) const;
     };
@@ -579,8 +577,7 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                            histogramLineSize,
                            fullPass,
                            histograms,
-                           parallelStreamsCount
-    );
+                           parallelStreamsCount);
 }
 
 template <class TMapping>

@@ -8,15 +8,14 @@
 #include <catboost/cuda/cuda_util/kernel/reorder_one_bit.cuh>
 #include <catboost/libs/helpers/exception.h>
 
-
-
 namespace NKernelHost {
     template <typename T>
     class TReorderOneBitKernel: public TKernelBase<NKernel::TReorderOneBitContext<ui32, T>, false> {
     private:
         TCudaBufferPtr<ui32> Keys;
         TCudaBufferPtr<T> Values;
-        int Bit=0;
+        int Bit = 0;
+
     public:
         using TKernelContext = NKernel::TReorderOneBitContext<ui32, T>;
         Y_SAVELOAD_DEFINE(Keys, Values, Bit);
@@ -41,9 +40,9 @@ namespace NKernelHost {
                              TCudaBufferPtr<T> values,
                              int bit)
             : Keys(keys)
-              , Values(values)
-              , Bit(bit) {
-
+            , Values(values)
+            , Bit(bit)
+        {
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) {
@@ -71,14 +70,14 @@ void ReorderOneBitImpl(
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, offset);
 }
 
-#define Y_CATBOOST_CUDA_IMPL(TMapping)                                             \
-    template <>                                                                      \
-    void ReorderOneBit<TMapping>(                                                      \
-        TCudaBuffer<ui32, TMapping> & bins,                                          \
-        TCudaBuffer<ui32, TMapping> & indices,                                       \
-        i32 bit,                                                                   \
-        ui32 stream) {                                                               \
-         ReorderOneBitImpl(bins, indices, bit, stream); \
+#define Y_CATBOOST_CUDA_IMPL(TMapping)                 \
+    template <>                                        \
+    void ReorderOneBit<TMapping>(                      \
+        TCudaBuffer<ui32, TMapping> & bins,            \
+        TCudaBuffer<ui32, TMapping> & indices,         \
+        i32 bit,                                       \
+        ui32 stream) {                                 \
+        ReorderOneBitImpl(bins, indices, bit, stream); \
     }
 
 Y_MAP_ARGS(
@@ -86,6 +85,5 @@ Y_MAP_ARGS(
     TMirrorMapping,
     TSingleMapping,
     TStripeMapping);
-
 
 #undef Y_CATBOOST_CUDA_IMPL

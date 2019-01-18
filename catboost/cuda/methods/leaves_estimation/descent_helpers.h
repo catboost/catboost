@@ -5,10 +5,7 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
-
 namespace NCatboostCuda {
-
-
     class TNewtonLikeWalker {
     public:
         ILeavesEstimationOracle& Oracle;

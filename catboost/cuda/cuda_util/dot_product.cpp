@@ -97,8 +97,7 @@ static float DotProductImpl(
     const TCudaBuffer<T1, TMapping>& x,
     const TCudaBuffer<T2, TMapping>& y,
     const TCudaBuffer<T3, TMapping>* weights,
-    ui64 stream)
-{
+    ui64 stream) {
     using T = std::remove_const_t<T1>;
     using TResultBuffer = TCudaBuffer<T, TMapping, EPtrType::CudaHost>;
     using TKernel = TDotProductKernel<T>;
@@ -134,8 +133,7 @@ static float DotProductImpl(
         const TCudaBuffer<T1, TMapping>& x,           \
         const TCudaBuffer<T2, TMapping>& y,           \
         const TCudaBuffer<T3, TMapping>* weights,     \
-        ui64 stream)                                  \
-    {                                                 \
+        ui64 stream) {                                \
         return DotProductImpl(x, y, weights, stream); \
     }
 

@@ -15,7 +15,6 @@
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
-
 namespace NCatboostCuda {
     //stores expression for binarized features calculations and mapping from this expression to unique ids
     //WARNING: not thread-safe

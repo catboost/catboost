@@ -3,7 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 
 namespace NCatboostCuda {
-    enum class  EAucType {
+    enum class EAucType {
         Pessimistic,
         Optimistic
     };

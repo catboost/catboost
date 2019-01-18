@@ -4,7 +4,6 @@
 
 #include <util/generic/maybe.h>
 
-
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
                                                                                             const NCB::TTrainingDataProvider& dataProvider,
                                                                                             const NCB::TTrainingDataProvider* test) {

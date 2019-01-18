@@ -13,10 +13,7 @@
 
 #include <tuple>
 
-
 namespace NCatboostCuda {
-
-
     struct TLeafPath {
         TVector<TBinarySplit> Splits;
         TVector<ESplitValue> Directions;
@@ -60,7 +57,6 @@ namespace NCatboostCuda {
             return false;
         }
         Y_SAVELOAD_DEFINE(Splits, Directions);
-
     };
 
     inline TLeafPath PreviousSplit(const TLeafPath& path) {
@@ -88,7 +84,6 @@ namespace NCatboostCuda {
         return newPath;
     }
 
-
     template <class TSortBy>
     inline TLeafPath SortUniquePath(const TLeafPath& path, TSortBy&& cmpFunc) {
         TVector<ui32> indices(path.Splits.size());
@@ -98,7 +93,7 @@ namespace NCatboostCuda {
         });
 
         auto last = std::unique(indices.begin(), indices.end(), [&](const ui32 left, const ui32 right) -> bool {
-            return path.Splits[left] == path.Splits[right] &&  path.Directions[left] == path.Directions[right];
+            return path.Splits[left] == path.Splits[right] && path.Directions[left] == path.Directions[right];
         });
         indices.resize(last - indices.begin());
 
@@ -115,7 +110,6 @@ namespace NCatboostCuda {
         return newPath;
     }
 }
-
 
 template <>
 struct THash<NCatboostCuda::TLeafPath> {

@@ -20,7 +20,6 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
-
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate,
               class TWeakLearner_>
@@ -127,10 +126,8 @@ namespace NCatboostCuda {
 
             );
 
-            const auto permutationCount
-                = DataProvider->ObjectsData->GetOrder() == NCB::EObjectsOrder::Ordered ?
-                  1
-                  : Config.PermutationCount;
+            const auto permutationCount = DataProvider->ObjectsData->GetOrder() == NCB::EObjectsOrder::Ordered ? 1
+                                                                                                               : Config.PermutationCount;
             return dataSetsHolderBuilder.BuildDataSet(permutationCount, LocalExecutor);
         }
 
@@ -171,8 +168,7 @@ namespace NCatboostCuda {
             //we should have at least several queries per devices
             if (devCount > 1) {
                 minEstimationSize = Max(minEstimationSize,
-                                        samplesGrouping.GetQueryOffset(Min<ui32>(16 * devCount, samplesGrouping.GetQueryCount() / 2))
-                );
+                                        samplesGrouping.GetQueryOffset(Min<ui32>(16 * devCount, samplesGrouping.GetQueryCount() / 2)));
             }
 
             CB_ENSURE(samplesGrouping.GetQueryCount() >= 4 * devCount, "Error: pool has just " << samplesGrouping.GetQueryCount() << " groups or docs, can't use #" << devCount << " GPUs to learn on such small pool");
@@ -354,7 +350,7 @@ namespace NCatboostCuda {
 
                         for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
                             auto& folds = permutationFolds[permutation];
-                            const auto& permutationDataSet =  dataSet.GetDataSetForPermutation(permutation);
+                            const auto& permutationDataSet = dataSet.GetDataSetForPermutation(permutation);
 
                             for (ui32 foldId = 0; foldId < folds.size(); ++foldId) {
                                 const auto& estimationSlice = folds[foldId].EstimateSamples;

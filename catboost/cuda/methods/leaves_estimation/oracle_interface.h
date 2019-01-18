@@ -5,8 +5,6 @@
 #include <catboost/cuda/targets/oracle_type.h>
 
 namespace NCatboostCuda {
-
-
     class ILeavesEstimationOracle {
     public:
         virtual ~ILeavesEstimationOracle() {
@@ -31,18 +29,17 @@ namespace NCatboostCuda {
         }
 
         virtual THolder<ILeavesEstimationOracle> Create(const TLeavesEstimationConfig& config,
-                                                       TStripeBuffer<const float>&& baseline,
-                                                       TStripeBuffer<ui32>&& bins,
-                                                       ui32 binCount) const = 0;
+                                                        TStripeBuffer<const float>&& baseline,
+                                                        TStripeBuffer<ui32>&& bins,
+                                                        ui32 binCount) const = 0;
     };
-
 
     inline void RegulalizeImpl(const TLeavesEstimationConfig& config, const TVector<double>& binWeights, TVector<float>* point, ui32 approxDim = 1) {
         for (size_t bin = 0; bin < binWeights.size(); ++bin) {
-                if (binWeights[bin] < config.MinLeafWeight) {
-                    for (ui32 dim = 0; dim < approxDim; ++dim) {
-                        (*point)[bin * approxDim + dim] = 0;
-                    }
+            if (binWeights[bin] < config.MinLeafWeight) {
+                for (ui32 dim = 0; dim < approxDim; ++dim) {
+                    (*point)[bin * approxDim + dim] = 0;
+                }
             }
         }
     }

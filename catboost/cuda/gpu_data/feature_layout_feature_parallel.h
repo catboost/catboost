@@ -14,7 +14,6 @@
 #include <catboost/libs/data_new/data_provider.h>
 
 namespace NCatboostCuda {
-
     template <>
     struct TCudaFeaturesLayoutHelper<TFeatureParallelLayout> {
         using TFeaturesBlock = TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;

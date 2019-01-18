@@ -54,8 +54,7 @@ static void DecompressImpl(
     const TCudaBuffer<T, TMapping, Type>& src,
     TCudaBuffer<ui32, TMapping>& dst,
     ui32 uniqueValues,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TDecompressKernel<T, Type>;
     LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues));
 }
@@ -127,8 +126,7 @@ static void CompressImpl(
     const TCudaBuffer<ui32, TMapping>& src,
     TCudaBuffer<T, TMapping, Type>& dst,
     ui32 uniqueValues,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TCompressKernel<T, Type>;
     LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues));
 }
@@ -208,8 +206,7 @@ static void GatherFromCompressedImpl(
     const TCudaBuffer<TUi32, TMapping>& map,
     const ui32 mask,
     TCudaBuffer<ui32, TMapping>& dst,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TGatherFromCompressedKernel<T, Type>;
     LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, map, mask, dst, NCB::IntLog2(uniqueValues));
 }

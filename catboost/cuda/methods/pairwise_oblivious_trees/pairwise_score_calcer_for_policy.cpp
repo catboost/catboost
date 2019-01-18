@@ -1,9 +1,5 @@
 #include "pairwise_score_calcer_for_policy.h"
 
-
-
-
-
 NCatboostCuda::TComputePairwiseScoresHelper::TComputePairwiseScoresHelper(NCatboostCuda::EFeaturesGroupingPolicy policy,
                                                                           const NCatboostCuda::TComputePairwiseScoresHelper::TGpuDataSet& dataSet,
                                                                           const NCatboostCuda::TPairwiseOptimizationSubsets& subsets,
@@ -12,20 +8,19 @@ NCatboostCuda::TComputePairwiseScoresHelper::TComputePairwiseScoresHelper(NCatbo
                                                                           double l2Reg,
                                                                           double nonDiagReg,
                                                                           double rsm)
-        : Policy(policy)
-          , DataSet(dataSet)
-          , Subsets(subsets)
-          , MaxDepth(maxDepth)
-          , NeedPointwiseWeights(subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size() > 0)
-          , LambdaDiag(l2Reg)
-          , LambdaNonDiag(nonDiagReg)  {
-        if (rsm < 1.0 && Policy != EFeaturesGroupingPolicy::BinaryFeatures) {
-            SampleFeatures(random, rsm);
-        }
-        ResetHistograms();
+    : Policy(policy)
+    , DataSet(dataSet)
+    , Subsets(subsets)
+    , MaxDepth(maxDepth)
+    , NeedPointwiseWeights(subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size() > 0)
+    , LambdaDiag(l2Reg)
+    , LambdaNonDiag(nonDiagReg)
+{
+    if (rsm < 1.0 && Policy != EFeaturesGroupingPolicy::BinaryFeatures) {
+        SampleFeatures(random, rsm);
+    }
+    ResetHistograms();
 }
-
-
 
 NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScoresHelper::Compute(TScopedCacheHolder& scoresCacheHolder,
                                                                                                   NCatboostCuda::TBinaryFeatureSplitResults* result) {
@@ -106,7 +101,6 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                 }
             }
 
-
             for (ui32 workingBlock = 0; workingBlock < workingBlockCount; ++workingBlock) {
                 data.LinearSystems[workingBlock].Reset(linearSystemMapping[workingBlock].Build());
                 data.SqrtMatrices[workingBlock].Reset(sqrtMatricesMapping[workingBlock].Build());
@@ -120,11 +114,13 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
     //vector equal to leaf count
     result->Solutions.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
         return slice.Size();
-    }, rowSize));
+    },
+                                                         rowSize));
     //for weights in fstr
     result->MatrixDiagonal.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
         return slice.Size();
-    }, rowSize));
+    },
+                                                              rowSize));
     //one per bin feature
     result->BinFeatures.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
         return slice.Size();
@@ -209,7 +205,6 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
             auto pairHistGuard = profiler.Profile(TStringBuilder() << "Pairwise hist (" << Policy << ") for  #" << blockGrid.GetObjectsSlice().Size()
                                                                    << " features, depth " << CurrentBit);
 
-
             ComputeBlockPairwiseHist2(Policy,
                                       blockGrid,
                                       blockGridCpu,
@@ -259,7 +254,8 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
         {
             auto sqrtMatrixMapping = blockedHelper.ReduceMapping(blockId).Transform([&](const TSlice slice) -> ui64 {
                 return slice.Size();
-            }, singleMatrixSize);
+            },
+                                                                                    singleMatrixSize);
             sqrtMatrix.Reset(sqrtMatrixMapping);
         }
 
@@ -323,11 +319,9 @@ void NCatboostCuda::TComputePairwiseScoresHelper::ResetHistograms() {
     const ui32 binFeatureCount = static_cast<const ui32>(GetBinaryFeatures().GetObjectsSlice().Size());
     HistogramLineSize = binFeatureCount;
 
-
     const ui32 maxParts = (1 << (MaxDepth - 1));
     auto pairwiseHistMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(binFeatureCount * maxParts * maxParts, 4);
-    auto pointwiseHistMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(maxParts * binFeatureCount,  NeedPointwiseWeights ? 2 : 1);
-
+    auto pointwiseHistMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(maxParts * binFeatureCount, NeedPointwiseWeights ? 2 : 1);
 
     PairwiseHistograms.Reset(pairwiseHistMapping);
     PointwiseHistograms.Reset(pointwiseHistMapping);
@@ -338,7 +332,6 @@ void NCatboostCuda::TComputePairwiseScoresHelper::ResetHistograms() {
     NCudaLib::GetCudaManager().DefaultStream().Synchronize();
 }
 
-
 const TStripeBuffer<TCFeature>& NCatboostCuda::TComputePairwiseScoresHelper::GetGpuFeaturesBuffer() const {
     if (IsSampledGrid) {
         ValidateSampledGrid();
@@ -348,16 +341,14 @@ const TStripeBuffer<TCFeature>& NCatboostCuda::TComputePairwiseScoresHelper::Get
     }
 }
 
-const NCatboostCuda::TCpuGrid& NCatboostCuda::TComputePairwiseScoresHelper::GetCpuGrid() const  {
+const NCatboostCuda::TCpuGrid& NCatboostCuda::TComputePairwiseScoresHelper::GetCpuGrid() const {
     if (IsSampledGrid) {
         ValidateSampledGrid();
         return *CpuGrid;
-    }  else {
+    } else {
         return DataSet.GetCpuGrid(Policy);
     }
 }
-
-
 
 TMirrorBuffer<const TCBinFeature>& NCatboostCuda::TComputePairwiseScoresHelper::GetBinaryFeatures() const {
     if (IsSampledGrid) {
@@ -383,7 +374,7 @@ TMirrorBuffer<const TCBinFeature>& NCatboostCuda::TComputePairwiseScoresHelper::
 }
 
 TCudaBuffer<const TCFeature, NCatboostCuda::TComputePairwiseScoresHelper::TFeaturesMapping, NCudaLib::EPtrType::CudaHost>& NCatboostCuda::TComputePairwiseScoresHelper::GetCpuFeatureBuffer() const {
-    auto computeFunc =  [&]() -> TCudaBuffer<const TCFeature, TFeaturesMapping, NCudaLib::EPtrType::CudaHost> {
+    auto computeFunc = [&]() -> TCudaBuffer<const TCFeature, TFeaturesMapping, NCudaLib::EPtrType::CudaHost> {
         const auto& grid = GetGpuFeaturesBuffer();
         auto features = TCudaBuffer<TCFeature, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost>::CopyMapping(grid);
         features.Copy(grid);
@@ -399,9 +390,7 @@ TCudaBuffer<const TCFeature, NCatboostCuda::TComputePairwiseScoresHelper::TFeatu
     }
 }
 
-
 void NCatboostCuda::TComputePairwiseScoresHelper::SampleFeatures(TRandom& random, double rsm) {
-
     const TCpuGrid& srcGrid = DataSet.GetCpuGrid(Policy);
     const auto& featureIds = srcGrid.FeatureIds;
     CB_ENSURE(featureIds.size());
@@ -421,7 +410,6 @@ void NCatboostCuda::TComputePairwiseScoresHelper::SampleFeatures(TRandom& random
                 sampledFeatures.push_back(i);
             }
         }
-
 
         if (sampledFeatures.size() == 0) {
             double nextRsm = Min<double>(rsm * 2.0, 1.0);
@@ -465,6 +453,4 @@ void NCatboostCuda::TComputePairwiseScoresHelper::ValidateSampledGrid() const {
     CB_ENSURE(GpuGrid.Defined());
     CB_ENSURE(CpuGrid.Defined());
     CB_ENSURE(BinFeaturesCpu.Defined());
-
 }
-

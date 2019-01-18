@@ -45,8 +45,7 @@ template <typename T, typename TMapping>
 static void FillBufferImpl(
     TCudaBuffer<T, TMapping>& buffer,
     std::remove_const_t<T> value,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TFillBufferKernel<T>;
     LaunchKernels<TKernel>(buffer.NonEmptyDevices(), streamId, buffer, value);
 }
@@ -157,8 +156,7 @@ template <typename T, typename TMapping>
 static void MakeSequenceWithOffsetImpl(
     TCudaBuffer<T, TMapping>& buffer,
     const NCudaLib::TDistributedObject<T>& offset,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TMakeSequenceKernel<T>;
     LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset);
 }
@@ -195,8 +193,7 @@ Y_MAP_ARGS(
 template <typename T>
 static void MakeSequenceGlobalImpl(
     TCudaBuffer<T, NCudaLib::TStripeMapping>& buffer,
-    ui32 stream)
-{
+    ui32 stream) {
     auto offset = CreateDistributedObject<T>(0);
     for (ui32 dev = 0; dev < offset.DeviceCount(); ++dev) {
         offset.Set(dev, buffer.GetMapping().DeviceSlice(dev).Left);
@@ -253,8 +250,7 @@ template <typename T, typename TMapping>
 static void InversePermutationImpl(
     const TCudaBuffer<T, TMapping>& order,
     TCudaBuffer<ui32, TMapping>& inverseOrder,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TInversePermutationKernel<ui32>;
     LaunchKernels<TKernel>(order.NonEmptyDevices(), streamId, order, inverseOrder);
 }

@@ -487,7 +487,7 @@ struct TStopCudaManagerCallback {
 };
 
 THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
-                                                         const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
+                                                   const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
 
 THolder<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
 

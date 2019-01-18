@@ -121,30 +121,30 @@ namespace NCatboostCuda {
                                       &leafWeights);
 
             return new TOracle(target,
-                                          orderedBaseline,
-                                          orderBins,
-                                          leafWeights,
-                                          pairLeafWeights,
-                                          estimationConfig,
-                                          std::move(pairs),
-                                          std::move(pairLeafOffsets),
-                                          std::move(pointLeafOffsets),
-                                          std::move(pointLeafIndices));
+                               orderedBaseline,
+                               orderBins,
+                               leafWeights,
+                               pairLeafWeights,
+                               estimationConfig,
+                               std::move(pairs),
+                               std::move(pairLeafOffsets),
+                               std::move(pointLeafOffsets),
+                               std::move(pointLeafIndices));
         }
 
     private:
         TOracle(const TGroupwiseTarget& target,
-                           /* ordered */
-                           TStripeBuffer<const float>&& baseline,
-                           /* ordered */
-                           TStripeBuffer<const ui32>&& bins,
-                           const TVector<double>& leafWeights,
-                           const TVector<double>& pairLeafWeights,
-                           const TLeavesEstimationConfig& estimationConfig,
-                           TStripeBuffer<uint2>&& pairs,
-                           TStripeBuffer<ui32>&& pairLeafOffset,
-                           TStripeBuffer<ui32>&& pointLeafOffsets,
-                           TStripeBuffer<ui32>&& pointLeafIndices)
+                /* ordered */
+                TStripeBuffer<const float>&& baseline,
+                /* ordered */
+                TStripeBuffer<const ui32>&& bins,
+                const TVector<double>& leafWeights,
+                const TVector<double>& pairLeafWeights,
+                const TLeavesEstimationConfig& estimationConfig,
+                TStripeBuffer<uint2>&& pairs,
+                TStripeBuffer<ui32>&& pairLeafOffset,
+                TStripeBuffer<ui32>&& pointLeafOffsets,
+                TStripeBuffer<ui32>&& pointLeafIndices)
             : TParent(std::move(baseline),
                       std::move(bins),
                       leafWeights,

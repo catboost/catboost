@@ -5,7 +5,6 @@
 #include "feature_layout_common.h"
 #include "cuda_features_helper.h"
 
-
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/fill.h>
@@ -14,8 +13,6 @@
 #include <catboost/libs/data_new/data_provider.h>
 
 namespace NCatboostCuda {
-
-
     template <>
     struct TCudaFeaturesLayoutHelper<TSingleDevLayout> {
         using TFeaturesBlock = TGpuFeaturesBlockDescription<NCudaLib::TSingleMapping, NCudaLib::TSingleMapping>;

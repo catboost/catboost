@@ -5,8 +5,8 @@
 namespace NCudaLib {
     enum class EPtrType : int {
         CudaDevice,
-        CudaHost,   // pinned cuda memory
-        Host        // CPU, non-pinned
+        CudaHost, // pinned cuda memory
+        Host      // CPU, non-pinned
     };
 }
 

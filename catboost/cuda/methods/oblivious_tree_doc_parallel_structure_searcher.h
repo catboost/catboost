@@ -10,8 +10,6 @@
 #include <catboost/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
-
-
     class TDocParallelObliviousTreeSearcher {
     public:
         using TDataSet = TDocParallelDataSet;
@@ -36,11 +34,9 @@ namespace NCatboostCuda {
             return FitImpl(dataSet, TStripeTargetWrapper<TTargetFunc>(objective));
         }
 
-
     private:
         TObliviousTreeModel FitImpl(const TDataSet& dataSet,
                                     const IStripeTargetWrapper& objective);
-
 
         TVector<float> ReadAndEstimateLeaves(const TCudaBuffer<TPartitionStatistics, NCudaLib::TMirrorMapping>& parts);
 

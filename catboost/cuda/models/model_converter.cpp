@@ -5,8 +5,7 @@
 #include <catboost/cuda/data/leaf_path.h>
 
 namespace NCatboostCuda {
-
-    template<>
+    template <>
     THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TObliviousTreeModel>>&& model, NPar::TLocalExecutor*) {
         return std::move(model);
     }
@@ -41,11 +40,10 @@ namespace NCatboostCuda {
         TVector<double> NodeValues;
 
         explicit TNode(ui32 dim)
-        : NodeValues(dim) {
-
+            : NodeValues(dim)
+        {
         }
     };
-
 
     void AddNode(const TLeafPath& leafPath, size_t position, TVector<double>& values, THolder<TNode>* rootPtr) {
         auto& root = *rootPtr;
@@ -61,14 +59,14 @@ namespace NCatboostCuda {
             for (ui64 dim = 0; dim < values.size(); ++dim) {
                 root->NodeValues[dim] += values[dim];
             }
-        }  else {
+        } else {
             TBinarySplit split = leafPath.Splits[position];
             ESplitValue splitValue = leafPath.Directions[position];
 
             auto& oneWaySplit = root->Splits[split];
             if (splitValue == ESplitValue::Zero) {
                 AddNode(leafPath, position + 1, values, &oneWaySplit.Left);
-            }  else {
+            } else {
                 AddNode(leafPath, position + 1, values, &oneWaySplit.Right);
             }
         }
@@ -129,7 +127,6 @@ namespace NCatboostCuda {
                                 const TBranchState& state,
                                 THashMap<TObliviousTreeStructure, TObliviousTreeStructure>* knownSubtrees,
                                 THashMap<TObliviousTreeStructure, TVector<double>>* ensemble) {
-
         for (const auto& split : root.Splits) {
             TBranchState nextState = state;
             nextState.Structure.Splits.push_back(split.first);
@@ -142,7 +139,6 @@ namespace NCatboostCuda {
                 BuildObliviousEnsemble<Type>(*split.second.Right, nextState, knownSubtrees, ensemble);
             }
         }
-
 
         if (Type == EBuildType::Subtrees) {
             if (root.Splits.size() == 0) {
@@ -182,7 +178,6 @@ namespace NCatboostCuda {
         const ui32 scatterBitsOffset = static_cast<const ui32>(state.Structure.Splits.size());
         const ui32 scatterBitsCount = static_cast<const ui32>(dstStructure.Splits.size() - state.Structure.Splits.size());
 
-
         for (ui64 dim = 0; dim < outputDim; ++dim) {
             //TOOD(noxoomo): merge prefix to most deep path
             if (Abs(root.NodeValues[dim])) {
@@ -198,7 +193,6 @@ namespace NCatboostCuda {
         }
     }
 
-
     THashMap<TBinarySplit, double> BuildFeatureUsageCounts(const TAdditiveModel<TRegionModel>& ensemble) {
         THashMap<TBinarySplit, double> result;
         for (const auto& model : ensemble.WeakModels) {
@@ -209,8 +203,7 @@ namespace NCatboostCuda {
         return result;
     }
 
-
-    template<>
+    template <>
     THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TRegionModel>>&& model, NPar::TLocalExecutor*) {
         auto approxDim = model->OutputDim();
 
@@ -229,14 +222,12 @@ namespace NCatboostCuda {
         BuildObliviousEnsemble<EBuildType::Subtrees>(*root,
                                                      rootState,
                                                      &knownStructureCache,
-                                                     &otEnsemble
-        );
+                                                     &otEnsemble);
 
         BuildObliviousEnsemble<EBuildType::Ensemble>(*root,
                                                      rootState,
                                                      &knownStructureCache,
-                                                     &otEnsemble
-        );
+                                                     &otEnsemble);
         CATBOOST_DEBUG_LOG << "Build ot ensemble with " << otEnsemble.size() << " trees from  #" << model->Size() << " regions" << Endl;
 
         auto result = MakeHolder<TAdditiveModel<TObliviousTreeModel>>();
@@ -252,16 +243,14 @@ namespace NCatboostCuda {
                                      approxDim);
 
             result->AddWeakModel(std::move(tree));
-
         }
         return result;
     }
 
-
-    template<>
+    template <>
     THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TNonSymmetricTree>>&& model, NPar::TLocalExecutor* executor) {
         THolder<TAdditiveModel<TObliviousTreeModel>> result = new TAdditiveModel<TObliviousTreeModel>;
-       (*result) = MakeOTEnsemble(*model, executor);
+        (*result) = MakeOTEnsemble(*model, executor);
         return result;
     }
 }

@@ -8,9 +8,7 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 namespace NCatboostCuda {
-
     template <class TFunc, class TTask>
     static inline void ForeachOptimizationPartTask(TVector<TTask>& tasks,
                                                    TFunc&& func) {
@@ -41,7 +39,6 @@ namespace NCatboostCuda {
         UpdateSubsetsStats(src, &subsets);
         return subsets;
     }
-
 
     TObliviousTreeStructure TFeatureParallelObliviousTreeSearcher::Fit() {
         CB_ENSURE(FoldBasedTasks.size() || SingleTaskTarget);
@@ -190,8 +187,8 @@ namespace NCatboostCuda {
                                                              subsets);
 
                     ctrDataSetVisitor.SetBestScore(bestSplitProp.Score)
-                            .SetScoreStdDevAndSeed(ScoreStdDev,
-                                                   GetRandom().NextUniformL());
+                        .SetScoreStdDevAndSeed(ScoreStdDev,
+                                               GetRandom().NextUniformL());
                     TMirrorBuffer<ui32> inverseIndices;
 
                     for (auto permutation : ctrDataSetsHelper.GetUsedPermutations()) {
@@ -208,7 +205,7 @@ namespace NCatboostCuda {
                         }
 
                         std::function<void(const TTreeCtrDataSet&)> treeCtrDataSetScoreCalcer = [&](
-                                const TTreeCtrDataSet& ctrDataSet) {
+                                                                                                    const TTreeCtrDataSet& ctrDataSet) {
                             ctrDataSetVisitor.Accept(ctrDataSet,
                                                      partitionsStats,
                                                      inverseIndices,
@@ -273,7 +270,6 @@ namespace NCatboostCuda {
         return result;
     }
 
-
     TVector<TSlice> TFeatureParallelObliviousTreeSearcher::MakeTaskSlices() {
         TVector<TSlice> slices;
         ui32 cursor = 0;
@@ -316,23 +312,23 @@ namespace NCatboostCuda {
                                         const TSlice& testSlice,
                                         const TOptimizationTask& task,
                                         ui32 streamId) {
-            Y_UNUSED(task);
-            auto learnBins = bins.SliceView(learnSlice);
-            auto testBins = bins.SliceView(testSlice);
+                                        Y_UNUSED(task);
+                                        auto learnBins = bins.SliceView(learnSlice);
+                                        auto testBins = bins.SliceView(testSlice);
 
-            FillBuffer(learnBins, currentBin, streamId);
-            FillBuffer(testBins, currentBin + 1, streamId);
+                                        FillBuffer(learnBins, currentBin, streamId);
+                                        FillBuffer(testBins, currentBin + 1, streamId);
 
-            parts.push_back({cursor, (ui32) learnBins.GetObjectsSlice().Size()});
-            cursor += learnBins.GetObjectsSlice().Size();
-            parts.push_back({cursor, (ui32) testBins.GetObjectsSlice().Size()});
-            cursor += testBins.GetObjectsSlice().Size();
-            currentBin += 2;
-        });
+                                        parts.push_back({cursor, (ui32)learnBins.GetObjectsSlice().Size()});
+                                        cursor += learnBins.GetObjectsSlice().Size();
+                                        parts.push_back({cursor, (ui32)testBins.GetObjectsSlice().Size()});
+                                        cursor += testBins.GetObjectsSlice().Size();
+                                        currentBin += 2;
+                                    });
         return parts;
     }
 
-    TVector<TDataPartition> TFeatureParallelObliviousTreeSearcher::WriteSingleTaskInitialBins(TMirrorBuffer<ui32>& bins)  {
+    TVector<TDataPartition> TFeatureParallelObliviousTreeSearcher::WriteSingleTaskInitialBins(TMirrorBuffer<ui32>& bins) {
         CB_ENSURE(SingleTaskTarget);
         bins.Reset(NCudaLib::TMirrorMapping(SingleTaskTarget->GetTarget().GetIndices().GetMapping()));
         TDataPartition part;
@@ -421,14 +417,14 @@ namespace NCatboostCuda {
         return target;
     }
 
-    void TFeatureParallelObliviousTreeSearcher::MakeDocIndicesForSingleTask(TMirrorBuffer<ui32>& indices, ui32 stream)  {
+    void TFeatureParallelObliviousTreeSearcher::MakeDocIndicesForSingleTask(TMirrorBuffer<ui32>& indices, ui32 stream) {
         CB_ENSURE(SingleTaskTarget != nullptr);
         const auto& targetIndices = SingleTaskTarget->GetTarget().GetIndices();
         indices.Reset(NCudaLib::TMirrorMapping(targetIndices.GetMapping()));
         indices.Copy(targetIndices, stream);
     }
 
-    void TFeatureParallelObliviousTreeSearcher::MakeDocIndices(TMirrorBuffer<ui32>& indices)  {
+    void TFeatureParallelObliviousTreeSearcher::MakeDocIndices(TMirrorBuffer<ui32>& indices) {
         if (SingleTaskTarget != nullptr) {
             MakeDocIndicesForSingleTask(indices);
         } else {
@@ -439,20 +435,20 @@ namespace NCatboostCuda {
                                             const TSlice& testSlice,
                                             const TOptimizationTask& task,
                                             ui32 stream) {
-                indices
-                        .SliceView(learnSlice)
-                        .Copy(task.LearnTarget->GetTarget().GetIndices(),
-                              stream);
+                                            indices
+                                                .SliceView(learnSlice)
+                                                .Copy(task.LearnTarget->GetTarget().GetIndices(),
+                                                      stream);
 
-                indices
-                        .SliceView(testSlice)
-                        .Copy(task.TestTarget->GetTarget().GetIndices(),
-                              stream);
-            });
+                                            indices
+                                                .SliceView(testSlice)
+                                                .Copy(task.TestTarget->GetTarget().GetIndices(),
+                                                      stream);
+                                        });
         }
     }
 
-    void TFeatureParallelObliviousTreeSearcher::MakeIndicesFromInversePermutation(const TMirrorBuffer<ui32>& inversePermutation, TMirrorBuffer<ui32>& indices)  {
+    void TFeatureParallelObliviousTreeSearcher::MakeIndicesFromInversePermutation(const TMirrorBuffer<ui32>& inversePermutation, TMirrorBuffer<ui32>& indices) {
         if (SingleTaskTarget != nullptr) {
             MakeIndicesFromInversePermutationSingleTask(inversePermutation,
                                                         indices);
@@ -464,21 +460,20 @@ namespace NCatboostCuda {
                                             const TSlice& testSlice,
                                             const TOptimizationTask& task,
                                             ui32 stream) {
-                auto learnIndices = indices.SliceView(learnSlice);
-                auto testIndices = indices.SliceView(testSlice);
+                                            auto learnIndices = indices.SliceView(learnSlice);
+                                            auto testIndices = indices.SliceView(testSlice);
 
-                Gather(learnIndices,
-                       inversePermutation,
-                       task.LearnTarget->GetTarget().GetIndices(),
-                       stream);
+                                            Gather(learnIndices,
+                                                   inversePermutation,
+                                                   task.LearnTarget->GetTarget().GetIndices(),
+                                                   stream);
 
-                Gather(testIndices,
-                       inversePermutation,
-                       task.TestTarget->GetTarget().GetIndices(),
-                       stream);
-            });
+                                            Gather(testIndices,
+                                                   inversePermutation,
+                                                   task.TestTarget->GetTarget().GetIndices(),
+                                                   stream);
+                                        });
         }
     }
-
 
 }

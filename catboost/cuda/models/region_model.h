@@ -6,7 +6,6 @@
 #include <util/generic/vector.h>
 
 namespace NCatboostCuda {
-
     struct TRegionStructure {
         TVector<TBinarySplit> Splits;
         TVector<ESplitValue> Directions;
@@ -39,7 +38,7 @@ namespace NCatboostCuda {
         Y_SAVELOAD_DEFINE(Splits, Directions);
     };
 
-    class TRegionModel : public IBinOptimizedModel {
+    class TRegionModel: public IBinOptimizedModel {
     public:
         TRegionModel(TRegionStructure&& modelStructure,
                      const TVector<float>& values,
@@ -48,7 +47,8 @@ namespace NCatboostCuda {
             : ModelStructure(std::move(modelStructure))
             , LeafValues(values)
             , LeafWeights(weights)
-            , Dim(dim) {
+            , Dim(dim)
+        {
         }
 
         TRegionModel() = default;
@@ -59,7 +59,6 @@ namespace NCatboostCuda {
         const TRegionStructure& GetStructure() const {
             return ModelStructure;
         }
-
 
         void Rescale(double scale) {
             for (ui32 i = 0; i < LeafValues.size(); ++i) {
@@ -96,7 +95,6 @@ namespace NCatboostCuda {
         }
 
         Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights, Dim);
-
 
     private:
         TRegionStructure ModelStructure;

@@ -10,7 +10,6 @@
 
 #include <catboost/libs/data_new/data_provider.h>
 
-
 namespace NCatboostCuda {
     template <class TSamplesMapping>
     class TTarget {

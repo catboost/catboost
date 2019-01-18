@@ -250,7 +250,7 @@ namespace NCudaLib {
                     TDeviceId id = Devices[i]->GetDevice();
 
                     CATBOOST_INFO_LOG << "  " << i << ". " << props.GetName() << " (compute capability "
-                                       << props.GetMajor() << "." << props.GetMinor();
+                                      << props.GetMajor() << "." << props.GetMinor();
                     if (id.HostId != 0) {
                         CATBOOST_INFO_LOG << ", host " << id.HostId << ")" << Endl;
                     } else {

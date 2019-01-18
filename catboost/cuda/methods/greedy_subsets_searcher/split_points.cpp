@@ -3,7 +3,6 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 
 namespace NKernelHost {
-
     THolder<TSplitPointsKernel::TKernelContext> TSplitPointsKernel::PrepareContext(IMemoryManager& manager) const {
         THolder<TSplitPointsKernel::TKernelContext> context = new TSplitPointsKernel::TKernelContext;
         context->TempStorageSizes.resize(LeafIdsToSplitCpu.Size());
@@ -64,11 +63,10 @@ namespace NKernelHost {
         }
 
         if (maxLeafSize > 1024) {
-
             for (ui32 firstStat = 0; firstStat < numStats; firstStat += StatsPerKernel) {
                 const ui32 lastStat = Min<ui32>(firstStat + StatsPerKernel, numStats);
 
-                float* tempData = (float*) (context.TempStorage.Get());
+                float* tempData = (float*)(context.TempStorage.Get());
 
                 NKernel::CopyInLeaves<float>(LeafIdsToSplitGpu.Get(),
                                              numLeaves,
@@ -92,7 +90,7 @@ namespace NKernelHost {
 
             //now copy indices
             {
-                ui32* tempData = (ui32*) (context.TempStorage.Get());
+                ui32* tempData = (ui32*)(context.TempStorage.Get());
                 NKernel::CopyInLeaves<ui32>(LeafIdsToSplitGpu.Get(),
                                             numLeaves,
                                             PartitionsGpu.Get(),
@@ -113,18 +111,18 @@ namespace NKernelHost {
                                         stream);
             }
         } else {
-            //fast path for small datasets
-            // gather everything in shared memory, one kernel launch only
-            #define FAST_PATH(SIZE) \
-            NKernel::GatherInplaceLeqSize<SIZE>(LeafIdsToSplitGpu.Get(),\
-                                           LeafIdsToSplitGpu.Size(),\
-                                           PartitionsGpu.Get(),\
-                                           context.Indices,\
-                                           Statistics.GetColumn(0),\
-                                           numStats,\
-                                           lineSize,\
-                                           Indices.Get(),\
-                                           stream);
+//fast path for small datasets
+// gather everything in shared memory, one kernel launch only
+#define FAST_PATH(SIZE)                                           \
+    NKernel::GatherInplaceLeqSize<SIZE>(LeafIdsToSplitGpu.Get(),  \
+                                        LeafIdsToSplitGpu.Size(), \
+                                        PartitionsGpu.Get(),      \
+                                        context.Indices,          \
+                                        Statistics.GetColumn(0),  \
+                                        numStats,                 \
+                                        lineSize,                 \
+                                        Indices.Get(),            \
+                                        stream);
 
             if (maxLeafSize > 6144) {
                 FAST_PATH(12288)
@@ -135,7 +133,7 @@ namespace NKernelHost {
             } else {
                 FAST_PATH(1024)
             }
-            #undef FAST_PATH
+#undef FAST_PATH
         }
 
         NKernel::CopyHistograms(LeafIdsToSplitGpu.Get(),
@@ -166,7 +164,6 @@ namespace NKernelHost {
                                                context.UpdatePropsTempBuffer.Get(),
                                                PartitionStats.Get(),
                                                stream.GetStream());
-
     }
 
     TSplitPointsKernel::TSplitPointsKernel(ui32 statsPerKernel,
@@ -199,7 +196,6 @@ namespace NKernelHost {
         , Histograms(histograms)
     {
     }
-
 
     THolder<TSplitPointsSingleLeafKernel::TKernelContext> TSplitPointsSingleLeafKernel::PrepareContext(IMemoryManager& manager) const {
         THolder<TSplitPointsSingleLeafKernel::TKernelContext> context = new TSplitPointsSingleLeafKernel::TKernelContext;
@@ -237,7 +233,6 @@ namespace NKernelHost {
         const ui32 numStats = Statistics.GetColumnCount();
         const auto partitionsCpuPtr = PartitionsCpu.Get();
 
-
         const auto leafSize = partitionsCpuPtr[LeafIdToSplit].Size;
 
         NKernel::SplitAndMakeSequenceInLeaf(CompressedIndex.Get(),
@@ -251,11 +246,10 @@ namespace NKernelHost {
                                             context.TempIndices,
                                             stream);
 
-
         SortByFlagsInLeaf(LeafIdToSplit,
-            partitionsCpuPtr,
-            context,
-            stream.GetStream());
+                          partitionsCpuPtr,
+                          context,
+                          stream.GetStream());
 
         const ui64 lineSize = Statistics.AlignedColumnSize();
 
@@ -263,7 +257,7 @@ namespace NKernelHost {
             for (ui32 firstStat = 0; firstStat < numStats; firstStat += StatsPerKernel) {
                 const ui32 lastStat = Min<ui32>(firstStat + StatsPerKernel, numStats);
 
-                float* tempData = (float*) (context.TempStorage.Get());
+                float* tempData = (float*)(context.TempStorage.Get());
 
                 NKernel::CopyLeaf<float>(LeafIdToSplit,
                                          leafSize,
@@ -287,7 +281,7 @@ namespace NKernelHost {
 
             //now copy indices
             {
-                ui32* tempData = (ui32*) (context.TempStorage.Get());
+                ui32* tempData = (ui32*)(context.TempStorage.Get());
                 NKernel::CopyLeaf<ui32>(LeafIdToSplit,
                                         leafSize,
                                         PartitionsGpu.Get(),
@@ -305,30 +299,30 @@ namespace NKernelHost {
                                           Indices.Get(),
                                           1,
                                           Indices.Size(),
-                                          stream);}
+                                          stream);
+            }
         } else {
-            #define FAST_PATH(SIZE) \
-            NKernel::GatherInplaceSingleLeaf<SIZE>(LeafIdToSplit,\
-                                                PartitionsGpu.Get(),\
-                                                context.Indices,\
-                                                Statistics.GetColumn(0),\
-                                                numStats,\
-                                                lineSize,\
-                                                Indices.Get(),\
-                                                stream);
+#define FAST_PATH(SIZE)                                             \
+    NKernel::GatherInplaceSingleLeaf<SIZE>(LeafIdToSplit,           \
+                                           PartitionsGpu.Get(),     \
+                                           context.Indices,         \
+                                           Statistics.GetColumn(0), \
+                                           numStats,                \
+                                           lineSize,                \
+                                           Indices.Get(),           \
+                                           stream);
 
             if (leafSize > 6144) {
                 FAST_PATH(12288)
-            } else if (leafSize> 3072) {
+            } else if (leafSize > 3072) {
                 FAST_PATH(6144)
             } else if (leafSize > 1024) {
                 FAST_PATH(3072)
             } else {
                 FAST_PATH(1024)
             }
-            #undef FAST_PATH
+#undef FAST_PATH
         }
-
 
         NKernel::CopyHistogram(LeafIdToSplit,
                                RightLeafIdAfterSplit,
@@ -357,7 +351,6 @@ namespace NKernelHost {
                                                      context.UpdatePropsTempBuffer.Get(),
                                                      PartitionStats.Get(),
                                                      stream.GetStream());
-
     }
 
     TSplitPointsSingleLeafKernel::TSplitPointsSingleLeafKernel(ui32 statsPerKernel,
@@ -374,18 +367,18 @@ namespace NKernelHost {
                                                                ui32 binFeatureCount,
                                                                TCudaBufferPtr<float> histograms)
         : StatsPerKernel(statsPerKernel)
-          , CompressedIndex(compressedIndex)
-          , Feature(featuresToSplit)
-          , FeatureBin(featureBin)
-          , LeafIdToSplit(leftLeaf)
-          , RightLeafIdAfterSplit(rightLeaf)
-          , PartitionsGpu(partitionsGpu)
-          , PartitionsCpu(partitionsCpu)
-          , PartitionStats(partitionStats)
-          , Indices(indices)
-          , Statistics(stats)
-          , BinFeatureCount(binFeatureCount)
-          , Histograms(histograms)
+        , CompressedIndex(compressedIndex)
+        , Feature(featuresToSplit)
+        , FeatureBin(featureBin)
+        , LeafIdToSplit(leftLeaf)
+        , RightLeafIdAfterSplit(rightLeaf)
+        , PartitionsGpu(partitionsGpu)
+        , PartitionsCpu(partitionsCpu)
+        , PartitionStats(partitionStats)
+        , Indices(indices)
+        , Statistics(stats)
+        , BinFeatureCount(binFeatureCount)
+        , Histograms(histograms)
     {
     }
 }

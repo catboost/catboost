@@ -16,11 +16,9 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 using namespace NCudaLib;
 
 namespace NCatboostCuda {
-
     //layout: approxClass * columns + targetClass
 
     //target pos
@@ -31,7 +29,6 @@ namespace NCatboostCuda {
             result += confusionMatrix[approxIdx * numClasses + classIdx];
         }
         return result;
-
     }
 
     //approx pos
@@ -42,7 +39,6 @@ namespace NCatboostCuda {
             result += confusionMatrix[approxIdx * numClasses + classIdx];
         }
         return result;
-
     }
 
     static inline double TruePositive(const TVector<double>& confusionMatrix, ui32 numClasses, ui32 classIdx) {
@@ -110,12 +106,10 @@ namespace NCatboostCuda {
     }
 
     IGpuMetric::IGpuMetric(THolder<IMetric>&& cpuMetric, const NCatboostOptions::TLossDescription& description)
-    : CpuMetric(std::move(cpuMetric))
-    , MetricDescription(description) {
-
+        : CpuMetric(std::move(cpuMetric))
+        , MetricDescription(description)
+    {
     }
-
-
 
     static inline TMetricHolder MakeSimpleAdditiveStatistic(double sum, double weight) {
         TMetricHolder stat(2);
@@ -143,10 +137,10 @@ namespace NCatboostCuda {
         }
 
         explicit TGpuPointwiseMetric(THolder<IMetric>&& cpuMetric, ui32 classIdx, ui32 numClasses, bool isMulticlass, const NCatboostOptions::TLossDescription& config)
-                : IGpuPointwiseMetric(std::move(cpuMetric), config)
-                , NumClasses(numClasses)
-                , ClassIdx(isMulticlass ? classIdx : 1)
-                , IsBinClass(!isMulticlass)
+            : IGpuPointwiseMetric(std::move(cpuMetric), config)
+            , NumClasses(numClasses)
+            , ClassIdx(isMulticlass ? classIdx : 1)
+            , IsBinClass(!isMulticlass)
 
         {
         }
@@ -154,8 +148,7 @@ namespace NCatboostCuda {
         virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
                                    const TStripeBuffer<const float>& cursor,
-                                   TScopedCacheHolder* cache
-                                   ) const final {
+                                   TScopedCacheHolder* cache) const final {
             Y_UNUSED(cache);
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, cursor, cache);
         }
@@ -172,8 +165,7 @@ namespace NCatboostCuda {
         TMetricHolder EvalOnGpu(const TCudaBuffer<const float, TMapping>& target,
                                 const TCudaBuffer<const float, TMapping>& weights,
                                 const TCudaBuffer<const float, TMapping>& cursor,
-                                TScopedCacheHolder* cache
-                                ) const {
+                                TScopedCacheHolder* cache) const {
             using TVec = TCudaBuffer<float, TMapping>;
 
             double totalWeight = SumVector(weights);
@@ -196,8 +188,8 @@ namespace NCatboostCuda {
                                             weights,
                                             cursor,
                                             &tmp,
-                                            (TVec*) nullptr,
-                                            (TVec*) nullptr,
+                                            (TVec*)nullptr,
+                                            (TVec*)nullptr,
                                             useBorder,
                                             border);
 
@@ -237,8 +229,8 @@ namespace NCatboostCuda {
                                          metricType,
                                          alpha,
                                          &tmp,
-                                         (TVec*) nullptr,
-                                         (TVec*) nullptr);
+                                         (TVec*)nullptr,
+                                         (TVec*)nullptr);
 
                     auto result = ReadReduce(tmp);
                     const double multiplier = (metricType == ELossFunction::MAE ? 2.0 : 1.0);
@@ -246,15 +238,15 @@ namespace NCatboostCuda {
                 }
                 case ELossFunction::MultiClass: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
-                    MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*) nullptr,
-                                          NumClasses, &tmp, (TVec*) nullptr);
+                    MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                                          NumClasses, &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(sum, totalWeight);
                 }
                 case ELossFunction::MultiClassOneVsAll: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
-                    MultiClassOneVsAllValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*) nullptr,
-                                                  NumClasses, &tmp, (TVec*) nullptr);
+                    MultiClassOneVsAllValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*)nullptr,
+                                                  NumClasses, &tmp, (TVec*)nullptr);
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(sum, totalWeight);
                 }
@@ -295,8 +287,6 @@ namespace NCatboostCuda {
             }
         }
 
-
-
         template <class TMapping>
         const TMetricHolder& BuildConfusionMatrixAtPoint(const TCudaBuffer<const float, TMapping>& target,
                                                          const TCudaBuffer<const float, TMapping>& weights,
@@ -332,7 +322,6 @@ namespace NCatboostCuda {
         ui32 NumClasses = 0;
         ui32 ClassIdx = 1;
         bool IsBinClass = true;
-
     };
 
     class TGpuQuerywiseMetric: public IGpuQuerywiseMetric {
@@ -433,14 +422,15 @@ namespace NCatboostCuda {
                     // TODO(yazevnul): we can compute multiple NDCG metrics with different `top`
                     // parameter (but `type` must be the same) in one function call.
                     const auto perQueryNdcgSum = CalculateNdcg(
-                        samplesGrouping.GetSizes(),
-                        samplesGrouping.GetBiasedOffsets(),
-                        samplesGrouping.GetOffsetsBias(),
-                        weights,
-                        target,
-                        cursor,
-                        type,
-                        {top}).front();
+                                                     samplesGrouping.GetSizes(),
+                                                     samplesGrouping.GetBiasedOffsets(),
+                                                     samplesGrouping.GetOffsetsBias(),
+                                                     weights,
+                                                     target,
+                                                     cursor,
+                                                     type,
+                                                     {top})
+                                                     .front();
                     auto queryWeights = TCudaBuffer<float, TMapping>::CopyMapping(samplesGrouping.GetSizes());
                     NDetail::GatherBySizeAndOffset(
                         weights,
@@ -529,7 +519,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(),  1, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {
@@ -633,12 +623,9 @@ namespace NCatboostCuda {
                 TVector<THolder<IGpuMetric>> createdMetrics = CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                                                              evalMetricOptions->EvalMetric,
                                                                                              cpuApproxDim);
-                CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " <<
-                    ToString(evalMetricOptions->EvalMetric->GetLossFunction()) <<
-                    " provides a value for each class, thus it cannot be used as " <<
-                    "a single value to select best iteration or to detect overfitting. " <<
-                    "If you just want to look on the values of this metric use custom_metric parameter."
-                );
+                CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " << ToString(evalMetricOptions->EvalMetric->GetLossFunction()) << " provides a value for each class, thus it cannot be used as "
+                                                                                                        << "a single value to select best iteration or to detect overfitting. "
+                                                                                                        << "If you just want to look on the values of this metric use custom_metric parameter.");
                 metrics.push_back(std::move(createdMetrics.front()));
                 usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
             }

@@ -79,15 +79,13 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                 ui32 binarization = 0;
 
                 if (featuresManager.IsFloat(featureId)) {
-                    const auto floatFeatureIdx
-                        = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
+                    const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
                     auto& valuesHolder = **(dataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
                     auto binsArray = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                     bins.assign((*binsArray).begin(), (*binsArray).end());
                     binarization = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx);
                 } else if (featuresManager.IsCat(featureId)) {
-                    const auto catFeatureIdx
-                        = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
+                    const auto catFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
                     auto& valuesHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
                     auto binsArray = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                     bins.assign((*binsArray).begin(), (*binsArray).end());
@@ -98,8 +96,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                     CB_ENSURE(ctr.IsSimple());
 
                     const ui32 catFeatureFlatIdx = ctr.FeatureTensor.GetCatFeatures()[0];
-                    const auto catFeatureIdx
-                        = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(catFeatureFlatIdx);
+                    const auto catFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(catFeatureFlatIdx);
                     auto& valuesHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
                     auto binsArray = valuesHolder.ExtractValues(&NPar::LocalExecutor());
                     TVector<ui32> catFeatureBins((*binsArray).begin(), (*binsArray).end());
@@ -206,8 +203,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         UNIT_ASSERT_VALUES_EQUAL(
             pool.NumFeatures + 1,
-            dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount()
-        );
+            dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
         auto docsMapping = TCudaFeaturesLayoutHelper<TLayout>::CreateDocLayout(pool.NumSamples);
@@ -267,14 +263,12 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                      permutation,
                      *dataProvider,
                      &permutation);
-
     }
 
     template <class TMapping>
     void CheckCtrTargets(const TCtrTargets<TMapping>& targets,
                          const TVector<ui32>& binarizedTargetRef,
                          const NCB::TTrainingDataProvider& dataProvider) {
-
         auto dataProviderTargets = GetTarget(dataProvider.TargetData);
         auto dataProviderWeights = GetWeights(dataProvider.TargetData);
 
@@ -454,7 +448,6 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                          &dataProvider,
                          &featuresManager);
 
-
         {
             featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
                                                                    GetTarget(dataProvider->TargetData))(floatBinarization));
@@ -465,8 +458,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         UNIT_ASSERT_VALUES_EQUAL(
             pool.NumFeatures + 1,
-            dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount()
-        );
+            dataProvider->MetaInfo.FeaturesLayout->GetExternalFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider->GetObjectCount());
 
         TDocParallelDataSetBuilder dataSetsHolderBuilder(*featuresManager,

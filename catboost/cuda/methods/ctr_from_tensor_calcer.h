@@ -6,7 +6,6 @@
 
 #include <catboost/libs/ctr_description/ctr_config.h>
 
-
 namespace NCatboostCuda {
     class TCtrFromTensorCalcer {
     public:
@@ -19,7 +18,8 @@ namespace NCatboostCuda {
                              const TCtrTargets<TMapping>& ctrTargets)
             : Target(ctrTargets)
             , CtrConfigs(ctrConfigs)
-            , CtrVisitor([&ctrVisitor](const TCtr& ctr, const TCudaBuffer<float, TMapping>& ctrValues, ui32 stream) {
+            , CtrVisitor([&ctrVisitor](const TCtr& ctr, const TCudaBuffer<float, TMapping>& ctrValues, ui32 stream)
+        {
                 ctrVisitor(ctr, ctrValues, stream);
             }) {
         }

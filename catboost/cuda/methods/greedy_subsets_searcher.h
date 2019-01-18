@@ -17,7 +17,6 @@
 #include <catboost/libs/options/catboost_options.h>
 
 namespace NCatboostCuda {
-
     inline TTreeStructureSearcherOptions MakeStructureSearcherOptions(const NCatboostOptions::TObliviousTreeLearnerOptions& config) {
         TTreeStructureSearcherOptions options;
         options.ScoreFunction = config.ScoreFunction;
@@ -59,8 +58,8 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TGreedyTreeLikeStructureSearcher<TTreeModel>  CreateStructureSearcher(double randomStrengthMult) {
-            TTreeStructureSearcherOptions options=  StructureSearcherOptions;
+        TGreedyTreeLikeStructureSearcher<TTreeModel> CreateStructureSearcher(double randomStrengthMult) {
+            TTreeStructureSearcherOptions options = StructureSearcherOptions;
             options.RandomStrength *= randomStrengthMult;
             return TGreedyTreeLikeStructureSearcher<TTreeModel>(FeaturesManager, options);
         }

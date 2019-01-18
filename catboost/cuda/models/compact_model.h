@@ -6,8 +6,6 @@
 #include <catboost/cuda/data/leaf_path.h>
 
 namespace NCatboostCuda {
-
-
     TAdditiveModel<TObliviousTreeModel> MakeOTEnsemble(const TAdditiveModel<TNonSymmetricTree>& ensemble,
                                                        NPar::TLocalExecutor* localExecutor);
 

@@ -5,7 +5,6 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
-
 namespace NCatboostCuda {
     class TDocParallelDataSetBuilder {
     public:

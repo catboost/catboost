@@ -21,10 +21,8 @@ Y_UNIT_TEST_SUITE(TStripeReduceTest) {
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         auto& profiler = GetProfiler();
 
-
         for (int tr = 0; tr < tries; ++tr) {
             for (ui64 size = 10; size < 100000001; size *= 10) {
-
                 auto beforeReduceMapping = TStripeMapping::RepeatOnAllDevices(size);
                 //            auto singleMapping = TDeviceMapping<MT_SINGLE>::Create(0, partCount * partSize * TCudaManager::GetDeviceCount());
 
@@ -36,7 +34,6 @@ Y_UNIT_TEST_SUITE(TStripeReduceTest) {
                 }
 
                 auto data = TStripeBuffer<float>::Create(beforeReduceMapping);
-
 
                 TReducer<decltype(data)> reducer;
                 {
@@ -50,7 +47,6 @@ Y_UNIT_TEST_SUITE(TStripeReduceTest) {
             }
         }
     }
-
 
     void TestReduce(const size_t partSize = 64 * 64,
                     const size_t partCountBase = 2000,
@@ -219,7 +215,6 @@ Y_UNIT_TEST_SUITE(TStripeReduceTest) {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReducePerformance(false, true);
         }
-
     }
 #if defined(USE_MPI)
     Y_UNIT_TEST(TestReduceOnAll8Compressed) {

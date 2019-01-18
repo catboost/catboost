@@ -88,13 +88,12 @@ struct TBinarizedPool {
     }
 };
 
-void GenerateTestPool(TBinarizedPool& pool, const ui32 binarization, ui32 catFeatures = 1, ui32 seed = 0, ui32 numSamples=45527);
+void GenerateTestPool(TBinarizedPool& pool, const ui32 binarization, ui32 catFeatures = 1, ui32 seed = 0, ui32 numSamples = 45527);
 void SavePoolToFile(TBinarizedPool& pool, const char* filename);
 void SavePoolCDToFile(const char* filename, ui32 catFeatures = 1);
 
 void GenerateTestPool(TUnitTestPool& pool, ui32 numFeatures = 319);
 void SavePoolToFile(TUnitTestPool& pool, const char* filename);
-
 
 void LoadTrainingData(NCB::TPathWithScheme poolPath,
                       NCB::TPathWithScheme cdFilePath,
@@ -102,5 +101,3 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                       const NCatboostOptions::TCatFeatureParams& catFeatureParams,
                       NCB::TTrainingDataProviderPtr* trainingData,
                       THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager);
-
-

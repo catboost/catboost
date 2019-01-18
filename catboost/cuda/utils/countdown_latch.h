@@ -23,7 +23,7 @@ public:
     }
 
     void Wait() {
-        with_lock(Mutex) {
+        with_lock (Mutex) {
             while (Counter > 0) {
                 CondVar.WaitI(Mutex);
             }

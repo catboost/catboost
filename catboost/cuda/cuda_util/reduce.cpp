@@ -68,8 +68,7 @@ static void ReduceVectorImpl(
     const TCudaBuffer<T, TMapping>& input,
     TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
     EOperatorType type,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TReduceKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, output, type);
 }
@@ -108,8 +107,7 @@ template <typename T, class TMapping>
 static std::remove_const_t<T> ReduceToHostImpl(
     const TCudaBuffer<T, TMapping>& input,
     EOperatorType type,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TReduceKernel<std::remove_const_t<T>>;
 
     auto tmpMapping = input.GetMapping().Transform([&](const TSlice&) { return 1; });
@@ -133,11 +131,10 @@ static std::remove_const_t<T> ReduceToHostImpl(
 
 #define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)             \
     template <>                                         \
-    std::remove_const_t<T> ReduceToHost<T, TMapping>(                       \
+    std::remove_const_t<T> ReduceToHost<T, TMapping>(   \
         const TCudaBuffer<T, TMapping>& input,          \
         EOperatorType type,                             \
-        ui32 streamId)                                  \
-    {                                                   \
+        ui32 streamId) {                                \
         return ReduceToHostImpl(input, type, streamId); \
     }
 
@@ -223,8 +220,7 @@ static void ReduceByKeyVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
     TCudaBuffer<ui32, TMapping>& outputSizes,
     EOperatorType type,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TReduceByKeyKernel<std::remove_const_t<T>, std::remove_const_t<K>>;
     LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, keys, output, outputKeys, outputSizes, type);
 }
@@ -244,8 +240,6 @@ static void ReduceByKeyVectorImpl(
         ui32 streamId) {                                                                       \
         ::ReduceByKeyVectorImpl(input, keys, outputKeys, output, outputSizes, type, streamId); \
     }
-
-
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
@@ -312,8 +306,7 @@ static void SegmentedReduceVectorImpl(
     const TCudaBuffer<ui32, TMapping>& offsets,
     TCudaBuffer<std::remove_const_t<T>, TMapping, OutputPtrType>& output,
     EOperatorType type,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TSegmentedReduceKernel<std::remove_const_t<T>, OutputPtrType>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type);
 }

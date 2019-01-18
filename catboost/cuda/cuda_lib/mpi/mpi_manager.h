@@ -21,17 +21,17 @@
 #include <thread>
 
 namespace NCudaLib {
-#define MPI_SAFE_CALL(cmd)                                                    \
-    {                                                                         \
-        int mpiErrNo = (cmd);                                                 \
-        if (MPI_SUCCESS != mpiErrNo) {                                        \
-            char msg[MPI_MAX_ERROR_STRING];                                   \
-            int len;                                                          \
-            MPI_Error_string(mpiErrNo, msg, &len);                            \
+#define MPI_SAFE_CALL(cmd)                                                   \
+    {                                                                        \
+        int mpiErrNo = (cmd);                                                \
+        if (MPI_SUCCESS != mpiErrNo) {                                       \
+            char msg[MPI_MAX_ERROR_STRING];                                  \
+            int len;                                                         \
+            MPI_Error_string(mpiErrNo, msg, &len);                           \
             CATBOOST_ERROR_LOG << "MPI failed with error code :" << mpiErrNo \
-                                << " " << msg << Endl;                        \
-            MPI_Abort(MPI_COMM_WORLD, mpiErrNo);                              \
-        }                                                                     \
+                               << " " << msg << Endl;                        \
+            MPI_Abort(MPI_COMM_WORLD, mpiErrNo);                             \
+        }                                                                    \
     }
 
     /*

@@ -6,7 +6,6 @@
 
 #include <catboost/libs/ctr_description/ctr_config.h>
 
-
 namespace NCatboostCuda {
     template <class TMapping>
     struct TCtrTargets {

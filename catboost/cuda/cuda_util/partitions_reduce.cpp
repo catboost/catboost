@@ -19,12 +19,13 @@ using NKernelHost::TStatelessKernel;
 // ComputePartitionStats
 
 namespace {
-  class TReducePartitionsKernel: public TKernelBase<NKernel::TPartStatsContext> {
+    class TReducePartitionsKernel: public TKernelBase<NKernel::TPartStatsContext> {
     private:
         TCudaBufferPtr<const float> Input;
         TCudaBufferPtr<const TDataPartition> Partitions;
         TCudaBufferPtr<const ui32> PartIds;
         TCudaBufferPtr<double> Output;
+
     public:
         TReducePartitionsKernel() = default;
 
@@ -44,10 +45,10 @@ namespace {
         using TKernelContext = NKernel::TPartStatsContext;
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
-          auto context = MakeHolder<TKernelContext>();
-          context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), PartIds.Size());
-          context->PartResults = memoryManager.Allocate<double>(context->TempVarsCount);
-          return context;
+            auto context = MakeHolder<TKernelContext>();
+            context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), PartIds.Size());
+            context->PartResults = memoryManager.Allocate<double>(context->TempVarsCount);
+            return context;
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
@@ -60,8 +61,7 @@ namespace {
                                            context.TempVarsCount,
                                            context.PartResults.Get(),
                                            Output.Get(),
-                                           stream.GetStream()
-            );
+                                           stream.GetStream());
         }
     };
 }
@@ -72,8 +72,7 @@ static void ComputePartitionStatsImpl(
     const TCudaBuffer<TDataPartition, TMapping>& parts,
     const TCudaBuffer<ui32, TMirrorMapping>& partIds,
     TCudaBuffer<double, TMapping>* output,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TReducePartitionsKernel;
     LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, parts, partIds, output);
 }
@@ -101,20 +100,21 @@ Y_MAP_ARGS(
 // ComputePartitionStats
 
 namespace {
-    class TReducePartitionsWithOffsetsKernel : public TKernelBase<NKernel::TPartStatsContext> {
+    class TReducePartitionsWithOffsetsKernel: public TKernelBase<NKernel::TPartStatsContext> {
     private:
         TCudaBufferPtr<const float> Input;
         TCudaBufferPtr<const ui32> Offsets;
         TCudaBufferPtr<double> Output;
+
     public:
         TReducePartitionsWithOffsetsKernel() = default;
 
         TReducePartitionsWithOffsetsKernel(TCudaBufferPtr<const float> input,
                                            TCudaBufferPtr<const ui32> offsets,
                                            TCudaBufferPtr<double> output)
-                : Input(input)
-                , Offsets(offsets)
-                , Output(output)
+            : Input(input)
+            , Offsets(offsets)
+            , Output(output)
         {
         }
 
@@ -133,14 +133,14 @@ namespace {
             CB_ENSURE(Input.GetColumnCount());
             CB_ENSURE(Offsets.Size() > 1);
             NKernel::UpdatePartitionsPropsForOffsets(Offsets.Get(),
-                Offsets.Size() - 1,
-                Input.Get(),
-                Input.GetColumnCount(),
-                Input.AlignedColumnSize(),
-                context.TempVarsCount,
-                context.PartResults.Get(),
-                Output.Get(),
-                stream.GetStream());
+                                                     Offsets.Size() - 1,
+                                                     Input.Get(),
+                                                     Input.GetColumnCount(),
+                                                     Input.AlignedColumnSize(),
+                                                     context.TempVarsCount,
+                                                     context.PartResults.Get(),
+                                                     Output.Get(),
+                                                     stream.GetStream());
         }
     };
 }
@@ -150,8 +150,7 @@ static void ComputePartitionStatsImpl(
     const TCudaBuffer<TFloat, TMapping>& input,
     const TCudaBuffer<ui32, TMapping>& offsets,
     TCudaBuffer<double, TMapping>* output,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TReducePartitionsWithOffsetsKernel;
     LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, offsets, output);
 }
@@ -188,13 +187,14 @@ namespace {
     private:
         TCudaBufferPtr<const float> Input;
         TCudaBufferPtr<double> Output;
+
     public:
         TCastCopyKernel() = default;
 
         TCastCopyKernel(TCudaBufferPtr<const float> input,
-                           TCudaBufferPtr<double> output)
-                : Input(input)
-                  , Output(output)
+                        TCudaBufferPtr<double> output)
+            : Input(input)
+            , Output(output)
         {
         }
 
@@ -210,8 +210,7 @@ template <typename TMapping>
 static void CastCopyImpl(
     const TCudaBuffer<float, TMapping>& input,
     TCudaBuffer<double, TMapping>* output,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TCastCopyKernel;
     LaunchKernels<TKernel>(output->NonEmptyDevices(), streamId, input, output);
 }

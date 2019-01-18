@@ -4,7 +4,6 @@
 #include <vector>
 
 namespace NCatboostCuda {
-
     template <class TMapping, class TFloat>
     inline void ReadApproxInCpuFormat(const TCudaBuffer<TFloat, TMapping>& cursor, bool oneMoreApproxAsZeroes, TVector<TVector<double>>* pointOnCpuPtr) {
         auto& pointOnCpu = *pointOnCpuPtr;

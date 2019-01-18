@@ -19,13 +19,12 @@
 #include <util/generic/string.h>
 #include <util/string/builder.h>
 
-
 namespace NCatboostCuda {
     template <class TMapping>
     class TQueryCrossEntropy;
 
     template <>
-    class TQueryCrossEntropy<NCudaLib::TStripeMapping> : public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping> {
+    class TQueryCrossEntropy<NCudaLib::TStripeMapping>: public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping> {
     public:
         using TSamplesMapping = NCudaLib::TStripeMapping;
         using TParent = TNonDiagQuerywiseTarget<TSamplesMapping>;
@@ -60,7 +59,6 @@ namespace NCatboostCuda {
                                         const TMap<TString, TString>& params) const {
             return ComputeStats(point, NCatboostOptions::GetAlphaQueryCrossEntropy(params));
         }
-
 
         void StochasticGradient(const TConstVec&,
                                 const NCatboostOptions::TBootstrapConfig&,
@@ -128,6 +126,7 @@ namespace NCatboostCuda {
         EHessianType GetHessianType() const {
             return EHessianType::Symmetric;
         }
+
     private:
         struct TQueryLogitApproxHelpData {
             TCudaBuffer<float, TMapping> FuncValueTarget;
@@ -177,7 +176,5 @@ namespace NCatboostCuda {
         double Alpha;
         mutable TQueryLogitApproxHelpData CachedMetadata;
     };
-
-
 
 }

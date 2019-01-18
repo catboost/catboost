@@ -84,8 +84,7 @@ template <typename T, typename TMapping>
 static void AddVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
     const TCudaBuffer<T, TMapping>& y,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::AddVec);
 }
@@ -185,8 +184,7 @@ template <typename T, typename TMapping>
 static void SubtractVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
     const TCudaBuffer<T, TMapping>& y,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::SubVec);
 }
@@ -200,7 +198,7 @@ static void SubtractVectorImpl(
         TCudaBuffer<std::remove_const_t<T>, TMapping> & x, \
         const TCudaBuffer<T, TMapping>& y,                 \
         ui32 stream) {                                     \
-        ::SubtractVectorImpl(x, y, stream);               \
+        ::SubtractVectorImpl(x, y, stream);                \
     }
 
 Y_MAP_ARGS(
@@ -239,8 +237,7 @@ template <typename T, typename TMapping>
 static void MultiplyVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
     const TCudaBuffer<T, TMapping>& y,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::MulVec);
 }
@@ -293,8 +290,7 @@ template <typename T, typename TMapping>
 static void MultiplyVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
     T y,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::MulConst);
 }
@@ -344,8 +340,7 @@ template <typename T, typename TMapping>
 static void DivideVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
     const TCudaBuffer<T, TMapping>& y,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TBinOpKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, EBinOpType::DivVec);
 }
@@ -427,8 +422,7 @@ namespace {
 template <typename T, typename TMapping>
 static void ExpVectorImpl(
     TCudaBuffer<T, TMapping>& x,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TApplyFuncKernel<T>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, EFuncType::Exp);
 }
@@ -519,8 +513,7 @@ static void GatherImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
     const TCudaBuffer<T, TMapping>& src,
     const TCudaBuffer<U, TMapping>& map,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather);
 }
@@ -593,8 +586,7 @@ static void GatherImpl(
     TCudaBuffer<std::remove_const_t<T>, TStripeMapping>& dst,
     const TCudaBuffer<T, TMirrorMapping>& src,
     const TCudaBuffer<U, TStripeMapping>& map,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather);
 }
@@ -627,14 +619,13 @@ Y_MAP_ARGS(
 
 // GatherWithMask
 
-template <typename T, typename TMapping ,typename U>
+template <typename T, typename TMapping, typename U>
 static void GatherWithMaskImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
     const TCudaBuffer<T, TMapping>& src,
     const TCudaBuffer<U, TMapping>& map,
     ui32 mask,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Gather, mask);
 }
@@ -698,8 +689,7 @@ static void ScatterImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& dst,
     const TCudaBuffer<T, TMapping>& src,
     const TCudaBuffer<U, TMapping>& map,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter);
 }
@@ -749,8 +739,7 @@ static void ScatterWithMaskImpl(
     const TCudaBuffer<T, TMapping>& src,
     const TCudaBuffer<U, TMapping>& map,
     ui32 mask,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TMapCopyKernel<std::remove_const_t<T>, ui32>;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, dst, src, map, EMapCopyType::Scatter, mask);
 }
@@ -827,8 +816,7 @@ namespace {
 template <typename T, typename TMapping>
 static void ReverseImpl(
     TCudaBuffer<T, TMapping>& data,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TReverseKernel<T>;
     LaunchKernels<TKernel>(data.NonEmptyDevices(), stream, data);
 }
@@ -886,10 +874,10 @@ void PowVectorImpl(TCudaBuffer<T, TMapping>& x, float base, ui32 stream) {
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
-#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                             \
-    template <>                                                                         \
-    void PowVector<T, TMapping>(TCudaBuffer<T, TMapping>& x, float base, ui32 stream) { \
-        PowVectorImpl(x, base, stream);                                                 \
+#define Y_CATBOOST_CUDA_F_IMPL(T, TMapping)                                              \
+    template <>                                                                          \
+    void PowVector<T, TMapping>(TCudaBuffer<T, TMapping> & x, float base, ui32 stream) { \
+        PowVectorImpl(x, base, stream);                                                  \
     }
 
 Y_MAP_ARGS(
@@ -935,8 +923,7 @@ void PowVectorImpl(
     const TCudaBuffer<T, TMapping>& x,
     std::remove_const_t<T> base,
     TCudaBuffer<U, TMapping>& y,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TPowWithOutputKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, base, y);
 }
@@ -950,8 +937,7 @@ void PowVectorImpl(
         const TCudaBuffer<T, TMapping>& x,     \
         std::remove_const_t<T> base,           \
         TCudaBuffer<U, TMapping>& y,           \
-        ui32 stream)                           \
-    {                                          \
+        ui32 stream) {                         \
         PowVectorImpl(x, base, y, stream);     \
     }
 

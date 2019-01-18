@@ -9,9 +9,7 @@
 
 #include <limits>
 
-
 using namespace NCB;
-
 
 Y_UNIT_TEST_SUITE(TrainModelTests) {
     Y_UNIT_TEST(TrainWithoutNansTestWithNans) {
@@ -25,61 +23,50 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         // gpu CatBoost requires at least 4*numberof_devices documents in dataset
 
         dataProviders.Learn = CreateDataProvider(
-            [&] (IRawFeaturesOrderDataVisitor* visitor) {
+            [&](IRawFeaturesOrderDataVisitor* visitor) {
                 TDataMetaInfo metaInfo;
                 metaInfo.HasTarget = true;
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     (ui32)3,
                     TVector<ui32>{},
-                    TVector<TString>{"aaa", "bbb", "ccc"}
-                );
+                    TVector<TString>{"aaa", "bbb", "ccc"});
 
                 visitor->Start(metaInfo, 4, EObjectsOrder::Undefined, {});
 
                 visitor->AddFloatFeature(
                     0,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f, 0.3f})
-                );
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.5f, +1.5f, -2.5f, 0.3f}));
                 visitor->AddFloatFeature(
                     1,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f, 0.7f})
-                );
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+0.7f, +6.4f, +2.4f, 0.7f}));
                 visitor->AddFloatFeature(
                     2,
-                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f, -1.2f})
-                );
+                    TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.0f, -1.0f, +6.0f, -1.2f}));
 
                 visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f, 0.0f});
 
                 visitor->Finish();
-            }
-        );
+            });
 
         dataProviders.Test.emplace_back(
             CreateDataProvider(
-                [&] (IRawFeaturesOrderDataVisitor* visitor) {
+                [&](IRawFeaturesOrderDataVisitor* visitor) {
                     visitor->Start(dataProviders.Learn->MetaInfo, 1, EObjectsOrder::Undefined, {});
 
                     visitor->AddFloatFeature(
                         0,
                         TMaybeOwningConstArrayHolder<float>::CreateOwning(
-                            TVector<float>{std::numeric_limits<float>::quiet_NaN()}
-                        )
-                    );
+                            TVector<float>{std::numeric_limits<float>::quiet_NaN()}));
                     visitor->AddFloatFeature(
                         1,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f})
-                    );
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{+1.5f}));
                     visitor->AddFloatFeature(
                         2,
-                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f})
-                    );
+                        TMaybeOwningConstArrayHolder<float>::CreateOwning(TVector<float>{-2.5f}));
                     visitor->AddTarget(TVector<float>{1.0f});
 
                     visitor->Finish();
-                }
-            )
-        );
+                }));
 
         TFullModel model;
         TEvalResult evalResult;
@@ -99,8 +86,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
                 std::move(dataProviders),
                 "",
                 &model,
-                {&evalResult}
-            );
+                {&evalResult});
         };
 
         UNIT_ASSERT_NO_EXCEPTION(f());

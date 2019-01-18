@@ -226,7 +226,7 @@ namespace {
                         binFeatureCountAfterReduceOnDevices[dev]++;
                     }
                 }
-        }
+            }
 
             {
                 auto afterReduceMapping = NCudaLib::TStripeMapping::CreateFromSizes(binFeatureCountAfterReduceOnDevices);
@@ -303,8 +303,6 @@ namespace {
     };
 }
 
-
-
 void NCatboostCuda::TComputeSplitPropertiesByBlocksHelper::Rebuild(const TComputeByBlocksConfig& splitPropsConfig) {
     //< 1GB for 2 workings streams
     const ui32 optimalGroupSize = Min<ui32>(32, (ui32)EstimateMaxTempVecsForGather(DataSet, splitPropsConfig.SampleRate) / StreamsCount);
@@ -357,7 +355,7 @@ void NCatboostCuda::TComputeSplitPropertiesByBlocksHelper::Rebuild(const TComput
 
     CATBOOST_DEBUG_LOG << "Compute blocks:" << Endl;
     for (ui32 i = 0; i < BlockPolicies.size(); ++i) {
-        CATBOOST_DEBUG_LOG << BlockPolicies[i] << " "<< BlockSlices[i] << Endl;
+        CATBOOST_DEBUG_LOG << BlockPolicies[i] << " " << BlockSlices[i] << Endl;
     }
 }
 
@@ -376,7 +374,6 @@ inline double GetTakenFraction(const NCatboostOptions::TBootstrapConfig& options
     return 1.0;
 }
 
-
 TComputeSplitPropertiesByBlocksHelper& NCatboostCuda::GetComputeByBlocksHelper(const TDocParallelDataSet& dataSet,
                                                                                const TTreeStructureSearcherOptions& options,
                                                                                ui32 statCount) {
@@ -389,4 +386,3 @@ TComputeSplitPropertiesByBlocksHelper& NCatboostCuda::GetComputeByBlocksHelper(c
         return MakeHolder<TComputeSplitPropertiesByBlocksHelper>(dataSet, config);
     });
 }
-

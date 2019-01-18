@@ -6,7 +6,6 @@
 #include <catboost/cuda/models/oblivious_model.h>
 
 namespace NCatboostCuda {
-
     class TAddObliviousTreeFeatureParallel {
     public:
         using TDataSet = TFeatureParallelDataSet;
@@ -35,6 +34,7 @@ namespace NCatboostCuda {
                                                   TMirrorBuffer<float>& cursor);
 
         void Proceed();
+
     private:
         struct TAddModelTask {
             TMirrorBuffer<const ui32> Indices;
@@ -54,6 +54,5 @@ namespace NCatboostCuda {
         TObliviousTreeStructure ModelStructure;
         TVector<float> CpuLeaves;
     };
-
 
 }

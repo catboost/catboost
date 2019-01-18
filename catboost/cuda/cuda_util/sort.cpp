@@ -10,7 +10,6 @@
 
 #include <util/stream/labeled.h>
 
-
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
@@ -178,7 +177,6 @@ static void RadixSortImpl(TCudaBuffer<K, TMapping>& keys, bool compareGreater, u
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, compareGreater);
 }
 
-
 #define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
     Y_CATBOOST_CUDA_F_IMPL x
 
@@ -213,8 +211,7 @@ static void RadixSortImpl(
     TCudaBuffer<K, TMapping>& keys,
     TCudaBuffer<V, TMapping>& values,
     bool compareGreater,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater);
 }
@@ -306,8 +303,7 @@ static void RadixSortImpl(
     TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,
     ui32 offset,
     ui32 bits,
-    ui64 stream)
-{
+    ui64 stream) {
     using TKernel = TRadixSortKernel<K, V>;
     CB_ENSURE((offset + bits) <= (sizeof(K) * 8), LabeledOutput(offset + bits, sizeof(K) + 8));
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues);
@@ -402,8 +398,7 @@ static void RadixSortImpl(
     bool compareGreater,
     ui32 offset,
     ui32 bits,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater, offset, bits);
 }
@@ -497,8 +492,7 @@ static void ReorderBinsImpl(
     TCudaBuffer<ui32, TMapping>& indices,
     ui32 offset,
     ui32 bits,
-    ui64 stream)
-{
+    ui64 stream) {
     using TKernel = TRadixSortKernel<ui32, ui32>;
     CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits);
@@ -533,8 +527,7 @@ static void ReorderBinsImpl(
     ui32 bits,
     TCudaBuffer<ui32, TMapping>& tmpBins,
     TCudaBuffer<ui32, TMapping>& tmpIndices,
-    ui64 stream)
-{
+    ui64 stream) {
     using TKernel = TRadixSortKernel<ui32, ui32>;
     CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits, tmpBins, tmpIndices);

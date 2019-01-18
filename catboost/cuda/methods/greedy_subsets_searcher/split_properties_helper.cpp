@@ -14,17 +14,15 @@
 #include <catboost/cuda/methods/greedy_subsets_searcher/kernel/gather_bins.cuh>
 
 namespace NKernelHost {
-
-
     template <class T>
-    class TZeroBuffer : public TStatelessKernel {
+    class TZeroBuffer: public TStatelessKernel {
     private:
         TCudaBufferPtr<T> Buffer;
 
     public:
         TZeroBuffer(TCudaBufferPtr<T> ptr)
-        : Buffer(ptr) {
-
+            : Buffer(ptr)
+        {
         }
 
         TZeroBuffer() = default;
@@ -38,7 +36,6 @@ namespace NKernelHost {
             CUDA_SAFE_CALL(cudaMemsetAsync(ptr, 0, size, stream.GetStream()));
         }
     };
-
 
     class TWriteInitPartitions: public TStatelessKernel {
     private:
@@ -146,8 +143,6 @@ namespace NKernelHost {
         }
     };
 
-
-
     class TWriteReducesHistogramKernel: public TStatelessKernel {
     private:
         ui32 BlockOffset;
@@ -162,19 +157,19 @@ namespace NKernelHost {
         TWriteReducesHistogramKernel() = default;
 
         TWriteReducesHistogramKernel(ui32 blockOffset,
-                                      ui32 histBlockSize,
-                                      ui32 histogramId,
-                                      ui32 statCount,
-                                      TCudaBufferPtr<const float> blockHistogram,
-                                      ui32 binFeatureCount,
-                                      TCudaBufferPtr<float> dstHistogram)
+                                     ui32 histBlockSize,
+                                     ui32 histogramId,
+                                     ui32 statCount,
+                                     TCudaBufferPtr<const float> blockHistogram,
+                                     ui32 binFeatureCount,
+                                     TCudaBufferPtr<float> dstHistogram)
             : BlockOffset(blockOffset)
-              , HistBlockSize(histBlockSize)
-              , HistogramId(histogramId)
-              , StatCount(statCount)
-              , BlockHistogram(blockHistogram)
-              , BinFeatureCount(binFeatureCount)
-              , DstHistogram(dstHistogram)
+            , HistBlockSize(histBlockSize)
+            , HistogramId(histogramId)
+            , StatCount(statCount)
+            , BlockHistogram(blockHistogram)
+            , BinFeatureCount(binFeatureCount)
+            , DstHistogram(dstHistogram)
         {
         }
 
@@ -183,8 +178,8 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             NKernel::WriteReducesHistogram(BlockOffset, HistBlockSize, HistogramId,
-                                            StatCount, BlockHistogram.Get(), BinFeatureCount, DstHistogram.Get(),
-                                            stream.GetStream());
+                                           StatCount, BlockHistogram.Get(), BinFeatureCount, DstHistogram.Get(),
+                                           stream.GetStream());
         }
     };
 
@@ -217,7 +212,6 @@ namespace NKernelHost {
         }
     };
 
-
     class TZeroHistogramKernel: public TStatelessKernel {
     private:
         ui32 HistId;
@@ -229,13 +223,13 @@ namespace NKernelHost {
         TZeroHistogramKernel() = default;
 
         TZeroHistogramKernel(ui32 histId,
-                              ui32 statCount,
-                              ui32 binFeatureCount,
-                              TCudaBufferPtr<float> dstHistogram)
+                             ui32 statCount,
+                             ui32 binFeatureCount,
+                             TCudaBufferPtr<float> dstHistogram)
             : HistId(histId)
-              , StatCount(statCount)
-              , BinFeatureCount(binFeatureCount)
-              , DstHistogram(dstHistogram)
+            , StatCount(statCount)
+            , BinFeatureCount(binFeatureCount)
+            , DstHistogram(dstHistogram)
         {
         }
 
@@ -278,7 +272,6 @@ namespace NKernelHost {
         }
     };
 
-
     class TSubstractHistogramKernel: public TStatelessKernel {
     private:
         ui32 FromId;
@@ -291,12 +284,12 @@ namespace NKernelHost {
         TSubstractHistogramKernel() = default;
 
         TSubstractHistogramKernel(ui32 fromIds, ui32 whatIds,
-                                   ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> dstHistogram)
+                                  ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> dstHistogram)
             : FromId(fromIds)
-              , WhatId(whatIds)
-              , StatCount(statCount)
-              , BinFeatureCount(binFeatureCount)
-              , DstHistogram(dstHistogram)
+            , WhatId(whatIds)
+            , StatCount(statCount)
+            , BinFeatureCount(binFeatureCount)
+            , DstHistogram(dstHistogram)
         {
         }
 
@@ -304,7 +297,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             NKernel::SubstractHistgoram(FromId, WhatId, StatCount, BinFeatureCount,
-                                         DstHistogram.Get(), stream.GetStream());
+                                        DstHistogram.Get(), stream.GetStream());
         }
     };
 
@@ -339,7 +332,6 @@ namespace NKernelHost {
         }
     };
 
-
     class TScanHistogramKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TBinarizedFeature> Features;
@@ -353,12 +345,12 @@ namespace NKernelHost {
 
         TScanHistogramKernel(TCudaBufferPtr<const TBinarizedFeature> features,
                              ui32 id,
-                              ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> histograms)
+                             ui32 statCount, ui32 binFeatureCount, TCudaBufferPtr<float> histograms)
             : Features(features)
-              , Id(id)
-              , StatCount(statCount)
-              , BinFeatureCount(binFeatureCount)
-              , Histograms(histograms)
+            , Id(id)
+            , StatCount(statCount)
+            , BinFeatureCount(binFeatureCount)
+            , Histograms(histograms)
         {
         }
 
@@ -366,9 +358,9 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             NKernel::ScanHistogram(Features.Get(), Features.Size(),
-                                    Id,
-                                    StatCount, BinFeatureCount, Histograms.Get(),
-                                    stream.GetStream());
+                                   Id,
+                                   StatCount, BinFeatureCount, Histograms.Get(),
+                                   stream.GetStream());
         }
     };
 
@@ -499,7 +491,7 @@ namespace NKernelHost {
         {
         }
 
-         Y_SAVELOAD_DEFINE(Policy, MaxBins, FeaturesInBlock, Parts, PartIds, Cindex, Indices, Stats, Histograms, TempIndex);
+        Y_SAVELOAD_DEFINE(Policy, MaxBins, FeaturesInBlock, Parts, PartIds, Cindex, Indices, Stats, Histograms, TempIndex);
 
         void Run(const TCudaStream& stream) const {
             const int featuresPerInt = NCatboostCuda::GetFeaturesPerInt(Policy);
@@ -562,8 +554,6 @@ namespace NKernelHost {
         }
     };
 
-
-
     /* Single histograms */
 
     class TComputeSingleHistKernelLoadByIndex: public TStatelessKernel {
@@ -582,23 +572,23 @@ namespace NKernelHost {
         TComputeSingleHistKernelLoadByIndex() = default;
 
         TComputeSingleHistKernelLoadByIndex(NCatboostCuda::EFeaturesGroupingPolicy policy,
-                                      int maxBins,
-                                      TCudaBufferPtr<const TFeatureInBlock> groups,
-                                      TCudaBufferPtr<const TDataPartition> parts,
-                                      ui32 partId,
-                                      TCudaBufferPtr<const ui32> cindex,
-                                      TCudaBufferPtr<const ui32> indices,
-                                      TCudaBufferPtr<const float> stats,
-                                      TCudaBufferPtr<float> histograms)
+                                            int maxBins,
+                                            TCudaBufferPtr<const TFeatureInBlock> groups,
+                                            TCudaBufferPtr<const TDataPartition> parts,
+                                            ui32 partId,
+                                            TCudaBufferPtr<const ui32> cindex,
+                                            TCudaBufferPtr<const ui32> indices,
+                                            TCudaBufferPtr<const float> stats,
+                                            TCudaBufferPtr<float> histograms)
             : Policy(policy)
-              , MaxBins(maxBins)
-              , Groups(groups)
-              , Parts(parts)
-              , PartId(partId)
-              , Cindex(cindex)
-              , Indices(indices)
-              , Stats(stats)
-              , Histograms(histograms)
+            , MaxBins(maxBins)
+            , Groups(groups)
+            , Parts(parts)
+            , PartId(partId)
+            , Cindex(cindex)
+            , Indices(indices)
+            , Stats(stats)
+            , Histograms(histograms)
         {
         }
 
@@ -668,25 +658,25 @@ namespace NKernelHost {
         TComputeSingleHistKernelGatherBins() = default;
 
         TComputeSingleHistKernelGatherBins(NCatboostCuda::EFeaturesGroupingPolicy policy,
-                                     int maxBins,
-                                     TCudaBufferPtr<const TFeatureInBlock> groups,
-                                     TCudaBufferPtr<const TDataPartition> parts,
-                                     ui32 partId,
-                                     TCudaBufferPtr<const ui32> cindex,
-                                     TCudaBufferPtr<const ui32> indices,
-                                     TCudaBufferPtr<const float> stats,
-                                     TCudaBufferPtr<ui32> tempBins,
-                                     TCudaBufferPtr<float> histograms)
+                                           int maxBins,
+                                           TCudaBufferPtr<const TFeatureInBlock> groups,
+                                           TCudaBufferPtr<const TDataPartition> parts,
+                                           ui32 partId,
+                                           TCudaBufferPtr<const ui32> cindex,
+                                           TCudaBufferPtr<const ui32> indices,
+                                           TCudaBufferPtr<const float> stats,
+                                           TCudaBufferPtr<ui32> tempBins,
+                                           TCudaBufferPtr<float> histograms)
             : Policy(policy)
-              , MaxBins(maxBins)
-              , FeaturesInBlock(groups)
-              , Parts(parts)
-              , PartId(partId)
-              , Cindex(cindex)
-              , Indices(indices)
-              , Stats(stats)
-              , TempIndex(tempBins)
-              , Histograms(histograms)
+            , MaxBins(maxBins)
+            , FeaturesInBlock(groups)
+            , Parts(parts)
+            , PartId(partId)
+            , Cindex(cindex)
+            , Indices(indices)
+            , Stats(stats)
+            , TempIndex(tempBins)
+            , Histograms(histograms)
         {
         }
 
@@ -749,7 +739,6 @@ namespace NKernelHost {
         }
     };
 }
-
 
 template <typename T, class TMapping>
 void ZeroBuffer(
@@ -842,8 +831,7 @@ namespace NCatboostCuda {
     void TSplitPropertiesHelper::MakeSplit(const TVector<ui32>& leavesToSplit,
                                            TPointsSubsets* subsets,
                                            TVector<ui32>* leftIdsPtr,
-                                           TVector<ui32>* rightIdsPtr
-                                           ) {
+                                           TVector<ui32>* rightIdsPtr) {
         const ui32 leavesCount = static_cast<const ui32>(subsets->Leaves.size());
         const ui32 newLeaves = static_cast<const ui32>(leavesToSplit.size());
         if (newLeaves == 1) {
@@ -963,7 +951,6 @@ namespace NCatboostCuda {
         }
     }
 
-
     void TSplitPropertiesHelper::MakeSplit(
         const ui32 leafId,
         TPointsSubsets* subsets,
@@ -992,7 +979,7 @@ namespace NCatboostCuda {
         Y_VERIFY(subsets->Leaves[leftId].BestSplit.Defined());
 
         TBinarySplit binarySplit = ToSplit(FeaturesManager,
-                                            subsets->Leaves[leftId].BestSplit);
+                                           subsets->Leaves[leftId].BestSplit);
 
         TLeaf left = SplitLeaf(leaf, binarySplit, ESplitValue::Zero);
         TLeaf right = SplitLeaf(leaf, binarySplit, ESplitValue::One);
@@ -1000,10 +987,8 @@ namespace NCatboostCuda {
         subsets->Leaves[leftId] = left;
         subsets->Leaves[rightId] = right;
 
-        auto splitFeature =  DataSet.GetTCFeature(binarySplit.FeatureId);
+        auto splitFeature = DataSet.GetTCFeature(binarySplit.FeatureId);
         const ui32 splitBin = binarySplit.BinIdx;
-
-
 
         /*
          * Allocates temp memory
@@ -1090,7 +1075,6 @@ namespace NCatboostCuda {
     void TSplitPropertiesHelper::ComputeSplitProperties(const ELoadFromCompressedIndexPolicy loadPolicy,
                                                         const TVector<ui32>& leavesToCompute,
                                                         TPointsSubsets* subsetsPtr) {
-
         if (leavesToCompute.size() == 0) {
             return;
         }
@@ -1100,7 +1084,6 @@ namespace NCatboostCuda {
         const ui32 statsCount = static_cast<const ui32>(subsets.Target.StatsToAggregate.GetColumnCount());
         const ui32 leavesCount = static_cast<const ui32>(leavesToCompute.size());
 
-
         TMaybe<ui32> singleLeaf;
         TMaybe<TMirrorBuffer<ui32>> leavesGpu;
         if (leavesToCompute.size() > 1) {
@@ -1109,7 +1092,6 @@ namespace NCatboostCuda {
         } else {
             singleLeaf = leavesToCompute[0];
         }
-
 
         TVector<TStripeBuffer<float>> tempHistograms(activeStreamsCount);
         TVector<TStripeBuffer<ui32>> tempGatheredCompressedIndex(activeStreamsCount);
@@ -1159,7 +1141,7 @@ namespace NCatboostCuda {
             auto& blockHistograms = tempHistograms[blockId % activeStreamsCount];
 
             blockHistograms.Reset(ComputeByBlocksHelper.BlockHistogramsMapping(blockId, leavesCount, statsCount));
-//            FillBuffer(blockHistograms, 0.0f, streamId);
+            //            FillBuffer(blockHistograms, 0.0f, streamId);
             ZeroBuffer(blockHistograms, streamId);
 
             if (leavesGpu) {
@@ -1380,7 +1362,6 @@ namespace NCatboostCuda {
 
     void TSplitPropertiesHelper::ZeroLeavesHistograms(const TVector<ui32>& leaves,
                                                       TPointsSubsets* subsets) {
-
         if (leaves.size() <= 2) {
             for (auto leaf : leaves) {
                 using TKernel = NKernelHost::TZeroHistogramKernel;
@@ -1476,7 +1457,5 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xD2DAB2, NKernelHost::TComputeSingleHistKernelGatherBins);
     REGISTER_KERNEL(0xD2DAB3, NKernelHost::TWriteReducesHistogramKernel);
     REGISTER_KERNEL_TEMPLATE(0xD2DAB4, NKernelHost::TZeroBuffer, float);
-
-
 
 }

@@ -77,7 +77,6 @@ static TStripeMapping MakeGroupAwareStripeMappingFromElementwiseOffsets(const TC
 static TDistributedObject<ui32> MakeOffsetsBias(
     const TConstArrayRef<ui32> biasedOffsets,
     const TStripeMapping& mapping) {
-
     const auto deviceCount = GetCudaManager().GetDeviceCount();
     auto offsetsBias = GetCudaManager().CreateDistributedObject<ui32>();
     for (ui64 device = 0; device < deviceCount; ++device) {
@@ -90,8 +89,7 @@ static TDistributedObject<ui32> MakeOffsetsBias(
 
 static TVector<ui32> MakeDeviceLocalElementwiseOffsets(
     const TConstArrayRef<ui32> offsets,
-    const TStripeMapping& mapping)
-{
+    const TStripeMapping& mapping) {
     const auto deviceCount = GetCudaManager().GetDeviceCount();
     TVector<ui32> biasedOffsets;
     biasedOffsets.yresize(offsets.size());
@@ -130,8 +128,7 @@ static TStripeMapping MakeGroupAwareStripeMappingFromSizes(const TConstArrayRef<
     return TStripeMapping(std::move(slices));
 }
 
-static TStripeMapping MakeGroupAwareElementsStripeMappingFromSizes(const TConstArrayRef<ui32> sizes)
-{
+static TStripeMapping MakeGroupAwareElementsStripeMappingFromSizes(const TConstArrayRef<ui32> sizes) {
     const auto deviceCount = GetCudaManager().GetDeviceCount();
     const auto elementsCount = Accumulate(sizes.begin(), sizes.end(), size_t(0));
     const auto elementsPerDevice = (elementsCount + deviceCount - 1) / deviceCount;
@@ -169,8 +166,7 @@ static TVector<float> MakeDcgDecays(const TConstArrayRef<ui32> elementwiseOffset
 
 static TVector<float> MakeDcgExponentialDecays(
     const TConstArrayRef<ui32> elementwiseOffsets,
-    const float base)
-{
+    const float base) {
     TVector<float> decays;
     decays.yresize(elementwiseOffsets.size());
     for (ui32 i = 0, iEnd = elementwiseOffsets.size(); i < iEnd; ++i) {
@@ -181,8 +177,7 @@ static TVector<float> MakeDcgExponentialDecays(
 
 static TVector<ui64> FuseUi32AndFloatIntoUi64(
     const TConstArrayRef<ui32> ui32s,
-    const TConstArrayRef<float> floats)
-{
+    const TConstArrayRef<float> floats) {
     TVector<ui64> fused;
     fused.yresize(ui32s.size());
 
@@ -198,8 +193,7 @@ static TVector<ui64> FuseUi32AndFloatIntoUi64(
 static TVector<ui64> FuseUi32AndTwoFloatsIntoUi64(
     const TConstArrayRef<ui32> ui32s,
     const TConstArrayRef<float> floats1,
-    const TConstArrayRef<float> floats2)
-{
+    const TConstArrayRef<float> floats2) {
     TVector<ui64> fused;
     fused.yresize(ui32s.size());
 
@@ -226,8 +220,7 @@ static void Sort(
     const TConstArrayRef<float> floats,
     const TStripeMapping& mapping,
     TVector<ui32>* const sortedUi32s,
-    TVector<float>* const sortedFloats)
-{
+    TVector<float>* const sortedFloats) {
     const auto deviceCount = GetCudaManager().GetDeviceCount();
 
     // sort in the same way as documents are sorted in IDCG calculation
@@ -248,7 +241,7 @@ static void Sort(
                 }
 
                 return ui32s[offset + lhs] > ui32s[offset + rhs];
-        });
+            });
     }
 
     sortedUi32s->yresize(ui32s.size());
@@ -275,8 +268,7 @@ static void Sort(
     const TStripeMapping& mapping,
     TVector<ui32>* const sortedUi32s,
     TVector<float>* const sortedFloats1,
-    TVector<float>* const sortedFloats2)
-{
+    TVector<float>* const sortedFloats2) {
     const auto deviceCount = GetCudaManager().GetDeviceCount();
 
     // sort in the same way as documents are sorted in DCG calculation
@@ -303,7 +295,7 @@ static void Sort(
                 }
 
                 return ui32s[offset + lhs] < ui32s[offset + rhs];
-        });
+            });
     }
 
     sortedUi32s->yresize(ui32s.size());
@@ -337,8 +329,7 @@ static float CalculateIdcg(
     const TConstArrayRef<float> targets,
     const ENdcgMetricType type,
     const TMaybe<float> exponentialDecay,
-    const ui32 topSize)
-{
+    const ui32 topSize) {
     TMaybe<double> doubleDecay;
     if (exponentialDecay.Defined()) {
         doubleDecay = exponentialDecay.GetRef();
@@ -366,8 +357,7 @@ static float CalculateDcg(
     const TConstArrayRef<float> approxes,
     const ENdcgMetricType type,
     const TMaybe<float> exponentialDecay,
-    const ui32 topSize)
-{
+    const ui32 topSize) {
     TMaybe<double> doubleDecay;
     if (exponentialDecay.Defined()) {
         doubleDecay = exponentialDecay.GetRef();
@@ -395,8 +385,7 @@ static float CalculateNdcg(
     const TConstArrayRef<float> targets,
     const TConstArrayRef<float> approxes,
     const ENdcgMetricType type,
-    const ui32 topSize)
-{
+    const ui32 topSize) {
     TVector<float> perQueryMetrics;
     perQueryMetrics.yresize(sizes.size());
     TVector<TSample> docs;
@@ -775,8 +764,7 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const TMaybe<float> exponentialDecay,
         const bool withWeights,
         const ui32 topSize,
-        const float eps)
-    {
+        const float eps) {
         const auto deviceGuard = StartCudaManager();
         const float scale = 5;
         const float weightsScale = 1;
@@ -818,21 +806,24 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         deviceTargets.Write(targets);
 
         const auto cpuIdcg = CalculateIdcg(
-            sizes,
-            weights,
-            targets,
-            type,
-            exponentialDecay,
-            topSize) / sizes.size();
+                                 sizes,
+                                 weights,
+                                 targets,
+                                 type,
+                                 exponentialDecay,
+                                 topSize) /
+                             sizes.size();
         const auto gpuIdcg = CalculateIdcg(
-            deviceSizes.ConstCopyView(),
-            deviceBiasedOffsets.ConstCopyView(),
-            deviceOffsetsBias,
-            deviceWeights.ConstCopyView(),
-            deviceTargets.ConstCopyView(),
-            type,
-            exponentialDecay,
-            {topSize}).front() / sizes.size();
+                                 deviceSizes.ConstCopyView(),
+                                 deviceBiasedOffsets.ConstCopyView(),
+                                 deviceOffsetsBias,
+                                 deviceWeights.ConstCopyView(),
+                                 deviceTargets.ConstCopyView(),
+                                 type,
+                                 exponentialDecay,
+                                 {topSize})
+                                 .front() /
+                             sizes.size();
         UNIT_ASSERT_DOUBLES_EQUAL_C(
             cpuIdcg, gpuIdcg, eps,
             LabeledOutput(size, maxDocsPerQuery, seed, type, exponentialDecay));
@@ -869,8 +860,7 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const TMaybe<float> exponentialDecay,
         const bool withWeights,
         const ui32 topSize,
-        const float eps)
-    {
+        const float eps) {
         const auto deviceGuard = StartCudaManager();
         const float scale = 5;
         const float weightsScale = 1;
@@ -925,23 +915,26 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         deviceApproxes.Write(approxes);
 
         const auto cpuDcg = CalculateDcg(
-            sizes,
-            weights,
-            targets,
-            approxes,
-            type,
-            exponentialDecay,
-            topSize) / sizes.size();
+                                sizes,
+                                weights,
+                                targets,
+                                approxes,
+                                type,
+                                exponentialDecay,
+                                topSize) /
+                            sizes.size();
         const auto gpuDcg = CalculateDcg(
-            deviceSizes.ConstCopyView(),
-            deviceBiasedOffsets.ConstCopyView(),
-            deviceOffsetsBias,
-            deviceWeights.ConstCopyView(),
-            deviceTargets.ConstCopyView(),
-            deviceApproxes.ConstCopyView(),
-            type,
-            exponentialDecay,
-            {topSize}).front() / sizes.size();
+                                deviceSizes.ConstCopyView(),
+                                deviceBiasedOffsets.ConstCopyView(),
+                                deviceOffsetsBias,
+                                deviceWeights.ConstCopyView(),
+                                deviceTargets.ConstCopyView(),
+                                deviceApproxes.ConstCopyView(),
+                                type,
+                                exponentialDecay,
+                                {topSize})
+                                .front() /
+                            sizes.size();
         UNIT_ASSERT_DOUBLES_EQUAL_C(
             cpuDcg, gpuDcg, eps,
             LabeledOutput(size, maxDocsPerQuery, seed, type, exponentialDecay));
@@ -1085,8 +1078,7 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         const ENdcgMetricType type,
         const bool withWeights,
         const ui32 topSize,
-        const float eps)
-    {
+        const float eps) {
         const auto deviceGuard = StartCudaManager();
         const float scale = 5;
         const float weightsScale = 1;
@@ -1135,21 +1127,24 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
         deviceApproxes.Write(approxes);
 
         const auto cpuNdcg = CalculateNdcg(
-            sizes,
-            weights,
-            targets,
-            approxes,
-            type,
-            topSize) / sizes.size();
+                                 sizes,
+                                 weights,
+                                 targets,
+                                 approxes,
+                                 type,
+                                 topSize) /
+                             sizes.size();
         const auto gpuNdcg = CalculateNdcg(
-            deviceSizes.ConstCopyView(),
-            deviceBiasedOffsets.ConstCopyView(),
-            deviceOffsetsBias,
-            deviceWeights.ConstCopyView(),
-            deviceTargets.ConstCopyView(),
-            deviceApproxes.ConstCopyView(),
-            type,
-            {topSize}).front() / sizes.size();
+                                 deviceSizes.ConstCopyView(),
+                                 deviceBiasedOffsets.ConstCopyView(),
+                                 deviceOffsetsBias,
+                                 deviceWeights.ConstCopyView(),
+                                 deviceTargets.ConstCopyView(),
+                                 deviceApproxes.ConstCopyView(),
+                                 type,
+                                 {topSize})
+                                 .front() /
+                             sizes.size();
         UNIT_ASSERT_DOUBLES_EQUAL_C(
             cpuNdcg, gpuNdcg, eps,
             LabeledOutput(size, maxDocsPerQuery, seed, type));

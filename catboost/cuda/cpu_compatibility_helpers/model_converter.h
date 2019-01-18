@@ -10,9 +10,7 @@
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/libs/target/classification_target_helper.h>
 
-
 namespace NCatboostCuda {
-
     class TModelConverter {
     public:
         TModelConverter(const TBinarizedFeaturesManager& manager,

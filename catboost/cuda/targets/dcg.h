@@ -67,7 +67,6 @@ namespace NCatboostCuda {
         TConstArrayRef<ui32> topSizes = {},
         ui32 stream = 0);
 
-
     // Calculate sum of per-query DCGs.
     //
     // @param sizes             Array of per-query document counts.

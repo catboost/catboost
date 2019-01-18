@@ -18,7 +18,6 @@ namespace NCatboostCuda {
         ELoadFromCompressedIndexPolicy LoadPolicyAfterSplit = ELoadFromCompressedIndexPolicy::GatherBins;
         ELoadFromCompressedIndexPolicy LoadPolicyFromScratch = ELoadFromCompressedIndexPolicy::LoadByIndexBins;
 
-
         bool operator==(const TComputeByBlocksConfig& rhs) const {
             return std::tie(SampleRate, LoadPolicyAfterSplit, LoadPolicyFromScratch,
                             ForceOneBlockPerPolicy) ==

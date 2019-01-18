@@ -7,14 +7,12 @@
 #include <util/generic/vector.h>
 
 namespace NCatboostCuda {
-
     struct TNonSymmetricTreeStructure {
-
         const TVector<TTreeNode>& GetNodes() const {
             return Nodes;
         }
 
-        TVector<TTreeNode>& GetNodes()  {
+        TVector<TTreeNode>& GetNodes() {
             Hash.Clear();
             return Nodes;
         }
@@ -50,7 +48,6 @@ namespace NCatboostCuda {
         template <class TVisitor>
         void VisitBins(TVisitor&& visitor) const {
             VisitBinsImpl(visitor);
-
         }
 
         Y_SAVELOAD_DEFINE(Nodes, SplitTypes, Hash);
@@ -115,15 +112,13 @@ namespace NCatboostCuda {
             }
         }
 
-
     private:
         mutable TMaybe<ui64> Hash;
         TVector<TTreeNode> Nodes;
         TVector<EBinSplitType> SplitTypes; //used only for conversion
-
     };
 
-    class TNonSymmetricTree : public IBinOptimizedModel {
+    class TNonSymmetricTree: public IBinOptimizedModel {
     public:
         TNonSymmetricTree(TNonSymmetricTreeStructure&& modelStructure,
                           const TVector<float>& values,
@@ -132,7 +127,8 @@ namespace NCatboostCuda {
             : ModelStructure(std::move(modelStructure))
             , LeafValues(values)
             , LeafWeights(weights)
-            , Dim(dim) {
+            , Dim(dim)
+        {
         }
 
         TNonSymmetricTree() = default;
@@ -143,7 +139,6 @@ namespace NCatboostCuda {
         const TNonSymmetricTreeStructure& GetStructure() const {
             return ModelStructure;
         }
-
 
         void Rescale(double scale) {
             for (ui32 i = 0; i < LeafValues.size(); ++i) {
@@ -180,7 +175,6 @@ namespace NCatboostCuda {
         }
 
         Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights, Dim);
-
 
         template <class TVisitor>
         void VisitLeaves(TVisitor&& visitor) const {

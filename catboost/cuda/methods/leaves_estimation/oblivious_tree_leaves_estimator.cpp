@@ -154,7 +154,6 @@ namespace NCatboostCuda {
         point.resize(totalLeavesCount);
         point = newtonLikeWalker.Estimate(point, localExecutor);
 
-
         for (ui32 taskId = 0; taskId < TaskHelpers.size(); ++taskId) {
             float* values = point.data() + TaskSlices[taskId].Left;
             double* weights = LeafWeights.data() + TaskSlices[taskId].Left;
@@ -236,7 +235,7 @@ namespace NCatboostCuda {
         PartStats.Reset(mapping);
     }
 
-    void TEstimationTaskHelper::MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream)  {
+    void TEstimationTaskHelper::MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream) {
         Cursor.Copy(Baseline, stream);
 
         AddBinModelValues(point,
@@ -246,7 +245,7 @@ namespace NCatboostCuda {
     }
 
     void
-    TEstimationTaskHelper::ProjectWeights(TCudaBuffer<double, NCudaLib::TStripeMapping>& weightsDst, ui32 streamId){
+    TEstimationTaskHelper::ProjectWeights(TCudaBuffer<double, NCudaLib::TStripeMapping>& weightsDst, ui32 streamId) {
         ComputePartitionStats(DerCalcer->GetWeights(streamId),
                               Offsets,
                               &weightsDst,
@@ -255,7 +254,7 @@ namespace NCatboostCuda {
 
     void TEstimationTaskHelper::Project(TCudaBuffer<double, NCudaLib::TStripeMapping>* value,
                                         TCudaBuffer<double, NCudaLib::TStripeMapping>* der,
-                                        TCudaBuffer<double, NCudaLib::TStripeMapping>* der2, ui32 stream){
+                                        TCudaBuffer<double, NCudaLib::TStripeMapping>* der2, ui32 stream) {
         if (value) {
             TmpValue.Reset(Cursor.GetMapping().Transform([&](const TSlice&) -> ui64 {
                 return 1;
@@ -276,7 +275,7 @@ namespace NCatboostCuda {
                                  stream);
         if (value) {
             CastCopy(TmpValue, value, stream);
-//                value->Copy(TmpValue, stream);
+            //                value->Copy(TmpValue, stream);
         }
         {
             auto guard = profiler.Profile("Segmented reduce derivatives");

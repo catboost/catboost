@@ -2,7 +2,6 @@
 #include <catboost/cuda/targets/pointwise_target_impl.h>
 
 namespace NCatboostCuda {
-
     using TPointwiseTrainer = TGpuTrainer<TPointwiseTargetsImpl, TNonSymmetricTree>;
 
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorPoissonLossguide(GetTrainerFactoryKey(ELossFunction::Poisson, EGrowingPolicy::Lossguide));
@@ -23,11 +22,6 @@ namespace NCatboostCuda {
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorLoglossLevelwise(GetTrainerFactoryKey(ELossFunction::Logloss, EGrowingPolicy::Levelwise));
     TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorCrossEntropyLevelwise(GetTrainerFactoryKey(ELossFunction::CrossEntropy, EGrowingPolicy::Levelwise));
 
-
-
-//    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRmseOT(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::ObliviousTree));
-
-
-
+    //    TGpuTrainerFactory::TRegistrator<TPointwiseTrainer> RegistratorRmseOT(GetTrainerFactoryKey(ELossFunction::RMSE, EGrowingPolicy::ObliviousTree));
 
 }

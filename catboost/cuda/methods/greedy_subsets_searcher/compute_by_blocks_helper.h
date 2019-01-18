@@ -100,10 +100,10 @@ namespace NCatboostCuda {
             return BinarizedFeatures;
         }
 
-
         ui32 GetStreamCount() const {
             return StreamsCount;
         }
+
     private:
         void Rebuild(const TComputeByBlocksConfig& splitPropsConfig);
 

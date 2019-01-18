@@ -164,7 +164,6 @@ namespace NCudaLib {
             return THandleBasedMemoryPointer<const T, Type>(Handle, Offset);
         };
 
-
         THandleBasedMemoryPointer<char, Type> GetRawHandleBasedPtr() {
             return THandleBasedMemoryPointer<char, Type>(Handle, sizeof(T) * Offset);
         }

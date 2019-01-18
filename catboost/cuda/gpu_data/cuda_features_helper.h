@@ -1,11 +1,12 @@
 #pragma once
+
 #include "feature_layout_common.h"
 
 namespace NCatboostCuda {
     class TCudaFeaturesHelper {
     public:
         TCudaFeaturesHelper(const TCpuGrid& grid)
-                : Grid(grid)
+            : Grid(grid)
         {
         }
 

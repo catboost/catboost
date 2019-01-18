@@ -64,7 +64,7 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
 
                         for (ui32 j = 0; j < segmentSize; ++j) {
                             vec.push_back(1.0 / (1 << (rand.NextUniformL() % 8)));
-//                            vec.push_back(1.0f);
+                            //                            vec.push_back(1.0f);
                             segmentSums.back() += vec.back();
                         }
                         i += (segmentSize - 1);
@@ -105,8 +105,6 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
             }
         }
     }
-
-
 
     Y_UNIT_TEST(TestUpdatePartProps) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -162,7 +160,7 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
                     resultVec.Read(reducedOnGpu);
 
                     for (ui32 i = 0; i < segmentSums.size(); ++i) {
-                        if (std::abs(segmentSums[i]- reducedOnGpu[i]) > 1e-8) {
+                        if (std::abs(segmentSums[i] - reducedOnGpu[i]) > 1e-8) {
                             Cout << i << " " << parts[i].Offset << " / " << parts[i].Size << Endl;
                         }
                         UNIT_ASSERT_DOUBLES_EQUAL(segmentSums[i], reducedOnGpu[i], 1e-8);
@@ -171,7 +169,6 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
             }
         }
     }
-
 
     Y_UNIT_TEST(TestUpdatePartPropsPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -204,7 +201,7 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
                             vec.push_back(1.0 / (1 << (rand.NextUniformL() % 8)));
                             segmentSums.back() += vec.back();
                         }
-                        i += segmentSize ;
+                        i += segmentSize;
                     }
                     const ui64 size = vec.size();
 
@@ -253,7 +250,7 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
                             vec.push_back(1.0 / (1 << (rand.NextUniformL() % 8)));
                             segmentSums.back() += vec.back();
                         }
-                        i += (segmentSize );
+                        i += (segmentSize);
                     }
                     const ui64 size = vec.size();
                     segmentOffsets.push_back(size);
@@ -325,7 +322,6 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
         }
     }
 
-
     Y_UNIT_TEST(TestStatsInLeavesPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -336,8 +332,7 @@ Y_UNIT_TEST_SUITE(TReduceTest) {
 
             for (ui32 leafCount : {2, 8, 16, 64}) {
                 for (ui32 k = 0; k < tries; ++k) {
-                    for (ui32 meanSize : {1000, 100000,1000000}) {
-
+                    for (ui32 meanSize : {1000, 100000, 1000000}) {
                         TVector<ui32> segmentOffsets;
                         TVector<float> segmentSums;
                         TVector<float> vec;

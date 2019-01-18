@@ -24,13 +24,13 @@ namespace NKernelHost {
                          TCudaBufferPtr<float> cursor,
                          TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
                          TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
-                : Features(features)
-                  , Directions(bins)
-                  , Leaves(leaves)
-                  , DataSet(index)
-                  , Cursor(cursor)
-                  , ReadIndices(readIndices)
-                  , WriteIndices(writeIndices)
+            : Features(features)
+            , Directions(bins)
+            , Leaves(leaves)
+            , DataSet(index)
+            , Cursor(cursor)
+            , ReadIndices(readIndices)
+            , WriteIndices(writeIndices)
         {
         }
 
@@ -59,17 +59,17 @@ namespace NKernelHost {
         TComputeRegionLeaveIndicesKernel() = default;
 
         TComputeRegionLeaveIndicesKernel(TCudaBufferPtr<const TCFeature> features,
-                                                TCudaBufferPtr<const TRegionDirection> bins,
-                                                TCudaBufferPtr<const ui32> index,
-                                                TCudaBufferPtr<ui32> cursor,
-                                                TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
-                                                TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
-                : Features(features)
-                  , Splits(bins)
-                  , DataSet(index)
-                  , Cursor(cursor)
-                  , ReadIndices(readIndices)
-                  , WriteIndices(writeIndices)
+                                         TCudaBufferPtr<const TRegionDirection> bins,
+                                         TCudaBufferPtr<const ui32> index,
+                                         TCudaBufferPtr<ui32> cursor,
+                                         TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
+                                         TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
+            : Features(features)
+            , Splits(bins)
+            , DataSet(index)
+            , Cursor(cursor)
+            , ReadIndices(readIndices)
+            , WriteIndices(writeIndices)
         {
         }
 
@@ -97,7 +97,6 @@ namespace NCudaLib {
 }
 
 namespace NCatboostCuda {
-
     namespace {
         class TComputeLeavesDocParallel {
         public:
@@ -283,10 +282,10 @@ namespace NCatboostCuda {
     }
 
     void TAddModelDocParallel<TRegionModel>::Append(ui32 taskId,
-                                       const TStripeBuffer<TCFeature>& features,
-                                       const TMirrorBuffer<TRegionDirection>& directions,
-                                       const TMirrorBuffer<float>& values,
-                                       ui32 stream) {
+                                                    const TStripeBuffer<TCFeature>& features,
+                                                    const TMirrorBuffer<TRegionDirection>& directions,
+                                                    const TMirrorBuffer<float>& values,
+                                                    ui32 stream) {
         auto& cursor = *Cursors[taskId];
         using TKernel = NKernelHost::TAddRegionKernel;
         LaunchKernels<TKernel>(cursor.NonEmptyDevices(), stream, features, directions, values, CompressedIndex->GetStorage(), cursor);
@@ -294,8 +293,7 @@ namespace NCatboostCuda {
 
     void ComputeBinsForModel(const TRegionStructure& structure,
                              const TDocParallelDataSet& dataSet,
-                             TStripeBuffer<ui32>* bins)  {
-
+                             TStripeBuffer<ui32>* bins) {
         TComputeLeavesDocParallel computeLeaves;
         computeLeaves.AddTask(structure,
                               dataSet,

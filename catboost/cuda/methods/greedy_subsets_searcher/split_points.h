@@ -72,8 +72,6 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream, TKernelContext& context) const;
     };
 
-
-
     class TSplitPointsSingleLeafKernel: public TKernelBase<NKernel::TSplitPointsContext> {
     private:
         ui32 StatsPerKernel;
@@ -84,7 +82,6 @@ namespace NKernelHost {
         ui32 LeafIdToSplit;
         ui32 RightLeafIdAfterSplit;
 
-
         TCudaBufferPtr<TDataPartition> PartitionsGpu;
         TCudaHostBufferPtr<TDataPartition> PartitionsCpu;
         TCudaBufferPtr<double> PartitionStats;
@@ -94,20 +91,21 @@ namespace NKernelHost {
 
         ui32 BinFeatureCount;
         TCudaBufferPtr<float> Histograms;
+
     public:
         TSplitPointsSingleLeafKernel(ui32 statsPerKernel,
-                                       TCudaBufferPtr<const unsigned int> compressedIndex,
-                                       TCFeature featuresToSplit,
-                                       ui32 featureBin,
-                                       ui32 leafIdToSplit,
-                                       ui32 rightLeafIdAfterSplit,
-                                       TCudaBufferPtr<TDataPartition> partitionsGpu,
-                                       TCudaHostBufferPtr<TDataPartition> partitionsCpu,
-                                       TCudaBufferPtr<double> partitionStats,
-                                       TCudaBufferPtr<unsigned int> indices,
-                                       TCudaBufferPtr<float> stats,
-                                       ui32 binFeatureCount,
-                                       TCudaBufferPtr<float> histograms);
+                                     TCudaBufferPtr<const unsigned int> compressedIndex,
+                                     TCFeature featuresToSplit,
+                                     ui32 featureBin,
+                                     ui32 leafIdToSplit,
+                                     ui32 rightLeafIdAfterSplit,
+                                     TCudaBufferPtr<TDataPartition> partitionsGpu,
+                                     TCudaHostBufferPtr<TDataPartition> partitionsCpu,
+                                     TCudaBufferPtr<double> partitionStats,
+                                     TCudaBufferPtr<unsigned int> indices,
+                                     TCudaBufferPtr<float> stats,
+                                     ui32 binFeatureCount,
+                                     TCudaBufferPtr<float> histograms);
 
         using TKernelContext = NKernel::TSplitPointsContext;
 

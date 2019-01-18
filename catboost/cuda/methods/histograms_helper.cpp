@@ -20,8 +20,8 @@ namespace NCatboostCuda {
     template class TScoreHelper<TSingleDevLayout>;
 
     TFindBestSplitsHelper<TDocParallelLayout>& TFindBestSplitsHelper<TDocParallelLayout>::ComputeOptimalSplit(
-            const TMirrorBuffer<const TPartitionStatistics>& reducedStats,
-            TComputeHistogramsHelper<TDocParallelLayout>& histHelper, double scoreStdDev, ui64 seed) {
+        const TMirrorBuffer<const TPartitionStatistics>& reducedStats,
+        TComputeHistogramsHelper<TDocParallelLayout>& histHelper, double scoreStdDev, ui64 seed) {
         CB_ENSURE(histHelper.GetGroupingPolicy() == Policy);
         auto& profiler = NCudaLib::GetProfiler();
         if (DataSet->GetGridSize(Policy)) {
@@ -61,7 +61,7 @@ namespace NCatboostCuda {
                 }
 
                 auto guard = profiler.Profile(
-                        TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
+                    TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
                 FindOptimalSplit(binFeatures,
                                  ReducedHistograms,
                                  reducedStats,

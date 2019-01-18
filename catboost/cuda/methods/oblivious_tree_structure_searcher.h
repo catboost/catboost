@@ -11,8 +11,7 @@
 #include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
-
-    class IMirrorTargetWrapper : public TNonCopyable {
+    class IMirrorTargetWrapper: public TNonCopyable {
     public:
         virtual ~IMirrorTargetWrapper() {
         }
@@ -30,12 +29,11 @@ namespace NCatboostCuda {
     };
 
     template <class TTargetFunc>
-    class TMirrorTargetWrapper : public IMirrorTargetWrapper {
+    class TMirrorTargetWrapper: public IMirrorTargetWrapper {
     public:
-
         TMirrorTargetWrapper(TTargetFunc&& target)
-                : Target(std::move(target)) {
-
+            : Target(std::move(target))
+        {
         }
 
         const TTarget<NCudaLib::TMirrorMapping>& GetTarget() const final {
@@ -57,6 +55,7 @@ namespace NCatboostCuda {
                           ui32 stream = 0) const final {
             Target.NewtonAtZero(weightedDer, weightedDer2, stream);
         };
+
     private:
         TTargetFunc Target;
     };
@@ -113,7 +112,8 @@ namespace NCatboostCuda {
             TOptimizationTask(TTargetFunc&& learn,
                               TTargetFunc&& test)
                 : LearnTarget(new TMirrorTargetWrapper<TTargetFunc>(std::move(learn)))
-                , TestTarget(new TMirrorTargetWrapper<TTargetFunc>(std::move(test))) {
+                , TestTarget(new TMirrorTargetWrapper<TTargetFunc>(std::move(test)))
+            {
             }
         };
 
@@ -122,7 +122,6 @@ namespace NCatboostCuda {
         TVector<TSlice> MakeTaskSlices();
 
         ui64 GetTotalIndicesSize() const;
-
 
         TVector<TDataPartition> WriteFoldBasedInitialBins(TMirrorBuffer<ui32>& bins);
 

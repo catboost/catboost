@@ -8,11 +8,10 @@
 #include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/gpu_data/non_zero_filter.h>
 
-
 namespace NCatboostCuda {
     TAdditiveStatistic TPairLogitPairwise<NCudaLib::TStripeMapping>::ComputeStats(
-            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
-            const TMap<TString, TString> params) const {
+        const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
+        const TMap<TString, TString> params) const {
         CB_ENSURE(params.size() == 0);
 
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
@@ -30,9 +29,9 @@ namespace NCatboostCuda {
                              (TBuffer<float>*)nullptr);
 
         NCudaLib::TCudaBufferReader<TVec>(tmp)
-                .SetFactorSlice(TSlice(0, 1))
-                .SetReadSlice(TSlice(0, 1))
-                .ReadReduce(result);
+            .SetFactorSlice(TSlice(0, 1))
+            .SetReadSlice(TSlice(0, 1))
+            .ReadReduce(result);
 
         return MakeSimpleAdditiveStatistic(result[0], GetPairsTotalWeight());
     }
@@ -51,12 +50,12 @@ namespace NCatboostCuda {
     }
 
     void TPairLogitPairwise<NCudaLib::TStripeMapping>::ApproximateAt(
-            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
-            const TStripeBuffer<uint2>& pairs,
-            const TStripeBuffer<float>& pairWeights, const TStripeBuffer<ui32>& scatterDerIndices,
-            TStripeBuffer<float>* value,
-            TStripeBuffer<float>* der,
-            TStripeBuffer<float>* pairDer2) const {
+        const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
+        const TStripeBuffer<uint2>& pairs,
+        const TStripeBuffer<float>& pairWeights, const TStripeBuffer<ui32>& scatterDerIndices,
+        TStripeBuffer<float>* value,
+        TStripeBuffer<float>* der,
+        TStripeBuffer<float>* pairDer2) const {
         PairLogitPairwise(point,
                           pairs,
                           pairWeights,
@@ -67,8 +66,8 @@ namespace NCatboostCuda {
     }
 
     void TPairLogitPairwise<NCudaLib::TStripeMapping>::FillPairsAndWeightsAtPoint(
-            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec&, TStripeBuffer<uint2>* pairs,
-            TStripeBuffer<float>* pairWeights) const  {
+        const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec&, TStripeBuffer<uint2>* pairs,
+        TStripeBuffer<float>* pairWeights) const {
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
         pairs->Reset(samplesGrouping.GetPairs().GetMapping());
@@ -80,9 +79,9 @@ namespace NCatboostCuda {
     }
 
     void TPairLogitPairwise<NCudaLib::TStripeMapping>::ApproximateStochastic(
-            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
-            const NCatboostOptions::TBootstrapConfig& config, bool secondDer,
-            TNonDiagQuerywiseTargetDers* target) const  {
+        const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
+        const NCatboostOptions::TBootstrapConfig& config, bool secondDer,
+        TNonDiagQuerywiseTargetDers* target) const {
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
         auto& pairWeights = target->PairDer2OrWeights;

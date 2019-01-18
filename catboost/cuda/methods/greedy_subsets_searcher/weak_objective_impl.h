@@ -4,12 +4,8 @@
 #include <catboost/cuda/targets/weak_objective.h>
 
 namespace NCatboostCuda {
-
-
-
-
     template <class TTargetFunc>
-    class TWeakObjective : public IWeakObjective, public TMoveOnly {
+    class TWeakObjective: public IWeakObjective, public TMoveOnly {
     public:
         using TMapping = typename TTargetFunc::TMapping;
         template <class T>
@@ -18,14 +14,13 @@ namespace NCatboostCuda {
         using TConstVec = TBuffer<const float>;
 
         TWeakObjective(const TTargetFunc& target)
-        : Target(target) {
-
+            : Target(target)
+        {
         }
 
         void StochasticDer(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
                            bool secondDerAsWeights,
                            TOptimizationTarget* targetDer) const final {
-
             TGpuAwareRandom& random = Target.GetRandom();
 
             auto samplesMapping = Target.GetTarget().GetSamplesMapping();
@@ -33,11 +28,11 @@ namespace NCatboostCuda {
             TStripeBuffer<ui32> sampledIndices;
 
             const bool isContinuousIndices = TBootstrap<NCudaLib::TStripeMapping>::BootstrapAndFilter(
-                    bootstrapConfig,
-                    random,
-                    samplesMapping,
-                    &sampledWeights,
-                    &sampledIndices);
+                bootstrapConfig,
+                random,
+                samplesMapping,
+                &sampledWeights,
+                &sampledIndices);
 
             CATBOOST_DEBUG_LOG << "Sampled docs count " << sampledIndices.GetObjectsSlice().Size() << Endl;
 
@@ -61,9 +56,4 @@ namespace NCatboostCuda {
         const TTargetFunc& Target;
     };
 
-
 }
-
-
-
-

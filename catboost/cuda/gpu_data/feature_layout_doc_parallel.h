@@ -20,9 +20,7 @@
 
 #include <algorithm>
 
-
 namespace NCatboostCuda {
-
     template <>
     struct TCudaFeaturesLayoutHelper<TDocParallelLayout> {
         using TFeaturesBlock = TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;

@@ -3,19 +3,17 @@
 
 #include <catboost/cuda/cuda_util/algorithm.h>
 
-
 namespace NCatboostCuda {
-
     TAdditiveStatistic TMultiClassificationTargets<NCudaLib::TStripeMapping>::ComputeStats(const TStripeBuffer<const float>& point) const {
         TVector<float> result;
         auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
-        ComputeValueAndFirstDer(GetTarget().GetTargets(), GetTarget().GetWeights(), point, &tmp, (TVec*) nullptr);
+        ComputeValueAndFirstDer(GetTarget().GetTargets(), GetTarget().GetWeights(), point, &tmp, (TVec*)nullptr);
 
         NCudaLib::TCudaBufferReader<TVec>(tmp)
-                .SetFactorSlice(TSlice(0, 1))
-                .SetReadSlice(TSlice(0, 1))
-                .ReadReduce(result);
+            .SetFactorSlice(TSlice(0, 1))
+            .SetReadSlice(TSlice(0, 1))
+            .ReadReduce(result);
 
         const double weight = GetTotalWeight();
         return MakeSimpleAdditiveStatistic(-result[0], weight);
@@ -26,7 +24,6 @@ namespace NCatboostCuda {
                                                                               TStripeBuffer<ui32>&& sampledIndices,
                                                                               bool secondDerAsWeights,
                                                                               TOptimizationTarget* target) const {
-
         CB_ENSURE(!secondDerAsWeights, "MultiClass losss doesn't support second derivatives in tree structure search currently");
         auto gatheredTarget = TVec::CopyMapping(sampledWeights);
         Gather(gatheredTarget, GetTarget().GetTargets(), sampledIndices);
@@ -44,10 +41,10 @@ namespace NCatboostCuda {
         auto ders = target->StatsToAggregate.ColumnsView(TSlice(1, statCount));
         if (Type == ELossFunction::MultiClass) {
             MultiLogitValueAndDer(gatheredTarget.ConstCopyView(), weights.ConstCopyView(), point, &sampledIndices,
-                                  NumClasses, (TVec*) nullptr, &ders);
+                                  NumClasses, (TVec*)nullptr, &ders);
         } else if (Type == ELossFunction::MultiClassOneVsAll) {
             MultiClassOneVsAllValueAndDer(gatheredTarget.ConstCopyView(), weights.ConstCopyView(), point, &sampledIndices,
-                                  NumClasses, (TVec*) nullptr, &ders);
+                                          NumClasses, (TVec*)nullptr, &ders);
         } else {
             CB_ENSURE(false, "Bug");
         }
@@ -61,11 +58,11 @@ namespace NCatboostCuda {
                                                                                         TStripeBuffer<float>* der,
                                                                                         ui32 stream) const {
         if (Type == ELossFunction::MultiClass) {
-            MultiLogitValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*) nullptr, NumClasses, value, der,
+            MultiLogitValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*)nullptr, NumClasses, value, der,
                                   stream);
         } else if (Type == ELossFunction::MultiClassOneVsAll) {
-            MultiClassOneVsAllValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*) nullptr, NumClasses, value, der,
-                                        stream);
+            MultiClassOneVsAllValueAndDer(target, weights, point, (const TStripeBuffer<ui32>*)nullptr, NumClasses, value, der,
+                                          stream);
         } else {
             CB_ENSURE(false, "Unsupported loss " << Type);
         }

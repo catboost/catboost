@@ -81,7 +81,6 @@ namespace NKernelHost {
         {
         }
 
-
         TDeviceBuffer()
             : Data(NCudaLib::THandleBasedMemoryPointer<T, Type>())
             , Meta(TObjectsMeta())
@@ -111,7 +110,7 @@ namespace NKernelHost {
         }
 
         T* GetColumn(ui32 columnId) const {
-            CB_ENSURE(columnId < ColumnCount,  "Column id " << columnId << " should be less than " << ColumnCount);
+            CB_ENSURE(columnId < ColumnCount, "Column id " << columnId << " should be less than " << ColumnCount);
             return Data.Get() + NCudaLib::NAligment::ColumnShift(Size(), columnId);
         }
 
@@ -125,8 +124,7 @@ namespace NKernelHost {
             return TDeviceBuffer<const T, Type>(static_cast<NCudaLib::THandleBasedMemoryPointer<const T, Type>>(Data),
                                                 std::move(metaCopy),
                                                 ColumnCount,
-                                                DeviceId
-            );
+                                                DeviceId);
         };
 
         ui64 Size() const {

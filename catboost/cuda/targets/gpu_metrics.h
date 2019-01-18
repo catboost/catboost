@@ -10,7 +10,6 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
-
 namespace NCatboostCuda {
     class IGpuMetric {
     public:
@@ -46,7 +45,7 @@ namespace NCatboostCuda {
         }
 
         explicit IGpuPointwiseMetric(THolder<IMetric>&& cpuMetric, const NCatboostOptions::TLossDescription& config)
-        : IGpuMetric(std::move(cpuMetric), config)
+            : IGpuMetric(std::move(cpuMetric), config)
         {
         }
 
@@ -106,7 +105,7 @@ namespace NCatboostCuda {
         }
 
         explicit TCpuFallbackMetric(THolder<IMetric>&& metric, const NCatboostOptions::TLossDescription& config)
-                : IGpuMetric(std::move(metric), config)
+            : IGpuMetric(std::move(metric), config)
         {
         }
 
@@ -119,6 +118,5 @@ namespace NCatboostCuda {
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
                                                   const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-                                                  const ui32 cpuApproxDim
-                                                  );
+                                                  const ui32 cpuApproxDim);
 }

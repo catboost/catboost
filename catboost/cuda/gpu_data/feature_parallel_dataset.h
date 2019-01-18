@@ -12,7 +12,6 @@
 
 #include <catboost/libs/data_new/data_provider.h>
 
-
 namespace NCatboostCuda {
     class TPermutationScope: public TThreadSafeGuidHolder {
     };
@@ -93,15 +92,13 @@ namespace NCatboostCuda {
                                                                     NCB::GetGroupInfo(dataProvider.TargetData),
                                                                     dataProvider.MetaInfo.HasPairs);
                 if (dataProvider.MetaInfo.HasSubgroupIds) {
-                    auto permutedGids
-                        = ctrEstimationPermutation.Gather(*dataProvider.ObjectsData->GetSubgroupIds());
+                    auto permutedGids = ctrEstimationPermutation.Gather(*dataProvider.ObjectsData->GetSubgroupIds());
                     samplesGrouping->SetSubgroupIds(std::move(permutedGids));
                 }
                 SamplesGrouping = std::move(samplesGrouping);
             } else {
                 SamplesGrouping.Reset(new TWithoutQueriesGrouping(dataProvider.GetObjectCount()));
             }
-
         }
 
     private:

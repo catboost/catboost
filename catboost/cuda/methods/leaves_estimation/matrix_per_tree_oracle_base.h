@@ -21,15 +21,14 @@
 #include <catboost/cuda/targets/oracle_type.h>
 
 namespace NCatboostCuda {
-
     template <class TImpl>
     class TPairBasedOracleBase: public ILeavesEstimationOracle {
     public:
         TPairBasedOracleBase(TStripeBuffer<const float>&& baseline,
-                            TStripeBuffer<const ui32>&& bins,
-                            const TVector<double>& leafWeights,
-                            const TVector<double>& pairLeafWeights,
-                            const TLeavesEstimationConfig& estimationConfig)
+                             TStripeBuffer<const ui32>&& bins,
+                             const TVector<double>& leafWeights,
+                             const TVector<double>& pairLeafWeights,
+                             const TLeavesEstimationConfig& estimationConfig)
             : LeavesEstimationConfig(estimationConfig)
             , Baseline(std::move(baseline))
             , Bins(std::move(bins))
@@ -67,7 +66,7 @@ namespace NCatboostCuda {
             return BinWeightsSum.size();
         }
 
-        TVector<float> MakeEstimationResult(const TVector<float>& point) const override final  {
+        TVector<float> MakeEstimationResult(const TVector<float>& point) const override final {
             TVector<float> result = point;
             result.resize(BinCount());
             return result;
@@ -152,8 +151,8 @@ namespace NCatboostCuda {
                         continue;
                     }
                     const double w = LeavesEstimationConfig.UseNewton
-                                        ? PairDer2[idx1 * rowSize + idx2]
-                                        : PairBinWeightsSum[idx1 * rowSize + idx2];
+                                         ? PairDer2[idx1 * rowSize + idx2]
+                                         : PairBinWeightsSum[idx1 * rowSize + idx2];
 
                     const bool needRemove = idx1 >= pointDim || idx2 >= pointDim;
 
@@ -246,6 +245,5 @@ namespace NCatboostCuda {
         TVector<double> PairDer2;
         TVector<double> PairBinWeightsSum;
     };
-
 
 }

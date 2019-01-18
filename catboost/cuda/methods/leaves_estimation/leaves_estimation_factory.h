@@ -5,13 +5,12 @@
 #include <catboost/cuda/targets/oracle_type.h>
 
 namespace NCatboostCuda {
-
-
     template <class TObjective>
     class TOracleFactory: public ILeavesEstimationOracleFactory {
     public:
         TOracleFactory(const TObjective& target)
-                : Target(&target) {
+            : Target(&target)
+        {
         }
 
         THolder<ILeavesEstimationOracle> Create(const TLeavesEstimationConfig& config,

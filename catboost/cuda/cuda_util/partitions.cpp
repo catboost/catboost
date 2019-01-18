@@ -50,8 +50,7 @@ template <typename TMapping>
 static void UpdatePartitionDimensionsImpl(
     const TCudaBuffer<ui32, TMapping>& sortedBins,
     TCudaBuffer<TDataPartition, TMapping>& parts,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TUpdatePartitionDimensionsKernel;
     LaunchKernels<TKernel>(sortedBins.NonEmptyDevices(), stream, sortedBins, parts);
 }
@@ -107,8 +106,7 @@ template <typename TMapping>
 static void UpdatePartitionOffsetsImpl(
     const TCudaBuffer<ui32, TMapping>& sortedBins,
     TCudaBuffer<ui32, TMapping>& offsets,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TUpdatePartitionOffsetsKernel;
     LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, sortedBins, offsets);
 }
@@ -164,8 +162,7 @@ template <typename TMapping, typename TUi32, EPtrType DstPtr>
 static void ComputeSegmentSizesImpl(
     const TCudaBuffer<TUi32, TMapping>& offsets,
     TCudaBuffer<float, TMapping, DstPtr>& dst,
-    ui32 stream)
-{
+    ui32 stream) {
     using TKernel = TComputeSegmentSizesKernel<DstPtr>;
     LaunchKernels<TKernel>(offsets.NonEmptyDevices(), stream, offsets, dst);
 }

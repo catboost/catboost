@@ -9,7 +9,6 @@ namespace NCatboostCuda {
     TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit, EGrowingPolicy::Lossguide));
     TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> YetiRankRegistrator(GetTrainerFactoryKey(ELossFunction::YetiRank, EGrowingPolicy::Lossguide));
 
-
     TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QrmseLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::QueryRMSE, EGrowingPolicy::Levelwise));
     TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> QsoftmaxLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::QuerySoftMax, EGrowingPolicy::Levelwise));
     TGpuTrainerFactory::TRegistrator<TQuerywiseTrainer> PairLogitLevelwiseRegistrator(GetTrainerFactoryKey(ELossFunction::PairLogit, EGrowingPolicy::Levelwise));

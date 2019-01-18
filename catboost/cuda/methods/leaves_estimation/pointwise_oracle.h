@@ -7,10 +7,8 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 namespace NCatboostCuda {
-
-    class TBinOptimizedOracle  : public ILeavesEstimationOracle {
+    class TBinOptimizedOracle: public ILeavesEstimationOracle {
     public:
         TBinOptimizedOracle(const TLeavesEstimationConfig& leavesEstimationConfig,
                             THolder<IPermutationDerCalcer>&& derCalcer,
@@ -59,6 +57,7 @@ namespace NCatboostCuda {
                 return cursorDim;
             }
         }
+
     private:
         TLeavesEstimationConfig LeavesEstimationConfig;
         THolder<IPermutationDerCalcer> DerCalcer;
@@ -67,25 +66,20 @@ namespace NCatboostCuda {
         TStripeBuffer<float> Cursor;
         ui32 BinCount = 0;
 
-
         TVector<float> CurrentPoint;
         TVector<double> WeightsCpu;
         TMaybe<TVector<double>> DerAtPoint;
         TMaybe<TVector<double>> Der2AtPoint;
     };
 
-
-
     template <class TObjective>
-    class TOracle<TObjective, EOracleType::Pointwise> : public TBinOptimizedOracle {
+    class TOracle<TObjective, EOracleType::Pointwise>: public TBinOptimizedOracle {
     public:
-
         static THolder<ILeavesEstimationOracle> Create(const TObjective& target,
                                                        TStripeBuffer<const float>&& baseline,
                                                        TStripeBuffer<ui32>&& bins,
                                                        ui32 binCount,
                                                        const TLeavesEstimationConfig& estimationConfig) {
-
             auto offsets = TStripeBuffer<ui32>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(binCount + 1));
             auto cursor = TStripeBuffer<float>::CopyMappingAndColumnCount(baseline);
 
@@ -105,24 +99,21 @@ namespace NCatboostCuda {
                                std::move(cursor),
                                binCount);
         }
-    private:
 
+    private:
         TOracle(const TLeavesEstimationConfig& estimationConfig,
                 THolder<IPermutationDerCalcer>&& derCalcer,
                 TStripeBuffer<ui32>&& bins,
                 TStripeBuffer<ui32>&& offsets,
                 TStripeBuffer<float>&& cursor,
-                ui32 binCount) :
-             TBinOptimizedOracle(estimationConfig,
-                                 std::move(derCalcer),
-                                 std::move(bins),
-                                 std::move(offsets),
-                                 std::move(cursor),
-                                 binCount) {
-
+                ui32 binCount)
+            : TBinOptimizedOracle(estimationConfig,
+                                  std::move(derCalcer),
+                                  std::move(bins),
+                                  std::move(offsets),
+                                  std::move(cursor),
+                                  binCount) {
         }
     };
-
-
 
 }

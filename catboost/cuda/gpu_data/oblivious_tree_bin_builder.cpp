@@ -2,7 +2,6 @@
 
 #include <catboost/libs/helpers/set.h>
 
-
 namespace NCatboostCuda {
     namespace {
         template <class TDataSet,

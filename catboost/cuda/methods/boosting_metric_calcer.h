@@ -6,7 +6,6 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
-
 namespace NCatboostCuda {
     class IMetricCalcer {
     public:
@@ -51,8 +50,7 @@ namespace NCatboostCuda {
                 return dynamic_cast<const IGpuPointwiseMetric*>(metric)->Eval(targets,
                                                                               weights,
                                                                               Point,
-                                                                              Cache.Get()
-                                                                              );
+                                                                              Cache.Get());
 
             } else if (dynamic_cast<const IGpuQuerywiseMetric*>(metric)) {
                 return dynamic_cast<const IGpuQuerywiseMetric*>(metric)->Eval(targets,

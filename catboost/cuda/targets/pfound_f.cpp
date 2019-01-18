@@ -6,12 +6,11 @@
 #include <catboost/cuda/cuda_util/bootstrap.h>
 #include <catboost/cuda/gpu_data/non_zero_filter.h>
 
-
 namespace NCatboostCuda {
     void TPFoundF<NCudaLib::TStripeMapping>::ApproximateStochastic(
-            const TPFoundF<NCudaLib::TStripeMapping>::TConstVec& point,
-            const NCatboostOptions::TBootstrapConfig& bootstrapConfig, bool,
-            TNonDiagQuerywiseTargetDers* target) const {
+        const TPFoundF<NCudaLib::TStripeMapping>::TConstVec& point,
+        const NCatboostOptions::TBootstrapConfig& bootstrapConfig, bool,
+        TNonDiagQuerywiseTargetDers* target) const {
         {
             auto& querywiseSampler = GetQueriesSampler();
             const auto& sampledGrouping = TParent::GetSamplesGrouping();
@@ -144,8 +143,8 @@ namespace NCatboostCuda {
     }
 
     void TPFoundF<NCudaLib::TStripeMapping>::FillPairsAndWeightsAtPoint(
-            const TPFoundF<NCudaLib::TStripeMapping>::TConstVec& point, TStripeBuffer<uint2>* pairs,
-            TStripeBuffer<float>* pairWeights) const {
+        const TPFoundF<NCudaLib::TStripeMapping>::TConstVec& point, TStripeBuffer<uint2>* pairs,
+        TStripeBuffer<float>* pairWeights) const {
         //TODO(noxoomo): here we have some overhead for final pointwise gradient computations that won't be used
         NCatboostOptions::TBootstrapConfig bootstrapConfig(ETaskType::GPU);
         TNonDiagQuerywiseTargetDers nonDiagDer2;

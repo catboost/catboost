@@ -84,8 +84,7 @@ namespace NCatboostCuda {
             CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
                       TStringBuilder() << "Feature #" << featureId << " is not float");
 
-            auto floatFeatureIdx
-                = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
+            auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
 
             const auto& featuresHolder = **(dataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
             IndexBuilder.template Write<ui8>(DataSetId,
@@ -103,8 +102,7 @@ namespace NCatboostCuda {
             CB_ENSURE(featureMetaInfo.Type == EFeatureType::Categorical,
                       TStringBuilder() << "Feature #" << featureId << " is not categorical");
 
-            auto catFeatureIdx
-                = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
+            auto catFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
 
             const auto& featuresHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
             IndexBuilder.template Write<ui32>(DataSetId,

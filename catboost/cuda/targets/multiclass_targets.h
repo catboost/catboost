@@ -17,9 +17,7 @@
 #include <util/string/cast.h>
 #include <util/system/yassert.h>
 
-
 namespace NCatboostCuda {
-
     template <class TSamplesMapping>
     class TMultiClassificationTargets;
 
@@ -31,7 +29,6 @@ namespace NCatboostCuda {
         using TMapping = NCudaLib::TStripeMapping;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
-
         template <class TDataSet>
         TMultiClassificationTargets(const TDataSet& dataSet,
                                     TGpuAwareRandom& random,
@@ -41,19 +38,19 @@ namespace NCatboostCuda {
             Init(targetOptions, dataSet.GetDataProvider());
         }
 
-
         TMultiClassificationTargets(TMultiClassificationTargets&& other)
             : TParent(std::move(other))
             , Type(other.GetType())
             , MetricName(other.ScoreMetricName())
-            , NumClasses(other.NumClasses) {
+            , NumClasses(other.NumClasses)
+        {
         }
 
         TMultiClassificationTargets(const TMultiClassificationTargets& target)
-                : TParent(target)
-                  , Type(target.GetType())
-                  , MetricName(target.ScoreMetricName())
-                  , NumClasses(target.NumClasses)
+            : TParent(target)
+            , Type(target.GetType())
+            , MetricName(target.ScoreMetricName())
+            , NumClasses(target.NumClasses)
         {
         }
 
@@ -137,10 +134,10 @@ namespace NCatboostCuda {
         static constexpr EOracleType OracleType() {
             return EOracleType::Pointwise;
         }
+
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions,
                   const NCB::TTrainingDataProvider& dataProvider) {
-
             auto* multiClassTarget = MapFindPtr(dataProvider.TargetData,
                                                 NCB::TTargetDataSpecification(NCB::ETargetType::MultiClass));
             CB_ENSURE_INTERNAL(multiClassTarget, "dataProvider.TargetData must contain multiclass target");
@@ -157,13 +154,11 @@ namespace NCatboostCuda {
 
             CB_ENSURE(NumClasses > 1, "Only one class found, can't learn multiclass objective");
         }
+
     private:
         ELossFunction Type = ELossFunction::Custom;
         TString MetricName;
         ui32 NumClasses = 0;
     };
-
-
-
 
 }

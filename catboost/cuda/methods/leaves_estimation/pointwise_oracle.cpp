@@ -3,9 +3,7 @@
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 
-
 namespace NCatboostCuda {
-
     void TBinOptimizedOracle::WriteWeights(TVector<double>* dst) {
         (*dst) = WeightsCpu;
     }
@@ -13,9 +11,7 @@ namespace NCatboostCuda {
     void TBinOptimizedOracle::Regularize(TVector<float>* point) {
         const ui32 approxDim = SingleBinDim();
         RegulalizeImpl(LeavesEstimationConfig, WeightsCpu, point, approxDim);
-
     }
-
 
     TVector<float> TBinOptimizedOracle::MakeEstimationResult(const TVector<float>& point) const {
         const ui32 cursorDim = static_cast<const ui32>(Cursor.GetColumnCount());
@@ -55,12 +51,10 @@ namespace NCatboostCuda {
         DerAtPoint.Clear();
         Der2AtPoint.Clear();
         CurrentPoint = newPoint;
-
     }
 
     void TBinOptimizedOracle::WriteValueAndFirstDerivatives(double* value,
                                                             TVector<double>* gradient) {
-
         gradient->clear();
         gradient->resize(PointDim());
         (*value) = 0;
@@ -97,7 +91,7 @@ namespace NCatboostCuda {
                     (*gradient)[bin * rowSize + dim] = val;
                     total += val;
                 }
-                (*gradient)[bin * rowSize + cursorDim] = -total;//sum of der is equal to zero
+                (*gradient)[bin * rowSize + cursorDim] = -total; //sum of der is equal to zero
             }
         } else {
             (*gradient) = *DerAtPoint;
@@ -145,8 +139,7 @@ namespace NCatboostCuda {
 
                     auto writeSlice =
                         NCudaLib::ParallelStripeView(reducedHessianGpu, TSlice(offset * blockCount * BinCount,
-                                                                               (offset + columnCount) * blockCount
-                                                                                   * BinCount));
+                                                                               (offset + columnCount) * blockCount * BinCount));
                     ComputePartitionStats(der2Row, Offsets, &writeSlice);
                     offset += columnCount * blockCount;
                 }
@@ -167,15 +160,13 @@ namespace NCatboostCuda {
                                 const ui32 lowerIdx = row * hessianBlockSize + col;
                                 const ui32 upperIdx = col * hessianBlockSize + row;
 
-                                const double val = hessianCpu[rowOffset * BinCount + bin * columnCount * blockCount
-                                    + blockId * columnCount + col];
+                                const double val = hessianCpu[rowOffset * BinCount + bin * columnCount * blockCount + blockId * columnCount + col];
                                 sigma[lowerIdx] = val;
                                 sigma[upperIdx] = val;
                             }
                             {
                                 sigma[row * hessianBlockSize + row] =
-                                    hessianCpu[rowOffset * BinCount + bin * columnCount * blockCount
-                                        + blockId * columnCount + row] + lambda;
+                                    hessianCpu[rowOffset * BinCount + bin * columnCount * blockCount + blockId * columnCount + row] + lambda;
                             }
                             rowOffset += columnCount * blockCount;
                         }
@@ -200,13 +191,13 @@ namespace NCatboostCuda {
                                              TStripeBuffer<ui32>&& partOffsets,
                                              TStripeBuffer<float>&& cursor,
                                              ui32 binCount)
-            : LeavesEstimationConfig(leavesEstimationConfig)
-              , DerCalcer(std::move(derCalcer))
-              , Bins(std::move(bins))
-              , Offsets(std::move(partOffsets))
-              , Cursor(std::move(cursor))
-              , BinCount(binCount) {
-
+        : LeavesEstimationConfig(leavesEstimationConfig)
+        , DerCalcer(std::move(derCalcer))
+        , Bins(std::move(bins))
+        , Offsets(std::move(partOffsets))
+        , Cursor(std::move(cursor))
+        , BinCount(binCount)
+    {
         ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         for (ui32 dev = 0; dev < devCount; ++dev) {
             Y_VERIFY(Offsets.GetMapping().DeviceSlice(dev).Size() == binCount + 1);
@@ -219,6 +210,5 @@ namespace NCatboostCuda {
         ComputePartitionStats(weights, Offsets, &reducedWeights);
         WeightsCpu = ReadReduce(reducedWeights);
     }
-
 
 }

@@ -291,8 +291,8 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                                             ctrs);
 
                         decltype(ctrBinBuilder)::TVisitor ctrVisitor = [&](const NCB::TCtrConfig& ctrConfig,
-                            const TCudaBuffer<float, TMirrorMapping>& ctrValues,
-                            ui32 stream) {
+                                                                           const TCudaBuffer<float, TMirrorMapping>& ctrValues,
+                                                                           ui32 stream) {
                             Y_UNUSED(ctrConfig);
                             Y_UNUSED(stream);
                             ctrs2 = TMirrorBuffer<float>::CopyMapping(ctrValues);

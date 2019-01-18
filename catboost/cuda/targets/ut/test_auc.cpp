@@ -15,9 +15,7 @@ using namespace NCudaLib;
 using namespace NCatboostCuda;
 
 Y_UNIT_TEST_SUITE(TAucTest) {
-
-
-    void GenerateSamples(TRandom& random, double rate, ui64 size, TVector<float>* classes, TVector<float>* predictions, TVector<float>* weights) {
+    void GenerateSamples(TRandom & random, double rate, ui64 size, TVector<float>* classes, TVector<float>* predictions, TVector<float>* weights) {
         classes->resize(size);
         predictions->resize(size);
         weights->resize(size);
@@ -29,14 +27,12 @@ Y_UNIT_TEST_SUITE(TAucTest) {
             (*classes)[i] = random.NextUniformL() % 2;
             (*weights)[i] = (1.0 + random.NextUniformL() % 3) / 4;
 
-
-            const double classifierClass =  (random.NextUniform() < rate) ? (*classes)[i] : 1.0 - (*classes)[i];
+            const double classifierClass = (random.NextUniform() < rate) ? (*classes)[i] : 1.0 - (*classes)[i];
 
             double mean = classifierClass ? positiveApproxMean : negativeApproxMean;
             (*predictions)[i] = random.NextGaussian() + mean;
         }
     }
-
 
     inline void TestAucImpl(ui64 seed, ui32 docCount, double rate = 0.7) {
         TRandom random(seed);
@@ -46,7 +42,6 @@ Y_UNIT_TEST_SUITE(TAucTest) {
             TVector<float> targets;
             TVector<float> cursor;
             TVector<float> weights;
-
 
             auto docsMapping = TStripeMapping::SplitBetweenDevices(docCount);
 

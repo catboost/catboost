@@ -129,21 +129,20 @@ Y_UNIT_TEST_SUITE(TMemoryPoolTest) {
             }
         }
     }
-//
-//
-//
-//    Y_UNIT_TEST(MemoryDefragmentStressTest) {
-//        TDeviceRequestConfig requestConfig = GetDefaultDeviceRequestConfig();
-//        requestConfig.DeviceConfig = "0";
-//        auto stopCudaManagerGuard = StartCudaManager(requestConfig, ELoggingLevel::Debug);
-//        auto& manager = NCudaLib::GetCudaManager();
-//
-//        TVector<TSingleBuffer<ui32>> data;
-//        TRandom random(0);
-//
-//        double memoryRequestSize =
-//
-//
-//    }
-
+    //
+    //
+    //
+    //    Y_UNIT_TEST(MemoryDefragmentStressTest) {
+    //        TDeviceRequestConfig requestConfig = GetDefaultDeviceRequestConfig();
+    //        requestConfig.DeviceConfig = "0";
+    //        auto stopCudaManagerGuard = StartCudaManager(requestConfig, ELoggingLevel::Debug);
+    //        auto& manager = NCudaLib::GetCudaManager();
+    //
+    //        TVector<TSingleBuffer<ui32>> data;
+    //        TRandom random(0);
+    //
+    //        double memoryRequestSize =
+    //
+    //
+    //    }
 }

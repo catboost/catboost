@@ -10,11 +10,9 @@
 
 #include <limits>
 
-
 using namespace NCB;
 
-
-TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager)  {
+TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager) {
     TTargetClassifier targetClassifier(featuresManager.GetTargetBorders());
     TVector<TTargetClassifier> classifiers;
     classifiers.resize(1, targetClassifier);
@@ -22,26 +20,24 @@ TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboos
 }
 
 namespace NCatboostCuda {
-
     TModelConverter::TModelConverter(const TBinarizedFeaturesManager& manager,
                                      const TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
                                      const TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
                                      const TClassificationTargetHelper& targetHelper)
-            : FeaturesManager(manager)
-            , QuantizedFeaturesInfo(quantizedFeaturesInfo)
-            , FeaturesLayout(*quantizedFeaturesInfo->GetFeaturesLayout())
-            , CatFeatureBinToHashIndex(perfectHashedToHashedCatValuesMap)
-            , TargetHelper(targetHelper)
+        : FeaturesManager(manager)
+        , QuantizedFeaturesInfo(quantizedFeaturesInfo)
+        , FeaturesLayout(*quantizedFeaturesInfo->GetFeaturesLayout())
+        , CatFeatureBinToHashIndex(perfectHashedToHashedCatValuesMap)
+        , TargetHelper(targetHelper)
     {
         Borders.resize(FeaturesLayout.GetFloatFeatureCount());
         FloatFeaturesNanMode.resize(FeaturesLayout.GetFloatFeatureCount(), ENanMode::Forbidden);
 
         FeaturesLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
-            [&] (const TFloatFeatureIdx floatFeatureIdx) {
+            [&](const TFloatFeatureIdx floatFeatureIdx) {
                 Borders[*floatFeatureIdx] = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
                 FloatFeaturesNanMode[*floatFeatureIdx] = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
-            }
-        );
+            });
     }
 
     TFullModel TModelConverter::Convert(const TAdditiveModel<TObliviousTreeModel>& src,
@@ -60,9 +56,9 @@ namespace NCatboostCuda {
         TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
 
         TObliviousTreeBuilder obliviousTreeBuilder(
-                floatFeatures,
-                catFeatures,
-                cpuApproxDim);
+            floatFeatures,
+            catFeatures,
+            cpuApproxDim);
 
         for (ui32 i = 0; i < src.Size(); ++i) {
             const TObliviousTreeModel& model = src.GetWeakModel(i);
@@ -84,7 +80,7 @@ namespace NCatboostCuda {
                     for (ui32 leaf = 0; leaf < model.BinCount(); ++leaf) {
                         const double val = values[outputDim * leaf + dim];
                         leafValues[dim][leaf] = val;
-                     }
+                    }
                 }
             }
 
@@ -173,7 +169,7 @@ namespace NCatboostCuda {
     }
 
     TModelSplit TModelConverter::CreateCtrSplit(const TBinarySplit& split,
-                                                THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const  {
+                                                THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TModelSplit modelSplit;
         CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId));
         const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);

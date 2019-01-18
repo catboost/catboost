@@ -23,8 +23,7 @@ namespace NCatboostCuda {
                                 bool addRidgeToTargetFunction,
                                 bool zeroAverage,
                                 ELeavesEstimationStepBacktracking backtracking,
-                                double bayesianLambda
-                                )
+                                double bayesianLambda)
             : UseNewton(useNewton)
             , Lambda(lambda)
             , Iterations(iterations)
@@ -39,8 +38,7 @@ namespace NCatboostCuda {
     };
 
     inline TLeavesEstimationConfig CreateLeavesEstimationConfig(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                                                                bool makeZeroAverage
-                                                                ) {
+                                                                bool makeZeroAverage) {
         return TLeavesEstimationConfig(treeConfig.LeavesEstimationMethod == ELeavesEstimation::Newton,
                                        treeConfig.L2Reg,
                                        treeConfig.LeavesEstimationIterations,
@@ -49,8 +47,7 @@ namespace NCatboostCuda {
                                        treeConfig.AddRidgeToTargetFunctionFlag,
                                        makeZeroAverage,
                                        treeConfig.LeavesEstimationBacktrackingType,
-                                       treeConfig.PairwiseNonDiagReg
-                                       );
+                                       treeConfig.PairwiseNonDiagReg);
     }
 
 }

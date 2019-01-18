@@ -7,20 +7,16 @@
 #include <util/generic/xrange.h>
 #include <util/system/compiler.h>
 
-
 using namespace NCB;
 
-
 namespace NCatboostCuda {
-
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
         const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
         : CatFeatureOptions(catFeatureOptions)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
     {
-        const auto& featuresMetaInfo
-            = QuantizedFeaturesInfo->GetFeaturesLayout()->GetExternalFeaturesMetaInfo();
+        const auto& featuresMetaInfo = QuantizedFeaturesInfo->GetFeaturesLayout()->GetExternalFeaturesMetaInfo();
 
         for (auto featureIdx : xrange(featuresMetaInfo.size())) {
             const auto& featureMetaInfo = featuresMetaInfo[featureIdx];
@@ -32,7 +28,7 @@ namespace NCatboostCuda {
         }
     }
 
-    ENanMode TBinarizedFeaturesManager::GetNanMode(const ui32 featureId) const  {
+    ENanMode TBinarizedFeaturesManager::GetNanMode(const ui32 featureId) const {
         ENanMode nanMode = ENanMode::Forbidden;
         if (IsFloat(featureId)) {
             return QuantizedFeaturesInfo->GetNanMode(
@@ -51,7 +47,7 @@ namespace NCatboostCuda {
         return Borders.contains(featureId);
     }
 
-    bool TBinarizedFeaturesManager::IsFloat(ui32 featureId) const  {
+    bool TBinarizedFeaturesManager::IsFloat(ui32 featureId) const {
         if (FeatureManagerIdToDataProviderId.contains(featureId)) {
             return DataProviderFloatFeatureIdToFeatureManagerId.contains(FeatureManagerIdToDataProviderId.at(featureId));
         } else {
@@ -67,7 +63,7 @@ namespace NCatboostCuda {
         }
     }
 
-    bool TBinarizedFeaturesManager::UseForOneHotEncoding(ui32 featureId) const  {
+    bool TBinarizedFeaturesManager::UseForOneHotEncoding(ui32 featureId) const {
         auto uniqValuesOnLearn = GetUniqueValuesCounts(featureId).OnLearnOnly;
         return (uniqValuesOnLearn > 1) && (uniqValuesOnLearn <= CatFeatureOptions.OneHotMaxSize);
     }
@@ -76,7 +72,7 @@ namespace NCatboostCuda {
         return !UseForOneHotEncoding(featureId);
     }
 
-    bool TBinarizedFeaturesManager::UseForTreeCtr(ui32 featureId) const  {
+    bool TBinarizedFeaturesManager::UseForTreeCtr(ui32 featureId) const {
         return UseForCtr(featureId) && (CatFeatureOptions.MaxTensorComplexity > 1);
     }
 
@@ -87,7 +83,7 @@ namespace NCatboostCuda {
         return HasPermutationDependentSplit(ctr.FeatureTensor.GetSplits());
     }
 
-    bool TBinarizedFeaturesManager::HasPermutationDependentSplit(const TVector<TBinarySplit>& splits) const  {
+    bool TBinarizedFeaturesManager::HasPermutationDependentSplit(const TVector<TBinarySplit>& splits) const {
         for (auto& split : splits) {
             if (IsCtr(split.FeatureId) && IsPermutationDependent(GetCtr(split.FeatureId))) {
                 return true;
@@ -96,14 +92,13 @@ namespace NCatboostCuda {
         return false;
     }
 
-
     ui32 TBinarizedFeaturesManager::GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const {
         CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.contains(dataProviderId),
                   "Error: feature #" << dataProviderId << " is not categorical");
         return DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderId);
     }
 
-    ui32 TBinarizedFeaturesManager::GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const  {
+    ui32 TBinarizedFeaturesManager::GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const {
         CB_ENSURE(DataProviderFloatFeatureIdToFeatureManagerId.contains(dataProviderId),
                   "Error: feature #" << dataProviderId << " is not float");
         return DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderId);
@@ -119,7 +114,7 @@ namespace NCatboostCuda {
         return Borders.at(featureId);
     }
 
-    ui32 TBinarizedFeaturesManager::CtrsPerTreeCtrFeatureTensor() const  {
+    ui32 TBinarizedFeaturesManager::CtrsPerTreeCtrFeatureTensor() const {
         ui32 totalCount = 0;
         auto treeCtrConfigs = CreateGrouppedTreeCtrConfigs();
         for (const auto& treeCtr : treeCtrConfigs) {
@@ -142,7 +137,7 @@ namespace NCatboostCuda {
         }
     }
 
-    ui32 TBinarizedFeaturesManager::AddCtr(const TCtr& ctr)  {
+    ui32 TBinarizedFeaturesManager::AddCtr(const TCtr& ctr) {
         CB_ENSURE(!KnownCtrs.contains(ctr));
         const ui32 id = RequestNewId();
         KnownCtrs[ctr] = id;
@@ -150,7 +145,7 @@ namespace NCatboostCuda {
         return id;
     }
 
-    TSet<ECtrType> TBinarizedFeaturesManager::GetKnownSimpleCtrTypes() const  {
+    TSet<ECtrType> TBinarizedFeaturesManager::GetKnownSimpleCtrTypes() const {
         TSet<ECtrType> result;
         auto simpleCtrs = CreateGrouppedSimpleCtrConfigs();
         for (const auto& simpleCtr : simpleCtrs) {
@@ -165,7 +160,7 @@ namespace NCatboostCuda {
         return result;
     }
 
-    TVector<ui32> TBinarizedFeaturesManager::CreateSimpleCtrsForType(ui32 featureId, ECtrType type)  {
+    TVector<ui32> TBinarizedFeaturesManager::CreateSimpleCtrsForType(ui32 featureId, ECtrType type) {
         CB_ENSURE(UseForCtr(featureId));
         TSet<ui32> resultIds;
 
@@ -183,7 +178,7 @@ namespace NCatboostCuda {
         return TVector<ui32>(resultIds.begin(), resultIds.end());
     }
 
-    TVector<ui32> TBinarizedFeaturesManager::GetAllSimpleCtrs() const  {
+    TVector<ui32> TBinarizedFeaturesManager::GetAllSimpleCtrs() const {
         TVector<ui32> ids;
         for (auto& knownCtr : KnownCtrs) {
             const TCtr& ctr = knownCtr.first;
@@ -220,7 +215,7 @@ namespace NCatboostCuda {
     }
 
     void TBinarizedFeaturesManager::CreateSimpleCtrs(const ui32 featureId, const TSet<TCtrConfig>& configs,
-                                                     TSet<ui32>* resultIds)  {
+                                                     TSet<ui32>* resultIds) {
         for (const auto& ctrConfig : configs) {
             TCtr ctr;
             ctr.FeatureTensor.AddCatFeature(featureId);
@@ -294,7 +289,7 @@ namespace NCatboostCuda {
         return featureIds;
     }
 
-    TVector<ui32> TBinarizedFeaturesManager::GetDataProviderFeatureIds() const  {
+    TVector<ui32> TBinarizedFeaturesManager::GetDataProviderFeatureIds() const {
         TVector<ui32> features;
         for (auto id : GetFloatFeatureIds()) {
             Y_ASSERT(GetBinCount(id));
@@ -316,7 +311,7 @@ namespace NCatboostCuda {
         return simpleCtrs;
     }
 
-    TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtrs() const  {
+    TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtrs() const {
         TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> perFeatureCtrs;
 
         for (const auto& perFeatureCtr : CatFeatureOptions.PerFeatureCtrs.Get()) {
@@ -330,7 +325,7 @@ namespace NCatboostCuda {
         return perFeatureCtrs;
     }
 
-    TMap<ECtrType, TSet<TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtr(ui32 featureId) const  {
+    TMap<ECtrType, TSet<TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtr(ui32 featureId) const {
         CB_ENSURE(IsCat(featureId), "Feature #" << featureId << " is not categorical. Can't create per feature CTRs");
         ui32 featureIdInPool = GetDataProviderId(featureId);
         CB_ENSURE(CatFeatureOptions.PerFeatureCtrs->contains(featureIdInPool), "No perFeatureCtr for feature #" << featureIdInPool << " was found");
@@ -342,7 +337,7 @@ namespace NCatboostCuda {
     }
 
     void TBinarizedFeaturesManager::CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
-                                                                    TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const{
+                                                                    TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const {
         for (const auto& prior : ctrDescription.GetPriors()) {
             ECtrType type = ctrDescription.Type;
             if ((type != ECtrType::Counter) && !HasTargetBinarization()) {
@@ -363,8 +358,8 @@ namespace NCatboostCuda {
 
             if (type == ECtrType::Buckets || type == ECtrType::Borders) {
                 ui32 numBins = (type == ECtrType::Buckets)
-                               ? TargetBorders.size() + 1
-                               : TargetBorders.size();
+                                   ? TargetBorders.size() + 1
+                                   : TargetBorders.size();
                 const ui32 numCtrs = numBins;
 
                 for (ui32 i = 0; i < numCtrs; ++i) {
@@ -383,7 +378,7 @@ namespace NCatboostCuda {
     }
 
     ui32 TBinarizedFeaturesManager::GetOrCreateCtrBinarizationId(
-            const NCatboostOptions::TBinarizationOptions& binarization) const {
+        const NCatboostOptions::TBinarizationOptions& binarization) const {
         for (ui32 i = 0; i < CtrBinarizationOptions.size(); ++i) {
             if (CtrBinarizationOptions[i] == binarization) {
                 return i;

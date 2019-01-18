@@ -6,10 +6,9 @@
 #include <catboost/cuda/cuda_util/bootstrap.h>
 #include <catboost/cuda/cuda_util/helpers.h>
 
-
 namespace NCatboostCuda {
     TAdditiveStatistic TQueryCrossEntropy<NCudaLib::TStripeMapping>::ComputeStats(
-            const TQueryCrossEntropy<NCudaLib::TStripeMapping>::TConstVec& point, double alpha) const {
+        const TQueryCrossEntropy<NCudaLib::TStripeMapping>::TConstVec& point, double alpha) const {
         const auto& cachedData = GetCachedMetadata();
 
         auto funcValue = TStripeBuffer<float>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(1));
@@ -95,7 +94,7 @@ namespace NCatboostCuda {
                                                                      TStripeBuffer<float>* der,
                                                                      TStripeBuffer<float>* pointDer2,
                                                                      TStripeBuffer<float>* groupDer2,
-                                                                     TStripeBuffer<float>* groupSumDer2) const  {
+                                                                     TStripeBuffer<float>* groupSumDer2) const {
         const auto& cachedData = GetCachedMetadata();
 
         QueryCrossEntropy<TMapping>(Alpha,
@@ -113,7 +112,7 @@ namespace NCatboostCuda {
     }
 
     void TQueryCrossEntropy<NCudaLib::TStripeMapping>::CreateSecondDerMatrix(
-            NCudaLib::TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs) const {
+        NCudaLib::TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs) const {
         const auto& cachedData = GetCachedMetadata();
 
         auto matrixOffsets = TCudaBuffer<ui32, TMapping>::CopyMapping(cachedData.FuncValueQidOffsets);
@@ -141,8 +140,8 @@ namespace NCatboostCuda {
     }
 
     void TQueryCrossEntropy<NCudaLib::TStripeMapping>::ApproximateStochastic(
-            const TQueryCrossEntropy<NCudaLib::TStripeMapping>::TConstVec& point,
-            const NCatboostOptions::TBootstrapConfig& bootstrapConfig, TNonDiagQuerywiseTargetDers* target) const {
+        const TQueryCrossEntropy<NCudaLib::TStripeMapping>::TConstVec& point,
+        const NCatboostOptions::TBootstrapConfig& bootstrapConfig, TNonDiagQuerywiseTargetDers* target) const {
         auto& querywiseSampler = GetQueriesSampler();
         const auto meanQuerySize = GetMeanQuerySize();
         const auto& samplesGrouping = TParent::GetSamplesGrouping();

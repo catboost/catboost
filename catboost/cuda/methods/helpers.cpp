@@ -67,7 +67,6 @@ bool NCatboostCuda::HasPermutationDependentSplit(const NCatboostCuda::TOblivious
     return false;
 }
 
-
 TString NCatboostCuda::SplitConditionToString(
     const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
     const NCatboostCuda::TBinarySplit& split) {
@@ -76,7 +75,7 @@ TString NCatboostCuda::SplitConditionToString(
     if (split.SplitType == EBinSplitType::TakeBin) {
         splitTypeMessage = "TakeBin";
     } else {
-        const auto& borders =  featuresManager.GetBorders(split.FeatureId);
+        const auto& borders = featuresManager.GetBorders(split.FeatureId);
         auto nanMode = featuresManager.GetNanMode(split.FeatureId);
         TStringBuilder messageBuilder;
         if (nanMode == ENanMode::Forbidden) {
@@ -102,7 +101,6 @@ TString NCatboostCuda::SplitConditionToString(
     return splitTypeMessage;
 }
 
-
 TString NCatboostCuda::SplitConditionToString(
     const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
     const NCatboostCuda::TBinarySplit& split,
@@ -113,7 +111,7 @@ TString NCatboostCuda::SplitConditionToString(
     if (split.SplitType == EBinSplitType::TakeBin) {
         splitTypeMessage = inverse ? "SkipBin" : "TakeBin";
     } else {
-        const auto& borders =  featuresManager.GetBorders(split.FeatureId);
+        const auto& borders = featuresManager.GetBorders(split.FeatureId);
         auto nanMode = featuresManager.GetNanMode(split.FeatureId);
         TStringBuilder messageBuilder;
         if (nanMode == ENanMode::Forbidden) {
@@ -170,4 +168,3 @@ NCatboostCuda::TBinarySplit NCatboostCuda::ToSplit(const NCatboostCuda::TBinariz
     }
     return bestSplit;
 }
-

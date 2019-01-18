@@ -118,6 +118,7 @@ namespace NCatboostCuda {
         template <NCudaLib::EPtrType PtrType>
         TCompressedCatFeatureDataSetBuilder& AddImpl(ui32 featureId,
                                                      TVector<typename TCompressedCatFeatureDataSet::TCompressedCatFeatureVec<PtrType>>* dst);
+
     private:
         ui32 DevCount;
         TCompressedCatFeatureDataSet& DataSet;

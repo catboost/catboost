@@ -36,7 +36,6 @@ namespace NCatboostCuda {
         bool operator>(const TSplitCandidate& rhs) const;
         bool operator<=(const TSplitCandidate& rhs) const;
         bool operator>=(const TSplitCandidate& rhs) const;
-
     };
 
     struct TPointsSubsets {
@@ -57,7 +56,6 @@ namespace NCatboostCuda {
 
         //existed leaves
         TVector<TLeaf> Leaves; //existed leaves
-
 
         ui32 GetStatCount() const {
             return static_cast<int>(Target.StatsToAggregate.GetColumnCount());
@@ -84,7 +82,8 @@ namespace NCatboostCuda {
             : DataSet(dataSet)
             , FeaturesManager(featuresManager)
             , ComputeByBlocksHelper(helper)
-            , MaxStreamCount(helper.GetStreamCount()) {
+            , MaxStreamCount(helper.GetStreamCount())
+        {
             if (MaxStreamCount > 1) {
                 for (ui32 i = 0; i < MaxStreamCount; ++i) {
                     Streams.push_back(NCudaLib::GetCudaManager().RequestStream());
@@ -103,8 +102,7 @@ namespace NCatboostCuda {
         void MakeSplit(const TVector<ui32>& leafIds,
                        TPointsSubsets* subsets,
                        TVector<ui32>* leftIds,
-                       TVector<ui32>* rightIds
-                       );
+                       TVector<ui32>* rightIds);
 
         void MakeSplit(const TVector<ui32>& leafIds,
                        TPointsSubsets* subsets) {
@@ -121,10 +119,9 @@ namespace NCatboostCuda {
         void MakeSplit(const ui32 leafId,
                        TPointsSubsets* subsets,
                        TVector<ui32>* leftIds,
-                       TVector<ui32>* rightIds
-        );
-    private:
+                       TVector<ui32>* rightIds);
 
+    private:
         bool IsOnlyDefaultStream() const {
             return Streams.size() == 0 || (Streams.size() == 1 && Streams.back().GetId() == 0);
         }

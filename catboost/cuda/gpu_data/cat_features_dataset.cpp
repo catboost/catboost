@@ -17,9 +17,9 @@ namespace NCatboostCuda {
     void TCompressedCatFeatureDataSetBuilder::Finish() {
         CB_ENSURE(!BuildDone, "Error: build could be done only once");
         CATBOOST_INFO_LOG << "Build catFeatures compressed dataset "
-                           << "for "
-                           << DataSet.GetFeatureCount() << " features and " << DataSet.GetDocCount() << " documents"
-                           << Endl;
+                          << "for "
+                          << DataSet.GetFeatureCount() << " features and " << DataSet.GetDocCount() << " documents"
+                          << Endl;
 
         for (ui32 dev = 0; dev < DevCount; ++dev) {
             CATBOOST_INFO_LOG
@@ -34,14 +34,13 @@ namespace NCatboostCuda {
                                                                                       TVector<typename TCompressedCatFeatureDataSet::TCompressedCatFeatureVec<PtrType>>* dst) {
         const ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);
         const auto& catFeature = **(DataProvider.ObjectsData->GetCatFeature(
-            DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(dataProviderId)
-        ));
+            DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(dataProviderId)));
 
         const ui64 docCount = catFeature.GetSize();
 
         auto uncompressedCatFeature = catFeature.ExtractValues(LocalExecutor);
         TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
-                NCudaLib::TSingleMapping(DeviceId, (*uncompressedCatFeature).size()));
+            NCudaLib::TSingleMapping(DeviceId, (*uncompressedCatFeature).size()));
         tmp.Write(*uncompressedCatFeature);
         const auto uniqueValues = FeaturesManager.GetBinCount(featureId);
         const auto compressedSize = CompressedSize<ui64>((ui32)docCount, uniqueValues);

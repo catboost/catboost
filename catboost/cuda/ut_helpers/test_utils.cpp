@@ -131,14 +131,12 @@ void SavePoolCDToFile(const char* filename, ui32 catFeatures) {
     }
 }
 
-
 void LoadTrainingData(NCB::TPathWithScheme poolPath,
                       NCB::TPathWithScheme cdFilePath,
                       const NCatboostOptions::TBinarizationOptions& floatFeaturesBinarization,
                       const NCatboostOptions::TCatFeatureParams& catFeatureParams,
                       NCB::TTrainingDataProviderPtr* trainingData,
                       THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager) {
-
     NCB::TDataProviderPtr dataProvider;
     {
         NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
@@ -183,12 +181,5 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-    (*featuresManager)->SetTargetBorders(
-        NCB::TBordersBuilder(
-            gridBuilderFactory,
-            NCB::GetTarget((*trainingData)->TargetData))(
-                 (*featuresManager)->GetTargetBinarizationDescription()));
-
+    (*featuresManager)->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory, NCB::GetTarget((*trainingData)->TargetData))((*featuresManager)->GetTargetBinarizationDescription()));
 }
-
-

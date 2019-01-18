@@ -1,6 +1,5 @@
 #include "samples_grouping_gpu.h"
 namespace NCatboostCuda {
-
     TGpuSamplesGrouping<NCudaLib::TMirrorMapping> TGpuSamplesGroupingHelper<NCudaLib::TMirrorMapping>::CreateGpuGrouping(const TFeatureParallelDataSet& dataSet,
                                                                                                                          const TSlice& slice) {
         const IQueriesGrouping& grouping = dataSet.GetSamplesGrouping();
@@ -48,8 +47,8 @@ namespace NCatboostCuda {
     }
 
     TGpuSamplesGrouping<NCudaLib::TMirrorMapping>
-            TGpuSamplesGroupingHelper<NCudaLib::TMirrorMapping>::SliceGrouping(const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& grouping,
-                                                                               const TSlice& localSlice)  {
+    TGpuSamplesGroupingHelper<NCudaLib::TMirrorMapping>::SliceGrouping(const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& grouping,
+                                                                       const TSlice& localSlice) {
         CB_ENSURE(localSlice.Size() <= grouping.CurrentDocsSlice.Size());
         TSlice globalSlice;
         globalSlice.Left = localSlice.Left + grouping.CurrentDocsSlice.Left;
@@ -75,8 +74,8 @@ namespace NCatboostCuda {
         groupsSlice.Left = firstGroupId - groupOffset;
         groupsSlice.Right = lastGroupId - groupOffset;
         CB_ENSURE(grouping.Offsets.GetObjectsSlice() == TSlice(0, grouping.Grouping->GetQueryId(
-                grouping.CurrentDocsSlice.Right) -
-                                                                  groupOffset));
+                                                                      grouping.CurrentDocsSlice.Right) -
+                                                                      groupOffset));
 
         TGpuSamplesGrouping<NCudaLib::TMirrorMapping> sliceGrouping(grouping.Grouping,
                                                                     globalSlice,
@@ -101,7 +100,7 @@ namespace NCatboostCuda {
     }
 
     TGpuSamplesGrouping<NCudaLib::TStripeMapping> TGpuSamplesGroupingHelper<NCudaLib::TMirrorMapping>::MakeStripeGrouping(const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& mirrorMapping,
-                                                                                                                          const TCudaBuffer<const ui32, NCudaLib::TStripeMapping>& indices)  {
+                                                                                                                          const TCudaBuffer<const ui32, NCudaLib::TStripeMapping>& indices) {
         CB_ENSURE(indices.GetObjectsSlice() == mirrorMapping.CurrentDocsSlice);
         TSlice docsSlice = indices.GetObjectsSlice();
         docsSlice.Left += mirrorMapping.CurrentDocsSlice.Left;
@@ -152,7 +151,7 @@ namespace NCatboostCuda {
     }
 
     TGpuSamplesGrouping<NCudaLib::TStripeMapping>
-    TGpuSamplesGroupingHelper<NCudaLib::TStripeMapping>::CreateGpuGrouping(const TDocParallelDataSet& dataSet){
+    TGpuSamplesGroupingHelper<NCudaLib::TStripeMapping>::CreateGpuGrouping(const TDocParallelDataSet& dataSet) {
         const IQueriesGrouping& grouping = dataSet.GetSamplesGrouping();
         const NCudaLib::TStripeMapping& samplesMapping = dataSet.GetSamplesMapping();
         const ui32 groupCount = samplesMapping.GetObjectsSlice().Size();

@@ -19,7 +19,8 @@ namespace NCatboostCuda {
     class TBootstrap {
     public:
         TBootstrap(const NCatboostOptions::TBootstrapConfig& config)
-            : Config(config) {
+            : Config(config)
+        {
         }
 
         static void Bootstrap(const NCatboostOptions::TBootstrapConfig& config,
@@ -94,13 +95,11 @@ namespace NCatboostCuda {
             }
         }
 
-
         static bool BootstrapAndFilter(const NCatboostOptions::TBootstrapConfig& config,
                                        TGpuAwareRandom& random,
                                        const TMapping& mapping,
                                        TCudaBuffer<float, TMapping>* bootstrappedWeights,
                                        TCudaBuffer<ui32, TMapping>* bootstrappedIndices) {
-
             CB_ENSURE(mapping.GetObjectsSlice().Size());
             if (config.GetBootstrapType() != EBootstrapType::No) {
                 bootstrappedWeights->Reset(mapping);

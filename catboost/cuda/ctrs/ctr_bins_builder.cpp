@@ -22,9 +22,7 @@ namespace NCatboostCuda {
         return singleDevBuilder;
     }
 
-
     template class TCtrBinBuilder<NCudaLib::TMirrorMapping>;
     template class TCtrBinBuilder<NCudaLib::TSingleMapping>;
-
 
 }

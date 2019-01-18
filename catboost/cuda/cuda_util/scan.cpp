@@ -73,8 +73,7 @@ static void ScanVectorImpl(
     const TCudaBuffer<T, TMapping>& input,
     TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
     bool inclusive,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TScanVectorKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, inclusive, false);
 }
@@ -116,8 +115,7 @@ template <typename T, typename TMapping>
 static void InclusiveSegmentedScanNonNegativeVectorImpl(
     const TCudaBuffer<T, TMapping>& input,
     TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TScanVectorKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, true, true);
 }
@@ -199,8 +197,7 @@ static void SegmentedScanAndScatterNonNegativeVectorImpl(
     const TCudaBuffer<TUi32, TMapping>& indices,
     TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
     bool inclusive,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TNonNegativeSegmentedScanAndScatterVectorKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(inputWithSignMasks.NonEmptyDevices(), streamId, inputWithSignMasks, indices, output, inclusive);
 }

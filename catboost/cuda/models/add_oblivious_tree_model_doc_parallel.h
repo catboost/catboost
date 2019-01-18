@@ -5,8 +5,7 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-
-    template<>
+    template <>
     class TAddModelDocParallel<TObliviousTreeModel> {
     public:
         using TVec = TStripeBuffer<float>;
@@ -23,8 +22,8 @@ namespace NCatboostCuda {
         }
 
         TAddModelDocParallel& AddTask(const TObliviousTreeModel& model,
-                                              const TDataSet& dataSet,
-                                              TStripeBuffer<float>& cursor);
+                                      const TDataSet& dataSet,
+                                      TStripeBuffer<float>& cursor);
 
         void Proceed();
 
@@ -47,8 +46,6 @@ namespace NCatboostCuda {
         TVector<ui8> FeatureBins;
         NCudaLib::TParallelStripeVectorBuilder<TCFeature> FeaturesBuilder;
     };
-
-
 
     void ComputeBinsForModel(const TObliviousTreeStructure& structure,
                              const TDocParallelDataSet& dataSet,

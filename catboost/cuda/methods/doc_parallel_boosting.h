@@ -21,7 +21,6 @@
 
 #include <util/stream/format.h>
 
-
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate,
               class TWeakLearner_>
@@ -382,7 +381,8 @@ namespace NCatboostCuda {
             , Config(config)
             , TargetOptions(targetOptions)
             , LocalExecutor(localExecutor)
-        {}
+        {
+        }
 
         virtual ~TBoosting() = default;
 

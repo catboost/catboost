@@ -3,7 +3,6 @@
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
 
-
 void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
                                                                       TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* learnCtrs,
                                                                       TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* testCtrs) {
@@ -216,8 +215,7 @@ TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedB
     const ui32 featureId = FeaturesManager.GetDataProviderId(featureManagerFeatureId);
 
     const auto& catFeature = **(dataProvider.ObjectsData->GetCatFeature(
-        dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(featureId)
-    ));
+        dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(featureId)));
     auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
     const ui32 uniqueValues = FeaturesManager.GetBinCount(featureManagerFeatureId);
     auto compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));

@@ -25,6 +25,7 @@ namespace NCatboostCuda {
 
         TFeatureParallelDataSetsHolder BuildDataSet(const ui32 permutationCount,
                                                     NPar::TLocalExecutor* localExecutor);
+
     private:
         void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder& dataSetsHolder,
                                        const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget);

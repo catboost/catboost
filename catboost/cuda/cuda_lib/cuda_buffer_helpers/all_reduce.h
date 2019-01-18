@@ -19,7 +19,7 @@ namespace NCudaLib {
 
     template <class T>
     inline TVector<std::remove_const_t<T>> ReadReduce(const TStripeBuffer<T>& tmp,
-                                 ui32 stream = 0) {
+                                                      ui32 stream = 0) {
         using T_ = std::remove_const_t<T>;
         auto objectsSlice = tmp.GetMapping().DeviceSlice(0);
         TVector<T_> result;

@@ -63,7 +63,6 @@ namespace NCatboostCuda {
                          const NCB::TObjectsGrouping& objectsGrouping,
                          TConstArrayRef<TQueryInfo> groupInfos,
                          bool hasPairs) {
-
             QueryIds.resize(objectPermutation.size());
 
             size_t atLeastTwoDocQueriesCount = 0;

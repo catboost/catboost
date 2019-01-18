@@ -14,7 +14,6 @@
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/quantization/grid_creator.h>
 
-
 using namespace std;
 using namespace NCatboostCuda;
 

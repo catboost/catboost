@@ -19,19 +19,17 @@ template <class TFloat, class TMapping>
 static double ComputeAucImpl(
     const TCudaBuffer<TFloat, TMapping>& target,
     const TCudaBuffer<TFloat, TMapping>& weights,
-    const TCudaBuffer<TFloat, TMapping>& cursor)
-{
+    const TCudaBuffer<TFloat, TMapping>& cursor) {
     auto singleDevMapping = NCudaLib::TSingleMapping(0, target.GetObjectsSlice().Size());
 
-    auto singleDevTarget =  TSingleBuffer<float>::Create(singleDevMapping);
+    auto singleDevTarget = TSingleBuffer<float>::Create(singleDevMapping);
     Reshard(target, singleDevTarget);
 
     auto singleDevCursor = TSingleBuffer<float>::Create(singleDevMapping);
     Reshard(cursor, singleDevCursor);
 
-    auto singleDevWeights =  TSingleBuffer<float>::Create(singleDevMapping);
+    auto singleDevWeights = TSingleBuffer<float>::Create(singleDevMapping);
     Reshard(weights, singleDevWeights);
-
 
     double auc = 0;
 
@@ -100,8 +98,7 @@ static double ComputeAucImpl(
     double NCatboostCuda::ComputeAUC<T, TMapping>(        \
         const TCudaBuffer<T, TMapping>& target,           \
         const TCudaBuffer<T, TMapping>& weights,          \
-        const TCudaBuffer<T, TMapping>& cursor)           \
-    {                                                     \
+        const TCudaBuffer<T, TMapping>& cursor) {         \
         return ::ComputeAucImpl(target, weights, cursor); \
     }
 

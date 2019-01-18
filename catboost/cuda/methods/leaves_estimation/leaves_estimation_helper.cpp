@@ -6,9 +6,7 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 namespace NCatboostCuda {
-
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
                       ui32 binCount,
                       TStripeBuffer<uint2>* pairs,
@@ -60,7 +58,6 @@ namespace NCatboostCuda {
     TVector<double> ComputeBinStatisticsForParts(const TStripeBuffer<float>& stat,
                                                  const TStripeBuffer<ui32>& partOffsets,
                                                  ui32 partCount) {
-
         auto reducedStatsMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(partCount);
         auto reducedStat = TStripeBuffer<double>::Create(reducedStatsMapping);
         ComputePartitionStats(stat, NCudaLib::ParallelStripeView(partOffsets, TSlice(0, partCount + 1)), &reducedStat);
@@ -123,6 +120,5 @@ namespace NCatboostCuda {
         Gather(tmp, weights, *orderByPart);
         (*pointLeafWeights) = ComputeBinStatisticsForParts(tmp, *partOffsets, binCount);
     }
-
 
 }

@@ -19,7 +19,7 @@ namespace NCudaLib {
 
 }
 
-void TMakeLinearSystemKernel::Run(const TCudaStream& stream) const  {
+void TMakeLinearSystemKernel::Run(const TCudaStream& stream) const {
     const ui32 systemSize = LinearSystem.ObjectSize();
     const ui32 rowSize = GetRowSizeFromLinearSystemSize(systemSize);
     CB_ENSURE(rowSize > 1, systemSize);
@@ -61,12 +61,12 @@ void TExtractMatricesAndTargetsKernel::Run(const TCudaStream& stream) const {
                                        stream.GetStream());
 }
 
-void TZeroMeanKernel::Run(const TCudaStream& stream) const  {
+void TZeroMeanKernel::Run(const TCudaStream& stream) const {
     const ui32 rowSize = Solutions.ObjectSize();
     NKernel::ZeroMean(Solutions.GetForObject(SolutionsSlice.Left), rowSize, SolutionsSlice.Size(), stream.GetStream());
 }
 
-void TCholeskySolverKernel::Run(const TCudaStream& stream) const{
+void TCholeskySolverKernel::Run(const TCudaStream& stream) const {
     const ui32 rowSize = Solutions.ObjectSize();
     CB_ENSURE(rowSize * (rowSize + 1) / 2 == Matrices.ObjectSize());
     CB_ENSURE(Matrices.ObjectCount() == SolutionsSlice.Size());
@@ -85,7 +85,7 @@ void TCholeskySolverKernel::Run(const TCudaStream& stream) const{
     }
 }
 
-void TCalcScoresKernel::Run(const TCudaStream& stream) const  {
+void TCalcScoresKernel::Run(const TCudaStream& stream) const {
     const ui32 matrixCount = LinearSystem.ObjectCount();
     const ui32 rowSize = Solutions.ObjectSize();
     CB_ENSURE(BinFeaturesSlice.Size() == SolutionsSlice.Size());
@@ -104,7 +104,7 @@ void TCalcScoresKernel::Run(const TCudaStream& stream) const  {
                         stream.GetStream());
 }
 
-void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const  {
+void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const {
     if (Depth == 0) {
         Y_VERIFY(FullPass);
     }

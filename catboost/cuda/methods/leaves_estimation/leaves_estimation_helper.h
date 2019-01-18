@@ -7,8 +7,6 @@
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
 
 namespace NCatboostCuda {
-
-
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
                       ui32 binCount,
                       TStripeBuffer<uint2>* pairs,
@@ -22,8 +20,8 @@ namespace NCatboostCuda {
                             TStripeBuffer<float>* pairWeights);
 
     TVector<double> ComputeBinStatisticsForParts(const TStripeBuffer<float>& stat,
-                                                const TStripeBuffer<ui32>& partOffsets,
-                                                ui32 partCount);
+                                                 const TStripeBuffer<ui32>& partOffsets,
+                                                 ui32 partCount);
 
     void ComputeByLeafOrder(const TStripeBuffer<const ui32>& bins, ui32 binCount,
                             TStripeBuffer<ui32>* binOffsets,

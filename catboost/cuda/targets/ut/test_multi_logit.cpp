@@ -13,8 +13,6 @@ using namespace std;
 using namespace NCudaLib;
 
 Y_UNIT_TEST_SUITE(TMultiLogitTests) {
-
-
     template <class T1, class T2, class TMapping>
     static inline void AssertDoubleEqual(const TVector<T1>& ref, const TCudaBuffer<T2, TMapping>& gpu, double eps, TString messagePrefix) {
         TVector<T2> tmp;
@@ -25,7 +23,6 @@ Y_UNIT_TEST_SUITE(TMultiLogitTests) {
             UNIT_ASSERT_DOUBLES_EQUAL_C(static_cast<double>(ref[i]), static_cast<double>(tmp[i]), eps, TStringBuilder() << messagePrefix << " " << i << " " << tmp[i] << " " << ref[i]);
         }
     }
-
 
     void TestMultiLogitImpl(ui64 seed, ui32 docCount, ui32 numClasses, double minApprox = -50, double maxApprox = 50) {
         TRandom random(seed);
@@ -38,7 +35,6 @@ Y_UNIT_TEST_SUITE(TMultiLogitTests) {
 
             auto docsMapping = TStripeMapping::SplitBetweenDevices(docCount);
 
-
             double funcValueRef = 0;
             double totalWeight = 0;
             TVector<float> derRef;
@@ -49,7 +45,7 @@ Y_UNIT_TEST_SUITE(TMultiLogitTests) {
             for (ui32 doc = 0; doc < docCount; ++doc) {
                 targets.push_back(random.NextUniformL() % numClasses);
                 weights.push_back(1.0f / (1 << (random.NextUniformL() % 3)));
-//                weights.push_back(1.0);
+                //                weights.push_back(1.0);
                 totalWeight += weights.back();
                 for (ui32 i = 0; i < (numClasses - 1); ++i) {
                     cursor.push_back(random.NextUniform() * (maxApprox - minApprox) + minApprox);
@@ -96,7 +92,7 @@ Y_UNIT_TEST_SUITE(TMultiLogitTests) {
                             der2Ref[i][doc + j * docCount] = -weight * pi * pj;
                         }
                         if (i == j) {
-                            der2Ref[i][doc + j * docCount] = weight * pi * (1.0f  - pi);
+                            der2Ref[i][doc + j * docCount] = weight * pi * (1.0f - pi);
                         }
                     }
                 }
@@ -123,13 +119,12 @@ Y_UNIT_TEST_SUITE(TMultiLogitTests) {
             }
             UNIT_ASSERT_DOUBLES_EQUAL_C(value / totalWeight, funcValueRef / totalWeight, 1e-5, TStringBuilder() << value << " " << funcValueRef);
 
-
             const double eps = 1e-5;
             AssertDoubleEqual(derRef, der, eps, "der");
 
             for (ui32 row = 0; row < numClasses - 1; ++row) {
                 FillBuffer(der, 0.0f);
-                MultiLogitSecondDerRow(targetsGpu,  weightsGpu, approxGpu, numClasses, row, &der);
+                MultiLogitSecondDerRow(targetsGpu, weightsGpu, approxGpu, numClasses, row, &der);
                 AssertDoubleEqual(der2Ref[row], der, eps, TStringBuilder() << "der2_" << row);
             }
         }

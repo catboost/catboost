@@ -2,7 +2,7 @@
 
 TBetaPriorEstimator::TBetaPrior
 TBetaPriorEstimator::EstimateBetaPrior(const TBetaPriorEstimator::TClassesType* classes, const ui32* bins, ui32 length,
-                                       size_t uniqueValues, ui32 iterations, double* resultLikelihood){
+                                       size_t uniqueValues, ui32 iterations, double* resultLikelihood) {
     TBetaPrior cursor = {0.5, 0.5};
     TVector<double> positiveCounts(uniqueValues);
     TVector<double> totalCounts(uniqueValues);
@@ -84,7 +84,7 @@ double TBetaPriorEstimator::Likelihood(const TVector<double>& positiveCounts, co
 
 TBetaPriorEstimator::TDerivatives
 TBetaPriorEstimator::DerAndDer2(const TVector<double>& positiveCounts, const TVector<double>& counts,
-                                const TBetaPriorEstimator::TBetaPrior& point)  {
+                                const TBetaPriorEstimator::TBetaPrior& point) {
     TDerivatives derivatives{};
     const int k = static_cast<const int>(positiveCounts.size());
     for (int i = 0; i < k; ++i) {

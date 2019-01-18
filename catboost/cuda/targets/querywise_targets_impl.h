@@ -12,7 +12,6 @@
 #include <catboost/cuda/cuda_util/transform.h>
 
 namespace NCatboostCuda {
-
     template <class TDocLayout>
     class TQuerywiseTargetsImpl: public TQuerywiseTarget<TDocLayout> {
     public:
@@ -149,8 +148,7 @@ namespace NCatboostCuda {
                            const TVec& sampledWeights,
                            TBuffer<ui32>&& sampledIndices,
                            bool secondDerAsWeights,
-                           TOptimizationTarget* target) const  {
-
+                           TOptimizationTarget* target) const {
             auto der = TVec::CopyMapping(point);
             auto der2OrWeights = TVec::CopyMapping(point);
 
@@ -159,7 +157,6 @@ namespace NCatboostCuda {
             } else {
                 NewtonAt(point, der, der2OrWeights);
             }
-
 
             target->StatsToAggregate.Reset(sampledWeights.GetMapping(), 2);
             auto weightsColumn = target->StatsToAggregate.ColumnView(0);

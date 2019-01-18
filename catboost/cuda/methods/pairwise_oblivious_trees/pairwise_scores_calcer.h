@@ -11,8 +11,7 @@ namespace NCatboostCuda {
                                                                    const TCompressedDataSet<TDocParallelLayout>& dataSet,
                                                                    const TPairwiseOptimizationSubsets& subsets,
                                                                    const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                                                                   TRandom& random
-    ) {
+                                                                   TRandom& random) {
         return new TComputePairwiseScoresHelper(policy,
                                                 dataSet,
                                                 subsets,
@@ -20,8 +19,7 @@ namespace NCatboostCuda {
                                                 treeConfig.MaxDepth,
                                                 treeConfig.L2Reg,
                                                 treeConfig.PairwiseNonDiagReg,
-                                                treeConfig.Rsm
-        );
+                                                treeConfig.Rsm);
     };
 
     struct TBestSplitResult {
@@ -54,8 +52,7 @@ namespace NCatboostCuda {
                                                         Features,
                                                         Subsets,
                                                         TreeConfig,
-                                                        random
-                    );
+                                                        random);
                 }
             }
         }

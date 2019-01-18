@@ -50,8 +50,7 @@ namespace {
 template <class T, class TMapping>
 static void DumpPtrImpl(
     const TCudaBuffer<T, TMapping>& data,
-    const TString& message)
-{
+    const TString& message) {
     using TKernel = ::TDumpPtrs<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(data.NonEmptyDevices(), 0, data, message);
 };
@@ -64,7 +63,6 @@ static void DumpPtrImpl(
     void DumpPtr(const TCudaBuffer<T, TMapping>& data, const TString& message) { \
         ::DumpPtrImpl(data, message);                                            \
     };
-
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,
@@ -140,10 +138,10 @@ static TDistributedObject<std::remove_const_t<T>> TailImpl(const TCudaBuffer<T, 
     return res;
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL(T)                                                            \
-    template <>                                                                              \
+#define Y_CATBOOST_CUDA_F_IMPL(T)                                                                                 \
+    template <>                                                                                                   \
     TDistributedObject<std::remove_const_t<T>> Tail<T>(const TCudaBuffer<T, TStripeMapping>& data, ui32 stream) { \
-        return ::TailImpl(data, stream);                                                     \
+        return ::TailImpl(data, stream);                                                                          \
     }
 
 Y_MAP_ARGS(
@@ -151,8 +149,7 @@ Y_MAP_ARGS(
     ui32,
     const ui32,
     ui64,
-    const ui64
-    );
+    const ui64);
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 
@@ -201,8 +198,7 @@ TStripeMapping CreateMappingFromTailImpl(
     const TCudaBuffer<T, TStripeMapping>& data,
     ui32 additionalData,
     ui32 objectSize,
-    ui32 stream)
-{
+    ui32 stream) {
     auto tailSizes = Tail(data, stream);
     NCudaLib::TMappingBuilder<TStripeMapping> builder;
     for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {

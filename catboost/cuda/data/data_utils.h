@@ -13,9 +13,7 @@
 
 #include <numeric>
 
-
 namespace NCatboostCuda {
-
     void GroupSamples(TConstArrayRef<TGroupId> qid, TVector<TVector<ui32>>* qdata);
 
     inline TVector<TVector<ui32>> GroupSamples(TConstArrayRef<TGroupId> qid) {

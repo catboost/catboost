@@ -10,7 +10,6 @@
 #include <util/generic/algorithm.h>
 
 namespace NCatboostCuda {
-
     namespace {
         struct TPointWithFuncInfo {
             int HessianBlockSize = 0;
@@ -21,8 +20,8 @@ namespace NCatboostCuda {
             TVector<double> Hessian;
 
             explicit TPointWithFuncInfo(int hessianBlockSize)
-            : HessianBlockSize(hessianBlockSize) {
-
+                : HessianBlockSize(hessianBlockSize)
+            {
             }
 
             double GradientNorm() const {
@@ -92,12 +91,11 @@ namespace NCatboostCuda {
             void UpdateMoveDirectionBlockedHessian() {
                 const ui32 numBlocks = CurrentPoint.Gradient.size() / CurrentPoint.HessianBlockSize;
                 const ui32 rowSize = CurrentPoint.HessianBlockSize;
-                CB_ENSURE(rowSize * rowSize  * numBlocks == CurrentPoint.Hessian.size(), rowSize << " " << numBlocks);
+                CB_ENSURE(rowSize * rowSize * numBlocks == CurrentPoint.Hessian.size(), rowSize << " " << numBlocks);
                 CB_ENSURE(rowSize * numBlocks == CurrentPoint.Point.size());
 
                 MoveDirection.resize(rowSize * numBlocks);
                 NPar::ParallelFor(*LocalExecutor, 0, numBlocks, [&](ui32 blockId) {
-
                     TVector<double> sigma(rowSize * rowSize);
                     TVector<double> solution(rowSize);
 
@@ -113,10 +111,11 @@ namespace NCatboostCuda {
                                               &solution);
 
                     for (size_t i = 0; i < solution.size(); ++i) {
-                        MoveDirection[blockId  * rowSize + i] = (float) solution[i];
+                        MoveDirection[blockId * rowSize + i] = (float)solution[i];
                     }
                 });
             }
+
         private:
             TPointWithFuncInfo CurrentPoint;
             TVector<float> MoveDirection;
@@ -125,11 +124,9 @@ namespace NCatboostCuda {
         };
     }
 
-
     TVector<float> TNewtonLikeWalker::Estimate(
         TVector<float> startPoint,
         NPar::TLocalExecutor* localExecutor) {
-
         startPoint.resize(Oracle.PointDim());
         const int hessianBlockSize = Oracle.HessianBlockSize();
 
@@ -145,8 +142,7 @@ namespace NCatboostCuda {
 
                 return point;
             }(),
-            localExecutor
-        );
+            localExecutor);
 
         if (Iterations == 1) {
             TVector<float> result;
@@ -191,8 +187,8 @@ namespace NCatboostCuda {
                     double gradNorm = nextPointWithFuncInfo.GradientNorm();
 
                     CATBOOST_DEBUG_LOG
-                    << "Next point gradient norm: " << gradNorm << " Func value: " << nextPointWithFuncInfo.Value
-                    << " Moved with step: " << step << Endl;
+                        << "Next point gradient norm: " << gradNorm << " Func value: " << nextPointWithFuncInfo.Value
+                        << " Moved with step: " << step << Endl;
                     estimator.NextPoint(nextPointWithFuncInfo);
                     ++iteration;
                     updated = true;

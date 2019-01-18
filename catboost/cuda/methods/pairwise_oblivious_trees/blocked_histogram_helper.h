@@ -18,8 +18,7 @@ namespace NCatboostCuda {
         TBlockedHistogramsHelper(EFeaturesGroupingPolicy policy,
                                  ui32 depth,
                                  const TCpuGrid& grid,
-                                 int maxStreamCount
-        )
+                                 int maxStreamCount)
             : Policy(policy)
             , Depth(depth)
             , Grid(grid)
@@ -33,7 +32,6 @@ namespace NCatboostCuda {
         NCudaLib::TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping, Type> GetFeatures(const NCudaLib::TCudaBuffer<T, NCudaLib::TStripeMapping, Type>& features, ui32 block) const {
             return NCudaLib::ParallelStripeView(features, FeatureSlices[block]);
         }
-
 
         TFoldsHistogram ComputeFoldsHistogram(ui32 block) const {
             return Grid.ComputeFoldsHistogram(FeatureSlices[block]);

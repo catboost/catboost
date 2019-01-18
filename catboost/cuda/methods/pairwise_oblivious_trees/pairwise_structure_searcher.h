@@ -9,8 +9,7 @@
 #include <catboost/cuda/cuda_util/gpu_random.h>
 
 namespace NCatboostCuda {
-
-    class IPairwiseTargetWrapper : public TNonCopyable {
+    class IPairwiseTargetWrapper: public TNonCopyable {
     public:
         virtual ~IPairwiseTargetWrapper() {
         }
@@ -23,12 +22,11 @@ namespace NCatboostCuda {
     };
 
     template <class TTargetFunc>
-    class TPairwiseTargetWrapper : public IPairwiseTargetWrapper {
+    class TPairwiseTargetWrapper: public IPairwiseTargetWrapper {
     public:
-
         TPairwiseTargetWrapper(const TTargetFunc& target)
-                : Target(target) {
-
+            : Target(target)
+        {
         }
 
         TGpuAwareRandom& GetRandom() const final {
@@ -40,10 +38,10 @@ namespace NCatboostCuda {
                                           TNonDiagQuerywiseTargetDers* result) const final {
             Target.ComputeStochasticDerivatives(bootstrapConfig, isGradient, result);
         }
+
     private:
         const TTargetFunc& Target;
     };
-
 
     class TPairwiseObliviousTreeSearcher {
     public:

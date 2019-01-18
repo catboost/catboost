@@ -5,7 +5,6 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 
 namespace NCatboostCuda {
-
     TObliviousTreeModel
     TDocParallelObliviousTreeSearcher::FitImpl(const TDocParallelObliviousTreeSearcher::TDataSet& dataSet,
                                                const IStripeTargetWrapper& objective) {
@@ -141,7 +140,7 @@ namespace NCatboostCuda {
     }
 
     TVector<float> TDocParallelObliviousTreeSearcher::ReadAndEstimateLeaves(
-            const TCudaBuffer<TPartitionStatistics, NCudaLib::TMirrorMapping>& parts)  {
+        const TCudaBuffer<TPartitionStatistics, NCudaLib::TMirrorMapping>& parts) {
         TVector<TPartitionStatistics> statCpu;
         parts.Read(statCpu);
         return EstimateLeaves(statCpu);
@@ -182,11 +181,9 @@ namespace NCatboostCuda {
                                      target->Weights);
         }
 
-
         (*scoreStdDev) = ComputeScoreStdDev(ModelLengthMultiplier,
                                             TreeConfig.RandomStrength,
                                             *target);
-
 
         indices->Reset(target->WeightedTarget.GetMapping());
         objective.GetTarget().WriteIndices(*indices);

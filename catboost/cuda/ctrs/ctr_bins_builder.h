@@ -13,7 +13,6 @@
 #include <catboost/libs/helpers/math_utils.h>
 
 namespace NCatboostCuda {
-
     template <class TMapping>
     class TCtrBinBuilder {
     public:
@@ -169,7 +168,6 @@ namespace NCatboostCuda {
         //this function compute pure freq, not weighted one like binFreqCalcer. As a result, it much faster
         TCtrBinBuilder<TMapping>& VisitEqualUpToPriorFreqCtrs(const TVector<NCB::TCtrConfig>& ctrConfigs,
                                                               TVisitor& visitor) {
-
             //TODO(noxoomo): change tempFlags to ui8
             Tmp.Reset(Indices.GetMapping());
             Bins.Reset(Indices.GetMapping());

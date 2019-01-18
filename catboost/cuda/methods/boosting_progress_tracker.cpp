@@ -62,8 +62,7 @@ namespace NCatboostCuda {
         }
 
         if (HasTest && IsSkipOnTestFlags[0]) {
-            CATBOOST_WARNING_LOG << "Warning: Eval metric " << Metrics[0]->GetMetricDescription() <<
-                " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
+            CATBOOST_WARNING_LOG << "Warning: Eval metric " << Metrics[0]->GetMetricDescription() << " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
         }
     }
 
@@ -177,7 +176,7 @@ namespace NCatboostCuda {
             throw;
         } catch (...) {
             CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << OutputFiles.SnapshotFile << " exception: "
-                                  << CurrentExceptionMessage() << Endl;
+                                 << CurrentExceptionMessage() << Endl;
             return;
         }
 
@@ -210,9 +209,8 @@ namespace NCatboostCuda {
                 TProfileResults(History.TimeHistory[iteration].PassedTime, History.TimeHistory[iteration].RemainingTime),
                 LearnToken,
                 TestTokens,
-                /*outputErrors*/ShouldCalcMetricOnIteration(iteration),
-                &Logger
-            );
+                /*outputErrors*/ ShouldCalcMetricOnIteration(iteration),
+                &Logger);
         }
     }
 

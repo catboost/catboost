@@ -18,7 +18,6 @@
 #include <util/generic/utility.h>
 #include <util/system/compiler.h>
 
-
 namespace NCatboostCuda {
     template <class TSamplesMapping>
     class TPFoundF;
@@ -89,7 +88,6 @@ namespace NCatboostCuda {
             return false;
         }
 
-
         ELossFunction GetScoreMetricType() const {
             return ELossFunction::PFound;
         }
@@ -143,7 +141,5 @@ namespace NCatboostCuda {
         ui32 PermutationCount = 10;
         float Decay = 0.99;
     };
-
-
 
 }

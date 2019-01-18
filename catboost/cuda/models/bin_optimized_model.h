@@ -3,11 +3,9 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-
     class IBinOptimizedModel {
     public:
         virtual ~IBinOptimizedModel() {
-
         }
 
         virtual ui32 BinCount() const = 0;
@@ -21,9 +19,5 @@ namespace NCatboostCuda {
 
         virtual void ComputeBins(const TDocParallelDataSet& dataSet,
                                  TStripeBuffer<ui32>* dst) const = 0;
-
-
-
-
     };
 }

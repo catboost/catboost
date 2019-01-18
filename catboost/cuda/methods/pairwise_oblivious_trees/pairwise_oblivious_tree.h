@@ -40,7 +40,7 @@ namespace NCatboostCuda {
         TDocParallelLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
             return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig,
-                                                                           ZeroAverage));
+                                                                            ZeroAverage));
         }
 
         template <class TDataSet>

@@ -37,7 +37,6 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-
     Y_UNIT_TEST(TestRunKernelInStreamsPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
@@ -89,7 +88,6 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
             }
         }
     }
-
 
     Y_UNIT_TEST(TestMemcpyPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();

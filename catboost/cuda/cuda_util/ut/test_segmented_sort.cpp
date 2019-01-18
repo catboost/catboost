@@ -70,15 +70,12 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
         }
     }
 
-
-
     Y_UNIT_TEST(TestSegmentedSortNonContinous) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
             TRandom rand(0);
             SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
-
 
             for (ui32 size = 10000; size < 10000001; size *= 10) {
                 for (ui32 k = 0; k < tries; ++k) {
@@ -91,15 +88,13 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
                     TVector<ui32> segmentValues(size);
 
                     Iota(segmentKeys.begin(), segmentKeys.end(), 0);
-                    for (ui32 i  = 0; i < size; ++i) {
+                    for (ui32 i = 0; i < size; ++i) {
                         segmentValues[i] = (10 * i);
                     }
-
 
                     const ui32 segmentSize = 21;
 
                     for (ui32 i = 0; i < partCount; ++i) {
-
                         ui32 start = (size / (partCount + 1)) * i;
                         ui32 end = Min(size, start + segmentSize);
                         segmentStarts.push_back(start);
@@ -122,7 +117,6 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
 
                     auto keys = TSingleBuffer<ui32>::Create(mapping);
                     auto tmpKeys = TSingleBuffer<ui32>::Create(mapping);
-
 
                     auto values = TSingleBuffer<ui32>::Create(mapping);
                     auto tmpValues = TSingleBuffer<ui32>::Create(mapping);
@@ -165,7 +159,6 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
             TRandom rand(0);
             SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
 
-
             for (ui32 size = 10000; size < 10000001; size *= 10) {
                 for (ui32 k = 0; k < tries; ++k) {
                     const ui32 partCount = 1;
@@ -176,7 +169,7 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
                     TVector<ui32> segmentKeys(size);
                     TVector<ui32> segmentValues(size);
 
-                    for (ui32 i  = 0; i < size; ++i) {
+                    for (ui32 i = 0; i < size; ++i) {
                         segmentValues[i] = (10 * (size - i - 1));
                         segmentKeys[i] = ((size - i - 1));
                     }
@@ -185,7 +178,6 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
 
                     auto keys = TSingleBuffer<ui32>::Create(mapping);
                     auto tmpKeys = TSingleBuffer<ui32>::Create(mapping);
-
 
                     auto values = TSingleBuffer<ui32>::Create(mapping);
                     auto tmpValues = TSingleBuffer<ui32>::Create(mapping);

@@ -15,7 +15,6 @@ static void ValidateParameters(
     const TConstArrayRef<TLeafPath> leaves,
     const TConstArrayRef<double> leafWeights,
     const TConstArrayRef<TVector<float>> leafValues) {
-
     CB_ENSURE(!leaves.empty(), "Error: empty tree");
 
     const auto depth = leaves.front().Splits.size();
@@ -35,12 +34,10 @@ static void ValidateParameters(
 }
 
 namespace NCatboostCuda {
-
     template <>
     TObliviousTreeModel BuildTreeLikeModel<TObliviousTreeModel>(const TVector<TLeafPath>& leaves,
                                                                 const TVector<double>& leafWeights,
                                                                 const TVector<TVector<float>>& leafValues) {
-
         ValidateParameters(leaves, leafWeights, leafValues);
 
         const auto depth = leaves.front().Splits.size();
@@ -71,7 +68,7 @@ namespace NCatboostCuda {
         for (size_t i = 0; i < leavesCount; ++i) {
             ui32 bin = binIds[i];
             resultWeights[bin] = leafWeights[i];
-            for (size_t dim  = 0; dim < outputDimention; ++dim) {
+            for (size_t dim = 0; dim < outputDimention; ++dim) {
                 resultValues[bin * outputDimention + dim] = leafValues[i][dim];
             }
         }
@@ -98,8 +95,7 @@ namespace NCatboostCuda {
         return true;
     }
 
-
-    template<>
+    template <>
     TRegionModel BuildTreeLikeModel<TRegionModel>(const TVector<TLeafPath>& leaves,
                                                   const TVector<double>& leafWeights,
                                                   const TVector<TVector<float>>& leafValues) {
@@ -110,8 +106,7 @@ namespace NCatboostCuda {
         std::vector<ui32> sortedByDepthIds(leaves.size());
         Iota(sortedByDepthIds.begin(), sortedByDepthIds.end(), 0);
         Sort(sortedByDepthIds.begin(), sortedByDepthIds.end(), [&](const ui32 left, const ui32 right) -> bool {
-            return leaves[left].GetDepth() < leaves[right].GetDepth()
-                || (leaves[left].GetDepth() == leaves[right].GetDepth() && leaves[left].Directions.back() < leaves[right].Directions.back());
+            return leaves[left].GetDepth() < leaves[right].GetDepth() || (leaves[left].GetDepth() == leaves[right].GetDepth() && leaves[left].Directions.back() < leaves[right].Directions.back());
         });
 
         TLeafPath regionPath = leaves[sortedByDepthIds.back()];
@@ -141,28 +136,27 @@ namespace NCatboostCuda {
         return TRegionModel(std::move(structure), regionValues, regionWeights, outputDim);
     }
 
-
-
     class TFlatTreeBuilder {
     public:
-
         enum class EDuplicateTerminalLeavesPolicy {
             Combine,
             Exception
         };
 
         explicit TFlatTreeBuilder(EDuplicateTerminalLeavesPolicy policy)
-        : Policy(policy) {
-
+            : Policy(policy)
+        {
         }
-
 
         struct TLeaf {
             double Weight;
             TVector<float> Values;
 
             TLeaf(double weight, const TVector<float>& values)
-                : Weight(weight), Values(values) {}
+                : Weight(weight)
+                , Values(values)
+            {
+            }
         };
 
         struct TNode {
@@ -170,15 +164,14 @@ namespace NCatboostCuda {
             TSimpleSharedPtr<TNode> Right;
 
             explicit TNode(TBinarySplit split)
-            : Value(split) {
-
+                : Value(split)
+            {
             }
 
             TNode(double weight, const TVector<float>& values)
-                : Value(TLeaf(weight, values)) {
-
+                : Value(TLeaf(weight, values))
+            {
             }
-
 
             TLeaf& GetLeaf() {
                 return Get<TLeaf>(Value);
@@ -189,7 +182,7 @@ namespace NCatboostCuda {
             }
 
             bool IsTerminal() const {
-               return HoldsAlternative<TLeaf>(Value);
+                return HoldsAlternative<TLeaf>(Value);
             };
 
             TVariant<TLeaf, TBinarySplit> Value;
@@ -215,7 +208,7 @@ namespace NCatboostCuda {
                         cursor = &(*cursor)->Left;
                         break;
                     }
-                    case ESplitValue::One : {
+                    case ESplitValue::One: {
                         cursor = &(*cursor)->Right;
                         break;
                     }
@@ -253,7 +246,6 @@ namespace NCatboostCuda {
         }
 
     private:
-
         ui64 Visit(TNodePtr cursor,
                    TVector<TTreeNode>* flatNodes,
                    TVector<EBinSplitType>* flatSplitTypes,
@@ -285,12 +277,13 @@ namespace NCatboostCuda {
                 return leftSubtree + rightSubtree;
             }
         }
+
     private:
         TSimpleSharedPtr<TNode> Root;
         EDuplicateTerminalLeavesPolicy Policy;
     };
 
-    template<>
+    template <>
     TNonSymmetricTree BuildTreeLikeModel<TNonSymmetricTree>(const TVector<TLeafPath>& leaves,
                                                             const TVector<double>& leavesWeight,
                                                             const TVector<TVector<float>>& leavesValues) {

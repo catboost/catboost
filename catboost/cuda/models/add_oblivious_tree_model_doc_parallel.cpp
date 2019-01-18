@@ -3,7 +3,6 @@
 #include <catboost/cuda/cuda_lib/read_and_write_helpers.h>
 
 namespace NCatboostCuda {
-
     namespace {
         class TComputeLeavesDocParallel {
         public:
@@ -107,8 +106,8 @@ namespace NCatboostCuda {
 
     }
     TAddModelDocParallel<TObliviousTreeModel>& TAddModelDocParallel<TObliviousTreeModel>::AddTask(const TObliviousTreeModel& model,
-                                                                        const TAddModelDocParallel<TObliviousTreeModel>::TDataSet& dataSet,
-                                                                        TStripeBuffer<float>& cursor) {
+                                                                                                  const TAddModelDocParallel<TObliviousTreeModel>::TDataSet& dataSet,
+                                                                                                  TStripeBuffer<float>& cursor) {
         if (CompressedIndex == nullptr) {
             CompressedIndex = &dataSet.GetCompressedIndex();
         } else {
@@ -187,15 +186,14 @@ namespace NCatboostCuda {
     }
 
     void TAddModelDocParallel<TObliviousTreeModel>::Append(ui32 taskId, const TStripeBuffer<TCFeature>& features,
-                                              const TMirrorBuffer<ui8>& bins, const TMirrorBuffer<float>& values,
-                                              ui32 stream) {
+                                                           const TMirrorBuffer<ui8>& bins, const TMirrorBuffer<float>& values,
+                                                           ui32 stream) {
         auto& cursor = *Cursors[taskId];
         AddObliviousTree(CompressedIndex->GetStorage(), features, bins, values, cursor, stream);
     }
 
-
     void ComputeBinsForModel(const TObliviousTreeStructure& structure, const TDocParallelDataSet& dataSet,
-                             TStripeBuffer<ui32>* bins)  {
+                             TStripeBuffer<ui32>* bins) {
         TComputeLeavesDocParallel computeLeaves;
         computeLeaves.AddTask(structure,
                               dataSet,

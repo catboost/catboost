@@ -4,7 +4,6 @@
 #include <catboost/cuda/models/kernel/add_model_value.cuh>
 
 namespace NKernelHost {
-
     class TComputeNonSymmetricTreeBinsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCFeature> Features;
@@ -18,33 +17,33 @@ namespace NKernelHost {
         TComputeNonSymmetricTreeBinsKernel() = default;
 
         TComputeNonSymmetricTreeBinsKernel(
-                         TCudaBufferPtr<const TCFeature> features,
-                         TCudaBufferPtr<const TTreeNode> nodes,
-                         TCudaBufferPtr<const ui32> index,
-                         TCudaBufferPtr<ui32> cursor,
-                         TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
-                         TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
+            TCudaBufferPtr<const TCFeature> features,
+            TCudaBufferPtr<const TTreeNode> nodes,
+            TCudaBufferPtr<const ui32> index,
+            TCudaBufferPtr<ui32> cursor,
+            TCudaBufferPtr<const ui32> readIndices = TCudaBufferPtr<const ui32>(),
+            TCudaBufferPtr<const ui32> writeIndices = TCudaBufferPtr<const ui32>())
             : Features(features)
-              ,Nodes(nodes)
-              , DataSet(index)
-              , Cursor(cursor)
-              , ReadIndices(readIndices)
-              , WriteIndices(writeIndices)
+            , Nodes(nodes)
+            , DataSet(index)
+            , Cursor(cursor)
+            , ReadIndices(readIndices)
+            , WriteIndices(writeIndices)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Features, Nodes,  DataSet, Cursor, ReadIndices, WriteIndices);
+        Y_SAVELOAD_DEFINE(Features, Nodes, DataSet, Cursor, ReadIndices, WriteIndices);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Cursor.Size() < (1ULL << 32));
             NKernel::ComputeNonSymmetricDecisionTreeBins(Features.Get(),
-                               Nodes.Get(),
-                               DataSet.Get(),
-                               ReadIndices.Get(),
-                               WriteIndices.Get(),
-                               Cursor.Get(),
-                               static_cast<ui32>(Cursor.Size()),
-                               stream.GetStream());
+                                                         Nodes.Get(),
+                                                         DataSet.Get(),
+                                                         ReadIndices.Get(),
+                                                         WriteIndices.Get(),
+                                                         Cursor.Get(),
+                                                         static_cast<ui32>(Cursor.Size()),
+                                                         stream.GetStream());
         }
     };
 }
@@ -54,9 +53,7 @@ namespace NCudaLib {
 }
 
 namespace NCatboostCuda {
-
     namespace {
-
         class TComputeNonSymmetricTreeLeavesDocParallel {
         public:
             using TVec = TStripeBuffer<float>;
@@ -138,11 +135,11 @@ namespace NCatboostCuda {
                 auto& cursor = *Cursors[taskId];
                 using TKernel = NKernelHost::TComputeNonSymmetricTreeBinsKernel;
                 LaunchKernels<TKernel>(cursor.NonEmptyDevices(),
-                    stream,
-                    features,
-                    nodes,
-                    CompressedIndex->GetStorage(),
-                    cursor);
+                                       stream,
+                                       features,
+                                       nodes,
+                                       CompressedIndex->GetStorage(),
+                                       cursor);
             }
 
         private:
@@ -161,7 +158,6 @@ namespace NCatboostCuda {
         const TNonSymmetricTree& model,
         const TAddModelDocParallel<TNonSymmetricTree>::TDataSet& dataSet,
         TStripeBuffer<float>& cursor) {
-
         if (CompressedIndex == nullptr) {
             CompressedIndex = &dataSet.GetCompressedIndex();
         } else {
@@ -211,8 +207,7 @@ namespace NCatboostCuda {
 
     void ComputeBinsForModel(const TNonSymmetricTreeStructure& structure,
                              const TDocParallelDataSet& dataSet,
-                             TStripeBuffer<ui32>* bins)  {
-
+                             TStripeBuffer<ui32>* bins) {
         TComputeNonSymmetricTreeLeavesDocParallel computeLeaves;
         computeLeaves.AddTask(structure,
                               dataSet,

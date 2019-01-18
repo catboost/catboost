@@ -5,9 +5,7 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 
-
 namespace NCatboostCuda {
-
     TFeatureParallelDataSetsHolder TFeatureParallelDataSetHoldersBuilder::BuildDataSet(const ui32 permutationCount,
                                                                                        NPar::TLocalExecutor* localExecutor) {
         TFeatureParallelDataSetsHolder dataSetsHolder(DataProvider,
@@ -214,8 +212,8 @@ namespace NCatboostCuda {
                 {
                     const NCB::TTrainingDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
                     const TMirrorBuffer<const ui32>* testIndices = (permutationId == 0 && linkedTest)
-                                                                   ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices()
-                                                                   : nullptr;
+                                                                       ? &dataSetsHolder.TestDataSet->GetTarget().GetIndices()
+                                                                       : nullptr;
 
                     TBatchedBinarizedCtrsCalcer ctrsCalcer(FeaturesManager,
                                                            ctrsTarget,
@@ -241,7 +239,7 @@ namespace NCatboostCuda {
     }
 
     void TFeatureParallelDataSetHoldersBuilder::BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder& dataSetsHolder,
-                                                                          const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget)  {
+                                                                          const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget) {
         const auto testMapping = NCudaLib::TMirrorMapping(ctrsTarget.TestSlice.Size());
 
         TMirrorBuffer<ui32> indices;

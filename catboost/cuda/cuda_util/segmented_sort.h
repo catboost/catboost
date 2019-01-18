@@ -15,7 +15,6 @@ void SegmentedRadixSort(
     bool compareGreater = false,
     ui64 stream = 0);
 
-
 template <typename K, typename V, class TMapping>
 void SegmentedRadixSort(
     NCudaLib::TCudaBuffer<K, TMapping>& keys,

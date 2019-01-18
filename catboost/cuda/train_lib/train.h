@@ -17,9 +17,7 @@
 
 #include <util/generic/ptr.h>
 
-
 namespace NCatboostCuda {
-
     class IGpuTrainer {
     public:
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(
@@ -38,16 +36,14 @@ namespace NCatboostCuda {
         virtual ~IGpuTrainer() = default;
     };
 
-
     struct TGpuTrainerFactoryKey {
         ELossFunction Loss;
         EGrowingPolicy GrowingPolicy;
 
-
         TGpuTrainerFactoryKey(ELossFunction loss, EGrowingPolicy policy)
-                : Loss(loss)
-                , GrowingPolicy(policy) {
-
+            : Loss(loss)
+            , GrowingPolicy(policy)
+        {
         }
 
         bool operator==(const TGpuTrainerFactoryKey& rhs) const {
@@ -79,8 +75,6 @@ namespace NCatboostCuda {
     using TGpuTrainerFactory = NObjectFactory::TParametrizedObjectFactory<IGpuTrainer, TGpuTrainerFactoryKey>;
 
 }
-
-
 
 template <>
 struct THash<NCatboostCuda::TGpuTrainerFactoryKey> {

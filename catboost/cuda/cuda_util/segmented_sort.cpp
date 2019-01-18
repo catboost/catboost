@@ -68,16 +68,16 @@ namespace {
                                   bool compareGreater,
                                   ui32 firstBit,
                                   ui32 lastBit)
-                : Keys(keys)
-                  , Values(values)
-                  , TmpKeys(tmpKeys)
-                  , TmpValues(tmpValues)
-                  , SegmentStarts(offsets)
-                  , SegmentEnds(ends)
-                  , PartCount(partCount)
-                  , CompareGreater(compareGreater)
-                  , FirstBit(firstBit)
-                  , LastBit(lastBit)
+            : Keys(keys)
+            , Values(values)
+            , TmpKeys(tmpKeys)
+            , TmpValues(tmpValues)
+            , SegmentStarts(offsets)
+            , SegmentEnds(ends)
+            , PartCount(partCount)
+            , CompareGreater(compareGreater)
+            , FirstBit(firstBit)
+            , LastBit(lastBit)
         {
         }
 
@@ -138,8 +138,7 @@ static void SegmentedRadixSortImpl(
     TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,
     const TCudaBuffer<ui32, TMapping>& offsets, ui32 partCount,
     ui32 fistBit, ui32 lastBit,
-    bool compareGreater, ui64 stream)
-{
+    bool compareGreater, ui64 stream) {
     using TKernel = TSegmentedRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, offsets, partCount, compareGreater, fistBit, lastBit);
 }
@@ -176,8 +175,7 @@ static void SegmentedRadixSortImpl(
     const TCudaBuffer<ui32, TMapping>& segmentEnds,
     ui32 partCount,
     ui32 fistBit, ui32 lastBit,
-    bool compareGreater, ui64 stream)
-{
+    bool compareGreater, ui64 stream) {
     using TKernel = TSegmentedRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, segmentStarts, segmentEnds, partCount, compareGreater, fistBit, lastBit);
 }

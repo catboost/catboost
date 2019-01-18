@@ -45,6 +45,7 @@ public:
                                         size_t uniqueValues,
                                         ui32 iterations = 50,
                                         double* resultLikelihood = nullptr);
+
 private:
     struct TDerivatives {
         double DerAlpha = 0;

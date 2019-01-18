@@ -9,8 +9,6 @@
 #include <catboost/cuda/methods/weak_target_helpers.h>
 
 namespace NCatboostCuda {
-
-
     struct TTreeStructureSearcherOptions {
         EScoreFunction ScoreFunction = EScoreFunction::Correlation;
         NCatboostOptions::TBootstrapConfig BootstrapOptions = NCatboostOptions::TBootstrapConfig(ETaskType::GPU);

@@ -5,8 +5,7 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-
-    template<>
+    template <>
     class TAddModelDocParallel<TNonSymmetricTree> {
     public:
         using TVec = TStripeBuffer<float>;
@@ -39,8 +38,6 @@ namespace NCatboostCuda {
         TVector<TStripeBuffer<ui32>> TempBins;
         TVector<const TDataSet*> DataSets;
     };
-
-
 
     void ComputeBinsForModel(const TNonSymmetricTreeStructure& structure,
                              const TDocParallelDataSet& dataSet,

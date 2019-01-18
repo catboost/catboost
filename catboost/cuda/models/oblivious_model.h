@@ -6,7 +6,6 @@
 #include <util/generic/vector.h>
 
 namespace NCatboostCuda {
-
     struct TObliviousTreeStructure {
         TVector<TBinarySplit> Splits;
 
@@ -55,38 +54,38 @@ namespace NCatboostCuda {
         Y_SAVELOAD_DEFINE(Splits);
     };
 
-    class TObliviousTreeModel : public IBinOptimizedModel {
+    class TObliviousTreeModel: public IBinOptimizedModel {
     public:
         TObliviousTreeModel(
             TObliviousTreeStructure&& modelStructure,
             const TVector<float>& values,
             const TVector<double>& weights,
-            ui32 dim
-        )
+            ui32 dim)
             : ModelStructure(std::move(modelStructure))
-              , LeafValues(values)
-              , LeafWeights(weights)
-              , Dim(dim) {
+            , LeafValues(values)
+            , LeafWeights(weights)
+            , Dim(dim)
+        {
         }
-
 
         TObliviousTreeModel(
             const TObliviousTreeStructure& modelStructure,
             const TVector<float>& values,
-            ui32 dim
-        )
+            ui32 dim)
             : ModelStructure(modelStructure)
-              , LeafValues(values)
-              , Dim(dim) {
+            , LeafValues(values)
+            , Dim(dim)
+        {
         }
 
         TObliviousTreeModel() = default;
 
         TObliviousTreeModel(const TObliviousTreeStructure& modelStructure)
             : ModelStructure(modelStructure)
-              , LeafValues(modelStructure.LeavesCount())
-              , LeafWeights(modelStructure.LeavesCount())
-              , Dim(1) {
+            , LeafValues(modelStructure.LeavesCount())
+            , LeafWeights(modelStructure.LeavesCount())
+            , Dim(1)
+        {
         }
 
         ~TObliviousTreeModel() {
@@ -161,8 +160,7 @@ namespace NCatboostCuda {
             return TObliviousTreeModel(std::move(sortedStructure),
                                        values,
                                        TVector<double>(),
-                                       Dim
-            );
+                                       Dim);
         }
 
         Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights, Dim);
@@ -177,7 +175,6 @@ namespace NCatboostCuda {
 
 template <>
 struct THash<NCatboostCuda::TObliviousTreeStructure> {
-
     inline size_t operator()(const NCatboostCuda::TObliviousTreeStructure& value) const {
         return value.GetHash();
     }

@@ -16,7 +16,6 @@
 
 #include <catboost/libs/ctr_description/ctr_config.h>
 
-
 namespace NCatboostCuda {
     template <class T>
     inline TVector<T> SingletonVector(const T& value) {
@@ -230,8 +229,6 @@ namespace NCatboostCuda {
         ui32 Stream;
     };
 
-
-
     template <class TMapping>
     class TWeightedBinFreqCalcer {
     public:
@@ -304,7 +301,7 @@ namespace NCatboostCuda {
         TWeightedBinFreqCalcer& ComputeFreq(const TCudaBuffer<TUint32, TMapping>& indices,
                                             const NCB::TCtrConfig& dstConfig,
                                             TCudaBuffer<float, TMapping>& dst) {
-            TVisitor ctrVisitor =  [&](const NCB::TCtrConfig& ctrConfig, const TCudaBuffer<float, TMapping>& ctr, ui32 stream) {
+            TVisitor ctrVisitor = [&](const NCB::TCtrConfig& ctrConfig, const TCudaBuffer<float, TMapping>& ctr, ui32 stream) {
                 Y_ASSERT(ctrConfig == dstConfig);
                 Y_UNUSED(ctrConfig);
                 dst.Reset(ctr.GetMapping());

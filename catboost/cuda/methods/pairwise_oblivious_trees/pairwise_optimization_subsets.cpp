@@ -61,7 +61,6 @@ void NCatboostCuda::TPairwiseOptimizationSubsets::Split(const TStripeBuffer<ui32
     RebuildStats();
 }
 
-
 void NCatboostCuda::TPairwiseOptimizationSubsets::RebuildStats() {
     const ui32 numLeaves = 1ULL << CurrentDepth;
     const ui32 pairLeavesCount = numLeaves * numLeaves;

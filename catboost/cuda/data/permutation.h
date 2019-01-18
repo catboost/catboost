@@ -7,7 +7,6 @@
 #include <util/generic/fwd.h>
 #include <util/generic/vector.h>
 
-
 namespace NCatboostCuda {
     class TDataPermutation {
     private:
@@ -89,9 +88,8 @@ namespace NCatboostCuda {
                               1);
     }
 
-
     template <class T>
-    inline TVector<T> Scatter(const TVector<ui32>& indices, const TVector<T>& src)  {
+    inline TVector<T> Scatter(const TVector<ui32>& indices, const TVector<T>& src) {
         CB_ENSURE(indices.size() == src.size(), "THIS IS A BUG, report to catboost team: Scatter indices count should be equal to scattered data size");
 
         TVector<T> result;

@@ -4,7 +4,6 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 namespace NCatboostCuda {
     template struct TGpuFeaturesBlockDescription<NCudaLib::TSingleMapping, NCudaLib::TSingleMapping>;
     template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;
@@ -14,7 +13,7 @@ namespace NCatboostCuda {
     template struct TCudaFeaturesLayoutHelper<TFeatureParallelLayout>;
     template struct TCudaFeaturesLayoutHelper<TDocParallelLayout>;
 
-    TMap<ui32, ui32> TCpuGrid::BuildInverseIndex(const TVector<ui32>& features)  {
+    TMap<ui32, ui32> TCpuGrid::BuildInverseIndex(const TVector<ui32>& features) {
         TMap<ui32, ui32> inverseFeatures;
         for (ui32 i = 0; i < features.size(); ++i) {
             inverseFeatures[features[i]] = i;
@@ -22,7 +21,7 @@ namespace NCatboostCuda {
         return inverseFeatures;
     }
 
-    TFoldsHistogram TCpuGrid::ComputeFoldsHistogram(const TSlice& featuresSlice) const  {
+    TFoldsHistogram TCpuGrid::ComputeFoldsHistogram(const TSlice& featuresSlice) const {
         TFoldsHistogram result;
         for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
             const ui32 foldCount = Folds[f];
@@ -37,7 +36,7 @@ namespace NCatboostCuda {
         return ComputeFoldsHistogram(TSlice(0, FeatureIds.size()));
     }
 
-    TMap<ui32, ui32> TCpuGrid::ComputeFoldOffsets() const  {
+    TMap<ui32, ui32> TCpuGrid::ComputeFoldOffsets() const {
         TMap<ui32, ui32> offsets;
         ui32 cursor = 0;
         for (ui32 i = 0; i < FeatureIds.size(); ++i) {
@@ -52,15 +51,14 @@ namespace NCatboostCuda {
         const ui32 binCount = Manager->GetBinCount(featureId);
         if (DataProvider && binCount && IsOneHot(featureId)) {
             ui32 dataProviderId = Manager->GetDataProviderId(featureId);
-            auto catFeatureIdx
-                = DataProvider->MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(dataProviderId);
+            auto catFeatureIdx = DataProvider->MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(dataProviderId);
             ui32 count = DataProvider->ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll;
             return count > 2 ? count : count - 1;
         }
         return binCount ? binCount - 1 : 0;
     }
 
-    double TBinarizationInfoProvider::GetGroupingLevel(ui32 featureId) const  {
+    double TBinarizationInfoProvider::GetGroupingLevel(ui32 featureId) const {
         const ui32 binCount = Manager->GetBinCount(featureId);
 
         //-x <= 128 does not use atomics and

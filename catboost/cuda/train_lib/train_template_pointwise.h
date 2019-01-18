@@ -10,16 +10,16 @@
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate>
     THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
-                                                        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-                                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                        const NCB::TTrainingDataProvider& learn,
-                                                        const NCB::TTrainingDataProvider* test,
-                                                        TGpuAwareRandom& random,
-                                                        ui32 approxDimension,
-                                                        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
-                                                        NPar::TLocalExecutor* localExecutor,
-                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
-                                                        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
+                                                       const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                                       const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                                       const NCB::TTrainingDataProvider& learn,
+                                                       const NCB::TTrainingDataProvider* test,
+                                                       TGpuAwareRandom& random,
+                                                       ui32 approxDimension,
+                                                       const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                       NPar::TLocalExecutor* localExecutor,
+                                                       TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
+                                                       TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
             using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner>;
@@ -51,7 +51,6 @@ namespace NCatboostCuda {
         }
     };
 
-
     template <template <class> class TTargetTemplate>
     class TGpuTrainer: public IGpuTrainer {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
@@ -66,16 +65,16 @@ namespace NCatboostCuda {
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return Train<TTargetTemplate>(featuresManager,
-                                            catBoostOptions,
-                                            outputOptions,
-                                            learn,
-                                            test,
-                                            random,
-                                            approxDimension,
-                                            onEndIterationCallback,
-                                            localExecutor,
-                                            testMultiApprox,
-                                            metricsAndTimeHistory);
+                                          catBoostOptions,
+                                          outputOptions,
+                                          learn,
+                                          test,
+                                          random,
+                                          approxDimension,
+                                          onEndIterationCallback,
+                                          localExecutor,
+                                          testMultiApprox,
+                                          metricsAndTimeHistory);
         };
     };
 }

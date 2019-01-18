@@ -18,7 +18,6 @@
 #include <util/generic/vector.h>
 
 namespace NCudaLib {
-
     template <class T,
               class TMapping,
               EPtrType Type>
@@ -36,7 +35,6 @@ namespace NCudaLib {
         mutable bool CreatedFromScratchFlag = false;
         mutable bool IsSliceView = false;
         bool ReadOnly = false;
-
 
         void EnsureSize(ui32 devId, ui64 size, bool freeMemory) {
             size = NAligment::GetMemorySize(size, ColumnCount);
@@ -174,13 +172,12 @@ namespace NCudaLib {
             buffer.Mapping = Mapping.ToLocalSlice(slice);
             buffer.ColumnCount = columns.Size();
 
-
             for (ui64 i = 0; i < Buffers.size(); ++i) {
                 if (Buffers[i].NotEmpty()) {
                     const ui64 columnsShift = NAligment::ColumnShift(Mapping.MemoryUsageAt(i), columns.Left);
                     const auto devSlice = TSlice::Intersection(slice, Mapping.DeviceSlice(i));
                     buffer.Buffers[i] = Buffers[i].ShiftedConstBuffer(
-                            columnsShift + Mapping.DeviceMemoryOffset(i, devSlice));
+                        columnsShift + Mapping.DeviceMemoryOffset(i, devSlice));
                 }
             }
             buffer.IsSliceView = true;
@@ -194,13 +191,12 @@ namespace NCudaLib {
             buffer.Mapping = Mapping.ToLocalSlice(slice);
             buffer.ColumnCount = columns.Size();
 
-
             for (ui64 i = 0; i < Buffers.size(); ++i) {
                 if (Buffers[i].NotEmpty()) {
                     const ui64 columnsShift = NAligment::ColumnShift(Mapping.MemoryUsageAt(i), columns.Left);
                     const auto devSlice = TSlice::Intersection(slice, Mapping.DeviceSlice(i));
                     buffer.Buffers[i] = Buffers[i].ShiftedBuffer(
-                            columnsShift + Mapping.DeviceMemoryOffset(i, devSlice));
+                        columnsShift + Mapping.DeviceMemoryOffset(i, devSlice));
                 }
             }
             buffer.IsSliceView = true;
@@ -490,8 +486,6 @@ using TMirrorBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TMirrorMapping>;
 template <class T>
 using TSingleBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TSingleMapping>;
 
-
-
 template <class T>
 using TStripeHostBuffer = NCudaLib::TCudaBuffer<T, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost>;
 
@@ -545,7 +539,7 @@ namespace NCudaLib {
 
         {
             TSlice firstDevSlice = srcMapping.DeviceSlice(0);
-            CB_ENSURE(slice.Size() <= firstDevSlice.Size(), slice << " / " <<firstDevSlice);
+            CB_ENSURE(slice.Size() <= firstDevSlice.Size(), slice << " / " << firstDevSlice);
 
             ui32 cursor = 0;
             for (ui32 dev = 0; dev < devCount; ++dev) {
@@ -592,7 +586,6 @@ namespace NCudaLib {
             }
         }
 
-
         void AddAll(const TVector<TVector<T>>& entries) {
             for (const auto& entry : entries) {
                 Add(entry);
@@ -618,7 +611,6 @@ namespace NCudaLib {
     private:
         TVector<TVector<T>> Data;
     };
-
 
     template <class T>
     class TStripeVectorBuilder {
@@ -661,9 +653,6 @@ namespace NCudaLib {
         ui64 TotalData = 0;
     };
 
-
-
-
     template <bool IsConst>
     struct TMaybeConstView;
 
@@ -679,8 +668,6 @@ namespace NCudaLib {
         using TBuffer = TCudaBuffer<T, TMapping>;
     };
 
-
-
     template <class T>
     inline TVector<TDistributedObject<std::remove_const_t<T>>> ReadToDistributedObjectVec(const TStripeBuffer<T>& src) {
         using T_ = std::remove_const_t<T>;
@@ -688,7 +675,6 @@ namespace NCudaLib {
         src.Read(tmp);
         ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         TVector<TDistributedObject<T_>> result;
-
 
         for (ui32 dev = 0; dev < devCount; ++dev) {
             CB_ENSURE(src.GetMapping().DeviceSlice(dev).Size() == src.GetMapping().DeviceSlice(0).Size());
@@ -705,5 +691,3 @@ namespace NCudaLib {
         return result;
     }
 }
-
-

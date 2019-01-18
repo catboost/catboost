@@ -174,7 +174,7 @@ namespace NCatboostCuda {
                         const ui32 featuresAtDevice = featuresMapping.DeviceSlice(dev).Size();
                         const ui32 docsAtDevice = block.Samples.DeviceSlice(dev).Size();
                         CATBOOST_INFO_LOG << "Grid policy " << policy << Endl << "Memory usage for " << featuresAtDevice << " features, " << docsAtDevice << " documents at #"
-                                           << dev << ": " << block.CIndexSizes.At(dev) * sizeof(ui32) * 1.0 / 1024 / 1024 << " MB" << Endl;
+                                          << dev << ": " << block.CIndexSizes.At(dev) * sizeof(ui32) * 1.0 / 1024 / 1024 << " MB" << Endl;
                     }
                 }
             }
@@ -217,10 +217,10 @@ namespace NCatboostCuda {
             return FlatStorage;
         };
 
-
         TScopedCacheHolder& GetCache() const {
             return Cache;
         }
+
     private:
         /*flat storage allows to build dataSets with features overlap:
          * f1 f2 f3 from block1 and  f4 from block 2

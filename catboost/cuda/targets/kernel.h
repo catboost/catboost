@@ -220,7 +220,6 @@ namespace NKernelHost {
                                           Der.Get(),
                                           Der2.Get(),
                                           stream.GetStream());
-
         }
     };
 
@@ -445,7 +444,6 @@ namespace NKernelHost {
             NKernel::ComputeGroupMeans(context.Approxes.Get(), nullptr, QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans.Get(), stream.GetStream());
             NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids.Get(), stream.GetStream());
             NKernel::RemoveQueryMeans((int*)(context.Qids.Get()), QuerySizes.Size(), context.QueryMeans.Get(), context.Approxes.Get(), stream.GetStream());
-
 
             NKernel::YetiRankGradient(Seed, Decay,
                                       PermutationCount,

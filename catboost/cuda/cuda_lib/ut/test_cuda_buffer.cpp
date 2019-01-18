@@ -329,8 +329,6 @@ Y_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-
-
     Y_UNIT_TEST(CopyTest) {
         auto stopCudaManagerGuard = StartCudaManager();
         {

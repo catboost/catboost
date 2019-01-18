@@ -57,11 +57,11 @@ namespace NCudaLib {
 
             double mean = Sum / Count;
             CATBOOST_INFO_LOG << Label
-                               << " count " << Count
-                               << " mean: " << mean
-                               << " max: " << Max
-                               << " rmse: " << sqrt((Sum2 - Sum * mean) / Count)
-                               << Endl;
+                              << " count " << Count
+                              << " mean: " << mean
+                              << " max: " << Max
+                              << " rmse: " << sqrt((Sum2 - Sum * mean) / Count)
+                              << Endl;
         }
 
         void Acquire() {

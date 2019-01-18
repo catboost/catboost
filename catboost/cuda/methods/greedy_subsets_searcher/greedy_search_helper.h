@@ -7,23 +7,21 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 #include <catboost/cuda/data/leaf_path.h>
 
-
 namespace NCatboostCuda {
-
     class TGreedySearchHelper {
     public:
         TGreedySearchHelper(const TDocParallelDataSet& dataSet,
                             const TBinarizedFeaturesManager& featuresManager,
                             const TTreeStructureSearcherOptions& options,
                             ui32 statCount,
-                            TGpuAwareRandom& random
-                            )
+                            TGpuAwareRandom& random)
             : FeaturesManager(featuresManager)
             , Options(options)
             , SplitPropsHelper(dataSet,
                                featuresManager,
                                GetComputeByBlocksHelper(dataSet, options, statCount))
-           , Random(random) {
+            , Random(random)
+        {
         }
 
         TPointsSubsets CreateInitialSubsets(const IWeakObjective& objective);
@@ -53,8 +51,7 @@ namespace NCatboostCuda {
                                  TVector<ui32>* leavesToSplit);
 
         void SelectLeavesToVisit(const TPointsSubsets& subsets,
-                                 TVector<ui32>* leavesToVisit
-                                 );
+                                 TVector<ui32>* leavesToVisit);
 
         bool IsObliviousSplit() const {
             return Options.Policy == EGrowingPolicy::ObliviousTree;

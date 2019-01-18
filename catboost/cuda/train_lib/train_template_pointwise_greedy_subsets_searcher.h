@@ -9,7 +9,7 @@
 
 namespace NCatboostCuda {
     namespace {
-    /*
+        /*
         * New implementation of doc-parallel training with support for any type of trees and multiclassification
         * But no ordered boosting
         */
@@ -30,21 +30,20 @@ namespace NCatboostCuda {
                 using TWeakLearner = TGreedySubsetsSearcher<TModel>;
                 using TBoostingImpl = TBoosting<TTargetTemplate, TWeakLearner>;
                 auto resultModel = Train<TBoostingImpl>(featuresManager,
-                                            catBoostOptions,
-                                            outputOptions,
-                                            learn,
-                                            test,
-                                            random,
-                                            approxDimension,
-                                            onEndIterationCallback,
-                                            localExecutor,
-                                            testMultiApprox,
-                                            metricsAndTimeHistory);
+                                                        catBoostOptions,
+                                                        outputOptions,
+                                                        learn,
+                                                        test,
+                                                        random,
+                                                        approxDimension,
+                                                        onEndIterationCallback,
+                                                        localExecutor,
+                                                        testMultiApprox,
+                                                        metricsAndTimeHistory);
                 return MakeObliviousModel<TModel>(std::move(resultModel), localExecutor);
             };
         };
     }
-
 
     inline TGpuTrainerFactoryKey GetTrainerFactoryKeyForRegion(ELossFunction loss) {
         return GetTrainerFactoryKey(loss, EGrowingPolicy::Region);

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "split_properties_helper.h"
 #include "structure_searcher_options.h"
 #include "greedy_search_helper.h"
@@ -16,7 +15,6 @@
 #include <catboost/cuda/targets/weak_objective.h>
 
 namespace NCatboostCuda {
-
     template <class TTreeModel>
     class TGreedyTreeLikeStructureSearcher {
     public:
@@ -24,12 +22,13 @@ namespace NCatboostCuda {
         using TVec = TStripeBuffer<float>;
         using TSampelsMapping = NCudaLib::TStripeMapping;
         using TModel = TTreeModel;
+
     public:
         TGreedyTreeLikeStructureSearcher(const TBinarizedFeaturesManager& featuresManager,
                                          const TTreeStructureSearcherOptions& searcherOptions)
-                : FeaturesManager(featuresManager)
-                , SearcherOptions(searcherOptions) {
-
+            : FeaturesManager(featuresManager)
+            , SearcherOptions(searcherOptions)
+        {
         }
 
         template <class TObjective>
@@ -37,19 +36,15 @@ namespace NCatboostCuda {
             TWeakObjective<TObjective> weakObjectiveWrapper(objective);
             return FitImpl(dataSet, weakObjectiveWrapper);
         }
-    private:
 
+    private:
         TModel FitImpl(const TDataSet& dataSet,
                        const IWeakObjective& objective) {
-
-
-
             TGreedySearchHelper searchHelper(dataSet,
                                              FeaturesManager,
                                              SearcherOptions,
                                              objective.GetDim() + 1,
-                                             objective.GetRandom()
-                                             );
+                                             objective.GetRandom());
 
             TPointsSubsets subsets = searchHelper.CreateInitialSubsets(objective);
 
@@ -63,7 +58,8 @@ namespace NCatboostCuda {
                 if (!searchHelper.SplitLeaves(&subsets,
                                               &leaves,
                                               &leavesWeights,
-                                              &leavesValues)) {
+                                              &leavesValues))
+                {
                     break;
                 }
             }

@@ -12,7 +12,6 @@
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/gpu_data/cat_features_dataset.h>
 
-
 namespace NCatboostCuda {
     class IBinarySplitProvider {
     public:

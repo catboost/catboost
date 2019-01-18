@@ -101,7 +101,6 @@ namespace NCatboostCuda {
         }
     };
 
-
     template <>
     class TFeatureIdsRemaper<TNonSymmetricTree> {
     public:
@@ -125,7 +124,7 @@ namespace NCatboostCuda {
     class TModelFeaturesMapUpdater {
     public:
         TModelFeaturesMapUpdater(const TBinarizedFeaturesManager& featuresManager,
-                                 TModelFeaturesMap & featuresMap)
+                                 TModelFeaturesMap& featuresMap)
             : FeaturesManager(featuresManager)
             , FeaturesMap(featuresMap)
         {

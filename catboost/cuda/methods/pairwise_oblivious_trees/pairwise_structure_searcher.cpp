@@ -3,13 +3,10 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 namespace NCatboostCuda {
-
     void TPairwiseObliviousTreeSearcher::FixSolutionLeavesValuesLayout(const TVector<TBinarySplit>& splits,
                                                                        TVector<float>* leavesPtr,
-                                                                       TVector<double>* weightsPtr
-    ) {
+                                                                       TVector<double>* weightsPtr) {
         auto& solution = *leavesPtr;
         ui32 depth = NCB::IntLog2(solution.size());
         CB_ENSURE(depth > 0);
@@ -40,7 +37,7 @@ namespace NCatboostCuda {
         weightsPtr->swap(fixedWeights);
     }
 
-    TNonDiagQuerywiseTargetDers TPairwiseObliviousTreeSearcher::ComputeWeakTarget(const IPairwiseTargetWrapper& objective)  {
+    TNonDiagQuerywiseTargetDers TPairwiseObliviousTreeSearcher::ComputeWeakTarget(const IPairwiseTargetWrapper& objective) {
         TNonDiagQuerywiseTargetDers target;
         auto& profiler = NCudaLib::GetProfiler();
         auto guard = profiler.Profile("Build randomized pairwise target");
@@ -71,16 +68,14 @@ namespace NCatboostCuda {
             featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
                                                    TreeConfig,
                                                    subsets,
-                                                   objective.GetRandom()
-            );
+                                                   objective.GetRandom());
         }
 
         if (dataSet.HasPermutationDependentFeatures()) {
             simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
                                                     TreeConfig,
                                                     subsets,
-                                                    objective.GetRandom()
-            );
+                                                    objective.GetRandom());
         }
         Y_VERIFY(featuresScoreCalcer != nullptr || simpleCtrScoreCalcer != nullptr);
 
@@ -150,7 +145,6 @@ namespace NCatboostCuda {
                     weights.resize(1ULL << structure.Splits.size(), 0.0f);
                 }
             }
-
         }
         return TObliviousTreeModel(std::move(structure),
                                    leaves,

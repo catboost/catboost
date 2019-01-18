@@ -4,7 +4,6 @@
 
 #include <util/generic/set.h>
 
-
 void NCatboostCuda::GroupSamples(TConstArrayRef<TGroupId> qid, TVector<TVector<ui32>>* qdata) {
     TSet<TGroupId> knownQids;
     for (ui32 i = 0; i < qid.size(); ++i) {

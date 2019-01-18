@@ -11,7 +11,6 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-
     template <class TDocLayout>
     class TPointwiseTargetsImpl: public TPointwiseTarget<TDocLayout> {
     public:
@@ -60,7 +59,7 @@ namespace NCatboostCuda {
         {
         }
 
-//        template <class TLayout>
+        //        template <class TLayout>
         TPointwiseTargetsImpl(const TPointwiseTargetsImpl<NCudaLib::TMirrorMapping>& basedOn,
                               TTarget<TMapping>&& target)
             : TParent(basedOn,
@@ -116,7 +115,6 @@ namespace NCatboostCuda {
                                         const TMap<TString, TString>& params) const {
             return ComputeStats(point, NCatboostOptions::GetAlpha(params));
         }
-
 
         void GradientAt(const TConstVec& point,
                         TVec& weightedDer,
@@ -191,7 +189,6 @@ namespace NCatboostCuda {
                            TBuffer<ui32>&& sampledIndices,
                            bool secondDerAsWeights,
                            TOptimizationTarget* target) const {
-
             auto targetForIndices = TVec::CopyMapping(sampledIndices);
             Gather(targetForIndices, GetTarget().GetTargets(), sampledIndices);
 
@@ -201,7 +198,6 @@ namespace NCatboostCuda {
 
             auto pointForIndices = TVec::CopyMapping(sampledIndices);
             Gather(pointForIndices, point, sampledIndices);
-
 
             const ui32 statCount = point.GetColumnCount() + 1;
             target->StatsToAggregate.Reset(sampledWeights.GetMapping(), statCount);
@@ -225,8 +221,7 @@ namespace NCatboostCuda {
                             nullptr,
                             &dersView,
                             0,
-                            nullptr
-                );
+                            nullptr);
 
                 weightsView.Copy(weightsForIndices);
             }

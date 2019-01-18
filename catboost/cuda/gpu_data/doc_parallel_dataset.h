@@ -65,9 +65,9 @@ namespace NCatboostCuda {
         }
 
         template <class TKey, class TBuilder>
-        auto Cache(const TKey& key, TBuilder&& builder) const  -> decltype(GetCompressedIndex().GetCache().Cache(*this,
-                                                                                                                 key,
-                                                                                                                 std::forward<TBuilder>(builder))) {
+        auto Cache(const TKey& key, TBuilder&& builder) const -> decltype(GetCompressedIndex().GetCache().Cache(*this,
+                                                                                                                key,
+                                                                                                                std::forward<TBuilder>(builder))) {
             return GetCompressedIndex().GetCache().Cache(*this,
                                                          key,
                                                          std::forward<TBuilder>(builder));
@@ -153,13 +153,13 @@ namespace NCatboostCuda {
 
             LearnDocPerDevicesSplit = new TDocParallelSplit(*DataProvider,
                                                             DataProvider->MetaInfo.HasGroupId
-                                                            ? GetPermutation(dataProvider, loadBalancingPermutationId)
-                                                            : GetPermutation(dataProvider, TDataPermutation::IdentityPermutationId()));
+                                                                ? GetPermutation(dataProvider, loadBalancingPermutationId)
+                                                                : GetPermutation(dataProvider, TDataPermutation::IdentityPermutationId()));
             if (TestDataProvider) {
                 TestDocPerDevicesSplit = new TDocParallelSplit(*TestDataProvider,
                                                                DataProvider->MetaInfo.HasGroupId
-                                                               ? GetPermutation(*TestDataProvider, loadBalancingPermutationId)
-                                                               : GetPermutation(*TestDataProvider, TDataPermutation::IdentityPermutationId()));
+                                                                   ? GetPermutation(*TestDataProvider, loadBalancingPermutationId)
+                                                                   : GetPermutation(*TestDataProvider, TDataPermutation::IdentityPermutationId()));
             }
         }
 

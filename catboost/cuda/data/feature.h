@@ -16,9 +16,7 @@
 #include <algorithm>
 #include <tuple>
 
-
 namespace NCatboostCuda {
-
     enum class EBinSplitType {
         TakeBin,
         TakeGreater
@@ -71,8 +69,6 @@ namespace NCatboostCuda {
 
         Y_SAVELOAD_DEFINE(FeatureId, BinIdx, SplitType);
     };
-
-
 
     template <class TVectorType>
     inline void Unique(TVectorType& vector) {

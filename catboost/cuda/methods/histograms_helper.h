@@ -171,7 +171,6 @@ namespace NCatboostCuda {
     extern template class TComputeHistogramsHelper<TDocParallelLayout>;
     extern template class TComputeHistogramsHelper<TSingleDevLayout>;
 
-
     template <class TLayoutPolicy = TFeatureParallelLayout>
     class TFindBestSplitsHelper: public TMoveOnly {
     public:
@@ -319,8 +318,6 @@ namespace NCatboostCuda {
         TCudaBuffer<TBestSplitProperties, TFeaturesMapping> BestScores;
         TCudaBuffer<float, TFeaturesMapping> ReducedHistograms;
     };
-
-
 
     extern template class TFindBestSplitsHelper<TFeatureParallelLayout>;
     extern template class TFindBestSplitsHelper<TDocParallelLayout>;

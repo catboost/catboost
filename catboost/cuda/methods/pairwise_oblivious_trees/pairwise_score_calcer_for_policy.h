@@ -30,8 +30,7 @@ namespace NCatboostCuda {
 
         void ReadBestSolution(ui32 idx,
                               TVector<float>* resultPtr,
-                              TVector<float>* matrixDiagonal
-        ) {
+                              TVector<float>* matrixDiagonal) {
             const ui32 rowSize = Solutions.GetMapping().SingleObjectSize();
             auto& result = *resultPtr;
 
@@ -40,11 +39,10 @@ namespace NCatboostCuda {
                 .SetReadSlice((TSlice(idx, (idx + 1))))
                 .Read(result);
 
-
             MatrixDiagonal
-                    .CreateReader()
-                    .SetReadSlice((TSlice(idx, (idx + 1))))
-                    .Read(*matrixDiagonal);
+                .CreateReader()
+                .SetReadSlice((TSlice(idx, (idx + 1))))
+                .Read(*matrixDiagonal);
 
             CB_ENSURE(result.size() == rowSize, LabeledOutput(result.size(), rowSize));
         }
@@ -69,8 +67,7 @@ namespace NCatboostCuda {
                                      ui32 maxDepth,
                                      double l2Reg,
                                      double nonDiagReg,
-                                     double rsm
-        );
+                                     double rsm);
 
         TComputePairwiseScoresHelper& Compute(TScopedCacheHolder& scoresCacheHolder,
                                               TBinaryFeatureSplitResults* result);
@@ -92,6 +89,7 @@ namespace NCatboostCuda {
         const TCpuGrid& GetCpuGrid() const;
         TCudaBuffer<const TCFeature, TFeaturesMapping, NCudaLib::EPtrType::CudaHost>& GetCpuFeatureBuffer() const;
         void ValidateSampledGrid() const;
+
     private:
         EFeaturesGroupingPolicy Policy;
         const TGpuDataSet& DataSet;
@@ -122,7 +120,6 @@ namespace NCatboostCuda {
         const ui32 MaxStreamCount = 8;
 
         mutable TScopedCacheHolder CacheHolder;
-
     };
 
 }

@@ -276,15 +276,12 @@ namespace NCudaLib {
             TCudaMemoryAllocation<PtrType>::FreeMemory(Memory);
         }
 
-
-
         template <class T>
         bool NeedSyncForAllocation(ui64 size) const {
             const ui64 requestedBlockSize = GetBlockSize<T>(size) + MEMORY_REQUEST_ADJUSTMENT;
             const bool canUseFirstFreeBlock = FirstFreeBlock != LastBlock && (FirstFreeBlock->Size >= requestedBlockSize);
             return (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) && !canUseFirstFreeBlock;
         }
-
 
         template <typename T = char>
         TMemoryBlock<T>* Create(ui64 size) {
@@ -340,7 +337,6 @@ namespace NCudaLib {
         ui64 GetFreeMemorySize() const {
             return FreeMemory;
         }
-
     };
 
     extern template class TStackLikeMemoryPool<EPtrType::CudaDevice>;

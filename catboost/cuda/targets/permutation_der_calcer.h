@@ -7,8 +7,6 @@ namespace NCatboostCuda {
               ETargetFuncType TargetType = TTarget::TargetType()>
     class TPermutationDerCalcer;
 
-
-
     class IPermutationDerCalcer {
     public:
         using TVec = TCudaBuffer<float, NCudaLib::TStripeMapping>;
@@ -31,8 +29,8 @@ namespace NCatboostCuda {
                                                TVec* der,
                                                ui32 stream = 0) const = 0;
 
-//        virtual ui32 HessianBlockCount() const = 0;
-//        virtual ui32 HessianBlockSize() const = 0;
+        //        virtual ui32 HessianBlockCount() const = 0;
+        //        virtual ui32 HessianBlockSize() const = 0;
 
         //this method computes selected row for all blocks
         //der2 will be: der2 for first block; der2 for second block …
@@ -58,7 +56,8 @@ namespace NCatboostCuda {
 
         TPermutationDerCalcer(TTargetFunc&& target,
                               const TBuffer<const ui32>& indices)
-            : Parent(new TTargetFunc(std::move(target))) {
+            : Parent(new TTargetFunc(std::move(target)))
+        {
             Target = TVec::CopyMapping(indices);
             Gather(Target, Parent->GetTarget().GetTargets(), indices);
 
@@ -92,7 +91,6 @@ namespace NCatboostCuda {
                                        TVec* value,
                                        TVec* der,
                                        ui32 stream = 0) const final {
-
             Parent->Approximate(Target, Weights, point, value, der, 0, nullptr, stream);
         }
 
@@ -162,12 +160,11 @@ namespace NCatboostCuda {
                                               stream);
         }
 
-
         void ComputeValueAndDerivative(const TVec& point,
                                        TVec* value,
                                        TVec* der,
                                        ui32 stream = 0) const final {
-            Parent->ApproximateForPermutation(point,  &InverseIndices, value, der, 0, nullptr, stream);
+            Parent->ApproximateForPermutation(point, &InverseIndices, value, der, 0, nullptr, stream);
         }
 
         void ComputeSecondDerRowLowerTriangleForAllBlocks(const TVec& point,
@@ -202,8 +199,6 @@ namespace NCatboostCuda {
         TBuffer<const ui32> Indices;
         TBuffer<ui32> InverseIndices;
     };
-
-
 
     template <class TTarget>
     inline THolder<IPermutationDerCalcer> CreatePermutationDerCalcer(TTarget&& target,

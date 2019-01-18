@@ -21,7 +21,6 @@
 
 #include <functional>
 
-
 namespace NCatboostCuda {
     class TBoostingProgressTracker {
     public:
@@ -54,8 +53,8 @@ namespace NCatboostCuda {
 
         bool ShouldStop() const {
             return !ContinueTraining ||
-                (Iteration >= CatboostOptions.BoostingOptions->IterationCount) ||
-                ErrorTracker.GetIsNeedStop();
+                   (Iteration >= CatboostOptions.BoostingOptions->IterationCount) ||
+                   ErrorTracker.GetIsNeedStop();
         }
 
         bool IsBestIteration() const {
@@ -83,8 +82,7 @@ namespace NCatboostCuda {
 
         bool IsTimeToSaveSnapshot() const {
             return OutputOptions.SaveSnapshot() &&
-                ((Now() - LastSnapshotTime).SecondsFloat() > OutputOptions.GetSnapshotSaveInterval()
-                || ShouldStop());
+                   ((Now() - LastSnapshotTime).SecondsFloat() > OutputOptions.GetSnapshotSaveInterval() || ShouldStop());
         }
 
         bool HasSnapshot() const {

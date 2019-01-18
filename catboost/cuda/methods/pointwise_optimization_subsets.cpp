@@ -1,10 +1,9 @@
 #include "pointwise_optimization_subsets.h"
 
 namespace NCatboostCuda {
-
     TOptimizationSubsets<NCudaLib::TStripeMapping>
     TSubsetsHelper<NCudaLib::TStripeMapping>::CreateSubsets(const ui32 maxDepth,
-                                                            const TL2Target<NCudaLib::TStripeMapping>& src)  {
+                                                            const TL2Target<NCudaLib::TStripeMapping>& src) {
         TOptimizationSubsets<NCudaLib::TStripeMapping, false> subsets;
         subsets.Bins.Reset(src.WeightedTarget.GetMapping());
         subsets.Indices.Reset(src.WeightedTarget.GetMapping());
@@ -29,7 +28,7 @@ namespace NCatboostCuda {
                                                          const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& docsForBins,
                                                          const NCudaLib::TDistributedObject<TCFeature>& feature,
                                                          ui32 bin,
-                                                         TOptimizationSubsets<NCudaLib::TStripeMapping, false>* subsets)  {
+                                                         TOptimizationSubsets<NCudaLib::TStripeMapping, false>* subsets) {
         auto& profiler = NCudaLib::GetProfiler();
         {
             auto guard = profiler.Profile(TStringBuilder() << "Update bins");

@@ -6,7 +6,7 @@ namespace NCatboostCuda {
     TAddObliviousTreeFeatureParallel& TAddObliviousTreeFeatureParallel::Append(const TObliviousTreeModel& model,
                                                                                const TAddObliviousTreeFeatureParallel::TDataSet& dataSet,
                                                                                const TMirrorBuffer<const ui32>& indices,
-                                                                               TMirrorBuffer<float>& cursor)  {
+                                                                               TMirrorBuffer<float>& cursor) {
         Y_ASSERT(model.GetStructure() == ModelStructure);
 
         const auto& bins = GetBinsForModel(CacheHolder,
@@ -25,7 +25,7 @@ namespace NCatboostCuda {
         return *this;
     }
 
-    void TAddObliviousTreeFeatureParallel::Append(ui32 taskId, const TMirrorBuffer<float>& values, ui32 stream)  {
+    void TAddObliviousTreeFeatureParallel::Append(ui32 taskId, const TMirrorBuffer<float>& values, ui32 stream) {
         auto& task = Tasks.at(taskId);
 
         auto& bins = GetBinsForModel(CacheHolder,

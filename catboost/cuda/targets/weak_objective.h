@@ -6,7 +6,6 @@
 #include <catboost/libs/options/bootstrap_options.h>
 
 namespace NCatboostCuda {
-
     struct TOptimizationTarget {
         TStripeBuffer<float> StatsToAggregate; //zero column is weight, other are targets
         TStripeBuffer<ui32> Indices;
@@ -20,22 +19,18 @@ namespace NCatboostCuda {
         bool MultiLogitOptimization = false;
     };
 
+    class IWeakObjective: public TNonCopyable {
+    public:
+        virtual ~IWeakObjective() {
+        }
 
-     class IWeakObjective: public TNonCopyable {
-     public:
-         virtual ~IWeakObjective() {
-         }
+        virtual void StochasticDer(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
+                                   bool secondDerAsWeights,
+                                   TOptimizationTarget* target) const = 0;
 
-         virtual void StochasticDer(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
-                                    bool secondDerAsWeights,
-                                    TOptimizationTarget* target) const = 0;
+        virtual ui32 GetDim() const = 0;
 
-         virtual ui32 GetDim() const = 0;
-
-         virtual TGpuAwareRandom& GetRandom() const = 0;
-     };
-
-
-
+        virtual TGpuAwareRandom& GetRandom() const = 0;
+    };
 
 }

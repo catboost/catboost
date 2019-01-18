@@ -48,8 +48,7 @@ static void PoissonRandImpl(
     TCudaBuffer<ui64, TMapping>& seeds,
     const TCudaBuffer<float, TMapping>& alphas,
     TCudaBuffer<int, TMapping>& result,
-    ui64 streamId)
-{
+    ui64 streamId) {
     using TKernel = TPoissonKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, alphas, result);
 }
@@ -104,8 +103,7 @@ template <typename TMapping>
 static void GaussianRandImpl(
     TCudaBuffer<ui64, TMapping>& seeds,
     TCudaBuffer<float, TMapping>& result,
-    ui64 streamId)
-{
+    ui64 streamId) {
     using TKernel = TGaussianRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
 }
@@ -159,8 +157,7 @@ template <typename TMapping>
 static void UniformRandImpl(
     TCudaBuffer<ui64, TMapping>& seeds,
     TCudaBuffer<float, TMapping>& result,
-    ui64 streamId)
-{
+    ui64 streamId) {
     using TKernel = TUniformRandKernel;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), streamId, seeds, result);
 }
@@ -212,8 +209,7 @@ template <typename TMapping>
 static void GenerateSeedsOnGpuImpl(
     const NCudaLib::TDistributedObject<ui64>& baseSeed,
     TCudaBuffer<ui64, TMapping>& seeds,
-    ui64 streamId)
-{
+    ui64 streamId) {
     using TKernel = TGenerateSeeds;
     LaunchKernels<TKernel>(seeds.NonEmptyDevices(), streamId, seeds, baseSeed);
 }
@@ -260,15 +256,15 @@ Y_MAP_ARGS(
 
 // TGpuAwareRandom::FillSeeds
 
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                         \
-    template <>                                                                                  \
-    void TGpuAwareRandom::FillSeeds<TMapping>(NCudaLib::TCudaBuffer<ui64, TMapping>* seedsPtr) { \
-        auto& seeds = *seedsPtr;                                                                 \
-        TVector<ui64> seedsCpu(seeds.GetObjectsSlice().Size());                                  \
-        for (ui32 i = 0; i < seeds.GetObjectsSlice().Size(); ++i) {                              \
-            seedsCpu[i] = NextUniformL();                                                        \
-        }                                                                                        \
-        seeds.Write(seedsCpu);                                                                   \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                                                          \
+    template <>                                                                                   \
+    void TGpuAwareRandom::FillSeeds<TMapping>(NCudaLib::TCudaBuffer<ui64, TMapping> * seedsPtr) { \
+        auto& seeds = *seedsPtr;                                                                  \
+        TVector<ui64> seedsCpu(seeds.GetObjectsSlice().Size());                                   \
+        for (ui32 i = 0; i < seeds.GetObjectsSlice().Size(); ++i) {                               \
+            seedsCpu[i] = NextUniformL();                                                         \
+        }                                                                                         \
+        seeds.Write(seedsCpu);                                                                    \
     }
 
 Y_MAP_ARGS(

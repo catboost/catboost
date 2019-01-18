@@ -17,20 +17,13 @@
 using namespace std;
 using namespace NCatboostCuda;
 
-
-
 template <>
 inline TString Printable(TCBinFeature val) {
     return TStringBuilder() << val.FeatureId << "/" << val.BinId;
 }
 
-
-
 Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
-
     inline TVector<TVector<ui32>>& GetCompressedIndexCpu(const TDocParallelDataSet& dataSet) {
-
-
         TString key = "cindex";
         return dataSet.Cache(key, [&]() -> TVector<TVector<ui32>> {
             const ui32 devCount = static_cast<const ui32>(NCudaLib::GetCudaManager().GetDeviceCount());
@@ -53,7 +46,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
             return bin > fold;
         }
     }
-
 
     using TLayout = TDocParallelLayout;
 
@@ -78,7 +70,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
         TAdaptiveLock refStatLock;
 
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
-
             TSlice docSlice = stats.GetMapping().DeviceSlice(dev);
             const TVector<ui32>& compressedIndex = cindexCpu[dev];
 
@@ -119,10 +110,9 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                         UNIT_ASSERT((feature.Offset + idx) < compressedIndex.size());
                         ui32 ci = cindexPtr[idx];
 
-
                         int bin = (ci >> feature.Shift) & feature.Mask;
                         for (ui32 stat = 0; stat < statCount; ++stat) {
-                            CB_ENSURE(part.Offset + stat * inds.size() + i < statsCpu.size(), part.Offset << " " << part.Size << " " << stat << " " << inds.size() << " " <<i << " " << statsCpu.size());
+                            CB_ENSURE(part.Offset + stat * inds.size() + i < statsCpu.size(), part.Offset << " " << part.Size << " " << stat << " " << inds.size() << " " << i << " " << statsCpu.size());
                             Y_ASSERT((ui32)bin < featureHist.size());
                             Y_ASSERT(leaf * statCount + stat < featureHist[bin].size());
                             featureHist[bin][leaf * statCount + stat] += statsCpu[part.Offset + stat * inds.size() + i];
@@ -138,7 +128,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                     }
                 }
 
-                with_lock(refStatLock){
+                with_lock (refStatLock) {
                     if (!refStats->contains(featureId)) {
                         (*refStats)[featureId] = featureHist;
                     } else {
@@ -169,8 +159,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                             subsets.Target.Indices,
                             subsets.Partitions,
                             subsets.Leaves.size(),
-                            &refStats
-                );
+                            &refStats);
             }
 
             if (dataSet.HasPermutationDependentFeatures()) {
@@ -181,12 +170,9 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                             subsets.Target.Indices,
                             subsets.Partitions,
                             subsets.Leaves.size(),
-                            &refStats
-                );
+                            &refStats);
             }
         }
-
-
 
         const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
 
@@ -199,7 +185,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
             const ui32 numStats = subsets.Target.StatsToAggregate.GetColumnCount();
             const ui32 numLeaves = subsets.Leaves.size();
 
-//            leafId * binFeatureCount * statCount + statId * binFeatureCount + binFeatureId;
+            //            leafId * binFeatureCount * statCount + statId * binFeatureCount + binFeatureId;
             const auto binFeatureCountOnDevice = binFeatures.size();
             for (ui32 i = 0; i < binFeatureCountOnDevice; ++i) {
                 ui32 fid = binFeatures[i].FeatureId;
@@ -217,16 +203,15 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                                          statId * binFeatureCountOnDevice +
                                          i;
 
-
                         const float computedOnGpu = resultsGpu[idx];
                         UNIT_ASSERT(refStats.contains(fid));
                         UNIT_ASSERT(refStats[fid].size() > binId);
                         UNIT_ASSERT(refStats[fid][binId].size() == numStats * numLeaves);
                         const float computedOnCpu = refStats[fid][binId][leaf * numStats + statId];
-                        if (std::abs(computedOnGpu- computedOnCpu)> 1e-5) {
+                        if (std::abs(computedOnGpu - computedOnCpu) > 1e-5) {
                             DumpToFile(subsets.Histograms, "histograms");
                         }
-                        UNIT_ASSERT_DOUBLES_EQUAL_C(computedOnGpu, computedOnCpu, 1e-5, i << ": " << fid << " " << binId << " " << statId << " " << leaf << " " <<numLeaves);
+                        UNIT_ASSERT_DOUBLES_EQUAL_C(computedOnGpu, computedOnCpu, 1e-5, i << ": " << fid << " " << binId << " " << statId << " " << leaf << " " << numLeaves);
                     }
                 }
             }
@@ -252,20 +237,20 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
             // fill with trash to avoid rounding comparison
             for (ui32 i = 0; i < stats.size(); i++) {
-//            for (ui32 stat = 0; stat < numStats; stat++) {
-//                for (ui32 i = 0; i < indicesCount; ++i) {
-//                    stats[stat * indicesCount + i] = 1.0 / (1 << stat);
-                    auto rel = (rand.NextUniformL() % 5);
-                    if (rel == 0) {
-                        stats[i] = 0.125f;
-                    } else if (rel == 1) {
-                        stats[i] = 0.25f;
-                    } else if (rel == 2) {
-                        stats[i] = 0.5f;
-                    } else if (rel == 3) {
-                        stats[i] = 0.75f;
-                    }
-//                }
+                //            for (ui32 stat = 0; stat < numStats; stat++) {
+                //                for (ui32 i = 0; i < indicesCount; ++i) {
+                //                    stats[stat * indicesCount + i] = 1.0 / (1 << stat);
+                auto rel = (rand.NextUniformL() % 5);
+                if (rel == 0) {
+                    stats[i] = 0.125f;
+                } else if (rel == 1) {
+                    stats[i] = 0.25f;
+                } else if (rel == 2) {
+                    stats[i] = 0.5f;
+                } else if (rel == 3) {
+                    stats[i] = 0.75f;
+                }
+                //                }
             }
             target.StatsToAggregate.Write(stats);
         }
@@ -277,13 +262,10 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                         const TPointsSubsets& subsets,
                         TVector<TVector<TDataPartition>>* newParts,
                         TVector<TVector<ui32>>* newIndices,
-                        TVector<TVector<float>>* newStats
-    ) {
-
+                        TVector<TVector<float>>* newStats) {
         auto currentParts = subsets.CurrentParts();
         const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         const auto& cindex = GetCompressedIndexCpu(dataSet);
-
 
         newParts->resize(devCount);
         newIndices->resize(devCount);
@@ -325,7 +307,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                 TVector<ui32> leftIndices;
                 TVector<ui32> rightIndices;
 
-
                 for (ui32 i = 0; i < partSize; ++i) {
                     const bool isRight = SplitValue(cindex[dev].data(),
                                                     devIndices[offset + i],
@@ -340,7 +321,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                         leftIndices.push_back(permutation[offset + i]);
                     }
                 }
-
 
                 CB_ENSURE(oldPart.Size + newPart.Size == partSize);
                 CB_ENSURE(newPart.Offset == oldPart.Offset + oldPart.Size);
@@ -372,9 +352,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
         }
     }
 
-
     void CheckPartStats(const TPointsSubsets& subsets) {
-
         auto currentParts = subsets.CurrentParts();
         auto currentPartsHost = subsets.CurrentPartsCpu();
 
@@ -398,8 +376,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
         TVector<ui32> leafSizes(numLeaves);
 
         for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
-
-
             auto devIndices = subsets.Target.Indices.DeviceView(dev);
             auto devParts = currentParts.DeviceView(dev);
             TVector<TDataPartition> cpuParts;
@@ -409,10 +385,9 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
             TVector<double> devStats;
             subsets.PartitionStats
-                    .DeviceView(dev)
-                    .SliceView(TSlice(0, subsets.Leaves.size()))
-                    .Read(devStats);
-
+                .DeviceView(dev)
+                .SliceView(TSlice(0, subsets.Leaves.size()))
+                .Read(devStats);
 
             UNIT_ASSERT_VALUES_EQUAL(devStats.size(), subsets.Leaves.size() * numStats);
 
@@ -443,7 +418,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
         }
     }
 
-
     template <class T>
     void AssertVecEqual(const TVector<T>& left, const TVector<T>& right) {
         UNIT_ASSERT_VALUES_EQUAL(left.size(), right.size());
@@ -458,22 +432,19 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                            TPointsSubsets& subsets) {
         CheckPartStats(subsets);
 
-
         TVector<TVector<TDataPartition>> newParts;
         TVector<TVector<ui32>> indicesAfterSpltiCpu;
-        TVector<TVector<float >> statsAfterSplitCpu;
+        TVector<TVector<float>> statsAfterSplitCpu;
 
         SplitPointsCpu(splitPropertiesHelper.GetDataSet(),
                        leaves,
                        subsets,
                        &newParts,
                        &indicesAfterSpltiCpu,
-                       &statsAfterSplitCpu
-        );
+                       &statsAfterSplitCpu);
 
         splitPropertiesHelper.MakeSplit(leaves,
                                         &subsets);
-
 
         const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
 
@@ -491,22 +462,20 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
             partCpu.resize(subsets.Leaves.size());
             for (ui32 i = 0; i < partCpu.size(); ++i) {
                 UNIT_ASSERT_EQUAL_C(partCpu[i].Offset, newParts[dev][i].Offset, i << " " << partCpu[i].Offset << " " << partCpu[i].Size << " " << newParts[dev][i].Offset << " " << newParts[dev][i].Size);
-                UNIT_ASSERT_EQUAL_C(partCpu[i].Size, newParts[dev][i].Size,   i << " " << partCpu[i].Offset << " " << partCpu[i].Size << " " << newParts[dev][i].Offset << " " << newParts[dev][i].Size);
+                UNIT_ASSERT_EQUAL_C(partCpu[i].Size, newParts[dev][i].Size, i << " " << partCpu[i].Offset << " " << partCpu[i].Size << " " << newParts[dev][i].Offset << " " << newParts[dev][i].Size);
             }
         }
 
         CheckPartStats(subsets);
-
     }
 
-//
+    //
     void RunComputeTest(const TDocParallelDataSet& dataSet,
                         const ui32 numStats,
                         const ui32 maxLeaves,
                         double sampleRate,
                         const TComputeByBlocksConfig& byBlocksConfig,
                         const TBinarizedFeaturesManager& featuresManager) {
-
         TRandom rand(10);
 
         TComputeSplitPropertiesByBlocksHelper computeSplitPropertiesByBlocksHelper(dataSet,
@@ -514,20 +483,16 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
         TSplitPropertiesHelper splitPropertiesHelper(dataSet,
                                                      featuresManager,
-                                                     computeSplitPropertiesByBlocksHelper
-        );
+                                                     computeSplitPropertiesByBlocksHelper);
 
         auto subsets = splitPropertiesHelper.CreateInitialSubsets(CreateTestTarget(dataSet, numStats, sampleRate),
-                                                                  maxLeaves
-        );
-
+                                                                  maxLeaves);
 
         while (subsets.Leaves.size() < maxLeaves) {
             CATBOOST_DEBUG_LOG << "Leaves count #" << subsets.Leaves.size() << Endl;
 
             splitPropertiesHelper.BuildNecessaryHistograms(&subsets);
             CheckHistograms(dataSet, subsets);
-
 
             TVector<ui32> leavesToSplit;
             for (ui32 i = 0; i < subsets.Leaves.size(); ++i) {
@@ -541,8 +506,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
             leavesToSplit.resize(Max<ui32>(leavesToSplit.size() * 0.5, 1));
             ui32 maxLeavesToSplit = leavesToSplit.size() + subsets.Leaves.size() > maxLeaves ? maxLeaves - subsets.Leaves.size() : leavesToSplit.size();
             leavesToSplit.resize(maxLeavesToSplit);
-//            leavesToSplit.resize(1);
-
+            //            leavesToSplit.resize(1);
 
             for (ui32 leafId : leavesToSplit) {
                 TBinarySplit bestSplit;
@@ -563,7 +527,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                               subsets);
         }
     }
-
 
     void TestSplitPropsHelper(ui32 binarization,
                               ui32 oneHotLimit,
@@ -626,7 +589,6 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                            config.SampleRate,
                            config,
                            *featuresManager);
-
         }
     }
 
@@ -646,9 +608,9 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
         auto stopCudaManagerGuard = StartCudaManager();
         {
-//            for (ui32 bin : {2, 15, 32, 64, 128, 255}) {
-//            for (ui32 bin : {2, 15, 32, 64, 128, 255}) {
-            for (ui32 bin : { 32, 64, 128, 255}) {
+            //            for (ui32 bin : {2, 15, 32, 64, 128, 255}) {
+            //            for (ui32 bin : {2, 15, 32, 64, 128, 255}) {
+            for (ui32 bin : {32, 64, 128, 255}) {
                 {
                     Cout << "Test bin count #" << bin << Endl;
                     const ui32 numCatFeatures = 7 + random.NextUniformL() % 5;
@@ -657,18 +619,15 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
                     SavePoolToFile(pool, "test-pool.txt");
                     SavePoolCDToFile("test-pool.txt.cd", numCatFeatures);
 
-
                     TestSplitPropsHelper(bin, oneHotLimit, 2, numStats);
                 }
             }
         }
     }
 
-
     Y_UNIT_TEST(TestSplitPropsHelperWithoutOneHot1) {
         RunTests(0, 0, 1, 45527);
     }
-
 
     Y_UNIT_TEST(TestSplitPropsHelperWithoutOneHot2) {
         RunTests(0, 0, 2, 25527);

@@ -5,11 +5,9 @@
 
 namespace NCudaLib {
     namespace NAligment {
-
         inline constexpr ui64 GetColumnAligment() {
             return 256;
         }
-
 
         inline constexpr ui64 AlignedColumnSize(ui64 size) {
             const ui64 aligment = GetColumnAligment();
@@ -23,7 +21,6 @@ namespace NCudaLib {
         inline constexpr ui64 GetMemorySize(ui64 columnSize, ui64 columnCount) {
             return AlignedColumnSize(columnSize) * columnCount;
         }
-
 
     }
 }

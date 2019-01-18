@@ -36,8 +36,8 @@ void NCatboostCuda::TQuerywiseSampler::SampleQueries(TGpuAwareRandom& random, co
                         &sampledWeight);
 
     {
-        auto nzElements =  TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
-        auto docs =  TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+        auto nzElements = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+        auto docs = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
         docs.Copy(indices);
 
         FilterZeroEntries(&sampledWeight,

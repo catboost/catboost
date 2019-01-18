@@ -9,11 +9,11 @@ using NCudaLib::EPtrType;
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
+using NKernelHost::IMemoryManager;
 using NKernelHost::TCudaBufferPtr;
 using NKernelHost::TCudaStream;
 using NKernelHost::TDeviceBuffer;
 using NKernelHost::TKernelBase;
-using NKernelHost::IMemoryManager;
 
 // SegmentedScanVector
 
@@ -72,8 +72,7 @@ static void SegmentedScanVectorImpl(
     TCudaBuffer<std::remove_const_t<T>, TMapping>& output,
     bool inclusive,
     ui32 flagMask,
-    ui32 streamId)
-{
+    ui32 streamId) {
     using TKernel = TSegmentedScanKernel<std::remove_const_t<T>>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, flags, flagMask, output, inclusive);
 }
@@ -92,7 +91,6 @@ static void SegmentedScanVectorImpl(
         ui32 streamId) {                                                                \
         ::SegmentedScanVectorImpl(input, flags, output, inclusive, flagMask, streamId); \
     }
-
 
 Y_MAP_ARGS(
     Y_CATBOOST_CUDA_F_IMPL_PROXY,

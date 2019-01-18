@@ -5,8 +5,8 @@ void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId, NPar::TLo
     auto derCalcer = CreateDerCalcer(task);
 
     TNewtonLikeWalker newtonLikeWalker(*derCalcer,
-                                        LeavesEstimationConfig.Iterations,
-                                        LeavesEstimationConfig.BacktrackingType);
+                                       LeavesEstimationConfig.Iterations,
+                                       LeavesEstimationConfig.BacktrackingType);
 
     TVector<float> point;
     TVector<double> weights;

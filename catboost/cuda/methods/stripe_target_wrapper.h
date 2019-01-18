@@ -4,8 +4,7 @@
 #include <catboost/cuda/cuda_util/gpu_random.h>
 
 namespace NCatboostCuda {
-
-    class IStripeTargetWrapper : public TNonCopyable {
+    class IStripeTargetWrapper: public TNonCopyable {
     public:
         virtual ~IStripeTargetWrapper() {
         }
@@ -23,12 +22,11 @@ namespace NCatboostCuda {
     };
 
     template <class TTargetFunc>
-    class TStripeTargetWrapper : public IStripeTargetWrapper {
+    class TStripeTargetWrapper: public IStripeTargetWrapper {
     public:
-
         TStripeTargetWrapper(const TTargetFunc& target)
-                : Target(target) {
-
+            : Target(target)
+        {
         }
 
         const TTarget<NCudaLib::TStripeMapping>& GetTarget() const final {
@@ -50,6 +48,7 @@ namespace NCatboostCuda {
                           ui32 stream = 0) const final {
             Target.NewtonAtZero(weightedDer, weightedDer2, stream);
         };
+
     private:
         const TTargetFunc& Target;
     };

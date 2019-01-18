@@ -56,10 +56,10 @@ namespace NCatboostCuda {
         }
 
         static THolder<ILeavesEstimationOracle> Create(const TPairwiseTarget& target,
-                                                          TStripeBuffer<const float>&& baseline,
-                                                          TStripeBuffer<const ui32>&& bins,
-                                                          ui32 binCount,
-                                                          const TLeavesEstimationConfig& estimationConfig) {
+                                                       TStripeBuffer<const float>&& baseline,
+                                                       TStripeBuffer<const ui32>&& bins,
+                                                       ui32 binCount,
+                                                       const TLeavesEstimationConfig& estimationConfig) {
             TStripeBuffer<uint2> pairs;
             TStripeBuffer<float> pairWeights;
 
@@ -89,30 +89,30 @@ namespace NCatboostCuda {
                                       &leafWeights);
 
             return new TOracle(target,
-                                          std::move(baseline),
-                                          std::move(bins),
-                                          leafWeights,
-                                          pairPartsLeafWeights,
-                                          estimationConfig,
-                                          std::move(pairs),
-                                          std::move(pairWeights),
-                                          std::move(pairLeafOffsets),
-                                          std::move(pointLeafOffsets),
-                                          std::move(pointLeafIndices));
+                               std::move(baseline),
+                               std::move(bins),
+                               leafWeights,
+                               pairPartsLeafWeights,
+                               estimationConfig,
+                               std::move(pairs),
+                               std::move(pairWeights),
+                               std::move(pairLeafOffsets),
+                               std::move(pointLeafOffsets),
+                               std::move(pointLeafIndices));
         }
 
     private:
         TOracle(const TPairwiseTarget& target,
-                           TStripeBuffer<const float>&& baseline,
-                           TStripeBuffer<const ui32>&& bins,
-                           const TVector<double>& leafWeights,
-                           const TVector<double>& pairLeafWeights,
-                           const TLeavesEstimationConfig& estimationConfig,
-                           TStripeBuffer<uint2>&& pairs,
-                           TStripeBuffer<float>&& pairWeights,
-                           TStripeBuffer<ui32>&& pairLeafOffset,
-                           TStripeBuffer<ui32>&& pointLeafOffsets,
-                           TStripeBuffer<ui32>&& pointLeafIndices)
+                TStripeBuffer<const float>&& baseline,
+                TStripeBuffer<const ui32>&& bins,
+                const TVector<double>& leafWeights,
+                const TVector<double>& pairLeafWeights,
+                const TLeavesEstimationConfig& estimationConfig,
+                TStripeBuffer<uint2>&& pairs,
+                TStripeBuffer<float>&& pairWeights,
+                TStripeBuffer<ui32>&& pairLeafOffset,
+                TStripeBuffer<ui32>&& pointLeafOffsets,
+                TStripeBuffer<ui32>&& pointLeafIndices)
             : TParent(std::move(baseline),
                       std::move(bins),
                       leafWeights,

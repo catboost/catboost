@@ -20,7 +20,6 @@
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
 
-
 #define CB_DEFINE_CUDA_TARGET_BUFFERS()       \
     template <class T>                        \
     using TBuffer = TCudaBuffer<T, TMapping>; \
@@ -65,9 +64,9 @@ namespace NCatboostCuda {
                     const TSlice& slice)
             : Target(SliceTarget(dataSet.GetTarget(), slice))
             , Random(&random)
-            , SamplesGrouping(CreateGpuGrouping(dataSet, slice)) {
+            , SamplesGrouping(CreateGpuGrouping(dataSet, slice))
+        {
         }
-
 
         template <class TDataSet>
         TTargetFunc(const TDataSet& dataSet,
@@ -91,8 +90,7 @@ namespace NCatboostCuda {
             : Target(SliceTarget(target.GetTarget(), slice))
             , Random(target.Random)
             , SamplesGrouping(SliceGrouping(target.GetSamplesGrouping(),
-                                            slice))
-        {
+                                            slice)) {
         }
 
         TTargetFunc(const TTargetFunc& target)
@@ -116,7 +114,6 @@ namespace NCatboostCuda {
         TCudaBuffer<T, TMapping> CreateGpuBuffer() const {
             return TCudaBuffer<T, TMapping>::CopyMapping(Target.GetTargets());
         };
-
 
         TGpuAwareRandom& GetRandom() const {
             return *Random;
@@ -157,14 +154,15 @@ namespace NCatboostCuda {
         TPointwiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random,
                          const TSlice& slice)
-            : TTargetFunc<TMapping>(dataSet, random, slice) {
+            : TTargetFunc<TMapping>(dataSet, random, slice)
+        {
         }
-
 
         template <class TDataSet>
         TPointwiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random)
-            : TTargetFunc<TMapping>(dataSet, random) {
+            : TTargetFunc<TMapping>(dataSet, random)
+        {
         }
 
         TPointwiseTarget(const TPointwiseTarget<NCudaLib::TMirrorMapping>& basedOn,
@@ -180,7 +178,8 @@ namespace NCatboostCuda {
         }
 
         TPointwiseTarget(const TPointwiseTarget& target)
-            : TTargetFunc<TMapping>(target) {
+            : TTargetFunc<TMapping>(target)
+        {
         }
 
         TPointwiseTarget(TPointwiseTarget&& other) = default;
@@ -209,7 +208,8 @@ namespace NCatboostCuda {
         template <class TDataSet>
         TQuerywiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random)
-            : TTargetFunc<TMapping>(dataSet, random) {
+            : TTargetFunc<TMapping>(dataSet, random)
+        {
             EnsureHasQueries(*this);
         }
 
@@ -223,12 +223,14 @@ namespace NCatboostCuda {
 
         TQuerywiseTarget(const TQuerywiseTarget& target,
                          const TSlice& slice)
-            : TTargetFunc<TMapping>(target, slice) {
+            : TTargetFunc<TMapping>(target, slice)
+        {
             EnsureHasQueries(*this);
         }
 
         TQuerywiseTarget(const TQuerywiseTarget& target)
-            : TTargetFunc<TMapping>(target) {
+            : TTargetFunc<TMapping>(target)
+        {
             EnsureHasQueries(*this);
         }
 
@@ -265,8 +267,6 @@ namespace NCatboostCuda {
         ui32 GetDim() const {
             return 1;
         }
-
-
     };
 
     template <template <class TMapping> class TTargetFunc>
@@ -309,7 +309,8 @@ namespace NCatboostCuda {
                             TConstVec&& sliceShift)
             : Parent(target,
                      slice)
-            , Shift(std::move(sliceShift)) {
+            , Shift(std::move(sliceShift))
+        {
             CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
         }
 
@@ -317,7 +318,8 @@ namespace NCatboostCuda {
         TShiftedTargetSlice(const TTargetFunc& target,
                             TConstVec&& shift)
             : Parent(target)
-            , Shift(std::move(shift)) {
+            , Shift(std::move(shift))
+        {
             CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
         }
 
@@ -351,8 +353,6 @@ namespace NCatboostCuda {
                                         secondDerAsWeights,
                                         target);
         }
-
-
 
         const TTarget<TMapping>& GetTarget() const {
             return Parent.GetTarget();

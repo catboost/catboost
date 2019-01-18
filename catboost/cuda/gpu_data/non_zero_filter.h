@@ -9,8 +9,6 @@
 #include <catboost/cuda/cuda_util/transform.h>
 
 namespace NCatboostCuda {
-
-
     //warning: will not free memory
     template <class TMapping>
     inline void FilterZeroEntries(TCudaBuffer<float, TMapping>* weights,

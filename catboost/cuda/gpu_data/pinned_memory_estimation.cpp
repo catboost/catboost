@@ -4,7 +4,6 @@
 
 #include <catboost/libs/helpers/math_utils.h>
 
-
 ui32 NCatboostCuda::EstimatePinnedMemorySizeInBytesPerDevice(const NCB::TTrainingDataProvider& dataProvider,
                                                              const NCB::TTrainingDataProvider* testProvider,
                                                              const TBinarizedFeaturesManager& featuresManager,

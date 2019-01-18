@@ -18,11 +18,9 @@ Y_UNIT_TEST_SUITE(TBatchStripeReduceTest) {
     void TestBatchReduce(int batchSize,
                          const size_t partSize = 128 * 4 * 9,
                          bool compress = false) {
-
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         TSetLogging inThisScope(ELoggingLevel::Debug);
         auto& profiler = GetProfiler();
-
 
         for (int tr = 0; tr < tries; ++tr) {
             {
@@ -50,7 +48,7 @@ Y_UNIT_TEST_SUITE(TBatchStripeReduceTest) {
                 }
             }
             {
-                auto beforeReduceMapping = TStripeMapping::RepeatOnAllDevices(batchSize*partSize);
+                auto beforeReduceMapping = TStripeMapping::RepeatOnAllDevices(batchSize * partSize);
                 auto afterReduceMapping = TStripeMapping::SplitBetweenDevices(batchSize * partSize);
 
                 TStripeBuffer<float> data = TStripeBuffer<float>::Create(beforeReduceMapping);
@@ -83,5 +81,4 @@ Y_UNIT_TEST_SUITE(TBatchStripeReduceTest) {
         auto stopCudaManagerGuard = StartCudaManager();
         TestBatchReduce(1000);
     }
-
 }

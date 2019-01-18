@@ -41,7 +41,6 @@
 
 using namespace NCB;
 
-
 namespace NCatboostCuda {
     inline void UpdatePinnedMemorySizeOption(const NCB::TTrainingDataProvider& learn,
                                              const NCB::TTrainingDataProvider* test,
@@ -100,7 +99,8 @@ namespace NCatboostCuda {
         } else {
             if (options.BoostingOptions->PermutationCount > 1) {
                 if (options.ObliviousTreeOptions->LeavesEstimationMethod.IsDefault() &&
-                    options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple) {
+                    options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple)
+                {
                     options.ObliviousTreeOptions->LeavesEstimationMethod.SetDefault(ELeavesEstimation::Newton);
                 }
             }
@@ -178,8 +178,7 @@ namespace NCatboostCuda {
 
                 for (ui32 i = 0; i < currentFeatureDescription.size(); ++i) {
                     if (currentFeatureDescription[i].Type == ECtrType::Borders && options.TargetBorders->BorderCount == 1u) {
-                        ui32 uniqueValues
-                            = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(TCatFeatureIdx((ui32)catFeatureIdx)).OnAll;
+                        ui32 uniqueValues = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(TCatFeatureIdx((ui32)catFeatureIdx)).OnAll;
 
                         TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(binarizedTarget.data(),
                                                                                                        (*values).data(), (*values).size(), uniqueValues);
@@ -203,7 +202,6 @@ namespace NCatboostCuda {
                                                NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                TBinarizedFeaturesManager& featuresManager,
                                                NPar::TLocalExecutor* localExecutor) {
-
         bool hasTestConstTarget = true;
         bool hasTestPairs = false;
         ui32 testPoolSize = 0;
@@ -225,7 +223,6 @@ namespace NCatboostCuda {
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
     }
-
 
     THolder<TAdditiveModel<TObliviousTreeModel>> TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                                                 const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -276,7 +273,7 @@ namespace NCatboostCuda {
                                         testMultiApprox,
                                         metricsAndTimeHistory);
         } else {
-            ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " <<  optimizationImplementation;
+            ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation;
         }
         return model;
     }
@@ -291,7 +288,6 @@ namespace NCatboostCuda {
             ythrow TCatBoostException() << "Can't create working dir: " << path;
         }
     }
-
 
     class TGPUModelTrainer: public IModelTrainer {
     public:
@@ -308,8 +304,7 @@ namespace NCatboostCuda {
             const TMaybe<TRestorableFastRng64*> rand,
             TFullModel* model,
             const TVector<TEvalResult*>& evalResultPtrs,
-            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override
-        {
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override {
             Y_UNUSED(objectiveDescriptor);
             Y_UNUSED(evalMetricDescriptor);
             Y_UNUSED(rand);
@@ -319,25 +314,22 @@ namespace NCatboostCuda {
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
             catBoostOptions.Load(params);
 
-            bool saveFinalCtrsInModel
-                = !calcMetricsOnly &&
-                    (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
-                    HasFeaturesForCtrs(*trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
-                                       catBoostOptions.CatFeatureParams.Get().OneHotMaxSize);
+            bool saveFinalCtrsInModel = !calcMetricsOnly &&
+                                        (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
+                                        HasFeaturesForCtrs(*trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
+                                                           catBoostOptions.CatFeatureParams.Get().OneHotMaxSize);
 
             TTrainingForCPUDataProviders trainingDataForFinalCtrCalculation;
 
             if (saveFinalCtrsInModel) {
                 // do it at this stage to check before training
-                trainingDataForFinalCtrCalculation
-                    = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
+                trainingDataForFinalCtrCalculation = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
             }
 
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                       quantizedFeaturesInfo);
-
 
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
@@ -377,8 +369,6 @@ namespace NCatboostCuda {
                 &rawValues,
                 metricsAndTimeHistory);
 
-
-
             if (evalResultPtrs.size()) {
                 evalResultPtrs[0]->SetRawValuesByMove(rawValues);
             }
@@ -387,8 +377,7 @@ namespace NCatboostCuda {
                 return;
             }
 
-            TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
-                = quantizedFeaturesInfo->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
+            TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap = quantizedFeaturesInfo->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
 
             TClassificationTargetHelper classificationTargetHelper(labelConverter,
                                                                    catBoostOptions.DataProcessingOptions);
@@ -419,18 +408,17 @@ namespace NCatboostCuda {
                 classificationTargetHelper,
                 /*ctrLeafCountLimit*/ Max<ui64>(),
                 /*storeAllSimpleCtrs*/ false,
-                saveFinalCtrsInModel ? EFinalCtrComputationMode::Default : EFinalCtrComputationMode::Skip
-            );
+                saveFinalCtrsInModel ? EFinalCtrComputationMode::Default : EFinalCtrComputationMode::Skip);
 
             coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-                std::move(trainingDataForFinalCtrCalculation),
-                std::move(featureCombinationToProjection),
-                targetClassifiers
-            ).WithPerfectHashedToHashedCatValuesMap(
-                &perfectHashedToHashedCatValuesMap
-            ).WithCoreModelFrom(
-                modelPtr
-            ).WithObjectsDataFrom(trainingData.Learn->ObjectsData);
+                                             std::move(trainingDataForFinalCtrCalculation),
+                                             std::move(featureCombinationToProjection),
+                                             targetClassifiers)
+                .WithPerfectHashedToHashedCatValuesMap(
+                    &perfectHashedToHashedCatValuesMap)
+                .WithCoreModelFrom(
+                    modelPtr)
+                .WithObjectsDataFrom(trainingData.Learn->ObjectsData);
 
             if (model) {
                 coreModelToFullModelConverter.Do(true, model);
@@ -438,24 +426,21 @@ namespace NCatboostCuda {
                 coreModelToFullModelConverter.Do(
                     updatedOutputOptions.CreateResultModelFullPath(),
                     updatedOutputOptions.GetModelFormats(),
-                    updatedOutputOptions.AddFileFormatExtension()
-                );
+                    updatedOutputOptions.AddFileFormatExtension());
             }
         }
     };
 
 }
 
-
 TTrainerFactory::TRegistrator<NCatboostCuda::TGPUModelTrainer> GPURegistrator(ETaskType::GPU);
 
 template <>
 inline TString ToString<NCatboostCuda::TGpuTrainerFactoryKey>(const NCatboostCuda::TGpuTrainerFactoryKey& key) {
-    return TStringBuilder() << "Loss=" << key.Loss <<";OptimizationScheme=" << key.GrowingPolicy;
+    return TStringBuilder() << "Loss=" << key.Loss << ";OptimizationScheme=" << key.GrowingPolicy;
 }
 
 template <>
 void Out<NCatboostCuda::TGpuTrainerFactoryKey>(IOutputStream& o, const NCatboostCuda::TGpuTrainerFactoryKey& key) {
     o.Write(ToString(key));
 }
-
