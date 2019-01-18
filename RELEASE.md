@@ -1,7 +1,7 @@
 # Release 0.12.2
 ## Changes:
 * Fixed loading of `epsilon` dataset into memory
-* Fixed multiclass accuracy computation on GPU
+* Fixed multiclass learning on GPU for >255 classes
 * Improved error handling
 * Some other minor fixes
 
