@@ -1969,6 +1969,26 @@
             "uri": "file://test.test_group_weights_file_quantized/first.eval"
         }
     ],
+    "test.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered]": [
+        {
+            "checksum": "fcf0681211e55639b9fa1c6955e5f804",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "81aad3ece592b3308f840fa928ad4cef",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain]": [
+        {
+            "checksum": "3f4ddafa3a64d07cbb0c5a4817e64857",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "db66d92131d31e26a3ae2c7db45a8951",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
+        }
+    ],
     "test.test_ignored_features[Ordered]": [
         {
             "checksum": "9170e7d7f8101761a851785fe16c0054",

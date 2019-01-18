@@ -2137,3 +2137,46 @@ def test_convert_model_to_json_without_cat_features():
     execute(calc_cmd)
     assert (compare_evals_with_precision(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize(
+    'loss_function,eval_metric,boosting_type',
+    [
+        ('QueryRMSE', 'NDCG', 'Plain'),
+        ('QueryRMSE', 'NDCG', 'Ordered'),
+        # Boosting type 'Ordered' is not supported for YetiRankPairwise and PairLogitPairwise
+        ('YetiRankPairwise', 'NDCG', 'Plain'),
+        ('PairLogitPairwise', 'NDCG', 'Plain')
+    ],
+    ids=[
+        'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered',
+        'loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain'
+    ]
+)
+def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    train_file = data_file('black_friday', 'train')
+    test_file = data_file('black_friday', 'test')
+    cd_file = data_file('black_friday', 'cd')
+
+    params = [
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', train_file,
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '--eval-metric', eval_metric,
+        '-m', output_model_path,
+    ]
+
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
+    diff_precision = 1e-2 if loss_function == 'YetiRankPairwise' else 1e-5
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool(diff_precision))]

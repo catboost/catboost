@@ -1,0 +1,12 @@
+0	GroupId
+1	DocId
+2	Categ	Gender
+3	Categ	Age
+4	Categ	Occupation
+5	Categ	City_Category
+6	Categ	Stay_In_Current_City_Years
+7	Categ	Marital_Status
+8	Categ	Product_Category_1
+9	Categ	Product_Category_2
+10	Categ	Product_Category_3
+11	Target

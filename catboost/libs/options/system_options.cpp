@@ -13,7 +13,7 @@ TSystemOptions::TSystemOptions(ETaskType taskType)
     , CpuUsedRamLimit("used_ram_limit", {})
     , Devices("devices", "-1", taskType)
     , GpuRamPart("gpu_ram_part", 0.95, taskType)
-    , PinnedMemorySize("pinned_memory_bytes", 104857600, taskType)
+    , PinnedMemorySize("pinned_memory_bytes", "104857600", taskType)
     , NodeType("node_type", ENodeType::SingleHost, taskType)
     , FileWithHosts("file_with_hosts", "hosts.txt", taskType)
     , NodePort("node_port", GetUnusedNodePort(), taskType)
@@ -46,6 +46,7 @@ void TSystemOptions::Validate() const {
     CB_ENSURE(NumThreads > 0, "thread count should be positive");
     CB_ENSURE(GpuRamPart.GetUnchecked() > 0 && GpuRamPart.GetUnchecked() <= 1.0, "GPU ram part should be in (0, 1]");
     ParseMemorySizeDescription(CpuUsedRamLimit.Get());
+    ParseMemorySizeDescription(PinnedMemorySize.GetUnchecked());
 }
 
 bool TSystemOptions::IsMaster() const {

@@ -5820,3 +5820,38 @@ def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_wei
 
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize(
+    'loss_function,eval_metric,boosting_type',
+    [
+        ('QueryRMSE', 'NDCG', 'Plain'),
+        ('QueryRMSE', 'NDCG', 'Ordered'),
+    ],
+    ids=[
+        'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered',
+    ]
+)
+def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', data_file('black_friday', 'train'),
+        '-t', data_file('black_friday', 'test'),
+        '--column-description', data_file('black_friday', 'cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '--eval-metric', eval_metric,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]

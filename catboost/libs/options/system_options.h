@@ -24,7 +24,7 @@ namespace NCatboostOptions {
         TOption<TString> CpuUsedRamLimit;
         TGpuOnlyOption<TString> Devices;
         TGpuOnlyOption<double> GpuRamPart;
-        TGpuOnlyOption<ui64> PinnedMemorySize;
+        TGpuOnlyOption<TString> PinnedMemorySize;
 
         TCpuOnlyOption<ENodeType> NodeType;
         TCpuOnlyOption<TString> FileWithHosts;
