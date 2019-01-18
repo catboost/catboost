@@ -78,8 +78,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\add_bin_values.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\add_non_symmetric_tree_doc_parallel.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\add_oblivious_tree_model_doc_parallel.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\add_region_doc_parallel.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\compact_model.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\model_converter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\non_summetric_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\oblivious_model.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\region_model.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\models
@@ -108,10 +114,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\models\kernel\add_model_value.cu.obj;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_bin_values.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_doc_parallel.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_non_symmetric_tree_doc_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_oblivious_tree_model_doc_parallel.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_region_doc_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\additive_model.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\bin_optimized_model.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\compact_model.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\model_converter.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\non_symmetric_tree.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\oblivious_model.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\region_model.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -79,11 +79,17 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass_non_symmetric.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass_region.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pair_logit_pairwise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pfound_f.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pointwise.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pointwise_non_symmetric.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pointwise_region.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\query_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\querywise.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\querywise_non_symmetric.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\querywise_region.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\train.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template.h"/>
