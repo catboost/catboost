@@ -39,7 +39,8 @@ namespace NKernel {
 
     class TL2ScoreCalcer {
     public:
-        __host__ __device__ TL2ScoreCalcer(float) {
+        __host__ __device__ TL2ScoreCalcer(float lambda)
+        : Lambda(lambda) {
 
         }
         __host__ __device__ TL2ScoreCalcer(const TL2ScoreCalcer&)  = default;
@@ -49,7 +50,7 @@ namespace NKernel {
         }
 
         __forceinline__ __host__ __device__ void AddLeaf(double sum, double weight) {
-            Score += (weight > 1e-20f ? (-sum * sum) / weight : 0);
+            Score += (weight > 1e-20f ? (-sum * sum) / (weight + Lambda) : 0);
         }
 
         __forceinline__ __host__ __device__ double GetScore() {
@@ -61,6 +62,7 @@ namespace NKernel {
         }
     private:
         float Score = 0;
+        float Lambda = 0;
     };
 
     class TLOOL2ScoreCalcer {
