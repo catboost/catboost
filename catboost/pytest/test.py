@@ -3784,6 +3784,16 @@ def test_dist_train_snapshot():
     return [local_canonical_file(eval_5_plus_5_trees_path)]
 
 
+def test_dist_train_yetirank():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+            loss_function='YetiRank',
+            pool='querywise',
+            train='repeat_same_query_8_times',
+            test='repeat_same_query_8_times',
+            cd='train.cd'),
+        output_file_switch='--test-err-log'))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')

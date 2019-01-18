@@ -1233,6 +1233,12 @@
             "uri": "file://test.test_dist_train_with_weights_calc_block=60_/test_1.eval"
         }
     ],
+    "test.test_dist_train_yetirank": [
+        {
+            "checksum": "5c0785b117884e9810ffbfde0a06fdcb",
+            "uri": "file://test.test_dist_train_yetirank/test_1.eval"
+        }
+    ],
     "test.test_doc_id[Ordered-Logloss]": [
         {
             "checksum": "ba7dd31ffa876f474aec89555ea5f588",
