@@ -84,6 +84,7 @@ typedef struct _ftsent {
 #define FTS_SLNONE 13 /* symbolic link without target */
 #define FTS_W 14      /* whiteout object */
     u_short fts_info; /* user flags for FTSENT structure */
+    u_short fts_type; /* type of fs node; one of FTS_D, FTS_F, FTS_SL */
 
 #define FTS_DONTCHDIR 0x01 /* don't chdir .. to the parent */
 #define FTS_SYMFOLLOW 0x02 /* followed a symlink to get here */

@@ -216,6 +216,18 @@ static int     fts_safe_changedir (FTS *, FTSENT *, int, const char *);
 #define    BNAMES        2        /* yfts_children, names only */
 #define    BREAD        3        /* yfts_read */
 
+static u_short
+yfts_type_from_info(u_short info) {
+    if (info == FTS_D || info == FTS_DP || info == FTS_DOT) {
+        return FTS_D;
+    } else if (info == FTS_F) {
+        return FTS_F;
+    } else if (info == FTS_SL || info == FTS_SLNONE) {
+        return FTS_SL;
+    }
+    return FTS_NSOK;
+}
+
 static void *
 yreallocf(void *ptr, size_t size)
 {
@@ -293,6 +305,7 @@ yfts_open(char * const * argv, int options, int (*compar) (const FTSENT **, cons
         p->fts_parent = parent;
         p->fts_accpath = p->fts_name;
         p->fts_info = fts_stat(sp, p, ISSET(FTS_COMFOLLOW));
+        p->fts_type = yfts_type_from_info(p->fts_info);
 
         /* Command-line "." and ".." are real directories. */
         if (p->fts_info == FTS_DOT)
@@ -451,6 +464,7 @@ yfts_read(FTS * sp) {
     /* Any type of file may be re-visited; re-stat and re-turn. */
     if (instr == FTS_AGAIN) {
         p->fts_info = fts_stat(sp, p, 0);
+        p->fts_type = yfts_type_from_info(p->fts_info);
         return (p);
     }
 
@@ -463,6 +477,7 @@ yfts_read(FTS * sp) {
     if (instr == FTS_FOLLOW &&
         (p->fts_info == FTS_SL || p->fts_info == FTS_SLNONE)) {
         p->fts_info = fts_stat(sp, p, 1);
+        p->fts_type = yfts_type_from_info(p->fts_info);
         if (p->fts_info == FTS_D && !ISSET(FTS_NOCHDIR)) {
             if (valid_dird(p->fts_symfd = get_cwdd())) {
                 p->fts_errno = errno;
@@ -552,6 +567,7 @@ next:    tmp = p;
             goto next;
         if (p->fts_instr == FTS_FOLLOW) {
             p->fts_info = fts_stat(sp, p, 1);
+            p->fts_type = yfts_type_from_info(p->fts_info);
             if (p->fts_info == FTS_D && !ISSET(FTS_NOCHDIR)) {
                 if (valid_dird(p->fts_symfd =
                     get_cwdd())) {
@@ -925,6 +941,16 @@ mem1:                saved_errno = errno;
             p->fts_flags |= FTS_ISW;
 #endif
 
+#ifdef _DIRENT_HAVE_D_TYPE
+        if (dp->d_type == DT_DIR) {
+            p->fts_type = FTS_D;
+        } else if (dp->d_type == DT_REG) {
+            p->fts_type = FTS_F;
+        } else if (dp->d_type == DT_LNK) {
+            p->fts_type = FTS_SL;
+        }
+#endif
+
         if (cderrno) {
             if (nlinks) {
                 p->fts_info = FTS_NS;
@@ -950,6 +976,7 @@ mem1:                saved_errno = errno;
                 p->fts_accpath = p->fts_name;
             /* Stat it. */
             p->fts_info = fts_stat(sp, p, 0);
+            p->fts_type = yfts_type_from_info(p->fts_info);
 
             /* Decrement link count if applicable. */
             if (nlinks > 0 && (p->fts_info == FTS_D ||
@@ -1176,6 +1203,7 @@ fts_alloc(FTS * sp, const char* name, int namelen)
     p->fts_instr = FTS_NOINSTR;
     p->fts_number = 0;
     p->fts_pointer = nullptr;
+    p->fts_type = FTS_NSOK;
     return (p);
 }
 
