@@ -17,8 +17,9 @@ inline int DefaultFoldPermutationBlockSize(int docCount) {
 
 inline void UpdateCtrTargetBordersOption(ELossFunction lossFunction, ui32 approxDim, NCatboostOptions::TCtrDescription* ctr) {
     if (NeedTargetClassifier(ctr->Type)) {
-        if (IsMultiClassMetric(lossFunction)) {
-            ctr->TargetBinarization->BorderCount = approxDim - 1;
+        NCatboostOptions::TOption<ui32>& borderCountOption = ctr->TargetBinarization->BorderCount;
+        if (IsMultiClassMetric(lossFunction) && !borderCountOption.IsSet()) {
+            borderCountOption.Set(approxDim - 1);
         }
     }
 }
