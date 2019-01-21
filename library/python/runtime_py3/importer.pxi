@@ -144,6 +144,11 @@ class ResourceImporter(object):
             return None
         return spec_from_loader(fullname, self, is_package=is_package)
 
+    def find_module(self, fullname, path=None):
+        """For backward compatibility."""
+        spec = self.find_spec(fullname, path)
+        return spec.loader if spec is not None else None
+
     def create_module(self, spec):
         """Use default semantics for module creation."""
 
