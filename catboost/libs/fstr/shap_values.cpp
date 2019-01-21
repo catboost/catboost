@@ -79,7 +79,7 @@ static TVector<TFeaturePathElement> UnwindFeaturePath(
     const double zeroPathsFraction = oldFeaturePath[eraseElementIdx].ZeroPathsFraction;
     double weightDiff = oldFeaturePath[pathLength - 1].Weight;
 
-    if (!FuzzyEquals(onePathsFraction, 0.0)) {
+    if (!FuzzyEquals(1 + onePathsFraction, 1 + 0.0)) {
         for (int elementIdx = pathLength - 2; elementIdx >= 0; --elementIdx) {
             double oldWeight = newFeaturePath[elementIdx].Weight;
             newFeaturePath[elementIdx].Weight = weightDiff * pathLength
@@ -197,7 +197,7 @@ static void CalcShapValuesForLeafRecursive(
         const size_t goNodeIdx = nodeIdx | (documentLeafIdx & (size_t(1) << depth));
         const size_t skipNodeIdx = goNodeIdx ^ (1 << depth);
 
-        if (!FuzzyEquals(subtreeWeights[depth + 1][goNodeIdx], 0.0)) {
+        if (!FuzzyEquals(1 + subtreeWeights[depth + 1][goNodeIdx], 1 + 0.0)) {
             double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeWeights[depth + 1][goNodeIdx]
                 / subtreeWeights[depth][nodeIdx];
             CalcShapValuesForLeafRecursive(
@@ -217,7 +217,7 @@ static void CalcShapValuesForLeafRecursive(
             );
         }
 
-        if (!FuzzyEquals(subtreeWeights[depth + 1][skipNodeIdx], 0.0)) {
+        if (!FuzzyEquals(1 + subtreeWeights[depth + 1][skipNodeIdx], 1 + 0.0)) {
             double newZeroPathsFractionSkipNode = newZeroPathsFraction * subtreeWeights[depth + 1][skipNodeIdx]
                 / subtreeWeights[depth][nodeIdx];
             CalcShapValuesForLeafRecursive(
