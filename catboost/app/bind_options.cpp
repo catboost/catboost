@@ -643,6 +643,12 @@ void ParseCommandLine(int argc, const char* argv[],
             CB_ENSURE(!(*plainJsonPtr)["ctr_description"].GetArray().empty(), "Empty ctr description " << ctrDescriptionLine);
         });
 
+    parser.AddLongOption("ctr-target-border-count", "default border count for target binarization for ctrs")
+        .RequiredArgument("int")
+        .Handler1T<int>([plainJsonPtr](int count) {
+            (*plainJsonPtr)["ctr_target_border_count"] = count;
+        });
+
     const auto counterCalcMethodHelp = TString::Join(
         "Must be one of: ",
         GetEnumAllNames<ECounterCalc>());

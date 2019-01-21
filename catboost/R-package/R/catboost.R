@@ -1010,6 +1010,15 @@ print.catboost.Pool <- function(x, ...) {
 #'         }
 #'       }
 #'
+#'     \item ctr_target_border_count
+#'
+#'       Maximum number of borders used in target binarization for categorical features that need it.
+#'       If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it overrides this value.
+#'
+#'       Default value:
+#'
+#'       1
+#'
 #'     \item counter_calc_method
 #'
 #'       The method for calculating the Counter CTR type for the test dataset.

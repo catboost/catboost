@@ -177,7 +177,7 @@ namespace NCatboostCuda {
                 auto values = catFeatureValues.ExtractValues(localExecutor);
 
                 for (ui32 i = 0; i < currentFeatureDescription.size(); ++i) {
-                    if (currentFeatureDescription[i].Type == ECtrType::Borders && options.TargetBorders->BorderCount == 1u) {
+                    if (currentFeatureDescription[i].Type == ECtrType::Borders && options.TargetBinarization->BorderCount == 1u) {
                         ui32 uniqueValues = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(TCatFeatureIdx((ui32)catFeatureIdx)).OnAll;
 
                         TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(binarizedTarget.data(),

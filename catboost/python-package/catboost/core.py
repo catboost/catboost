@@ -993,6 +993,9 @@ def _check_param_types(params):
     if 'ctr_description' in params:
         if not isinstance(params['ctr_description'], Sequence):
             raise CatboostError("Invalid ctr_description type={} : must be list of strings".format(type(params['ctr_description'])))
+    if 'ctr_target_border_count' in params:
+        if not isinstance(params['ctr_target_border_count'], INTEGER_TYPES):
+            raise CatboostError('Invalid ctr_target_border_count type={} : must be integer type'.format(type(params['ctr_target_border_count'])))
     if 'custom_loss' in params:
         if isinstance(params['custom_loss'], STRING_TYPES):
             params['custom_loss'] = [params['custom_loss']]
@@ -1856,6 +1859,11 @@ class CatBoostClassifier(CatBoost):
             Number_of_borders, binarization type, target borders and binarizations, priors are optional parametrs
     combinations_ctr: list of strings, [default=None]
     per_feature_ctr: list of strings, [default=None]
+    ctr_target_border_count: int, [default=None]
+        Maximum number of borders used in target binarization for categorical features that need it.
+        If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it
+        overrides this value.
+        range: [1, 255]
     ctr_leaf_count_limit : int, [default=None]
         The maximum number of leaves with categorical features.
         If the number of leaves exceeds the specified limit, some leaves are discarded.
@@ -2062,6 +2070,7 @@ class CatBoostClassifier(CatBoost):
         combinations_ctr=None,
         per_feature_ctr=None,
         ctr_description=None,
+        ctr_target_border_count=None,
         task_type=None,
         device_config=None,
         devices=None,
@@ -2435,6 +2444,7 @@ class CatBoostRegressor(CatBoost):
         combinations_ctr=None,
         per_feature_ctr=None,
         ctr_description=None,
+        ctr_target_border_count=None,
         task_type=None,
         device_config=None,
         devices=None,

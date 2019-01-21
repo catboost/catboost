@@ -106,7 +106,7 @@ namespace NCatboostCuda {
         ui32 GetBinCount(ui32 localId) const;
 
         const NCatboostOptions::TBinarizationOptions& GetTargetBinarizationDescription() const {
-            return CatFeatureOptions.TargetBorders;
+            return CatFeatureOptions.TargetBinarization;
         }
 
         const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const TCtr& ctr) const {

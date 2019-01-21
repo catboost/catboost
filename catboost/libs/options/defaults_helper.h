@@ -15,27 +15,24 @@ inline int DefaultFoldPermutationBlockSize(int docCount) {
     return Min(256, docCount / 1000 + 1);
 }
 
-inline void UpdateCtrTargetBordersOption(ELossFunction lossFunction, ui32 approxDim, NCatboostOptions::TCtrDescription* ctr) {
-    if (NeedTargetClassifier(ctr->Type)) {
-        NCatboostOptions::TOption<ui32>& borderCountOption = ctr->TargetBinarization->BorderCount;
-        if (IsMultiClassMetric(lossFunction) && !borderCountOption.IsSet()) {
-            borderCountOption.Set(approxDim - 1);
-        }
-    }
-}
-
-inline void UpdateCtrsTargetBordersOption(ELossFunction lossFunction, ui32 approxDim, TVector<NCatboostOptions::TCtrDescription>* ctrs) {
-    for (auto& ctr : *ctrs) {
-        UpdateCtrTargetBordersOption(lossFunction, approxDim, &ctr);
-    }
-}
-
 inline void UpdateCtrsTargetBordersOption(ELossFunction lossFunction, ui32 approxDim, NCatboostOptions::TCatFeatureParams* catFeatureParams) {
-    UpdateCtrsTargetBordersOption(lossFunction, approxDim, &catFeatureParams->SimpleCtrs.Get());
-    UpdateCtrsTargetBordersOption(lossFunction, approxDim, &catFeatureParams->CombinationCtrs.Get());
-    for (auto& perFeatureCtr : catFeatureParams->PerFeatureCtrs.Get()) {
-        UpdateCtrsTargetBordersOption(lossFunction, approxDim, &perFeatureCtr.second);
-    }
+    const NCatboostOptions::TOption<ui32>& commonBorderCountOption
+        = catFeatureParams->TargetBinarization->BorderCount;
+
+    catFeatureParams->ForEachCtrDescription(
+        [&] (NCatboostOptions::TCtrDescription* ctr) {
+            if (NeedTargetClassifier(ctr->Type)) {
+                NCatboostOptions::TOption<ui32>& borderCountOption = ctr->TargetBinarization->BorderCount;
+                if (!borderCountOption.IsSet()) {
+                    if (commonBorderCountOption.IsSet()) {
+                        borderCountOption.Set(commonBorderCountOption.Get());
+                    } else if (IsMultiClassMetric(lossFunction)) {
+                        borderCountOption.Set(approxDim - 1);
+                    }
+                }
+            }
+        }
+    );
 }
 
 inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::TOption<EBoostingType>* boostingTypeOption) {

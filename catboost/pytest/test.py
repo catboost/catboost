@@ -2033,9 +2033,22 @@ def test_multi_targets(loss_function, boosting_type, dev_score_calc_obj_block_si
 BORDER_TYPES = ['MinEntropy', 'Median', 'UniformAndQuantiles', 'MaxLogSum', 'GreedyLogSum', 'Uniform']
 
 
-@pytest.mark.parametrize('border_type', BORDER_TYPES)
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_target_border(border_type, boosting_type):
+@pytest.mark.parametrize(
+    'border_type',
+    BORDER_TYPES,
+    ids=lambda border_type: 'border_type=%s' % border_type
+)
+@pytest.mark.parametrize(
+    'border_count',
+    [1, 3, 10],
+    ids=lambda border_count: 'border_count=%d' % border_count
+)
+@pytest.mark.parametrize(
+    'boosting_type',
+    BOOSTING_TYPE,
+    ids=lambda boosting_type: 'boosting_type=%s' % boosting_type
+)
+def test_ctr_target_quantization(border_type, border_count, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2052,7 +2065,8 @@ def test_target_border(border_type, boosting_type):
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--ctr', 'Borders:TargetBorderCount=3:TargetBorderType=' + border_type
+        '--ctr', 'Borders:TargetBorderType=' + border_type,
+        '--ctr-target-border-count', str(border_count)
     )
     yatest.common.execute(cmd)
 

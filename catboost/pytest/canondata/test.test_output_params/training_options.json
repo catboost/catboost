@@ -27,13 +27,13 @@
         "ctr_leaf_count_limit" : 18446744073709551615,
         "simple_ctrs" : [
             {
-                "target_borders" : {
-                    "border_count" : 1,
-                    "border_type" : "MinEntropy"
-                },
-                "ctr_borders" : {
+                "ctr_binarization" : {
                     "border_count" : 15,
                     "border_type" : "Uniform"
+                },
+                "target_binarization" : {
+                    "border_count" : 1,
+                    "border_type" : "MinEntropy"
                 },
                 "prior_estimation" : "No",
                 "priors" : [
@@ -53,7 +53,7 @@
                 "ctr_type" : "Borders"
             },
             {
-                "ctr_borders" : {
+                "ctr_binarization" : {
                     "border_count" : 15,
                     "border_type" : "Uniform"
                 },
@@ -72,13 +72,13 @@
         "max_ctr_complexity" : 4,
         "combinations_ctrs" : [
             {
-                "target_borders" : {
-                    "border_count" : 1,
-                    "border_type" : "MinEntropy"
-                },
-                "ctr_borders" : {
+                "ctr_binarization" : {
                     "border_count" : 15,
                     "border_type" : "Uniform"
+                },
+                "target_binarization" : {
+                    "border_count" : 1,
+                    "border_type" : "MinEntropy"
                 },
                 "prior_estimation" : "No",
                 "priors" : [
@@ -98,7 +98,7 @@
                 "ctr_type" : "Borders"
             },
             {
-                "ctr_borders" : {
+                "ctr_binarization" : {
                     "border_count" : 15,
                     "border_type" : "Uniform"
                 },
@@ -112,6 +112,10 @@
                 "ctr_type" : "Counter"
             }
         ],
+        "target_binarization" : {
+            "border_count" : 1,
+            "border_type" : "MinEntropy"
+        },
         "per_feature_ctrs" : { }
     },
     "logging_level" : "Verbose",

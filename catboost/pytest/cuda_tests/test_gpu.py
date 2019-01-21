@@ -2180,3 +2180,38 @@ def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
     diff_precision = 1e-2 if loss_function == 'YetiRankPairwise' else 1e-5
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool(diff_precision))]
+
+
+@pytest.mark.parametrize(
+    'border_count',
+    [1, 3, 10],
+    ids=lambda border_count: 'border_count=%d' % border_count
+)
+@pytest.mark.parametrize(
+    'boosting_type',
+    BOOSTING_TYPE,
+    ids=lambda boosting_type: 'boosting_type=%s' % boosting_type
+)
+def test_ctr_target_quantization(border_count, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    train_file = data_file('adult_crossentropy', 'train_proba')
+    test_file = data_file('adult_crossentropy', 'test_proba')
+    cd_file = data_file('adult_crossentropy', 'train.cd')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'RMSE',
+        '-f': train_file,
+        '-t': test_file,
+        '--column-description': cd_file,
+        '--boosting-type': boosting_type,
+        '-i': '3',
+        '-T': '4',
+        '-m': output_model_path,
+        '--ctr-target-border-count': str(border_count)
+    }
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]

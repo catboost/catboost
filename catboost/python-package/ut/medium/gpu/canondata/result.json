@@ -43,6 +43,10 @@
         "checksum": "43e80740eaccc08234caaf1adf234617",
         "uri": "file://test.test_cpp_export_with_cat_features_GPU_/model.cpp"
     },
+    "test.test_ctr_target_border_count[GPU]": {
+        "checksum": "8f5bd700b0f896ffe6177bfdf8fc44e9",
+        "uri": "file://test.test_ctr_target_border_count_GPU_/model.bin"
+    },
     "test.test_cv[GPU]": {
         "checksum": "32ac21d50b3098d7f355ecca4a596ae4",
         "uri": "file://test.test_cv_GPU_/catboost_training.json"

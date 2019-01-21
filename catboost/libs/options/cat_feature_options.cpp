@@ -48,17 +48,17 @@ NJson::TJsonValue NCatboostOptions::ParseCtrDescription(TStringBuf ctrStringDesc
         if (name == "targetbordertype") {
             CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
             CB_ENSURE(type != ECtrType::Counter && type != ECtrType::FeatureFreq, "Target borders options are unsupported for counter ctr");
-            ctrJson["target_borders"]["border_type"] = param->Value;
+            ctrJson["target_binarization"]["border_type"] = param->Value;
         } else if (name == "targetbordercount") {
             CB_ENSURE(type != ECtrType::Counter && type != ECtrType::FeatureFreq, "Target borders options are unsupported for counter ctr");
             CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-            ctrJson["target_borders"]["border_count"] = FromString<ui32>(param->Value);
+            ctrJson["target_binarization"]["border_count"] = FromString<ui32>(param->Value);
         } else if (name == "ctrbordertype") {
             CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-            ctrJson["ctr_borders"]["border_type"] = param->Value;
+            ctrJson["ctr_binarization"]["border_type"] = param->Value;
         } else if (name == "ctrbordercount") {
             CB_ENSURE(seenParams.count(name) == 0, "Duplicate param: " << param->Name);
-            ctrJson["ctr_borders"]["border_count"] = FromString<ui32>(param->Value);
+            ctrJson["ctr_binarization"]["border_count"] = FromString<ui32>(param->Value);
         } else if (name == "prior") {
             auto priorParams = ParsePriors(param->Value);
             NJson::TJsonValue jsonPrior(NJson::JSON_ARRAY);
@@ -142,8 +142,8 @@ NCatboostOptions::TCtrDescription::TCtrDescription(
     TBinarizationOptions targetBinarization)
     : Type("ctr_type", type)
     , Priors("priors", std::move(priors))
-    , CtrBinarization("ctr_borders", std::move(ctrBinarization))
-    , TargetBinarization("target_borders", std::move(targetBinarization))
+    , CtrBinarization("ctr_binarization", std::move(ctrBinarization))
+    , TargetBinarization("target_binarization", std::move(targetBinarization))
     , PriorEstimation("prior_estimation", EPriorEstimation::No)
 {
     DisableRedundantFields();
@@ -223,34 +223,35 @@ NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
     : SimpleCtrs("simple_ctrs", TVector<TCtrDescription>())
     , CombinationCtrs("combinations_ctrs", TVector<TCtrDescription>())
     , PerFeatureCtrs("per_feature_ctrs", TMap<ui32, TVector<TCtrDescription>>())
+    , TargetBinarization("target_binarization", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1))
     , MaxTensorComplexity("max_ctr_complexity", 4)
     , OneHotMaxSize("one_hot_max_size", 2)
     , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
     , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
     , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
-    , TargetBorders("target_borders", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1), taskType)
+
 {
-    TargetBorders.GetUnchecked().DisableNanModeOption();
+    TargetBinarization.Get().DisableNanModeOption();
 }
 
 void NCatboostOptions::TCatFeatureParams::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options,
-            &SimpleCtrs, &CombinationCtrs, &PerFeatureCtrs, &MaxTensorComplexity, &OneHotMaxSize, &CounterCalcMethod,
-            &StoreAllSimpleCtrs, &CtrLeafCountLimit, &TargetBorders);
+            &SimpleCtrs, &CombinationCtrs, &PerFeatureCtrs, &TargetBinarization, &MaxTensorComplexity, &OneHotMaxSize, &CounterCalcMethod,
+            &StoreAllSimpleCtrs, &CtrLeafCountLimit);
     Validate();
 }
 
 void NCatboostOptions::TCatFeatureParams::Save(NJson::TJsonValue* options) const {
     SaveFields(options,
-            SimpleCtrs, CombinationCtrs, PerFeatureCtrs, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
-            StoreAllSimpleCtrs, CtrLeafCountLimit, TargetBorders);
+            SimpleCtrs, CombinationCtrs, PerFeatureCtrs, TargetBinarization, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
+            StoreAllSimpleCtrs, CtrLeafCountLimit);
 }
 
 bool NCatboostOptions::TCatFeatureParams::operator==(const TCatFeatureParams& rhs) const {
-    return std::tie(SimpleCtrs, CombinationCtrs, PerFeatureCtrs, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
-            StoreAllSimpleCtrs, CtrLeafCountLimit, TargetBorders) ==
-        std::tie(rhs.SimpleCtrs, rhs.CombinationCtrs, rhs.PerFeatureCtrs, rhs.MaxTensorComplexity, rhs.OneHotMaxSize,
-                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit, rhs.TargetBorders);
+    return std::tie(SimpleCtrs, CombinationCtrs, PerFeatureCtrs, TargetBinarization, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
+            StoreAllSimpleCtrs, CtrLeafCountLimit) ==
+        std::tie(rhs.SimpleCtrs, rhs.CombinationCtrs, rhs.PerFeatureCtrs, rhs.TargetBinarization, rhs.MaxTensorComplexity, rhs.OneHotMaxSize,
+                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit);
 }
 
 bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rhs) const {
@@ -275,4 +276,21 @@ void NCatboostOptions::TCatFeatureParams::AddSimpleCtrDescription(const TCtrDesc
 
 void NCatboostOptions::TCatFeatureParams::AddTreeCtrDescription(const TCtrDescription& description) {
     CombinationCtrs->push_back(description);
+}
+
+
+void NCatboostOptions::TCatFeatureParams::ForEachCtrDescription(
+    std::function<void(NCatboostOptions::TCtrDescription*)>&& f) {
+
+    for (auto& ctrDescription : SimpleCtrs.Get()) {
+        f(&ctrDescription);
+    }
+    for (auto& ctrDescription : CombinationCtrs.Get()) {
+        f(&ctrDescription);
+    }
+    for (auto& [id, perFeatureCtr] : PerFeatureCtrs.Get()) {
+        for (auto& ctrDescription : perFeatureCtr) {
+            f(&ctrDescription);
+        }
+    }
 }

@@ -9,6 +9,9 @@
 #include <util/generic/set.h>
 #include <util/generic/vector.h>
 
+#include <functional>
+
+
 namespace NJson {
     class TJsonValue;
 }
@@ -74,9 +77,13 @@ namespace NCatboostOptions {
         void AddSimpleCtrDescription(const TCtrDescription& description);
         void AddTreeCtrDescription(const TCtrDescription& description);
 
+        void ForEachCtrDescription(std::function<void(TCtrDescription*)>&& f);
+
         TOption<TVector<TCtrDescription>> SimpleCtrs;
         TOption<TVector<TCtrDescription>> CombinationCtrs;
         TOption<TMap<ui32, TVector<TCtrDescription>>> PerFeatureCtrs;
+
+        TOption<TBinarizationOptions> TargetBinarization;
 
         TOption<ui32> MaxTensorComplexity;
         TOption<ui32> OneHotMaxSize;
@@ -84,7 +91,5 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<bool> StoreAllSimpleCtrs;
         TCpuOnlyOption<ui64> CtrLeafCountLimit;
-
-        TGpuOnlyOption<TBinarizationOptions> TargetBorders;
     };
 }

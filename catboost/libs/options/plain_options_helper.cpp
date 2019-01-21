@@ -279,6 +279,10 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyCtrDescription(plainOptions, "combinations_ctr", "combinations_ctrs", &ctrOptions, &seenKeys);
     CopyPerFeatureCtrDescription(plainOptions, "per_feature_ctr", "per_feature_ctrs", &ctrOptions, &seenKeys);
 
+    auto& ctrTargetBinarization = ctrOptions["target_binarization"];
+    ctrTargetBinarization.SetType(NJson::JSON_MAP);
+    CopyOptionWithNewKey(plainOptions, "ctr_target_border_count", "border_count", &ctrTargetBinarization, &seenKeys);
+
     CopyOption(plainOptions, "max_ctr_complexity", &ctrOptions, &seenKeys);
     CopyOption(plainOptions, "simple_ctr_description", &ctrOptions, &seenKeys);
     CopyOption(plainOptions, "tree_ctr_description", &ctrOptions, &seenKeys);

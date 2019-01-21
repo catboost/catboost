@@ -229,6 +229,42 @@
             "uri": "file://test_gpu.test_ctr_buckets/test_error.tsv"
         }
     ],
+    "test_gpu.test_ctr_target_quantization[boosting_type=Ordered-border_count=10]": [
+        {
+            "checksum": "75d7cdd88f2bed88a200724c941d8818",
+            "uri": "file://test_gpu.test_ctr_target_quantization_boosting_type=Ordered-border_count=10_/test.eval"
+        }
+    ],
+    "test_gpu.test_ctr_target_quantization[boosting_type=Ordered-border_count=1]": [
+        {
+            "checksum": "50beb07a7e6ef2880fe47a0f50403ded",
+            "uri": "file://test_gpu.test_ctr_target_quantization_boosting_type=Ordered-border_count=1_/test.eval"
+        }
+    ],
+    "test_gpu.test_ctr_target_quantization[boosting_type=Ordered-border_count=3]": [
+        {
+            "checksum": "4bf853145eb86f4b12ca621af517e484",
+            "uri": "file://test_gpu.test_ctr_target_quantization_boosting_type=Ordered-border_count=3_/test.eval"
+        }
+    ],
+    "test_gpu.test_ctr_target_quantization[boosting_type=Plain-border_count=10]": [
+        {
+            "checksum": "d69545050cbd0986f0240628ade3637c",
+            "uri": "file://test_gpu.test_ctr_target_quantization_boosting_type=Plain-border_count=10_/test.eval"
+        }
+    ],
+    "test_gpu.test_ctr_target_quantization[boosting_type=Plain-border_count=1]": [
+        {
+            "checksum": "b3d3130328fc1940cde14f8269114b0b",
+            "uri": "file://test_gpu.test_ctr_target_quantization_boosting_type=Plain-border_count=1_/test.eval"
+        }
+    ],
+    "test_gpu.test_ctr_target_quantization[boosting_type=Plain-border_count=3]": [
+        {
+            "checksum": "9cf078c0e741be3f911b5b04d50d63fe",
+            "uri": "file://test_gpu.test_ctr_target_quantization_boosting_type=Plain-border_count=3_/test.eval"
+        }
+    ],
     "test_gpu.test_ctr_type[Ordered-Borders,FloatTargetMeanValue]": [
         {
             "checksum": "77a24b7a353e98bbc104968e75775b74",

@@ -47,6 +47,10 @@
         "checksum": "861d1ea0496322bac0dd1f3f1f51778f",
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
+    "test.test_ctr_target_border_count[CPU]": {
+        "checksum": "ee8afb848d1e23cf387fa336bb6ef4d0",
+        "uri": "file://test.test_ctr_target_border_count_CPU_/model.bin"
+    },
     "test.test_cv[CPU]": {
         "checksum": "0d2145e1d2ef68c2047af3e6a1054623",
         "uri": "file://test.test_cv_CPU_/catboost_training.json"

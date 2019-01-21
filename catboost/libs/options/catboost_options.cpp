@@ -293,13 +293,22 @@ void NCatboostOptions::TCatBoostOptions::SetCtrDefaults() {
     }
 }
 
-void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const {
-    if (ctr.TargetBinarization->BorderCount > 1) {
+
+static void ValidateCtrTargetBinarization(
+    const NCatboostOptions::TOption<NCatboostOptions::TBinarizationOptions>& ctrTargetBinarization,
+    ELossFunction lossFunction)
+{
+    if (ctrTargetBinarization->BorderCount > 1) {
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
                       lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass,
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
+}
+
+
+void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const {
+    ValidateCtrTargetBinarization(ctr.TargetBinarization, lossFunction);
     CB_ENSURE(ctr.GetPriors().size(), "Provide at least one prior for CTR" << ToString(*this));
 
     const ETaskType taskType = GetTaskType();
@@ -308,7 +317,7 @@ void NCatboostOptions::TCatBoostOptions::ValidateCtr(const TCtrDescription& ctr,
     if (taskType == ETaskType::GPU) {
         CB_ENSURE(IsSupportedCtrType(ETaskType::GPU, ctrType),
                   "Ctr type " << ctrType << " is not implemented on GPU yet");
-        CB_ENSURE(ctr.TargetBinarization.IsDefault(), "Error: GPU doesn't not support target binarization per CTR description currently. Please use target_borders option instead");
+        CB_ENSURE(ctr.TargetBinarization.IsDefault(), "Error: GPU doesn't not support target binarization per CTR description currently. Please use ctr_target_border_count option instead");
     } else {
         CB_ENSURE(taskType == ETaskType::CPU);
         CB_ENSURE(IsSupportedCtrType(ETaskType::CPU, ctrType),
@@ -406,6 +415,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         ValidateCtrs(perFeatureCtr.second, lossFunction, false);
     }
     ValidateCtrs(CatFeatureParams->CombinationCtrs, lossFunction, true);
+    ValidateCtrTargetBinarization(CatFeatureParams->TargetBinarization, lossFunction);
+
     CB_ENSURE(Metadata.Get().IsMap(), "metadata should be map");
     for (const auto& keyValue : Metadata.Get().GetMapSafe()) {
         CB_ENSURE(keyValue.second.IsString(), "only string to string metadata dictionary supported");
