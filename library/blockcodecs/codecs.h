@@ -30,7 +30,7 @@ namespace NBlockCodecs {
     struct ICodec {
         virtual ~ICodec();
 
-        //main interface
+        // main interface
         virtual size_t DecompressedLength(const TData& in) const = 0;
         virtual size_t MaxCompressedLength(const TData& in) const = 0;
         virtual size_t Compress(const TData& in, void* out) const = 0;
@@ -38,7 +38,7 @@ namespace NBlockCodecs {
 
         virtual TStringBuf Name() const noexcept = 0;
 
-        //some useful helpers
+        // some useful helpers
         void Encode(const TData& in, TBuffer& out) const;
         void Decode(const TData& in, TBuffer& out) const;
 
@@ -60,12 +60,20 @@ namespace NBlockCodecs {
 
             return out;
         }
+    private:
+        size_t GetDecompressedLength(const TData& in) const;
     };
 
     const ICodec* Codec(const TStringBuf& name);
 
-    //some aux methods
+    // some aux methods
     typedef TVector<TStringBuf> TCodecList;
     TCodecList ListAllCodecs();
     TString ListAllCodecsAsString();
+
+    // SEARCH-8344: Get the size of max possible decompressed block
+    size_t GetMaxPossibleDecompressedLength();
+    // SEARCH-8344: Globally set the size of max possible decompressed block
+    void SetMaxPossibleDecompressedLength(size_t maxPossibleDecompressedLength);
+
 }

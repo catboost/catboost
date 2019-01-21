@@ -15,6 +15,9 @@ INDUCED_DEPS(h+cpp
     util/string/cast.h
     util/stream/output.h
     tools/enum_parser/enum_serialization_runtime/enum_runtime.h
+    array
+    initializer_list
+    utility
 )
 
 INDUCED_DEPS(h

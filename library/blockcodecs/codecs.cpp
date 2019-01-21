@@ -33,7 +33,7 @@
 using namespace NBlockCodecs;
 
 namespace {
-    //lz4 codecs
+    // lz4 codecs
     struct TLz4Base {
         static inline size_t DoMaxCompressedLength(size_t in) {
             return LZ4_compressBound(SafeIntegerCast<int>(in));
@@ -152,7 +152,7 @@ namespace {
         const int Level;
     };
 
-    //snappy codec
+    // snappy codec
     struct TSnappyCodec: public ICodec {
         size_t DecompressedLength(const TData& in) const override {
             size_t ret;
@@ -189,7 +189,7 @@ namespace {
         }
     };
 
-    //zlib codecs
+    // zlib codecs
     struct TZLibCodec: public TAddLengthCodec<TZLibCodec> {
         inline TZLibCodec(int level)
             : MyName("zlib-" + ToString(level))
@@ -235,7 +235,7 @@ namespace {
         const int Level;
     };
 
-    //lzma codecs
+    // lzma codecs
     struct TLzmaCodec: public TAddLengthCodec<TLzmaCodec> {
         inline TLzmaCodec(int level)
             : Level(level)
@@ -291,7 +291,7 @@ namespace {
         const TString MyName;
     };
 
-    //bzip2 codecs
+    // bzip2 codecs
     struct TBZipCodec: public TAddLengthCodec<TBZipCodec> {
         inline TBZipCodec(int level)
             : Level(level)
@@ -300,7 +300,7 @@ namespace {
         }
 
         static inline size_t DoMaxCompressedLength(size_t in) noexcept {
-            //rather strange
+            // very strange
             return in * 2 + 128;
         }
 
@@ -374,7 +374,7 @@ namespace {
         const TString MyName;
     };
 
-    //end of codecs
+    // end of codecs
 
     struct TCodecFactory {
         inline TCodecFactory() {
@@ -428,7 +428,7 @@ namespace {
                 Add(Codecs[i].Get());
             }
 
-            //aliases
+            // aliases
             Registry["fastlz"] = Registry["fastlz-0"];
             Registry["zlib"] = Registry["zlib-6"];
             Registry["bzip2"] = Registry["bzip2-6"];
@@ -477,6 +477,9 @@ namespace {
         TVector<TCodecPtr> Codecs;
         typedef THashMap<TStringBuf, ICodec*> TRegistry;
         TRegistry Registry;
+
+        // SEARCH-8344: Global decompressed size limiter (to prevent remote DoS)
+        size_t MaxPossibleDecompressedLength = Max<size_t>();
     };
 }
 
@@ -496,6 +499,25 @@ TString NBlockCodecs::ListAllCodecsAsString() {
     return JoinSeq(AsStringBuf(","), ListAllCodecs());
 }
 
+void NBlockCodecs::SetMaxPossibleDecompressedLength(size_t maxPossibleDecompressedLength) {
+    Singleton<TCodecFactory>()->MaxPossibleDecompressedLength = maxPossibleDecompressedLength;
+}
+
+size_t NBlockCodecs::GetMaxPossibleDecompressedLength() {
+    return Singleton<TCodecFactory>()->MaxPossibleDecompressedLength;
+}
+
+size_t ICodec::GetDecompressedLength(const TData& in) const {
+    const size_t len = DecompressedLength(in);
+
+    Y_ENSURE(
+        len <= NBlockCodecs::GetMaxPossibleDecompressedLength(),
+        "Attempt to decompress the block that is larger than maximum possible decompressed length, "
+        "see SEARCH-8344 for details. "
+    );
+    return len;
+}
+
 void ICodec::Encode(const TData& in, TBuffer& out) const {
     const size_t maxLen = MaxCompressedLength(in);
 
@@ -504,7 +526,7 @@ void ICodec::Encode(const TData& in, TBuffer& out) const {
 }
 
 void ICodec::Decode(const TData& in, TBuffer& out) const {
-    const size_t len = DecompressedLength(in);
+    const size_t len = GetDecompressedLength(in);
 
     out.Reserve(len);
     out.Resize(Decompress(in, out.Data()));
@@ -518,7 +540,7 @@ void ICodec::Encode(const TData& in, TString& out) const {
 }
 
 void ICodec::Decode(const TData& in, TString& out) const {
-    const size_t len = DecompressedLength(in);
+    const size_t len = GetDecompressedLength(in);
 
     out.reserve(len);
     out.ReserveAndResize(Decompress(in, out.begin()));
