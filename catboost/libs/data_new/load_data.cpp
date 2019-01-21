@@ -130,13 +130,10 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
-        ui32 threadCount,
-        TMaybe<TProfileInfo*> profile
+        NPar::TLocalExecutor* const executor,
+        TProfileInfo* const profile
     ) {
         loadOptions.Validate();
-
-        NPar::TLocalExecutor localExecutor;
-        localExecutor.RunAdditionalThreads(threadCount - 1);
 
         TDataProviders dataProviders;
 
@@ -150,11 +147,11 @@ namespace NCB {
                 loadOptions.DsvPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
-                &localExecutor
+                executor
             );
             CATBOOST_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
             if (profile) {
-                (*profile)->AddOperation("Build learn pool");
+                profile->AddOperation("Build learn pool");
             }
         }
         dataProviders.Test.resize(0);
@@ -175,11 +172,11 @@ namespace NCB {
                     loadOptions.DsvPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,
-                    &localExecutor
+                    executor
                 );
                 dataProviders.Test.push_back(std::move(testDataProvider));
-                if (profile.Defined() && (testIdx + 1 == loadOptions.TestSetPaths.ysize())) {
-                    (*profile)->AddOperation("Build test pool");
+                if (profile && (testIdx + 1 == loadOptions.TestSetPaths.ysize())) {
+                    profile->AddOperation("Build test pool");
                 }
             }
         }

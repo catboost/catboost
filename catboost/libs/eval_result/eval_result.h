@@ -66,7 +66,7 @@ namespace NCB {
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
-        int threadCount,
+        NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,

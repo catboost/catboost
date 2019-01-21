@@ -71,7 +71,7 @@ static int GetThreadCount(const NCatboostOptions::TCatBoostOptions& options) {
 static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
     EObjectsOrder objectsOrder,
-    int threadCount,
+    NPar::TLocalExecutor* const executor,
     TProfileInfo* profile
 ) {
     const auto& cvParams = loadOptions.CvParams;
@@ -81,17 +81,14 @@ static TDataProviders LoadPools(
         "Test files are not supported in cross-validation mode"
     );
 
-    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, threadCount, profile);
+    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, executor, profile);
 
     if (cvMode) {
-        NPar::TLocalExecutor localExecutor;
-        localExecutor.RunAdditionalThreads(threadCount - 1);
-
         if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
             TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
             auto objectsGroupingSubset = NCB::Shuffle(pools.Learn->ObjectsGrouping, 1, &rand);
-            pools.Learn = pools.Learn->GetSubset(objectsGroupingSubset, &localExecutor);
+            pools.Learn = pools.Learn->GetSubset(objectsGroupingSubset, executor);
         }
 
         TVector<TDataProviders> foldPools = PrepareCvFolds<TDataProviders>(
@@ -99,7 +96,7 @@ static TDataProviders LoadPools(
             cvParams,
             cvParams.FoldIdx,
             /* oldCvStyleSplit */ true,
-            &localExecutor);
+            executor);
         Y_VERIFY(foldPools.size() == 1);
 
         profile->AddOperation("Build cv pools");
@@ -590,7 +587,8 @@ static void TrainModel(
     const TString& outputModelPath,
     TFullModel* modelPtr,
     const TVector<TEvalResult*>& evalResultPtrs,
-    TMetricsAndTimeLeftHistory* metricsAndTimeHistory)
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+    NPar::TLocalExecutor* const executor)
 {
     CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
     CB_ENSURE(pools.Test.size() == evalResultPtrs.size());
@@ -665,16 +663,11 @@ static void TrainModel(
         catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
     }
 
-    int threadCount = GetThreadCount(catBoostOptions);
-
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount - 1);
-
-    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, &localExecutor);
+    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, executor);
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
-    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, &localExecutor, &rand);
+    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
 
     TLabelConverter labelConverter;
 
@@ -686,7 +679,7 @@ static void TrainModel(
         quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,
-        &localExecutor,
+        executor,
         &rand);
 
     UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
@@ -708,7 +701,7 @@ static void TrainModel(
         Nothing(),
         std::move(trainingData),
         labelConverter,
-        &localExecutor,
+        executor,
         &rand,
         modelPtr,
         evalResultPtrs,
@@ -733,14 +726,15 @@ void TrainModel(
         "Multiple eval sets not supported for GPU"
     );
 
-    int threadCount = GetThreadCount(catBoostOptions);
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(GetThreadCount(catBoostOptions) - 1);
+
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
-        threadCount,
-        &profile
-    );
+        &executor,
+        &profile);
 
     const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
     TVector<TString> outputColumns;
@@ -791,7 +785,8 @@ void TrainModel(
         "",
         nullptr,
         GetMutablePointers(evalResults),
-        nullptr
+        nullptr,
+        &executor
     );
 
     auto modelFormat = outputOptions.GetModelFormats()[0];
@@ -814,7 +809,7 @@ void TrainModel(
             const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
             OutputEvalResultToFile(
                 evalResults[testIdx],
-                threadCount,
+                &executor,
                 outputColumns,
                 visibleLabelsHelper,
                 testPool,
@@ -847,9 +842,8 @@ void TrainModel(
     if (needFstr) {
         TFullModel model = ReadModel(fullModelPath, modelFormat);
 
-        NPar::TLocalExecutor localExecutor;
         // no need to pass pool data because we always have LeafWeights stored in model now
-        CalcAndOutputFstr(model, nullptr, &localExecutor, &fstrRegularFileName, &fstrInternalFileName);
+        CalcAndOutputFstr(model, nullptr, &executor, &fstrRegularFileName, &fstrInternalFileName);
     }
 
     const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
@@ -879,6 +873,9 @@ void TrainModel(
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);
 
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(GetThreadCount(NCatboostOptions::LoadOptions(trainOptionsJson)) - 1);
+
     TrainModel(
         trainOptionsJson,
         outputOptions,
@@ -889,5 +886,6 @@ void TrainModel(
         outputModelPath,
         model,
         evalResultPtrs,
-        metricsAndTimeHistory);
+        metricsAndTimeHistory,
+        &executor);
 }

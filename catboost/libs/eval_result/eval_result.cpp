@@ -310,7 +310,7 @@ namespace NCB {
 
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
-        int threadCount,
+        NPar::TLocalExecutor* const executor,
         const TVector<TString>& outputColumns,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
@@ -322,9 +322,6 @@ namespace NCB {
         bool writeHeader,
         ui64 docIdOffset) {
 
-        NPar::TLocalExecutor executor;
-        executor.RunAdditionalThreads(threadCount - 1);
-
         TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
             testSetPath,
             testSetFormat,
@@ -332,7 +329,7 @@ namespace NCB {
 
         OutputEvalResultToFile(
             evalResult,
-            &executor,
+            executor,
             outputColumns,
             visibleLabelsHelper,
             pool,

@@ -57,8 +57,8 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
-        ui32 threadCount, // TODO(akhropov): replace with localExecutor
-        TMaybe<TProfileInfo*> profile
+        NPar::TLocalExecutor* executor,
+        TProfileInfo* profile
     );
 
 }
