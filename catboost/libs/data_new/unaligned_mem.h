@@ -22,9 +22,8 @@ namespace NCB {
         {
             CB_ENSURE_INTERNAL(
                 !(sizeInBytes % sizeof(T)),
-                "sizeInBytes =" << sizeInBytes << " does not correspond to size of array of type "
-                << TypeName<T>()
-            );
+                LabeledOutput(sizeInBytes) << " does not correspond to size of array of type "
+                << TypeName<T>());
         }
 
         explicit TUnalignedArrayBuf(TConstArrayRef<ui8> memoryRegion)
@@ -38,8 +37,8 @@ namespace NCB {
         void WriteTo(TArrayRef<T>* dst) const {
             CB_ENSURE_INTERNAL(
                 dst->size() == GetSize(),
-                "TUnalignedArrayBuf::WriteTo: Wrong destination array size"
-            );
+                "TUnalignedArrayBuf::WriteTo: Wrong destination array size; "
+                LabeledOutput(dst->size(), GetSize()));
             memcpy(dst->Data(), Begin, SizeInBytes);
         }
 

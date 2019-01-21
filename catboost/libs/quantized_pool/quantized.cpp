@@ -28,6 +28,25 @@ THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool&
     return map;
 }
 
+THashMap<size_t, size_t> GetColumnIndexToBaselineIndexMap(const NCB::TQuantizedPool& pool) {
+    TVector<size_t> baselineIndices;
+    for (const auto [columnIdx, localIdx] : pool.ColumnIndexToLocalIndex) {
+        if (EColumn::Baseline == pool.ColumnTypes[localIdx]) {
+            continue;
+        }
+
+        baselineIndices.push_back(columnIdx);
+    }
+
+    Sort(baselineIndices);
+
+    THashMap<size_t, size_t> map;
+    for (size_t i = 0, iEnd = baselineIndices.size(); i < iEnd; ++i) {
+        map.emplace(baselineIndices[i], map.size());
+    }
+    return map;
+}
+
 TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool) {
     const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
     TVector<TString> names(columnIndexToFlatIndex.size());

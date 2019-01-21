@@ -12,6 +12,8 @@
 // if M.has(C), F.at(C) is flat index of feature in column C
 THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool& pool);
 
+THashMap<size_t, size_t> GetColumnIndexToBaselineIndexMap(const NCB::TQuantizedPool& pool);
+
 TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool);
 
 THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool);
@@ -19,8 +21,7 @@ THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuan
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
-    bool hasPairs
-);
+    bool hasPairs);
 
 // Returns flat indices of all categorical features
 // Sorted from min to max

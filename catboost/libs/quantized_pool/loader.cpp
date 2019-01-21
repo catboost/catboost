@@ -1,4 +1,3 @@
-
 #include "pool.h"
 #include "quantized.h"
 #include "serialization.h"
@@ -15,29 +14,43 @@
 #include <catboost/libs/quantization_schema/serialization.h>
 
 #include <util/generic/cast.h>
+#include <util/generic/deque.h>
 #include <util/generic/mapfindptr.h>
+#include <util/generic/scope.h>
 #include <util/generic/vector.h>
 #include <util/generic/ylimits.h>
 #include <util/system/madvise.h>
 #include <util/system/types.h>
 
+using NCB::EObjectsOrder;
+using NCB::IQuantizedFeaturesDataVisitor;
+using NCB::IQuantizedFeaturesDatasetLoader;
+using NCB::QuantizationSchemaFromProto;
+using NCB::TDataMetaInfo;
+using NCB::TDatasetLoaderFactory;
+using NCB::TDatasetLoaderPullArgs;
+using NCB::TExistsCheckerFactory;
+using NCB::TFSExistsChecker;
+using NCB::TLoadQuantizedPoolParameters;
+using NCB::TMaybeOwningConstArrayHolder;
+using NCB::TPathWithScheme;
+using NCB::TQuantizedPool;
+using NCB::TUnalignedArrayBuf;
 
-namespace NCB {
-
-    class TCBQuantizedDataLoader final : public IQuantizedFeaturesDatasetLoader {
+namespace {
+    class TCBQuantizedDataLoader : public IQuantizedFeaturesDatasetLoader {
     public:
         explicit TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args);
 
         void Do(IQuantizedFeaturesDataVisitor* visitor) override;
 
     private:
-        void AddColumn(
-            const ui32 featureIndex,
-            const ui32 baselineIndex,
-            const EColumn columnType,
-            const ui32 localIndex,
-            IQuantizedFeaturesDataVisitor* visitor
-        ) const;
+        void AddChunk(
+            const TQuantizedPool::TChunkDescription& chunk,
+            EColumn columnType,
+            const size_t* flatFeatureIdx,
+            const size_t* baselineIdx,
+            IQuantizedFeaturesDataVisitor* visitor) const;
 
         static TLoadQuantizedPoolParameters GetLoadParameters() {
             return {/*LockMemory*/ false, /*Precharge*/ false};
@@ -52,230 +65,262 @@ namespace NCB {
         TDataMetaInfo DataMetaInfo;
         EObjectsOrder ObjectsOrder;
     };
+}
 
-    TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
-        : ObjectCount(0) // inited later
-        , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
-        , PairsPath(args.CommonArgs.PairsFilePath)
-        , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
-        , ObjectsOrder(args.CommonArgs.ObjectsOrder)
-    {
-        CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
+TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
+    : ObjectCount(0) // inited later
+    , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
+    , PairsPath(args.CommonArgs.PairsFilePath)
+    , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
+    , ObjectsOrder(args.CommonArgs.ObjectsOrder)
+{
+    CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
+    CB_ENSURE(
+        QuantizedPool.DocumentCount <= (size_t)Max<ui32>(),
+        "CatBoost does not support datasets with more than " << Max<ui32>() << " objects"
+    );
+    // validity of cast checked above
+    ObjectCount = (ui32)QuantizedPool.DocumentCount;
+
+    CB_ENSURE(!PairsPath.Inited() || CheckExists(PairsPath),
+        "TCBQuantizedDataLoader:PairsFilePath does not exist");
+    CB_ENSURE(!GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
+        "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
+
+    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited());
+
+    CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
+
+    TVector<ui32> allIgnoredFeatures = args.CommonArgs.IgnoredFeatures;
+    TVector<ui32> ignoredFeaturesFromPool = GetIgnoredFlatIndices(QuantizedPool);
+    allIgnoredFeatures.insert(
+        allIgnoredFeatures.end(),
+        ignoredFeaturesFromPool.begin(),
+        ignoredFeaturesFromPool.end()
+    );
+
+    ProcessIgnoredFeaturesList(allIgnoredFeatures, &DataMetaInfo, &IsFeatureIgnored);
+}
+
+namespace {
+    struct TChunkRef {
+        const TQuantizedPool::TChunkDescription* Description = nullptr;
+        ui32 ColumnIndex = 0;
+        ui32 LocalIndex = 0;
+    };
+
+    class TSequantialChunkEvictor {
+    public:
+        explicit TSequantialChunkEvictor(ui64 minSizeInBytesToEvict);
+
+        void Push(const TChunkRef& chunk);
+        void MaybeEvict(bool force = false) noexcept;
+
+    private:
+        size_t MinSizeInBytesToEvict_ = 0;
+        bool Evicted_ = false;
+        const ui8* Data_ = nullptr;
+        size_t Size_ = 0;
+    };
+}
+
+TSequantialChunkEvictor::TSequantialChunkEvictor(const ui64 minSizeInBytesToEvict)
+    : MinSizeInBytesToEvict_(minSizeInBytesToEvict) {
+}
+
+void TSequantialChunkEvictor::Push(const TChunkRef& chunk) {
+    Y_DEFER { Evicted_ = false; };
+
+    const auto* const data = reinterpret_cast<const ui8*>(chunk.Description->Chunk->Quants()->data());
+    const size_t size = chunk.Description->Chunk->Quants()->size();
+    CB_ENSURE(
+        Data_ + Size_ <= data,
+        LabeledOutput(static_cast<const void*>(Data_), Size_, static_cast<const void*>(data), size));
+
+    if (!Data_) {
+        Data_ = data;
+        Size_ = size;
+    } else if (Evicted_) {
+        const auto* const nextData = Data_ + Size_;
+        Size_ = data - nextData + size;
+        Data_ = nextData;
+    } else {
+        Size_ = data - Data_ + size;
+    }
+}
+
+void TSequantialChunkEvictor::MaybeEvict(const bool force) noexcept {
+    if (Evicted_ || !force && Size_ < MinSizeInBytesToEvict_) {
+        return;
+    }
+
+    try {
+#if !defined(_win_)
+        // TODO(akhropov): fix MadviseEvict on Windows: MLTOOLS-2440
+        MadviseEvict(Data_, Size_);
+#endif
+    } catch (const std::exception&) {
+    }
+
+    Evicted_ = true;
+}
+
+static TDeque<TChunkRef> GatherAndSortChunks(const TQuantizedPool& pool) {
+    TDeque<TChunkRef> chunks;
+    for (const auto [columnIdx, localIdx] : pool.ColumnIndexToLocalIndex) {
+        for (const auto& description : pool.Chunks[localIdx]) {
+            chunks.push_back({&description, static_cast<ui32>(columnIdx), static_cast<ui32>(localIdx)});
+        }
+    }
+
+    const ui32 fakeIndices[] = {
+        pool.StringDocIdLocalIndex,
+        pool.StringGroupIdLocalIndex,
+        pool.StringSubgroupIdLocalIndex};
+    for (const auto fakeIdx : fakeIndices) {
+        if (fakeIdx == static_cast<ui32>(-1)) {
+            continue;
+        }
+
+        for (const auto& description : pool.Chunks[fakeIdx]) {
+            chunks.push_back({&description, 0, fakeIdx});
+        }
+    }
+
+    // Sort chunks in ascending order based on the address of the chunks. We'll use it later to
+    // process chunks in the same order as if we were reading them from file one by one
+    // sequentially.
+    Sort(chunks, [](const auto lhs, const auto rhs) {
+        return lhs.Description->Chunk->Quants()->data() < rhs.Description->Chunk->Quants()->data();
+    });
+
+    return chunks;
+}
+
+template <typename T, typename U>
+static void AssignUnaligned(const TConstArrayRef<ui8> unaligned, TVector<U>* dst) {
+    dst->yresize(unaligned.size() / sizeof(T));
+    std::memcpy(dst->data(), unaligned.data(), unaligned.size());
+}
+
+void TCBQuantizedDataLoader::AddChunk(
+    const TQuantizedPool::TChunkDescription& chunk,
+    const EColumn columnType,
+    const size_t* const flatFeatureIdx,
+    const size_t* const baselineIdx,
+    IQuantizedFeaturesDataVisitor* const visitor) const
+{
+    const auto quants = MakeArrayRef(
+        reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()),
+        chunk.Chunk->Quants()->size());
+
+    switch (columnType) {
+        case EColumn::Num: {
+            visitor->AddFloatFeaturePart(
+                *flatFeatureIdx,
+                chunk.DocumentOffset,
+                TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
+            break;
+        } case EColumn::Label: {
+            // TODO(akhropov): will be raw strings as was decided for new data formats for MLTOOLS-140.
+            visitor->AddTargetPart(chunk.DocumentOffset, TUnalignedArrayBuf<float>(quants));
+            break;
+        } case EColumn::Baseline: {
+            // TODO(akhropov): switch to storing floats - MLTOOLS-2394
+            TVector<float> tmp;
+            AssignUnaligned<double>(quants, &tmp);
+            visitor->AddBaselinePart(chunk.DocumentOffset, *baselineIdx, TUnalignedArrayBuf<float>(tmp.data(), tmp.size() * sizeof(float)));
+            break;
+        } case EColumn::Weight: {
+            visitor->AddWeightPart(chunk.DocumentOffset, TUnalignedArrayBuf<float>(quants));
+            break;
+        } case EColumn::GroupWeight: {
+            visitor->AddGroupWeightPart(chunk.DocumentOffset, TUnalignedArrayBuf<float>(quants));
+            break;
+        } case EColumn::GroupId: {
+            visitor->AddGroupIdPart(chunk.DocumentOffset, TUnalignedArrayBuf<ui64>(quants));
+            break;
+        } case EColumn::SubgroupId: {
+            visitor->AddSubgroupIdPart(chunk.DocumentOffset, TUnalignedArrayBuf<ui32>(quants));
+            break;
+        } case EColumn::DocId:
+            // Are skipped in a caller
+        case EColumn::Categ:
+            // TODO(yazevnul): categorical feature quantization on YT is still in progress
+        case EColumn::Auxiliary:
+            // Should not be present in quantized pool
+        case EColumn::Timestamp:
+            // Not supported by quantized pools right now
+        case EColumn::Sparse:
+            // Not supported by CatBoost at all
+        case EColumn::Prediction: {
+            // Can't be present in quantized pool
+            ythrow TCatBoostException() << "Unexpected column type " << columnType;
+        }
+    }
+}
+
+void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
+    visitor->Start(
+        DataMetaInfo,
+        ObjectCount,
+        ObjectsOrder,
+        {},
+        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
+
+    const auto columnIdxToFlatIdx = GetColumnIndexToFlatIndexMap(QuantizedPool);
+    const auto columnIdxToBaselineIdx = GetColumnIndexToBaselineIndexMap(QuantizedPool);
+    const auto chunkRefs = GatherAndSortChunks(QuantizedPool);
+
+    TSequantialChunkEvictor evictor(1ULL << 24);
+    for (const auto chunkRef : chunkRefs) {
+        evictor.Push(chunkRef);
+        Y_DEFER { evictor.MaybeEvict(); };
+
+        const auto columnIdx = chunkRef.ColumnIndex;
+        const auto localIdx = chunkRef.LocalIndex;
+        const auto isStringColumn = QuantizedPool.HasStringColumns &&
+            (localIdx == QuantizedPool.StringDocIdLocalIndex ||
+             localIdx == QuantizedPool.StringGroupIdLocalIndex ||
+             localIdx == QuantizedPool.StringSubgroupIdLocalIndex);
+        if (isStringColumn) {
+            // Ignore string columns, they are only needed for fancy output for evaluation.
+            continue;
+        }
+
+        const auto columnType = QuantizedPool.ColumnTypes[localIdx];
+        if (columnType == EColumn::DocId) {
+            // Skip DocId columns presented in old pools.
+            continue;
+        }
+
         CB_ENSURE(
-            QuantizedPool.DocumentCount <= (size_t)Max<ui32>(),
-            "CatBoost does not support datasets with more than " << Max<ui32>() << " objects"
-        );
-        // validity of cast checked above
-        ObjectCount = (ui32)QuantizedPool.DocumentCount;
+            columnType == EColumn::Num || columnType == EColumn::Baseline ||
+            columnType == EColumn::Label || columnType == EColumn::Categ ||
+            columnType == EColumn::Weight || columnType == EColumn::GroupWeight ||
+            columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
+            "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got "
+            LabeledOutput(columnType, columnIdx));
 
-        CB_ENSURE(!PairsPath.Inited() || CheckExists(PairsPath),
-            "TCBQuantizedDataLoader:PairsFilePath does not exist");
-        CB_ENSURE(!GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
-            "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
-
-        DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited());
-
-        CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
-
-        TVector<ui32> allIgnoredFeatures = args.CommonArgs.IgnoredFeatures;
-        TVector<ui32> ignoredFeaturesFromPool = GetIgnoredFlatIndices(QuantizedPool);
-        allIgnoredFeatures.insert(
-            allIgnoredFeatures.end(),
-            ignoredFeaturesFromPool.begin(),
-            ignoredFeaturesFromPool.end()
-        );
-
-        ProcessIgnoredFeaturesList(allIgnoredFeatures, &DataMetaInfo, &IsFeatureIgnored);
-    }
-
-    void TCBQuantizedDataLoader::AddColumn(
-        const ui32 flatFeatureIndex,
-        const ui32 baselineIndex,
-        const EColumn columnType,
-        const ui32 localIndex,
-        IQuantizedFeaturesDataVisitor* visitor
-    ) const {
-        auto onColumn = [&](size_t sizeOfElement, auto&& callbackFunction) {
-            constexpr size_t MIN_QUANTS_SIZE_TO_FREE_INDIVIDUALLY = 1 << 20;
-
-            const auto& chunks = QuantizedPool.Chunks[localIndex];
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeOfElement * 8);
-                // cast is safe, checked at the start
-                TConstArrayRef<ui8> quants = *descriptor.Chunk->Quants();
-                callbackFunction((ui32)descriptor.DocumentOffset, quants);
-#if !defined(_win_)
-                // TODO(akhropov): fix MadviseEvict on Windows: MLTOOLS-2440
-
-                // Free no longer needed memory by individual quants if they are big enough
-                if (quants.size() > MIN_QUANTS_SIZE_TO_FREE_INDIVIDUALLY) {
-                    MadviseEvict(quants.begin(), quants.size());
-                }
-#endif
-            }
-
-#if !defined(_win_)
-            // TODO(akhropov): fix MadviseEvict on Windows: MLTOOLS-2440
-
-            // Free no longer needed memory
-            if (chunks.size() > 0) {
-                auto begin = TConstArrayRef<ui8>(*(chunks.front().Chunk->Quants())).data();
-                auto backQuant = TConstArrayRef<ui8>(*(chunks.back().Chunk->Quants()));
-                auto end = backQuant.data() + backQuant.size();
-                MadviseEvict(begin, end - begin);
-            }
-#endif
-        };
-
-        switch (columnType) {
-            case EColumn::Num:
-                onColumn(
-                    sizeof(ui8),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        visitor->AddFloatFeaturePart(
-                            flatFeatureIndex,
-                            objectOffset,
-                            TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants)
-                        );
-                    }
-                );
-                break;
-            case EColumn::Label:
-                // TODO(akhropov): will be raw strings as was decided for new data formats for MLTOOLS-140.
-                onColumn(
-                    sizeof(float),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        visitor->AddTargetPart(objectOffset, TUnalignedArrayBuf<float>(quants));
-                    }
-                );
-                break;
-            case EColumn::Baseline:
-                // TODO(akhropov): switch to storing floats - MLTOOLS-2394
-                onColumn(
-                    sizeof(double),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        TUnalignedArrayBuf<double> doubleData(quants);
-                        TVector<float> floatData;
-                        floatData.yresize(doubleData.GetSize());
-
-                        TUnalignedMemoryIterator<double> doubleDataSrcIt = doubleData.GetIterator();
-                        auto floatDataDstIt = floatData.begin();
-                        for ( ; !doubleDataSrcIt.AtEnd(); doubleDataSrcIt.Next(), ++floatDataDstIt) {
-                            *floatDataDstIt = (float)doubleDataSrcIt.Cur();
-                        }
-                        visitor->AddBaselinePart(
-                            objectOffset,
-                            baselineIndex,
-                            TUnalignedArrayBuf<float>(floatData.data(), floatData.size()*sizeof(float))
-                        );
-                    }
-                );
-                break;
-            case EColumn::Weight:
-                onColumn(
-                    sizeof(float),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        visitor->AddWeightPart(objectOffset, TUnalignedArrayBuf<float>(quants));
-                    }
-                );
-                break;
-            case EColumn::GroupWeight: {
-                onColumn(
-                    sizeof(float),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        visitor->AddGroupWeightPart(objectOffset, TUnalignedArrayBuf<float>(quants));
-                    }
-                );
-                break;
-            }
-            case EColumn::DocId: {
-                break;
-            }
-            case EColumn::GroupId: {
-                onColumn(
-                    sizeof(ui64),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        visitor->AddGroupIdPart(objectOffset, TUnalignedArrayBuf<ui64>(quants));
-                    }
-                );
-                break;
-            }
-            case EColumn::SubgroupId: {
-                onColumn(
-                    sizeof(ui32),
-                    [&] (ui32 objectOffset, TConstArrayRef<ui8> quants) {
-                        visitor->AddSubgroupIdPart(objectOffset, TUnalignedArrayBuf<ui32>(quants));
-                    }
-                );
-                break;
-            }
-            case EColumn::Categ:
-                // TODO(yazevnul): categorical feature quantization on YT is still in progress
-            case EColumn::Auxiliary:
-                // Should not be present in quantized pool
-            case EColumn::Timestamp:
-                // not supported by quantized pools right now
-            case EColumn::Sparse:
-                // not supperted by CatBoost at all
-            case EColumn::Prediction: {
-                // can't be present in quantized pool
-                ythrow TCatBoostException() << "Unexpected column type " << columnType;
-            }
-        }
-    }
-
-    void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
-        visitor->Start(
-            DataMetaInfo,
-            ObjectCount,
-            ObjectsOrder,
-            {},
-            QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema)
-        );
-
-        ui32 baselineIndex = 0;
-        const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(QuantizedPool);
-        for (const auto [columnIndex, localIndex] : QuantizedPool.ColumnIndexToLocalIndex) {
-            const auto columnType = QuantizedPool.ColumnTypes[localIndex];
-
-            if (QuantizedPool.Chunks[localIndex].empty()) {
-                continue;
-            }
-            // skip DocId columns presented in old pools
-            if (columnType == EColumn::DocId) {
-                continue;
-            }
-            CB_ENSURE(
-                columnType == EColumn::Num || columnType == EColumn::Baseline ||
-                columnType == EColumn::Label || columnType == EColumn::Categ ||
-                columnType == EColumn::Weight || columnType == EColumn::GroupWeight ||
-                columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
-                "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got "
-                LabeledOutput(columnType, columnIndex));
-
-            const auto* flatFeatureIndex = MapFindPtr(columnIndexToFlatIndex, columnIndex);
-            if (flatFeatureIndex && IsFeatureIgnored[*flatFeatureIndex]) {
-                continue;
-            }
-            AddColumn(
-                flatFeatureIndex ? *flatFeatureIndex : Max<ui32>(),
-                baselineIndex,
-                columnType,
-                SafeIntegerCast<ui32>(localIndex),
-                visitor
-            );
-            baselineIndex += (columnType == EColumn::Baseline);
+        const auto* const flatFeatureIdx = columnIdxToFlatIdx.FindPtr(columnIdx);
+        if (flatFeatureIdx && IsFeatureIgnored[*flatFeatureIdx]) {
+            continue;
         }
 
-        QuantizedPool = TQuantizedPool(); // release memory
-        SetGroupWeights(GroupWeightsPath, ObjectCount, visitor);
-        SetPairs(PairsPath, ObjectCount, visitor);
-        visitor->Finish();
+        const auto* const baselineIdx = columnIdxToBaselineIdx.FindPtr(columnIdx);
+        AddChunk(*chunkRef.Description, columnType, flatFeatureIdx, baselineIdx, visitor);
     }
 
-    namespace {
-        TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSQuantizedExistsCheckerReg("quantized");
-        TDatasetLoaderFactory::TRegistrator<TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
-    }
+    evictor.MaybeEvict(true);
+
+    QuantizedPool = TQuantizedPool(); // release memory
+    SetGroupWeights(GroupWeightsPath, ObjectCount, visitor);
+    SetPairs(PairsPath, ObjectCount, visitor);
+    visitor->Finish();
+}
+
+namespace {
+    TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSQuantizedExistsCheckerReg("quantized");
+    TDatasetLoaderFactory::TRegistrator<TCBQuantizedDataLoader> CBQuantizedDataLoaderReg("quantized");
 }
 

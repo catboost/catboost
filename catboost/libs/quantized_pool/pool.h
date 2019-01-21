@@ -41,9 +41,9 @@ namespace NCB {
         //
         THashMap<size_t, size_t> ColumnIndexToLocalIndex;
         bool HasStringColumns = false;
-        ui32 StringDocIdLocalIndex = 0;
-        ui32 StringGroupIdLocalIndex = 0;
-        ui32 StringSubgroupIdLocalIndex = 0;
+        ui32 StringDocIdLocalIndex = -1;
+        ui32 StringGroupIdLocalIndex = -1;
+        ui32 StringSubgroupIdLocalIndex = -1;
         // TODO(yazevnul): replace with native C++ `TPoolQuantizationSchema`
         NIdl::TPoolQuantizationSchema QuantizationSchema;
         TVector<EColumn> ColumnTypes;
