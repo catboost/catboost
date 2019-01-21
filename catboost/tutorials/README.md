@@ -61,6 +61,11 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [Export CatBoost Model in JSON format Tutorial](apply_model/model_export_as_json_tutorial.ipynb)
     * Catboost model could be saved in JSON format and applied.
 
+## Tools
+
+* [CatBoost on Google Colaboratory](tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb)
+    * Learn how to run CatBoost on CPU and GPU on Google Colaboratory and why GPU is the best choice.
+
 ## Competition examples
 
 * [Kaggle Paribas Competition Tutorial](competition_examples/kaggle_paribas.ipynb)
