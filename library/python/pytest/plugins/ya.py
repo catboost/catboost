@@ -14,6 +14,7 @@ import _pytest
 import _pytest.mark
 import signal
 import inspect
+import six
 
 try:
     import resource
@@ -699,7 +700,7 @@ class DeselectedTestItem(CustomTestItem):
 class TraceReportGenerator(object):
 
     def __init__(self, out_file_path):
-        self.File = open(out_file_path, 'w')
+        self.File = open(out_file_path, 'wb')
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
@@ -762,9 +763,9 @@ class TraceReportGenerator(object):
             'name': name
         }
         data = json.dumps(event, ensure_ascii=False)
-        if sys.version_info[0] < 3 and isinstance(data, unicode):
+        if isinstance(data, six.text_type):
             data = data.encode("utf8")
-        self.File.write(data + '\n')
+        self.File.write(data + b'\n')
         self.File.flush()
 
 
