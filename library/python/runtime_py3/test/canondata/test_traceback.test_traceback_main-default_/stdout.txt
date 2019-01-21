@@ -1,2 +1,0 @@
-__name__ = library.python.runtime_py3.test.traceback.crash
-__file__ = library/python/runtime_py3/test/traceback/crash.py
