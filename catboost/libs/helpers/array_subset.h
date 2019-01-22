@@ -2,6 +2,7 @@
 
 #include "dbg_output.h"
 #include "exception.h"
+#include "math_utils.h"
 #include "maybe_owning_array_holder.h"
 
 #include <catboost/libs/index_range/index_range.h>
@@ -806,6 +807,15 @@ namespace NCB {
         }
 
         return !rhs.Find([&](TSize idx, T element) { return element != lhs[idx]; });
+    }
+
+    template <class T, class TArrayLike, class TSize=size_t>
+    bool EqualWithNans(TConstArrayRef<T> lhs, const TArraySubset<TArrayLike, TSize>& rhs) {
+        if (lhs.size() != rhs.Size()) {
+            return false;
+        }
+
+        return !rhs.Find([&](TSize idx, T element) { return !EqualWithNans(element, lhs[idx]); });
     }
 
     template <class TDst, class TSrcArrayLike, class TSize=size_t>

@@ -2499,10 +2499,24 @@ Value_AcceptableAsEmpty = [
     ('NA', True),
     ('Na', True),
     ('na', True),
-    ('-', False),
-    ('n/a', False),
-    ('junk', False),
-    ('None', False),
+    ("#N/A", True),
+    ("#N/A N/A", True),
+    ("#NA", True),
+    ("-1.#IND", True),
+    ("-1.#QNAN", True),
+    ("-NaN", True),
+    ("-nan", True),
+    ("1.#IND", True),
+    ("1.#QNAN", True),
+    ("N/A", True),
+    ("NULL", True),
+    ("n/a", True),
+    ("null", True),
+    ("Null", True),
+    ("none", True),
+    ("None", True),
+    ('-', True),
+    ('junk', False)
 ]
 
 

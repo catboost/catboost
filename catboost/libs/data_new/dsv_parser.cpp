@@ -69,11 +69,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
         case EColumn::Categ: {
             if (!FeatureIgnored_[flatFeatureIdx]) {
                 const ui32 catFeatureIdx = FeaturesLayout_->GetInternalFeatureIdx(flatFeatureIdx);
-                if (IsNanValue(token)) {
-                    CategoricalFeaturesBuffer_[catFeatureIdx] = Visitor_->GetCatFeatureValue(flatFeatureIdx, "nan");
-                } else {
-                    CategoricalFeaturesBuffer_[catFeatureIdx] = Visitor_->GetCatFeatureValue(flatFeatureIdx, token);
-                }
+                CategoricalFeaturesBuffer_[catFeatureIdx] = Visitor_->GetCatFeatureValue(flatFeatureIdx, token);
             }
             ++flatFeatureIdx;
             break;

@@ -15,6 +15,7 @@
 #include <library/unittest/registar.h>
 
 #include <functional>
+#include <limits>
 
 
 using namespace NCB;
@@ -622,6 +623,78 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             notOrderedByTimestampTestCase2.ExpectedData = std::move(expectedData);
 
             testCases.push_back(std::move(notOrderedByTimestampTestCase2));
+        }
+
+        for (const auto& testCase : testCases) {
+            Test(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadDatasetWithMissingValues) {
+        TVector<TTestCase> testCases;
+
+        {
+            TTestCase floatAndCatFeaturesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNum\tfloat0\n"
+                "2\tCateg\tGender1\n"
+                "3\tNum\tfloat2\n"
+                "4\tCateg\tCountry3\n"
+            );
+            srcData.DsvFileData = AsStringBuf(
+                "0.12\t0.1\tNan\t0.2\tGermany\n"
+                "0.22\t\t\tNA\tRussia\n"
+                "0.341\tnan\tMale\t0.22\tN/A\n"
+                "None\t0.14\tMale\tNULL\tFinland\n"
+                "0.01\tna\tFemale\tNaN\tUSA\n"
+                "0.0\t0.66\t#NA\t0.1\tNone\n"
+                "N/A\tNone\tFemale\t0.12\tNULL\n"
+                "0.11\t-1.#QNAN\tN/a\t1.#IND\t1.#IND\n"
+                "-\t#N/A N/A\t#N/A N/A\t-\t-\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
+
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Num, "float0"},
+                {EColumn::Categ, "Gender1"},
+                {EColumn::Num, "float2"},
+                {EColumn::Categ, "Country3"},
+            };
+
+            TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            auto nanValue = std::numeric_limits<float>::quiet_NaN();
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.1f, nanValue, nanValue, 0.14f, nanValue, 0.66f, nanValue, nanValue, nanValue},
+                TVector<float>{0.2f, nanValue, 0.22f, nanValue, nanValue, 0.1f, 0.12f, nanValue, nanValue}
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf>{"Nan", "", "Male", "Male", "Female", "#NA", "Female", "N/a", "#N/A N/A"},
+                TVector<TStringBuf>{"Germany", "Russia", "N/A", "Finland", "USA", "None", "NULL", "1.#IND", "-"}
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(9);
+            expectedData.Target.Target =
+                TVector<TString>{"0.12", "0.22", "0.341", "None", "0.01", "0.0", "N/A", "0.11", "-"};
+            expectedData.Target.Weights = TWeights<float>(9);
+            expectedData.Target.GroupWeights = TWeights<float>(9);
+
+            floatAndCatFeaturesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(floatAndCatFeaturesTestCase));
         }
 
         for (const auto& testCase : testCases) {

@@ -831,7 +831,7 @@ cdef extern from "catboost/libs/helpers/wx_test.h":
 cdef float _FLOAT_NAN = float('nan')
 
 cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB":
-    int IsNanValue(const TStringBuf& s)
+    int IsMissingValue(const TStringBuf& s)
 
 cdef inline float _FloatOrNanFromString(const TString& s) except *:
     cdef char* stop = NULL
@@ -841,7 +841,7 @@ cdef inline float _FloatOrNanFromString(const TString& s) except *:
         res = _FLOAT_NAN
     elif stop == s.data() + s.size():
         res = parsed
-    elif IsNanValue(<TStringBuf>s):
+    elif IsMissingValue(<TStringBuf>s):
         res = _FLOAT_NAN
     else:
         raise TypeError("Cannot convert '{}' to float".format(str(s)))

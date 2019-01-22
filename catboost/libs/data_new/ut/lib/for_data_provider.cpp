@@ -108,7 +108,7 @@ namespace NCB {
                 return expectedData.Objects.FloatFeatures[floatFeatureIdx];
             },
             /*areEqualFunc*/ [&](const TVector<float>& lhs, const TFloatValuesHolder& rhs) {
-                return Equal<float>(lhs, rhs.GetArrayData());
+                return EqualWithNans<float>(lhs, rhs.GetArrayData());
             }
         );
 

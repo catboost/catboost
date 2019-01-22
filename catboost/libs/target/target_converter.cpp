@@ -43,7 +43,9 @@ namespace NCB {
     float TTargetConverter::ConvertLabel(const TStringBuf& label) {
         switch (TargetPolicy) {
             case EConvertTargetPolicy::CastFloat: {
-                CB_ENSURE(!IsNanValue(label), "NaN not supported for target");
+                CB_ENSURE(
+                    !IsMissingValue(label),
+                    "Missing values like \"" << EscapeC(label) << "\" are not supported for target");
                 float floatLabel;
                 CB_ENSURE(
                     TryFromString(label, floatLabel),

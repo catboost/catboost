@@ -165,13 +165,36 @@ namespace NCB {
         }
     }
 
-    bool IsNanValue(const TStringBuf& s) {
-        return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
+    bool IsMissingValue(const TStringBuf& s) {
+        return
+            s == AsStringBuf("nan") ||
+            s == AsStringBuf("NaN") ||
+            s == AsStringBuf("NAN") ||
+            s == AsStringBuf("NA") ||
+            s == AsStringBuf("Na") ||
+            s == AsStringBuf("na") ||
+            s == AsStringBuf("#N/A") ||
+            s == AsStringBuf("#N/A N/A") ||
+            s == AsStringBuf("#NA") ||
+            s == AsStringBuf("-1.#IND") ||
+            s == AsStringBuf("-1.#QNAN") ||
+            s == AsStringBuf("-NaN") ||
+            s == AsStringBuf("-nan") ||
+            s == AsStringBuf("1.#IND") ||
+            s == AsStringBuf("1.#QNAN") ||
+            s == AsStringBuf("N/A") ||
+            s == AsStringBuf("NULL") ||
+            s == AsStringBuf("n/a") ||
+            s == AsStringBuf("null") ||
+            s == AsStringBuf("Null") ||
+            s == AsStringBuf("none") ||
+            s == AsStringBuf("None") ||
+            s == AsStringBuf("-");
     }
 
     bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value) {
         if (!TryFromString<float>(stringValue, *value)) {
-            if (IsNanValue(stringValue)) {
+            if (IsMissingValue(stringValue)) {
                 *value = std::numeric_limits<float>::quiet_NaN();
             } else if (stringValue.length() == 0) {
                 *value = std::numeric_limits<float>::quiet_NaN();

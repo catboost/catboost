@@ -215,7 +215,11 @@ namespace NCB {
         TDataMetaInfo DataMetaInfo;
     };
 
-    bool IsNanValue(const TStringBuf& s);
+    /* missing values mostly as in pandas
+     * (https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html)
+     *  + some additions like 'NAN', 'Na', 'na', 'Null', 'none', 'None', '-'
+     */
+    bool IsMissingValue(const TStringBuf& s);
 
     bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
 }

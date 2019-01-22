@@ -15,5 +15,13 @@ namespace NCB {
         return (ui32)ceil(log2(values));
     }
 
+    // nan == nan is true here in contrast with the standard comparison operator
+    template <class T>
+    inline bool EqualWithNans(T lhs, T rhs) {
+        if (std::isnan(lhs)) {
+            return std::isnan(rhs);
+        }
+        return lhs == rhs;
+    }
 }
 
