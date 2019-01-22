@@ -627,11 +627,32 @@ static int DoUsage(const char* progname) {
     return 0;
 }
 
+#if defined(_linux_) && defined(CLANG_COVERAGE)
+extern "C" int __llvm_profile_write_file(void);
+
+static void GracefulShutdownHandler(int) {
+    try {
+        __llvm_profile_write_file();
+    } catch (...) {
+    }
+    abort();
+}
+#endif
+
 #if !defined(UTMAIN)
 #define UTMAIN NUnitTest::RunMain
 #endif
 
 int UTMAIN(int argc, char** argv) {
+#if defined(_linux_) && defined(CLANG_COVERAGE)
+    {
+        struct sigaction sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = GracefulShutdownHandler;
+        sa.sa_flags = SA_SIGINFO | SA_RESTART;
+        Y_VERIFY(!sigaction(SIGUSR2, &sa, nullptr));
+    }
+#endif
     InitNetworkSubSystem();
 
     try {
