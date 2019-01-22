@@ -129,7 +129,7 @@ def do_link_lib(args):
 
 
 def do_link_exe(args):
-    assert args.cc is not None
+    assert args.extld is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
     do_link_lib(compile_args)
@@ -137,7 +137,10 @@ def do_link_exe(args):
     import_config_name = create_import_config(args.peers, args.import_map, args.module_map)
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
-    cmd += ['-buildmode=exe', '-extld={}'.format(args.cc), compile_args.output]
+    cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
+    if args.extldflags is not None and len(args.extldflags) > 0:
+        cmd += ['-extldflags={}'.format(x) for x in args.extldflags]
+    cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
 
@@ -275,7 +278,8 @@ if __name__ == '__main__':
     parser.add_argument('++test-miner', nargs='?')
     parser.add_argument('++arc-project-prefix', nargs='?', default=arc_project_prefix)
     parser.add_argument('++std-lib-prefix', nargs='?', default=std_lib_prefix)
-    parser.add_argument('++cc', nargs='?', default=None)
+    parser.add_argument('++extld', nargs='?', default=None)
+    parser.add_argument('++extldflags', nargs='+', default=None)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
