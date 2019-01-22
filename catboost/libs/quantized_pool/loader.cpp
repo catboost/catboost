@@ -11,6 +11,7 @@
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/quantization_schema/serialization.h>
 
 #include <util/generic/cast.h>
@@ -159,7 +160,11 @@ void TSequantialChunkEvictor::MaybeEvict(const bool force) noexcept {
         // TODO(akhropov): fix MadviseEvict on Windows: MLTOOLS-2440
         MadviseEvict(Data_, Size_);
 #endif
-    } catch (const std::exception&) {
+    } catch (const std::exception& e) {
+        CATBOOST_DEBUG_LOG
+            << "MadviseEvict(Data_, Size_) with "
+            << LabeledOutput(static_cast<const void*>(Data_), Size_)
+            << "failed with error: " << e.what() << Endl;
     }
 
     Evicted_ = true;
