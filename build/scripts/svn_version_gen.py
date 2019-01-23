@@ -13,7 +13,7 @@ indent = "    "
 
 
 def print_c_header(result):
-    print >>result, "#pragma once\n"
+    result.write("#pragma once\n")
 
 
 def print_c_footer(result):
@@ -21,21 +21,27 @@ def print_c_footer(result):
 
 
 def print_java_header(result):
-    print >>result, "package ru.yandex.library.svnversion;\n"
-    print >>result, "import java.util.HashMap;\n"
-    print >>result, "final class SvnConstants {"
-    print >>result, indent + "private SvnConstants() {}"
-    print >>result, indent + "private static HashMap<String, String> data;"
-    print >>result, indent + "static {"
-    print >>result, indent * 2 + "data = new HashMap<String, String>();"
+    result.write('\n'.join([
+        "package ru.yandex.library.svnversion;\n",
+        "import java.util.HashMap;\n",
+        "final class SvnConstants {",
+        indent + "private SvnConstants() {}",
+        indent + "private static HashMap<String, String> data;",
+        indent + "static {",
+        indent * 2 + "data = new HashMap<String, String>();",
+        ''
+    ]))
 
 
 def print_java_footer(result):
-    print >>result, indent + "}"
-    print >>result, indent + "static String GetProperty(String property, String defaultValue) {"
-    print >>result, indent * 2 + "return data.containsKey(property) ? data.get(property) : defaultValue;"
-    print >>result, indent + "}"
-    print >>result, "}"
+    result.write('\n'.join([
+        indent + "}",
+        indent + "static String GetProperty(String property, String defaultValue) {",
+        indent * 2 + "return data.containsKey(property) ? data.get(property) : defaultValue;",
+        indent + "}",
+        "}",
+        ''
+    ]))
 
 
 def escape_special_symbols(strval):
@@ -43,8 +49,8 @@ def escape_special_symbols(strval):
     for c in strval:
         if c in ("\\", "\""):
             retval += "\\" + c
-        elif ord(c) < 0x20:
-            retval += c.encode("string_escape")
+        elif ord(c) < ord(' '):
+            retval += (c if isinstance(c, str) else c.decode()).encode('unicode_escape').decode()
         else:
             retval += c
     return retval
@@ -77,10 +83,9 @@ def system_command_call(command, shell=True):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
         stdout, stderr = process.communicate()
         if process.returncode != 0:
-            print >>sys.stderr, stderr
-            print >>sys.stderr, 'Running {} failed with exit code {}'.format(command, process.returncode)
+            sys.stderr.write('{}\nRunning {} failed with exit code {}\n'.format(stderr, command, process.returncode))
             return None
-        return stdout
+        return stdout if isinstance(stdout, str) else stdout.decode()
     except OSError as e:
         msg = e.strerror
         errcodes = 'error {}'.format(e.errno)
@@ -91,7 +96,7 @@ def system_command_call(command, shell=True):
                 msg = unicode(ctypes.FormatError(e.winerror), locale.getdefaultlocale()[1]).encode('utf-8')
             except ImportError:
                 pass
-        print >>sys.stderr, 'System command call {} failed [{}]: {}'.format(command, errcodes, msg)
+        sys.stderr.write('System command call {} failed [{}]: {}\n'.format(command, errcodes, msg))
         return None
 
 
@@ -343,7 +348,7 @@ def is_arc(arc_root):
 
 def main(header, footer, line):
     if len(sys.argv) != 5:
-        print >>sys.stderr, "Usage: svn_version_gen.py <output file> <source root> <build root> <python command>"
+        sys.stderr.write("Usage: svn_version_gen.py <output file> <source root> <build root> <python command>\n")
         sys.exit(1)
     arc_root = sys.argv[2]
     build_root = sys.argv[3]
@@ -389,25 +394,30 @@ def main(header, footer, line):
 
     result = open(sys.argv[1], 'w')
     header(result)
-    print >>result, line("PROGRAM_VERSION", scm_data + "\n" + get_other_data(arc_root, build_root, local_data_file))
-    print >>result, line("SCM_DATA", scm_data)
-    print >>result, line("ARCADIA_SOURCE_PATH", arc_root)
-    print >>result, line("ARCADIA_SOURCE_URL", rev_dict.get('url', ''))
-    print >>result, line("ARCADIA_SOURCE_REVISION", rev_dict.get('rev', '-1'))
-    print >>result, line("ARCADIA_SOURCE_HG_HASH", rev_dict.get('hash', ''))
-    print >>result, line("ARCADIA_SOURCE_LAST_CHANGE", rev_dict.get('lastchg', ''))
-    print >>result, line("ARCADIA_SOURCE_LAST_AUTHOR", rev_dict.get('author', ''))
-    print >>result, line("BUILD_USER", get_user())
-    print >>result, line("BUILD_HOST", get_hostname())
-    print >>result, line("VCS", rev_dict.get('vcs', ''))
-    print >>result, line("BRANCH", rev_dict.get('branch', ''))
+    result.write('\n'.join([
+        line("PROGRAM_VERSION", scm_data + "\n" + get_other_data(arc_root, build_root, local_data_file)),
+        line("SCM_DATA", scm_data),
+        line("ARCADIA_SOURCE_PATH", arc_root),
+        line("ARCADIA_SOURCE_URL", rev_dict.get('url', '')),
+        line("ARCADIA_SOURCE_REVISION", rev_dict.get('rev', '-1')),
+        line("ARCADIA_SOURCE_HG_HASH", rev_dict.get('hash', '')),
+        line("ARCADIA_SOURCE_LAST_CHANGE", rev_dict.get('lastchg', '')),
+        line("ARCADIA_SOURCE_LAST_AUTHOR", rev_dict.get('author', '')),
+        line("BUILD_USER", get_user()),
+        line("BUILD_HOST", get_hostname()),
+        line("VCS", rev_dict.get('vcs', '')),
+        line("BRANCH", rev_dict.get('branch', '')),
+        ''
+    ]))
 
     if 'url' in rev_dict:
-        print >>result, line("SVN_REVISION", rev_dict.get('rev', '-1'))
-        print >>result, line("SVN_ARCROOT", rev_dict.get('url', ''))
-        print >>result, line("SVN_TIME", rev_dict.get('date', ''))
-
-    print >>result, line("BUILD_DATE", get_date())
+        result.write('\n'.join([
+            line("SVN_REVISION", rev_dict.get('rev', '-1')),
+            line("SVN_ARCROOT", rev_dict.get('url', '')),
+            line("SVN_TIME", rev_dict.get('date', '')),
+            ''
+        ]))
+    result.write(line("BUILD_DATE", get_date()) + '\n')
     footer(result)
 
 if __name__ == "__main__":
