@@ -123,6 +123,10 @@ class _Execution(object):
         else:
             raise InvalidExecutionStateError("Cannot kill a stopped process")
 
+    def terminate(self):
+        if self.running:
+            self._process.terminate()
+
     @property
     def process(self):
         return self._process
