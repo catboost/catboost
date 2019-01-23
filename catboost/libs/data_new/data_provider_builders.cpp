@@ -23,6 +23,7 @@
 #include <util/generic/string.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
+#include <util/stream/labeled.h>
 #include <util/system/yassert.h>
 
 #include <algorithm>
@@ -809,6 +810,13 @@ namespace NCB {
 
         template <class T>
         static void CopyPart(ui32 objectOffset, TUnalignedArrayBuf<T> srcPart, TVector<T>* dstData) {
+            CB_ENSURE_INTERNAL(
+                objectOffset < dstData->size(),
+                LabeledOutput(objectOffset, srcPart.GetSize(), dstData->size()));
+            CB_ENSURE_INTERNAL(
+                objectOffset + srcPart.GetSize() <= dstData->size(),
+                LabeledOutput(objectOffset, srcPart.GetSize(), dstData->size()));
+
             TArrayRef<T> dstArrayRef(dstData->data() + objectOffset, srcPart.GetSize());
             srcPart.WriteTo(&dstArrayRef);
         }
@@ -1075,13 +1083,26 @@ namespace NCB {
                 ui32 objectOffset,
                 TConstArrayRef<ui8> featuresPart
             ) {
-                if (IsAvailable[*perTypeFeatureIdx]) {
-                    memcpy(
-                        ((ui8*)DstView[*perTypeFeatureIdx].data()) + objectOffset,
-                        featuresPart.data(),
-                        featuresPart.size()
-                    );
+                if (!IsAvailable[*perTypeFeatureIdx]) {
+                    return;
                 }
+
+                const auto dstCapacityInBytes =
+                    DstView[*perTypeFeatureIdx].size() *
+                    sizeof(decltype(*DstView[*perTypeFeatureIdx].data()));
+                const auto objectOffsetInBytes = objectOffset * sizeof(ui8);
+
+                CB_ENSURE_INTERNAL(
+                    objectOffsetInBytes < dstCapacityInBytes,
+                    LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
+                CB_ENSURE_INTERNAL(
+                    objectOffsetInBytes + featuresPart.size() <= dstCapacityInBytes,
+                    LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
+
+                memcpy(
+                    ((ui8*)DstView[*perTypeFeatureIdx].data()) + objectOffset,
+                    featuresPart.data(),
+                    featuresPart.size());
             }
 
             template <class IColumnType>
