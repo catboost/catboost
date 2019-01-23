@@ -675,7 +675,7 @@ class Build(object):
         else:
             def find_svn():
                 for i in range(0, 3):
-                    for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'HEAD'], ['.arc', 'TREE']):
+                    for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'logs', 'HEAD'], ['.arc', 'TREE']):
                         path_parts = [os.pardir] * i + path
                         full_path = os.path.join(self.arcadia.root, *path_parts)
                         # HACK(somov): No "normpath" here. ymake fails with the "source file name is outside the build tree" error
