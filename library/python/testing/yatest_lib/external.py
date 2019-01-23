@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
 
 
-def apply(func, value):
+def apply(func, value, apply_to_keys=False):
     """
     Applies func to every possible member of value
     :param value: could be either a primitive object or a complex one (list, dicts)
@@ -39,7 +39,7 @@ def apply(func, value):
                 for key, val in sorted(value.items(), key=lambda dict_item: dict_item[0]):
                     path = copy.copy(value_path)
                     path.append(key)
-                    res[key] = _apply(func, val, path)
+                    res[_apply(func, key, path) if apply_to_keys else key] = _apply(func, val, path)
         else:
             res = func(value, value_path)
         return res
@@ -64,7 +64,7 @@ def serialize(value):
         if isinstance(val, (date, datetime)):
             return repr(val)
         raise ValueError("Cannot serialize value '{}' of type {}".format(val, type(val)))
-    return apply(_serialize, value)
+    return apply(_serialize, value, apply_to_keys=True)
 
 
 def is_external(value):
