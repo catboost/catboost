@@ -136,7 +136,28 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
         s = "Москва ~ Париж";
         SubstGlobal(s, " ~ ", " ");
         UNIT_ASSERT_EQUAL(s, TString("Москва Париж"));
-        Cerr << s << "\n";
+    }
+
+    Y_UNIT_TEST(TestSubstGlobalOldRet) {
+        const TString s1 = "aaa";
+        const TString s2 = SubstGlobalRet(s1, "a", "bb");
+        UNIT_ASSERT_EQUAL(s2, TString("bbbbbb"));
+
+        const TString s3 = "aaa";
+        const TString s4 = SubstGlobalRet(s3, "a", "b");
+        UNIT_ASSERT_EQUAL(s4, TString("bbb"));
+
+        const TString s5 = "aaa";
+        const TString s6 = SubstGlobalRet(s5, "a", "");
+        UNIT_ASSERT_EQUAL(s6, TString(""));
+
+        const TString s7 = "abcdefbcbcdfb";
+        const TString s8 = SubstGlobalRet(s7, "bc", "bbc", 2);
+        UNIT_ASSERT_EQUAL(s8, TString("abcdefbbcbbcdfb"));
+
+        const TString s9 = "Москва ~ Париж";
+        const TString s10 = SubstGlobalRet(s9, " ~ ", " ");
+        UNIT_ASSERT_EQUAL(s10, TString("Москва Париж"));
     }
 
     Y_UNIT_TEST(TestSubstCharGlobal) {
@@ -149,10 +170,26 @@ Y_UNIT_TEST_SUITE(TStringSubst) {
         UNIT_ASSERT_EQUAL(s, TString("abb"));
     }
 
+    Y_UNIT_TEST(TestSubstCharGlobalRet) {
+        const TUtf16String w1 = TUtf16String::FromAscii("abcdabcd");
+        const TUtf16String w2 = SubstGlobalRet(w1, TChar('b'), TChar('B'), 3);
+        UNIT_ASSERT_EQUAL(w2, TUtf16String::FromAscii("abcdaBcd"));
+
+        const TString s1 = "aaa";
+        const TString s2 = SubstGlobalRet(s1, 'a', 'b', 1);
+        UNIT_ASSERT_EQUAL(s2, TString("abb"));
+    }
+
     Y_UNIT_TEST(TestSubstStdString) {
         std::string s = "aaa";
         SubstGlobal(s, "a", "b", 1);
         UNIT_ASSERT_EQUAL(s, "abb");
+    }
+
+    Y_UNIT_TEST(TestSubstStdStringRet) {
+        const std::string s1 = "aaa";
+        const std::string s2 = SubstGlobalRet(s1, "a", "b", 1);
+        UNIT_ASSERT_EQUAL(s2, "abb");
     }
 
     Y_UNIT_TEST(TestSubstGlobalChar) {

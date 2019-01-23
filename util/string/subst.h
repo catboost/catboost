@@ -39,3 +39,19 @@ size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from =
 // - add `SubstGlobalRet(TStringBuf)` for convenience
 // - add `RemoveAll(text, what, from)` as a shortcut for `SubstGlobal(text, what, "", from)`
 // - rename file to `replace.h`
+
+/* Replace all occurences of substring or character `what` with string or character `with` starting from position `from`, and return result string.
+ *
+ * @param text      String to modify.
+ * @param what      Substring/character to replace.
+ * @param with      Substring/character to use as replacement.
+ * @param from      Position at with to start replacement.
+ *
+ * @return          Result string
+ */
+template <class TStringType, class TPatternType>
+Y_WARN_UNUSED_RESULT TStringType SubstGlobalRet(const TStringType& text, TPatternType what, TPatternType with, size_t from = 0) {
+    TStringType result = text;
+    SubstGlobal(result, what, with, from);
+    return result;
+}
