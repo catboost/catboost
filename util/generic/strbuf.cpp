@@ -1,6 +1,7 @@
 #include "strbuf.h"
 
 #include <util/stream/output.h>
+#include <ostream>
 
 template <>
 void Out<TStringBuf>(IOutputStream& os, const TStringBuf& obj) {
@@ -15,4 +16,9 @@ void Out<TWtringBuf>(IOutputStream& os, const TWtringBuf& obj) {
 template <>
 void Out<TUtf32StringBuf>(IOutputStream& os, const TUtf32StringBuf& obj) {
     os << static_cast<const TFixedString<wchar32>&>(obj);
+}
+
+TOStream& operator<< (TOStream& os, TStringBuf buf) {
+    os.write(buf.data(), buf.size());
+    return os;
 }

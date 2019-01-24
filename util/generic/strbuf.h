@@ -473,6 +473,8 @@ private:
     using TBaseStr::Start;
 };
 
+TOStream& operator<< (TOStream& os, TStringBuf buf);
+
 //string type -> stringbuf type
 template <class TStringType>
 class TToStringBuf {
