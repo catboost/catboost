@@ -94,7 +94,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\google.protobuf.internal._api_implementation.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\google.protobuf.pyext._message.reg3.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_1cd544c187c1200859146b8b57.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_2wapyifjdmackyo22s4bjtjizm.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_wjmkk2da6rydgzvtfxlefheuo4.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
@@ -429,7 +429,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_2wapyifjdmackyo22s4bjtjizm.cpp" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -444,7 +444,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_2wapyifjdmackyo22s4bjtjizm.cpp" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h" "contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.cc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -452,9 +452,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/join_1cd544c187c1200859146b8b57.cpp	$B/contrib/libs/protobuf/python/google_lib/join_2wapyifjdmackyo22s4bjtjizm.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\6602560b7c21335064c7505bf6.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\df32d487a402e1f810003c400b.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\6c35506924d20244886bb83c90.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\52dd09f38105d36be2b4ae7123.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\3d112e6097068817f244ba03c0.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\380bf2b609ef3ad4358ca39ee0.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\d7c4a33a78ac95fee60c1c0c9e.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python.pb.cc;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_1cd544c187c1200859146b8b57.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_2wapyifjdmackyo22s4bjtjizm.cpp;</Outputs>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/join_1cd544c187c1200859146b8b57.cpp	$B/contrib/libs/protobuf/python/google_lib/join_wjmkk2da6rydgzvtfxlefheuo4.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\6602560b7c21335064c7505bf6.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\df32d487a402e1f810003c400b.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\6c35506924d20244886bb83c90.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\52dd09f38105d36be2b4ae7123.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\3d112e6097068817f244ba03c0.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\380bf2b609ef3ad4358ca39ee0.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\d7c4a33a78ac95fee60c1c0c9e.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python.pb.cc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_1cd544c187c1200859146b8b57.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\join_wjmkk2da6rydgzvtfxlefheuo4.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -920,7 +920,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -939,7 +939,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "contrib/libs/protobuf/python/google/protobuf/pyext/python.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -78,7 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\d7b4e5558eee9782ebedc7d065.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_byh5l6iaivmsinvr6rlcp3kajm.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_dqib5om4arijogqf2wqnltc7re.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_d7b4e5558eee9782ebedc7d065.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
@@ -164,7 +164,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_byh5l6iaivmsinvr6rlcp3kajm.cpp" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,7 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_byh5l6iaivmsinvr6rlcp3kajm.cpp" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/join_byh5l6iaivmsinvr6rlcp3kajm.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_byh5l6iaivmsinvr6rlcp3kajm.cpp;</Outputs>
+      <Message>$B/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_dqib5om4arijogqf2wqnltc7re.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -234,7 +234,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -253,7 +253,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -277,7 +277,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -296,7 +296,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
