@@ -22,7 +22,11 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx);
 void MapCalcErrors(TLearnContext* ctx);
 
 template <typename TMapper>
-TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvironment> environment, const typename TMapper::TInput& value = typename TMapper::TInput()) {
+TVector<typename TMapper::TOutput> ApplyMapper(
+    int workerCount,
+    TObj<NPar::IEnvironment> environment,
+    const typename TMapper::TInput& value = typename TMapper::TInput()) {
+
     NPar::TJobDescription job;
     TVector<typename TMapper::TInput> mapperInput(1);
     mapperInput[0] = value;
@@ -34,8 +38,20 @@ TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvi
     return mapperOutput;
 }
 
-void MapSetApproxesSimple(const IDerCalcer& error, const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx);
+void MapSetApproxesSimple(
+    const IDerCalcer& error,
+    const TSplitTree& splitTree,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    TVector<TVector<double>>* averageLeafValues,
+    TVector<double>* sumLeafWeights,
+    TLearnContext* ctx);
 
-void MapSetApproxesMulti(const IDerCalcer& error, const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx);
+void MapSetApproxesMulti(
+    const IDerCalcer& error,
+    const TSplitTree& splitTree,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    TVector<TVector<double>>* averageLeafValues,
+    TVector<double>* sumLeafWeights,
+    TLearnContext* ctx);
 
 void MapSetDerivatives(TLearnContext* ctx);

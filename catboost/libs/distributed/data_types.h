@@ -25,110 +25,127 @@
 
 #define SHARED_ID_TRAIN_DATA                (0xd66d480)
 
+
 namespace NCatboostDistributed {
-struct TUnusedInitializedParam {
-    char Zero = 0;
-};
 
-template <typename TData>
-struct TEnvelope : public IObjectBase {
-    OBJECT_NOCOPY_METHODS(TEnvelope);
-public:
-    TEnvelope() = default;
-    explicit TEnvelope(const TData& data)
-    : Data(data)
-    {
+    struct TUnusedInitializedParam {
+        char Zero = 0;
+    };
+
+    template <typename TData>
+    struct TEnvelope : public IObjectBase {
+        TData Data;
+
+    public:
+        TEnvelope() = default;
+        explicit TEnvelope(const TData& data)
+            : Data(data)
+        {
+        }
+
+        SAVELOAD(Data);
+        OBJECT_NOCOPY_METHODS(TEnvelope);
+    };
+
+    template <typename TData>
+    TEnvelope<TData> MakeEnvelope(const TData& data) {
+        return TEnvelope<TData>(data);
     }
-    TData Data;
-    SAVELOAD(Data);
-};
 
-template <typename TData>
-TEnvelope<TData> MakeEnvelope(const TData& data) {
-    return TEnvelope<TData>(data);
-}
+    using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & approxDim][leaf][bucket]
+    using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
+    using TIsLeafEmpty = TVector<bool>;
+    using TSums = TVector<TSum>;
+    using TMultiSums = TVector<TSumMulti>;
 
-using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & approxDim][leaf][bucket]
-using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
-using TIsLeafEmpty = TVector<bool>;
-using TSums = TVector<TSum>;
-using TMultiSums = TVector<TSumMulti>;
+    using TWorkerPairwiseStats = TVector<TVector<TPairwiseStats>>; // [cand][subCand]
 
-using TWorkerPairwiseStats = TVector<TVector<TPairwiseStats>>; // [cand][subCand]
+    struct TTrainData : public IObjectBase {
+        NCB::TTrainingForCPUDataProviderPtr TrainData;
+        TVector<TTargetClassifier> TargetClassifiers;
+        TVector<int> SplitCounts;
+        ui64 RandomSeed;
+        int ApproxDimension;
+        TString StringParams;
+        ui32 AllDocCount;
+        double SumAllWeights;
 
-struct TTrainData : public IObjectBase {
-    OBJECT_NOCOPY_METHODS(TTrainData);
-public:
-    TTrainData() = default;
-    TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData,
-        const TVector<TTargetClassifier>& targetClassifiers,
-        const TVector<int>& splitCounts,
-        ui64 randomSeed,
-        int approxDimension,
-        const TString& stringParams,
-        ui32 allDocCount,
-        double sumAllWeights,
-        EHessianType hessianType)
-    : TrainData(trainData)
-    , TargetClassifiers(targetClassifiers)
-    , SplitCounts(splitCounts)
-    , RandomSeed(randomSeed)
-    , ApproxDimension(approxDimension)
-    , StringParams(stringParams)
-    , AllDocCount(allDocCount)
-    , SumAllWeights(sumAllWeights)
-    , HessianType(hessianType)
-    {
-    }
-    NCB::TTrainingForCPUDataProviderPtr TrainData;
-    TVector<TTargetClassifier> TargetClassifiers;
-    TVector<int> SplitCounts;
-    ui64 RandomSeed;
-    int ApproxDimension;
-    TString StringParams;
-    ui32 AllDocCount;
-    double SumAllWeights;
+        const EHessianType HessianType = EHessianType::Symmetric;
 
-    const EHessianType HessianType = EHessianType::Symmetric;
+    public:
+        TTrainData() = default;
+        TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData,
+            const TVector<TTargetClassifier>& targetClassifiers,
+            const TVector<int>& splitCounts,
+            ui64 randomSeed,
+            int approxDimension,
+            const TString& stringParams,
+            ui32 allDocCount,
+            double sumAllWeights,
+            EHessianType hessianType)
+        : TrainData(trainData)
+        , TargetClassifiers(targetClassifiers)
+        , SplitCounts(splitCounts)
+        , RandomSeed(randomSeed)
+        , ApproxDimension(approxDimension)
+        , StringParams(stringParams)
+        , AllDocCount(allDocCount)
+        , SumAllWeights(sumAllWeights)
+        , HessianType(hessianType)
+        {
+        }
 
-    int operator&(IBinSaver& binSaver) {
-        NCB::AddWithShared(&binSaver, &TrainData);
-        binSaver.AddMulti(TargetClassifiers, SplitCounts, RandomSeed, ApproxDimension, StringParams, AllDocCount, SumAllWeights);
-        return 0;
-    }
-};
+        int operator&(IBinSaver& binSaver) {
+            NCB::AddWithShared(&binSaver, &TrainData);
+            binSaver.AddMulti(
+                TargetClassifiers,
+                SplitCounts,
+                RandomSeed,
+                ApproxDimension,
+                StringParams,
+                AllDocCount,
+                SumAllWeights);
+            return 0;
+        }
 
-struct TLocalTensorSearchData {
-    Y_DECLARE_SINGLETON_FRIEND();
-    // part of TLearnContext used by GreedyTensorSearch
-    TCalcScoreFold SampledDocs;
-    TCalcScoreFold SmallestSplitSideDocs;
-    TBucketStatsCache PrevTreeLevelStats;
-    THolder<TRestorableFastRng64> Rand;
+        OBJECT_NOCOPY_METHODS(TTrainData);
+    };
 
-    // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
-    TLearnProgress Progress;
-    int Depth;
-    TVector<TIndexType> Indices;
+    struct TLocalTensorSearchData {
+        // part of TLearnContext used by GreedyTensorSearch
+        TCalcScoreFold SampledDocs;
+        TCalcScoreFold SmallestSplitSideDocs;
+        TBucketStatsCache PrevTreeLevelStats;
+        THolder<TRestorableFastRng64> Rand;
 
-    bool StoreExpApprox;
-    bool UseTreeLevelCaching;
-    TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
-    TSums Buckets;
-    TMultiSums MultiBuckets;
-    TArray2D<double> PairwiseBuckets;
-    int GradientIteration;
+        // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
+        TLearnProgress Progress;
+        int Depth;
+        TVector<TIndexType> Indices;
 
-    ui32 AllDocCount;
-    double SumAllWeights;
+        bool StoreExpApprox;
+        bool UseTreeLevelCaching;
+        TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
+        TSums Buckets;
+        TMultiSums MultiBuckets;
+        TArray2D<double> PairwiseBuckets;
+        int GradientIteration;
 
-    NCatboostOptions::TCatBoostOptions Params;
-    TLocalTensorSearchData()
-    : Params(ETaskType::CPU)
-    {
-    }
-    inline static TLocalTensorSearchData& GetRef() {
-        return *Singleton<TLocalTensorSearchData>();
-    }
-};
+        ui32 AllDocCount;
+        double SumAllWeights;
+
+        NCatboostOptions::TCatBoostOptions Params;
+
+    public:
+        TLocalTensorSearchData()
+            : Params(ETaskType::CPU)
+        {
+        }
+        Y_DECLARE_SINGLETON_FRIEND();
+
+        inline static TLocalTensorSearchData& GetRef() {
+            return *Singleton<TLocalTensorSearchData>();
+        }
+    };
+
 } // NCatboostDistributed

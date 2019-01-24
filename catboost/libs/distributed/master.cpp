@@ -16,8 +16,11 @@ void InitializeMaster(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const auto& systemOptions = ctx->Params.SystemOptions;
     const ui32 unusedNodePort = NCatboostOptions::TSystemOptions::GetUnusedNodePort();
-    NPar::TParNetworkSettings::GetRef().RequesterType = NPar::TParNetworkSettings::ERequesterType::NEH; // avoid Netliba
-    ctx->RootEnvironment = NPar::RunMaster(systemOptions->NodePort,
+
+    // avoid Netliba
+    NPar::TParNetworkSettings::GetRef().RequesterType = NPar::TParNetworkSettings::ERequesterType::NEH;
+    ctx->RootEnvironment = NPar::RunMaster(
+        systemOptions->NodePort,
         systemOptions->NumThreads,
         systemOptions->FileWithHosts->c_str(),
         unusedNodePort,
@@ -48,19 +51,26 @@ void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnCont
     ctx->Params.Save(&jsonParams);
     const auto& metricOptions = ctx->Params.MetricOptions;
     if (metricOptions->EvalMetric.NotSet()) { // workaround for NotSet + Save + Load = DefaultValue
-        if (ctx->Params.LossFunctionDescription->GetLossFunction() != metricOptions->EvalMetric->GetLossFunction()) { // skip only if default metric differs from loss function
+        if (ctx->Params.LossFunctionDescription->GetLossFunction() !=
+            metricOptions->EvalMetric->GetLossFunction()) {
+            // skip only if default metric differs from loss function
+
             const auto& evalMetric = metricOptions->EvalMetric;
-            jsonParams[metricOptions.GetName()][evalMetric.GetName()][evalMetric->LossParams.GetName()].InsertValue("hints", "skip_train~true");
+            jsonParams[metricOptions.GetName()][evalMetric.GetName()][evalMetric->LossParams.GetName()]
+                .InsertValue("hints", "skip_train~true");
         }
     }
     const TString stringParams = ToString(jsonParams);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-        ctx->SharedTrainData->SetContextData(workerIdx,
+        ctx->SharedTrainData->SetContextData(
+            workerIdx,
             new NCatboostDistributed::TTrainData(
                 trainData->GetSubset(
-                    NCB::GetSubset(trainData->ObjectsGrouping, std::move(workerParts[workerIdx]), EObjectsOrder::Ordered),
-                    ctx->LocalExecutor
-                ),
+                    NCB::GetSubset(
+                        trainData->ObjectsGrouping,
+                        std::move(workerParts[workerIdx]),
+                        EObjectsOrder::Ordered),
+                    ctx->LocalExecutor),
                 targetClassifiers,
                 splitCounts,
                 randomSeed,
@@ -93,10 +103,18 @@ void MapBootstrap(TLearnContext* ctx) {
 }
 
 template <typename TScoreCalcMapper, typename TGetScore>
-void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+void MapGenericCalcScore(
+    TGetScore getScore,
+    double scoreStDev,
+    TCandidateList* candidateList,
+    TLearnContext* ctx) {
+
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(workerCount, ctx->SharedTrainData, MakeEnvelope(*candidateList));
+    auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(
+        workerCount,
+        ctx->SharedTrainData,
+        MakeEnvelope(*candidateList));
     const int candidateCount = candidateList->ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
     // set best split for each candidate
@@ -106,28 +124,30 @@ void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* 
         TVector<TVector<double>> allScores(subcandidateCount);
         for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
             // reduce across workers
-            auto& reducedStats = allStatsFromAllWorkers[0].Data[candidateIdx][subcandidateIdx];
-            for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
-                const auto& stats = allStatsFromAllWorkers[workerIdx].Data[candidateIdx][subcandidateIdx];
-                reducedStats.Add(stats);
-            }
-            const auto& splitInfo = subCandidates[subcandidateIdx];
-            allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
+        auto& reducedStats = allStatsFromAllWorkers[0].Data[candidateIdx][subcandidateIdx];
+        for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
+            const auto& stats = allStatsFromAllWorkers[workerIdx].Data[candidateIdx][subcandidateIdx];
+            reducedStats.Add(stats);
         }
-        SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &subCandidates);
-    });
+        const auto& splitInfo = subCandidates[subcandidateIdx];
+        allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
+    }
+    SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &subCandidates);
+});
 }
 
 // TODO(espetrov): Remove unused code.
 void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx) {
     const auto& plainFold = ctx->LearnProgress.Folds[0];
     const auto getScore = [&] (const TStats3D& stats3D, const TCandidateInfo& splitInfo) {
-        return GetScores(GetScoreBins(stats3D,
-            splitInfo.SplitCandidate.Type,
-            depth,
-            plainFold.GetSumWeight(),
-            plainFold.GetLearnSampleCount(),
-            ctx->Params));
+        return GetScores(
+            GetScoreBins(
+                stats3D,
+                splitInfo.SplitCandidate.Type,
+                depth,
+                plainFold.GetSumWeight(),
+                plainFold.GetLearnSampleCount(),
+                ctx->Params));
     };
     MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidateList, ctx);
 }
@@ -146,12 +166,19 @@ void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList,
     Y_ASSERT(candidateCount == allScores.ysize());
     const ui64 randSeed = ctx->Rand.GenRand();
     ctx->LocalExecutor->ExecRange([&] (int candidateIdx) {
-        SetBestScore(randSeed + candidateIdx, allScores[candidateIdx], scoreStDev, &(*candidateList)[candidateIdx].Candidates);
+        SetBestScore(
+            randSeed + candidateIdx,
+            allScores[candidateIdx],
+            scoreStDev,
+            &(*candidateList)[candidateIdx].Candidates);
     }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
-    MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(scoreStDev, candidateList, ctx);
+    MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(
+        scoreStDev,
+        candidateList,
+        ctx);
 }
 
 void MapRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
@@ -167,7 +194,8 @@ void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx)
 int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<TEmptyLeafFinder::TOutput> isLeafEmptyFromAllWorkers = ApplyMapper<TEmptyLeafFinder>(workerCount, ctx->SharedTrainData); // poll workers
+    TVector<TEmptyLeafFinder::TOutput> isLeafEmptyFromAllWorkers
+        = ApplyMapper<TEmptyLeafFinder>(workerCount, ctx->SharedTrainData); // poll workers
     for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
         for (int leafIdx = 0; leafIdx < isLeafEmptyFromAllWorkers[0].Data.ysize(); ++leafIdx) {
             isLeafEmptyFromAllWorkers[0].Data[leafIdx] &= isLeafEmptyFromAllWorkers[workerIdx].Data[leafIdx];
@@ -179,7 +207,9 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
 void MapCalcErrors(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const size_t workerCount = ctx->RootEnvironment->GetSlaveCount();
-    auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData); // poll workers
+
+    // poll workers
+    auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData);
     Y_ASSERT(additiveStatsFromAllWorkers.size() == workerCount);
 
     auto& additiveStats = additiveStatsFromAllWorkers[0];
@@ -198,17 +228,28 @@ void MapCalcErrors(TLearnContext* ctx) {
         ctx->LearnProgress.ApproxDimension
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
-    Y_VERIFY(Accumulate(skipMetricOnTrain.begin(), skipMetricOnTrain.end(), 0) + additiveStats.size() == metrics.size());
+    Y_VERIFY(
+        Accumulate(skipMetricOnTrain.begin(), skipMetricOnTrain.end(), 0) + additiveStats.size() ==
+            metrics.size());
     for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
         if (!skipMetricOnTrain[metricIdx] && metrics[metricIdx]->IsAdditiveMetric()) {
             const auto description = metrics[metricIdx]->GetDescription();
-            ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*metrics[metricIdx].Get(), metrics[metricIdx]->GetFinalError(additiveStats[description]));
+            ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(
+                *metrics[metricIdx].Get(),
+                metrics[metricIdx]->GetFinalError(additiveStats[description]));
         }
     }
 }
 
 template <typename TApproxDefs>
-void MapSetApproxes(const IDerCalcer& error, const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
+void MapSetApproxes(
+    const IDerCalcer& error,
+    const TSplitTree& splitTree,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    TVector<TVector<double>>* averageLeafValues,
+    TVector<double>* sumLeafWeights,
+    TLearnContext* ctx) {
+
     using namespace NCatboostDistributed;
     using TSum = typename TApproxDefs::TSumType;
     using TPairwiseBuckets = typename TApproxDefs::TPairwiseBuckets;
@@ -236,9 +277,13 @@ void MapSetApproxes(const IDerCalcer& error, const TSplitTree& splitTree, TConst
             const auto& workerBuckets = bucketsFromAllWorkers[workerIdx].Data.first;
             for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
                 if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
-                    buckets[leafIdx].AddDerWeight(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumWeights, it);
+                    buckets[leafIdx].AddDerWeight(
+                        workerBuckets[leafIdx].SumDer,
+                        workerBuckets[leafIdx].SumWeights,
+                        it);
                 } else {
-                    Y_ASSERT(ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
+                    Y_ASSERT(
+                        ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
                     buckets[leafIdx].AddDerDer2(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumDer2);
                 }
             }
@@ -250,7 +295,8 @@ void MapSetApproxes(const IDerCalcer& error, const TSplitTree& splitTree, TConst
         ApplyMapper<TDeltaUpdater>(workerCount, ctx->SharedTrainData, leafValues);
     }
 
-    const auto leafWeightsFromAllWorkers = ApplyMapper<TLeafWeightsGetter>(workerCount, ctx->SharedTrainData); // [workerIdx][dimIdx][leafIdx]
+    // [workerIdx][dimIdx][leafIdx]
+    const auto leafWeightsFromAllWorkers = ApplyMapper<TLeafWeightsGetter>(workerCount, ctx->SharedTrainData);
     sumLeafWeights->resize(leafCount);
     for (const auto& workerLeafWeights : leafWeightsFromAllWorkers) {
         AddElementwise(workerLeafWeights, sumLeafWeights);
@@ -260,14 +306,25 @@ void MapSetApproxes(const IDerCalcer& error, const TSplitTree& splitTree, TConst
         UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),
         ctx->Params.BoostingOptions->LearningRate,
         *sumLeafWeights,
-        averageLeafValues
-    );
+        averageLeafValues);
 
     // update learn approx and average approx
     ApplyMapper<TApproxUpdater>(workerCount, ctx->SharedTrainData, *averageLeafValues);
     // update test
-    const auto indices = BuildIndices(/*unused fold*/{}, splitTree, /*learnData*/ {}, testData, ctx->LocalExecutor);
-    UpdateAvrgApprox(error.GetIsExpApprox(), /*learnSampleCount*/ 0, indices, *averageLeafValues, testData, &ctx->LearnProgress, ctx->LocalExecutor);
+    const auto indices = BuildIndices(
+        /*unused fold*/{ },
+        splitTree, /*learnData*/
+        { },
+        testData,
+        ctx->LocalExecutor);
+    UpdateAvrgApprox(
+        error.GetIsExpApprox(), /*learnSampleCount*/
+        0,
+        indices,
+        *averageLeafValues,
+        testData,
+        &ctx->LearnProgress,
+        ctx->LocalExecutor);
 }
 
 struct TSetApproxesSimpleDefs {
@@ -275,6 +332,8 @@ struct TSetApproxesSimpleDefs {
     using TPairwiseBuckets = TArray2D<double>;
     using TBucketUpdater = NCatboostDistributed::TBucketSimpleUpdater;
     using TDeltaUpdater = NCatboostDistributed::TDeltaSimpleUpdater;
+
+public:
     static void SetPairwiseBucketsSize(size_t leafCount, TPairwiseBuckets* pairwiseBuckets) {
         pairwiseBuckets->SetSizes(leafCount, leafCount);
         pairwiseBuckets->FillZero();
@@ -289,8 +348,8 @@ struct TSetApproxesSimpleDefs {
     }
     static TVector<TVector<double>> CalcLeafValues(const TVector<TSumType>& buckets,
         const TPairwiseBuckets& pairwiseBuckets,
-        const TLearnContext& ctx
-    ) {
+        const TLearnContext& ctx) {
+
         const size_t leafCount = buckets.size();
         TVector<TVector<double>> leafValues(/*dimensionCount*/ 1, TVector<double>(leafCount));
         const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
@@ -305,12 +364,14 @@ struct TSetApproxesMultiDefs {
     using TPairwiseBuckets = NCatboostDistributed::TUnusedInitializedParam;
     using TBucketUpdater = NCatboostDistributed::TBucketMultiUpdater;
     using TDeltaUpdater = NCatboostDistributed::TDeltaMultiUpdater;
+
+public:
     static void SetPairwiseBucketsSize(size_t /*leafCount*/, TPairwiseBuckets* /*pairwiseBuckets*/) {}
     static void AddPairwiseBuckets(const TPairwiseBuckets& /*increment*/, TPairwiseBuckets* /*total*/) {}
     static TVector<TVector<double>> CalcLeafValues(const TVector<TSumType>& buckets,
         const TPairwiseBuckets& /*pairwiseBuckets*/,
-        const TLearnContext& ctx
-    ) {
+        const TLearnContext& ctx) {
+
         const int dimensionCount = ctx.LearnProgress.ApproxDimension;
         const size_t leafCount = buckets.size();
         TVector<TVector<double>> leafValues(dimensionCount, TVector<double>(leafCount));
@@ -319,20 +380,46 @@ struct TSetApproxesMultiDefs {
         const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
         const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
         if (estimationMethod == ELeavesEstimation::Newton) {
-            CalcMixedModelMulti(CalcModelNewtonMulti, buckets, l2Regularizer, sumAllWeights, allDocCount, &leafValues);
+        CalcMixedModelMulti(
+            CalcModelNewtonMulti,
+            buckets,
+            l2Regularizer,
+            sumAllWeights,
+            allDocCount,
+            &leafValues);
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-            CalcMixedModelMulti(CalcModelGradientMulti, buckets, l2Regularizer, sumAllWeights, allDocCount, &leafValues);
+            CalcMixedModelMulti(
+                CalcModelGradientMulti,
+                buckets,
+                l2Regularizer,
+                sumAllWeights,
+                allDocCount,
+                &leafValues);
         }
         return leafValues;
     }
 };
 
-void MapSetApproxesSimple(const IDerCalcer& error, const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
+void MapSetApproxesSimple(
+    const IDerCalcer& error,
+    const TSplitTree& splitTree,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    TVector<TVector<double>>* averageLeafValues,
+    TVector<double>* sumLeafWeights,
+    TLearnContext* ctx) {
+
     MapSetApproxes<TSetApproxesSimpleDefs>(error, splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
 }
 
-void MapSetApproxesMulti(const IDerCalcer& error, const TSplitTree& splitTree, TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, TVector<TVector<double>>* averageLeafValues, TVector<double>* sumLeafWeights, TLearnContext* ctx) {
+void MapSetApproxesMulti(
+    const IDerCalcer& error,
+    const TSplitTree& splitTree,
+    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    TVector<TVector<double>>* averageLeafValues,
+    TVector<double>* sumLeafWeights,
+    TLearnContext* ctx) {
+
     MapSetApproxes<TSetApproxesMultiDefs>(error, splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
 }
 
