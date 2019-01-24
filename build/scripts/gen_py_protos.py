@@ -4,31 +4,43 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import argparse
+import re
 
 
 OUT_DIR_ARG = '--python_out='
-GRPC_OUT_DIR_ARG = '--grpc_py_out='
-PB_PY_RENAMES = [
-    ('_pb2_grpc.py', '__int___pb2_grpc.py'),
-    ('_ev_pb2.py', '__int___ev_pb2.py'),
-    ('_pb2.py', '__int___pb2.py')
-]
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--suffixes", nargs="*", default=[])
+    parser.add_argument("protoc_args", nargs=argparse.REMAINDER)
+    script_args = parser.parse_args()
+
+    args = script_args.protoc_args
+
+    if args[0] == "--":
+        args = args[1:]
+
     out_dir_orig = None
     out_dir_temp = None
-    grpc_out_dir_orig = None
+    plugin_out_dirs_orig = {}
     for i in range(len(args)):
         if args[i].startswith(OUT_DIR_ARG):
             assert not out_dir_orig, 'Duplicate "{0}" param'.format(OUT_DIR_ARG)
             out_dir_orig = args[i][len(OUT_DIR_ARG):]
             out_dir_temp = tempfile.mkdtemp(dir=out_dir_orig)
             args[i] = OUT_DIR_ARG + out_dir_temp
-        elif args[i].startswith(GRPC_OUT_DIR_ARG):
-            assert not grpc_out_dir_orig, 'Duplicate "{0}" param'.format(GRPC_OUT_DIR_ARG)
-            grpc_out_dir_orig = args[i][len(GRPC_OUT_DIR_ARG):]
-            assert grpc_out_dir_orig == out_dir_orig, 'Params "{0}" and "{1}" expected to have the same value'.format(OUT_DIR_ARG, GRPC_OUT_DIR_ARG)
-            args[i] = GRPC_OUT_DIR_ARG + out_dir_temp
+            continue
+
+        match = re.match(r"^(--(\w+)_out=).*", args[i])
+        if match:
+            plugin_out_dir_arg = match.group(1)
+            plugin = match.group(2)
+            assert plugin not in plugin_out_dirs_orig, 'Duplicate "{0}" param'.format(plugin_out_dir_arg)
+            plugin_out_dirs_orig[plugin] = args[i][len(plugin_out_dir_arg):]
+            assert plugin_out_dirs_orig[plugin] == out_dir_orig, 'Params "{0}" and "{1}" expected to have the same value'.format(OUT_DIR_ARG, plugin_out_dir_arg)
+            args[i] = plugin_out_dir_arg + out_dir_temp
+            break
     assert out_dir_temp, 'Param "{0}" not found'.format(OUT_DIR_ARG)
 
     retcode = subprocess.call(args)
@@ -43,13 +55,13 @@ def main(args):
                 os.mkdir(d_orig)
         for f in files:
             f_orig = f
-            for old_ext, new_ext in PB_PY_RENAMES:
-                if f.endswith(old_ext):
-                    f_orig = f[:-len(old_ext)] + new_ext
+            for suf in script_args.suffixes:
+                if f.endswith(suf):
+                    f_orig = f[:-len(suf)] + "__int__" + suf
                     break
             os.rename(path.join(root_temp, f), path.join(root_orig, f_orig))
     shutil.rmtree(out_dir_temp)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()

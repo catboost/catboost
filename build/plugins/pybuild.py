@@ -18,24 +18,22 @@ def to_build_root(path, unit):
     return path
 
 
-def pb2_arg(path, mod, unit):
-    return '{}__int___pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
+def pb2_arg(suf, path, mod, unit):
+    return '{path}__int__{suf}={mod}{modsuf}'.format(
+        path=stripext(to_build_root(path, unit)),
+        suf=suf,
+        mod=mod,
+        modsuf=stripext(suf)
+    )
 
 def proto_arg(path, mod, unit):
     return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
 
-def pb_cc_arg(path, unit):
-    return '{}.pb.cc'.format(stripext(to_build_root(path, unit)))
-
-def pb_grpc_arg(path, unit):
-    return '{}.grpc.pb.cc'.format(stripext(to_build_root(path, unit)))
+def pb_cc_arg(suf, path, unit):
+    return '{}{suf}'.format(stripext(to_build_root(path, unit)), suf=suf)
 
 def ev_cc_arg(path, unit):
     return '{}.ev.pb.cc'.format(stripext(to_build_root(path, unit)))
-
-
-def pb2_grpc_arg(path, mod, unit):
-    return '{}__int___pb2_grpc.py={}_pb2_grpc'.format(stripext(to_build_root(path, unit)), mod)
 
 def ev_arg(path, mod, unit):
     return '{}__int___ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
@@ -348,24 +346,25 @@ def onpy_srcs(unit, *args):
         if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
-        grpc = unit.get('GRPC_FLAG') == 'yes'
-
-        if grpc:
-            unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
+        unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
         proto_paths = [path for path, mod in protos]
         unit.ongenerate_py_protos_internal(proto_paths)
-        unit.onpy_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
-
-        if grpc:
-            unit.onpy_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
+        unit.onpy_srcs([
+            pb2_arg(py_suf, path, mod, unit)
+            for path, mod in protos
+            for py_suf in unit.get("PY_PROTO_SUFFIXES").split()
+        ])
 
         if optimize_proto:
             unit.onsrcs(proto_paths)
 
-            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
-            if grpc:
-                pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
+            pb_cc_outs = [
+                pb_cc_arg(cc_suf, path, unit)
+                for path in proto_paths
+                for cc_suf in unit.get("CPP_PROTO_SUFFIXES").split()
+            ]
+
             for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
                 if is_program:
                     unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
