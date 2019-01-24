@@ -389,6 +389,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\expat.vcxproj">
+      <Project>4101A82B-19B1-4235-DF65-DD2155721571</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
       <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
     </ProjectReference>
@@ -577,6 +580,15 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
+      <Project>CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
+      <Project>1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
+      <Project>3853084F-52D5-B05E-2706-65BD06611610</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel5\aapl\tools-ragel5-aapl.vcxproj">
       <Project>1305930F-BAF5-B7CA-F748-A1A62BE68A67</Project>
@@ -772,6 +784,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>FDE5A173-CB03-B2D7-3278-852097280EF4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
+      <Project>1CDAABEA-CAFE-2098-5B65-A951B25498E4</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\strings\pylibrary-python-strings.vcxproj">
       <Project>AD1AB949-1D5E-AEB5-619A-FC98AA533E72</Project>
