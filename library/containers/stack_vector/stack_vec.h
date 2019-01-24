@@ -50,6 +50,15 @@ namespace NPrivate {
 
     public:
         pointer allocate(size_type n, std::allocator<void>::const_pointer hint = nullptr) {
+            if constexpr (!UseFallbackAlloc) {
+                if (IsStorageUsed) {
+                    Y_FAIL("Storage is already used. %d more requested", (int)n);
+                } else {
+                    if (n != CountOnStack) {
+                        Y_FAIL("Bad allocation request. %d requested", (int)n);
+                    }
+                }
+            }
             if (!IsStorageUsed && CountOnStack >= n) {
                 IsStorageUsed = true;
                 return reinterpret_cast<pointer>(&StackBasedStorage[0]);
