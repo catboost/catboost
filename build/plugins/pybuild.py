@@ -38,9 +38,6 @@ def ev_cc_arg(path, unit):
 def ev_arg(path, mod, unit):
     return '{}__int___ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
 
-def gly_arg(path, mod, unit):
-    return '{}.py={}'.format(stripext(to_build_root(path, unit)), mod)
-
 def mangle(name):
     if '.' not in name:
         return name
@@ -370,12 +367,6 @@ def onpy_srcs(unit, *args):
                     unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
                 else:
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
-
-        if unit.get('GLYCINE_FLAG') == 'yes':
-            unit.onpeerdir(['glycine/gen/runtime'])
-            unit.ongenerate_py_glys(proto_paths)
-            unit.onpy_srcs([gly_arg(path, mod, unit) for path, mod in protos])
-
 
     if evs:
         if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
