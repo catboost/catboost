@@ -255,7 +255,6 @@ static void Train(
             ctx->PrevTreeLevelStats.Create(
                 ctx->LearnProgress.Folds,
                 CountNonCtrBuckets(
-                    CountSplits(ctx->LearnProgress.FloatFeatures),
                     *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
                     ctx->Params.CatFeatureParams->OneHotMaxSize),
                 static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)

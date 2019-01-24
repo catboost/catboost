@@ -77,7 +77,6 @@ namespace NCatboostDistributed {
             localData.PrevTreeLevelStats.Create(
                 { plainFold },
                 CountNonCtrBuckets(
-                    trainData->SplitCounts,
                     *(trainData->TrainData->ObjectsData->GetQuantizedFeaturesInfo()),
                     localData.Params.CatFeatureParams->OneHotMaxSize.Get()),
                 localData.Params.ObliviousTreeOptions->MaxDepth);
@@ -200,7 +199,6 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         CalcStatsAndScores(
             *trainData->TrainData->ObjectsData,
-            trainData->SplitCounts,
             localData.Progress.AveragingFold.GetAllCtrs(),
             localData.SampledDocs,
             localData.SmallestSplitSideDocs,
@@ -225,7 +223,6 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         CalcStatsAndScores(
             *trainData->TrainData->ObjectsData,
-            trainData->SplitCounts,
             localData.Progress.AveragingFold.GetAllCtrs(),
             localData.SampledDocs,
             localData.SmallestSplitSideDocs,

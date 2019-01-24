@@ -45,7 +45,6 @@ void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnCont
     TVector<TArraySubsetIndexing<ui32>> workerParts = Split(*trainData->ObjectsGrouping, (ui32)workerCount);
 
     const ui64 randomSeed = ctx->Rand.GenRand();
-    const auto& splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
     const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
     NJson::TJsonValue jsonParams;
     ctx->Params.Save(&jsonParams);
@@ -72,7 +71,6 @@ void MapBuildPlainFold(NCB::TTrainingForCPUDataProviderPtr trainData, TLearnCont
                         EObjectsOrder::Ordered),
                     ctx->LocalExecutor),
                 targetClassifiers,
-                splitCounts,
                 randomSeed,
                 ctx->LearnProgress.ApproxDimension,
                 stringParams,

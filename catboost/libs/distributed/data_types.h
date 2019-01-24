@@ -63,7 +63,6 @@ namespace NCatboostDistributed {
     struct TTrainData : public IObjectBase {
         NCB::TTrainingForCPUDataProviderPtr TrainData;
         TVector<TTargetClassifier> TargetClassifiers;
-        TVector<int> SplitCounts;
         ui64 RandomSeed;
         int ApproxDimension;
         TString StringParams;
@@ -76,7 +75,6 @@ namespace NCatboostDistributed {
         TTrainData() = default;
         TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData,
             const TVector<TTargetClassifier>& targetClassifiers,
-            const TVector<int>& splitCounts,
             ui64 randomSeed,
             int approxDimension,
             const TString& stringParams,
@@ -85,7 +83,6 @@ namespace NCatboostDistributed {
             EHessianType hessianType)
         : TrainData(trainData)
         , TargetClassifiers(targetClassifiers)
-        , SplitCounts(splitCounts)
         , RandomSeed(randomSeed)
         , ApproxDimension(approxDimension)
         , StringParams(stringParams)
@@ -99,7 +96,6 @@ namespace NCatboostDistributed {
             NCB::AddWithShared(&binSaver, &TrainData);
             binSaver.AddMulti(
                 TargetClassifiers,
-                SplitCounts,
                 RandomSeed,
                 ApproxDimension,
                 StringParams,

@@ -92,7 +92,6 @@ public:
 };
 
 int GetSplitCount(
-    const TVector<int>& splitsCount,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     const TSplitCandidate& split
 );

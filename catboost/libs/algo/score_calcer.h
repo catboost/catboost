@@ -21,7 +21,6 @@
 // This function does all the work - it calculates sums in buckets, gets real sums for splits and (optionally - if scoreBins is non-null) builds TScoreBin-s from that.
 void CalcStatsAndScores(
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const TVector<int>& splitsCount,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,

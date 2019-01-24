@@ -318,7 +318,6 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
 }
 
 static void CalcBestScore(const TTrainingForCPUDataProviders& data,
-        const TVector<int>& splitCounts,
         int currentDepth,
         ui64 randSeed,
         double scoreStDev,
@@ -348,7 +347,6 @@ static void CalcBestScore(const TTrainingForCPUDataProviders& data,
             }
             TVector<TScoreBin> scoreBins;
             CalcStatsAndScores(*data.Learn->ObjectsData,
-                               splitCounts,
                                fold->GetAllCtrs(),
                                ctx->SampledDocs,
                                ctx->SmallestSplitSideDocs,
@@ -374,7 +372,6 @@ static void CalcBestScore(const TTrainingForCPUDataProviders& data,
 }
 
 void GreedyTensorSearch(const TTrainingForCPUDataProviders& data,
-                        const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,
                         TFold* fold,
@@ -438,7 +435,7 @@ void GreedyTensorSearch(const TTrainingForCPUDataProviders& data,
             }
         } else {
             const ui64 randSeed = ctx->Rand.GenRand();
-            CalcBestScore(data, splitCounts, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
+            CalcBestScore(data, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
         }
 
         size_t maxFeatureValueCount = 1;

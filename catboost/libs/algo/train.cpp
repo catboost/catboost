@@ -55,8 +55,6 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
     );
     TProfileInfo& profile = ctx->Profile;
 
-    const TVector<int> splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
-
     const int foldCount = ctx->LearnProgress.Folds.ysize();
     const int currentIteration = ctx->LearnProgress.TreeStruct.ysize();
     const double modelLength = currentIteration * ctx->Params.BoostingOptions->LearningRate;
@@ -79,7 +77,6 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
 
         GreedyTensorSearch(
             data,
-            splitCounts,
             modelLength,
             profile,
             takenFold,

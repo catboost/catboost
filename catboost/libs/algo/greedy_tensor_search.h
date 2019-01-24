@@ -10,7 +10,6 @@
 void TrimOnlineCTRcache(const TVector<TFold*>& folds);
 
 void GreedyTensorSearch(const NCB::TTrainingForCPUDataProviders& data,
-                        const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,
                         TFold* fold,

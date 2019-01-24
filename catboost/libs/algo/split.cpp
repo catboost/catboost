@@ -61,14 +61,13 @@ TModelSplit TSplit::GetModelSplit(
 
 
 int GetSplitCount(
-    const TVector<int>& splitsCount,
     const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     const TSplitCandidate& split
 ) {
     if (split.Type == ESplitType::OnlineCtr) {
         return split.Ctr.BorderCount;
     } else if (split.Type == ESplitType::FloatFeature) {
-        return splitsCount[split.FeatureIdx];
+        return (int)quantizedFeaturesInfo.GetBorders(TFloatFeatureIdx(split.FeatureIdx)).size();
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
         return (int)quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(split.FeatureIdx)).OnLearnOnly;

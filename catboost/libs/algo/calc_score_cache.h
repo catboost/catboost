@@ -84,14 +84,17 @@ struct TBucketStats {
 static_assert(std::is_pod<TBucketStats>::value, "TBucketStats must be pod to avoid memory initialization in yresize");
 
 inline static int CountNonCtrBuckets(
-    const TVector<int>& splitCounts,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     ui32 oneHotMaxSize
 ) {
     int nonCtrBucketCount = 0;
-    for (int splitCount : splitCounts) {
-        nonCtrBucketCount += splitCount + 1;
-    }
+
+    quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Float>(
+        [&](NCB::TFloatFeatureIdx floatFeatureIdx) {
+            nonCtrBucketCount += int(quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size() + 1);
+        }
+    );
+
     quantizedFeaturesInfo.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&](NCB::TCatFeatureIdx catFeatureIdx) {
             const auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx);

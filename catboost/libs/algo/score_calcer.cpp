@@ -712,7 +712,6 @@ static void CalculateNonPairwiseScore(
 
 void CalcStatsAndScores(
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const TVector<int>& splitsCount,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
@@ -731,7 +730,7 @@ void CalcStatsAndScores(
     CB_ENSURE(stats3d || pairwiseStats || scoreBins, "stats3d, pairwiseStats, and scoreBins are empty - nothing to calculate");
     CB_ENSURE(!scoreBins || initialFold, "initialFold must be non-nullptr for scoreBins calculation");
 
-    const int bucketCount = GetSplitCount(splitsCount, *objectsDataProvider.GetQuantizedFeaturesInfo(), split) + 1;
+    const int bucketCount = GetSplitCount(*objectsDataProvider.GetQuantizedFeaturesInfo(), split) + 1;
     const TStatsIndexer indexer(bucketCount);
     const int bucketIndexBits = GetValueBitCount(bucketCount) + depth + 1;
     const bool isPairwiseScoring = IsPairwiseScoring(fitParams.LossFunctionDescription->GetLossFunction());
