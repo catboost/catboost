@@ -434,7 +434,7 @@ void GreedyTensorSearch(const TTrainingForCPUDataProviders& data,
             if (isPairwiseScoring) {
                 MapRemotePairwiseCalcScore(scoreStDev, &candList, ctx);
             } else {
-                MapRemoteCalcScore(scoreStDev, currentSplitTree.GetDepth(), &candList, ctx);
+                MapRemoteCalcScore(scoreStDev, &candList, ctx);
             }
         } else {
             const ui64 randSeed = ctx->Rand.GenRand();

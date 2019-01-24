@@ -154,7 +154,7 @@ void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList
     MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(scoreStDev, candidateList, ctx);
 }
 
-void MapRemoteCalcScore(double scoreStDev, int /*depth*/, TCandidateList* candidateList, TLearnContext* ctx) {
+void MapRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     MapGenericRemoteCalcScore<TRemoteBinCalcer, TRemoteScoreCalcer>(scoreStDev, candidateList, ctx);
 }
 

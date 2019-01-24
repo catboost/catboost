@@ -15,7 +15,7 @@ void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);
 void MapTensorSearchStart(TLearnContext* ctx);
 void MapBootstrap(TLearnContext* ctx);
 void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx);
-void MapRemoteCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx);
+void MapRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
 void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
