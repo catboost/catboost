@@ -36,7 +36,7 @@ size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from =
 
 // TODO(yazevnul):
 // - rename `SubstGlobal` to `ReplaceAll` for convenience
-// - add `SubstGlobalRet(TStringBuf)` for convenience
+// - add `SubstGlobalCopy(TStringBuf)` for convenience
 // - add `RemoveAll(text, what, from)` as a shortcut for `SubstGlobal(text, what, "", from)`
 // - rename file to `replace.h`
 
@@ -50,7 +50,7 @@ size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from =
  * @return          Result string
  */
 template <class TStringType, class TPatternType>
-Y_WARN_UNUSED_RESULT TStringType SubstGlobalRet(const TStringType& text, TPatternType what, TPatternType with, size_t from = 0) {
+Y_WARN_UNUSED_RESULT TStringType SubstGlobalCopy(const TStringType& text, TPatternType what, TPatternType with, size_t from = 0) {
     TStringType result = text;
     SubstGlobal(result, what, with, from);
     return result;
