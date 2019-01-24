@@ -353,6 +353,7 @@ namespace NCB {
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
         bool allowConstLabel,
         bool metricsThatRequireTargetCanBeSkipped,
+        bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,
         ui32 knownClassCount,
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
@@ -437,6 +438,9 @@ namespace NCB {
             localExecutor,
             &classCountInData);
 
+        if (needTargetDataForCtrs) {
+            CB_ENSURE(maybeConvertedTarget, "CTR features require Target data");
+        }
 
         // TODO(akhropov): make GPU also support absence of Target data
         if (isForGpu && !maybeConvertedTarget) {
@@ -686,6 +690,18 @@ namespace NCB {
                     groupInfos));
         }
 
+        if (needTargetDataForCtrs) {
+            CB_ENSURE(maybeConvertedTarget, "CTR features require Target data");
+
+            TTargetDataSpecification specification(ETargetType::Simple);
+            result.emplace(
+                specification,
+                MakeIntrusive<TSimpleTarget>(
+                    specification.Description,
+                    rawData.GetObjectsGrouping(),
+                    maybeConvertedTarget));
+        }
+
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         CheckPreprocessedTarget(
             maybeConvertedTarget,
@@ -798,6 +814,7 @@ namespace NCB {
             /*mainLossFunction*/ Nothing(),
             /*allowConstLabel*/ true,
             /*metricsThatRequireTargetCanBeSkipped*/ false,
+            /*needTargetDataForCtrs*/ false,
             (ui32)model.ObliviousTrees.ApproxDimension,
             classCount,
             classWeights,

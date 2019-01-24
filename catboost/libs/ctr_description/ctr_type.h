@@ -10,6 +10,8 @@ enum class ECtrType {
     CtrTypesCount
 };
 
+bool NeedTarget(ECtrType ctr);
+
 bool NeedTargetClassifier(ECtrType ctr);
 
 bool IsPermutationDependentCtrType(ECtrType ctr);

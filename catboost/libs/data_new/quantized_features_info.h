@@ -128,6 +128,8 @@ namespace NCB {
             return CatFeaturesPerfectHash.GetUniqueValuesCounts(catFeatureIdx);
         }
 
+        ui32 CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn() const;
+
         const TMap<ui32, ui32>& GetCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
             return CatFeaturesPerfectHash.GetFeaturePerfectHash(catFeatureIdx);

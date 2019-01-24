@@ -199,6 +199,11 @@ namespace NCB {
             *objectsData.GetQuantizedFeaturesInfo(),
             *expectedData.Objects.QuantizedFeaturesInfo
         );
+
+        UNIT_ASSERT_VALUES_EQUAL(
+            objectsData.GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn
+        );
     }
 
     void CompareObjectsData(

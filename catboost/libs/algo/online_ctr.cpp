@@ -21,21 +21,6 @@
 using namespace NCB;
 
 
-bool HasFeaturesForCtrs(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 oneHotMaxSize) {
-    const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
-
-    bool hasFeaturesForCtrs = false;
-    featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
-        [&] (TCatFeatureIdx catFeatureIdx) {
-            if (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly > oneHotMaxSize) {
-                hasFeaturesForCtrs = true;
-            }
-        }
-    );
-    return hasFeaturesForCtrs;
-}
-
-
 struct TCtrCalcer {
     template <typename T>
     T* Alloc(size_t count) {

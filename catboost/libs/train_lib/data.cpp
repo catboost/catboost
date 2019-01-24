@@ -154,6 +154,13 @@ namespace NCB {
 
         auto& dataProcessingOptions = params->DataProcessingOptions.Get();
 
+        bool calcCtrs
+            = (trainingData->ObjectsData->GetQuantizedFeaturesInfo()
+                ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
+               > params->CatFeatureParams->OneHotMaxSize.Get());
+
+        bool needTargetDataForCtrs = calcCtrs && CtrsNeedTargetData(params->CatFeatureParams) && isLearnData;
+
         trainingData->TargetData = CreateTargetDataProviders(
             srcData->RawTargetData,
             trainingData->ObjectsData->GetSubgroupIds(),
@@ -164,6 +171,7 @@ namespace NCB {
             &params->LossFunctionDescription.Get(),
             dataProcessingOptions.AllowConstLabel.Get(),
             /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
+            /*needTargetDataForCtrs*/ needTargetDataForCtrs,
             /*knownModelApproxDimension*/ Nothing(),
             dataProcessingOptions.ClassesCount.Get(),
             dataProcessingOptions.ClassWeights.Get(),

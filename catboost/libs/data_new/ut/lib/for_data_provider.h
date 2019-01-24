@@ -47,6 +47,7 @@ namespace NCB {
         : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32>
     {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
+        ui32 MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
         // only for TQuantizedForCPUDataProvider
         TMaybe<TVector<TCatFeatureUniqueValuesCounts>> CatFeatureUniqueValuesCounts;

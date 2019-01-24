@@ -294,3 +294,33 @@ void NCatboostOptions::TCatFeatureParams::ForEachCtrDescription(
         }
     }
 }
+
+void NCatboostOptions::TCatFeatureParams::ForEachCtrDescription(
+    std::function<void(const NCatboostOptions::TCtrDescription&)>&& f) const {
+
+    for (const auto& ctrDescription : SimpleCtrs.Get()) {
+        f(ctrDescription);
+    }
+    for (const auto& ctrDescription : CombinationCtrs.Get()) {
+        f(ctrDescription);
+    }
+    for (const auto&  [id, perFeatureCtr] : PerFeatureCtrs.Get()) {
+        for (const auto&  ctrDescription : perFeatureCtr) {
+            f(ctrDescription);
+        }
+    }
+}
+
+bool NCatboostOptions::CtrsNeedTargetData(const NCatboostOptions::TCatFeatureParams& catFeatureParams) {
+    bool ctrsNeedTargetData = false;
+
+    catFeatureParams.ForEachCtrDescription(
+        [&] (const auto& ctrDescription) {
+            if (NeedTarget(ctrDescription.Type)) {
+                ctrsNeedTargetData = true;
+            }
+        }
+    );
+
+    return ctrsNeedTargetData;
+}

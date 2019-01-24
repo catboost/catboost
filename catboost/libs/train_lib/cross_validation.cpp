@@ -372,18 +372,6 @@ void CrossValidate(
         "Cross-validation for Ordered objects data is not yet implemented"
     );
 
-    const ui32 oneFoldSize = allDataObjectCount / cvParams.FoldCount;
-    const ui32 cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
-    SetDataDependentDefaults(
-        cvTrainSize,
-        /*testPoolSize=*/allDataObjectCount - cvTrainSize,
-        /*hasTestLabels=*/data->MetaInfo.HasTarget,
-        /*hasTestPairs*/data->MetaInfo.HasPairs,
-        &outputFileOptions.UseBestModel,
-        &catBoostOptions
-    );
-
-
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
 
     NPar::TLocalExecutor localExecutor;
@@ -409,6 +397,20 @@ void CrossValidate(
         &labelConverter,
         &localExecutor,
         &rand);
+
+    const ui32 oneFoldSize = allDataObjectCount / cvParams.FoldCount;
+    const ui32 cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
+    SetDataDependentDefaults(
+        cvTrainSize,
+        /*hasLearnTarget*/trainingData->MetaInfo.HasTarget,
+        trainingData->ObjectsData->GetQuantizedFeaturesInfo()
+            ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
+        /*testPoolSize=*/allDataObjectCount - cvTrainSize,
+        /*hasTestLabels=*/trainingData->MetaInfo.HasTarget,
+        /*hasTestPairs*/trainingData->MetaInfo.HasPairs,
+        &outputFileOptions.UseBestModel,
+        &catBoostOptions
+    );
 
     NJson::TJsonValue updatedTrainOptionsJson = jsonParams;
     UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);

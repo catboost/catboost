@@ -4,6 +4,25 @@
 
 #include <util/generic/yexception.h>
 
+
+bool NeedTarget(ECtrType ctr) {
+    switch (ctr) {
+        case ECtrType::Buckets:
+        case ECtrType::Borders:
+        case ECtrType::BinarizedTargetMeanValue:
+        case ECtrType::FloatTargetMeanValue: {
+            return true;
+        }
+        case ECtrType::FeatureFreq:
+        case ECtrType::Counter: {
+            return false;
+        }
+        default: {
+            ythrow TCatBoostException() << "Unknown ctr type " << ctr;
+        }
+    }
+}
+
 bool NeedTargetClassifier(const ECtrType ctr) {
     switch (ctr) {
         case ECtrType::FeatureFreq:

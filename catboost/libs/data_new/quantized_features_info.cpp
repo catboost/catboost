@@ -100,6 +100,19 @@ namespace NCB {
         return nanMode;
     }
 
+    ui32 TQuantizedFeaturesInfo::CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn() const {
+        ui32 maxCategoricalFeaturesUniqueValuesCountOnLearn = 0;
+        FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Categorical>(
+            [&] (TCatFeatureIdx catFeatureIdx) {
+                auto learnOnlyCount = CatFeaturesPerfectHash.GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly;
+                if (learnOnlyCount > maxCategoricalFeaturesUniqueValuesCountOnLearn) {
+                    maxCategoricalFeaturesUniqueValuesCountOnLearn = learnOnlyCount;
+                }
+            }
+        );
+        return maxCategoricalFeaturesUniqueValuesCountOnLearn;
+    }
+
     TPerfectHashedToHashedCatValuesMap TQuantizedFeaturesInfo::CalcPerfectHashedToHashedCatValuesMap(
         NPar::TLocalExecutor* localExecutor
     ) const {

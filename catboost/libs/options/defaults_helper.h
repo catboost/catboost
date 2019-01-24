@@ -85,8 +85,17 @@ inline void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboo
     }
 }
 
+void UpdateOneHotMaxSize(
+    ui32 maxCategoricalFeaturesUniqValuesOnLearn,
+    bool hasLearnTarget,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+);
+
+
 inline void SetDataDependentDefaults(
     ui32 learnPoolSize,
+    bool hasLearnTarget,
+    ui32 maxCategoricalFeaturesUniqValuesOnLearn,
     ui32 testPoolSize,
     bool hasTestConstTarget,
     bool hasTestPairs,
@@ -96,4 +105,5 @@ inline void SetDataDependentDefaults(
     UpdateUseBestModel(testPoolSize, hasTestConstTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
+    UpdateOneHotMaxSize(maxCategoricalFeaturesUniqValuesOnLearn, hasLearnTarget, catBoostOptions);
 }

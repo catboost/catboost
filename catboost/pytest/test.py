@@ -34,7 +34,6 @@ GROUPWISE_LOSSES = ['YetiRank', 'YetiRankPairwise', 'QueryRMSE', 'QuerySoftMax']
 RANKING_LOSSES = PAIRWISE_LOSSES + GROUPWISE_LOSSES
 ALL_LOSSES = CLASSIFICATION_LOSSES + REGRESSION_LOSSES + RANKING_LOSSES
 
-
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
 # test both parallel in and non-parallel modes
@@ -593,6 +592,7 @@ def test_yetirank(boosting_type, dev_score_calc_obj_block_size):
 
 @pytest.mark.parametrize('loss_function', ['QueryRMSE', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
 def test_pairwise_reproducibility(loss_function):
+
     def run_catboost(threads, model_path, eval_path):
         cmd = [
             CATBOOST_PATH,
@@ -610,6 +610,7 @@ def test_pairwise_reproducibility(loss_function):
             '--eval-file', eval_path,
         ]
         yatest.common.execute(cmd)
+
     model_1 = yatest.common.test_output_path('model_1.bin')
     eval_1 = yatest.common.test_output_path('test_1.eval')
     run_catboost(1, model_1, eval_1)
@@ -2364,6 +2365,7 @@ def test_calc_no_target(boosting_type):
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_classification_progress_restore(boosting_type):
+
     def run_catboost(iters, model_path, eval_path, additional_params=None):
         import random
         import shutil
@@ -2388,6 +2390,7 @@ def test_classification_progress_restore(boosting_type):
         if additional_params:
             cmd += additional_params
         yatest.common.execute(cmd)
+
     canon_model_path = yatest.common.test_output_path('canon_model.bin')
     canon_eval_path = yatest.common.test_output_path('canon_test.eval')
     run_catboost(30, canon_model_path, canon_eval_path)
@@ -3562,8 +3565,8 @@ def execute_dist_train(cmd):
             hosts.write('localhost:' + str(port0) + '\n')
             hosts.write('localhost:' + str(port1) + '\n')
 
-        worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
-        worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
+        worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0),), wait=False)
+        worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1),), wait=False)
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
@@ -5052,6 +5055,7 @@ def test_group_weight(boosting_type, dev_score_calc_obj_block_size):
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
 def test_group_weight_and_object_weight(boosting_type, loss_function, dev_score_calc_obj_block_size):
+
     def run_catboost(train_path, test_path, cd_path, eval_path):
         cmd = (
             CATBOOST_PATH,
@@ -5076,6 +5080,7 @@ def test_group_weight_and_object_weight(boosting_type, loss_function, dev_score_
 
 
 def test_snapshot_without_random_seed():
+
     def run_catboost(iters, eval_path, additional_params=None):
         cmd = [
             CATBOOST_PATH,
@@ -5117,6 +5122,7 @@ def test_snapshot_without_random_seed():
 
 
 def test_snapshot_with_interval():
+
     def run_with_timeout(cmd, timeout):
         try:
             yatest.common.execute(cmd, timeout=timeout)
@@ -5851,10 +5857,19 @@ def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_wei
     [
         ('QueryRMSE', 'NDCG', 'Plain'),
         ('QueryRMSE', 'NDCG', 'Ordered'),
+        # Boosting type 'Ordered' is not supported for YetiRankPairwise and PairLogitPairwise
+        ('YetiRankPairwise', 'NDCG', 'Plain'),
+        ('PairLogit', 'PairAccuracy', 'Plain'),
+        ('PairLogitPairwise', 'NDCG', 'Plain'),
+        ('PairLogitPairwise', 'PairAccuracy', 'Plain'),
     ],
     ids=[
         'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain',
         'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered',
+        'loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain'
     ]
 )
 def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
@@ -5879,3 +5894,28 @@ def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+# training with pairwise scoring with categorical features on CPU does not yet support one-hot features
+# so they are disabled by default, explicit non-default specification should be an error
+@pytest.mark.parametrize(
+    'loss_function', ['YetiRankPairwise', 'PairLogitPairwise'],
+    ids=['loss_function=YetiRankPairwise', 'loss_function=PairLogitPairwise']
+)
+def test_groupwise_with_bad_one_hot_max_size(loss_function):
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--has-header',
+        '-f', data_file('black_friday', 'train'),
+        '-t', data_file('black_friday', 'test'),
+        '--column-description', data_file('black_friday', 'cd'),
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--eval-metric', 'NDCG',
+        '--one_hot_max_size', '10'
+    )
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)

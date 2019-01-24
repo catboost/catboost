@@ -22,9 +22,6 @@ struct TFold;
 const int SIMPLE_CLASSES_COUNT = 2;
 
 
-bool HasFeaturesForCtrs(const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo, ui32 oneHotMaxSize);
-
-
 struct TOnlineCTR {
     TVector<TArray2D<TVector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
     size_t UniqueValuesCount = 0;

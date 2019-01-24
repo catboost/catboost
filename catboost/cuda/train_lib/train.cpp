@@ -212,6 +212,9 @@ namespace NCatboostCuda {
         }
 
         SetDataDependentDefaults(dataProvider.GetObjectCount(),
+                                 dataProvider.MetaInfo.HasTarget,
+                                 dataProvider.ObjectsData->GetQuantizedFeaturesInfo()
+                                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
                                  testPoolSize,
                                  hasTestConstTarget,
                                  hasTestPairs,
@@ -315,9 +318,10 @@ namespace NCatboostCuda {
             catBoostOptions.Load(params);
 
             bool saveFinalCtrsInModel = !calcMetricsOnly &&
-                                        (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
-                                        HasFeaturesForCtrs(*trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
-                                                           catBoostOptions.CatFeatureParams.Get().OneHotMaxSize);
+                (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
+                (trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()
+                    ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
+                  > catBoostOptions.CatFeatureParams.Get().OneHotMaxSize.Get());
 
             TTrainingForCPUDataProviders trainingDataForFinalCtrCalculation;
 

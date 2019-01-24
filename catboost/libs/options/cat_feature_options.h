@@ -78,6 +78,7 @@ namespace NCatboostOptions {
         void AddTreeCtrDescription(const TCtrDescription& description);
 
         void ForEachCtrDescription(std::function<void(TCtrDescription*)>&& f);
+        void ForEachCtrDescription(std::function<void(const TCtrDescription&)>&& f) const;
 
         TOption<TVector<TCtrDescription>> SimpleCtrs;
         TOption<TVector<TCtrDescription>> CombinationCtrs;
@@ -92,4 +93,6 @@ namespace NCatboostOptions {
         TCpuOnlyOption<bool> StoreAllSimpleCtrs;
         TCpuOnlyOption<ui64> CtrLeafCountLimit;
     };
+
+    bool CtrsNeedTargetData(const TCatFeatureParams& catFeatureParams);
 }

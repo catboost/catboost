@@ -710,6 +710,7 @@ void TTargetSerialization::Load(
             CREATE_TARGET_TYPE(Regression)
             CREATE_TARGET_TYPE(GroupwiseRanking)
             CREATE_TARGET_TYPE(GroupPairwiseRanking)
+            CREATE_TARGET_TYPE(Simple)
 
 #undef CREATE_TARGET_TYPE
 
@@ -1204,6 +1205,63 @@ TGroupPairwiseRankingTarget TGroupPairwiseRankingTarget::Load(
 }
 
 
+TSimpleTarget::TSimpleTarget(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    TSharedVector<float> target,
+    bool skipCheck
+)
+    : TTargetDataProvider(
+        TTargetDataSpecification(ETargetType::Simple, description),
+        std::move(objectsGrouping)
+      )
+{
+    if (!skipCheck) {
+        if (target) {
+            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        }
+    }
+    Target = std::move(target);
+}
+
+void TSimpleTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const {
+    if (Target) {
+        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    }
+}
+
+TTargetDataProviderPtr TSimpleTarget::GetSubset(
+    TObjectsGroupingPtr objectsGrouping,
+    const TSubsetTargetDataCache& subsetTargetDataCache
+) const {
+    return MakeIntrusive<TSimpleTarget>(
+        GetSpecification().Description,
+        std::move(objectsGrouping),
+        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
+        true
+    );
+}
+
+
+void TSimpleTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
+}
+
+TSimpleTarget TSimpleTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto target = LoadById(cache.Targets, binSaver);
+    return TSimpleTarget(description, objectsGrouping, target, true);
+}
+
+
 TMaybeData<TConstArrayRef<float>> NCB::GetMaybeTarget(const TTargetDataProviders& targetDataProviders) {
     for (const auto& specAndDataProvider : targetDataProviders) {
         switch (specAndDataProvider.first.Type) {
@@ -1216,6 +1274,7 @@ TMaybeData<TConstArrayRef<float>> NCB::GetMaybeTarget(const TTargetDataProviders
             GET_FIELD_FROM_TYPE(MultiClass);
             GET_FIELD_FROM_TYPE(Regression);
             GET_FIELD_FROM_TYPE(GroupwiseRanking);
+            GET_FIELD_FROM_TYPE(Simple);
 
 #undef GET_FIELD_FROM_TYPE
 
@@ -1295,6 +1354,9 @@ TVector<TConstArrayRef<float>> NCB::GetBaseline(const TTargetDataProviders& targ
             GET_ONE_BASELINE_FROM_TYPE(GroupPairwiseRanking);
 
 #undef GET_ONE_BASELINE_FROM_TYPE
+
+            default:
+                ;
         }
     }
     CB_ENSURE_INTERNAL(

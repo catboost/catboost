@@ -62,10 +62,11 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
     }
 
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
-    const bool hasCtrs = HasFeaturesForCtrs(
-        *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
-        Params.CatFeatureParams->OneHotMaxSize.Get()
-    );
+    const bool hasCtrs =
+        data.Learn->ObjectsData->GetQuantizedFeaturesInfo()
+            ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
+          > Params.CatFeatureParams->OneHotMaxSize.Get();
+
     const bool hasTime = Params.DataProcessingOptions->HasTimeFlag
         || (data.Learn->ObjectsData->GetOrder() == EObjectsOrder::Ordered);
     const bool isOrderedBoosting = !IsPlainMode(Params.BoostingOptions->BoostingType);

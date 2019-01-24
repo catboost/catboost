@@ -138,6 +138,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 TConstArrayRef<ui32>(),
                 binarizationOptions
             );
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
                 TVector<TVector<float>> borders = {
                     {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f},
@@ -238,6 +239,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 TConstArrayRef<ui32>(),
                 binarizationOptions
             );
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
                 TVector<TVector<float>> borders = {
                     {0.1149999946f, 0.2250000089f, 0.4449999928f, 0.6150000095f},
@@ -337,6 +339,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 TConstArrayRef<ui32>(),
                 binarizationOptions
             );
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
                 TVector<TVector<float>> borders = {
                     {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f},
@@ -447,6 +450,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 TConstArrayRef<ui32>(),
                 binarizationOptions
             );
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 9;
 
             TVector<TMap<ui32, ui32>> expectedPerfectHash = {
                 {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {1, 5}, {0, 6}, {112, 7}, {23, 8}},
@@ -604,6 +608,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     std::move(expectedPerfectHash[i])
                 );
             }
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 9;
 
             expectedData.Objects.CatFeatureUniqueValuesCounts = {{9,9}, {2,2}, {9,9}};
 
@@ -775,6 +780,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                     std::move(expectedPerfectHash[i])
                 );
             }
+            expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 7;
 
             expectedData.Objects.CatFeatureUniqueValuesCounts = {{6, 9}, {2, 2}, {7, 9}};
 

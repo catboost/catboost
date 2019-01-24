@@ -1198,6 +1198,45 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         );
     }
 
+    Y_UNIT_TEST(TSimpleTarget_GetSubset) {
+        TVector<TSimpleTarget> targetVector;
+        TVector<TSimpleTarget> expectedSecondSubsets;
+
+        targetVector.push_back(
+            TSimpleTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f})
+            )
+        );
+        expectedSecondSubsets.push_back(
+            TSimpleTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                /*target*/ ShareVector<float>({1.0f, 0.0f})
+            )
+        );
+
+        targetVector.push_back(
+            TSimpleTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f})
+            )
+        );
+        expectedSecondSubsets.push_back(
+            TSimpleTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                /*target*/ ShareVector<float>({1.0f, 0.0f})
+            )
+        );
+
+        TestGetSubset(
+            targetVector,
+            expectedSecondSubsets
+        );
+    }
 
 
     TWeights<float> CreateWeights() {
@@ -1425,6 +1464,22 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             )
         );
 
+        targetDataProviders->emplace(
+            TTargetDataSpecification(ETargetType::Simple),
+            MakeIntrusive<TSimpleTarget>(
+                "",
+                objectsGrouping,
+                targets
+            )
+        );
+        expectedSubsetTargetDataProviders->emplace(
+            TTargetDataSpecification(ETargetType::Simple),
+            MakeIntrusive<TSimpleTarget>(
+                "",
+                expectedSubsetObjectsGrouping,
+                expectedSubsetTargets
+            )
+        );
     }
 
 
@@ -1541,6 +1596,19 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                 GetBaseline(onlyGroupPairwiseRanking), TVector<TConstArrayRef<float>>{CreateBaseline()[0]}
             );
             COMPARE_COMPATIBILITY_FIELD(onlyGroupPairwiseRanking, GroupInfo);
+        }
+
+        {
+            TTargetDataProviders onlySimple;
+            onlySimple.emplace(
+                TTargetDataSpecification(ETargetType::Simple),
+                targetDataProviders[TTargetDataSpecification(ETargetType::Simple)]
+            );
+
+            COMPARE_COMPATIBILITY_FIELD(onlySimple, Target);
+            UNIT_ASSERT_EQUAL(GetWeights(onlySimple), TConstArrayRef<float>());
+            UNIT_ASSERT_EQUAL(GetBaseline(onlySimple), TVector<TConstArrayRef<float>>());
+            UNIT_ASSERT_EQUAL(GetGroupInfo(onlySimple), TConstArrayRef<TQueryInfo>());
         }
 
         {

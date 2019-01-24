@@ -2146,13 +2146,17 @@ def test_convert_model_to_json_without_cat_features():
         ('QueryRMSE', 'NDCG', 'Ordered'),
         # Boosting type 'Ordered' is not supported for YetiRankPairwise and PairLogitPairwise
         ('YetiRankPairwise', 'NDCG', 'Plain'),
-        ('PairLogitPairwise', 'NDCG', 'Plain')
+        ('PairLogit', 'PairAccuracy', 'Plain'),
+        ('PairLogitPairwise', 'NDCG', 'Plain'),
+        ('PairLogitPairwise', 'PairAccuracy', 'Plain'),
     ],
     ids=[
         'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain',
         'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered',
         'loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain',
-        'loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain'
+        'loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain'
     ]
 )
 def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):

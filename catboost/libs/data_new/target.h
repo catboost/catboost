@@ -190,7 +190,8 @@ namespace NCB {
         MultiClass,
         Regression,
         GroupwiseRanking,
-        GroupPairwiseRanking
+        GroupPairwiseRanking,
+        Simple
     };
 
 
@@ -662,6 +663,50 @@ namespace NCB {
     protected:
         TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
         TSharedVector<TQueryInfo> GroupInfo;
+    };
+
+
+    class TSimpleTarget : public TTargetDataProvider {
+    public:
+        TSimpleTarget(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            TSharedVector<float> target,
+            bool skipCheck = false
+        );
+
+        bool operator==(const TSimpleTarget& rhs) const {
+            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
+                (*Target == *rhs.Target);
+        }
+
+        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
+
+        TTargetDataProviderPtr GetSubset(
+            TObjectsGroupingPtr objectsGrouping,
+            const TSubsetTargetDataCache& subsetTargetDataCache
+        ) const override;
+
+
+        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
+            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
+        }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TSimpleTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
+
+    protected:
+        TSharedVector<float> Target; // [objectIdx], can be nullptr
     };
 
 

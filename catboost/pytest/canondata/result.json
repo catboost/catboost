@@ -2191,24 +2191,64 @@
             "uri": "file://test.test_group_weights_file_quantized/first.eval"
         }
     ],
+    "test.test_groupwise_with_cat_features[loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain]": [
+        {
+            "checksum": "7f5a9caada41741f671a84223dedb03b",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogit_eval_metric=PairAccuracy_boosting_type=Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "764b07337050fb2ee25329f7d91024af",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogit_eval_metric=PairAccuracy_boosting_type=Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain]": [
+        {
+            "checksum": "ed81de96be43cb56556d13fa9c418e29",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "4edb8d00b4a991097baf8913a93e85ea",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain]": [
+        {
+            "checksum": "78b323c1b056423c0d2cfdfa946bedda",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "a5a994d4f20df49763e1c1c1960f0817",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/test_error.tsv"
+        }
+    ],
     "test.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered]": [
         {
-            "checksum": "fcf0681211e55639b9fa1c6955e5f804",
+            "checksum": "a13ca9e52ccec42682c95505ef1137e7",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "81aad3ece592b3308f840fa928ad4cef",
+            "checksum": "cbc5f62eb5b7ca55ca2dc60b439703f1",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "3f4ddafa3a64d07cbb0c5a4817e64857",
+            "checksum": "c05f9a031ac823d96eadd6e48087f7b0",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "db66d92131d31e26a3ae2c7db45a8951",
+            "checksum": "5b24c0ac383d7fed7c4392758b350fd0",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_groupwise_with_cat_features[loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain]": [
+        {
+            "checksum": "4265e130852c1a312485a6f88c13ddaa",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "5b1a96de94b843db4bea62746d896d8f",
+            "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_ignored_features[Ordered]": [

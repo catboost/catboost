@@ -419,11 +419,16 @@ namespace {
                 }
             }
 
+            const auto& quantizedFeaturesInfo
+                = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
+
             NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(jsonParams));
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             SetDataDependentDefaults(
                 trainingDataForCpu.Learn->GetObjectCount(),
+                /*hasLearnTarget*/ trainingDataForCpu.Learn->MetaInfo.HasTarget,
+                quantizedFeaturesInfo.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
                 /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
                 /*hasTestLabels*/ trainingDataForCpu.Test.size() > 0 &&
                     trainingDataForCpu.Test[0]->MetaInfo.HasTarget &&
@@ -450,8 +455,6 @@ namespace {
             }
 
             ctx.OutputMeta();
-
-            const auto& quantizedFeaturesInfo = *trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
             ctx.LearnProgress.FloatFeatures = CreateFloatFeatures(quantizedFeaturesInfo);
             ctx.LearnProgress.CatFeatures = CreateCatFeatures(quantizedFeaturesInfo);
