@@ -20,5 +20,8 @@ SRCS(
 END()
 
 RECURSE(
+    lib
     src
+    src/Lib
+    src/Lib/lib2to3
 )
