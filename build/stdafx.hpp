@@ -278,7 +278,7 @@
 #include <util/digest/fnv.h>
 #include <util/digest/murmur.h>
 #include <util/ysaveload.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 #include <util/thread/lfstack.h>
 #include <util/thread/singleton.h>
 #include <util/thread/lfqueue.h>

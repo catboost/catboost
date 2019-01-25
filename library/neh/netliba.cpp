@@ -18,7 +18,7 @@
 #include <util/network/ip.h>
 #include <util/string/cast.h>
 #include <util/system/yassert.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 using namespace NDns;
 using namespace NNeh;

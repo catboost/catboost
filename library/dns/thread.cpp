@@ -3,7 +3,7 @@
 #include "magic.h"
 
 #include <util/network/socket.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/event.h>
 #include <util/generic/vector.h>
@@ -12,7 +12,7 @@
 using namespace NDns;
 
 namespace {
-    class TThreadedResolver: public IThreadPool::IThreadAble, public TNonCopyable {
+    class TThreadedResolver: public IThreadFactory::IThreadAble, public TNonCopyable {
         struct TResolveRequest {
             inline TResolveRequest(const TString& host, ui16 port)
                 : Host(host)
@@ -121,7 +121,7 @@ namespace {
     private:
         TLockFreeQueue<TResolveRequest*> Q_;
         TSystemEvent E_;
-        typedef TAutoPtr<IThreadPool::IThread> IThreadRef;
+        typedef TAutoPtr<IThreadFactory::IThread> IThreadRef;
         TVector<IThreadRef> T_;
     };
 }

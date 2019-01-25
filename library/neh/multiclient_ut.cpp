@@ -6,13 +6,13 @@
 
 #include <util/generic/list.h>
 #include <util/stream/str.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 #include <util/system/mutex.h>
 
 using namespace NNeh;
 
 Y_UNIT_TEST_SUITE(TNehMultiClient) {
-    class TResponseDelayer: public IThreadPool::IThreadAble {
+    class TResponseDelayer: public IThreadFactory::IThreadAble {
         struct TTmResponse : TIntrusiveListItem<TTmResponse> {
             TTmResponse(TInstant time, const IRequestRef& request, TData& data)
                 : Time(time)
@@ -86,7 +86,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
         }
 
     private:
-        TAutoPtr<IThreadPool::IThread> Thr_;
+        TAutoPtr<IThreadFactory::IThread> Thr_;
         TMutex M_;
         TIntrusiveList<TTmResponse> R_;
         TSystemEvent E_;
@@ -118,7 +118,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
         TResponseDelayer D_;
     };
 
-    class TResponsesDispatcher: public IThreadPool::IThreadAble {
+    class TResponsesDispatcher: public IThreadFactory::IThreadAble {
     public:
         TResponsesDispatcher(IMultiClient& mc)
             : MC_(mc)
@@ -201,7 +201,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
 
     private:
         IMultiClient& MC_;
-        TAutoPtr<IThreadPool::IThread> Thr_;
+        TAutoPtr<IThreadFactory::IThread> Thr_;
     };
 
     Y_UNIT_TEST(TFewRequests) {

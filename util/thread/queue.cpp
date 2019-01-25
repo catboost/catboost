@@ -20,18 +20,18 @@
 
 #include <util/datetime/base.h>
 
-#include "pool.h"
+#include "factory.h"
 #include "queue.h"
 
-TThreadPoolHolder::TThreadPoolHolder() noexcept
+TThreadFactoryHolder::TThreadFactoryHolder() noexcept
     : Pool_(SystemThreadPool())
 {
 }
 
-class TMtpQueue::TImpl: public TIntrusiveListItem<TImpl>, public IThreadPool::IThreadAble {
+class TMtpQueue::TImpl: public TIntrusiveListItem<TImpl>, public IThreadFactory::IThreadAble {
     using TTsr = IMtpQueue::TTsr;
     using TJobQueue = TFastQueue<IObjectInQueue*>;
-    using TThreadRef = TAutoPtr<IThreadPool::IThread>;
+    using TThreadRef = TAutoPtr<IThreadFactory::IThread>;
 
 public:
     inline TImpl(TMtpQueue* parent, size_t thrnum, size_t maxqueue, EBlocking blocking, ECatching catching)
@@ -278,8 +278,8 @@ TMtpQueue::TMtpQueue(EBlocking blocking, ECatching catching)
 {
 }
 
-TMtpQueue::TMtpQueue(IThreadPool* pool, EBlocking blocking, ECatching catching)
-    : TThreadPoolHolder(pool)
+TMtpQueue::TMtpQueue(IThreadFactory* pool, EBlocking blocking, ECatching catching)
+    : TThreadFactoryHolder(pool)
     , Blocking(blocking)
     , Catching(catching)
 {
@@ -341,7 +341,7 @@ static TAtomic mtp_queue_counter = 0;
 
 class TAdaptiveMtpQueue::TImpl {
 public:
-    class TThread: public IThreadPool::IThreadAble {
+    class TThread: public IThreadFactory::IThreadAble {
     public:
         inline TThread(TImpl* parent)
             : Impl_(parent)
@@ -377,7 +377,7 @@ public:
 
     private:
         TImpl* Impl_;
-        TAutoPtr<IThreadPool::IThread> Thread_;
+        TAutoPtr<IThreadFactory::IThread> Thread_;
     };
 
     inline TImpl(TAdaptiveMtpQueue* parent)
@@ -508,8 +508,8 @@ private:
 TAdaptiveMtpQueue::TAdaptiveMtpQueue() {
 }
 
-TAdaptiveMtpQueue::TAdaptiveMtpQueue(IThreadPool* pool)
-    : TThreadPoolHolder(pool)
+TAdaptiveMtpQueue::TAdaptiveMtpQueue(IThreadFactory* pool)
+    : TThreadFactoryHolder(pool)
 {
 }
 
@@ -548,8 +548,8 @@ void TAdaptiveMtpQueue::SetMaxIdleTime(TDuration interval) {
 TSimpleMtpQueue::TSimpleMtpQueue() {
 }
 
-TSimpleMtpQueue::TSimpleMtpQueue(IThreadPool* pool)
-    : TThreadPoolHolder(pool)
+TSimpleMtpQueue::TSimpleMtpQueue(IThreadFactory* pool)
+    : TThreadFactoryHolder(pool)
 {
 }
 
@@ -668,8 +668,8 @@ bool IMtpQueue::AddAndOwn(TAutoPtr<IObjectInQueue> obj) {
     return added;
 }
 
-using IThread = IThreadPool::IThread;
-using IThreadAble = IThreadPool::IThreadAble;
+using IThread = IThreadFactory::IThread;
+using IThreadAble = IThreadFactory::IThreadAble;
 
 namespace {
     class TPoolThread: public IThread {

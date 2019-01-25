@@ -2,10 +2,10 @@
 
 #include "asio.h"
 
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 namespace NAsio {
-    class TIOServiceExecutor: public IThreadPool::IThreadAble {
+    class TIOServiceExecutor: public IThreadFactory::IThreadAble {
     public:
         TIOServiceExecutor()
             : Work_(new TIOService::TWork(Srv_))
@@ -36,7 +36,7 @@ namespace NAsio {
     private:
         TIOService Srv_;
         TAutoPtr<TIOService::TWork> Work_;
-        typedef TAutoPtr<IThreadPool::IThread> IThreadRef;
+        typedef TAutoPtr<IThreadFactory::IThread> IThreadRef;
         IThreadRef T_;
     };
 

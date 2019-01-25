@@ -12,7 +12,7 @@
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 namespace NPar {
     class TRemoteQueryProcessor;
@@ -138,7 +138,7 @@ namespace NPar {
         TRequestHash RequestsData;
         TRequestHash IncomingRequestsData;
         TLockFreeQueue<TNetworkEvent> NetworkEventsQueue;
-        THolder<IThreadPool::IThread> MetaThread;
+        THolder<IThreadFactory::IThread> MetaThread;
         NAtomic::TBool DoRun = true;
         TAutoEvent NetworkEvent;
 

@@ -34,7 +34,7 @@
 #include <util/system/condvar.h>
 #include <util/system/error.h>
 #include <util/system/types.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 #if defined(_unix_)
 #include <sys/ioctl.h>
@@ -410,7 +410,7 @@ namespace NNeh {
         class TConnCache;
         static TConnCache* SocketCache();
 
-        class TConnCache: public IThreadPool::IThreadAble {
+        class TConnCache: public IThreadFactory::IThreadAble {
         public:
             typedef TAutoLockFreeQueue<TSocketHolder> TConnList;
             typedef TAutoPtr<TSocketHolder> TSocketRef;
@@ -744,7 +744,7 @@ namespace NNeh {
             TAtomic InPurging_;
             volatile size_t MaxConnId_;
 
-            TAutoPtr<IThreadPool::IThread> T_;
+            TAutoPtr<IThreadFactory::IThread> T_;
             TCondVar CondPurge_;
             TMutex PurgeMutex_;
             volatile bool Shutdown_;

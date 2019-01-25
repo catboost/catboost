@@ -3,14 +3,14 @@
 #include "jobqueue.h"
 #include "pipequeue.h"
 
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 #include <util/generic/singleton.h>
 #include <util/system/thread.h>
 
 using namespace NNeh;
 
 namespace {
-    class TExecThread: public IThreadPool::IThreadAble, public IJob {
+    class TExecThread: public IThreadFactory::IThreadAble, public IJob {
     public:
         TExecThread()
             : T_(SystemThreadPool()->Run(this))
@@ -51,7 +51,7 @@ namespace {
             }
         }
 
-        typedef TAutoPtr<IThreadPool::IThread> IThreadRef;
+        typedef TAutoPtr<IThreadFactory::IThread> IThreadRef;
         TOneConsumerPipeQueue<IJob> Q_;
         IThreadRef T_;
     };

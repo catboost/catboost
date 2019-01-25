@@ -2,7 +2,7 @@
 #include <library/unittest/registar.h>
 
 #include <util/system/thread.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 Y_UNIT_TEST_SUITE(ThreadNameGuardTests) {
     Y_UNIT_TEST(Test) {

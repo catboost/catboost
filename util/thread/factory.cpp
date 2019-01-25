@@ -1,12 +1,12 @@
-#include "pool.h"
+#include "factory.h"
 
 #include <util/system/thread.h>
 #include <util/generic/singleton.h>
 
-using IThread = IThreadPool::IThread;
+using IThread = IThreadFactory::IThread;
 
 namespace {
-    class TSystemThreadPool: public IThreadPool {
+    class TSystemThreadFactory: public IThreadFactory {
     public:
         class TPoolThread: public IThread {
         public:
@@ -42,7 +42,7 @@ namespace {
             THolder<TThread> Thr_;
         };
 
-        inline TSystemThreadPool() noexcept {
+        inline TSystemThreadFactory() noexcept {
         }
 
         IThread* DoCreate() override {
@@ -50,14 +50,14 @@ namespace {
         }
     };
 
-    class TThrPoolFuncObj: public IThreadPool::IThreadAble {
+    class TThreadFactoryFuncObj: public IThreadFactory::IThreadAble {
     public:
-        TThrPoolFuncObj(const std::function<void()>& func)
+        TThreadFactoryFuncObj(const std::function<void()>& func)
             : Func(func)
         {
         }
         void DoExecute() override {
-            THolder<TThrPoolFuncObj> self(this);
+            THolder<TThreadFactoryFuncObj> self(this);
             Func();
         }
 
@@ -66,21 +66,21 @@ namespace {
     };
 }
 
-TAutoPtr<IThread> IThreadPool::Run(std::function<void()> func) {
+TAutoPtr<IThread> IThreadFactory::Run(std::function<void()> func) {
     TAutoPtr<IThread> ret(DoCreate());
 
-    ret->Run(new ::TThrPoolFuncObj(func));
+    ret->Run(new ::TThreadFactoryFuncObj(func));
 
     return ret;
 }
 
-static IThreadPool* SystemThreadPoolImpl() {
-    return Singleton<TSystemThreadPool>();
+static IThreadFactory* SystemThreadPoolImpl() {
+    return Singleton<TSystemThreadFactory>();
 }
 
-static IThreadPool* systemPool = nullptr;
+static IThreadFactory* systemPool = nullptr;
 
-IThreadPool* SystemThreadPool() {
+IThreadFactory* SystemThreadPool() {
     if (systemPool) {
         return systemPool;
     }
@@ -88,6 +88,6 @@ IThreadPool* SystemThreadPool() {
     return SystemThreadPoolImpl();
 }
 
-void SetSystemThreadPool(IThreadPool* pool) {
+void SetSystemThreadPool(IThreadFactory* pool) {
     systemPool = pool;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fwd.h"
-#include "pool.h"
+#include "factory.h"
 
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
@@ -31,23 +31,23 @@ struct IObjectInQueue {
  * Mighty class to add 'Pool' method to derived classes.
  * Useful only for creators of new queue classes.
  */
-class TThreadPoolHolder {
+class TThreadFactoryHolder {
 public:
-    TThreadPoolHolder() noexcept;
+    TThreadFactoryHolder() noexcept;
 
-    inline TThreadPoolHolder(IThreadPool* pool) noexcept
+    inline TThreadFactoryHolder(IThreadFactory* pool) noexcept
         : Pool_(pool)
     {
     }
 
-    inline ~TThreadPoolHolder() = default;
+    inline ~TThreadFactoryHolder() = default;
 
-    inline IThreadPool* Pool() const noexcept {
+    inline IThreadFactory* Pool() const noexcept {
         return Pool_;
     }
 
 private:
-    IThreadPool* Pool_;
+    IThreadFactory* Pool_;
 };
 
 class TMtpQueueException: public yexception {
@@ -56,7 +56,7 @@ class TMtpQueueException: public yexception {
 /**
  * A queue processed simultaneously by several threads
  */
-class IMtpQueue: public IThreadPool, public TNonCopyable {
+class IMtpQueue: public IThreadFactory, public TNonCopyable {
 public:
     ~IMtpQueue() override = default;
 
@@ -159,7 +159,7 @@ public:
 };
 
 /** queue processed by fixed size thread pool */
-class TMtpQueue: public IMtpQueue, public TThreadPoolHolder {
+class TMtpQueue: public IMtpQueue, public TThreadFactoryHolder {
 public:
     enum EBlocking {
         NonBlockingMode,
@@ -172,7 +172,7 @@ public:
     };
 
     TMtpQueue(EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
-    TMtpQueue(IThreadPool* pool, EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
+    TMtpQueue(IThreadFactory* pool, EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
     ~TMtpQueue() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -199,10 +199,10 @@ private:
  * Always create new thread for new task, when all existing threads are busy.
  * Maybe dangerous, number of threads is not limited.
  */
-class TAdaptiveMtpQueue: public IMtpQueue, public TThreadPoolHolder {
+class TAdaptiveMtpQueue: public IMtpQueue, public TThreadFactoryHolder {
 public:
     TAdaptiveMtpQueue();
-    TAdaptiveMtpQueue(IThreadPool* pool);
+    TAdaptiveMtpQueue(IThreadFactory* pool);
     ~TAdaptiveMtpQueue() override;
 
     /**
@@ -225,10 +225,10 @@ private:
 };
 
 /** Behave like TMtpQueue or TAdaptiveMtpQueue, choosen by thrnum parameter of Start()  */
-class TSimpleMtpQueue: public IMtpQueue, public TThreadPoolHolder {
+class TSimpleMtpQueue: public IMtpQueue, public TThreadFactoryHolder {
 public:
     TSimpleMtpQueue();
-    TSimpleMtpQueue(IThreadPool* pool);
+    TSimpleMtpQueue(IThreadFactory* pool);
     ~TSimpleMtpQueue() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;

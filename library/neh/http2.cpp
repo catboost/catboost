@@ -22,7 +22,7 @@
 #include <util/system/mutex.h>
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 #if defined(_unix_)
 #include <sys/ioctl.h>
@@ -808,7 +808,7 @@ namespace {
     };
 
     //conn limits monitoring, cache clean, contain used in http clients asio threads/executors
-    class THttpConnManager: public IThreadPool::IThreadAble {
+    class THttpConnManager: public IThreadFactory::IThreadAble {
     public:
         THttpConnManager()
             : TotalConn(0)
@@ -975,7 +975,7 @@ namespace {
         TAtomic InPurging_;
         TAtomic MaxConnId_;
 
-        TAutoPtr<IThreadPool::IThread> T_;
+        TAutoPtr<IThreadFactory::IThread> T_;
         TCondVar CondPurge_;
         TMutex PurgeMutex_;
         TAtomicBool Shutdown_;

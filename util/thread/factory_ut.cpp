@@ -1,4 +1,4 @@
-#include "pool.h"
+#include "factory.h"
 #include "queue.h"
 
 #include <library/unittest/registar.h>
@@ -9,7 +9,7 @@ class TThrPoolTest: public TTestBase {
     UNIT_TEST(TestAdaptivePool)
     UNIT_TEST_SUITE_END();
 
-    struct TRunAble: public IThreadPool::IThreadAble {
+    struct TRunAble: public IThreadFactory::IThreadAble {
         inline TRunAble()
             : done(false)
         {
@@ -29,7 +29,7 @@ private:
         TRunAble r;
 
         {
-            TAutoPtr<IThreadPool::IThread> thr = SystemThreadPool()->Run(&r);
+            TAutoPtr<IThreadFactory::IThread> thr = SystemThreadPool()->Run(&r);
 
             thr->Join();
         }
@@ -45,7 +45,7 @@ private:
 
             pool.Start(0);
 
-            TAutoPtr<IThreadPool::IThread> thr = pool.Run(&r);
+            TAutoPtr<IThreadFactory::IThread> thr = pool.Run(&r);
 
             thr->Join();
         }

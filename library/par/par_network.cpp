@@ -21,7 +21,7 @@
 #include <util/system/atomic.h>
 #include <util/system/atomic_ops.h>
 #include <util/system/mutex.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 namespace NPar {
     class TNehRequester: public IRequester {
@@ -352,8 +352,8 @@ namespace NPar {
         TSpinLockedKeyValueStorage<TGUID, TIntrusivePtr<TSyncRequestsInfo>, TGUIDHash> DirectRequestsInfo;
         NNeh::IServicesRef ReplyService;
         NNeh::TMultiClientPtr MultiClient;
-        TAutoPtr<IThreadPool::IThread> MultiClientThread;
-        TAutoPtr<IThreadPool::IThread> PingerThread;
+        TAutoPtr<IThreadFactory::IThread> MultiClientThread;
+        TAutoPtr<IThreadFactory::IThread> PingerThread;
         NNeh::IServicesRef ReceiverServices;
         ui16 ListenPort = 0;
         NAtomic::TBool Running = true;
@@ -457,7 +457,7 @@ namespace NPar {
 
         NAtomic::TBool Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
-        TAutoPtr<IThreadPool::IThread> ReceiverThread;
+        TAutoPtr<IThreadFactory::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;
     };
 

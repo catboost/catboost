@@ -14,7 +14,7 @@
 #include <util/network/iovec.h>
 #include <util/network/pollerimpl.h>
 #include <util/thread/lfqueue.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 
 #ifdef DEBUG_ASIO
 #define DBGOUT(args) Cout << args << Endl;

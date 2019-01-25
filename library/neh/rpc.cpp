@@ -5,7 +5,7 @@
 #include "utils.h"
 
 #include <util/generic/hash.h>
-#include <util/thread/pool.h>
+#include <util/thread/factory.h>
 #include <util/system/yield.h>
 #include <util/system/spinlock.h>
 
@@ -18,7 +18,7 @@ namespace {
     class TServices: public TServicesBase, public TThrRefBase, public IOnRequest {
         typedef THashMap<TStringBuf, IServiceRef> TSrvs;
 
-        struct TFunc: public IThreadPool::IThreadAble {
+        struct TFunc: public IThreadFactory::IThreadAble {
             inline TFunc(TServices* parent)
                 : Parent(parent)
             {
@@ -93,7 +93,7 @@ namespace {
             IRequesterRef rr = MultiRequester(ListenAddrs(), this);
             TFunc func(this);
 
-            typedef TAutoPtr<IThreadPool::IThread> IThreadRef;
+            typedef TAutoPtr<IThreadFactory::IThread> IThreadRef;
             TVector<IThreadRef> thrs;
 
             for (size_t i = 1; i < threads; ++i) {
@@ -171,7 +171,7 @@ namespace {
                 }
             }
 
-            typedef TAutoPtr<IThreadPool::IThread> IThreadRef;
+            typedef TAutoPtr<IThreadFactory::IThread> IThreadRef;
             TVector<IThreadRef> T_;
             IRequesterRef RR_;
         };

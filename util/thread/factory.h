@@ -3,7 +3,7 @@
 #include <util/generic/ptr.h>
 #include <functional>
 
-class IThreadPool {
+class IThreadFactory {
 public:
     class IThreadAble {
     public:
@@ -20,7 +20,7 @@ public:
     };
 
     class IThread {
-        friend class IThreadPool;
+        friend class IThreadFactory;
 
     public:
         inline IThread() noexcept = default;
@@ -42,9 +42,9 @@ public:
         virtual void DoJoin() noexcept = 0;
     };
 
-    inline IThreadPool() noexcept = default;
+    inline IThreadFactory() noexcept = default;
 
-    virtual ~IThreadPool() = default;
+    virtual ~IThreadFactory() = default;
 
     // XXX: rename to Start
     inline TAutoPtr<IThread> Run(IThreadAble* func) {
@@ -61,5 +61,5 @@ private:
     virtual IThread* DoCreate() = 0;
 };
 
-IThreadPool* SystemThreadPool();
-void SetSystemThreadPool(IThreadPool* pool);
+IThreadFactory* SystemThreadPool();
+void SetSystemThreadPool(IThreadFactory* pool);

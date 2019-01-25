@@ -55,7 +55,7 @@ namespace NThreading {
             UNIT_ASSERT_VALUES_EQUAL(6, f22.Get());
         }
 
-        struct TSomeThreadPool: public IThreadPool {};
+        struct TSomeThreadPool: public IThreadFactory {};
 
         Y_UNIT_TEST(TestFunction) {
             std::function<int()> f((&intf));
