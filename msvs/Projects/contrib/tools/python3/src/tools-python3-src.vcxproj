@@ -107,9 +107,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ctypes\_ctypes.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ctypes\_ctypes_test.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ctypes\callbacks.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
