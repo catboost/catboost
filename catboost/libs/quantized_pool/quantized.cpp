@@ -31,7 +31,7 @@ THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool&
 THashMap<size_t, size_t> GetColumnIndexToBaselineIndexMap(const NCB::TQuantizedPool& pool) {
     TVector<size_t> baselineIndices;
     for (const auto [columnIdx, localIdx] : pool.ColumnIndexToLocalIndex) {
-        if (EColumn::Baseline == pool.ColumnTypes[localIdx]) {
+        if (EColumn::Baseline != pool.ColumnTypes[localIdx]) {
             continue;
         }
 

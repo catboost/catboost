@@ -22,6 +22,7 @@
 #include <util/generic/ylimits.h>
 #include <util/system/madvise.h>
 #include <util/system/types.h>
+#include <util/system/unaligned_mem.h>
 
 using NCB::EObjectsOrder;
 using NCB::IQuantizedFeaturesDataVisitor;
@@ -205,7 +206,10 @@ static TDeque<TChunkRef> GatherAndSortChunks(const TQuantizedPool& pool) {
 template <typename T, typename U>
 static void AssignUnaligned(const TConstArrayRef<ui8> unaligned, TVector<U>* dst) {
     dst->yresize(unaligned.size() / sizeof(T));
-    std::memcpy(dst->data(), unaligned.data(), unaligned.size());
+    TUnalignedMemoryIterator<T> it(unaligned.data(), unaligned.size());
+    for (auto& v : *dst) {
+        v = it.Next();
+    }
 }
 
 void TCBQuantizedDataLoader::AddChunk(

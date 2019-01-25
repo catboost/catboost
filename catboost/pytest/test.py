@@ -5919,3 +5919,16 @@ def test_groupwise_with_bad_one_hot_max_size(loss_function):
     )
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+def test_load_quantized_pool_with_double_baseline():
+    # Dataset with 3 random columns, first column is Target, seconds columns is Num, third column
+    # is Baseline.
+    #
+    # There are only 10 rows in dataset.
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '-f', 'quantized://' + data_file('quantized_with_baseline', 'dataset.qbin'),
+        '-i', '10')
+
+    yatest.common.execute(cmd)
