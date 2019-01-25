@@ -36,7 +36,6 @@ extern PyObject* PyInit__codecs_tw(void); // _codecs_tw
 extern PyObject* PyInit__collections(void); // _collections
 extern PyObject* PyInit__csv(void); // _csv
 extern PyObject* PyInit__ctypes(void); // _ctypes
-extern PyObject* PyInit__ctypes_test(void); // _ctypes_test
 extern PyObject* PyInit__datetime(void); // _datetime
 extern PyObject* PyInit__decimal(void); // _decimal
 extern PyObject* PyInit__elementtree(void); // _elementtree
@@ -158,7 +157,6 @@ struct _inittab _PyImport_Inittab[] = {
     {"_collections", PyInit__collections},
     {"_csv", PyInit__csv},
     {"_ctypes", PyInit__ctypes},
-    {"_ctypes_test", PyInit__ctypes_test},
     {"_datetime", PyInit__datetime},
     {"_decimal", PyInit__decimal},
     {"_elementtree", PyInit__elementtree},

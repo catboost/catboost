@@ -54,7 +54,6 @@ SRCS(
     Modules/_collectionsmodule.c
     Modules/_csv.c
     Modules/_ctypes/_ctypes.c
-    Modules/_ctypes/_ctypes_test.c
     Modules/_ctypes/callbacks.c
     Modules/_ctypes/callproc.c
     Modules/_ctypes/cfield.c
