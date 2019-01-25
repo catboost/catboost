@@ -73,7 +73,7 @@ def fix_gnu_param(arch, ex):
         else:
             d[item['lang']].append(item['sym'])
 
-    with tempfile.NamedTemporaryFile(delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='wt', delete=False) as f:
         if version:
             f.write('{} {{\nglobal:\n'.format(version))
         else:
@@ -163,6 +163,8 @@ if __name__ == '__main__':
             sys.exit(proc.returncode)
 
     if opts.soname and opts.soname != opts.target:
+        if os.path.exists(opts.soname):
+            os.unlink(opts.soname)
         os.link(opts.target, opts.soname)
 
 
