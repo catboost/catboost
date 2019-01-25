@@ -93,7 +93,7 @@ handle_strerror_r_return(int strerror_return, char *buffer) {
   // The POSIX variant either:
   // - fills in the provided buffer and returns 0
   // - returns a positive error value, or
-  // - returns - 1 and fills in errno with an error value.
+  // - returns -1 and fills in errno with an error value.
   if (strerror_return == 0)
     return buffer;
 
@@ -119,8 +119,8 @@ string do_strerror_r(int ev) {
         ::strerror_r(ev, buffer, strerror_buff_size), buffer);
     // If we didn't get any message, print one now.
     if (!error_message[0]) {
-        std::snprintf(buffer, strerror_buff_size, "Unknown error %d", ev);
-        error_message = buffer;
+      std::snprintf(buffer, strerror_buff_size, "Unknown error %d", ev);
+      error_message = buffer;
     }
     errno = old_errno;
     return string(error_message);

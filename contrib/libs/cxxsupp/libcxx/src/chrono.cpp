@@ -76,10 +76,10 @@ system_clock::now() _NOEXCEPT
   return time_point(duration_cast<duration>(d - nt_to_unix_epoch));
 #else
 #if defined(_LIBCPP_USE_CLOCK_GETTIME) && defined(CLOCK_REALTIME)
-    struct timespec tp;
-    if (0 != clock_gettime(CLOCK_REALTIME, &tp))
-        __throw_system_error(errno, "clock_gettime(CLOCK_REALTIME) failed");
-    return time_point(seconds(tp.tv_sec) + microseconds(tp.tv_nsec / 1000));
+  struct timespec tp;
+  if (0 != clock_gettime(CLOCK_REALTIME, &tp))
+    __throw_system_error(errno, "clock_gettime(CLOCK_REALTIME) failed");
+  return time_point(seconds(tp.tv_sec) + microseconds(tp.tv_nsec / 1000));
 #else
     timeval tv;
     gettimeofday(&tv, 0);

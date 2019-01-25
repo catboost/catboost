@@ -601,7 +601,7 @@ function<_Rp()>&
 function<_Rp()>::operator=(const function& __f)
 {
     if (__f)
-    function(__f).swap(*this);
+        function(__f).swap(*this);
     else
         *this = nullptr;
     return *this;
@@ -881,7 +881,7 @@ function<_Rp(_A0)>&
 function<_Rp(_A0)>::operator=(const function& __f)
 {
     if (__f)
-    function(__f).swap(*this);
+        function(__f).swap(*this);
     else
         *this = nullptr;
     return *this;
@@ -1161,7 +1161,7 @@ function<_Rp(_A0, _A1)>&
 function<_Rp(_A0, _A1)>::operator=(const function& __f)
 {
     if (__f)
-    function(__f).swap(*this);
+        function(__f).swap(*this);
     else
         *this = nullptr;
     return *this;
@@ -1441,7 +1441,7 @@ function<_Rp(_A0, _A1, _A2)>&
 function<_Rp(_A0, _A1, _A2)>::operator=(const function& __f)
 {
     if (__f)
-    function(__f).swap(*this);
+        function(__f).swap(*this);
     else
         *this = nullptr;
     return *this;
