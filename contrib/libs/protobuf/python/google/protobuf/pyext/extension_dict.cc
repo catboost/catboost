@@ -239,7 +239,8 @@ ExtensionDict* NewExtensionDict(CMessage *parent) {
   return self;
 }
 
-void dealloc(ExtensionDict* self) {
+void dealloc(PyObject* object) {
+  ExtensionDict* self = reinterpret_cast<ExtensionDict*>(object);
   Py_CLEAR(self->values);
   self->owner.reset();
   Py_TYPE(self)->tp_free(reinterpret_cast<PyObject*>(self));
