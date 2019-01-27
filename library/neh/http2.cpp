@@ -1313,12 +1313,12 @@ namespace {
             }
 
             void SendReply(TData& data) override {
-                SendReply(data, TString());
+                SendReply(data, TString(), HttpCodes::HTTP_OK);
             }
 
-            void SendReply(TData& data, const TString& headers) override {
+            void SendReply(TData& data, const TString& headers, int httpCode) override {
                 if (!!C_) {
-                    C_->Send(Id(), data, CompressionScheme_, P_->HttpVersion(), headers);
+                    C_->Send(Id(), data, CompressionScheme_, P_->HttpVersion(), headers, httpCode);
                     C_.Reset();
                 }
             }
@@ -1500,13 +1500,13 @@ namespace {
 
         public:
             //called non thread-safe (from outside thread)
-            void Send(TAtomicBase requestId, TData& data, const TString& compressionScheme, const THttpVersion& ver, const TString& headers) {
+            void Send(TAtomicBase requestId, TData& data, const TString& compressionScheme, const THttpVersion& ver, const TString& headers, int httpCode) {
                 class THttpResponseFormatter {
                 public:
-                    THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders) {
+                    THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode) {
                         Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
-                        Header << AsStringBuf(" 200 Ok");
+                        Header << AsStringBuf(" ") << HttpCodeStrEx(theHttpCode);
                         if (Compress(theData, contentEncoding)) {
                             Header << AsStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
@@ -1535,8 +1535,8 @@ namespace {
 
                 class TBuffers: public THttpResponseFormatter, public TTcpSocket::IBuffers {
                 public:
-                    TBuffers(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders)
-                        : THttpResponseFormatter(theData, contentEncoding, theVer, theHeaders)
+                    TBuffers(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode)
+                        : THttpResponseFormatter(theData, contentEncoding, theVer, theHeaders, theHttpCode)
                         , IOVec(Parts, 2)
                     {
                     }
@@ -1548,7 +1548,7 @@ namespace {
                     TContIOVector IOVec;
                 };
 
-                TTcpSocket::TSendedData sd(new TBuffers(data, compressionScheme, ver, headers));
+                TTcpSocket::TSendedData sd(new TBuffers(data, compressionScheme, ver, headers, httpCode));
                 SendData(requestId, sd);
             }
 

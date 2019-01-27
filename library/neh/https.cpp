@@ -1553,12 +1553,13 @@ namespace NNeh {
                 }
 
             public:
-                inline TWrite(TData& data, const TString& compressionScheme, TIntrusivePtr<TSslServerIOStream> io, TServer* server, const TString& headers)
+                inline TWrite(TData& data, const TString& compressionScheme, TIntrusivePtr<TSslServerIOStream> io, TServer* server, const TString& headers, int httpCode)
                     : CompressionScheme_(compressionScheme)
                     , IO_(io)
                     , Server_(server)
                     , Error_(TMaybe<IRequest::TResponseError>())
                     , Headers_(headers)
+                    , HttpCode_(httpCode)
                 {
                     swap(data);
                 }
@@ -1569,6 +1570,7 @@ namespace NNeh {
                     , Server_(server)
                     , Error_(error)
                     , Headers_(headers)
+                    , HttpCode_(0)
                 {
                     swap(data);
                 }
@@ -1585,7 +1587,11 @@ namespace NNeh {
                         TMemoryOutput mo(buf, sizeof(buf));
 
                         mo << AsStringBuf("HTTP/1.1 ");
-                        WriteHttpCode(mo, Error_);
+                        if (HttpCode_) {
+                            mo << HttpCodeStrEx(HttpCode_);
+                        } else {
+                            WriteHttpCode(mo, Error_);
+                        }
                         mo << AsStringBuf("\r\n");
 
                         if (!CompressionScheme_.empty()) {
@@ -1614,6 +1620,7 @@ namespace NNeh {
                 TServer* Server_;
                 TMaybe<IRequest::TResponseError> Error_;
                 TString Headers_;
+                int HttpCode_;
             };
 
             class TRequest: public IHttpRequest {
@@ -1670,12 +1677,12 @@ namespace NNeh {
                 }
 
                 void SendReply(TData& data) override {
-                    SendReply(data, TString());
+                    SendReply(data, TString(), HttpCodes::HTTP_OK);
                 }
 
-                void SendReply(TData& data, const TString& headers) override {
+                void SendReply(TData& data, const TString& headers, int httpCode) override {
                     const bool compressed = Compress(data);
-                    Server_->Enqueue(new TWrite(data, compressed ? CompressionScheme_ : TString(), IO_, Server_, headers));
+                    Server_->Enqueue(new TWrite(data, compressed ? CompressionScheme_ : TString(), IO_, Server_, headers, httpCode));
                     Y_UNUSED(IO_.Release());
                 }
 

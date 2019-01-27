@@ -17,7 +17,7 @@ namespace NNeh {
     class IHttpRequest: public IRequest {
     public:
         using IRequest::SendReply;
-        virtual void SendReply(TData& data, const TString& headers) = 0;
+        virtual void SendReply(TData& data, const TString& headers, int httpCode = 200) = 0;
         virtual const THttpHeaders& Headers() const = 0;
         virtual TStringBuf Body() const = 0;
         virtual TStringBuf Cgi() const = 0;
