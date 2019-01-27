@@ -50,7 +50,7 @@ namespace NSan {
     }
 
     // Determines if asan present
-    inline static bool ASanIsOn() noexcept {
+    inline constexpr static bool ASanIsOn() noexcept {
 #if defined(_asan_enabled_)
         return true;
 #else
@@ -59,7 +59,7 @@ namespace NSan {
     }
 
     // Determines if tsan present
-    inline static bool TSanIsOn() noexcept {
+    inline constexpr static bool TSanIsOn() noexcept {
 #if defined(_tsan_enabled_)
         return true;
 #else
@@ -68,7 +68,7 @@ namespace NSan {
     }
 
     // Determines if msan present
-    inline static bool MSanIsOn() noexcept {
+    inline constexpr static bool MSanIsOn() noexcept {
 #if defined(_msan_enabled_)
         return true;
 #else
