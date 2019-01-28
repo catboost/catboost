@@ -145,8 +145,8 @@
         "wine-msvc2017-x86_64": {
             "name": "msvc2017",
             "tools": {
-                "cc": { "bottle": "msvc2017", "executable": "cross_msvc" },
-                "c++": { "bottle": "msvc2017", "executable": "cross_msvc" }
+                "cc": { "bottle": "msvc2017", "executable": "msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}, "default": true}],
             "params": {
