@@ -2239,15 +2239,15 @@ $(BUILD_ROOT)/util/all_thread.cpp.pic.o\
 $(BUILD_ROOT)/util/all_thread.cpp\
         ::\
         $(SOURCE_ROOT)/build/scripts/gen_join_srcs.py\
-        $(SOURCE_ROOT)/util/thread/fwd.cpp\
         $(SOURCE_ROOT)/util/thread/factory.cpp\
+        $(SOURCE_ROOT)/util/thread/fwd.cpp\
         $(SOURCE_ROOT)/util/thread/lfqueue.cpp\
         $(SOURCE_ROOT)/util/thread/lfstack.cpp\
-        $(SOURCE_ROOT)/util/thread/queue.cpp\
+        $(SOURCE_ROOT)/util/thread/pool.cpp\
         $(SOURCE_ROOT)/util/thread/singleton.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_thread.cpp' util/thread/fwd.cpp util/thread/factory.cpp util/thread/lfqueue.cpp util/thread/lfstack.cpp util/thread/queue.cpp util/thread/singleton.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_thread.cpp' util/thread/factory.cpp util/thread/fwd.cpp util/thread/lfqueue.cpp util/thread/lfstack.cpp util/thread/pool.cpp util/thread/singleton.cpp
 
 $(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o\
         ::\
