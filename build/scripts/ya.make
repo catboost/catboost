@@ -53,6 +53,7 @@ TEST_SRCS(
     preprocess.py
     provides.py
     py_compile.py
+    run_ios_simulator.py
     run_javac.py
     run_llvm_dsymutil.py
     run_msvc_wine.py
