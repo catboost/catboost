@@ -12,7 +12,7 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
 
     def find_module(self, name, path=None):
         state = self.config._assertstate
-        if not self._should_rewrite(name):
+        if not self._should_rewrite(name, state):
             return None
         state.trace("find_module called for: %s" % name)
 
@@ -32,8 +32,11 @@ class AssertionRewritingHook(rewrite.AssertionRewritingHook):
         self.modules[name] = co, None
         return self
 
-    def _should_rewrite(self, name):
-        return name.startswith("__tests__.") or name.endswith(".conftest")
+    def _should_rewrite(self, name, state):
+        if name.startswith("__tests__.") or name.endswith(".conftest"):
+            return True
+
+        return self._is_marked_for_rewrite(name, state)
 
     def is_package(self, name):
         return importer.is_package(name)
