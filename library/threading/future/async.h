@@ -3,7 +3,7 @@
 #include "future.h"
 
 #include <util/generic/function.h>
-#include <util/thread/queue.h>
+#include <util/thread/pool.h>
 
 namespace NThreading {
     /**
@@ -18,7 +18,7 @@ namespace NThreading {
  * unittest.
  */
     template <typename Func>
-    TFuture<TFutureType<TFunctionResult<Func>>> Async(Func&& func, IMtpQueue& queue) {
+    TFuture<TFutureType<TFunctionResult<Func>>> Async(Func&& func, IThreadPool& queue) {
         auto promise = NewPromise<TFutureType<TFunctionResult<Func>>>();
         queue.SafeAddFunc([=]() mutable {
             NImpl::SetValue(promise, func);

@@ -21,20 +21,20 @@
 #include <util/datetime/base.h>
 
 #include "factory.h"
-#include "queue.h"
+#include "pool.h"
 
 TThreadFactoryHolder::TThreadFactoryHolder() noexcept
     : Pool_(SystemThreadPool())
 {
 }
 
-class TMtpQueue::TImpl: public TIntrusiveListItem<TImpl>, public IThreadFactory::IThreadAble {
-    using TTsr = IMtpQueue::TTsr;
+class TThreadPool::TImpl: public TIntrusiveListItem<TImpl>, public IThreadFactory::IThreadAble {
+    using TTsr = IThreadPool::TTsr;
     using TJobQueue = TFastQueue<IObjectInQueue*>;
     using TThreadRef = TAutoPtr<IThreadFactory::IThread>;
 
 public:
-    inline TImpl(TMtpQueue* parent, size_t thrnum, size_t maxqueue, EBlocking blocking, ECatching catching)
+    inline TImpl(TThreadPool* parent, size_t thrnum, size_t maxqueue, EBlocking blocking, ECatching catching)
         : Parent_(parent)
         , Blocking(blocking)
         , Catching(catching)
@@ -211,7 +211,7 @@ private:
     }
 
 private:
-    TMtpQueue* Parent_;
+    TThreadPool* Parent_;
     const EBlocking Blocking;
     const ECatching Catching;
     mutable TMutex QueueMutex;
@@ -272,22 +272,22 @@ private:
     };
 };
 
-TMtpQueue::TMtpQueue(EBlocking blocking, ECatching catching)
+TThreadPool::TThreadPool(EBlocking blocking, ECatching catching)
     : Blocking(blocking)
     , Catching(catching)
 {
 }
 
-TMtpQueue::TMtpQueue(IThreadFactory* pool, EBlocking blocking, ECatching catching)
+TThreadPool::TThreadPool(IThreadFactory* pool, EBlocking blocking, ECatching catching)
     : TThreadFactoryHolder(pool)
     , Blocking(blocking)
     , Catching(catching)
 {
 }
 
-TMtpQueue::~TMtpQueue() = default;
+TThreadPool::~TThreadPool() = default;
 
-size_t TMtpQueue::Size() const noexcept {
+size_t TThreadPool::Size() const noexcept {
     if (!Impl_.Get()) {
         return 0;
     }
@@ -295,7 +295,7 @@ size_t TMtpQueue::Size() const noexcept {
     return Impl_->Size();
 }
 
-size_t TMtpQueue::GetThreadCountExpected() const noexcept {
+size_t TThreadPool::GetThreadCountExpected() const noexcept {
     if (!Impl_.Get()) {
         return 0;
     }
@@ -303,7 +303,7 @@ size_t TMtpQueue::GetThreadCountExpected() const noexcept {
     return Impl_->GetThreadCountExpected();
 }
 
-size_t TMtpQueue::GetThreadCountReal() const noexcept {
+size_t TThreadPool::GetThreadCountReal() const noexcept {
     if (!Impl_.Get()) {
         return 0;
     }
@@ -311,7 +311,7 @@ size_t TMtpQueue::GetThreadCountReal() const noexcept {
     return Impl_->GetThreadCountReal();
 }
 
-size_t TMtpQueue::GetMaxQueueSize() const noexcept {
+size_t TThreadPool::GetMaxQueueSize() const noexcept {
     if (!Impl_.Get()) {
         return 0;
     }
@@ -319,8 +319,8 @@ size_t TMtpQueue::GetMaxQueueSize() const noexcept {
     return Impl_->GetMaxQueueSize();
 }
 
-bool TMtpQueue::Add(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Impl_.Get(), TMtpQueueException() << AsStringBuf("mtp queue not started"));
+bool TThreadPool::Add(IObjectInQueue* obj) {
+    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
 
     if (Impl_->NeedRestart()) {
         Start(Impl_->GetThreadCountExpected(), Impl_->GetMaxQueueSize());
@@ -329,17 +329,17 @@ bool TMtpQueue::Add(IObjectInQueue* obj) {
     return Impl_->Add(obj);
 }
 
-void TMtpQueue::Start(size_t thrnum, size_t maxque) {
+void TThreadPool::Start(size_t thrnum, size_t maxque) {
     Impl_.Reset(new TImpl(this, thrnum, maxque, Blocking, Catching));
 }
 
-void TMtpQueue::Stop() noexcept {
+void TThreadPool::Stop() noexcept {
     Impl_.Destroy();
 }
 
 static TAtomic mtp_queue_counter = 0;
 
-class TAdaptiveMtpQueue::TImpl {
+class TAdaptiveThreadPool::TImpl {
 public:
     class TThread: public IThreadFactory::IThreadAble {
     public:
@@ -380,7 +380,7 @@ public:
         TAutoPtr<IThreadFactory::IThread> Thread_;
     };
 
-    inline TImpl(TAdaptiveMtpQueue* parent)
+    inline TImpl(TAdaptiveThreadPool* parent)
         : Parent_(parent)
         , ThrCount_(0)
         , AllDone_(false)
@@ -415,7 +415,7 @@ public:
 
             Obj_ = obj;
 
-            Y_ENSURE_EX(!AllDone_, TMtpQueueException() << AsStringBuf("adding to a stopped queue"));
+            Y_ENSURE_EX(!AllDone_, TThreadPoolException() << AsStringBuf("adding to a stopped queue"));
         }
 
         CondReady_.Signal();
@@ -493,7 +493,7 @@ private:
     }
 
 private:
-    TAdaptiveMtpQueue* Parent_;
+    TAdaptiveThreadPool* Parent_;
     TAtomic ThrCount_;
     TMutex Mutex_;
     TCondVar CondReady_;
@@ -505,33 +505,33 @@ private:
     TDuration IdleTime_;
 };
 
-TAdaptiveMtpQueue::TAdaptiveMtpQueue() {
+TAdaptiveThreadPool::TAdaptiveThreadPool() {
 }
 
-TAdaptiveMtpQueue::TAdaptiveMtpQueue(IThreadFactory* pool)
+TAdaptiveThreadPool::TAdaptiveThreadPool(IThreadFactory* pool)
     : TThreadFactoryHolder(pool)
 {
 }
 
-TAdaptiveMtpQueue::~TAdaptiveMtpQueue() = default;
+TAdaptiveThreadPool::~TAdaptiveThreadPool() = default;
 
-bool TAdaptiveMtpQueue::Add(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Impl_.Get(), TMtpQueueException() << AsStringBuf("mtp queue not started"));
+bool TAdaptiveThreadPool::Add(IObjectInQueue* obj) {
+    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
 
     Impl_->Add(obj);
 
     return true;
 }
 
-void TAdaptiveMtpQueue::Start(size_t, size_t) {
+void TAdaptiveThreadPool::Start(size_t, size_t) {
     Impl_.Reset(new TImpl(this));
 }
 
-void TAdaptiveMtpQueue::Stop() noexcept {
+void TAdaptiveThreadPool::Stop() noexcept {
     Impl_.Destroy();
 }
 
-size_t TAdaptiveMtpQueue::Size() const noexcept {
+size_t TAdaptiveThreadPool::Size() const noexcept {
     if (Impl_.Get()) {
         return Impl_->Size();
     }
@@ -539,21 +539,21 @@ size_t TAdaptiveMtpQueue::Size() const noexcept {
     return 0;
 }
 
-void TAdaptiveMtpQueue::SetMaxIdleTime(TDuration interval) {
-    Y_ENSURE_EX(Impl_.Get(), TMtpQueueException() << AsStringBuf("mtp queue not started"));
+void TAdaptiveThreadPool::SetMaxIdleTime(TDuration interval) {
+    Y_ENSURE_EX(Impl_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
 
     Impl_->SetMaxIdleTime(interval);
 }
 
-TSimpleMtpQueue::TSimpleMtpQueue() {
+TSimpleThreadPool::TSimpleThreadPool() {
 }
 
-TSimpleMtpQueue::TSimpleMtpQueue(IThreadFactory* pool)
+TSimpleThreadPool::TSimpleThreadPool(IThreadFactory* pool)
     : TThreadFactoryHolder(pool)
 {
 }
 
-TSimpleMtpQueue::~TSimpleMtpQueue() {
+TSimpleThreadPool::~TSimpleThreadPool() {
     try {
         Stop();
     } catch (...) {
@@ -561,20 +561,20 @@ TSimpleMtpQueue::~TSimpleMtpQueue() {
     }
 }
 
-bool TSimpleMtpQueue::Add(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Slave_.Get(), TMtpQueueException() << AsStringBuf("mtp queue not started"));
+bool TSimpleThreadPool::Add(IObjectInQueue* obj) {
+    Y_ENSURE_EX(Slave_.Get(), TThreadPoolException() << AsStringBuf("mtp queue not started"));
 
     return Slave_->Add(obj);
 }
 
-void TSimpleMtpQueue::Start(size_t thrnum, size_t maxque) {
-    THolder<IMtpQueue> tmp;
-    TAdaptiveMtpQueue* adaptive(nullptr);
+void TSimpleThreadPool::Start(size_t thrnum, size_t maxque) {
+    THolder<IThreadPool> tmp;
+    TAdaptiveThreadPool* adaptive(nullptr);
 
     if (thrnum) {
-        tmp.Reset(new TMtpQueueBinder<TMtpQueue, TSimpleMtpQueue>(this, Pool()));
+        tmp.Reset(new TThreadPoolBinder<TThreadPool, TSimpleThreadPool>(this, Pool()));
     } else {
-        adaptive = new TMtpQueueBinder<TAdaptiveMtpQueue, TSimpleMtpQueue>(this, Pool());
+        adaptive = new TThreadPoolBinder<TAdaptiveThreadPool, TSimpleThreadPool>(this, Pool());
         tmp.Reset(adaptive);
     }
 
@@ -587,11 +587,11 @@ void TSimpleMtpQueue::Start(size_t thrnum, size_t maxque) {
     Slave_.Swap(tmp);
 }
 
-void TSimpleMtpQueue::Stop() noexcept {
+void TSimpleThreadPool::Stop() noexcept {
     Slave_.Destroy();
 }
 
-size_t TSimpleMtpQueue::Size() const noexcept {
+size_t TSimpleThreadPool::Size() const noexcept {
     if (Slave_.Get()) {
         return Slave_->Size();
     }
@@ -638,19 +638,19 @@ namespace {
     };
 }
 
-void IMtpQueue::SafeAdd(IObjectInQueue* obj) {
-    Y_ENSURE_EX(Add(obj), TMtpQueueException() << AsStringBuf("can not add object to queue"));
+void IThreadPool::SafeAdd(IObjectInQueue* obj) {
+    Y_ENSURE_EX(Add(obj), TThreadPoolException() << AsStringBuf("can not add object to queue"));
 }
 
-void IMtpQueue::SafeAddFunc(TThreadFunction func) {
-    Y_ENSURE_EX(AddFunc(std::move(func)), TMtpQueueException() << AsStringBuf("can not add function to queue"));
+void IThreadPool::SafeAddFunc(TThreadFunction func) {
+    Y_ENSURE_EX(AddFunc(std::move(func)), TThreadPoolException() << AsStringBuf("can not add function to queue"));
 }
 
-void IMtpQueue::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
-    Y_ENSURE_EX(AddAndOwn(obj), TMtpQueueException() << AsStringBuf("can not add to queue and own"));
+void IThreadPool::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
+    Y_ENSURE_EX(AddAndOwn(obj), TThreadPoolException() << AsStringBuf("can not add to queue and own"));
 }
 
-bool IMtpQueue::AddFunc(TThreadFunction func) {
+bool IThreadPool::AddFunc(TThreadFunction func) {
     THolder<IObjectInQueue> wrapper(new ::TThrFuncObj(std::move(func)));
     bool added = Add(wrapper.Get());
     if (added) {
@@ -659,7 +659,7 @@ bool IMtpQueue::AddFunc(TThreadFunction func) {
     return added;
 }
 
-bool IMtpQueue::AddAndOwn(TAutoPtr<IObjectInQueue> obj) {
+bool IThreadPool::AddAndOwn(TAutoPtr<IObjectInQueue> obj) {
     THolder<TOwnedObjectInQueue> owner = new TOwnedObjectInQueue(obj);
     bool added = Add(owner.Get());
     if (added) {
@@ -716,7 +716,7 @@ namespace {
         using TThreadImplRef = TIntrusivePtr<TThreadImpl>;
 
     public:
-        inline TPoolThread(IMtpQueue* parent)
+        inline TPoolThread(IThreadPool* parent)
             : Parent_(parent)
         {
         }
@@ -743,21 +743,21 @@ namespace {
         }
 
     private:
-        IMtpQueue* Parent_;
+        IThreadPool* Parent_;
         TThreadImplRef Impl_;
     };
 }
 
-IThread* IMtpQueue::DoCreate() {
+IThread* IThreadPool::DoCreate() {
     return new TPoolThread(this);
 }
 
-TAutoPtr<IMtpQueue> CreateMtpQueue(size_t threadsCount, size_t queueSizeLimit, TMtpQueue::EBlocking blocking, TMtpQueue::ECatching catching) {
-    THolder<IMtpQueue> queue;
+TAutoPtr<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit, TThreadPool::EBlocking blocking, TThreadPool::ECatching catching) {
+    THolder<IThreadPool> queue;
     if (threadsCount > 1) {
-        queue.Reset(new TMtpQueue(blocking, catching));
+        queue.Reset(new TThreadPool(blocking, catching));
     } else {
-        queue.Reset(new TFakeMtpQueue());
+        queue.Reset(new TFakeThreadPool());
     }
     queue->Start(threadsCount, queueSizeLimit);
     return queue;

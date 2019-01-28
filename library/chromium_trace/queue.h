@@ -5,7 +5,7 @@
 #include <util/generic/string.h>
 #include <util/string/builder.h>
 #include <util/system/atomic.h>
-#include <util/thread/queue.h>
+#include <util/thread/pool.h>
 
 namespace NChromiumTrace {
     template <typename TBaseMtpQueue>

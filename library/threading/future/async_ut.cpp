@@ -36,7 +36,7 @@ Y_UNIT_TEST_SUITE(Async) {
     }
 
     Y_UNIT_TEST(WorksWithIMtpQueue) {
-        auto queue = MakeHolder<TMtpQueue>();
+        auto queue = MakeHolder<TThreadPool>();
         queue->Start(1);
 
         auto future = NThreading::Async([]() { return 5; }, *queue);
@@ -46,7 +46,7 @@ Y_UNIT_TEST_SUITE(Async) {
 
     Y_UNIT_TEST(ProperlyDeducesFutureType) {
         // Compileability test
-        auto queue = CreateMtpQueue(1);
+        auto queue = CreateThreadPool(1);
 
         NThreading::TFuture<void> f1 = NThreading::Async([]() {}, *queue);
         NThreading::TFuture<int> f2 = NThreading::Async([]() { return 5; }, *queue);

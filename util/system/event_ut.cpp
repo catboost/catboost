@@ -3,7 +3,7 @@
 
 #include <library/unittest/registar.h>
 
-#include <util/thread/queue.h>
+#include <util/thread/pool.h>
 
 namespace {
     struct TSharedData {
@@ -88,7 +88,7 @@ namespace {
 Y_UNIT_TEST_SUITE(EventTest) {
     Y_UNIT_TEST(WaitAndSignalTest) {
         TSharedData data;
-        TMtpQueue queue;
+        TThreadPool queue;
         queue.Start(5);
         for (size_t i = 0; i < 5; ++i) {
             UNIT_ASSERT(queue.Add(new TThreadTask(data, i)));
@@ -103,7 +103,7 @@ Y_UNIT_TEST_SUITE(EventTest) {
         const size_t limit = 200;
         TManualEvent event[limit];
         TManualEvent barrier;
-        TMtpQueue queue;
+        TThreadPool queue;
         queue.Start(limit);
         TVector<TAutoPtr<IObjectInQueue>> tasks;
         for (size_t i = 0; i < limit; ++i) {
@@ -126,7 +126,7 @@ Y_UNIT_TEST_SUITE(EventTest) {
             tasks.push_back(owner.Release());
         }
 
-        TMtpQueue queue;
+        TThreadPool queue;
         queue.Start(4);
         for (auto task : tasks) {
             UNIT_ASSERT(queue.Add(task.Get()));

@@ -20,11 +20,11 @@ class TThreadFactoryHolder;
 
 using TThreadFunction = std::function<void()>;
 
-class IMtpQueue;
-class TFakeMtpQueue;
-class TMtpQueue;
-class TAdaptiveMtpQueue;
-class TSimpleMtpQueue;
+class IThreadPool;
+class TFakeThreadPool;
+class TThreadPool;
+class TAdaptiveThreadPool;
+class TSimpleThreadPool;
 
 template <class TQueueType, class TSlave>
-class TMtpQueueBinder;
+class TThreadPoolBinder;

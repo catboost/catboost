@@ -3,7 +3,7 @@
 
 #include <library/unittest/registar.h>
 
-#include <util/thread/queue.h>
+#include <util/thread/pool.h>
 
 struct TTestGuard: public TTestBase {
     UNIT_TEST_SUITE(TTestGuard);

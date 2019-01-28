@@ -1,4 +1,4 @@
-#include "queue.h"
+#include "pool.h"
 
 #include <library/unittest/registar.h>
 
@@ -6,15 +6,15 @@
 #include <util/random/fast.h>
 #include <util/system/spinlock.h>
 
-struct TMtpQueueTest {
+struct TThreadPoolTest {
     TSpinLock Lock;
     long R = -1;
 
     struct TTask: public IObjectInQueue {
-        TMtpQueueTest* Test = nullptr;
+        TThreadPoolTest* Test = nullptr;
         long Value = 0;
 
-        TTask(TMtpQueueTest* test, int value)
+        TTask(TThreadPoolTest* test, int value)
             : Test(test)
             , Value(value)
         {
@@ -47,7 +47,7 @@ struct TMtpQueueTest {
         }
     };
 
-    inline void TestAnyQueue(IMtpQueue* queue, size_t queueSize = 1000) {
+    inline void TestAnyQueue(IThreadPool* queue, size_t queueSize = 1000) {
         TReallyFastRng32 rand(17);
         const size_t cnt = 1000;
 
@@ -70,7 +70,7 @@ struct TMtpQueueTest {
     }
 };
 
-class TFailAddQueue: public IMtpQueue {
+class TFailAddQueue: public IThreadPool {
 public:
     bool Add(IObjectInQueue* /*obj*/) override Y_WARN_UNUSED_RESULT {
         return false;
@@ -87,35 +87,35 @@ public:
     }
 };
 
-Y_UNIT_TEST_SUITE(TMtpQueueTest) {
-    Y_UNIT_TEST(TestTMtpQueue) {
-        TMtpQueueTest t;
-        TMtpQueue q;
+Y_UNIT_TEST_SUITE(TThreadPoolTest) {
+    Y_UNIT_TEST(TestTThreadPool) {
+        TThreadPoolTest t;
+        TThreadPool q;
         t.TestAnyQueue(&q);
     }
 
-    Y_UNIT_TEST(TestTMtpQueueBlocking) {
-        TMtpQueueTest t;
-        TMtpQueue q(TMtpQueue::BlockingMode);
+    Y_UNIT_TEST(TestTThreadPoolBlocking) {
+        TThreadPoolTest t;
+        TThreadPool q(TThreadPool::BlockingMode);
         t.TestAnyQueue(&q, 100);
     }
 
     // disabled by pg@ long time ago due to test flaps
     // Tried to enable: REVIEW:78772
-    Y_UNIT_TEST(TestTAdaptiveMtpQueue) {
+    Y_UNIT_TEST(TestTAdaptiveThreadPool) {
         if (false) {
-            TMtpQueueTest t;
-            TAdaptiveMtpQueue q;
+            TThreadPoolTest t;
+            TAdaptiveThreadPool q;
             t.TestAnyQueue(&q);
         }
     }
 
     Y_UNIT_TEST(TestAddAndOwn) {
-        TMtpQueue q;
+        TThreadPool q;
         q.Start(2);
         bool processed = false;
         bool destructed = false;
-        q.SafeAddAndOwn(new TMtpQueueTest::TOwnedTask(processed, destructed));
+        q.SafeAddAndOwn(new TThreadPoolTest::TOwnedTask(processed, destructed));
         q.Stop();
 
         UNIT_ASSERT_C(processed, "Not processed");
@@ -132,7 +132,7 @@ Y_UNIT_TEST_SUITE(TMtpQueueTest) {
 
     Y_UNIT_TEST(TestSafeAddFuncThrows) {
         TFailAddQueue queue;
-        UNIT_CHECK_GENERATED_EXCEPTION(queue.SafeAddFunc([] {}), TMtpQueueException);
+        UNIT_CHECK_GENERATED_EXCEPTION(queue.SafeAddFunc([] {}), TThreadPoolException);
     }
 
     Y_UNIT_TEST(TestFunctionNotCopied) {
@@ -144,11 +144,11 @@ Y_UNIT_TEST_SUITE(TMtpQueueTest) {
             }
 
             TFailOnCopy(const TFailOnCopy&) {
-                UNIT_FAIL("Don't copy std::function inside TMtpQueue");
+                UNIT_FAIL("Don't copy std::function inside TThreadPool");
             }
         };
 
-        TMtpQueue queue(TMtpQueue::NonBlockingMode, TMtpQueue::CatchingMode);
+        TThreadPool queue(TThreadPool::NonBlockingMode, TThreadPool::CatchingMode);
         queue.Start(2);
 
         queue.SafeAddFunc([data = TFailOnCopy()]() {});
@@ -157,7 +157,7 @@ Y_UNIT_TEST_SUITE(TMtpQueueTest) {
     }
 
     Y_UNIT_TEST(TestInfoGetters) {
-        TMtpQueue queue;
+        TThreadPool queue;
 
         queue.Start(2, 7);
 

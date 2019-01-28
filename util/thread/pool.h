@@ -20,8 +20,8 @@ struct IObjectInQueue {
      * in multiple threads.
      *
      * @param threadSpecificResource is nullptr by default. But if you override
-     * IMtpQueue::CreateThreadSpecificResource, then result of
-     * IMtpQueue::CreateThreadSpecificResource is passed as threadSpecificResource
+     * IThreadPool::CreateThreadSpecificResource, then result of
+     * IThreadPool::CreateThreadSpecificResource is passed as threadSpecificResource
      * parameter.
      */
     virtual void Process(void* threadSpecificResource) = 0;
@@ -50,15 +50,15 @@ private:
     IThreadFactory* Pool_;
 };
 
-class TMtpQueueException: public yexception {
+class TThreadPoolException: public yexception {
 };
 
 /**
  * A queue processed simultaneously by several threads
  */
-class IMtpQueue: public IThreadFactory, public TNonCopyable {
+class IThreadPool: public IThreadFactory, public TNonCopyable {
 public:
-    ~IMtpQueue() override = default;
+    ~IThreadPool() override = default;
 
     /**
      * Safe versions of Add*() functions. Behave exactly like as non-safe
@@ -86,11 +86,11 @@ public:
 public:
     /**
      * RAII wrapper for Create/DestroyThreadSpecificResource.
-     * Useful only for implementers of new IMtpQueue queues.
+     * Useful only for implementers of new IThreadPool queues.
      */
     class TTsr {
     public:
-        inline TTsr(IMtpQueue* q)
+        inline TTsr(IThreadPool* q)
             : Q_(q)
             , Data_(Q_->CreateThreadSpecificResource())
         {
@@ -109,14 +109,14 @@ public:
         }
 
     private:
-        IMtpQueue* Q_;
+        IThreadPool* Q_;
         void* Data_;
     };
 
     /**
      * CreateThreadSpecificResource and DestroyThreadSpecificResource
-     * called from internals of (TAdaptiveMtpQueue, TMtpQueue, ...) implementation,
-     * not by user of IMtpQueue interface.
+     * called from internals of (TAdaptiveThreadPool, TThreadPool, ...) implementation,
+     * not by user of IThreadPool interface.
      * Created resource is passed to IObjectInQueue::Proccess function.
      */
     virtual void* CreateThreadSpecificResource() {
@@ -134,11 +134,11 @@ private:
 };
 
 /**
- * Single-threaded implementation of IMtpQueue, process tasks in same thread when
+ * Single-threaded implementation of IThreadPool, process tasks in same thread when
  * added.
  * Can be used to remove multithreading.
  */
-class TFakeMtpQueue: public IMtpQueue {
+class TFakeThreadPool: public IThreadPool {
 public:
     bool Add(IObjectInQueue* pObj) override Y_WARN_UNUSED_RESULT {
         TTsr tsr(this);
@@ -159,7 +159,7 @@ public:
 };
 
 /** queue processed by fixed size thread pool */
-class TMtpQueue: public IMtpQueue, public TThreadFactoryHolder {
+class TThreadPool: public IThreadPool, public TThreadFactoryHolder {
 public:
     enum EBlocking {
         NonBlockingMode,
@@ -171,9 +171,9 @@ public:
         CatchingMode
     };
 
-    TMtpQueue(EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
-    TMtpQueue(IThreadFactory* pool, EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
-    ~TMtpQueue() override;
+    TThreadPool(EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
+    TThreadPool(IThreadFactory* pool, EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
+    ~TThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
     /**
@@ -199,11 +199,11 @@ private:
  * Always create new thread for new task, when all existing threads are busy.
  * Maybe dangerous, number of threads is not limited.
  */
-class TAdaptiveMtpQueue: public IMtpQueue, public TThreadFactoryHolder {
+class TAdaptiveThreadPool: public IThreadPool, public TThreadFactoryHolder {
 public:
-    TAdaptiveMtpQueue();
-    TAdaptiveMtpQueue(IThreadFactory* pool);
-    ~TAdaptiveMtpQueue() override;
+    TAdaptiveThreadPool();
+    TAdaptiveThreadPool(IThreadFactory* pool);
+    ~TAdaptiveThreadPool() override;
 
     /**
      * If working thread waits task too long (more then interval parameter),
@@ -224,52 +224,52 @@ private:
     THolder<TImpl> Impl_;
 };
 
-/** Behave like TMtpQueue or TAdaptiveMtpQueue, choosen by thrnum parameter of Start()  */
-class TSimpleMtpQueue: public IMtpQueue, public TThreadFactoryHolder {
+/** Behave like TThreadPool or TAdaptiveThreadPool, choosen by thrnum parameter of Start()  */
+class TSimpleThreadPool: public IThreadPool, public TThreadFactoryHolder {
 public:
-    TSimpleMtpQueue();
-    TSimpleMtpQueue(IThreadFactory* pool);
-    ~TSimpleMtpQueue() override;
+    TSimpleThreadPool();
+    TSimpleThreadPool(IThreadFactory* pool);
+    ~TSimpleThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
     /**
-     * @parameter thrnum. If thrnum is 0, use TAdaptiveMtpQueue with small
-     * SetMaxIdleTime interval parameter. if thrnum is not 0, use non-blocking TMtpQueue
+     * @parameter thrnum. If thrnum is 0, use TAdaptiveThreadPool with small
+     * SetMaxIdleTime interval parameter. if thrnum is not 0, use non-blocking TThreadPool
      */
     void Start(size_t thrnum, size_t maxque = 0) override;
     void Stop() noexcept override;
     size_t Size() const noexcept override;
 
 private:
-    THolder<IMtpQueue> Slave_;
+    THolder<IThreadPool> Slave_;
 };
 
 /**
  * Helper to override virtual functions Create/DestroyThreadSpecificResource
- * from IMtpQueue and implement them using functions with same name from
+ * from IThreadPool and implement them using functions with same name from
  * pointer to TSlave.
  */
 template <class TQueueType, class TSlave>
-class TMtpQueueBinder: public TQueueType {
+class TThreadPoolBinder: public TQueueType {
 public:
-    inline TMtpQueueBinder(TSlave* slave)
+    inline TThreadPoolBinder(TSlave* slave)
         : Slave_(slave)
     {
     }
 
     template <class T1>
-    inline TMtpQueueBinder(TSlave* slave, const T1& t1)
+    inline TThreadPoolBinder(TSlave* slave, const T1& t1)
         : TQueueType(t1)
         , Slave_(slave)
     {
     }
 
-    inline TMtpQueueBinder(TSlave& slave)
+    inline TThreadPoolBinder(TSlave& slave)
         : Slave_(&slave)
     {
     }
 
-    ~TMtpQueueBinder() override {
+    ~TThreadPoolBinder() override {
         try {
             this->Stop();
         } catch (...) {
@@ -289,14 +289,14 @@ private:
     TSlave* Slave_;
 };
 
-inline void Delete(TAutoPtr<IMtpQueue> q) {
+inline void Delete(TAutoPtr<IThreadPool> q) {
     if (q.Get()) {
         q->Stop();
     }
 }
 
 /**
- * Creates and starts TMtpQueue if threadsCount > 1, or TFakeMtpQueue otherwise
- * You could specify blocking and catching modes for TMtpQueue only
+ * Creates and starts TThreadPool if threadsCount > 1, or TFakeThreadPool otherwise
+ * You could specify blocking and catching modes for TThreadPool only
  */
-TAutoPtr<IMtpQueue> CreateMtpQueue(size_t threadsCount, size_t queueSizeLimit = 0, TMtpQueue::EBlocking blocking = TMtpQueue::EBlocking::NonBlockingMode, TMtpQueue::ECatching catching = TMtpQueue::ECatching::CatchingMode);
+TAutoPtr<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit = 0, TThreadPool::EBlocking blocking = TThreadPool::EBlocking::NonBlockingMode, TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode);

@@ -1,5 +1,5 @@
 #include "factory.h"
-#include "queue.h"
+#include "pool.h"
 
 #include <library/unittest/registar.h>
 
@@ -41,7 +41,7 @@ private:
         TRunAble r;
 
         {
-            TAdaptiveMtpQueue pool;
+            TAdaptiveThreadPool pool;
 
             pool.Start(0);
 

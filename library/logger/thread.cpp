@@ -1,7 +1,7 @@
 #include "thread.h"
 #include "record.h"
 
-#include <util/thread/queue.h>
+#include <util/thread/pool.h>
 #include <util/system/event.h>
 #include <util/memory/addstorage.h>
 #include <util/generic/ptr.h>
@@ -106,7 +106,7 @@ public:
 
 private:
     TLogBackend* Slave_;
-    TMtpQueue Queue_;
+    TThreadPool Queue_;
 };
 
 TThreadedLogBackend::TThreadedLogBackend(TLogBackend* slave)
