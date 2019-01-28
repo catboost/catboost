@@ -49,7 +49,9 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept;
 
 int inet_aton(const char* cp, struct in_addr* inp);
 
-size_t writev(SOCKET s, const struct iovec* iov, int iovcnt);
+ssize_t readv(SOCKET s, const struct iovec* iov, int iovcnt);
+
+ssize_t writev(SOCKET s, const struct iovec* iov, int iovcnt);
 
 #define get_host_error() WSAGetLastError()
 
