@@ -322,6 +322,16 @@ public:
         return SleepD(TInstant::Max());
     }
 
+    TContIOStatus ReadVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept;
+
+    inline TContIOStatus ReadVectorT(SOCKET fd, TContIOVector* vec, TDuration timeOut) noexcept {
+        return ReadVectorD(fd, vec, timeOut.ToDeadLine());
+    }
+
+    inline TContIOStatus ReadVectorI(SOCKET fd, TContIOVector* vec) noexcept {
+        return ReadVectorD(fd, vec, TInstant::Max());
+    }
+
     TContIOStatus ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept;
 
     inline TContIOStatus ReadT(SOCKET fd, void* buf, size_t len, TDuration timeout) noexcept {
@@ -480,6 +490,7 @@ public:
 
 public:
     static ssize_t DoRead(SOCKET fd, char* buf, size_t len) noexcept;
+    static ssize_t DoReadVector(SOCKET fd, TContIOVector* vec) noexcept;
     static ssize_t DoWrite(SOCKET fd, const char* buf, size_t len) noexcept;
     static ssize_t DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept;
 

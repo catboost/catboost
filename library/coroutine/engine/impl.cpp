@@ -180,6 +180,31 @@ int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstan
     return EINPROGRESS;
 }
 
+TContIOStatus TCont::ReadVectorD(SOCKET fd, TContIOVector* vec, TInstant deadline) noexcept {
+    Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do readv");
+    Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
+
+    while (true) {
+        ssize_t res = DoReadVector(fd, vec);
+
+        if (res >= 0) {
+            return TContIOStatus::Success((size_t)res);
+        }
+
+        {
+            const int err = LastSystemError();
+
+            if (!IsBlocked(err)) {
+                return TContIOStatus::Error(err);
+            }
+        }
+
+        if ((res = PollD(fd, CONT_POLL_READ, deadline)) != 0) {
+            return TContIOStatus::Error((int)res);
+        }
+    }
+}
+
 TContIOStatus TCont::ReadD(SOCKET fd, void* buf, size_t len, TInstant deadline) noexcept {
     Y_CORO_DBGOUT(Y_CORO_PRINT(this) << " do read");
     Y_VERIFY(!Dead_, "%s", Y_CORO_PRINTF(this));
@@ -336,6 +361,10 @@ ssize_t TCont::DoRead(SOCKET fd, char* buf, size_t len) noexcept {
 #else
     return read(fd, buf, len);
 #endif
+}
+
+ssize_t TCont::DoReadVector(SOCKET fd, TContIOVector* vec) noexcept {
+    return readv(fd, (const iovec*)vec->Parts(), Min(IOV_MAX, (int)vec->Count()));
 }
 
 ssize_t TCont::DoWrite(SOCKET fd, const char* buf, size_t len) noexcept {
