@@ -30,6 +30,7 @@ namespace NCatboostOptions {
         TOption<float> RandomStrength;
         TOption<TBootstrapConfig> BootstrapConfig;
         TOption<float> Rsm;
+        TOption<ELeavesEstimationStepBacktracking> LeavesEstimationBacktrackingType;
 
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
         TCpuOnlyOption<float> ModelSizeReg;
@@ -42,7 +43,6 @@ namespace NCatboostOptions {
         TGpuOnlyOption<bool> AddRidgeToTargetFunctionFlag;
         TGpuOnlyOption<EScoreFunction> ScoreFunction;
         TGpuOnlyOption<ui32> MaxCtrComplexityForBordersCaching;
-        TGpuOnlyOption<ELeavesEstimationStepBacktracking> LeavesEstimationBacktrackingType;
         TGpuOnlyOption<EGrowingPolicy> GrowingPolicy;
         TGpuOnlyOption<ui32> MaxLeavesCount;
         TGpuOnlyOption<double> MinSamplesInLeaf;

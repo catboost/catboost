@@ -5896,6 +5896,25 @@ def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+def test_gradient_walker():
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+        '--leaf-estimation-backtracking', 'AnyImprovment',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 # training with pairwise scoring with categorical features on CPU does not yet support one-hot features
 # so they are disabled by default, explicit non-default specification should be an error
 @pytest.mark.parametrize(

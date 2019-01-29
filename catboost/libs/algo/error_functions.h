@@ -95,7 +95,7 @@ public:
         const TVector<float>& /*target*/,
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
-        TVector<TDers>* /*ders*/,
+        TArrayRef<TDers> /*ders*/,
         NPar::TLocalExecutor* /*localExecutor*/
     ) const {
         CB_ENSURE(false, "Not implemented");
@@ -460,7 +460,7 @@ public:
         const TVector<float>& /*targets*/,
         const TVector<float>& /*weights*/,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDers>* ders,
+        TArrayRef<TDers> ders,
         NPar::TLocalExecutor* localExecutor
     ) const override {
         CB_ENSURE(queryStartIndex < queryEndIndex);
@@ -468,7 +468,7 @@ public:
         NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
             const int begin = queriesInfo[queryIndex].Begin;
             const int end = queriesInfo[queryIndex].End;
-            TDers* dersData = ders->data() + begin - start;
+            TDers* dersData = ders.data() + begin - start;
             Fill(dersData, dersData + end - begin, TDers{/*1st*/0.0, /*2nd*/0.0, /*3rd*/0.0});
             for (int docId = begin; docId < end; ++docId) {
                 double winnerDer = 0.0;
@@ -502,7 +502,7 @@ public:
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDers>* ders,
+        TArrayRef<TDers> ders,
         NPar::TLocalExecutor* localExecutor
     ) const override {
         const int start = queriesInfo[queryStartIndex].Begin;
@@ -513,11 +513,11 @@ public:
 
             const double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
             for (int docId = begin; docId < end; ++docId) {
-                (*ders)[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
-                (*ders)[docId - start].Der2 = -1;
+                ders[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
+                ders[docId - start].Der2 = -1;
                 if (!weights.empty()) {
-                    (*ders)[docId - start].Der1 *= weights[docId];
-                    (*ders)[docId - start].Der2 *= weights[docId];
+                    ders[docId - start].Der1 *= weights[docId];
+                    ders[docId - start].Der2 *= weights[docId];
                 }
             }
         });
@@ -565,14 +565,14 @@ public:
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDers>* ders,
+        TArrayRef<TDers> ders,
         NPar::TLocalExecutor* localExecutor
     ) const override {
         int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
             int begin = queriesInfo[queryIndex].Begin;
             int end = queriesInfo[queryIndex].End;
-            CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, *ders);
+            CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, ders);
         });
     }
 

@@ -6,6 +6,14 @@
 
 #include <library/json/json_value.h>
 
+static inline ELeavesEstimationStepBacktracking GetDefaultBacktracking(ETaskType taskType) {
+    if (taskType == ETaskType::GPU) {
+        return ELeavesEstimationStepBacktracking::AnyImprovment;
+    } else {
+        return ELeavesEstimationStepBacktracking::None;
+    }
+}
+
 NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETaskType taskType)
     : MaxDepth("depth", 6)
       , LeavesEstimationIterations("leaf_estimation_iterations", 1)
@@ -15,6 +23,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , RandomStrength("random_strength", 1.0)
       , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
       , Rsm("rsm", 1.0)
+      , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", GetDefaultBacktracking(taskType))
       , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTree, taskType)
       , ModelSizeReg("model_size_reg", 0.5, taskType)
       , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
@@ -23,7 +32,6 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
       , ScoreFunction("score_function", EScoreFunction::Correlation, taskType)
       , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
-      , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovment, taskType)
       , GrowingPolicy("growing_policy", EGrowingPolicy::ObliviousTree, taskType)
       , MaxLeavesCount("max_leaves_count", 31, taskType)
       , MinSamplesInLeaf("min_samples_in_leaf", 1, taskType)

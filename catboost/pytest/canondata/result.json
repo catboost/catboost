@@ -1101,11 +1101,11 @@
     ],
     "test.test_custom_loss_for_classification[Ordered-CrossEntropy]": [
         {
-            "checksum": "49d7353c9bf2d5145abbfaab98eb3719",
+            "checksum": "b0ba60d8cf09f4ba5a3a05be9e680c57",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "ed696a03225d87e39f4206c242fc922c",
+            "checksum": "f5182252d79abb5f844017147601a474",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -1121,11 +1121,11 @@
     ],
     "test.test_custom_loss_for_classification[Plain-CrossEntropy]": [
         {
-            "checksum": "a9b60fb09ae79deabd28b60f3ed66847",
+            "checksum": "febb46f43c52dfa896f1ef7d77820918",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "08fe729979b0c94b9ba0d99800de4223",
+            "checksum": "9175b29202e45812c74dd4aaf4a9f1c8",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -2155,6 +2155,12 @@
             "uri": "file://test.test_gradient_calc_block=60-Plain_/test.eval"
         }
     ],
+    "test.test_gradient_walker": [
+        {
+            "checksum": "69335078b7d71c9b2039f61b63534ab8",
+            "uri": "file://test.test_gradient_walker/test.eval"
+        }
+    ],
     "test.test_group_weight[calc_block=5000000-Ordered]": [
         {
             "checksum": "1d8494e3c1be4751132ede9be880ea62",
@@ -2885,7 +2891,7 @@
     },
     "test.test_output_params": [
         {
-            "checksum": "ea415d62c862dd8cc89d025283897443",
+            "checksum": "b9fbcca9c347fe63c4d0a9f9b13c6bbe",
             "uri": "file://test.test_output_params/training_options.json"
         }
     ],

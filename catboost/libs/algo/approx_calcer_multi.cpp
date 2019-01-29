@@ -29,9 +29,9 @@ void UpdateApproxDeltasMulti(
     }
 }
 
-template <typename TCalcModel, typename TAddSampleToBucket>
+template <typename TCalcMethodDelta, typename TAddSampleToBucket>
 void CalcApproxDeltaIterationMulti(
-    TCalcModel CalcModel,
+    TCalcMethodDelta CalcMethodDelta,
     TAddSampleToBucket AddSampleToBucket,
     const TVector<TIndexType>& indices,
     const TVector<float>& target,
@@ -50,7 +50,7 @@ void CalcApproxDeltaIterationMulti(
     const int approxDimension = resArr->ysize();
     const int leafCount = buckets->ysize();
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
-    CalcMixedModelMulti(CalcModel, *buckets, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
+    CalcMixedModelMulti(CalcMethodDelta, *buckets, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
     if (sumLeafValues != nullptr) {
         AddElementwise(curLeafValues, sumLeafValues);
     }
@@ -70,7 +70,7 @@ void CalcApproxDeltaIterationMulti(
         AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration,
                           &bufferDer, &bufferDer2, &bucket);
 
-        CalcModel(bucket, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &avrg);
+        CalcMethodDelta(bucket, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &avrg);
         ExpApproxIf(error.GetIsExpApprox(), &avrg);
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*resArr)[dim][z] = UpdateApprox(error.GetIsExpApprox(), (*resArr)[dim][z], avrg[dim]);
@@ -100,21 +100,21 @@ void CalcApproxDeltaMulti(
             bucket.SetZeroDers();
         }
         if (estimationMethod == ELeavesEstimation::Newton) {
-            CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti,
+            CalcApproxDeltaIterationMulti(CalcDeltaNewtonMulti, AddSampleToBucketNewtonMulti,
                                           indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
                                           &buckets, approxDelta, sumLeafValues);
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-            CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti,
+            CalcApproxDeltaIterationMulti(CalcDeltaGradientMulti, AddSampleToBucketGradientMulti,
                                           indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
                                           &buckets, approxDelta, sumLeafValues);
         }
     }
 }
 
-template <typename TCalcModel, typename TAddSampleToBucket>
+template <typename TCalcMethodDelta, typename TAddSampleToBucket>
 void CalcLeafValuesIterationMulti(
-    TCalcModel CalcModel,
+    TCalcMethodDelta CalcMethodDelta,
     TAddSampleToBucket AddSampleToBucket,
     const TVector<TIndexType>& indices,
     const TVector<float>& target,
@@ -133,7 +133,7 @@ void CalcLeafValuesIterationMulti(
     UpdateBucketsMulti(AddSampleToBucket, indices, target, weight, /*approx*/ TVector<TVector<double>>(), *approx, error, learnSampleCount, iteration, buckets);
 
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
-    CalcMixedModelMulti(CalcModel, *buckets, l2Regularizer, sumWeight, learnSampleCount, &curLeafValues);
+    CalcMixedModelMulti(CalcMethodDelta, *buckets, l2Regularizer, sumWeight, learnSampleCount, &curLeafValues);
 
     UpdateApproxDeltasMulti(error.GetIsExpApprox(), indices, learnSampleCount, &curLeafValues, approx);
 }
@@ -166,21 +166,21 @@ void CalcLeafValuesMulti(
             bucket.SetZeroDers();
         }
         if (estimationMethod == ELeavesEstimation::Newton) {
-            CalcLeafValuesIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti,
+            CalcLeafValuesIterationMulti(CalcDeltaNewtonMulti, AddSampleToBucketNewtonMulti,
                                          indices, ff.LearnTarget, ff.GetLearnWeights(), error, it, l2Regularizer,
                                          ff.GetSumWeight(), &buckets, &approx);
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-            CalcLeafValuesIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti,
+            CalcLeafValuesIterationMulti(CalcDeltaGradientMulti, AddSampleToBucketGradientMulti,
                                          indices, ff.LearnTarget, ff.GetLearnWeights(), error, it, l2Regularizer,
                                          ff.GetSumWeight(), &buckets, &approx);
         }
 
         for (int leaf = 0; leaf < leafCount; ++leaf) {
             if (estimationMethod == ELeavesEstimation::Newton) {
-                CalcModelNewtonMulti(buckets[leaf], l2Regularizer, bt.BodySumWeight, bt.TailFinish, &avrg);
+                CalcDeltaNewtonMulti(buckets[leaf], l2Regularizer, bt.BodySumWeight, bt.TailFinish, &avrg);
             } else {
-                CalcModelGradientMulti(buckets[leaf], l2Regularizer, bt.BodySumWeight, bt.TailFinish, &avrg);
+                CalcDeltaGradientMulti(buckets[leaf], l2Regularizer, bt.BodySumWeight, bt.TailFinish, &avrg);
             }
             for (int dim = 0; dim < approxDimension; ++dim) {
                 (*leafValues)[dim][leaf] += avrg[dim];

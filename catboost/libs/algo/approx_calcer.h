@@ -14,15 +14,15 @@ void UpdateApproxDeltas(
     const TVector<TIndexType>& indices,
     int docCount,
     NPar::TLocalExecutor* localExecutor,
-    TVector<double>* leafValues,
-    TVector<double>* resArr
+    TVector<double>* leafDeltas,
+    TVector<double>* deltasDimension
 );
 
 static constexpr int APPROX_BLOCK_SIZE = 500;
 
-void UpdateBucketsSimple(
+void CalcLeafDersSimple(
     const TVector<TIndexType>& indices,
-    const TFold& ff,
+    const TFold& fold,
     const TFold::TBodyTail& bt,
     const TVector<double>& approxes,
     const TVector<double>& approxDeltas,
@@ -34,18 +34,18 @@ void UpdateBucketsSimple(
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor,
-    TVector<TSum>* buckets,
+    TVector<TSum>* leafDers,
     TArray2D<double>* pairwiseBuckets,
     TVector<TDers>* scratchDers
 );
 
-void CalcMixedModelSimple(
-    const TVector<TSum>& buckets,
+void CalcLeafDeltasSimple(
+    const TVector<TSum>& leafDers,
     const TArray2D<double>& pairwiseWeightSums,
     const NCatboostOptions::TCatBoostOptions& params,
     double sumAllWeights,
     int allDocCount,
-    TVector<double>* leafValues
+    TVector<double>* leafDeltas
 );
 
 void CalcLeafValues(
@@ -54,7 +54,7 @@ void CalcLeafValues(
     const TFold& fold,
     const TSplitTree& tree,
     TLearnContext* ctx,
-    TVector<TVector<double>>* leafValues,
+    TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices
 );
 

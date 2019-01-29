@@ -167,7 +167,7 @@ static void CalcCrossEntropyDerRangeImpl(
                 e *= expApproxDeltas[i - start];
             }
         }
-        const double p = e / (1 + e);
+        const double p = 1 - 1 / (1 + e);
         if (UseTDers) {
             ders[i].Der1 = targets[i] - p;
             ders[i].Der2 = -p * (1 - p);

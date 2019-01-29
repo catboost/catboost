@@ -14,7 +14,7 @@ void CalculateDersForQueries(
     const IDerCalcer& error,
     int queryStartIndex,
     int queryEndIndex,
-    TVector<TDers>* weightedDers,
+    TArrayRef<TDers> approxDers,
     NPar::TLocalExecutor* localExecutor
 ) {
     if (!approxesDelta.empty()) {
@@ -29,14 +29,14 @@ void CalculateDersForQueries(
                 fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/false>(approxes[docId], approxesDelta[docId]);
             });
         }
-        error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, weightedDers, localExecutor);
+        error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, approxDers, localExecutor);
     } else {
-        error.CalcDersForQueries(queryStartIndex, queryEndIndex, approxes, targets, weights, queriesInfo, weightedDers, localExecutor);
+        error.CalcDersForQueries(queryStartIndex, queryEndIndex, approxes, targets, weights, queriesInfo, approxDers, localExecutor);
     }
 }
 
 template <ELeavesEstimation estimationMethod>
-static void UpdateBucketsForLeaves(
+static void AddMethodDersForLeaves(
     const TVector<TDers>& bucketDers,
     const TVector<double>& bucketWeights,
     int iteration,
@@ -45,7 +45,7 @@ static void UpdateBucketsForLeaves(
 ) {
     for (int leafId = 0; leafId < leafCount; ++leafId) {
         if (bucketWeights[leafId] > FLT_EPSILON) {
-            UpdateBucket<estimationMethod>(
+            AddMethodDer<estimationMethod>(
                 bucketDers[leafId],
                 bucketWeights[leafId],
                 iteration,
@@ -55,7 +55,7 @@ static void UpdateBucketsForLeaves(
     }
 }
 
-void UpdateBucketsForQueries(
+void AddLeafDersForQueries(
     const TVector<TDers>& weightedDers,
     const TVector<TIndexType>& indices,
     const TVector<float>& weights,
@@ -101,7 +101,7 @@ void UpdateBucketsForQueries(
     NCB::MapMerge(localExecutor, rangeGenerator, mapDocuments, mergeBuckets, &bucketStats);
 
     if (estimationMethod == ELeavesEstimation::Newton) {
-        UpdateBucketsForLeaves<ELeavesEstimation::Newton>(
+        AddMethodDersForLeaves<ELeavesEstimation::Newton>(
             bucketStats.first,
             bucketStats.second,
             iteration,
@@ -110,7 +110,7 @@ void UpdateBucketsForQueries(
         );
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-        UpdateBucketsForLeaves<ELeavesEstimation::Gradient>(
+        AddMethodDersForLeaves<ELeavesEstimation::Gradient>(
             bucketStats.first,
             bucketStats.second,
             iteration,

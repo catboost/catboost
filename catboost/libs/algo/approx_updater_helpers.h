@@ -97,6 +97,22 @@ inline void UpdateApprox(
     }
 }
 
+inline void CopyApprox(
+    const TVector<TVector<double>>& src,
+    TVector<TVector<double>>* dst,
+    NPar::TLocalExecutor* localExecutor
+) {
+    if (dst->empty() && !src.empty()) {
+        dst->resize(src.size());
+        const auto rowSize = src[0].size();
+        for (auto& row : *dst) {
+            row.yresize(rowSize);
+        }
+    }
+    const auto copyFunc = [] (TConstArrayRef<double> src, TArrayRef<double> dst, size_t idx) { dst[idx] = src[idx]; };
+    UpdateApprox(copyFunc, src, dst, localExecutor);
+}
+
 void UpdateAvrgApprox(
     bool storeExpApprox,
     ui32 learnSampleCount,
@@ -141,3 +157,22 @@ inline void AddElementwise<double>(const TVector<double>& value, TVector<double>
         (*accumulator)[idx] += value[idx];
     }
 }
+
+template <typename TElementType>
+inline TVector<TElementType> ScaleElementwise(double scale, const TVector<TElementType>& value) {
+    TVector<TElementType> scaledValue(value);
+    for (int idx : xrange(value.size())) {
+        scaledValue[idx] = ScaleElementwise(scale, value[idx]);
+    }
+    return scaledValue;
+}
+
+template <>
+inline TVector<double> ScaleElementwise<double>(double scale, const TVector<double>& value) {
+    TVector<double> scaledValue(value);
+    for (int idx : xrange(value.size())) {
+        scaledValue[idx] = value[idx] * scale;
+    }
+    return scaledValue;
+}
+

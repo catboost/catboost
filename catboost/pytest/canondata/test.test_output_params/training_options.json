@@ -141,6 +141,7 @@
         "random_strength" : 1,
         "leaf_estimation_iterations" : 1,
         "dev_score_calc_obj_block_size" : 5000000,
+        "leaf_estimation_backtracking" : "None",
         "bayesian_matrix_reg" : 0.1000000015,
         "leaf_estimation_method" : "Newton",
         "sampling_frequency" : "PerTree",

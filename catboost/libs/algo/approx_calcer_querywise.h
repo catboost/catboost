@@ -17,11 +17,11 @@ void CalculateDersForQueries(
     const IDerCalcer& error,
     int queryStartIndex,
     int queryEndIndex,
-    TVector<TDers>* weightedDers,
+    TArrayRef<TDers> approxDers,
     NPar::TLocalExecutor* localExecutor
 );
 
-void UpdateBucketsForQueries(
+void AddLeafDersForQueries(
     const TVector<TDers>& weightedDers,
     const TVector<TIndexType>& indices,
     const TVector<float>& weights,

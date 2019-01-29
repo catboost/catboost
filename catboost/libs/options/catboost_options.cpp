@@ -408,6 +408,13 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         const auto& lossParams = LossFunctionDescription->GetLossParams();
         CB_ENSURE(!(lossFunction == ELossFunction::YetiRankPairwise && lossParams.contains("sampling_type")),
                   "Parameter sampling_type is not supported for YetiRankPairwise objective for CPU learning");
+        CB_ENSURE(
+            ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
+            "Backtracking type Armijo is supported only on GPU");
+        CB_ENSURE(
+            LossFunctionDescription->GetLossFunction() != ELossFunction::Custom
+            || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::None,
+            "Backtracking is not supported for custom loss functions on CPU");
     }
 
     ValidateCtrs(CatFeatureParams->SimpleCtrs, lossFunction, false);

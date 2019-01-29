@@ -71,9 +71,9 @@ void UpdateBucketsMulti(
     }
 }
 
-template <typename TCalcModel>
+template <typename TCalcMethodDelta>
 void CalcMixedModelMulti(
-    TCalcModel CalcModel,
+    TCalcMethodDelta CalcMethodDelta,
     const TVector<TSumMulti>& buckets,
     float l2Regularizer,
     double sumAllWeights,
@@ -83,7 +83,7 @@ void CalcMixedModelMulti(
     const int leafCount = buckets.ysize();
     TVector<double> avrg;
     for (int leaf = 0; leaf < leafCount; ++leaf) {
-        CalcModel(buckets[leaf], l2Regularizer, sumAllWeights, docCount, &avrg);
+        CalcMethodDelta(buckets[leaf], l2Regularizer, sumAllWeights, docCount, &avrg);
         for (int dim = 0; dim < avrg.ysize(); ++dim) {
             (*curLeafValues)[dim][leaf] = avrg[dim];
         }

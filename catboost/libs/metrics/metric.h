@@ -104,6 +104,17 @@ struct IMetric {
         int end,
         NPar::TLocalExecutor& executor
     ) const = 0;
+    virtual TMetricHolder Eval(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& executor
+    ) const = 0;
     virtual TString GetDescription() const = 0;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const = 0;
     virtual EErrorType GetErrorType() const = 0;
@@ -141,6 +152,20 @@ struct TAdditiveMetric: public TMetric {
         int end,
         NPar::TLocalExecutor& executor
     ) const final {
+        return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+    }
+
+    TMetricHolder Eval(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& executor
+    ) const final {
         NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
 
         const int threadCount = executor.GetThreadCount() + 1;
@@ -158,9 +183,9 @@ struct TAdditiveMetric: public TMetric {
             const int to = Min<int>(begin + (blockId + 1) * blockSize, end);
             Y_ASSERT(from < to);
             if (UseWeights.IsIgnored() || UseWeights)
-                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, target, weight, queriesInfo, from, to);
+                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, approxDelta, isExpApprox, target, weight, queriesInfo, from, to);
             else
-                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, target, {}, queriesInfo, from, to);
+                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, approxDelta, isExpApprox, target, {}, queriesInfo, from, to);
         });
 
         TMetricHolder result;
@@ -316,6 +341,17 @@ TVector<bool> GetSkipMetricOnTest(bool testHasTarget, const TVector<const IMetri
 
 TMetricHolder EvalErrors(
     const TVector<TVector<double>>& approx,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
+    const THolder<IMetric>& error,
+    NPar::TLocalExecutor* localExecutor
+);
+
+TMetricHolder EvalErrors(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,

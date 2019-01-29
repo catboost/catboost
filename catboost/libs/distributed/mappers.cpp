@@ -438,7 +438,7 @@ namespace NCatboostDistributed {
         for (auto& bucket : localData.Buckets) {
             bucket.SetZeroDers();
         }
-        UpdateBucketsSimple(
+        CalcLeafDersSimple(
             localData.Indices,
             localData.Progress.AveragingFold,
             localData.Progress.AveragingFold.BodyTailArr[0],

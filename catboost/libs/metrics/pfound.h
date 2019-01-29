@@ -19,12 +19,20 @@ public:
     {
     }
 
-    template <class TRelevsType, class TApproxType>
-    void AddQuery(const TRelevsType* relevs, const TApproxType* approxes, float queryWeight, const ui32* subgroupData, ui32 querySize) {
+    template <bool isExpApprox, bool hasDelta, class TRelevsType, class TApproxType>
+    void AddQuery(const TRelevsType* relevs, const TApproxType* approxes, const TApproxType* approxDelta, float queryWeight, const ui32* subgroupData, ui32 querySize) {
         TVector<int> qurls(querySize);
         std::iota(qurls.begin(), qurls.end(), 0);
         Sort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
-            return CompareDocs(approxes[left], relevs[left], approxes[right], relevs[right]);
+            if (hasDelta) {
+                if (isExpApprox) {
+                    return CompareDocs(approxes[left] * approxDelta[left], relevs[left], approxes[right] * approxDelta[right], relevs[right]);
+            } else {
+                    return CompareDocs(approxes[left] + approxDelta[left], relevs[left], approxes[right] + approxDelta[right], relevs[right]);
+                }
+            } else {
+                return CompareDocs(approxes[left], relevs[left], approxes[right], relevs[right]);
+            }
         });
 
         double pLook = 1, pFound = 0;
@@ -59,7 +67,7 @@ public:
     }
 
 private:
-    ui32 Depth = -1;
-    double Decay = 0.85f;
+    const ui32 Depth = -1;
+    const double Decay = 0.85f;
     TMetricHolder Statistic;
 };

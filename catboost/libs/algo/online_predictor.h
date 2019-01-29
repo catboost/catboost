@@ -98,7 +98,7 @@ inline double CalcAverage(double sumDelta,
     return sumDelta * inv;
 }
 
-inline double CalcModelGradient(const TSum& ss,
+inline double CalcDeltaGradient(const TSum& ss,
                                 float l2Regularizer,
                                 double sumAllWeights,
                                 int allDocCount) {
@@ -109,7 +109,7 @@ inline double CalcModelGradient(const TSum& ss,
                        allDocCount);
 }
 
-inline void CalcModelGradientMulti(const TSumMulti& ss,
+inline void CalcDeltaGradientMulti(const TSumMulti& ss,
                                    float l2Regularizer,
                                    double sumAllWeights,
                                    int allDocCount,
@@ -125,7 +125,7 @@ inline void CalcModelGradientMulti(const TSumMulti& ss,
     }
 }
 
-inline double CalcModelNewtonBody(double sumDer,
+inline double CalcDeltaNewtonBody(double sumDer,
                                   double sumDer2,
                                   float l2Regularizer,
                                   double sumAllWeights,
@@ -133,18 +133,18 @@ inline double CalcModelNewtonBody(double sumDer,
     return sumDer / (-sumDer2 + l2Regularizer * (sumAllWeights / allDocCount));
 }
 
-inline double CalcModelNewton(const TSum& ss,
+inline double CalcDeltaNewton(const TSum& ss,
                               float l2Regularizer,
                               double sumAllWeights,
                               int allDocCount) {
-    return CalcModelNewtonBody(ss.SumDer,
+    return CalcDeltaNewtonBody(ss.SumDer,
                                ss.SumDer2,
                                l2Regularizer,
                                sumAllWeights,
                                allDocCount);
 }
 
-void CalcModelNewtonMulti(const TSumMulti& ss,
+void CalcDeltaNewtonMulti(const TSumMulti& ss,
                           float l2Regularizer,
                           double sumAllWeights,
                           int allDocCount,

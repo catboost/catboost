@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/matrix.h>
 
 
-void CalcModelNewtonMulti(const TSumMulti& ss,
+void CalcDeltaNewtonMulti(const TSumMulti& ss,
                           float l2Regularizer,
                           double sumAllWeights,
                           int allDocCount,

@@ -360,7 +360,7 @@ public:
         TVector<TVector<double>> leafValues(/*dimensionCount*/ 1, TVector<double>(leafCount));
         const size_t allDocCount = ctx.LearnProgress.Folds[0].GetLearnSampleCount();
         const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
-        CalcMixedModelSimple(buckets, pairwiseBuckets, ctx.Params, sumAllWeights, allDocCount, &leafValues[0]);
+        CalcLeafDeltasSimple(buckets, pairwiseBuckets, ctx.Params, sumAllWeights, allDocCount, &leafValues[0]);
         return leafValues;
     }
 };
@@ -387,7 +387,7 @@ public:
         const double sumAllWeights = ctx.LearnProgress.Folds[0].GetSumWeight();
         if (estimationMethod == ELeavesEstimation::Newton) {
         CalcMixedModelMulti(
-            CalcModelNewtonMulti,
+            CalcDeltaNewtonMulti,
             buckets,
             l2Regularizer,
             sumAllWeights,
@@ -396,7 +396,7 @@ public:
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
             CalcMixedModelMulti(
-                CalcModelGradientMulti,
+                CalcDeltaGradientMulti,
                 buckets,
                 l2Regularizer,
                 sumAllWeights,
