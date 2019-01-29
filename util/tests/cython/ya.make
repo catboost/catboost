@@ -9,6 +9,7 @@ NO_WSHADOW()
 PY_SRCS(
     NAMESPACE
     util
+    generic/array_ref_ut.pyx
     generic/maybe_ut.pyx
     generic/ptr_ut.pyx
     generic/string_ut.pyx

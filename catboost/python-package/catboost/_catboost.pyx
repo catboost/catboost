@@ -28,6 +28,7 @@ from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
+from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.maybe cimport TMaybe
 from util.generic.ptr cimport THolder
@@ -63,32 +64,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
 
-
-# TODO(akhropov): Add necessary methods to util's def
-cdef extern from "util/generic/array_ref.h":
-    cdef cppclass TArrayRef[T]:
-        TArrayRef() except +
-        TArrayRef(T* data, size_t len) except +
-        TArrayRef(T* begin, T* end) except +
-
-        T& operator[](size_t)
-
-        T* data() except +
-        size_t size() except +
-        T* begin() except +
-        T* end() except +
-
-    cdef cppclass TConstArrayRef[T]:
-        TConstArrayRef() except +
-        TConstArrayRef(const T* data, size_t len) except +
-        TConstArrayRef(const T* begin, const T* end) except +
-
-        const T& operator[](size_t)
-
-        const T* data() except +
-        size_t size() except +
-        const T* begin() except +
-        const T* end() except +
 
 # TODO(akhropov): Add to util's def
 cdef extern from "util/generic/ptr.h" nogil:
