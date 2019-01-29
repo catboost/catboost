@@ -25,8 +25,8 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 factorCount,
                 TVector<ui32>{},
-                TVector<TString>{}
-            );
+                TVector<TString>{},
+                nullptr);
 
             visitor->Start(metaInfo, docCount, EObjectsOrder::Undefined, {});
 

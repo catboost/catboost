@@ -196,7 +196,9 @@ TVector<double> CalcRegularFeatureEffect(
     const TDataProviderPtr dataset,
     NPar::TLocalExecutor* localExecutor)
 {
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    const NCB::TFeaturesLayout layout(
+        model.ObliviousTrees.FloatFeatures,
+        model.ObliviousTrees.CatFeatures);
 
     TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(
         CalcFeatureEffect(model, dataset, localExecutor),
@@ -335,7 +337,9 @@ static TVector<TVector<double>> CalcFstr(
 }
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model) {
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    const TFeaturesLayout layout(
+        model.ObliviousTrees.FloatFeatures,
+        model.ObliviousTrees.CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
@@ -420,7 +424,9 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
-    TFeaturesLayout modelFeaturesLayout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    const NCB::TFeaturesLayout modelFeaturesLayout(
+        model.ObliviousTrees.FloatFeatures,
+        model.ObliviousTrees.CatFeatures);
     TVector<TString> modelFeatureIds;
     if (AllFeatureIdsEmpty(modelFeaturesLayout.GetExternalFeaturesMetaInfo())) {
         if (dataset) {

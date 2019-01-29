@@ -110,7 +110,8 @@ NCB::TDataMetaInfo MakeMetaInfo(const TConstArrayRef<TColumn> columnsDescription
     metaInfo.FeaturesLayout = MakeIntrusive<NCB::TFeaturesLayout>(
         static_cast<ui32>(CountIf(columnsDescription, TDoesTypeMatch<EColumn::Num, EColumn::Categ>())),
         GetCategoricalFeatureIndices(columnsDescription),
-        GetFeatureIds(columnsDescription));
+        GetFeatureIds(columnsDescription),
+        nullptr);
 
     return metaInfo;
 }

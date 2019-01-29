@@ -62,6 +62,23 @@ namespace NCB {
         return true;
     }
 
+    TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
+        const TFeaturesLayout& featuresLayout,
+        TConstArrayRef<ui32> ignoredFeatures,
+        NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+        bool floatFeaturesAllowNansInTestOnly,
+        bool allowWriteFiles)
+        : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
+        , FloatFeaturesBinarization(std::move(floatFeaturesBinarization))
+        , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
+        , CatFeaturesPerfectHash(
+            featuresLayout.GetCatFeatureCount(),
+            TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"),
+            allowWriteFiles)
+    {
+        FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
+    }
+
 
     bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
         return (*FeaturesLayout == *rhs.FeaturesLayout) &&

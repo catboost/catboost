@@ -239,7 +239,7 @@ Y_UNIT_TEST_SUITE(DsvLineParserTests) {
             TColumn{EColumn::Timestamp, ""},  // 11
             TColumn{EColumn::Baseline, ""}};  // 12
         const bool featureIgnored[] = {false, false, false, false};
-        const TFeaturesLayout layout(4, {1, 3}, {"", "", "", ""});
+        const TFeaturesLayout layout(4, {1, 3}, {"", "", "", ""}, nullptr);
         float numericFeaturesBuffer[2];
         ui32 categoricalFeaturesBuffer[2];
         TTestVisitor visitor(lineIdx);

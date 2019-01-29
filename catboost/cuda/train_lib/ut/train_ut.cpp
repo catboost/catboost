@@ -29,7 +29,8 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     (ui32)3,
                     TVector<ui32>{},
-                    TVector<TString>{"aaa", "bbb", "ccc"});
+                    TVector<TString>{"aaa", "bbb", "ccc"},
+                    nullptr);
 
                 visitor->Start(metaInfo, 4, EObjectsOrder::Undefined, {});
 

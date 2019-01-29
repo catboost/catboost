@@ -23,6 +23,7 @@
 #include <util/generic/string.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
+#include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
 #include <util/system/yassert.h>
 
@@ -789,7 +790,9 @@ namespace NCB {
                 )
             );
 
-            FillQuantizedFeaturesInfo(poolQuantizationSchema, Data.ObjectsData.QuantizedFeaturesInfo.Get());
+            FillQuantizedFeaturesInfo(
+                poolQuantizationSchema,
+                Data.ObjectsData.QuantizedFeaturesInfo.Get());
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
@@ -967,38 +970,73 @@ namespace NCB {
             );
         }
 
-        static void FillQuantizedFeaturesInfo(
-            const NCB::TPoolQuantizationSchema& quantizationSchema,
-            TQuantizedFeaturesInfo* quantizedFeaturesInfo
-        ) {
-            const auto& featuresLayout = *quantizedFeaturesInfo->GetFeaturesLayout();
+        static TVector<float> Slice(
+            const TVector<float>& v,
+            const size_t offset,
+            const size_t size)
+        {
+            CB_ENSURE_INTERNAL(offset < v.size(), LabeledOutput(v.size(), offset));
 
-            for (auto i : xrange(quantizationSchema.FeatureIndices.size())) {
-                const auto flatFeatureIdx = quantizationSchema.FeatureIndices[i];
-                const auto& metaInfo = featuresLayout.GetExternalFeaturesMetaInfo()[flatFeatureIdx];
+            TVector<float> slice;
+            slice.reserve(size);
+            for (size_t i = 0; i < size && offset + i < v.size(); ++i) {
+                slice.push_back(v[offset + i]);
+            }
+            return slice;
+        }
+
+        static void FillQuantizedFeaturesInfo(
+            const NCB::TPoolQuantizationSchema& schema,
+            TQuantizedFeaturesInfo* info
+        ) {
+            const auto& featuresLayout = *info->GetFeaturesLayout();
+            const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
+            for (size_t i = 0, iEnd = schema.FeatureIndices.size(); i < iEnd; ++i) {
+                const auto flatFeatureIdx = schema.FeatureIndices[i];
+                const auto nanMode = schema.NanModes[i];
+                const auto& metaInfo = metaInfos[flatFeatureIdx];
                 CB_ENSURE(
                     metaInfo.Type == EFeatureType::Float,
-                    "quantization schema's featureType for feature #" << flatFeatureIdx
-                    << " (float) is inconsistent with featuresLayout"
-                );
+                    "quantization schema's feature type for feature " LabeledOutput(flatFeatureIdx)
+                    << " (float) is inconsistent with features layout");
                 if (!metaInfo.IsAvailable) {
                     continue;
                 }
 
-                const auto floatFeatureIdx = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(
-                    flatFeatureIdx
-                );
-                quantizedFeaturesInfo->SetBorders(
-                    floatFeatureIdx,
-                    TVector<float>(quantizationSchema.Borders[i])
-                );
-                quantizedFeaturesInfo->SetNanMode(floatFeatureIdx, quantizationSchema.NanModes[i]);
+                const auto typedFeatureIdx = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(
+                    flatFeatureIdx);
+                const auto remapper = featuresLayout.GetQuantizedFeatureIndexRemapper(flatFeatureIdx);
+
+                if (!remapper.HasArtificialFeatures()) {
+                    info->SetBorders(typedFeatureIdx, TVector<float>(schema.Borders[i]));
+                    info->SetNanMode(typedFeatureIdx, nanMode);
+                    continue;
+                }
+
+                const auto bordersPerArtificialFeature = remapper.GetBinsPerArtificialFeature() - 1;
+                info->SetBorders(typedFeatureIdx, Slice(schema.Borders[i], 0, bordersPerArtificialFeature));
+                if (ENanMode::Min == nanMode) {
+                    info->SetNanMode(typedFeatureIdx, ENanMode::Min);
+                } else {
+                    info->SetNanMode(typedFeatureIdx, nanMode);
+                }
+
+                for (ui32 j = 0, jEnd = remapper.GetArtificialFeatureCount(); j < jEnd; ++j) {
+                    const auto typedArtificialFeatureIdx =
+                        featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(remapper.GetIdxOffset() + j);
+                    info->SetBorders(typedArtificialFeatureIdx, Slice(
+                            schema.Borders[i],
+                            (i + 1) * bordersPerArtificialFeature,
+                            bordersPerArtificialFeature));
+                    info->SetNanMode(typedArtificialFeatureIdx, ENanMode::Max);
+                }
             }
         }
 
     private:
         template <EFeatureType FeatureType>
-        struct TFeaturesStorage {
+        class TFeaturesStorage {
+        private:
             static_assert(FeatureType == EFeatureType::Float, "Only float features are currently supported");
 
             /* shared between this builder and created data provider for efficiency
@@ -1022,30 +1060,24 @@ namespace NCB {
                 ui32 objectCount,
                 const TPoolQuantizationSchema& quantizationSchema
             ) {
+                Y_UNUSED(quantizationSchema);
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
                 Storage.resize(perTypeFeatureCount);
                 DstView.resize(perTypeFeatureCount);
                 IsAvailable.resize(perTypeFeatureCount, false); // filled from quantization Schema, then checked
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
 
-                for (auto i : xrange(quantizationSchema.FeatureIndices.size())) {
-                    const auto flatFeatureIdx = quantizationSchema.FeatureIndices[i];
-                    const auto& metaInfo = featuresLayout.GetExternalFeaturesMetaInfo()[flatFeatureIdx];
-                    CB_ENSURE(
-                        metaInfo.Type == FeatureType,
-                        "quantization schema's featureType for feature #" << flatFeatureIdx << " ("
-                        << FeatureType << ") is inconsistent with featuresLayout"
-                    );
-                    if (!metaInfo.IsAvailable) {
+                const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
+                for (size_t flatFeatureIdx = 0; flatFeatureIdx < metaInfos.size(); ++flatFeatureIdx) {
+                    if (!metaInfos[flatFeatureIdx].IsAvailable) {
                         continue;
                     }
-                    const auto perTypeFeatureIdx = featuresLayout.GetInternalFeatureIdx<FeatureType>(
-                        flatFeatureIdx
-                    );
-                    IsAvailable[*perTypeFeatureIdx] = true;
 
-                    // TODO(akhropov): Get bits per key from quantized pool meta info
-                    IndexHelpers[*perTypeFeatureIdx] = TIndexHelper<ui64>(8);
+                    const auto typedFeatureIdx = featuresLayout.GetInternalFeatureIdx<FeatureType>(
+                        flatFeatureIdx);
+
+                    IsAvailable[typedFeatureIdx.Idx] = true;
+                    IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(8);
                 }
 
                 for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
@@ -1112,14 +1144,17 @@ namespace NCB {
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
                 TVector<THolder<IColumnType>>* result
             ) {
-                CB_ENSURE_INTERNAL(Storage.size() == DstView.size(), "Storage is inconsistent with DstView");
+                CB_ENSURE_INTERNAL(
+                    Storage.size() == DstView.size(),
+                    "Storage is inconsistent with DstView; "
+                    LabeledOutput(Storage.size(), DstView.size()));
 
                 const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
 
                 CB_ENSURE_INTERNAL(
                     Storage.size() == featureCount,
-                    "Storage is inconsistent with feature Layout"
-                );
+                    "Storage is inconsistent with feature Layout; "
+                    LabeledOutput(Storage.size(), featureCount));
 
                 result->clear();
                 result->reserve(featureCount);

@@ -85,8 +85,8 @@ static TFullModel TrainCatOnlyModel() {
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 (ui32)3,
                 TVector<ui32>{0, 1, 2},
-                TVector<TString>{}
-            );
+                TVector<TString>{},
+                nullptr);
 
             visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
 

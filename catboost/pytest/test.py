@@ -5951,3 +5951,17 @@ def test_load_quantized_pool_with_double_baseline():
         '-i', '10')
 
     yatest.common.execute(cmd)
+
+
+def test_train_on_quantized_pool_with_large_grid():
+    # Dataset with 2 random columns, first is Target, second is Num, used Uniform grid with 10000
+    # borders
+    #
+    # There are 10 rows in a dataset.
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '-f', 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
+        '-t', 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
+        '-i', '10')
+
+    yatest.common.execute(cmd)

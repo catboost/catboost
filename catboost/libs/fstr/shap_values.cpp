@@ -312,7 +312,7 @@ static void MapBinFeaturesToClasses(
     TVector<int>* binFeatureCombinationClass,
     TVector<TVector<int>>* combinationClassFeatures
 ) {
-    NCB::TFeaturesLayout layout(forest.FloatFeatures, forest.CatFeatures);
+    const NCB::TFeaturesLayout layout(forest.FloatFeatures, forest.CatFeatures);
     TVector<TVector<int>> featuresCombinations;
     TVector<size_t> featureBucketSizes;
 

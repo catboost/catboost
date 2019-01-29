@@ -39,20 +39,12 @@ namespace NCB {
     public:
 
         // featuresLayout copy is needed because some features might become ignored during quantization
-        TQuantizedFeaturesInfo(const TFeaturesLayout& featuresLayout,
-                               TConstArrayRef<ui32> ignoredFeatures,
-                               const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
-                               bool floatFeaturesAllowNansInTestOnly = true,
-                               bool allowWriteFiles = true)
-            : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
-            , FloatFeaturesBinarization(floatFeaturesBinarization)
-            , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
-            , CatFeaturesPerfectHash(featuresLayout.GetCatFeatureCount(),
-                                     TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp",
-                                     allowWriteFiles)
-        {
-            FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
-        }
+        TQuantizedFeaturesInfo(
+            const TFeaturesLayout& featuresLayout,
+            TConstArrayRef<ui32> ignoredFeatures,
+            NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+            bool floatFeaturesAllowNansInTestOnly = true,
+            bool allowWriteFiles = true);
 
         bool operator==(const TQuantizedFeaturesInfo& rhs) const;
 

@@ -17,7 +17,7 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(BordersIo) {
     Y_UNIT_TEST(Save) {
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
 
         TQuantizedFeaturesInfo quantizedFeaturesInfo(
             featuresLayout,
@@ -66,7 +66,7 @@ Y_UNIT_TEST_SUITE(BordersIo) {
                 "2\t11\tMin\n");
         }
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
 
         TQuantizedFeaturesInfo quantizedFeaturesInfo(
             featuresLayout,

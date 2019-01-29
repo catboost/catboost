@@ -286,7 +286,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 }
             }
 
-            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
+            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, nullptr);
             commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
             NPar::TLocalExecutor localExecutor;
@@ -708,7 +708,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         + (useFeatureTypes.second ? srcCatFeatures.size() : 0)
                     ),
                     catFeatureIndices,
-                    {}
+                    {},
+                    nullptr
                 );
 
                 auto featuresLayoutPtr = MakeIntrusive<TFeaturesLayout>(featuresLayout);

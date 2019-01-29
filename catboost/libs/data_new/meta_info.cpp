@@ -73,8 +73,8 @@ TDataMetaInfo::TDataMetaInfo(
     FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
         featureIdx,
         std::move(catFeatureIndices),
-        finalFeatureNames
-    );
+        finalFeatureNames,
+        nullptr);
 
     ColumnsInfo->Validate();
     Validate();

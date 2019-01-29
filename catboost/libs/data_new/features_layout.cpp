@@ -3,15 +3,25 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/quantization_schema/schema.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/scope.h>
 #include <util/generic/xrange.h>
+#include <util/string/join.h>
 
 #include <tuple>
 
 
 using namespace NCB;
 
+TQuantizedFeatureIndexRemapper::TQuantizedFeatureIndexRemapper(
+    const ui32 indexOffset,
+    const ui32 binCount)
+    : IndexOffset_(indexOffset)
+    , BinCount_(binCount)
+{
+}
 
 bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
     return std::tie(Type, Name, IsIgnored, IsAvailable) ==
@@ -19,11 +29,14 @@ bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, TVector<ui32>(), TVector<TString>())
+    : TFeaturesLayout(featureCount, {}, {}, nullptr)
 {}
 
-
-TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId)
+TFeaturesLayout::TFeaturesLayout(
+    const ui32 featureCount,
+    const TVector<ui32>& catFeatureIndices,
+    const TVector<TString>& featureId,
+    const TPoolQuantizationSchema* const schema)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
 
@@ -44,6 +57,24 @@ TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatu
         ExternalIdxToMetaInfo[catFeatureExternalIdx].Type = EFeatureType::Categorical;
     }
 
+    ExternalIdxRemappers.resize(featureCount);
+    if (schema) {
+        for (size_t i = 0, iEnd = schema->FeatureIndices.size(); i < iEnd; ++i) {
+            const auto flatFeatureIdx = schema->FeatureIndices[i];
+            const auto binCount = schema->Borders[i].size() + 1;
+            ExternalIdxRemappers[flatFeatureIdx] = TQuantizedFeatureIndexRemapper(
+                ExternalIdxToMetaInfo.size(),
+                binCount);
+            const auto artificialFeatureCount = ExternalIdxRemappers[flatFeatureIdx].GetArtificialFeatureCount();
+            for (ui32 j = 0; j < artificialFeatureCount; ++j) {
+                const auto& original = ExternalIdxToMetaInfo[flatFeatureIdx];
+                ExternalIdxToMetaInfo.emplace_back(
+                    original.Type,
+                    Join("", original.Name, "_part_", j));
+            }
+        }
+    }
+
     for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
         if (ExternalIdxToMetaInfo[externalFeatureIdx].Type == EFeatureType::Float) {
             FeatureExternalIdxToInternalIdx.push_back((ui32)FloatFeatureInternalIdxToExternalIdx.size());
@@ -55,7 +86,10 @@ TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatu
     }
 }
 
-TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures) {
+TFeaturesLayout::TFeaturesLayout(
+    const TVector<TFloatFeature>& floatFeatures,
+    const TVector<TCatFeature>& catFeatures)
+{
     TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
     const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
     for (const TFloatFeature& floatFeature : floatFeatures) {
@@ -97,6 +131,132 @@ TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, co
         }
         CatFeatureInternalIdxToExternalIdx[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
     }
+
+    ExternalIdxRemappers.resize(ExternalIdxToMetaInfo.size());
+    for (const auto& floatFeature : floatFeatures) {
+        const auto flatFeatureIdx = floatFeature.FlatFeatureIndex;
+        const auto binCount = floatFeature.Borders.size() + 1;
+        ExternalIdxRemappers[flatFeatureIdx] = TQuantizedFeatureIndexRemapper(
+            ExternalIdxToMetaInfo.size(),
+            binCount);
+        const auto artificialFeatureCount = ExternalIdxRemappers[flatFeatureIdx].GetArtificialFeatureCount();
+        for (ui32 j = 0; j < artificialFeatureCount; ++j) {
+            const auto original = ExternalIdxToMetaInfo[flatFeatureIdx];
+            FloatFeatureInternalIdxToExternalIdx.push_back(
+                ExternalIdxToMetaInfo.size());
+            ExternalIdxToMetaInfo.emplace_back(
+                original.Type,
+                Join("", original.Name, "_part_", j));
+        }
+    }
+}
+
+const TFeatureMetaInfo& TFeaturesLayout::GetInternalFeatureMetaInfo(
+    ui32 internalFeatureIdx,
+    EFeatureType type) const
+{
+    return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)];
+}
+
+TConstArrayRef<TFeatureMetaInfo> TFeaturesLayout::GetExternalFeaturesMetaInfo() const {
+    return ExternalIdxToMetaInfo;
+}
+
+TString TFeaturesLayout::GetExternalFeatureDescription(ui32 internalFeatureIdx, EFeatureType type) const {
+    return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)].Name;
+}
+
+ui32 TFeaturesLayout::GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+    if (type == EFeatureType::Float) {
+        return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+    } else {
+        return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+    }
+}
+
+ui32 TFeaturesLayout::GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
+    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
+    return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
+}
+
+EFeatureType TFeaturesLayout::GetExternalFeatureType(ui32 externalFeatureIdx) const {
+    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
+    return ExternalIdxToMetaInfo[externalFeatureIdx].Type;
+}
+
+bool TFeaturesLayout::IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const {
+    return (size_t)externalFeatureIdx < ExternalIdxToMetaInfo.size();
+}
+
+bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+    if (type == EFeatureType::Float) {
+        return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
+    } else {
+        return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
+    }
+}
+
+bool TFeaturesLayout::IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const {
+    if ((size_t)externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
+        return false;
+    }
+    return ExternalIdxToMetaInfo[externalFeatureIdx].Type == type;
+}
+
+ui32 TFeaturesLayout::GetFloatFeatureCount() const {
+    // cast is safe because of size invariant established in constructors
+    return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
+}
+
+ui32 TFeaturesLayout::GetCatFeatureCount() const {
+    // cast is safe because of size invariant established in constructors
+    return (ui32)CatFeatureInternalIdxToExternalIdx.size();
+}
+
+ui32 TFeaturesLayout::GetExternalFeatureCount() const {
+    // cast is safe because of size invariant established in constructors
+    return (ui32)ExternalIdxToMetaInfo.size();
+}
+
+ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
+    if (type == EFeatureType::Float) {
+        return GetFloatFeatureCount();
+    } else {
+        return GetCatFeatureCount();
+    }
+}
+
+void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
+    const auto nonArtificialFeatureCount = ExternalIdxRemappers.size();
+    if (externalFeatureIdx >= nonArtificialFeatureCount) {
+        return;
+    }
+
+    auto& metaInfo = ExternalIdxToMetaInfo[externalFeatureIdx];
+    metaInfo.IsIgnored = true;
+    metaInfo.IsAvailable = false;
+
+    const auto& remapper = ExternalIdxRemappers[externalFeatureIdx];
+    const auto artificialFeatureCount = remapper.GetArtificialFeatureCount();
+    if (!artificialFeatureCount) {
+        return;
+    }
+
+    const auto indexOffset = remapper.GetIdxOffset();
+    for (ui32 i = 0; i < artificialFeatureCount; ++i) {
+        ExternalIdxToMetaInfo[indexOffset + i].IsIgnored = true;
+        ExternalIdxToMetaInfo[indexOffset + i].IsAvailable = false;
+    }
+}
+
+void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
+    for (auto ignoredFeature : ignoredFeatures) {
+        IgnoreExternalFeature(ignoredFeature);
+    }
+}
+
+TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const {
+    return CatFeatureInternalIdxToExternalIdx;
 }
 
 
@@ -131,15 +291,6 @@ void TFeaturesLayout::SetExternalFeatureIds(TConstArrayRef<TString> featureIds) 
     }
 }
 
-void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
-    for (auto ignoredFeature : ignoredFeatures) {
-        if (ignoredFeature < GetExternalFeatureCount()) {
-            IgnoreExternalFeature(ignoredFeature);
-        }
-    }
-}
-
-
 bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
     for (const auto& metaInfo : ExternalIdxToMetaInfo) {
         if (metaInfo.IsAvailable && !metaInfo.IsIgnored) {
@@ -147,6 +298,11 @@ bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
         }
     }
     return false;
+}
+
+TQuantizedFeatureIndexRemapper
+TFeaturesLayout::GetQuantizedFeatureIndexRemapper(ui32 externalFeatureIdx) const {
+    return ExternalIdxRemappers[externalFeatureIdx];
 }
 
 

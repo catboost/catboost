@@ -42,8 +42,8 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     FactorCount,
                     TVector<ui32>{},
-                    TVector<TString>{}
-                );
+                    TVector<TString>{},
+                    nullptr);
 
                 visitor->Start(metaInfo, TestDocCount, EObjectsOrder::Undefined, {});
 

@@ -2,32 +2,36 @@
 
 #include "feature_index.h"
 
-#include <catboost/libs/options/enums.h>
 #include <catboost/libs/model/features.h>
+#include <catboost/libs/options/enums.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
-#include <util/generic/vector.h>
 #include <util/generic/string.h>
+#include <util/generic/vector.h>
 #include <util/generic/xrange.h>
+#include <util/generic/ymath.h>
 #include <util/system/yassert.h>
 
+namespace NCB {
+    struct TPoolQuantizationSchema;
+}
 
 namespace NCB {
 
     struct TFeatureMetaInfo {
         EFeatureType Type;
         TString Name;
-        bool IsIgnored;
+        bool IsIgnored = false;
 
         /* some datasets can contain only part of all features present in the whole dataset
          * (e.g. workers in distributed processing)
          * ignored features are always unavailable
          */
-        bool IsAvailable;
+        bool IsAvailable = true;
 
     public:
         // needed for BinSaver
@@ -65,15 +69,56 @@ struct TDumper<NCB::TFeatureMetaInfo> {
 
 namespace NCB {
 
+    class TQuantizedFeatureIndexRemapper {
+    public:
+        TQuantizedFeatureIndexRemapper() = default;
+        explicit TQuantizedFeatureIndexRemapper(ui32 indexOffset, ui32 binCount);
+
+        SAVELOAD(IndexOffset_, BinCount_)
+
+        ui32 GetIdxOffset() const {
+            return IndexOffset_;
+        }
+
+        ui32 GetBinsPerArtificialFeature() const {
+            // Leave one extra bin for "missing" artificial feature
+            return 255;
+        }
+
+        ui32 GetRemappedIdx(ui32 binIdx) const {
+            return IndexOffset_ + binIdx / GetBinsPerArtificialFeature();
+        }
+
+        ui32 GetArtificialFeatureCount() const {
+            if (BinCount_) {
+                return CeilDiv<ui32>(BinCount_, GetBinsPerArtificialFeature()) - 1;
+            }
+
+            return 0;
+        }
+
+        bool HasArtificialFeatures() const {
+            return GetArtificialFeatureCount() > 0;
+        }
+
+    private:
+        ui32 IndexOffset_ = 0;
+        ui32 BinCount_ = 0;
+    };
+
     class TFeaturesLayout final : public TAtomicRefCount<TFeaturesLayout> {
     public:
         // needed because of default init in Cython and because of BinSaver
         TFeaturesLayout() = default;
-
         explicit TFeaturesLayout(const ui32 featureCount);
-
-        TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId);
-        TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures);
+        TFeaturesLayout(
+            const ui32 featureCount,
+            const TVector<ui32>& catFeatureIndices,
+            const TVector<TString>& featureId,
+            const NCB::TPoolQuantizationSchema* quantizationSchema);
+        TFeaturesLayout(
+            const TVector<TFloatFeature>& floatFeatures,
+            const TVector<TCatFeature>& catFeatures);
 
         bool operator==(const TFeaturesLayout& rhs) const;
 
@@ -81,93 +126,49 @@ namespace NCB {
             ExternalIdxToMetaInfo,
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
-            FloatFeatureInternalIdxToExternalIdx
-        )
+            FloatFeatureInternalIdxToExternalIdx)
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,
-            EFeatureType type
-        ) const {
-            return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)];
-        }
+            EFeatureType type) const;
 
         // prefer this method to GetExternalFeatureIds
-        TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const {
-            return ExternalIdxToMetaInfo;
-        }
+        TConstArrayRef<TFeatureMetaInfo> GetExternalFeaturesMetaInfo() const;
 
-        TString GetExternalFeatureDescription(ui32 internalFeatureIdx, EFeatureType type) const {
-            return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)].Name;
-        }
+        TString GetExternalFeatureDescription(ui32 internalFeatureIdx, EFeatureType type) const;
+
         TVector<TString> GetExternalFeatureIds() const;
 
         // needed for python-package
         void SetExternalFeatureIds(TConstArrayRef<TString> featureIds);
 
-        ui32 GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
-            if (type == EFeatureType::Float) {
-                return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-            } else {
-                return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
-            }
-        }
-        ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
-            Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
-            return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
-        }
+        ui32 GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const;
+
+        ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const;
+
         template <EFeatureType FeatureType>
         TFeatureIdx<FeatureType> GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
             Y_ASSERT(IsCorrectExternalFeatureIdxAndType(externalFeatureIdx, FeatureType));
             return TFeatureIdx<FeatureType>(FeatureExternalIdxToInternalIdx[externalFeatureIdx]);
         }
-        EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const {
-            Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
-            return ExternalIdxToMetaInfo[externalFeatureIdx].Type;
-        }
-        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const {
-            return (size_t)externalFeatureIdx < ExternalIdxToMetaInfo.size();
-        }
 
-        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
-            if (type == EFeatureType::Float) {
-                return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
-            } else {
-                return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
-            }
-        }
-        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const {
-            if ((size_t)externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
-                return false;
-            }
-            return ExternalIdxToMetaInfo[externalFeatureIdx].Type == type;
-        }
+        EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const;
 
-        ui32 GetFloatFeatureCount() const {
-            // cast is safe because of size invariant established in constructors
-            return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
-        }
-        ui32 GetCatFeatureCount() const {
-            // cast is safe because of size invariant established in constructors
-            return (ui32)CatFeatureInternalIdxToExternalIdx.size();
-        }
-        ui32 GetExternalFeatureCount() const {
-            // cast is safe because of size invariant established in constructors
-            return (ui32)ExternalIdxToMetaInfo.size();
-        }
+        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const;
 
-        ui32 GetFeatureCount(EFeatureType type) const {
-            if (type == EFeatureType::Float) {
-                return GetFloatFeatureCount();
-            } else {
-                return GetCatFeatureCount();
-            }
-        }
+        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const;
 
-        void IgnoreExternalFeature(ui32 externalFeatureIdx) {
-            auto& metaInfo = ExternalIdxToMetaInfo[externalFeatureIdx];
-            metaInfo.IsIgnored = true;
-            metaInfo.IsAvailable = false;
-        }
+        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const;
+
+        ui32 GetFloatFeatureCount() const;
+
+        ui32 GetCatFeatureCount() const;
+
+        ui32 GetExternalFeatureCount() const;
+
+        ui32 GetFeatureCount(EFeatureType type) const;
+
+        void IgnoreExternalFeature(ui32 externalFeatureIdx);
 
         // indices in list can be outside of range of features in layout - such features are ignored
         void IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures);
@@ -184,13 +185,15 @@ namespace NCB {
             }
         }
 
-        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const {
-            return CatFeatureInternalIdxToExternalIdx;
-        }
+        TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const;
 
         bool HasAvailableAndNotIgnoredFeatures() const;
 
+        TQuantizedFeatureIndexRemapper GetQuantizedFeatureIndexRemapper(
+            ui32 externalFeatureIdx) const;
+
     private:
+        TVector<TQuantizedFeatureIndexRemapper> ExternalIdxRemappers;
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
