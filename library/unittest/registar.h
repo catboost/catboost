@@ -463,6 +463,34 @@ public:                       \
 
 #define UNIT_ASSERT_UNEQUAL(A, B) UNIT_ASSERT_UNEQUAL_C(A, B, "")
 
+#define UNIT_ASSERT_LT_C(A, B, C)                                                                          \
+    if (!((A) < (B))) {                                                                                    \
+        UNIT_FAIL_IMPL("less-than assertion failed", Sprintf("%s < %s %s", #A, #B, (TStringBuilder() << C).data())); \
+    }
+
+#define UNIT_ASSERT_LT(A, B) UNIT_ASSERT_LT_C(A, B, "")
+
+#define UNIT_ASSERT_LE_C(A, B, C)                                                                           \
+    if (!((A) <= (B))) {                                                                                    \
+        UNIT_FAIL_IMPL("less-or-equal assertion failed", Sprintf("%s <= %s %s", #A, #B, (TStringBuilder() << C).data())); \
+    }
+
+#define UNIT_ASSERT_LE(A, B) UNIT_ASSERT_LE_C(A, B, "")
+
+#define UNIT_ASSERT_GT_C(A, B, C)                                                                          \
+    if (!((A) > (B))) {                                                                                    \
+        UNIT_FAIL_IMPL("greater-than assertion failed", Sprintf("%s > %s %s", #A, #B, (TStringBuilder() << C).data())); \
+    }
+
+#define UNIT_ASSERT_GT(A, B) UNIT_ASSERT_GT_C(A, B, "")
+
+#define UNIT_ASSERT_GE_C(A, B, C)                                                                        \
+    if (!((A) >= (B))) {                                                                                    \
+        UNIT_FAIL_IMPL("greater-or-equal assertion failed", Sprintf("%s >= %s %s", #A, #B, (TStringBuilder() << C).data())); \
+    }
+
+#define UNIT_ASSERT_GE(A, B) UNIT_ASSERT_GE_C(A, B, "")
+
 #define UNIT_CHECK_GENERATED_EXCEPTION_C(A, E, C)                                            \
     while (true) {                                                                           \
         try {                                                                                \

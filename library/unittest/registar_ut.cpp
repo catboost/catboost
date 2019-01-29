@@ -122,6 +122,114 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_UNEQUAL(33, 50);
     }
 
+    Y_UNIT_TEST(LessThan) {
+        auto lt = [](auto v1, auto v2) {
+            UNIT_ASSERT_LT(v1, v2);
+        };
+
+        // less than
+        UNIT_ASSERT_LT(TStringBuf("1"), "2");
+        UNIT_ASSERT_LT("2", TString("3"));
+        UNIT_ASSERT_LT("abc", TString("azz"));
+        UNIT_ASSERT_LT(2, 4);
+        UNIT_ASSERT_LT(42ul, static_cast<unsigned short>(48));
+
+        // equals
+        UNIT_ASSERT_TEST_FAILS(lt(TStringBuf("2"), "2"));
+        UNIT_ASSERT_TEST_FAILS(lt("2", TString("2")));
+        UNIT_ASSERT_TEST_FAILS(lt("abc", TString("abc")));
+        UNIT_ASSERT_TEST_FAILS(lt(2, 2));
+        UNIT_ASSERT_TEST_FAILS(lt(42ul, static_cast<unsigned short>(42)));
+
+        // greater than
+        UNIT_ASSERT_TEST_FAILS(lt(TStringBuf("2"), "1"));
+        UNIT_ASSERT_TEST_FAILS(lt("3", TString("2")));
+        UNIT_ASSERT_TEST_FAILS(lt("azz", TString("abc")));
+        UNIT_ASSERT_TEST_FAILS(lt(5, 2));
+        UNIT_ASSERT_TEST_FAILS(lt(100ul, static_cast<unsigned short>(42)));
+    }
+
+    Y_UNIT_TEST(LessOrEqual) {
+        auto le = [](auto v1, auto v2) {
+            UNIT_ASSERT_LE(v1, v2);
+        };
+
+        // less than
+        UNIT_ASSERT_LE(TStringBuf("1"), "2");
+        UNIT_ASSERT_LE("2", TString("3"));
+        UNIT_ASSERT_LE("abc", TString("azz"));
+        UNIT_ASSERT_LE(2, 4);
+        UNIT_ASSERT_LE(42ul, static_cast<unsigned short>(48));
+
+        // equals
+        UNIT_ASSERT_LE(TStringBuf("2"), "2");
+        UNIT_ASSERT_LE("2", TString("2"));
+        UNIT_ASSERT_LE("abc", TString("abc"));
+        UNIT_ASSERT_LE(2, 2);
+        UNIT_ASSERT_LE(42ul, static_cast<unsigned short>(42));
+
+        // greater than
+        UNIT_ASSERT_TEST_FAILS(le(TStringBuf("2"), "1"));
+        UNIT_ASSERT_TEST_FAILS(le("3", TString("2")));
+        UNIT_ASSERT_TEST_FAILS(le("azz", TString("abc")));
+        UNIT_ASSERT_TEST_FAILS(le(5, 2));
+        UNIT_ASSERT_TEST_FAILS(le(100ul, static_cast<unsigned short>(42)));
+    }
+
+    Y_UNIT_TEST(GreaterThan) {
+        auto gt = [](auto v1, auto v2) {
+            UNIT_ASSERT_GT(v1, v2);
+        };
+
+        // less than
+        UNIT_ASSERT_TEST_FAILS(gt(TStringBuf("1"), "2"));
+        UNIT_ASSERT_TEST_FAILS(gt("2", TString("3")));
+        UNIT_ASSERT_TEST_FAILS(gt("abc", TString("azz")));
+        UNIT_ASSERT_TEST_FAILS(gt(2, 4));
+        UNIT_ASSERT_TEST_FAILS(gt(42ul, static_cast<unsigned short>(48)));
+
+        // equals
+        UNIT_ASSERT_TEST_FAILS(gt(TStringBuf("2"), "2"));
+        UNIT_ASSERT_TEST_FAILS(gt("2", TString("2")));
+        UNIT_ASSERT_TEST_FAILS(gt("abc", TString("abc")));
+        UNIT_ASSERT_TEST_FAILS(gt(2, 2));
+        UNIT_ASSERT_TEST_FAILS(gt(42ul, static_cast<unsigned short>(42)));
+
+        // greater than
+        UNIT_ASSERT_GT(TStringBuf("2"), "1");
+        UNIT_ASSERT_GT("3", TString("2"));
+        UNIT_ASSERT_GT("azz", TString("abc"));
+        UNIT_ASSERT_GT(5, 2);
+        UNIT_ASSERT_GT(100ul, static_cast<unsigned short>(42));
+    }
+
+    Y_UNIT_TEST(GreaterOrEqual) {
+        auto ge = [](auto v1, auto v2) {
+            UNIT_ASSERT_GE(v1, v2);
+        };
+
+        // less than
+        UNIT_ASSERT_TEST_FAILS(ge(TStringBuf("1"), "2"));
+        UNIT_ASSERT_TEST_FAILS(ge("2", TString("3")));
+        UNIT_ASSERT_TEST_FAILS(ge("abc", TString("azz")));
+        UNIT_ASSERT_TEST_FAILS(ge(2, 4));
+        UNIT_ASSERT_TEST_FAILS(ge(42ul, static_cast<unsigned short>(48)));
+
+        // equals
+        UNIT_ASSERT_GE(TStringBuf("2"), "2");
+        UNIT_ASSERT_GE("2", TString("2"));
+        UNIT_ASSERT_GE("abc", TString("abc"));
+        UNIT_ASSERT_GE(2, 2);
+        UNIT_ASSERT_GE(42ul, static_cast<unsigned short>(42));
+
+        // greater than
+        UNIT_ASSERT_GE(TStringBuf("2"), "1");
+        UNIT_ASSERT_GE("3", TString("2"));
+        UNIT_ASSERT_GE("azz", TString("abc"));
+        UNIT_ASSERT_GE(5, 2);
+        UNIT_ASSERT_GE(100ul, static_cast<unsigned short>(42));
+    }
+
     Y_UNIT_TEST(ValuesEqual) {
         auto valuesEqual = [](auto v1, auto v2) {
             UNIT_ASSERT_VALUES_EQUAL(v1, v2);
