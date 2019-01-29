@@ -182,7 +182,7 @@
                 "cc": { "bottle": "msvc2017next", "executable": "msvc" },
                 "c++": { "bottle": "msvc2017next", "executable": "msvc" }
             },
-            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}, "default": true}],
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
@@ -198,7 +198,7 @@
                 "cc": { "bottle": "msvc2017next", "executable": "msvc" },
                 "c++": { "bottle": "msvc2017next", "executable": "msvc" }
             },
-            "platforms": [{"host": {"os": "WIN"}, "default": true}],
+            "platforms": [{"host": {"os": "WIN"}}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
@@ -215,7 +215,7 @@
                 "cc": { "bottle": "msvc2017next", "executable": "msvc" },
                 "c++": { "bottle": "msvc2017next", "executable": "msvc" }
             },
-            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
@@ -231,7 +231,7 @@
                 "cc": { "bottle": "msvc2017next", "executable": "msvc" },
                 "c++": { "bottle": "msvc2017next", "executable": "msvc" }
             },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}, "default": true}],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
@@ -248,7 +248,7 @@
                 "cc": { "bottle": "msvc2017next", "executable": "msvc" },
                 "c++": { "bottle": "msvc2017next", "executable": "msvc" }
             },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}, "default": true}],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
@@ -265,7 +265,7 @@
                 "cc": { "bottle": "msvc2017next", "executable": "msvc" },
                 "c++": { "bottle": "msvc2017next", "executable": "msvc" }
             },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
