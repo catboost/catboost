@@ -2,7 +2,7 @@
 
 /// This code should not be used directly unless you really understand what you do.
 /// If you need threads, use thread pool functionality in <util/thread/factory.h>
-/// @see SystemThreadPool()
+/// @see SystemThreadFactory()
 
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>

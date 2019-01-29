@@ -10,7 +10,7 @@ namespace NAsio {
         TIOServiceExecutor()
             : Work_(new TIOService::TWork(Srv_))
         {
-            T_ = SystemThreadPool()->Run(this);
+            T_ = SystemThreadFactory()->Run(this);
         }
 
         ~TIOServiceExecutor() override {

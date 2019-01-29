@@ -44,7 +44,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
         }
 
         void Run() {
-            Thr_ = SystemThreadPool()->Run(this);
+            Thr_ = SystemThreadFactory()->Run(this);
         }
 
         void Stop() {
@@ -130,7 +130,7 @@ Y_UNIT_TEST_SUITE(TNehMultiClient) {
         }
 
         void Run() {
-            Thr_ = SystemThreadPool()->Run(this);
+            Thr_ = SystemThreadFactory()->Run(this);
         }
 
         void Stop() {

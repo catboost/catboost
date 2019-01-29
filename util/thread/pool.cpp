@@ -24,7 +24,7 @@
 #include "pool.h"
 
 TThreadFactoryHolder::TThreadFactoryHolder() noexcept
-    : Pool_(SystemThreadPool())
+    : Pool_(SystemThreadFactory())
 {
 }
 

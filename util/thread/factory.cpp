@@ -80,7 +80,7 @@ static IThreadFactory* SystemThreadPoolImpl() {
 
 static IThreadFactory* systemPool = nullptr;
 
-IThreadFactory* SystemThreadPool() {
+IThreadFactory* SystemThreadFactory() {
     if (systemPool) {
         return systemPool;
     }
@@ -88,6 +88,6 @@ IThreadFactory* SystemThreadPool() {
     return SystemThreadPoolImpl();
 }
 
-void SetSystemThreadPool(IThreadFactory* pool) {
+void SetSystemThreadFactory(IThreadFactory* pool) {
     systemPool = pool;
 }

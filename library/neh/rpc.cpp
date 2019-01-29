@@ -97,7 +97,7 @@ namespace {
             TVector<IThreadRef> thrs;
 
             for (size_t i = 1; i < threads; ++i) {
-                thrs.push_back(SystemThreadPool()->Run(&func));
+                thrs.push_back(SystemThreadFactory()->Run(&func));
             }
 
             func.Execute();
@@ -145,7 +145,7 @@ namespace {
 
                 try {
                     for (size_t i = 0; i < threads; ++i) {
-                        T_.push_back(SystemThreadPool()->Run(this));
+                        T_.push_back(SystemThreadFactory()->Run(this));
                     }
                 } catch (...) {
                     //paranoid mode on

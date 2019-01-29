@@ -64,7 +64,7 @@ namespace NPar {
         {
             NNeh::SetProtocolOption("tcp2/ServerOutputDeadline", "600s");
             MultiClient = NNeh::CreateMultiClient();
-            MultiClientThread = SystemThreadPool()->Run([this]() {
+            MultiClientThread = SystemThreadFactory()->Run([this]() {
                 MultiClientThreadLoopFunction();
             });
             ReceiverServices = NNeh::CreateLoop();
@@ -79,7 +79,7 @@ namespace NPar {
                 NehServiceQueryCallback(req);
             });
             ReceiverServices->ForkLoop(5);
-            PingerThread = SystemThreadPool()->Run([this]() {
+            PingerThread = SystemThreadFactory()->Run([this]() {
                 PingerThreadFunction();
             });
         }
@@ -374,7 +374,7 @@ namespace NPar {
             PAR_DEBUG_LOG << "Created netliba httpudp requester on port " << listenPort << Endl;
             Requester->EnableReportRequestCancel();
 
-            ReceiverThread = SystemThreadPool()->Run([this]() {
+            ReceiverThread = SystemThreadFactory()->Run([this]() {
                 ReceiveLoopFunc();
             });
         }

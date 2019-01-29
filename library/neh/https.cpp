@@ -448,7 +448,7 @@ namespace NNeh {
                 , MaxConnId_(0)
                 , Shutdown_(false)
             {
-                T_ = SystemThreadPool()->Run(this);
+                T_ = SystemThreadFactory()->Run(this);
             }
 
             ~TConnCache() override {

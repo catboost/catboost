@@ -43,7 +43,7 @@ namespace NThreading {
             TLegacyFuture<int> f11(std::bind(&TSampleClass::Calc, TSampleClass(3)));
             UNIT_ASSERT_VALUES_EQUAL(4, f11.Get());
 
-            TLegacyFuture<int> f12(std::bind(&TSampleClass::Calc, TSampleClass(3)), SystemThreadPool());
+            TLegacyFuture<int> f12(std::bind(&TSampleClass::Calc, TSampleClass(3)), SystemThreadFactory());
             UNIT_ASSERT_VALUES_EQUAL(4, f12.Get());
 
             TSampleClass c(5);
@@ -51,7 +51,7 @@ namespace NThreading {
             TLegacyFuture<int> f21(std::bind(&TSampleClass::Calc, std::ref(c)));
             UNIT_ASSERT_VALUES_EQUAL(6, f21.Get());
 
-            TLegacyFuture<int> f22(std::bind(&TSampleClass::Calc, std::ref(c)), SystemThreadPool());
+            TLegacyFuture<int> f22(std::bind(&TSampleClass::Calc, std::ref(c)), SystemThreadFactory());
             UNIT_ASSERT_VALUES_EQUAL(6, f22.Get());
         }
 
@@ -61,7 +61,7 @@ namespace NThreading {
             std::function<int()> f((&intf));
 
             UNIT_ASSERT_VALUES_EQUAL(17, TLegacyFuture<int>(f).Get());
-            UNIT_ASSERT_VALUES_EQUAL(17, TLegacyFuture<int>(f, SystemThreadPool()).Get());
+            UNIT_ASSERT_VALUES_EQUAL(17, TLegacyFuture<int>(f, SystemThreadFactory()).Get());
 
             if (false) {
                 TSomeThreadPool* q = nullptr;

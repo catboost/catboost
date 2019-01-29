@@ -452,7 +452,7 @@ namespace NPar {
         , StopSlaveCmd(new TStopSlaveCmd)
         , GatherStatsCmd(new TGatherStatsCmd)
     {
-        MetaThread = SystemThreadPool()->Run([this]() {
+        MetaThread = SystemThreadFactory()->Run([this]() {
             MetaThreadFunction();
         });
     }

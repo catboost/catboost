@@ -21,7 +21,7 @@ namespace NThreading {
         THolder<IThreadFactory::IThread> Thread_;
 
     public:
-        inline TLegacyFuture(const TFunctionObjectType func, IThreadFactory* pool = SystemThreadPool())
+        inline TLegacyFuture(const TFunctionObjectType func, IThreadFactory* pool = SystemThreadFactory())
             : Func_(func)
             , Result_(NewPromise<TResult>())
             , Thread_(pool->Run(this))

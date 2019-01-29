@@ -817,7 +817,7 @@ namespace {
             , MaxConnId_(0)
             , Shutdown_(false)
         {
-            T_ = SystemThreadPool()->Run(this);
+            T_ = SystemThreadFactory()->Run(this);
             Limits.Soft = 40000;
             Limits.Hard = 50000;
         }

@@ -29,7 +29,7 @@ private:
         TRunAble r;
 
         {
-            TAutoPtr<IThreadFactory::IThread> thr = SystemThreadPool()->Run(&r);
+            TAutoPtr<IThreadFactory::IThread> thr = SystemThreadFactory()->Run(&r);
 
             thr->Join();
         }

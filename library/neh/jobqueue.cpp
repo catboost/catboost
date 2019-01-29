@@ -13,7 +13,7 @@ namespace {
     class TExecThread: public IThreadFactory::IThreadAble, public IJob {
     public:
         TExecThread()
-            : T_(SystemThreadPool()->Run(this))
+            : T_(SystemThreadFactory()->Run(this))
         {
         }
 

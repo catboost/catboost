@@ -61,7 +61,7 @@ namespace {
         inline TThreadedResolver()
             : E_(TSystemEvent::rAuto)
         {
-            T_.push_back(SystemThreadPool()->Run(this));
+            T_.push_back(SystemThreadFactory()->Run(this));
         }
 
         inline ~TThreadedResolver() override {

@@ -8,7 +8,7 @@ Y_UNIT_TEST_SUITE(ThreadNameGuardTests) {
     Y_UNIT_TEST(Test) {
         const TString nameBefore = "nameBefore";
         const TString nameToSet = "nameToSet";
-        SystemThreadPool()->Run([&] {
+        SystemThreadFactory()->Run([&] {
             TThread::CurrentThreadSetName(nameBefore.c_str());
 
             {

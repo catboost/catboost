@@ -61,5 +61,5 @@ private:
     virtual IThread* DoCreate() = 0;
 };
 
-IThreadFactory* SystemThreadPool();
-void SetSystemThreadPool(IThreadFactory* pool);
+IThreadFactory* SystemThreadFactory();
+void SetSystemThreadFactory(IThreadFactory* pool);
