@@ -239,3 +239,28 @@ test_that("model: saveRDS/readRDS by R", {
   prediction_after_save_load <- catboost.predict(model, test_pool)
   expect_equal(prediction, prediction_after_save_load)
 })
+
+test_that("model: catboost.cv", {
+  target <- sample(c(1, -1), size = 1000, replace = TRUE)
+  features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
+                         f2 = rnorm(length(target), mean = 0, sd = 1))
+
+  pool <- catboost.load_pool(features, target)
+
+  iterations <- 10
+  params <- list(iterations = iterations,
+                 loss_function = "Logloss",
+                 random_seed = 12345,
+                 use_best_model = FALSE)
+
+  fold_count <- 5
+  cv_result <- catboost.cv(pool = pool, params = params, fold_count = fold_count)
+  print(cv_result)
+
+  expect_true(all(cv_result$train.Logloss.std >= 0))
+  expect_true(all(cv_result$test.Logloss.std >= 0))
+
+  expect_true(all(cv_result$train.Logloss.mean >= 0))
+  expect_true(all(cv_result$test.Logloss.mean >= 0))
+})
+

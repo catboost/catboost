@@ -1,6 +1,7 @@
 C CatBoostCalcRegularFeatureEffect_R
 C CatBoostCreateFromFile_R
 C CatBoostCreateFromMatrix_R
+C CatBoostCV_R
 C CatBoostDeserializeModel_R
 C CatBoostDropUnusedFeaturesFromModel_R
 C CatBoostEvaluateObjectImportances_R

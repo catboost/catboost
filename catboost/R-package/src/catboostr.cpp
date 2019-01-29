@@ -4,6 +4,7 @@
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/libs/train_lib/cross_validation.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
@@ -11,6 +12,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/cross_validation_params.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 
@@ -410,6 +412,77 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     modelPtr.release();
     R_API_END();
     UNPROTECT(1);
+    return result;
+}
+
+SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam, 
+                  SEXP poolParam,
+                  SEXP foldCountParam,
+                  SEXP invertedParam,
+                  SEXP partitionRandomSeedParam,
+                  SEXP shuffleParam,
+                  SEXP stratifiedParam) {
+
+    SEXP result = NULL;
+    size_t metricCount;
+
+    R_API_BEGIN();
+    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    auto fitParams = LoadFitParams(fitParamsAsJsonParam);
+
+    TCrossValidationParams cvParams;
+    cvParams.FoldCount = asInteger(foldCountParam);
+    cvParams.PartitionRandSeed = asInteger(partitionRandomSeedParam);
+    cvParams.Shuffle = asLogical(shuffleParam);
+    cvParams.Stratified = asLogical(stratifiedParam);
+    cvParams.Inverted = asLogical(invertedParam);
+
+    TVector<TCVResult> cvResults;
+
+    CrossValidate(
+        fitParams,
+        Nothing(),
+        Nothing(),
+        pool,
+        cvParams,
+        &cvResults);
+
+    metricCount = cvResults.size();
+    result = PROTECT(allocVector(VECSXP, metricCount * 4));
+    SEXP columnNames = PROTECT(allocVector(STRSXP, metricCount * 4));
+
+    for (size_t metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
+        TString metricName = cvResults[metricIdx].Metric;
+
+        size_t iterationsCount = cvResults[metricIdx].AverageTrain.size();
+
+        SEXP row_test_mean = PROTECT(allocVector(REALSXP, iterationsCount));
+        SEXP row_test_std = PROTECT(allocVector(REALSXP, iterationsCount));
+        SEXP row_train_mean = PROTECT(allocVector(REALSXP, iterationsCount));
+        SEXP row_train_std = PROTECT(allocVector(REALSXP, iterationsCount));
+
+        for (size_t i = 0; i < iterationsCount; ++i) {
+            REAL(row_test_mean)[i] = cvResults[metricIdx].AverageTest[i];
+            REAL(row_test_std)[i] = cvResults[metricIdx].StdDevTest[i];
+            REAL(row_train_mean)[i] = cvResults[metricIdx].AverageTrain[i];
+            REAL(row_train_std)[i] = cvResults[metricIdx].StdDevTrain[i];
+        }
+
+        SET_VECTOR_ELT(result, metricIdx * 4 + 0, row_test_mean);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 1, row_test_std);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 2, row_train_mean);
+        SET_VECTOR_ELT(result, metricIdx * 4 + 3, row_train_std);
+
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 0, mkChar(("test-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 1, mkChar(("test-" + metricName + "-std").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 2, mkChar(("train-" + metricName + "-mean").c_str()));
+        SET_STRING_ELT(columnNames, metricIdx * 4 + 3, mkChar(("train-" + metricName + "-std").c_str()));
+    }
+
+    setAttrib(result, R_NamesSymbol, columnNames);
+    
+    R_API_END();
+    UNPROTECT(metricCount * 4 + 2);
     return result;
 }
 
