@@ -8,6 +8,7 @@ R_DimSymbol
 R_ExternalPtrAddr
 R_MakeExternalPtr
 R_NilValue
+R_NamesSymbol
 R_RegisterCFinalizerEx
 RAW
 REAL
@@ -18,6 +19,7 @@ Rf_asLogical
 Rf_error
 Rf_getAttrib
 Rf_length
+Rf_mkChar
 Rf_mkString
 Rf_protect
 Rf_ScalarInteger
@@ -25,6 +27,7 @@ Rf_ScalarLogical
 Rf_setAttrib
 Rf_unprotect
 Rprintf
+SET_STRING_ELT
 SET_VECTOR_ELT
 STRING_ELT
 TYPEOF
