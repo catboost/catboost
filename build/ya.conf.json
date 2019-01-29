@@ -467,6 +467,27 @@
                 "gcc_version": "6.0"
             }
         },
+        "clang6-android-x86_64": {
+            "name": "clang6",
+            "tools": {
+                "cc": { "bottle": "clang6-android-x86_64", "executable": "cc" },
+                "c++": { "bottle": "clang6-android-x86_64", "executable": "c++" },
+                "gcov": { "bottle": "clang6-android-x86_64", "executable": "gcov" },
+                "strip": { "bottle": "clang6-android-x86_64", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "x86_64"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "x86_64"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "6.0"
+            }
+        },
         "clang6-android-armv7a": {
             "name": "clang6",
             "tools": {
@@ -1378,6 +1399,17 @@
         "clang6-android-x86": {
             "formula": {
                 "sandbox_id": [286141541, 286158872],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang6-android-x86_64": {
+            "formula": {
+                "sandbox_id": [369520747, 369520872],
                 "match": "NDK"
             },
             "executable": {

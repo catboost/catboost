@@ -1,7 +1,7 @@
 ## `--target-platform`
 ### `default`
 * `android`
-  * `i686`, `armv7a`, `armv7a_neon`, `armv8a`  
+  * `i686`, `x86_64`, `armv7a`, `armv7a_neon`, `armv8a`  
   Clang 6.0.2, Android NDK r17b. API 14 for the 32-bit platforms, API 21 for 64-bit.
 * `darwin`
   * `x86_64`  
