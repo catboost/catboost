@@ -58,7 +58,7 @@ namespace NDetail {
     }
 }
 
-TOStream& operator<<(TOStream& os, const TString& s) {
+std::ostream& operator<<(std::ostream& os, const TString& s) {
     return os.write(s.data(), s.size());
 }
 

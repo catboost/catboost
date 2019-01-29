@@ -119,7 +119,6 @@ JOIN_SRCS(
     generic/singleton.cpp
     generic/size_literals.cpp
     generic/stack.cpp
-    generic/stlfwd.cpp
     generic/store_policy.cpp
     generic/strbuf.cpp
     generic/strfcpy.cpp

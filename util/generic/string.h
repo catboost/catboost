@@ -3,13 +3,13 @@
 // TString is case-sensitive
 #include <cstddef>
 #include <cstring>
+#include <stlfwd>
 
 #include <util/system/compat.h>
 #include <util/system/yassert.h>
 #include <util/system/atomic.h>
 
 #include "utility.h"
-#include "stlfwd.h"
 #include "chartraits.h"
 #include "bitops.h"
 #include "explicit_type.h"
@@ -1933,7 +1933,7 @@ struct TCharToString<wchar32> {
     using TResult = TUtf32String;
 };
 
-TOStream& operator<<(TOStream&, const TString&);
+std::ostream& operator<<(std::ostream&, const TString&);
 
 template <class TChar>
 using TGenericString = typename TCharToString<TChar>::TResult;

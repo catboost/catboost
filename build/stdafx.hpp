@@ -66,6 +66,7 @@
 #include <sstream>
 #include <stack>
 #include <stdexcept>
+#include <stlfwd>
 #include <streambuf>
 #include <string>
 #include <strstream>
@@ -234,7 +235,6 @@
 #include <util/generic/ylimits.h>
 #include <util/generic/hash.h>
 #include <util/generic/mem_copy.h>
-#include <util/generic/stlfwd.h>
 #include <util/generic/guid.h>
 #include <util/generic/hash_primes.h>
 #include <util/generic/map.h>

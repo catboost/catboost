@@ -1,8 +1,8 @@
 #pragma once
 
-#include "stlfwd.h"
-
 #include <util/system/defaults.h>
+
+#include <stlfwd>
 
 //misc
 class TBuffer;

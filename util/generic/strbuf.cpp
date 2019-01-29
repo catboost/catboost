@@ -18,7 +18,7 @@ void Out<TUtf32StringBuf>(IOutputStream& os, const TUtf32StringBuf& obj) {
     os << static_cast<const TFixedString<wchar32>&>(obj);
 }
 
-TOStream& operator<< (TOStream& os, TStringBuf buf) {
+std::ostream& operator<< (std::ostream& os, TStringBuf buf) {
     os.write(buf.data(), buf.size());
     return os;
 }
