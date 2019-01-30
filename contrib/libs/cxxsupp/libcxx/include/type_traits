@@ -2249,6 +2249,13 @@ _LIBCPP_INLINE_VAR _LIBCPP_CONSTEXPR bool is_move_assignable_v
 //  Otherwise, return "std::declval<_Up&>().~_Up()" is well-formed
 //    where _Up is remove_all_extents<_Tp>::type
 
+#if defined(_LIBCPP_COMPILER_MSVC)
+
+template <typename _Tp>
+struct is_destructible : bool_constant<__is_destructible(_Tp)> {};
+
+#else
+
 template <class>
 struct __is_destructible_apply { typedef int type; };
 
@@ -2297,6 +2304,8 @@ struct is_destructible<_Tp[]>
 template <>
 struct is_destructible<void>
     : public _VSTD::false_type {};
+
+#endif
 
 #if _LIBCPP_STD_VER > 14 && !defined(_LIBCPP_HAS_NO_VARIABLE_TEMPLATES)
 template <class _Tp>
@@ -4768,7 +4777,6 @@ struct __has_operator_addressof
 
 #if _LIBCPP_STD_VER > 14
 
-#define __cpp_lib_void_t 201411
 template <class...> using void_t = void;
 
 # ifndef _LIBCPP_HAS_NO_VARIADICS
