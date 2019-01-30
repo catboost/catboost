@@ -1402,7 +1402,7 @@ def test_all_targets(loss_function, boosting_type, dev_score_calc_obj_block_size
     )
     yatest.common.execute(train_with_test_cmd)
 
-    traint_without_test_cmd = base_cmd + (
+    train_without_test_cmd = base_cmd + (
         '-m', output_model_path_without_test,
     )
     yatest.common.execute(train_without_test_cmd)
