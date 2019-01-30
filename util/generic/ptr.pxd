@@ -6,5 +6,6 @@ cdef extern from "<util/generic/ptr.h>" nogil:
         T* Release()
         void Reset()
         void Reset(T*)
+        void Swap(THolder[T])
 
     cdef THolder[T] MakeHolder[T](...)

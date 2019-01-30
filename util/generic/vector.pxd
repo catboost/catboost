@@ -67,7 +67,7 @@ cdef extern from "<util/generic/vector.h>" nogil:
         size_t max_size()
         void pop_back() except +
         void push_back(T&) except +
-        void emplace_back() except +
+        void emplace_back(...) except +
         reverse_iterator rbegin()
         const_reverse_iterator const_rbegin "rbegin"()
         reverse_iterator rend()
