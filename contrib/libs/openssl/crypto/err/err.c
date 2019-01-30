@@ -987,6 +987,14 @@ const char *ERR_reason_error_string(unsigned long e)
     return ((p == NULL) ? NULL : p->string);
 }
 
+static
+#if defined(_MSC_VER)
+__declspec(thread)
+#else
+__thread
+#endif
+ERR_STATE* thrlocal = NULL;
+
 void ERR_remove_thread_state(const CRYPTO_THREADID *id)
 {
     ERR_STATE tmp;
@@ -1001,6 +1009,8 @@ void ERR_remove_thread_state(const CRYPTO_THREADID *id)
      * items reaches zero.
      */
     ERRFN(thread_del_item) (&tmp);
+
+    thrlocal = NULL;
 }
 
 #ifndef OPENSSL_NO_DEPRECATED
@@ -1009,14 +1019,6 @@ void ERR_remove_state(unsigned long pid)
     ERR_remove_thread_state(NULL);
 }
 #endif
-
-static
-#if defined(_MSC_VER)
-__declspec(thread)
-#else
-__thread
-#endif
-ERR_STATE* thrlocal = NULL;
 
 ERR_STATE *ERR_get_state(void)
 {
