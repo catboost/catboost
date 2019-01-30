@@ -524,7 +524,8 @@ ssize_t readv(SOCKET sock, const struct iovec* iov, int iovcnt) {
         wsabuf[i].len = (u_long)iov[i].iov_len;
     }
     DWORD numberOfBytesRecv;
-    int res = WSARecv(sock, wsabuf, iovcnt, &numberOfBytesRecv, 0, nullptr, nullptr);
+    DWORD flags = 0;
+    int res = WSARecv(sock, wsabuf, iovcnt, &numberOfBytesRecv, &flags, nullptr, nullptr);
     if (res == SOCKET_ERROR) {
         errno = EIO;
         return -1;
