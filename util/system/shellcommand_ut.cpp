@@ -6,6 +6,7 @@
 #include "sigset.h"
 #include "spinlock.h"
 
+#include <library/unittest/env.h>
 #include <library/unittest/registar.h>
 
 #include <util/folder/dirut.h>
@@ -349,6 +350,17 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         // restore signal mask
         rc = SigProcMask(SIG_SETMASK, &oldmask, nullptr);
         UNIT_ASSERT(rc == 0);
+    }
+#else
+    // This ut is windows-only
+    Y_UNIT_TEST(TestStdinProperlyConstructed) {
+        TShellCommandOptions options;
+        options.SetErrorStream(&Cerr);
+
+        TShellCommand cmd(BinaryPath("util/system/ut/stdin_osfhandle/stdin_osfhandle"), options);
+        cmd.Run().Wait();
+        UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
+        UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
     }
 #endif
     Y_UNIT_TEST(TestInternalError) {

@@ -68,4 +68,10 @@ SRCS(
     system/yassert_ut.cpp
 )
 
+IF (OS_WINDOWS)
+    DEPENDS(
+        util/system/ut/stdin_osfhandle
+    )
+ENDIF()
+
 END()
