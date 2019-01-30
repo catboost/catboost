@@ -1,6 +1,5 @@
 #pragma once
 
-// TString is case-sensitive
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
