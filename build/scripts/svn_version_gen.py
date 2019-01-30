@@ -50,7 +50,7 @@ def escape_special_symbols(strval):
         if c in ("\\", "\""):
             retval += "\\" + c
         elif ord(c) < ord(' '):
-            retval += (c if isinstance(c, str) else c.decode()).encode('unicode_escape').decode()
+            retval += c.encode("string_escape")
         else:
             retval += c
     return retval
