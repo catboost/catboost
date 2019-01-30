@@ -83,14 +83,14 @@ struct TFixedString {
 
     template <typename T>
     TFixedString(const TStringBase<T, TCharType, TTraits>& s)
-        : Start(s.c_str())
+        : Start(s.data())
         , Length(s.size())
     {
     }
 
     template <typename T, typename A>
     TFixedString(const std::basic_string<TCharType, T, A>& s)
-        : Start(s.c_str())
+        : Start(s.data())
         , Length(s.size())
     {
     }
@@ -265,6 +265,10 @@ public:
     inline const TCharType front() const noexcept {
         Y_ASSERT(!empty());
         return Ptr()[0];
+    }
+
+    constexpr const TCharType* data() const noexcept {
+        return Ptr();
     }
 
     constexpr inline size_t size() const noexcept {
