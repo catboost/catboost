@@ -108,7 +108,7 @@ class PortManager(object):
         with self._lock:
             for attempts in six.moves.range(5):
                 for left, right in self._valid_range:
-                    for probe_port in six.moves.range(left, right + 1):
+                    for probe_port in six.moves.range(left, right):
                         if self._capture_port_no_lock(probe_port, socket.SOCK_STREAM):
                             candidates.append(probe_port)
                         else:
@@ -125,7 +125,7 @@ class PortManager(object):
     def _count_valid_ports(self):
         res = 0
         for left, right in self._valid_range:
-            res += right - left + 1
+            res += right - left
         assert res, ('There are no available valid ports', self._valid_range)
         return res
 
@@ -141,12 +141,11 @@ class PortManager(object):
             probe_port = (salt + attempt) % self._valid_port_count
 
             for left, right in self._valid_range:
-                if probe_port >= (right - left + 1):
-                    probe_port -= right - left + 1
+                if probe_port >= (right - left):
+                    probe_port -= right - left
                 else:
                     probe_port += left
                     break
-
             if not self._capture_port(probe_port, sock_type):
                 continue
             return probe_port
@@ -204,6 +203,10 @@ class PortManager(object):
 def get_valid_port_range():
     first_valid = 1025
     last_valid = UI16MAXVAL
+
+    given_range = os.environ.get('VALID_PORT_RANGE')
+    if given_range and ':' in given_range:
+        return [list(int(x) for x in given_range.split(':', 2))]
 
     first_eph, last_eph = get_ephemeral_range()
     first_invalid = max(first_eph, first_valid)

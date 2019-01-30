@@ -4,11 +4,11 @@
 #include <util/network/sock.h>
 #include <util/random/random.h>
 #include <util/stream/file.h>
+#include <util/string/iterator.h>
 #include <util/system/env.h>
 #include <util/system/file_lock.h>
 #include <util/system/fs.h>
 #include <util/system/mutex.h>
-#include <util/system/env.h>
 
 #ifdef _darwin_
 #include <sys/types.h>
@@ -121,8 +121,8 @@ public:
             port = (salt + attempt) % ValidPortsCount;
 
             for (auto&& range : ValidPortRanges) {
-                if (port >= range.second - range.first + 1)
-                    port -= range.second - range.first + 1;
+                if (port >= range.second - range.first)
+                    port -= range.second - range.first;
                 else {
                     port += range.first;
                     break;
@@ -197,22 +197,31 @@ private:
     }
 
     void InitValidPortRange() {
-        const ui16 first_valid = 1025;
-        const ui16 last_valid = (1 << 16) - 1;
-
-        auto ephemeral = GetEphemeralRange();
-        const ui16 first_invalid = std::max(ephemeral.first, first_valid);
-        const ui16 last_invalid = std::min(ephemeral.second, last_valid);
-
         ValidPortRanges.clear();
-        if (first_invalid > first_valid)
-            ValidPortRanges.emplace_back(first_valid, first_invalid - 1);
-        if (last_invalid < last_valid)
-            ValidPortRanges.emplace_back(last_invalid + 1, last_valid);
+
+        TString givenRange = GetEnv("VALID_PORT_RANGE");
+        if (givenRange.Contains(':')) {
+            auto res = StringSplitter(givenRange).SplitLimited(':', 2).ToList<TString>();
+            const ui16 first_valid = FromString<ui16>(res.front());
+            const ui16 last_valid = FromString<ui16>(res.back());
+            ValidPortRanges.emplace_back(first_valid, last_valid);
+        } else {
+            const ui16 first_valid = 1025;
+            const ui16 last_valid = (1 << 16) - 1;
+
+            auto ephemeral = GetEphemeralRange();
+            const ui16 first_invalid = std::max(ephemeral.first, first_valid);
+            const ui16 last_invalid = std::min(ephemeral.second, last_valid);
+
+            if (first_invalid > first_valid)
+                ValidPortRanges.emplace_back(first_valid, first_invalid - 1);
+            if (last_invalid < last_valid)
+                ValidPortRanges.emplace_back(last_invalid + 1, last_valid);
+        }
 
         ValidPortsCount = 0;
         for (auto&& range : ValidPortRanges)
-            ValidPortsCount += range.second - range.first + 1;
+            ValidPortsCount += range.second - range.first;
 
         Y_VERIFY(ValidPortsCount);
     }

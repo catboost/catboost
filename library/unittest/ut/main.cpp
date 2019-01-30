@@ -1,10 +1,11 @@
-#include <util/system/env.h>
-
+#include <library/unittest/gtest.h>
 #include <library/unittest/registar.h>
 #include <library/unittest/tests_data.h>
-#include <library/unittest/gtest.h>
+
 #include <util/generic/set.h>
 #include <util/network/sock.h>
+#include <util/system/env.h>
+#include <util/system/fs.h>
 
 TEST(GTest, Test1) {
     UNIT_ASSERT_EQUAL(1, 1);
@@ -115,6 +116,19 @@ Y_UNIT_TEST_SUITE(TPortManagerTest) {
 
         port = pm.GetPortsRange(anotherPort, 1);
         UNIT_ASSERT(port > anotherPort);
+    }
+
+    Y_UNIT_TEST(TestGivenValidPortRange) {
+        ui16 port = 0;
+        {
+            // We need to free provided port.
+            TPortManager pm(workDir);
+            port = pm.GetPort(0);
+        }
+        SetEnv("VALID_PORT_RANGE", ToString(port) + ":" + ToString(port + 1));
+        TPortManager pm(workDir);
+        UNIT_ASSERT_VALUES_EQUAL(pm.GetPort(0), port);
+        SetEnv("VALID_PORT_RANGE", "");
     }
 }
 
