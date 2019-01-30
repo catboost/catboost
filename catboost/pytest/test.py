@@ -1395,17 +1395,17 @@ def test_all_targets(loss_function, boosting_type, dev_score_calc_obj_block_size
         '-T', '4',
     )
 
-    traint_with_test_cmd = base_cmd + (
+    train_with_test_cmd = base_cmd + (
         '-t', data_file('adult', 'test_small'),
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
-    yatest.common.execute(traint_with_test_cmd)
+    yatest.common.execute(train_with_test_cmd)
 
     traint_without_test_cmd = base_cmd + (
         '-m', output_model_path_without_test,
     )
-    yatest.common.execute(traint_without_test_cmd)
+    yatest.common.execute(train_without_test_cmd)
 
     formula_predict_path = yatest.common.test_output_path('predict_test.eval')
     formula_predict_without_test_path = yatest.common.test_output_path('predict_without_test.eval')
