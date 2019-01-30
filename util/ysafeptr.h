@@ -393,16 +393,6 @@ inline bool IsValid(TMObj<T>* p) {
     return p->YouHaveMadeMistake();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-struct TPtrHash {
-    template <class T, class T1>
-    int operator()(const TPtrBase<T, T1>& a) const {
-        return (int)a.GetBarePtr();
-    }
-    int operator()(const void* pData) const {
-        return (int)(ptrdiff_t)pData;
-    }
-};
-////////////////////////////////////////////////////////////////////////////////////////////////////
 // assumes base class is IObjectBase
 template <class T>
 class TDynamicCast {

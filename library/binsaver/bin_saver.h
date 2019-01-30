@@ -261,7 +261,7 @@ private:
     // or serves as a sign that some object has been already stored - during storing
     bool StableOutput;
 
-    typedef THashMap<void*, ui32, TPtrHash> PtrIdHash;
+    typedef THashMap<void*, ui32> PtrIdHash;
     TAutoPtr<PtrIdHash> PtrIds;
 
     typedef THashMap<ui64, TPtr<IObjectBase>> CObjectsHash;

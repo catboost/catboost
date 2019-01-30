@@ -5,6 +5,7 @@
 #include <util/generic/vector.h>
 #include <util/ysafeptr.h>
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // factory is using RTTI
 // objects should inherit T and T must have at least 1 virtual function
@@ -16,7 +17,7 @@ public:
 private:
     typedef T* (*newFunc)();
     typedef THashMap<int, newFunc> CTypeNewHash;           // typeID->newFunc()
-    typedef THashMap<VFT, int, ::TPtrHash> CTypeIndexHash; // vftable->typeID
+    typedef THashMap<VFT, int> CTypeIndexHash; // vftable->typeID
 
     CTypeIndexHash typeIndex;
     CTypeNewHash typeInfo;
