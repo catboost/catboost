@@ -147,7 +147,7 @@ void SaveInMatrixnetFormat(
         for (size_t j = 0; j < schema.Borders[i].size(); ++j) {
             (*output)
                 << schema.FeatureIndices[i] << '\t'
-                << schema.Borders[i][j];
+                << FloatToString(schema.Borders[i][j], PREC_NDIGITS, 9);
 
             if (schema.NanModes[i] != ENanMode::Forbidden) {
                 (*output) << '\t' << schema.NanModes[i];

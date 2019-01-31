@@ -9,7 +9,7 @@ static const struct CatboostModel {
     unsigned int TreeDepth[2] = {6, 6};
     unsigned int TreeSplits[12] = {2, 6, 0, 9, 10, 8, 7, 5, 3, 11, 1, 4};
     unsigned int BorderCounts[50] = {0, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
-    float Borders[12] = {0.0013257549f, 0.130032f, 0.52136999f, 0.5f, 0.5f, 0.5f, 0.134183f, 0.5f, 0.5f, 2.3705601e-05f, 0.25077748f, 0.5f, };
+    float Borders[12] = {0.00132575491f, 0.130032003f, 0.521369994f, 0.5f, 0.5f, 0.5f, 0.134183004f, 0.5f, 0.5f, 2.37056011e-05f, 0.250777483f, 0.5f, };
 
     /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */
     double LeafValues[128] = {

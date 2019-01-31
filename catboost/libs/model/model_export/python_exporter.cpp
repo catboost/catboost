@@ -174,7 +174,7 @@ namespace NCatboost {
                 continue;
             }
             Out << indent << "["
-                << OutputArrayInitializer([&floatFeature](size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 8); }, floatFeature.Borders.size())
+                << OutputArrayInitializer([&floatFeature](size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 9); }, floatFeature.Borders.size())
                 << "]" << comma << '\n';
         }
         Out << --indent << "]" << '\n';
@@ -206,7 +206,7 @@ namespace NCatboost {
         comma.ResetCount(model.ObliviousTrees.CtrFeatures.size());
         for (const auto& ctrFeature : model.ObliviousTrees.CtrFeatures) {
             Out << indent << "["
-                << OutputArrayInitializer([&ctrFeature](size_t i) { return FloatToString(ctrFeature.Borders[i], PREC_NDIGITS, 16); }, ctrFeature.Borders.size())
+                << OutputArrayInitializer([&ctrFeature](size_t i) { return FloatToString(ctrFeature.Borders[i], PREC_NDIGITS, 9); }, ctrFeature.Borders.size())
                 << "]" << comma << '\n';
         }
         Out << --indent << "]" << '\n';

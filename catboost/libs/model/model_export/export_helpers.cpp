@@ -31,7 +31,7 @@ namespace NCatboostModelExportHelpers {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
-            outString << OutputArrayInitializer([&floatFeature, addFloatingSuffix] (size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 8) + (addFloatingSuffix ? "f" : ""); }, floatFeature.Borders.size()) << comma;
+            outString << OutputArrayInitializer([&floatFeature, addFloatingSuffix] (size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 9) + (addFloatingSuffix ? "f" : ""); }, floatFeature.Borders.size()) << comma;
         }
         return outString;
     }

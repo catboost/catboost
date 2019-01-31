@@ -40,11 +40,11 @@
         "uri": "file://test.test_coreml_import_export_CPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[CPU]": {
-        "checksum": "1ed87dc84068f53aa9ca675ef3f2862c",
+        "checksum": "6ebab557368769d9341ebf9b05e7d96a",
         "uri": "file://test.test_cpp_export_no_cat_features_CPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[CPU]": {
-        "checksum": "861d1ea0496322bac0dd1f3f1f51778f",
+        "checksum": "f952792899ba574539175a137180cda4",
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_ctr_target_border_count[CPU]": {
@@ -102,11 +102,11 @@
         "uri": "file://test.test_eval_set_with_no_target_CPU_/evals.txt"
     },
     "test.test_export_to_python_no_cat_features[CPU-2]": {
-        "checksum": "d7f762f8a08c01e3576d9ef83b63548a",
+        "checksum": "b295dae614b98c0ad1e8632549a30e83",
         "uri": "file://test.test_export_to_python_no_cat_features_CPU-2_/model.py"
     },
     "test.test_export_to_python_no_cat_features[CPU-40]": {
-        "checksum": "f3018c05ff18a7ec201c5a7a29659158",
+        "checksum": "c999d343ce91b7bb22ef7c9134f33e31",
         "uri": "file://test.test_export_to_python_no_cat_features_CPU-40_/model.py"
     },
     "test.test_export_to_python_with_cat_features[CPU-2]": {
@@ -114,7 +114,7 @@
         "uri": "file://test.test_export_to_python_with_cat_features_CPU-2_/model.py"
     },
     "test.test_export_to_python_with_cat_features[CPU-40]": {
-        "checksum": "cab5c155c26d99f8f1a05890a75b7c48",
+        "checksum": "e38712ef2bc6beb2e04a24025741d934",
         "uri": "file://test.test_export_to_python_with_cat_features_CPU-40_/model.py"
     },
     "test.test_export_to_python_with_cat_features_from_pandas[CPU]": {
@@ -214,15 +214,15 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[binclass]": {
-        "checksum": "22745bcc2095fb88a81d6e2486294ded",
+        "checksum": "9e4096b78271680af01acf4fa842c0cc",
         "uri": "file://test.test_onnx_export_binclass_/model.onnx"
     },
     "test.test_onnx_export[multiclass]": {
-        "checksum": "22d31349a1cc19cfadd9a8927f3394a7",
+        "checksum": "6ace4ca16a134fc5e37c8cd39bc9c0ae",
         "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
     },
     "test.test_onnx_export[regression]": {
-        "checksum": "e0f3bea998ccdd468c4154247198d08a",
+        "checksum": "b0e9ab3ef80d2db6ccbef0bc140272cb",
         "uri": "file://test.test_onnx_export_regression_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {

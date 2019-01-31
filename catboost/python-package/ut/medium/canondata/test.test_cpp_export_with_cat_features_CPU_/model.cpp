@@ -112,10 +112,10 @@ static const struct CatboostModel {
     std::vector<std::vector<float>> CtrFeatureBorders = {
         {13.999999f},
         {12.999999f},
-        {7.999999f, 9.999999f, 12.999999f},
-        {3.999999f},
-        {2.999999f, 6.999999f, 7.999999f, 11.999999f},
-        {8.999999f, 12.999999f}
+        {7.99999905f, 9.99999905f, 12.999999f},
+        {3.99999905f},
+        {2.99999905f, 6.99999905f, 7.99999905f, 11.999999f},
+        {8.99999905f, 12.999999f}
     };
 
     /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */
