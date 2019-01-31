@@ -549,6 +549,10 @@ struct TRegisterSaveLoadType {
     BASIC_REGISTER_CLASS(nmspace::className)              \
     static TRegisterSaveLoadType<nmspace::className> init_##nmspace##_##name##N(N);
 
+#define REGISTER_SAVELOAD_NM2_CLASS(N, nmspace1, nmspace2, className) \
+    BASIC_REGISTER_CLASS(nmspace1::nmspace2::className)              \
+    static TRegisterSaveLoadType<nmspace1::nmspace2::className> init_##nmspace1##_##nmspace2##_##name##N(N);
+
 #define REGISTER_SAVELOAD_TEMPL1_NM_CLASS(N, nmspace, className, T)       \
     typedef nmspace::className<T> temp_init##nmspace##className##T##temp; \
     BASIC_REGISTER_CLASS(nmspace::className<T>)                           \
