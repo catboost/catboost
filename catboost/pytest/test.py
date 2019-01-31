@@ -1790,7 +1790,7 @@ def test_fold_len_multiplier(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
+FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
@@ -1831,6 +1831,46 @@ def test_fstr(fstr_type, boosting_type):
     yatest.common.execute(fstr_cmd)
 
     return local_canonical_file(output_fstr_path)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_fstr_groupwise(boosting_type):
+    model_path = yatest.common.test_output_path('model.bin')
+    output_fstr_path = yatest.common.test_output_path('fstr.tsv')
+    train_fstr_path = yatest.common.test_output_path('t_fstr.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'PairLogit',
+        '-f', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '--one-hot-max-size', '10',
+        '--fstr-file', train_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+        '-m', model_path
+
+    )
+    yatest.common.execute(cmd)
+
+    fstr_cmd = (
+        CATBOOST_PATH,
+        'fstr',
+        '--input-path', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-m', model_path,
+        '-o', output_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    yatest.common.execute(fstr_cmd)
+
+    return [local_canonical_file(train_fstr_path), local_canonical_file(output_fstr_path)]
 
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)

@@ -777,13 +777,18 @@ void TrainModel(
             quantizedFeaturesInfo.Get());
     }
 
+    const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
+    const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
+    const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
+
     TrainModel(
         updatedTrainJson,
         outputOptions,
         quantizedFeaturesInfo,
         Nothing(),
         Nothing(),
-        evalOutputFileName.empty() ? std::move(pools) : pools,
+        needPoolAfterTrain ? pools : std::move(pools),
         "",
         nullptr,
         GetMutablePointers(evalResults),
@@ -838,14 +843,15 @@ void TrainModel(
         oneIterLogger.OutputProfile(profile.GetProfileResults());
     }
 
-    const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
-    const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
     if (needFstr) {
         TFullModel model = ReadModel(fullModelPath, modelFormat);
-
-        // no need to pass pool data because we always have LeafWeights stored in model now
-        CalcAndOutputFstr(model, nullptr, &executor, &fstrRegularFileName, &fstrInternalFileName);
+        CalcAndOutputFstr(
+            model,
+            outputOptions.GetFstrType() == EFstrType::LossFunctionChange ? pools.Learn : nullptr,
+            &executor,
+            &fstrRegularFileName,
+            &fstrInternalFileName,
+            outputOptions.GetFstrType());
     }
 
     const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();

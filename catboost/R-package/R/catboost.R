@@ -1500,11 +1500,11 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' The feature importance for the training dataset is calculated if this argument is not specified.
 #'
 #' Default value: NULL
-#' @param fstr_type The fstr type.
+#' @param type The feature importance type.
 #'
 #' Possible values:
 #' \itemize{
-#'   \item 'FeatureImportance'
+#'   \item 'PredictionValuesChange'
 #'
 #'     Calculate score for every feature.
 #'
@@ -1518,7 +1518,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #' }
 #'
-#' Default value: 'FeatureImportance'
+#' Default value: 'PredictionValuesChange'
 #' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
@@ -1526,30 +1526,33 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Default value: -1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
-catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = -1) {
+catboost.get_feature_importance <- function(model, pool = NULL, type = 'PredictionValuesChange', thread_count = -1, fstr_type = None) {
+    if (fstr_type != '')
+        type = fstr_type
+        warning("fstr_type option is deprecated, use type instead")
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (fstr_type == 'ShapValues' && length(pool) == 0)
-        stop("For `ShapValues` type of feature importance, the pool is required")
-    if (fstr_type == 'FeatureImportance' && is.null(pool) && !is.null(model$feature_importances))
+    if ((type == 'ShapValues' || type == 'LossFunctionChange') && length(pool) == 0)
+        stop("For `", type, ` type of feature importance, the pool is required")
+    if (type == 'PredictionValuesChange' && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, fstr_type, thread_count)
+    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, type, thread_count)
 
-    if (fstr_type == 'Interaction') {
+    if (type == 'Interaction') {
         colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
-    } else if (fstr_type == 'ShapValues') {
+    } else if (type == 'ShapValues') {
         colnames(importances) <- c(colnames(pool), "<base>")
-    } else if (fstr_type == 'FeatureImportance') {
+    } else if (type == 'PredictionValuesChange') {
         if (dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
     } else {
-        stop("Unknown fstr_type: ", fst_type);
+        stop("Unknown type: ", fst_type);
     }
     return(importances)
 }

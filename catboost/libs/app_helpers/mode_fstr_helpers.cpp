@@ -8,6 +8,7 @@
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/ptr.h>
+#include <util/generic/serialized_enum.h>
 #include <util/string/cast.h>
 #include <util/system/yassert.h>
 
@@ -67,11 +68,13 @@ void NCB::PrepareFstrModeParamsParser(
     params.BindParserOpts(parser);
     parser.FindLongOption("output-path")
         ->DefaultValue("feature_strength.tsv");
-    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, ShapValues")
+    const auto customFstrTypeDescription = TString::Join("Should be one of: ", GetEnumAllNames<EFstrType >());
+    parser.AddLongOption("fstr-type", customFstrTypeDescription)
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
         });
+
     parser.AddLongOption("verbose", "Log writing period")
         .DefaultValue("0")
         .Handler1T<TString>([&params](const TString& verbose) {
@@ -96,19 +99,29 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     TLazyPoolLoader poolLoader(params, model, localExecutor);
 
     switch (params.FstrType) {
-        case EFstrType::FeatureImportance:
+        case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               &params.OutputPath.Path,
-                              nullptr);
+                              nullptr,
+                              params.FstrType);
+            break;
+        case EFstrType::LossFunctionChange:
+            CalcAndOutputFstr(model,
+                              poolLoader(),
+                              localExecutor.Get(),
+                              &params.OutputPath.Path,
+                              nullptr,
+                              params.FstrType);
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               nullptr,
-                              &params.OutputPath.Path);
+                              &params.OutputPath.Path,
+                              params.FstrType);
             break;
         case EFstrType::Interaction:
             CalcAndOutputInteraction(model, &params.OutputPath.Path, nullptr);

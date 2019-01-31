@@ -1033,41 +1033,41 @@
             "uri": "file://test_gpu.test_fold_len_mult/test.eval"
         }
     ],
-    "test_gpu.test_fstr[Ordered-FeatureImportance]": {
-        "checksum": "b26b06fcc3ec29aaea490772ebc87a61",
-        "uri": "file://test_gpu.test_fstr_Ordered-FeatureImportance_/fstr.tsv"
-    },
     "test_gpu.test_fstr[Ordered-Interaction]": {
         "checksum": "ff5e9fa85414d6354a9c5ac6497121f1",
         "uri": "file://test_gpu.test_fstr_Ordered-Interaction_/fstr.tsv"
     },
     "test_gpu.test_fstr[Ordered-InternalFeatureImportance]": {
-        "checksum": "fca921c29b8f78758feff9e574286fb0",
+        "checksum": "aaca2a2e541b0dcfa98f810bb020eece",
         "uri": "file://test_gpu.test_fstr_Ordered-InternalFeatureImportance_/fstr.tsv"
     },
     "test_gpu.test_fstr[Ordered-InternalInteraction]": {
-        "checksum": "235ec0ee46af31dd96c110fdeb4951cb",
+        "checksum": "623ef23fa5b7938803ba2441e9888690",
         "uri": "file://test_gpu.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Ordered-PredictionValuesChange]": {
+        "checksum": "b26b06fcc3ec29aaea490772ebc87a61",
+        "uri": "file://test_gpu.test_fstr_Ordered-PredictionValuesChange_/fstr.tsv"
     },
     "test_gpu.test_fstr[Ordered-ShapValues]": {
         "checksum": "6332d3d9388669dc1c04feabc080b386",
         "uri": "file://test_gpu.test_fstr_Ordered-ShapValues_/fstr.tsv"
-    },
-    "test_gpu.test_fstr[Plain-FeatureImportance]": {
-        "checksum": "eb4aeaca0c34ccb9d7ee9eb57e58c9f6",
-        "uri": "file://test_gpu.test_fstr_Plain-FeatureImportance_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-Interaction]": {
         "checksum": "a745d65ef2eda889b2c12cd2b96f5f53",
         "uri": "file://test_gpu.test_fstr_Plain-Interaction_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-InternalFeatureImportance]": {
-        "checksum": "832c0ef6f9227a0219e7ae517403924a",
+        "checksum": "577824903121c1b214e00d323f7dc49d",
         "uri": "file://test_gpu.test_fstr_Plain-InternalFeatureImportance_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-InternalInteraction]": {
-        "checksum": "20ccd45efcbd221e187fc754d24af223",
+        "checksum": "987b04fff4eac2c3136cf86988b34a25",
         "uri": "file://test_gpu.test_fstr_Plain-InternalInteraction_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-PredictionValuesChange]": {
+        "checksum": "eb4aeaca0c34ccb9d7ee9eb57e58c9f6",
+        "uri": "file://test_gpu.test_fstr_Plain-PredictionValuesChange_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-ShapValues]": {
         "checksum": "51ba895979c8fb7cf6cea90122ab50c0",

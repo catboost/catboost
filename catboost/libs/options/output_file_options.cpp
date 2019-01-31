@@ -78,6 +78,7 @@ NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions()
     , EvalFileName("eval_file_name", "")
     , FstrRegularFileName("fstr_regular_file", "")
     , FstrInternalFileName("fstr_internal_file", "")
+    , FstrType("fstr_type", EFstrType::PredictionValuesChange)
     , TrainingOptionsFileName("training_options_file", "")
     , SnapshotSaveIntervalSeconds("snapshot_interval", 10 * 60)
     , OutputBordersFileName("output_borders", "")
@@ -214,6 +215,10 @@ TString NCatboostOptions::TOutputFilesOptions::CreateFstrIternalFullPath() const
     return GetFullPath(FstrInternalFileName.Get());
 }
 
+EFstrType NCatboostOptions::TOutputFilesOptions::GetFstrType() const {
+    return FstrType.Get();
+}
+
 TString NCatboostOptions::TOutputFilesOptions::CreateTrainingOptionsFullPath() const {
     return GetFullPath(TrainingOptionsFileName.Get());
 }
@@ -231,7 +236,7 @@ bool NCatboostOptions::TOutputFilesOptions::operator==(const TOutputFilesOptions
             TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
             TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
             AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
-            SnapshotSaveIntervalSeconds, EvalFileName, FstrRegularFileName, FstrInternalFileName,
+            SnapshotSaveIntervalSeconds, EvalFileName, FstrRegularFileName, FstrInternalFileName, FstrType,
             TrainingOptionsFileName, OutputBordersFileName, RocOutputPath
             ) == std::tie(
                 rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath,
@@ -239,7 +244,7 @@ bool NCatboostOptions::TOutputFilesOptions::operator==(const TOutputFilesOptions
                 rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag, rhs.AllowWriteFilesFlag,
                 rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.BestModelMinTrees,
                 rhs.SnapshotSaveIntervalSeconds, rhs.EvalFileName, rhs.FstrRegularFileName,
-                rhs.FstrInternalFileName, rhs.TrainingOptionsFileName, rhs.OutputBordersFileName,
+                rhs.FstrInternalFileName, rhs.FstrType, rhs.TrainingOptionsFileName, rhs.OutputBordersFileName,
                 rhs.RocOutputPath
                 );
 }
@@ -271,7 +276,7 @@ void NCatboostOptions::TOutputFilesOptions::Save(NJson::TJsonValue* options) con
             TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
             AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
             SnapshotSaveIntervalSeconds, EvalFileName, OutputColumns, FstrRegularFileName,
-            FstrInternalFileName, TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes,
+            FstrInternalFileName, FstrType, TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes,
             OutputBordersFileName, RocOutputPath
             );
 }

@@ -25,7 +25,7 @@ namespace NCB {
 
         TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
         TVector<TString> OutputColumnsIds = {"DocId", "RawFormulaVal"};
-        EFstrType FstrType = EFstrType::FeatureImportance;
+        EFstrType FstrType = EFstrType::PredictionValuesChange;
         TVector<TString> ClassNames;
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 

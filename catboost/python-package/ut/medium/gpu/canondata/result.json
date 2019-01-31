@@ -110,11 +110,11 @@
         "uri": "file://test.test_export_to_python_with_cat_features_GPU-40_/model.py"
     },
     "test.test_feature_importance[GPU]": {
-        "checksum": "608696584666b1b21845435136608c52",
+        "checksum": "92d0b26ab371909bb3279707a16a71b8",
         "uri": "file://test.test_feature_importance_GPU_/feature_importance.npy"
     },
     "test.test_feature_importance_explicit[GPU]": {
-        "checksum": "608696584666b1b21845435136608c52",
+        "checksum": "92d0b26ab371909bb3279707a16a71b8",
         "uri": "file://test.test_feature_importance_explicit_GPU_/feature_importance.npy"
     },
     "test.test_feature_importance_prettified[GPU]": {

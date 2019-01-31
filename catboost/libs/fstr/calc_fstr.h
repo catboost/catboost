@@ -56,11 +56,16 @@ struct TFeature {
     ESplitType Type;
     int FeatureIdx;
     TModelCtr Ctr;
-    const size_t FloatFeatureBaseHash = 12321;
-    const size_t CtrBaseHash = 89321;
-    const size_t OneHotFeatureBaseHash = 517931;
+    static constexpr size_t FloatFeatureBaseHash = 12321;
+    static constexpr size_t CtrBaseHash = 89321;
+    static constexpr size_t OneHotFeatureBaseHash = 517931;
 
 public:
+    TFeature() = default;
+    TFeature(const TFloatFeature& feature) : Type(ESplitType::FloatFeature), FeatureIdx(feature.FeatureIndex) {}
+    TFeature(const TOneHotFeature& feature) : Type(ESplitType::OneHotFeature), FeatureIdx(feature.CatFeatureIndex) {}
+    TFeature(const TCtrFeature& feature) : Type(ESplitType::OnlineCtr), Ctr(feature.Ctr) {}
+
     bool operator==(const TFeature& other) const {
         if (Type != other.Type) {
             return false;
@@ -102,15 +107,18 @@ public:
 TVector<std::pair<double, TFeature>> CalcFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
+    EFstrType type,
     NPar::TLocalExecutor* localExecutor);
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
     int catFeaturesCount,
     int floatFeaturesCount);
+
 TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
+    EFstrType type,
     NPar::TLocalExecutor* localExecutor);
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);

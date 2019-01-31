@@ -206,6 +206,14 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["fstr_regular_file"] = name;
         });
 
+    const auto customFstrTypeDescription = TString::Join(
+            "Should be one of: ", GetEnumAllNames<EFstrType >());
+    parser.AddLongOption("fstr-type", customFstrTypeDescription)
+        .RequiredArgument("fstr-type")
+        .Handler1T<TString>([plainJsonPtr](const TString& name) {
+            (*plainJsonPtr)["fstr_type"] = name;
+        });
+
     parser.AddLongOption("fstr-internal-file", "Save internal fstr values to this file")
         .RequiredArgument("filename")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {

@@ -191,7 +191,8 @@ enum class EPredictionType {
 };
 
 enum class EFstrType {
-    FeatureImportance,
+    PredictionValuesChange  /* "PredictionValuesChange", "FeatureImportance" */,
+    LossFunctionChange,
     InternalFeatureImportance,
     Interaction,
     InternalInteraction,

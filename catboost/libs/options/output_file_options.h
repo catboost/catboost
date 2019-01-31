@@ -85,6 +85,8 @@ namespace NCatboostOptions {
 
         TString CreateFstrIternalFullPath() const;
 
+        EFstrType GetFstrType() const;
+
         TString CreateTrainingOptionsFullPath() const;
 
         TString CreateEvalFullPath() const;
@@ -119,6 +121,7 @@ namespace NCatboostOptions {
         TOption<TString> EvalFileName;
         TOption<TString> FstrRegularFileName;
         TOption<TString> FstrInternalFileName;
+        TOption<EFstrType> FstrType;
         TOption<TString> TrainingOptionsFileName;
 
         TOption<ui64> SnapshotSaveIntervalSeconds;

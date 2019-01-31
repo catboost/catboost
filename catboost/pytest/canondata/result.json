@@ -2091,10 +2091,6 @@
             "uri": "file://test.test_fold_len_multiplier_calc_block=60-Plain_/test.eval"
         }
     ],
-    "test.test_fstr[Ordered-FeatureImportance]": {
-        "checksum": "1aadd505d015c98e41c47d7af69e1c72",
-        "uri": "file://test.test_fstr_Ordered-FeatureImportance_/fstr.tsv"
-    },
     "test.test_fstr[Ordered-Interaction]": {
         "checksum": "fa3858f4be8a27adb2bf5b946b6c005f",
         "uri": "file://test.test_fstr_Ordered-Interaction_/fstr.tsv"
@@ -2107,13 +2103,13 @@
         "checksum": "0904ab1d923c4551ad54e22b5d53c4b1",
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
+    "test.test_fstr[Ordered-PredictionValuesChange]": {
+        "checksum": "1aadd505d015c98e41c47d7af69e1c72",
+        "uri": "file://test.test_fstr_Ordered-PredictionValuesChange_/fstr.tsv"
+    },
     "test.test_fstr[Ordered-ShapValues]": {
         "checksum": "3eb74d8dd39e625617d7b88fdb80d3d0",
         "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
-    },
-    "test.test_fstr[Plain-FeatureImportance]": {
-        "checksum": "a979f00be67d5c820bc1ceca64da15c3",
-        "uri": "file://test.test_fstr_Plain-FeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-Interaction]": {
         "checksum": "437aea5cc74e5b705790507d1536791e",
@@ -2127,10 +2123,34 @@
         "checksum": "3d97dd730ef70aca7fb922d66bf49daf",
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
+    "test.test_fstr[Plain-PredictionValuesChange]": {
+        "checksum": "a979f00be67d5c820bc1ceca64da15c3",
+        "uri": "file://test.test_fstr_Plain-PredictionValuesChange_/fstr.tsv"
+    },
     "test.test_fstr[Plain-ShapValues]": {
         "checksum": "ef9fa3d8dcbe91d61e020e9ddce31870",
         "uri": "file://test.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
+    "test.test_fstr_groupwise[Ordered]": [
+        {
+            "checksum": "747ad4c3a611e0024776cc57f35fedec",
+            "uri": "file://test.test_fstr_groupwise_Ordered_/t_fstr.tsv"
+        },
+        {
+            "checksum": "a86b978748b87f37f18484667f728456",
+            "uri": "file://test.test_fstr_groupwise_Ordered_/fstr.tsv"
+        }
+    ],
+    "test.test_fstr_groupwise[Plain]": [
+        {
+            "checksum": "4799428b5b30970a8b7b40c0947d7540",
+            "uri": "file://test.test_fstr_groupwise_Plain_/t_fstr.tsv"
+        },
+        {
+            "checksum": "3e9d6339a964c468df7b1b564b0c9dc4",
+            "uri": "file://test.test_fstr_groupwise_Plain_/fstr.tsv"
+        }
+    ],
     "test.test_gradient[calc_block=5000000-Ordered]": [
         {
             "checksum": "712b4036fc4099be64c466cc4eeb97df",

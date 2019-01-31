@@ -29,7 +29,7 @@ public:
 };
 
 struct TShapPreparedTrees {
-    TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees;
+    TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
     TVector<TVector<double>> MeanValuesForAllTrees;
 
 public:
@@ -58,6 +58,13 @@ void CalcShapValuesForDocumentMulti(
 );
 
 TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
+TShapPreparedTrees PrepareTrees(
+        const TFullModel& model,
+        const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
+        int logPeriod,
+        NPar::TLocalExecutor* localExecutor,
+        bool calcInternalValues = false
+);
 
 // returned: ShapValues[documentIdx][dimenesion][feature]
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
@@ -82,4 +89,17 @@ void CalcAndOutputShapValues(
     const TString& outputPath,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor
+);
+
+void CalcShapValuesInternalForFeature(
+        TShapPreparedTrees& preparedTrees,
+        const TFullModel& model,
+        const NCB::TDataProvider& dataset,
+        int logPeriod,
+        ui32 start,
+        ui32 end,
+        ui32 featuresCount,
+        const NCB::TRawObjectsDataProvider* rawObjectsData,
+        TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
+        NPar::TLocalExecutor* localExecutor
 );

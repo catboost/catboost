@@ -164,12 +164,14 @@ def enum_from_enum_or_str(enum_type, arg):
 
 
 class EFstrType(Enum):
-    """Calculate score for every feature."""
-    FeatureImportance = 0
+    """Calculate score for every feature by values change."""
+    PredictionValuesChange = 0
+    """Calculate score for every feature by loss change"""
+    LossFunctionChange = 1
     """Calculate pairwise score between every feature."""
-    Interaction = 1
+    Interaction = 2
     """Calculate SHAP Values for every object."""
-    ShapValues = 2
+    ShapValues = 3
 
 
 class Pool(_PoolBase):
@@ -1134,7 +1136,7 @@ class CatBoost(_CatBoostBase):
         setattr(
             self,
             "_feature_importance",
-            self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
+            self.get_feature_importance(train_pool, EFstrType.PredictionValuesChange)
         )
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
@@ -1478,19 +1480,19 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
-    def get_feature_importance(self, data=None, fstr_type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False):
+    def get_feature_importance(self, data=None, fstr_type=EFstrType.PredictionValuesChange, prettified=False, thread_count=-1, verbose=False):
         """
         Parameters
         ----------
         data : catboost.Pool or None
             Data to get feature importance.
             If type == Shap data is a dataset. For every object in this dataset feature importances will be calculated.
-            If type == 'FeatureImportance', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+            If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
         fstr_type : EFStrType or string (deprecated, converted to EFstrType), optional
-                    (default=EFstrType.FeatureImportance)
+                    (default=EFstrType.PredictionValuesChange)
             Possible values:
-                - FeatureImportance
+                - PredictionValuesChange
                     Calculate score for every feature.
                 - ShapValues
                     Calculate SHAP Values for every object.
@@ -1498,7 +1500,7 @@ class CatBoost(_CatBoostBase):
                     Calculate pairwise score between every feature.
 
         prettified : bool, optional (default=False)
-            used only for FeatureImportance fstr_type
+            used only for PredictionValuesChange fstr_type
             change returned data format to the list of (feature_id, importance) pairs sorted by importance
 
         thread_count : int, optional (default=-1)
@@ -1514,9 +1516,9 @@ class CatBoost(_CatBoostBase):
         Returns
         -------
         depends on fstr_type:
-            - FeatureImportance with prettified=False (default)
+            - PredictionValuesChange with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
-            - FeatureImportance with prettified=True
+            - PredictionValuesChange with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
                 np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
@@ -1534,7 +1536,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError('verbose should be non-negative.')
 
         fstr_type = enum_from_enum_or_str(EFstrType, fstr_type)
-        empty_data_is_ok = (((fstr_type == EFstrType.FeatureImportance) and self._object._has_leaf_weights_in_model())
+        empty_data_is_ok = (((fstr_type == EFstrType.PredictionValuesChange) and self._object._has_leaf_weights_in_model())
                             or (fstr_type == EFstrType.Interaction))
         if not empty_data_is_ok:
             if not isinstance(data, Pool):
@@ -1544,7 +1546,7 @@ class CatBoost(_CatBoostBase):
 
         with log_fixup():
             fstr, feature_names = self._calc_fstr(fstr_type, data, thread_count, verbose)
-        if fstr_type == EFstrType.FeatureImportance:
+        if fstr_type == EFstrType.PredictionValuesChange or fstr_type == EFstrType.LossFunctionChange:
             feature_importances = [value[0] for value in fstr]
             if prettified:
                 return sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)

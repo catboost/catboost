@@ -122,11 +122,11 @@
         "uri": "file://test.test_export_to_python_with_cat_features_from_pandas_CPU_/model.py"
     },
     "test.test_feature_importance[CPU]": {
-        "checksum": "4a26cdc83f09a19c62302a0602372ff2",
+        "checksum": "ffa34024091a977ce9d40137ada9aedc",
         "uri": "file://test.test_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_feature_importance_explicit[CPU]": {
-        "checksum": "4a26cdc83f09a19c62302a0602372ff2",
+        "checksum": "ffa34024091a977ce9d40137ada9aedc",
         "uri": "file://test.test_feature_importance_explicit_CPU_/feature_importance.npy"
     },
     "test.test_feature_importance_prettified[CPU]": {
@@ -292,7 +292,7 @@
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_shap_multiclass[CPU]": {
-        "checksum": "c3120f7d1a2ea462d149e36cc2aa8ee6",
+        "checksum": "4cb55a79821c698f9c19a3072aaa46e6",
         "uri": "file://test.test_shap_multiclass_CPU_/feature_importance.txt"
     },
     "test.test_staged_predict[CPU]": {

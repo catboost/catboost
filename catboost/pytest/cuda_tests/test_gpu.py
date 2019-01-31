@@ -995,7 +995,7 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
             local_canonical_file(borders_file, diff_tool=diff_tool())]
 
 
-FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
+FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)

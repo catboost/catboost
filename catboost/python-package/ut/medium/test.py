@@ -1688,6 +1688,7 @@ def test_feature_importance(task_type):
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.feature_importances_))
+    print(model.feature_importances_)
     return local_canonical_file(fimp_npy_path)
 
 
@@ -1696,7 +1697,7 @@ def test_feature_importance_explicit(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.FeatureImportance)))
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.PredictionValuesChange)))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -1705,7 +1706,7 @@ def test_feature_importance_prettified(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
 
-    feature_importances = model.get_feature_importance(fstr_type=EFstrType.FeatureImportance, prettified=True)
+    feature_importances = model.get_feature_importance(fstr_type=EFstrType.PredictionValuesChange, prettified=True)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     with open(fimp_txt_path, 'w') as ofile:
         for f_id, f_imp in feature_importances:
