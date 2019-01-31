@@ -2219,3 +2219,18 @@ def test_ctr_target_quantization(border_count, boosting_type):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+def test_train_on_quantized_pool_with_large_grid():
+    # Dataset with 2 random columns, first is Target, second is Num, used Uniform grid with 10000
+    # borders
+    #
+    # There are 20 rows in a dataset.
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '--task-type', 'GPU',
+        '-f', 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
+        '-t', 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
+        '-i', '10')
+
+    yatest.common.execute(cmd)
