@@ -416,7 +416,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     TString cmd = UseShell ? "cmd /A /Q /S /C \"" + qcmd + "\"" : qcmd;
     // winapi can modify command text, copy it
 
-    Y_ENSURE(cmd.size() < MAX_COMMAND_LINE, AsStringBuf("Command is too long"));
+    Y_ENSURE_EX(cmd.size() < MAX_COMMAND_LINE, yexception() << "Command is too long (length=" << cmd.size() << ")");
     TTempArray<wchar_t> cmdcopy(MAX_COMMAND_LINE);
     Copy(cmd.data(), cmd.data() + cmd.size(), cmdcopy.Data());
     *(cmdcopy.Data() + cmd.size()) = 0;
