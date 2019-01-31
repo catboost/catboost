@@ -16,7 +16,6 @@
         "ymake": { "description": "Run ymake", "visible": false },
         "ymake_dev": { "description": "Run ymake dev version", "visible": false },
         "test_tool": { "description": "Test tools for tests", "visible": false },
-        "coverage_uploader": { "description": "Coverage uploader to YT", "visible": false },
         "maven_import_sandbox_uploader": { "description": "Sandbox uploader for maven-import cmd", "visible": false },
         "cmake": { "description": "Run cmake" },
         "ninja": { "description": "Run ninja" },
@@ -307,17 +306,6 @@
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
                 {"host": {"os": "FREEBSD"}, "default": true},
-                {"host": {"os": "WIN"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true},
-                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
-            ]
-        },
-        "coverage_uploader": {
-            "tools": {
-                "coverage_uploader": { "bottle": "coverage_uploader", "executable": "coverage_uploader" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
@@ -1363,15 +1351,6 @@
             },
             "executable": {
                 "test_tool": ["test_tool"]
-            }
-        },
-        "coverage_uploader": {
-            "formula": {
-                "sandbox_id": 296620226,
-                "match": "coverage_uploader"
-            },
-            "executable": {
-                "coverage_uploader": ["coverage_uploader"]
             }
         },
         "maven_import_sandbox_uploader": {
