@@ -14,6 +14,7 @@ PY_SRCS(
     TOP_LEVEL
     dateutil/__init__.py
     dateutil/_common.py
+    dateutil/_version.py
     dateutil/easter.py
     dateutil/parser/__init__.py
     dateutil/parser/_parser.py
