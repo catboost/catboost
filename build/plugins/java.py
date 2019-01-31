@@ -68,6 +68,7 @@ def onjava_module(unit, *args):
     args_delim = unit.get('ARGS_DELIM')
 
     data = {
+        'BUNDLE_NAME': unit.name(),
         'PATH': unit.path(),
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
