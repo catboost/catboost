@@ -952,15 +952,15 @@ namespace {
             insert("::1");
         }
 
-        inline bool IsLocalName(TStringBuf name) const noexcept {
+        inline bool IsLocalName(const char* name) const noexcept {
             struct sockaddr_in sa;
             memset(&sa, 0, sizeof(sa));
 
-            if (inet_pton(AF_INET, name.c_str(), &(sa.sin_addr)) == 1) {
+            if (inet_pton(AF_INET, name, &(sa.sin_addr)) == 1) {
                 return (InetToHost(sa.sin_addr.s_addr) >> 24) == 127;
             }
 
-            return find(name) != end();
+            return contains(name);
         }
     };
 }
