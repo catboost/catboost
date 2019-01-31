@@ -1,0 +1,18 @@
+LIBRARY()
+
+LICENSE(
+    BSD
+)
+
+NO_PLATFORM()
+NO_RUNTIME()
+NO_UTIL()
+NO_COMPILER_WARNINGS()
+
+
+
+SRCS(
+    ifaddrs.c
+)
+
+END()

@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    android_ifaddrs
     base64
     brotli
     clapack
