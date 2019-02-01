@@ -7,7 +7,6 @@ import sys
 import tempfile
 
 
-# GO_FAKEID = snermolaev.181226.102500
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
@@ -144,8 +143,10 @@ def do_link_exe(args):
     call(cmd, args.build_root)
 
 
-def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
-    test_module_path = test_lib_args.module_path
+def gen_test_main(args, test_lib_args, xtest_lib_args):
+    assert args and (test_lib_args or xtest_lib_args)
+    test_miner = args.test_miner
+    test_module_path = test_lib_args.module_path if test_lib_args else xtest_lib_args.module_path
 
     # Prepare GOPATH
     # $BINDIR
@@ -153,28 +154,28 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
     #        |- src
     #        |- pkg
     #            |- ${TARGET_OS}_${TARGET_ARCH}
-    go_path_root = os.path.join(test_lib_args.output_root, '__go__')
+    go_path_root = os.path.join(args.output_root, '__go__')
     test_src_dir = os.path.join(go_path_root, 'src')
-    target_os_arch = '_'.join([test_lib_args.targ_os, test_lib_args.targ_arch])
+    target_os_arch = '_'.join([args.targ_os, args.targ_arch])
     test_pkg_dir = os.path.join(go_path_root, 'pkg', target_os_arch, os.path.dirname(test_module_path))
     os.makedirs(test_pkg_dir)
 
     my_env = os.environ.copy()
     my_env['GOROOT'] = ''
     my_env['GOPATH'] = go_path_root
-    my_env['GOARCH'] = test_lib_args.targ_arch
-    my_env['GOOS'] = test_lib_args.targ_os
+    my_env['GOARCH'] = args.targ_arch
+    my_env['GOOS'] = args.targ_os
 
     tests = []
     xtests = []
+    os_symlink = get_symlink_or_copyfile()
 
     # Get the list of "internal" tests
-    os.makedirs(os.path.join(test_src_dir, test_module_path))
-    os_symlink = get_symlink_or_copyfile()
-    os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
-    cmd = [test_miner, '-tests', test_module_path]
-    tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
-    test_main_found = '#TestMain' in tests
+    if test_lib_args:
+        os.makedirs(os.path.join(test_src_dir, test_module_path))
+        os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
+        cmd = [test_miner, '-tests', test_module_path]
+        tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
 
     # Get the list of "external" tests
     if xtest_lib_args:
@@ -183,6 +184,8 @@ def gen_test_main(test_miner, test_lib_args, xtest_lib_args):
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-tests', xtest_module_path]
         xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
+
+    test_main_found = '#TestMain' in tests + xtests
 
     shutil.rmtree(go_path_root)
 
@@ -225,16 +228,19 @@ import (
 
 
 def do_link_test(args):
+    assert args.srcs or args.xtest_srcs
     assert args.test_miner is not None
-    assert args.test_import_path is not None
 
-    test_import_path, _ = get_import_path(args.test_import_path)
+    test_import_path, _ = get_import_path(args.test_import_path or args.module_path)
 
-    test_lib_args = copy_args(args)
-    test_lib_args.output = os.path.join(args.output_root, 'test.a')
-    test_lib_args.module_path = test_import_path
-    do_link_lib(test_lib_args)
+    test_lib_args = None
     xtest_lib_args = None
+
+    if args.srcs:
+        test_lib_args = copy_args(args)
+        test_lib_args.output = os.path.join(args.output_root, 'test.a')
+        test_lib_args.module_path = test_import_path
+        do_link_lib(test_lib_args)
 
     if args.xtest_srcs:
         xtest_lib_args = copy_args(args)
@@ -242,18 +248,24 @@ def do_link_test(args):
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
         xtest_lib_args.module_path = test_import_path + '_test'
-        assert test_lib_args.output.startswith(args.build_root)
-        xtest_lib_args.module_map[test_import_path] = test_lib_args.output
+        if test_lib_args:
+            xtest_lib_args.module_map[test_import_path] = test_lib_args.output
         do_link_lib(xtest_lib_args)
 
-    test_main_content = gen_test_main(args.test_miner, test_lib_args, xtest_lib_args)
+    test_main_content = gen_test_main(args, test_lib_args, xtest_lib_args)
     test_main_name = os.path.join(args.output_root, '_test_main.go')
     with open(test_main_name, "w") as f:
         f.write(test_main_content)
     test_args = copy_args(args)
     test_args.srcs = [test_main_name]
+    if test_args.test_import_path is None:
+        # it seems that we can do it unconditionally, but this kind
+        # of mangling doesn't really looks good to me and we leave it
+        # for pure GO_TEST module
+        test_args.module_path = test_args.module_path + '___test_main__'
     classify_srcs(test_args.srcs, test_args)
-    test_args.module_map[test_import_path] = test_lib_args.output
+    if test_lib_args:
+        test_args.module_map[test_import_path] = test_lib_args.output
     if xtest_lib_args:
         test_args.module_map[test_import_path + '_test'] = xtest_lib_args.output
     do_link_exe(test_args)
@@ -262,7 +274,7 @@ def do_link_test(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prefix_chars='+')
     parser.add_argument('++mode', choices=['lib', 'exe', 'test'], required=True)
-    parser.add_argument('++srcs', nargs='+', required=True)
+    parser.add_argument('++srcs', nargs='*', required=True)
     parser.add_argument('++xtest_srcs', nargs='*')
     parser.add_argument('++output', nargs='?', default=None)
     parser.add_argument('++build-root', required=True)
