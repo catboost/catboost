@@ -18,6 +18,8 @@
 #include <sys/user.h>
 #elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
 #include <libproc.h>
+#elif defined(__MACH__) && defined(__APPLE__)
+#include <mach/mach.h>
 #endif
 #elif defined(_win_)
 #include <Windows.h>
@@ -149,6 +151,18 @@ namespace NMemInfo {
         }
         result.VMS = taskInfo.pti_virtual_size;
         result.RSS = taskInfo.pti_resident_size;
+#elif defined(__MACH__) && defined(__APPLE__)
+        struct mach_task_basic_info taskInfo;
+        mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
+
+        const int r = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&taskInfo, &infoCount);
+        if (r != KERN_SUCCESS) {
+            int err = errno;
+            TString errtxt = LastSystemErrorText(err);
+            ythrow yexception() << "task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &infoCount) returned" << r << ", errno: " << err << " (" << errtxt << ")" << Endl;
+        }
+        result.VMS = taskInfo.virtual_size;
+        result.RSS = taskInfo.resident_size;
 #elif defined(_arm_)
         ythrow yexception() << "arm is not supported";
 #endif
