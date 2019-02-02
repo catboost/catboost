@@ -290,3 +290,18 @@ Reference:
 * Quantization function that accepts weights is here: <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/library/grid_creator/binarization.cpp#L640>
 
 
+24. 
+Add `SampleId` as a main name for sample id column in a column description file.
+
+CatBoost has [a dsv-based file format](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_values-file-docpage/) with columns' details that could be specified in a separate ['column descriptions' file](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_column-descfile-docpage/). 
+
+One of the possible column types is now called `DocId`. It can contain a custom alphanumeric object identifier. The name `DocId` is used for historical reasons because it has been used for cases when samples in a dataset are documents for web search engine ranking. It is more approriate to have a more generally applicable name for this column (while keeping current `DocId` identifier for compatibility).
+
+The task is to rename `DocId` column name to `SampleId` in a column description file (but retain current `DocId` as a synomym for compatibility).
+
+Reference:
+
+* Column types are stored here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/column.h#L8-L22>. Function `TryFromString` to convert enum `EColumn` to `TString` is generated automatically because of `GENERATE_ENUM_SERIALIZATION` setting in `ya.make` [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/ya.make#L16) 
+* Column description file parsing is implemented here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L29>. See how current synonyms are handled [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L66-L71)
+* Column name handling to process synonyms should also be added in `eval_result` output columns specification processing in [this file](https://github.com/catboost/catboost/blob/master/catboost/libs/eval_result/eval_result.cpp):  
+

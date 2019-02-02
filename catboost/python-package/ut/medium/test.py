@@ -699,17 +699,6 @@ def test_fit_from_empty_features_data(task_type):
         )
 
 
-def test_zero_learning_rate(task_type):
-    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({
-        'learning_rate': 0.0,
-        'loss_function': 'RMSE',
-        'task_type': task_type,
-        'devices': '0'})
-    with pytest.raises(CatboostError, message='Learning rate should be non-zero'):
-        model.fit(train_pool)
-
-
 def test_coreml_import_export(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
