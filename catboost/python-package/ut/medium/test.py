@@ -3664,3 +3664,34 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
     )
     with pytest.raises(CatboostError):
         model.fit(train_pool, eval_set=eval_set_pool)
+
+
+def test_model_comparison():
+    def fit_model(iterations):
+        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        model = CatBoostClassifier(iterations=iterations)
+        model.fit(pool)
+        return model
+
+    model0 = CatBoostClassifier()
+    model1 = fit_model(42)
+    model2 = fit_model(5)
+
+    # Test checks that model is fitted.
+    with pytest.raises(CatboostError):
+        model1 == model0
+
+    with pytest.raises(CatboostError):
+        model0 == model1
+
+    # Trained model must not equal to object of other type.
+    assert model1 != 42
+    assert not (model1 == 'hello')
+
+    # Check identity.
+    assert model1 == model1
+    assert not (model1 != model1)
+
+    # Check equality to other model.
+    assert not (model1 == model2)
+    assert (model1 != model2)

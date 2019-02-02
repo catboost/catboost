@@ -498,6 +498,9 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
 
+        bool_t operator==(const TFullModel& other) except +ProcessException
+        bool_t operator!=(const TFullModel& other) except +ProcessException
+
         THashMap[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
@@ -2262,6 +2265,12 @@ cdef class _CatBoost:
         del self.__model
         for i in range(self.__test_evals.size()):
             del self.__test_evals[i]
+
+    def __eq__(self, _CatBoost other):
+        return self.__model == other.__model
+
+    def __neq__(self, _CatBoost other):
+        return self.__model != other.__model
 
     cpdef _reserve_test_evals(self, num_tests):
         if self.__test_evals.size() < num_tests:
