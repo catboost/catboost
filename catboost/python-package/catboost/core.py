@@ -833,8 +833,11 @@ class _CatBoostBase(object):
     def _is_comparable_to(self, rhs):
         if not isinstance(rhs, _CatBoostBase):
             return False
-        if not self.is_fitted() or not rhs.is_fitted():
-            raise ValueError('Both lhs and rhs must be trained.')
+        for side, estimator in [('left', self), ('right', rhs)]:
+            if not estimator.is_fitted():
+                message = 'The {} argument is not fitted, only fitted models' \
+                          ' could be compared.'
+                raise CatboostError(message.format(side))
         return True
 
     def _set_trained_model_attributes(self):
