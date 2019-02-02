@@ -1913,7 +1913,7 @@ cdef class _PoolBase:
         self.__pool = data_provider_builder.Get()[0].GetResult()
 
 
-    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
+    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, sure_no_features_copy):
         if group_weight is not None and weight is not None:
             raise CatboostError('Pool must have either weight or group_weight.')
 
@@ -1942,6 +1942,9 @@ cdef class _PoolBase:
             if isinstance(data, np.ndarray) and data.dtype == np.float32:
                 if data.flags.aligned and data.flags.f_contiguous:
                     do_use_raw_data_in_features_order = True
+        if do_use_raw_data_in_features_order == False and sure_no_features_copy == True:
+            raise CatboostError('No all methods that accept features data as parameters ensure that zero-copy implementation.')
+
 
         if do_use_raw_data_in_features_order:
             self._init_features_order_layout_pool(
