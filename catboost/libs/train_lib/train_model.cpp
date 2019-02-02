@@ -690,10 +690,10 @@ static void TrainModel(
 
     if (outputOptions.NeedSaveBorders()) {
         if (outputOptions.GetTrainDir()) {
-          TFsPath dirPath(outputOptions.GetTrainDir());
-          if (!dirPath.Exists()) {
-              dirPath.MkDirs();
-          }
+            TFsPath dirPath(outputOptions.GetTrainDir());
+            if (!dirPath.Exists()) {
+                dirPath.MkDirs();
+            }
         }
         SaveBordersAndNanModesToFileInMatrixnetFormat(
             outputOptions.CreateOutputBordersFullPath(),

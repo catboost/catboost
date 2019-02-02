@@ -146,6 +146,7 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
+
 cdef extern from "catboost/libs/quantization_schema/schema.h" namespace "NCB":
     cdef cppclass TPoolQuantizationSchema:
         pass
@@ -2321,7 +2322,7 @@ cdef class _CatBoost:
             try:
                 TrainModel(
                     prep_params.tree,
-                    TQuantizedFeaturesInfoPtr(),
+                    quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
                     dataProviders,

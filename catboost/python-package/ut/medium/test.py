@@ -3678,7 +3678,7 @@ def test_output_border_file(task_type):
         'use_best_model': False,
         'learning_rate': 0.3
     }
-    model1 = CatBoostClassifier(border_count=128,
+    model1 = CatBoostClassifier(border_count=32,
                                 output_borders=OUTPUT_BORDERS_FILE,
                                 **args)
     model2 = CatBoostClassifier(input_borders=os.path.join('catboost_info', OUTPUT_BORDERS_FILE),
