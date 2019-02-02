@@ -133,7 +133,7 @@ Implementation steps:
    b. Add test `test_cv_skip_train`, with parameters:
    c. `Logloss:skip_train~true,AUC` (`skip_train` by default) and check that there is no metric results on train.
    
-## 8. add options {input,output}_borders_file to fit function in CatBoost* in python-package
+## 8. add options `{input,output}_borders_file` to fit function in CatBoost* in python-package
 
 During training and prediction, CatBoost splits the range of values of each floating point feature into intervals, and uses these intervals instead of the true values.
 Using the same feature borders during training and prediction improves prediction accuracy.
@@ -161,7 +161,7 @@ You need to implement option --one-hot to list explicitly indexes of categorical
 <https://scikit-learn.org/stable/modules/generated/sklearn.utils.estimator_checks.check_estimator.html>
 
 Current `CatBoostClassifier` and `CatBoostRegressor` don't pass this check.
-(except for Add CatBoostClassifier `predict_log_proba` and `decision_function` methods to support better sklearn API, they are in other issue).
+(except for Add `CatBoostClassifier` `predict_log_proba` and `decision_function` methods to support better sklearn API, they are in other issue).
 
 ## 11. Implement "Generalized Cross Entropy Loss for Noise-Robust Classifications".
 
@@ -291,5 +291,40 @@ Reference:
 
 * Column types are stored here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/column.h#L8-L22>. Function `TryFromString` to convert enum `EColumn` to `TString` is generated automatically because of `GENERATE_ENUM_SERIALIZATION` setting in `ya.make` [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/ya.make#L16) 
 * Column description file parsing is implemented here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L29>. See how current synonyms are handled [here](https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L66-L71)
-* Column name handling to process synonyms should also be added in `eval_result` output columns specification processing in [this file](https://github.com/catboost/catboost/blob/master/catboost/libs/eval_result/eval_result.cpp):  
+* Column name handling to process synonyms should also be added in `eval_result` output columns specification processing in [this file](https://github.com/catboost/catboost/blob/master/catboost/libs/eval_result/eval_result.cpp).
 
+
+## 25. Pairwise metrics in `eval_metrics` mode.
+
+## 26. Non-informative error when `X_train` and `X_valid` has different number of features
+
+## 27. Improve dataset details in `CreateDataDataProviders`' error messages.
+
+## 28. Allow to specify sample ids as string in pairs input files.
+
+## 29. There should be a warning if number of different class labels is greater than two when binary classification problem is solved.
+
+## 30. Print detailed dataset statistics at the start of training
+
+Example (for binary classification):
+
+```
+Number of samples: 400000
+Number of features: 2000
+Number of positive: 199823, number of negative: 200177
+```
+
+## 31. `[python-package]` Implement `__eq__` for `CatBoost*` classes.
+
+Should compare trained models if both objects contain trained models or raise exception otherwise.
+
+## 32. Allow names for all columns in column description file.
+
+CatBoost has [a dsv-based file format](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_values-file-docpage/) with columns' details that could be specified in a separate ['column descriptions' file](https://tech.yandex.com/catboost/doc/dg/concepts/input-data_column-descfile-docpage/). 
+
+Names for columns are allowed only for features now but it can be useful sometimes to specify names for other columns as well. Especially for `Auxuliary` columns - some extra data in `eval_result` file might be useful.
+
+The task is to allow names for all columns in column description file and allow to specify them as output columns for `eval_result`.
+
+* Column description file parsing is implemented here: <https://github.com/catboost/catboost/blob/5a294552a68367b1ffbbfb2f9e4e805080058e23/catboost/libs/column_description/cd_parser.cpp#L29>.
+* `eval_result` output columns specification processing](https://github.com/catboost/catboost/blob/master/catboost/libs/eval_result/eval_result.cpp).
