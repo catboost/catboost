@@ -22,6 +22,10 @@ namespace {
     static inline T Sigmoid(T val) {
         return 1 / (1 + exp(-val));
     }
+
+    static inline T LogSigmoid(T val) {
+        return -log(1 + exp(-val));
+    }
 }
 
 namespace NCatboostStandalone {
@@ -63,6 +67,8 @@ namespace NCatboostStandalone {
             return result;
         case EPredictionType::Probability:
             return Sigmoid(result);
+        case EPredictionType::LogProbability:
+            return LogSigmoid(result)
         case EPredictionType::Class:
             return result > 0;
         default:

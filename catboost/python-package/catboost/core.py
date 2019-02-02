@@ -2264,6 +2264,36 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose)
 
+    def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+        """
+        Predict log of class probability with data.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+            Data to predict.
+
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
+
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+
+        Returns
+        -------
+        prediction : numpy.array
+        """
+        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose)
+
     def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.

@@ -872,6 +872,16 @@ def test_predict_class_proba(task_type):
     return local_canonical_file(preds_path)
 
 
+def test_predict_class_log_proba(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
+    model.fit(train_pool)
+    pred = model.predict_proba(test_pool)
+    log_pred = model.predict_log_proba(pool)
+    assert(_check_data(np.log(pred), log_pred))
+
+
 @fails_on_gpu(how='assert 0.031045619651137835 < EPS, where 0.031045619651137835 = <function amax at ...')
 @pytest.mark.parametrize('function_name', ['predict', 'predict_proba'])
 def test_predict_funcs_from_features_data(function_name, task_type):
@@ -943,6 +953,15 @@ def test_multiclass(task_type):
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
+
+
+def test_multiclass_log_proba(task_type):
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(pool)
+    pred = classifier.predict_proba(pool)
+    log_pred = classifier.predict_log_proba(pool)
+    assert(_check_data(np.log(pred), log_pred))
 
 
 def test_multiclass_classes_count_missed_classes(task_type):
