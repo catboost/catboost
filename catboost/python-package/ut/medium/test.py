@@ -7,7 +7,7 @@ import re
 import subprocess
 import sys
 import tempfile
-
+import pandas as pd
 from catboost import (
     CatBoost,
     CatBoostClassifier,
@@ -1298,8 +1298,20 @@ def test_invalid_loss_base(task_type):
     model = CatBoost({"loss_function": "abcdef", 'task_type': task_type, 'devices': '0'})
     with pytest.raises(CatboostError):
         model.fit(pool)
-
-
+def test_yes_copied_unnecessarily():
+    sure_no_features_copy = True
+    cat_features = [0,1,2]
+    data = [["a","b",np.float32(1),np.float32(4),np.float32(5),np.float32(6)],["a","b",np.float32(4),np.float32(5),np.float32(6),np.float32(7)],["c","d",np.float32(30),np.float32(40),np.float32(50),np.float32(60)]]
+    label = [1,1,-1]
+    with pytest.raises(CatboostError):
+        Pool(pd.DataFrame(data), label, cat_features, sure_no_features_copy)
+def test_not_copied_unnecessarily():
+    sure_no_features_copy = True
+    cat_features = [0,1,2]
+    data = [["a","b",1,4,5,6],["a","b",4,5,6,7],["c","d",30,40,50,60]]
+    label = [1,1,-1]
+    with pytest.raises(CatboostError):
+        Pool(data, label, cat_features, sure_no_features_copy)
 def test_invalid_loss_classifier(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(loss_function="abcdef", task_type=task_type, devices='0')
