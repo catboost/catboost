@@ -942,50 +942,6 @@ class _CatBoostBase(object):
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
 
-    @property
-    def metadata_(self):
-        raise CatboostError("metadata_ property is not supported anymore, use get_metadata() method instead.")
-
-    @property
-    def is_fitted_(self):
-        raise CatboostError("is_fitted_ property is not supported anymore, use is_fitted() method instead.")
-
-    @property
-    def tree_count_(self):
-        if not self.is_fitted():
-            raise CatboostError('Model is not fitted.')
-        return getattr(self, '_tree_count')
-
-    @property
-    def random_seed_(self):
-        if not self.is_fitted():
-            raise CatboostError('Model is not fitted.')
-        return getattr(self, '_random_seed')
-
-    @property
-    def learning_rate_(self):
-        if not self.is_fitted():
-            raise CatboostError('Model is not fitted.')
-        return getattr(self, '_learning_rate')
-
-    @property
-    def feature_names_(self):
-        if not self.is_fitted():
-            raise CatboostError('Model is not fitted.')
-        return self._object._get_feature_names()
-
-    @property
-    def evals_result_(self):
-        return self.get_evals_result()
-
-    @property
-    def best_score_(self):
-        return self.get_best_score()
-
-    @property
-    def best_iteration_(self):
-        return self.get_best_iteration()
-
 
 def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
@@ -1139,6 +1095,16 @@ class CatBoost(_CatBoostBase):
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
+
+        self.best_iteration_ = self.get_best_iteration()
+        self.best_score_ = self.get_best_score()
+        self.evals_result_ = self.get_evals_result()
+        self.feature_importances_ = np.array(getattr(self, "_feature_importance", None))
+        self.tree_count_ = getattr(self, '_tree_count')
+        self.random_seed_ = getattr(self, '_random_seed')
+        self.learning_rate_ = getattr(self, '_learning_rate')
+        self.feature_names_ = self._object._get_feature_names()
+
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None,
@@ -1471,12 +1437,6 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         return BatchMetricCalcer(self._object, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
 
-    @property
-    def feature_importances_(self):
-        feature_importances_ = getattr(self, "_feature_importance", None)
-        if not self.is_fitted():
-            raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
-        return np.array(feature_importances_)
 
     def get_feature_importance(self, data=None, fstr_type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False):
         """
