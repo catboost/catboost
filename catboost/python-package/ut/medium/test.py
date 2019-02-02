@@ -3678,14 +3678,11 @@ def test_model_comparison():
     model2 = fit_model(-999)
 
     # Test checks that model is fitted.
-    try:
+    with pytest.raises(CatboostError):
         model1 == model0
-        assert True
 
+    with pytest.raises(CatboostError):
         model0 == model1
-        assert True
-    except CatboostError:
-        pass
 
     # Trained model must not equal to object of other type.
     assert model1 != 42
