@@ -19,7 +19,6 @@ from catboost import (
     cv,
     sum_models,
     train,)
-from catboost.datasets import titanic
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from pandas import read_table, DataFrame, Series, Categorical
@@ -3669,12 +3668,9 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
 
 def test_model_comparison():
     def fit_model(value):
-        train_df = titanic()[0].fillna(value)
-        X, y = train_df.drop('Survived', axis=1), train_df.Survived
-        categorical_features_indices = np.where(X.dtypes != np.float)[0]
-
+        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
         model = CatBoostClassifier(iterations=5)
-        model.fit(X, y, cat_features=categorical_features_indices)
+        model.fit(pool)
         return model
 
     model0 = CatBoostClassifier(iterations=5)
