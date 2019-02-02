@@ -149,6 +149,11 @@ namespace NCatboostCuda {
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QueryCrossEntropy);
             Alpha = NCatboostOptions::GetAlphaQueryCrossEntropy(targetOptions);
+            const auto& grouping = TParent::GetSamplesGrouping();
+            for (ui32 qid = 0; qid < grouping.GetQueryCount(); ++qid) {
+                const auto querySize = grouping.GetQuerySize(qid);
+                CB_ENSURE(querySize <= GetMaxQuerySize(), "Error: max query size supported on GPU for QueryCrossEntropy is " << GetMaxQuerySize() << ", got " << querySize);
+            }
         }
 
         TQuerywiseSampler& GetQueriesSampler() const {
