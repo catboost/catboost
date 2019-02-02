@@ -84,7 +84,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
 
     const auto cvDescription = TString::Join(
         "Cross validation type. Should be one of: ",
-        GetEnumAllNames<ECrossValidation>());
+        GetEnumAllNames<ECrossValidation>(),
         ". Classical: test on fold n of k, n is 0-based",
         ". Inverted: train on fold n of k, n is 0-based",
         ". All cv types have two parameters n and k, they should be written in format cvtype:n;k.");
