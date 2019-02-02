@@ -816,27 +816,11 @@ class _CatBoostBase(object):
         model.__setstate__(state)
         return model
 
-    def __eq__(self, other):
-        return self._is_comparable_to(other) and self._object == other._object
-
-    def __neq__(self, other):
-        return not self._is_comparable_to(other) or self._object != other._object
-
     def copy(self):
         return self.__copy__()
 
     def is_fitted(self):
         return getattr(self, '_random_seed', None) is not None
-
-    def _is_comparable_to(self, rhs):
-        if not isinstance(rhs, _CatBoostBase):
-            return False
-        for side, estimator in [('left', self), ('right', rhs)]:
-            if not estimator.is_fitted():
-                message = 'The {} argument is not fitted, only fitted models' \
-                          ' could be compared.'
-                raise CatboostError(message.format(side))
-        return True
 
     def _set_trained_model_attributes(self):
         setattr(self, '_random_seed', self._object._get_random_seed())
