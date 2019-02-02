@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <img src=http://storage.mds.yandex.net/get-devtools-opensource/250854/catboost-logo.png width=300/>
 
 [Website](https://catboost.ai) |
@@ -71,6 +70,3 @@ at NIPS 2017.
 License
 -------
 © YANDEX LLC, 2017-2019. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
-=======
-# catboost_event
->>>>>>> f3da3ae12ee20f258cbf8ad743c3aa55aadb15d2
