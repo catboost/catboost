@@ -110,6 +110,7 @@ enum class ELossFunction {
     MSLE,
     MedianAbsoluteError,
     SMAPE,
+    Huber,
 
     /* multiclassification errors */
 

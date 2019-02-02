@@ -316,6 +316,7 @@ THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& pa
 
 THolder<IMetric> MakeAverageGainMetric(float topSize);
 
+THolder<IMetric> MakeHuberLossMetric(float delta);
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
