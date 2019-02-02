@@ -3675,3 +3675,33 @@ def test_eval_period_size():
     model = CatBoostClassifier(iterations=100)
     model.fit(train_pool, eval_set=test_pool)
     model.eval_metrics(test_pool, ['AUC', 'Recall'], eval_period=200)        
+
+def test_model_comparison():
+    def fit_model(value):
+        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        model = CatBoostClassifier(iterations=5)
+        model.fit(pool)
+        return model
+
+    model0 = CatBoostClassifier(iterations=5)
+    model1 = fit_model(42)
+    model2 = fit_model(-999)
+
+    # Test checks that model is fitted.
+    with pytest.raises(CatboostError):
+        model1 == model0
+
+    with pytest.raises(CatboostError):
+        model0 == model1
+
+    # Trained model must not equal to object of other type.
+    assert model1 != 42
+    assert not (model1 == 'hello')
+
+    # Check identity.
+    assert model1 == model1
+    assert not (model1 != model1)
+
+    # Check equality to other model.
+    assert not (model1 == model2)
+    assert (model1 != model2)
