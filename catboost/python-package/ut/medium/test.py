@@ -2893,6 +2893,26 @@ def test_str_eval_metrics_in_eval_features():
     assert first_result.get_results()['MAE'] == second_result.get_results()['MAE']
 
 
+@pytest.mark.parametrize("test_case",
+                         ["dataset_and_metrics",
+                          "no_dataset_and_no_metrics",
+                          pytest.param("dataset_and_no_metrics", marks=pytest.mark.xfail)])
+def test_compare(test_case):
+    dataset = np.array([[1, 4, 5, 6], [4, 5, 6, 7], [30, 40, 50, 60], [20, 15, 85, 60]])
+    train_labels = [1.2, 3.4, 9.5, 24.5]
+    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE', train_dir="catboost_info1")
+    model.fit(dataset, train_labels)
+    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE', train_dir="catboost_info2")
+    model2.fit(dataset, train_labels)
+
+    if test_case == "dataset_and_metrics":
+        model.compare(model2, Pool(dataset, label=train_labels), ["RMSE"])
+    elif test_case == "no_dataset_and_no_metrics":
+        model.compare(model2)
+    elif test_case == "dataset_and_no_metrics":
+        model.compare(model2, Pool(dataset, label=train_labels))
+
+
 def test_cv_fold_count_alias(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results_fold_count = cv(pool=pool, params={
