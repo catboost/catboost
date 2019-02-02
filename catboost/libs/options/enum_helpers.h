@@ -7,6 +7,8 @@
 
 TConstArrayRef<ELossFunction> GetAllObjectives();
 
+TConstArrayRef<ECrossValidation> GetAllCvTypes();
+
 bool IsSingleDimensionalError(ELossFunction lossFunction);
 
 bool IsMultiDimensionalError(ELossFunction lossFunction);

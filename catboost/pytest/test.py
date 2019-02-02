@@ -42,6 +42,11 @@ SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
 SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
 
 
+def format_crossvalidation(is_inverted, n, k):
+    cv_type = 'Inverted' if is_inverted else 'Classical'
+    return '{}:{};{}'.format(cv_type, n, k)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
@@ -1455,7 +1460,7 @@ def test_cv(is_inverted, boosting_type):
         '-w', '0.03',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/10',
+        '--cv', format_crossvalidation(is_inverted, 2, 10),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1479,7 +1484,7 @@ def test_cv_for_query(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/7',
+        format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1504,7 +1509,7 @@ def test_cv_for_pairs(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/7',
+        '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1528,11 +1533,14 @@ def test_multiple_cv_spec(bad_cv_params):
         '--eval-file', output_eval_path,
     )
     if bad_cv_params == 'XX':
-        cmd += ('-X', '2/10', '-X', '4/7')
+        cmd += ('--cv', format_crossvalidation(is_inverted=False, n=2, k=10),
+                '--cv', format_crossvalidation(is_inverted=False, n=4, k=7))
     elif bad_cv_params == 'XY':
-        cmd += ('-X', '2/10', '-Y', '4/7')
+        cmd += ('--cv', format_crossvalidation(is_inverted=False, n=2, k=10),
+                '--cv', format_crossvalidation(is_inverted=True, n=4, k=7))
     elif bad_cv_params == 'YY':
-        cmd += ('-Y', '2/10', '-Y', '4/7')
+        cmd += ('--cv', format_crossvalidation(is_inverted=True, n=2, k=10),
+                '--cv', format_crossvalidation(is_inverted=True, n=4, k=7))
     else:
         raise Exception('bad bad_cv_params value:' + bad_cv_params)
 
@@ -1555,7 +1563,8 @@ def test_bad_fold_cv_spec(is_inverted, error_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), {'0folds': '0/0', 'fold_idx_overflow': '3/2'}[error_type],
+        ('--cv:Inverted' if is_inverted else '--cv:Classical'),
+        {'0folds': '0/0', 'fold_idx_overflow': '3/2'}[error_type],
         '--eval-file', output_eval_path,
     )
 

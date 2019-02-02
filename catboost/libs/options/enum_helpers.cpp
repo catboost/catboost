@@ -19,6 +19,11 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
     return allObjectives;
 }
 
+TConstArrayRef<ECrossValidation> GetAllCvTypes() {
+    static TVector<ECrossValidation> allCvTypes = {
+        ECrossValidation::Classical, ECrossValidation::Inverted};
+    return allCvTypes;
+}
 
 bool IsSingleDimensionalError(ELossFunction lossFunction) {
     return (lossFunction != ELossFunction::MultiClass &&

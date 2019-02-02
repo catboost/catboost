@@ -91,6 +91,11 @@ enum class ENanMode {
     Forbidden
 };
 
+enum class ECrossValidation {
+    Classical,
+    Inverted
+};
+
 enum class ELossFunction {
     /* binary classification errors */
 
