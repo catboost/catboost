@@ -1484,7 +1484,7 @@ def test_cv_for_query(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        format_crossvalidation(is_inverted, 2, 7),
+        '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
