@@ -116,7 +116,7 @@ private:
 
     void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst, int dstStartDoc = 0);
 
-    void EnsureCorrectParams() {
+    void EnsureCorrectParams() const {
         CB_ENSURE(First < Last, "First iteration should be less than last");
         CB_ENSURE(Step <= (Last - First), "Step should be less than plot size");
         CB_ENSURE(Step > 0, "Step should be more than zero");

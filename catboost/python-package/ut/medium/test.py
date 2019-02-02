@@ -18,12 +18,15 @@ from catboost import (
     Pool,
     cv,
     sum_models,
-    train,)
+    train,
+    datasets,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from pandas import read_table, DataFrame, Series, Categorical
 from six import PY3
 from six.moves import xrange
+from catboost.datasets import amazon
+
 from catboost_pytest_lib import (
     DelayedTee,
     binary_path,
@@ -3664,3 +3667,11 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
     )
     with pytest.raises(CatboostError):
         model.fit(train_pool, eval_set=eval_set_pool)
+        
+def test_eval_period_size():
+    train, test = amazon()
+    train_pool = Pool(data=train.iloc[:,1:], label=train.iloc[:,0])
+    test_pool = Pool(data=test.iloc[:,1:], label=test.iloc[:,0])
+    model = CatBoostClassifier(iterations=100)
+    model.fit(train_pool, eval_set=test_pool)
+    model.eval_metrics(test_pool, ['AUC', 'Recall'], eval_period=200)        
