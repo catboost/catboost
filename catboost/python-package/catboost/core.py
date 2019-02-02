@@ -817,12 +817,10 @@ class _CatBoostBase(object):
         return model
 
     def __eq__(self, other):
-        return all([self._is_comparable_to(other),
-                    self._object == other._object])
+        return self._is_comparable_to(other) and self._object == other._object
 
     def __neq__(self, other):
-        return any([not self._is_comparable_to(other),
-                    self._object != other._object])
+        return not self._is_comparable_to(other) or self._object != other._object
 
     def copy(self):
         return self.__copy__()
