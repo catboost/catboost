@@ -134,8 +134,21 @@ void NCB::CalcModelSingleHost(
     size_t evalPeriod,
     const TFullModel& model ) {
 
-    CB_ENSURE(params.OutputPath.Scheme == "dsv", "Local model evaluation supports only \"dsv\" output file schema.");
-    TOFStream outputStream(params.OutputPath.Path);
+    CB_ENSURE(params.OutputPath.Scheme == "dsv" || params.OutputPath.Scheme == "stream", "Local model evaluation supports only \"dsv\"  and \"stream\" output file schemas.");
+    THolder<IOutputStream> outputStream;
+    if (params.OutputPath.Scheme == "dsv") {
+         outputStream = MakeHolder<TOFStream>(params.OutputPath.Path);
+    }
+    else {
+        CB_ENSURE(params.OutputPath.Path == "stdout" || params.OutputPath.Path == "stderr", "Local model evaluation supports only stderr and stdout paths.");
+
+        if (params.OutputPath.Path == "stdout") {
+            outputStream = MakeHolder<TFileOutput>(Duplicate(1));
+        }
+        else {
+            outputStream = MakeHolder<TFileOutput>(Duplicate(2));
+        }
+    }
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
@@ -161,7 +174,7 @@ void NCB::CalcModelSingleHost(
             visibleLabelsHelper,
             *datasetPart,
             true,
-            &outputStream,
+            outputStream.Get(),
             // TODO: src file columns output is incompatible with block processing
             poolColumnsPrinter,
             /*testFileWhichOf*/ {0, 0},
