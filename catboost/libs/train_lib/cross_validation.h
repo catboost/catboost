@@ -18,8 +18,8 @@
 
 
 struct TCVIterationResults {
-    double AverageTrain;
-    double StdDevTrain;
+    TMaybe<double> AverageTrain;
+    TMaybe<double> StdDevTrain;
     double AverageTest;
     double StdDevTest;
 };
@@ -32,8 +32,14 @@ struct TCVResult {
     TVector<double> StdDevTest;
 
     void AppendOneIterationResults(const TCVIterationResults& results) {
-        AverageTrain.push_back(results.AverageTrain);
-        StdDevTrain.push_back(results.StdDevTrain);
+        if (results.AverageTrain.Defined()) {
+            AverageTrain.push_back(results.AverageTrain.GetRef());
+        }
+
+        if (results.StdDevTrain.Defined()) {
+            StdDevTrain.push_back(results.StdDevTrain.GetRef());
+        }
+
         AverageTest.push_back(results.AverageTest);
         StdDevTest.push_back(results.StdDevTest);
     }

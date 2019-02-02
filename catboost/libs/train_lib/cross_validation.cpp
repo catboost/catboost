@@ -28,6 +28,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/scope.h>
 #include <util/generic/ymath.h>
+#include <util/generic/maybe.h>
 #include <util/stream/labeled.h>
 #include <util/string/cast.h>
 #include <util/system/hp_timer.h>
@@ -92,11 +93,14 @@ static double ComputeStdDev(const TVector<double>& values, double avg) {
 static TCVIterationResults ComputeIterationResults(
     const TVector<double>& trainErrors,
     const TVector<double>& testErrors,
-    size_t foldCount
+    size_t foldCount,
+    bool skipTrain
 ) {
     TCVIterationResults cvResults;
-    cvResults.AverageTrain = Accumulate(trainErrors.begin(), trainErrors.end(), 0.0) / foldCount;
-    cvResults.StdDevTrain = ComputeStdDev(trainErrors, cvResults.AverageTrain);
+    if (!skipTrain) {
+        cvResults.AverageTrain = Accumulate(trainErrors.begin(), trainErrors.end(), 0.0) / foldCount;
+        cvResults.StdDevTrain = ComputeStdDev(trainErrors, cvResults.AverageTrain.GetRef());
+    }
     cvResults.AverageTest = Accumulate(testErrors.begin(), testErrors.end(), 0.0) / foldCount;
     cvResults.StdDevTest = ComputeStdDev(testErrors, cvResults.AverageTest);
     return cvResults;
@@ -194,7 +198,7 @@ public:
         const TLabelConverter& labelConverter,
         TConstArrayRef<THolder<IMetric>> metrics,
         TConstArrayRef<bool> skipMetricOnTrain,
-        double maxTimeSpentOnFixedCostRatio,
+        double maxTimeSpentOnFixedCostRatio,    
         ui32 maxIterationsBatchSize,
         size_t globalMaxIteration,
         bool isErrorTrackerActive,
@@ -299,7 +303,6 @@ static void DisableMetricSkipTrain(NJson::TJsonValue* metric) {
     }
     hints["skip_train"] = "false";
     params["hints"] = MakeHintsDescription(hints);
-
 }
 
 // TODO(akhropov): proper support - MLTOOLS-1863
@@ -423,11 +426,9 @@ void CrossValidate(
     // internal training output shouldn't interfere with main stdout
     updatedTrainOptionsJson["logging_level"] = "Silent";
 
-
-    // TODO(nikitxskv): Remove this hot-fix and make correct skip-metrics support in cv.
     DisableMetricsSkipTrain(&updatedTrainOptionsJson);
 
-
+    // TODO(nikitxskv): Remove this hot-fix and make correct skip-metrics support in cv.
     const ETaskType taskType = catBoostOptions.GetTaskType();
 
     THolder<IModelTrainer> modelTrainerHolder;
@@ -457,18 +458,15 @@ void CrossValidate(
     );
     CheckMetrics(metrics, catBoostOptions.LossFunctionDescription.Get().GetLossFunction());
 
-
-    TVector<bool> skipMetricOnTrain;
+    TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
 
     bool hasQuerywiseMetric = false;
     for (const auto& metric : metrics) {
         if (metric.Get()->GetErrorType() == EErrorType::QuerywiseError) {
             hasQuerywiseMetric = true;
         }
-
-        metric->AddHint("skip_train", "false");
-        skipMetricOnTrain.push_back(false);
     }
+
     if (hasQuerywiseMetric) {
         CB_ENSURE(!cvParams.Stratified, "Stratified split is incompatible with groupwise metrics");
     }
@@ -636,7 +634,7 @@ void CrossValidate(
                     );
                 }
 
-                TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, cvParams.FoldCount);
+                TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, cvParams.FoldCount, skipMetricOnTrain[metricIdx]);
 
                 (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
@@ -649,7 +647,7 @@ void CrossValidate(
                     oneIterLogger.OutputMetric(
                         learnToken,
                         TMetricEvalResult(metric->GetDescription(),
-                        cvResults.AverageTrain,
+                        cvResults.AverageTrain.GetRef(),
                         metricIdx == errorTrackerMetricIdx));
                 }
                 oneIterLogger.OutputMetric(

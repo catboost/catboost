@@ -2679,11 +2679,15 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         if metric_name in used_metric_names:
             continue
         used_metric_names.add(metric_name)
-        for it in xrange(results[metric_idx].AverageTrain.size()):
+
+        for it in xrange(results[metric_idx].AverageTest.size()):
             result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
             result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
-            result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
-            result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
+
+        if results[metric_idx].AverageTrain.size() != 0:
+            for it in xrange(results[metric_idx].AverageTrain.size()):
+                result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
+                result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
 
     if as_pandas:
         return pd.DataFrame.from_dict(result)
