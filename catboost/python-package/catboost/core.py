@@ -1487,13 +1487,13 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, drow train and eval error in Jupyter notebook
         """
-        assert self is not second_model
-        assert bool(metrics) == bool(data)
+        assert self is not second_model, "The models should be different"
+        assert bool(metrics) == bool(data), "If you provide data, you should also provide metrics list"
 
         train_dir_first = _get_train_dir(self.get_params())
         train_dir_second = _get_train_dir(second_model.get_params())
 
-        assert train_dir_first != train_dir_second
+        assert train_dir_first != train_dir_second, "Models should contains in different folders"
 
         try:
             from .widget import MetricVisualizer
