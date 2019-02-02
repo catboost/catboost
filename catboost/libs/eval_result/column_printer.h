@@ -240,7 +240,7 @@ namespace NCB {
             if (NeedToGenerate) {
                 *outStream << DocIdOffset + docIndex;
             } else {
-                PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, EColumn::DocId);
+                PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, EColumn::SampleId);
             }
         }
 

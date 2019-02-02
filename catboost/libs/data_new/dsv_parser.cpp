@@ -126,7 +126,7 @@ TMaybe<NCB::TDsvLineParser::TErrorContext> NCB::TDsvLineParser::HandleToken(
             }
             break;
         } case EColumn::Auxiliary:
-          case EColumn::DocId: {
+          case EColumn::SampleId: {
             break;
         } case EColumn::Sparse:
           case EColumn::Prediction: {

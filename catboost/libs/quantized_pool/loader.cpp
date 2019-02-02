@@ -361,7 +361,7 @@ void TCBQuantizedDataLoader::AddChunk(
         } case EColumn::SubgroupId: {
             visitor->AddSubgroupIdPart(chunk.DocumentOffset, TUnalignedArrayBuf<ui32>(quants));
             break;
-        } case EColumn::DocId:
+        } case EColumn::SampleId:
             // Are skipped in a caller
         case EColumn::Categ:
             // TODO(yazevnul): categorical feature quantization on YT is still in progress
@@ -407,7 +407,7 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         }
 
         const auto columnType = QuantizedPool.ColumnTypes[localIdx];
-        if (columnType == EColumn::DocId) {
+        if (columnType == EColumn::SampleId) {
             // Skip DocId columns presented in old pools.
             continue;
         }

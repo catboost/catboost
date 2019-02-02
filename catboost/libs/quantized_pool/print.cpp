@@ -217,14 +217,14 @@ static void PrintHumanReadableStringChunks(
     IOutputStream* const output) {
 
     ui32 localIndex = 0;
-    if (columnType == EColumn::DocId) {
+    if (columnType == EColumn::SampleId) {
         localIndex = pool.StringDocIdLocalIndex;
     } else if (columnType == EColumn::GroupId) {
         localIndex = pool.StringGroupIdLocalIndex;
     } else if (columnType == EColumn::SubgroupId) {
         localIndex = pool.StringSubgroupIdLocalIndex;
     } else {
-        CB_ENSURE(false, LabeledOutput(columnType) << "; Should be one of: " << EColumn::DocId << ", " << EColumn::GroupId << ", " << EColumn::SubgroupId);
+        CB_ENSURE(false, LabeledOutput(columnType) << "; Should be one of: " << EColumn::SampleId << ", " << EColumn::GroupId << ", " << EColumn::SubgroupId);
     }
 
     const auto chunks = GetChunksSortedByOffset(pool.Chunks[localIndex]);

@@ -70,6 +70,9 @@ namespace {
                 if (type == "Target") {
                     type = "Label";
                 }
+                if (type == "DocId") {
+                    type = "SampleId";
+                }
                 CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
                 if (tokens.ysize() == 3) {
                     columns[index].Id = tokens[2];

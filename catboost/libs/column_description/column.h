@@ -12,7 +12,7 @@ enum class EColumn {
     Auxiliary,
     Baseline,
     Weight,
-    DocId,
+    SampleId,
     GroupId,
     GroupWeight,
     SubgroupId,

@@ -182,12 +182,12 @@ namespace NCB {
                 continue;
             }
             EColumn outputType;
-            if (TryFromString<EColumn>(columnName, outputType)) {
+            if (TryFromString<EColumn>(columnName, outputType) || columnName == "DocId") {
                 if (outputType == EColumn::Label) {
                     columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(*pool.RawTargetData.GetTarget(), columnName));
                     continue;
                 }
-                if (outputType == EColumn::DocId) {
+                if (outputType == EColumn::SampleId) {
                     if (testFileWhichOf.second > 1) {
                         columnPrinter.push_back(MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":"));
                     }
