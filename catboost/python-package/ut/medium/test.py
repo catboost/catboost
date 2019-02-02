@@ -19,6 +19,7 @@ from catboost import (
     cv,
     sum_models,
     train,)
+from catboost.datasets import titanic
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from pandas import read_table, DataFrame, Series, Categorical
@@ -3664,3 +3665,40 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
     )
     with pytest.raises(CatboostError):
         model.fit(train_pool, eval_set=eval_set_pool)
+
+
+def test_model_comparison():
+    def fit_model(value):
+        train_df = titanic()[0].fillna(value)
+        X, y = train_df.drop('Survived', axis=1), train_df.Survived
+        categorical_features_indices = np.where(X.dtypes != np.float)[0]
+
+        model = CatBoostClassifier(iterations=5)
+        model.fit(X, y, cat_features=categorical_features_indices)
+        return model
+
+    model0 = CatBoostClassifier(iterations=5)
+    model1 = fit_model(42)
+    model2 = fit_model(-999)
+
+    # Test checks that model is fitted.
+    try:
+        model1 == model0
+        assert True
+
+        model0 == model1
+        assert True
+    except CatboostError:
+        pass
+
+    # Trained model must not equal to object of other type.
+    assert model1 != 42
+    assert not (model1 == 'hello')
+
+    # Check identity.
+    assert model1 == model1
+    assert not (model1 != model1)
+
+    # Check equality to other model.
+    assert not (model1 == model2)
+    assert (model1 != model2)
