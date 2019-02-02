@@ -268,5 +268,25 @@ Custom -> PythonUserDefinedPerObject
 22.
 Support passing feature names in cat_features
 
-https://github.com/catboost/catboost/issues/608
+CatBoost python package allows specifying categorical features as indices of features columns when creating features dataset from python objects. Sometimes it is also convinient to specify categorical features by column names if they are available (when dataset is passed as `pandas.DataFrame`).
+The task is to allow `cat_features` parameter of `Pool` class' constructor and `CatBoost`, `CatBoostClassifier`, `CatBoostRegressor` classes' constructors and `fit` methods to be a sequence of strings.
+Then, when `Pool` data is initialized (either by user calling `Pool` constructor explicitly or by creation of `Pool` objects inside the implementation of `fit` methods) it should be checked that passed data is of type `pandas.DataFrame` and categorical features' indices have to be calculated by matching `pandas.DataFrame`'s column labels with strings in `cat_features` parameter, then these calculated categorical features' indices should be used as they are used currently in `Pool` `_init*` functions implementation. In other cases passing `cat_features` as strings should be an error (there is no way to get feature names from just feature values matrix).
+
+Issue: <https://github.com/catboost/catboost/issues/608>
+
+23. 
+`use_weights_in_quantization` training parameter
+
+CatBoost quantizes (also called discretization, binning and sometimes binarization) floating point features' values into bins. For some quantization algorithms like `MinEntropy` and `MaxSumLog` it is possible to use objects' (samples') weights but this feature is not currently implemented in CatBoost, but already implemented in quantization library called by CatBoost internally.
+The task is to create a training parameter `use_weights_in_quantization` (and add it to CLI parameters and to python and R packages methods that accept training paramters) and if enabled call an appropriate quantization library method.
+The case when specified quantization algorithm does not support weights but `use_weights_in_quantization` is enabled should be an error (in the form `CB_ENSURE(false, "Weights are not supported for quantization algorithm ...")`).
+It also requires refactoring of quantization library to expose the quantization function that accepts weights as a parameter.
+
+Reference:
+* About Quantization in CatBoost: <https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/>
+* Quantization options handling: <https://github.com/catboost/catboost/blob/master/catboost/libs/options/binarization_options.h>
+* Quantization in CatBoost is called from <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/catboost/libs/data_new/quantization.cpp#L179-L183>
+* Quantization library is here: <https://github.com/catboost/catboost/tree/master/library/grid_creator>
+* Quantization function that accepts weights is here: <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/library/grid_creator/binarization.cpp#L640>
+
 
