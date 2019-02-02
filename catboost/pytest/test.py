@@ -17,7 +17,8 @@ from catboost_pytest_lib import (
     apply_catboost,
     permute_dataset_columns,
     generate_random_labeled_set,
-    execute_catboost_fit
+    execute_catboost_fit,
+    format_crossvalidation
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -40,11 +41,6 @@ OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 # default block size (5000000) is too big to run in parallel on these tests
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
 SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
-
-
-def format_crossvalidation(is_inverted, n, k):
-    cv_type = 'Inverted' if is_inverted else 'Classical'
-    return '{}:{};{}'.format(cv_type, n, k)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
