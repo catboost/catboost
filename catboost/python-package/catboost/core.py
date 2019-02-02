@@ -816,6 +816,20 @@ class _CatBoostBase(object):
         model.__setstate__(state)
         return model
 
+    def __eq__(self, other):
+        if not isinstance(other, _CatBoostBase):
+            return False
+        if not self.is_fitted() or not other.is_fitted():
+            raise ValueError('Both lhs and rhs must be trained.')
+        return self._object == other._object
+
+    def __neq__(self, other):
+        if not isinstance(other, _CatBoostBase):
+            return True
+        if not self.is_fitted() or not other.is_fitted():
+            raise ValueError('Both lhs and rhs must be trained.')
+        return self._object != other._object
+
     def copy(self):
         return self.__copy__()
 
