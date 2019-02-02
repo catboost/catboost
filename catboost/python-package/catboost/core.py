@@ -1391,7 +1391,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Model is not fitted")
         return self._get_cat_feature_indices()
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot, second_model=None, tmp_dir_second_model=None):
         if not self.is_fitted():
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
@@ -1449,6 +1449,65 @@ class CatBoost(_CatBoostBase):
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
         return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot)
+
+    def compare(self, second_model, data=None, metrics=None, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
+        """
+        Draw train and eval errors in Jupyter notebook for both models
+
+        Parameters
+        ----------
+        second_model: CatBoost model
+            Another model to drow metrics
+
+        data : catboost.Pool
+            Data to eval metrics.
+
+        metrics : list of strings
+            List of eval metrics.
+
+        ntree_start: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of cores.
+
+        tmp_dir : string (default=None)
+            The name of the temporary directory for intermediate results.
+            If None, then the name will be generated.
+
+        plot : bool, optional (default=False)
+            If True, drow train and eval error in Jupyter notebook
+        """
+        assert self is not second_model
+        assert bool(metrics) == bool(data)
+
+        train_dir_first = _get_train_dir(self.get_params())
+        train_dir_second = _get_train_dir(second_model.get_params())
+
+        assert train_dir_first != train_dir_second
+
+        try:
+            from .widget import MetricVisualizer
+            widget = MetricVisualizer([train_dir_first, train_dir_second])
+            widget._run_update()
+            if data:
+                _clear_training_files(train_dir_first)
+                _clear_training_files(train_dir_second)
+                self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot=False)
+                second_model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot=False)
+            widget._stop_update()
+        except ImportError as e:
+            warnings.warn("To draw plots in fit() method you should install ipywidgets and ipython")
+            raise ImportError(str(e))
 
     def create_metric_calcer(self, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None):
         """
