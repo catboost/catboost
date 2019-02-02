@@ -30,7 +30,7 @@ bool IsValidForObjectiveOrEvalMetric(
     std::function<bool(ELossFunction)> predicate)
 {
     return predicate(objective) ||
-        (objective == ELossFunction::Custom &&
+        (objective == ELossFunction::PythonUserDefinedPerObject &&
             metricOptions.EvalMetric.IsSet() && predicate(metricOptions.EvalMetric->GetLossFunction()));
 }
 

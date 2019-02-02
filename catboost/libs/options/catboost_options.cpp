@@ -131,7 +131,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
-        case ELossFunction::Custom: {
+        case ELossFunction::PythonUserDefinedPerObject: {
             //skip
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
@@ -412,7 +412,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
         CB_ENSURE(
-            LossFunctionDescription->GetLossFunction() != ELossFunction::Custom
+            LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject
             || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::None,
             "Backtracking is not supported for custom loss functions on CPU");
     }

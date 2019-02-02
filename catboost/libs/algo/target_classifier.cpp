@@ -75,7 +75,7 @@ TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
         case ELossFunction::MultiClassOneVsAll:
             return TTargetClassifier(GetMultiClassBorders(targetBorderCount));
 
-        case ELossFunction::Custom: {
+        case ELossFunction::PythonUserDefinedPerObject: {
             Y_ASSERT(objectiveDescriptor.Defined());
             return TTargetClassifier(SelectBorders(
                 target,

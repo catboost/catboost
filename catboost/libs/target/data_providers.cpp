@@ -379,7 +379,7 @@ namespace NCB {
 
         CB_ENSURE_INTERNAL(
             !mainLossFunction ||
-            ((*mainLossFunction)->GetLossFunction() == ELossFunction::Custom) ||
+            ((*mainLossFunction)->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) ||
             FindPtr(metricDescriptions, **mainLossFunction),
             "mainLossFunction is not in metricDescriptions"
         );
