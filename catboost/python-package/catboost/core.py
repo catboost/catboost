@@ -1391,7 +1391,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Model is not fitted")
         return self._get_cat_feature_indices()
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot, second_model=None, tmp_dir_second_model=None):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
         if not self.is_fitted():
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
