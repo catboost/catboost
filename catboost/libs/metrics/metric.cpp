@@ -3612,12 +3612,12 @@ namespace {
     struct THuberLossMetric : public TAdditiveMetric<THuberLossMetric> {
 
         explicit THuberLossMetric(double delta) : Delta(delta) {
-            CB_ENSURE(delta >= 0, "Huber metric is defined for d >= 0, got " << delta);
+            CB_ENSURE(delta >= 0, "Huber metric is defined for delta >= 0, got " << delta);
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>> &approx,
-                const TVector<TVector<double>> &approxDelta,
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -3628,14 +3628,13 @@ namespace {
 
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
-        double GetFinalError(const TMetricHolder &error) const override;
 
     private:
-        float Delta;
+        double Delta;
     };
 }
 
-THolder<IMetric> MakeHuberLossMetric(float delta) {
+THolder<IMetric> MakeHuberLossMetric(double delta) {
     return MakeHolder<THuberLossMetric>(delta);
 }
 
@@ -3672,12 +3671,8 @@ TMetricHolder THuberLossMetric::EvalSingleThread(
 }
 
 TString THuberLossMetric::GetDescription() const {
-    const TMetricParam<int> topSize("d", Delta, true);
-    return BuildDescription(ELossFunction::Huber, UseWeights, topSize);
-}
-
-double THuberLossMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[0] / (error.Stats[1] + 1e-38);
+    const TMetricParam<double> delta("delta", Delta, true);
+    return BuildDescription(ELossFunction::Huber, UseWeights, delta);
 }
 
 void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -4190,9 +4185,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         case ELossFunction::Huber:
-            CB_ENSURE(params.contains("d"), "Metric " << ELossFunction::Huber << " requires d as parameter");
-            validParams={"d"};
-            result.push_back(MakeHuberLossMetric(FromString<float>(params.at("d"))));
+            CB_ENSURE(params.contains("delta"), "Metric " << ELossFunction::Huber << " requires delta as parameter");
+            validParams={"delta"};
+            result.push_back(MakeHuberLossMetric(FromString<float>(params.at("delta"))));
             break;
         default:
             CB_ENSURE(false, "Unsupported loss_function: " << metric);
