@@ -503,7 +503,7 @@ namespace {
                 for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
                     TVector<TModelSplit> modelSplits;
                     for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {
-                        auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
+                        auto modelSplit = split.GetModelSplit(ctx.LearnProgress, perfectHashedToHashedCatValuesMap, ctx.CtrsHelper);
                         modelSplits.push_back(modelSplit);
                         if (modelSplit.Type == ESplitType::OnlineCtr) {
                             featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;

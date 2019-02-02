@@ -247,19 +247,42 @@ void TLearnProgress::Save(IOutputStream* s) const {
         PoolCheckSum);
 }
 
-void TLearnProgress::Load(IInputStream* s) {
+
+static void LoadFoldApproxesFromScratch(IInputStream* s, TFold* fold) {
+    ui64 bodyTailCount;
+    ::Load(s, bodyTailCount);
+    fold->BodyTailArr.resize(bodyTailCount, TFold::TBodyTail(0, 0, 0, 0, 0));
+    for (ui64 i = 0; i < bodyTailCount; ++i) {
+        ::Load(s, fold->BodyTailArr[i].Approx);
+    }
+}
+
+
+void TLearnProgress::Load(IInputStream* s, bool isFromScratch) {
     ::Load(s, SerializedTrainParams);
     bool enableSaveLoadApprox;
     ::Load(s, enableSaveLoadApprox);
-    CB_ENSURE(enableSaveLoadApprox == EnableSaveLoadApprox, "Cannot load progress from file");
+    if (isFromScratch) {
+        EnableSaveLoadApprox = enableSaveLoadApprox;
+    } else {
+        CB_ENSURE(enableSaveLoadApprox == EnableSaveLoadApprox, "Cannot load progress from file");
+    }
     if (EnableSaveLoadApprox) {
         ui64 foldCount;
         ::Load(s, foldCount);
-        CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
-        for (ui64 i = 0; i < foldCount; ++i) {
-            Folds[i].LoadApproxes(s);
+        if (isFromScratch) {
+            Folds.resize(foldCount);
+            for (ui64 i = 0; i < foldCount; ++i) {
+                LoadFoldApproxesFromScratch(s, &Folds[i]);
+            }
+            LoadFoldApproxesFromScratch(s, &AveragingFold);
+        } else {
+            CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
+            for (ui64 i = 0; i < foldCount; ++i) {
+                Folds[i].LoadApproxes(s);
+            }
+            AveragingFold.LoadApproxes(s);
         }
-        AveragingFold.LoadApproxes(s);
         ::Load(s, AvrgApprox);
     }
     ::LoadMany(s,

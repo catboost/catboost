@@ -54,7 +54,7 @@ struct TLearnProgress {
     ui32 PoolCheckSum = 0;
 
     void Save(IOutputStream* s) const;
-    void Load(IInputStream* s);
+    void Load(IInputStream* s, bool isFromScratch=false);
 };
 
 class TCommonContext : public TNonCopyable {

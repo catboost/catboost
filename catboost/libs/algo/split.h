@@ -105,6 +105,9 @@ struct THash<TSplitCandidate> {
 };
 
 class TLearnContext;
+struct TLearnProgress;
+class TCtrHelper;
+class TDataset;
 
 // TODO(kirillovs): this structure has doppelganger (TBinarySplit) in cuda code, merge them later
 struct TSplit : public TSplitCandidate {
@@ -133,8 +136,9 @@ public:
     }
 
     TModelSplit GetModelSplit(
-        const TLearnContext& ctx,
-        const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap) const;
+        const TLearnProgress& learnProgress,
+        const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
+        const TCtrHelper& ctrHelper) const;
 
     static inline float EmulateUi8Rounding(int value) {
         return value + 0.999999f;

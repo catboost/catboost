@@ -16,6 +16,7 @@ SRCS(
     mode_ostr.cpp
     mode_roc.cpp
     mode_run_worker.cpp
+    mode_snapshot_to_model.cpp
     GLOBAL signal_handling.cpp
 )
 
