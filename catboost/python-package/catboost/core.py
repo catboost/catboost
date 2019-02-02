@@ -1266,7 +1266,7 @@ class CatBoost(_CatBoostBase):
             )
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatboostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
+        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability'):
             raise CatboostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
         loss_function_type = self.get_param('loss_function')
         if loss_function_type is None:

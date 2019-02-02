@@ -878,7 +878,7 @@ def test_predict_class_log_proba(task_type):
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(train_pool)
     pred = model.predict_proba(test_pool)
-    log_pred = model.predict_log_proba(pool)
+    log_pred = model.predict_log_proba(test_pool)
     assert(_check_data(np.log(pred), log_pred))
 
 
