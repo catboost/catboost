@@ -4,6 +4,8 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/logging_level.h>
 
+#include <util/generic/ymath.h>
+
 NCatboostOptions::TBoostingOptions::TBoostingOptions(ETaskType taskType)
     : LearningRate("learning_rate", 0.03)
     , FoldLenMultiplier("fold_len_multiplier", 2.0)
@@ -60,7 +62,11 @@ void NCatboostOptions::TBoostingOptions::Validate() const {
     }
 
     CB_ENSURE(!(ApproxOnFullHistory.GetUnchecked() && BoostingType.Get() == EBoostingType::Plain), "Can't use approx-on-full-history with Plain boosting-type");
-    if (LearningRate.IsSet() && LearningRate.Get() > 1) {
-        CATBOOST_WARNING_LOG << "learning rate is greater than 1. You probably need to decrease learning rate." << Endl;
+    if (LearningRate.IsSet()) {
+        CB_ENSURE(Abs(LearningRate.Get()) > std::numeric_limits<float>::epsilon(), "Learning rate should be non-zero");
+        if (LearningRate.Get() > 1) {
+            CATBOOST_WARNING_LOG
+            << "learning rate is greater than 1. You probably need to decrease learning rate." << Endl;
+        }
     }
 }
