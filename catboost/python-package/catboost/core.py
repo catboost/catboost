@@ -817,24 +817,25 @@ class _CatBoostBase(object):
         return model
 
     def __eq__(self, other):
-        if not isinstance(other, _CatBoostBase):
-            return False
-        if not self.is_fitted() or not other.is_fitted():
-            raise ValueError('Both lhs and rhs must be trained.')
-        return self._object == other._object
+        return all([self._is_comparable_to(other),
+                    self._object == other._object])
 
     def __neq__(self, other):
-        if not isinstance(other, _CatBoostBase):
-            return True
-        if not self.is_fitted() or not other.is_fitted():
-            raise ValueError('Both lhs and rhs must be trained.')
-        return self._object != other._object
+        return any([not self._is_comparable_to(other),
+                    self._object != other._object])
 
     def copy(self):
         return self.__copy__()
 
     def is_fitted(self):
         return getattr(self, '_random_seed', None) is not None
+
+    def _is_comparable_to(self, rhs):
+        if not isinstance(rhs, _CatBoostBase):
+            return False
+        if not self.is_fitted() or not rhs.is_fitted():
+            raise ValueError('Both lhs and rhs must be trained.')
+        return True
 
     def _set_trained_model_attributes(self):
         setattr(self, '_random_seed', self._object._get_random_seed())
