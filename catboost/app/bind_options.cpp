@@ -82,29 +82,25 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             loadParamsPtr->TestGroupWeightsFilePath = TPathWithScheme(str, "file");
         });
 
-    parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
-        .RequiredArgument("n/k")
-        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+    const auto cvDescription = TString::Join(
+        "Cross validation type. Should be one of: ",
+        GetEnumAllNames<ECrossValidation>(),
+        ". Classical: test on fold n of k, n is 0-based",
+        ". Inverted: train on fold n of k, n is 0-based",
+        ". All cv types have two parameters n and k, they should be written in format cvtype:n;k.");
+    parser->AddLongOption("cv", cvDescription)
+        .RequiredArgument("string")
+        .Handler1T<TString>([loadParamsPtr](const auto& str) {
             CB_ENSURE(
                 !loadParamsPtr->CvParams.Initialized(),
                 "Cross-validation params have already been initialized"
             );
-            Split(str,
-                  '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
-            loadParamsPtr->CvParams.Inverted = false;
-            loadParamsPtr->CvParams.Check();
-        });
-
-    parser->AddCharOption('Y', "inverted cross validation, train on fold n of k, n is 0-based")
-        .RequiredArgument("n/k")
-        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            CB_ENSURE(
-                !loadParamsPtr->CvParams.Initialized(),
-                "Cross-validation params have already been initialized"
-            );
-            Split(str,
-                  '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
-            loadParamsPtr->CvParams.Inverted = true;
+            const auto cvType = FromString<ECrossValidation>(TStringBuf(str).Before(':'));
+            const auto params = TStringBuf(str).After(':');
+            if (cvType == ECrossValidation::Classical || cvType == ECrossValidation::Inverted) {
+                Split(params, ';', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
+                loadParamsPtr->CvParams.Inverted = (cvType == ECrossValidation::Inverted);
+            }
             loadParamsPtr->CvParams.Check();
         });
 

@@ -19,7 +19,6 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
     return allObjectives;
 }
 
-
 bool IsSingleDimensionalError(ELossFunction lossFunction) {
     return (lossFunction != ELossFunction::MultiClass &&
             lossFunction != ELossFunction::MultiClassOneVsAll);
