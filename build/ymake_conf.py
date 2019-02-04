@@ -1714,6 +1714,14 @@ class LD(Linker):
         if self.type in (Linker.LLD, Linker.GOLD):
             self.ld_flags.append('-Wl,--gdb-index')
 
+        if is_positive('DUMP_LINKER_MAP'):
+            if self.type == Linker.LLD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.lld:REALPRJNAME}')
+            elif self.type == Linker.GOLD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.gold:REALPRJNAME}')
+            elif self.type == Linker.BFD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.bfd:REALPRJNAME}')
+
     def print_linker(self):
         super(LD, self).print_linker()
 
