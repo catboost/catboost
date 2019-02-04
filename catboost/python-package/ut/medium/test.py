@@ -3667,15 +3667,15 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
 
 
 def test_model_comparison():
-    def fit_model(value):
+    def fit_model(iterations):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(iterations=5)
+        model = CatBoostClassifier(iterations=iterations)
         model.fit(pool)
         return model
 
-    model0 = CatBoostClassifier(iterations=5)
+    model0 = CatBoostClassifier()
     model1 = fit_model(42)
-    model2 = fit_model(-999)
+    model2 = fit_model(5)
 
     # Test checks that model is fitted.
     with pytest.raises(CatboostError):
