@@ -139,14 +139,13 @@ void NCB::CalcModelSingleHost(
     THolder<IOutputStream> outputStream;
     if (params.OutputPath.Scheme == "dsv") {
          outputStream = MakeHolder<TOFStream>(params.OutputPath.Path);
-    }
-    else {
+    } else {
         CB_ENSURE(params.OutputPath.Path == "stdout" || params.OutputPath.Path == "stderr", "Local model evaluation supports only stderr and stdout paths.");
 
         if (params.OutputPath.Path == "stdout") {
             outputStream = MakeHolder<TFileOutput>(Duplicate(1));
-        }
-        else {
+        } else {
+            CB_ENSURE(params.OutputPath.Path == "stderr", "Unknown output stream: " << params.OutputPath.Path);
             outputStream = MakeHolder<TFileOutput>(Duplicate(2));
         }
     }

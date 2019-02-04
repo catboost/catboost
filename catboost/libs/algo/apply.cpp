@@ -243,7 +243,7 @@ TModelCalcerOnPool::TModelCalcerOnPool(
         auto catAccessor = [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> ui32 {
             return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
         };
-        ui64 docCount = repackedFeatures[0].Size();
+        ui64 docCount = ui64(blockLastId - blockFirstId);
         ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(*Model, floatAccessor, catAccessor, docCount);
     }, 0, BlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }

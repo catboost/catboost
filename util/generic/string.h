@@ -884,6 +884,10 @@ public:
         return Data_;
     }
 
+    inline const TCharType* c_str() const noexcept {
+        return Data_;
+    }
+
     // ~~~ STL compatible method to obtain data pointer ~~~
     iterator begin() {
         Detach();
