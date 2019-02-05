@@ -17,6 +17,30 @@
 using namespace NCB;
 using NPar::TLocalExecutor;
 
+
+template <class TGetFeatureDataBeginPtr>
+static inline TVector<TConstArrayRef<float>> GetRepackedFeatures(
+    int blockFirstIdx,
+    int blockLastIdx,
+    size_t flatFeatureVectorExpectedSize,
+    const THashMap<ui32, ui32>& columnReorderMap,
+    const TGetFeatureDataBeginPtr& getFeatureDataBeginPtr)
+{
+    TVector<TConstArrayRef<float>> repackedFeatures(flatFeatureVectorExpectedSize);
+    const int blockSize = blockLastIdx - blockFirstIdx;
+    if (columnReorderMap.empty()) {
+        for (size_t i = 0; i < flatFeatureVectorExpectedSize; ++i) {
+            repackedFeatures[i] = MakeArrayRef(getFeatureDataBeginPtr(i) + blockFirstIdx, blockSize);
+        }
+    } else {
+        for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
+            repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataBeginPtr(sourceIdx) + blockFirstIdx, blockSize);
+        }
+    }
+    return repackedFeatures;
+}
+
+
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
     const TObjectsDataProvider& objectsData,
@@ -48,7 +72,7 @@ TVector<TVector<double>> ApplyModelMulti(
         blockParams.SetBlockCount(effectiveBlockCount);
 
         const auto featuresLayout = rawObjectsData->GetFeaturesLayout();
-        const auto getFeatureDataPtr = [&](ui32 flatFeatureIdx) -> const float* {
+        const auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx) -> const float* {
             return GetRawFeatureDataBeginPtr(
                 *rawObjectsData,
                 *featuresLayout,
@@ -56,19 +80,17 @@ TVector<TVector<double>> ApplyModelMulti(
                 flatFeatureIdx);
         };
         const auto applyOnBlock = [&](int blockId) {
-            TVector<TConstArrayRef<float>> repackedFeatures(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
             const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
             const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
             const int blockSize = blockLastIdx - blockFirstIdx;
-            if (columnReorderMap.empty()) {
-                for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
-                    repackedFeatures[i] = MakeArrayRef(getFeatureDataPtr(i) + blockFirstIdx, blockSize);
-                }
-            } else {
-                for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
-                    repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataPtr(sourceIdx) + blockFirstIdx, blockSize);
-                }
-            }
+
+            TVector<TConstArrayRef<float>> repackedFeatures = GetRepackedFeatures(
+                blockFirstIdx,
+                blockLastIdx,
+                model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+                columnReorderMap,
+                getFeatureDataBeginPtr);
+
             model.CalcFlatTransposed(
                 repackedFeatures,
                 begin,
@@ -224,18 +246,16 @@ TModelCalcerOnPool::TModelCalcerOnPool(
     };
 
     executor->ExecRange([&](int blockId) {
-        TVector<TConstArrayRef<float>> repackedFeatures(Model->ObliviousTrees.GetFlatFeatureVectorExpectedSize());
-        const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
-        const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
-        if (columnReorderMap.empty()) {
-            for (ui32 i = 0; i < Model->ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
-                repackedFeatures[i] = MakeArrayRef(getFeatureDataBeginPtr(i) + blockFirstId, blockLastId - blockFirstId);
-            }
-        } else {
-            for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
-                repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataBeginPtr(sourceIdx) + blockFirstId, blockLastId - blockFirstId);
-            }
-        }
+        const int blockFirstIdx = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
+        const int blockLastIdx = Min(BlockParams.LastId, blockFirstIdx + BlockParams.GetBlockSize());
+
+        TVector<TConstArrayRef<float>> repackedFeatures = GetRepackedFeatures(
+            blockFirstIdx,
+            blockLastIdx,
+            Model->ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+            columnReorderMap,
+            getFeatureDataBeginPtr);
+
         auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return repackedFeatures[floatFeature.FlatFeatureIndex][index];
         };
@@ -243,7 +263,7 @@ TModelCalcerOnPool::TModelCalcerOnPool(
         auto catAccessor = [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> ui32 {
             return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
         };
-        ui64 docCount = ui64(blockLastId - blockFirstId);
+        ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
         ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(*Model, floatAccessor, catAccessor, docCount);
     }, 0, BlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
