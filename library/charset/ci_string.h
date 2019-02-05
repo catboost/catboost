@@ -225,26 +225,6 @@ public:
     }
 };
 
-#ifdef DONT_USE_CODEPAGE
-inline int TCiString::compare(const TCiString& s1, const TCiString& s2) {
-    return stricmp(s1.Data_, s2.Data_);
-}
-inline int TCiString::compare(const char* p, const TCiString& s2) {
-    return stricmp(p, s2.Data_);
-}
-inline int TCiString::compare(const TCiString& s1, const char* p) {
-    return stricmp(s1.Data_, p);
-}
-inline int TCiString::compare(const TFixedString& p1, const TFixedString& p2) {
-    int rv = strnicmp(p1.Start, p2.Start, Min(p1.Length, p2.Length));
-    return rv ? rv : p1.Length < p2.Length ? -1 : p1.Length == p2.Length ? 0 : 1;
-}
-inline bool TCiString::is_prefix(const TFixedString& what, const TFixedString& of) const {
-    size_t len = what.Length;
-    return len <= of.Length && strnicmp(what.Start, of.Start, len) == 0;
-}
-#endif
-
 struct ci_hash {
     inline size_t operator()(const char* s) const {
         return TCiString::hashVal(s, strlen(s));
