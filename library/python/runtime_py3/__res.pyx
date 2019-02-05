@@ -22,7 +22,7 @@ cdef extern from "util/generic/strbuf.h":
 cdef extern from "library/resource/resource.h" namespace "NResource":
     cdef size_t Count() except +
     cdef TStringBuf KeyByIndex(size_t idx) except +
-    cdef bool FindExact(const TStringBuf& key, TString* result) nogil except +
+    cdef bool FindExact(const TStringBuf key, TString* result) nogil except +
 
 
 def count():

@@ -21,7 +21,7 @@ namespace {
     typedef std::pair<TStringBuf, TStringBuf> TDescriptor;
 
     struct TStore: public IStore, public THashMap<TStringBuf, TDescriptor*> {
-        void Store(const TStringBuf& key, const TStringBuf& data) override {
+        void Store(const TStringBuf key, const TStringBuf data) override {
             if (contains(key)) {
                 if ((*this)[key]->second != data) {
                     Y_VERIFY(false, "Multiple definition for key '%s'", key.data());
@@ -34,7 +34,7 @@ namespace {
             Y_VERIFY(size() == Count(), "size mismatch");
         }
 
-        bool FindExact(const TStringBuf& key, TString* out) const override {
+        bool FindExact(const TStringBuf key, TString* out) const override {
             if (TDescriptor* const* res = FindPtr(key)) {
                 // temporary
                 // https://st.yandex-team.ru/DEVTOOLS-3985
@@ -53,7 +53,7 @@ namespace {
             return false;
         }
 
-        void FindMatch(const TStringBuf& subkey, IMatch& cb) const override {
+        void FindMatch(const TStringBuf subkey, IMatch& cb) const override {
             for (const auto& it : *this) {
                 if (it.first.StartsWith(subkey)) {
                     // temporary
@@ -85,11 +85,11 @@ namespace {
     };
 }
 
-TString NResource::Compress(const TStringBuf& data) {
+TString NResource::Compress(const TStringBuf data) {
     return GetCodec()->Encode(data);
 }
 
-TString NResource::Decompress(const TStringBuf& data) {
+TString NResource::Decompress(const TStringBuf data) {
     return GetCodec()->Decode(data);
 }
 

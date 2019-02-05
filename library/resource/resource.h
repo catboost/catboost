@@ -12,10 +12,10 @@ namespace NResource {
 
     typedef TVector<TResource> TResources;
 
-    TString Find(const TStringBuf& key);
-    bool FindExact(const TStringBuf& key, TString* out);
+    TString Find(const TStringBuf key);
+    bool FindExact(const TStringBuf key, TString* out);
     //perform full scan for now
-    void FindMatch(const TStringBuf& subkey, TResources* out);
+    void FindMatch(const TStringBuf subkey, TResources* out);
     size_t Count() noexcept;
     TStringBuf KeyByIndex(size_t idx);
     TVector<TStringBuf> ListAllKeys();

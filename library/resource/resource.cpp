@@ -7,11 +7,11 @@
 
 using namespace NResource;
 
-bool NResource::FindExact(const TStringBuf& key, TString* out) {
+bool NResource::FindExact(const TStringBuf key, TString* out) {
     return CommonStore()->FindExact(key, out);
 }
 
-void NResource::FindMatch(const TStringBuf& subkey, TResources* out) {
+void NResource::FindMatch(const TStringBuf subkey, TResources* out) {
     struct TMatch: public IMatch {
         inline TMatch(TResources* r)
             : R(r)
@@ -30,7 +30,7 @@ void NResource::FindMatch(const TStringBuf& subkey, TResources* out) {
     CommonStore()->FindMatch(subkey, m);
 }
 
-TString NResource::Find(const TStringBuf& key) {
+TString NResource::Find(const TStringBuf key) {
     TString ret;
 
     if (FindExact(key, &ret)) {
