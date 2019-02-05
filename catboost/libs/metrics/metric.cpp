@@ -3424,7 +3424,7 @@ namespace {
             int /*end*/,
             NPar::TLocalExecutor& /*executor*/
         ) const override {
-            CB_ENSURE("Custom metrics do not support approx deltas and exponentiated approxes");
+            CB_ENSURE(false, "Custom metrics do not support approx deltas and exponentiated approxes");
             return TMetricHolder();
         }
         TString GetDescription() const override;
@@ -3528,7 +3528,9 @@ namespace {
             int /*end*/,
             NPar::TLocalExecutor& /*executor*/
         ) const override {
-            CB_ENSURE("User-defined per object metrics do not support approx deltas and exponentiated approxes");
+            CB_ENSURE(
+                false,
+                "User-defined per object metrics do not support approx deltas and exponentiated approxes");
             return TMetricHolder();
         }
         TString GetDescription() const override;
