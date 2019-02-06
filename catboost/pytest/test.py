@@ -5961,7 +5961,7 @@ def test_gradient_walker():
         '-T', '4',
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
-        '--leaf-estimation-backtracking', 'AnyImprovment',
+        '--leaf-estimation-backtracking', 'AnyImprovement',
     )
     yatest.common.execute(cmd)
 

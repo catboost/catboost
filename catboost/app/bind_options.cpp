@@ -435,7 +435,7 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     const auto leafEstimationBacktrackingHelp = TString::Join(
-        "Backtracking type (GPU only); Must be one of: ",
+        "Backtracking type; Must be one of: ",
         GetEnumAllNames<ELeavesEstimationStepBacktracking>());
     parser.AddLongOption("leaf-estimation-backtracking", leafEstimationBacktrackingHelp)
         .RequiredArgument("str")

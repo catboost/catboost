@@ -1480,11 +1480,11 @@ def test_custom_objective(task_type):
                                loss_function=LoglossObjective(), eval_metric="Logloss",
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
-                               leaf_estimation_method="Newton", leaf_estimation_iterations=10, task_type=task_type, devices='0')
+                               leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 
-    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, use_best_model=True, loss_function="Logloss")
+    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, use_best_model=True, loss_function="Logloss", leaf_estimation_method="Newton", leaf_estimation_iterations=1)
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
 
