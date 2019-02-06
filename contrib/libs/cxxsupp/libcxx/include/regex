@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===--------------------------- regex ------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -678,7 +677,7 @@ public:
                    regex_constants::match_flag_type m = regex_constants::match_default);
     regex_iterator(_BidirectionalIterator __a, _BidirectionalIterator __b,
                    const regex_type&& __re,
-                   regex_constants::match_flag_type __m
+                   regex_constants::match_flag_type __m 
                                      = regex_constants::match_default) = delete; // C++14
     regex_iterator(const regex_iterator&);
     regex_iterator& operator=(const regex_iterator&);
@@ -769,6 +768,7 @@ typedef regex_token_iterator<wstring::const_iterator> wsregex_token_iterator;
 #include <memory>
 #include <vector>
 #include <deque>
+#include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -989,6 +989,10 @@ public:
 
 #if defined(__mips__) && defined(__GLIBC__)
     static const char_class_type __regex_word = static_cast<char_class_type>(_ISbit(15));
+#elif defined(__NetBSD__)
+    // NetBSD defines classes up to 0x2000
+    // see sys/ctype_bits.h, _CTYPE_Q
+    static const char_class_type __regex_word = 0x8000;
 #else
     static const char_class_type __regex_word = 0x80;
 #endif
@@ -1351,9 +1355,9 @@ public:
     virtual ~__node() {}
 
     _LIBCPP_INLINE_VISIBILITY
-    virtual void __exec(__state&) const {};
+    virtual void __exec(__state&) const {}
     _LIBCPP_INLINE_VISIBILITY
-    virtual void __exec_split(bool, __state&) const {};
+    virtual void __exec_split(bool, __state&) const {}
 };
 
 // __end_state
@@ -2414,27 +2418,24 @@ __bracket_expression<_CharT, _Traits>::__exec(__state& __s) const
                 goto __exit;
             }
         }
-        // set of "__found" chars =
+        // When there's at least one of __neg_chars_ and __neg_mask_, the set
+        // of "__found" chars is
         //   union(complement(union(__neg_chars_, __neg_mask_)),
         //         other cases...)
         //
-        // __neg_chars_ and __neg_mask_'d better be handled together, as there
-        // are no short circuit opportunities.
-        //
-        // In addition, when __neg_mask_/__neg_chars_ is empty, they should be
-        // treated as all ones/all chars.
+        // It doesn't make sense to check this when there are no __neg_chars_
+        // and no __neg_mask_.
+        if (!(__neg_mask_ == 0 && __neg_chars_.empty()))
         {
-          const bool __in_neg_mask = (__neg_mask_ == 0) ||
-              __traits_.isctype(__ch, __neg_mask_);
+            const bool __in_neg_mask = __traits_.isctype(__ch, __neg_mask_);
           const bool __in_neg_chars =
-              __neg_chars_.empty() ||
               std::find(__neg_chars_.begin(), __neg_chars_.end(), __ch) !=
               __neg_chars_.end();
           if (!(__in_neg_mask || __in_neg_chars))
-        {
+          {
             __found = true;
             goto __exit;
-        }
+          }
         }
         if (!__ranges_.empty())
         {
@@ -3011,10 +3012,10 @@ __lookahead<_CharT, _Traits>::__exec(__state& __s) const
     __m.__init(1 + __exp_.mark_count(), __s.__current_, __s.__last_);
     bool __matched = __exp_.__match_at_start_ecma(
         __s.__current_, __s.__last_,
-                                                  __m,
+        __m,
         (__s.__flags_ | regex_constants::match_continuous) &
         ~regex_constants::__full_match,
-                                                  __s.__at_first_ && __s.__current_ == __s.__first_);
+        __s.__at_first_ && __s.__current_ == __s.__first_);
     if (__matched != __invert_)
     {
         __s.__do_ = __state::__accept_but_not_consume;
@@ -3377,7 +3378,7 @@ basic_regex<_CharT, _Traits>::__parse_BACKREF(_ForwardIterator __first,
         if (__temp != __last)
         {
             if (*__first == '\\')
-            {
+            { 
                 int __val = __traits_.value(*__temp, 10);
                 if (__val >= 1 && __val <= 9)
                 {
@@ -4074,7 +4075,7 @@ basic_regex<_CharT, _Traits>::__parse_DUP_COUNT(_ForwardIterator __first,
         if ( __val != -1 )
         {
             __c = __val;
-            for (++__first;
+            for (++__first; 
                  __first != __last && ( __val = __traits_.value(*__first, 10)) != -1;
                  ++__first)
             {
@@ -4454,7 +4455,7 @@ basic_regex<_CharT, _Traits>::__parse_character_escape(_ForwardIterator __first,
         case 'c':
             if ((__t = _VSTD::next(__first)) != __last)
             {
-                if (('A' <= *__t && *__t <= 'Z') ||
+                if (('A' <= *__t && *__t <= 'Z') || 
                     ('a' <= *__t && *__t <= 'z'))
                 {
                     if (__str)
@@ -4463,7 +4464,7 @@ basic_regex<_CharT, _Traits>::__parse_character_escape(_ForwardIterator __first,
                         __push_char(_CharT(*__t % 32));
                     __first = ++__t;
                 }
-                else
+                else 
                     __throw_regex_error<regex_constants::error_escape>();
             }
             else
@@ -5864,7 +5865,7 @@ basic_regex<_CharT, _Traits>::__search(
 {
     __m.__init(1 + mark_count(), __first, __last,
                                     __flags & regex_constants::__no_update_pos);
-    if (__match_at_start(__first, __last, __m, __flags,
+    if (__match_at_start(__first, __last, __m, __flags, 
                                     !(__flags & regex_constants::__no_update_pos)))
     {
         __m.__prefix_.second = __m[0].first;
@@ -6010,7 +6011,7 @@ bool
 regex_search(const basic_string<_Cp, _ST, _SA>&& __s,
              match_results<typename basic_string<_Cp, _ST, _SA>::const_iterator, _Ap>&,
              const basic_regex<_Cp, _Tp>& __e,
-             regex_constants::match_flag_type __flags = regex_constants::match_default) = delete;
+             regex_constants::match_flag_type __flags = regex_constants::match_default) = delete; 
 #endif
 
 // regex_match
@@ -6074,7 +6075,7 @@ bool
 regex_match(const basic_string<_CharT, _ST, _SA>&& __s,
             match_results<typename basic_string<_CharT, _ST, _SA>::const_iterator, _Allocator>& __m,
             const basic_regex<_CharT, _Traits>& __e,
-            regex_constants::match_flag_type __flags = regex_constants::match_default) = delete;
+            regex_constants::match_flag_type __flags = regex_constants::match_default) = delete; 
 #endif
 
 template <class _CharT, class _Traits>
@@ -6127,7 +6128,7 @@ public:
 #if _LIBCPP_STD_VER > 11
     regex_iterator(_BidirectionalIterator __a, _BidirectionalIterator __b,
                    const regex_type&& __re,
-                   regex_constants::match_flag_type __m
+                   regex_constants::match_flag_type __m 
                                      = regex_constants::match_default) = delete;
 #endif
 
@@ -6138,7 +6139,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     reference operator*() const {return  __match_;}
     _LIBCPP_INLINE_VISIBILITY
-    pointer operator->() const  {return &__match_;}
+    pointer operator->() const  {return _VSTD::addressof(__match_);}
 
     regex_iterator& operator++();
     _LIBCPP_INLINE_VISIBILITY
@@ -6162,7 +6163,7 @@ regex_iterator<_BidirectionalIterator, _CharT, _Traits>::
                    const regex_type& __re, regex_constants::match_flag_type __m)
     : __begin_(__a),
       __end_(__b),
-      __pregex_(&__re),
+      __pregex_(_VSTD::addressof(__re)),
       __flags_(__m)
 {
     _VSTD::regex_search(__begin_, __end_, __match_, *__pregex_, __flags_);
@@ -6323,7 +6324,7 @@ private:
             __result_ = &__position_->prefix();
         else
             __result_ = &(*__position_)[__subs_[__n_]];
-        }
+        }       
 };
 
 template <class _BidirectionalIterator, class _CharT, class _Traits>
@@ -6403,7 +6404,7 @@ regex_token_iterator<_BidirectionalIterator, _CharT, _Traits>::
                              regex_constants::match_flag_type __m)
     : __position_(__a, __b, __re, __m),
       __n_(0),
-      __subs_(__submatches, __submatches + _Np)
+      __subs_(begin(__submatches), end(__submatches))
 {
     __init(__a, __b);
 }

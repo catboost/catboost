@@ -1,8 +1,7 @@
 LIBRARY()
 
 LICENSE(
-    MIT
-    BSD
+    APACHE
 )
 
 
@@ -111,6 +110,7 @@ SRCS(
     src/algorithm.cpp
     src/any.cpp
     src/bind.cpp
+    src/charconv.cpp
     src/chrono.cpp
     src/condition_variable.cpp
     src/debug.cpp

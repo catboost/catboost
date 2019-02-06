@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -67,21 +66,18 @@ public:
     _LIBCPP_INLINE_VISIBILITY native_handle_type native_handle() {return &__m_;}
 };
 
-// Workaround for ICE in MSVC 2015
-#ifndef _LIBCPP_COMPILER_MSVC
 static_assert(is_nothrow_default_constructible<mutex>::value,
               "the default constructor for std::mutex must be nothrow");
-#endif
 
 struct _LIBCPP_TYPE_VIS defer_lock_t {};
 struct _LIBCPP_TYPE_VIS try_to_lock_t {};
 struct _LIBCPP_TYPE_VIS adopt_lock_t {};
 
-#if defined(_LIBCPP_CXX03_LANG) || defined(_LIBCPP_BUILDING_MUTEX)
+#if defined(_LIBCPP_CXX03_LANG) || defined(_LIBCPP_BUILDING_LIBRARY)
 
-extern const defer_lock_t  defer_lock;
-extern const try_to_lock_t try_to_lock;
-extern const adopt_lock_t  adopt_lock;
+extern _LIBCPP_EXPORTED_FROM_ABI const defer_lock_t  defer_lock;
+extern _LIBCPP_EXPORTED_FROM_ABI const try_to_lock_t try_to_lock;
+extern _LIBCPP_EXPORTED_FROM_ABI const adopt_lock_t  adopt_lock;
 
 #else
 

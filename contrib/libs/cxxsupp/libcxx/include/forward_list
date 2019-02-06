@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===----------------------- forward_list ---------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -167,6 +166,11 @@ template <class T, class Allocator>
     void swap(forward_list<T, Allocator>& x, forward_list<T, Allocator>& y)
          noexcept(noexcept(x.swap(y)));
 
+template <class T, class Allocator, class U>
+    void erase(forward_list<T, Allocator>& c, const U& value);       // C++20
+template <class T, class Allocator, class Predicate>
+    void erase_if(forward_list<T, Allocator>& c, Predicate pred);    // C++20
+
 }  // std
 
 */
@@ -177,6 +181,7 @@ template <class T, class Allocator>
 #include <limits>
 #include <iterator>
 #include <algorithm>
+#include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -525,7 +530,7 @@ public:
 #if _LIBCPP_STD_VER >= 14
         _NOEXCEPT;
 #else
-        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value ||
+        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value || 
                     __is_nothrow_swappable<__node_allocator>::value);
 #endif
 protected:
@@ -590,11 +595,11 @@ __forward_list_base<_Tp, _Alloc>::swap(__forward_list_base& __x)
 #if _LIBCPP_STD_VER >= 14
         _NOEXCEPT
 #else
-        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value ||
+        _NOEXCEPT_(!__node_traits::propagate_on_container_move_assignment::value || 
                     __is_nothrow_swappable<__node_allocator>::value)
 #endif
 {
-    __swap_allocator(__alloc(), __x.__alloc(),
+    __swap_allocator(__alloc(), __x.__alloc(), 
             integral_constant<bool, __node_traits::propagate_on_container_swap::value>());
     using _VSTD::swap;
     swap(__before_begin()->__next_, __x.__before_begin()->__next_);
@@ -755,9 +760,13 @@ public:
     const_reference front() const {return base::__before_begin()->__next_->__value_;}
 
 #ifndef _LIBCPP_CXX03_LANG
+#if _LIBCPP_STD_VER > 14
     template <class... _Args> reference emplace_front(_Args&&... __args);
+#else
+    template <class... _Args> void      emplace_front(_Args&&... __args);
+#endif
     void push_front(value_type&& __v);
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
     void push_front(const value_type& __v);
 
     void pop_front();
@@ -958,7 +967,7 @@ template <class _Tp, class _Alloc>
 forward_list<_Tp, _Alloc>::forward_list(const forward_list& __x)
     : base(
           __node_traits::select_on_container_copy_construction(__x.__alloc())) {
-    insert_after(cbefore_begin(), __x.begin(), __x.end());
+  insert_after(cbefore_begin(), __x.begin(), __x.end());
 }
 
 template <class _Tp, class _Alloc>
@@ -1103,7 +1112,11 @@ forward_list<_Tp, _Alloc>::assign(initializer_list<value_type> __il)
 
 template <class _Tp, class _Alloc>
 template <class... _Args>
+#if _LIBCPP_STD_VER > 14
 typename forward_list<_Tp, _Alloc>::reference
+#else
+void
+#endif
 forward_list<_Tp, _Alloc>::emplace_front(_Args&&... __args)
 {
     __node_allocator& __a = base::__alloc();
@@ -1113,7 +1126,9 @@ forward_list<_Tp, _Alloc>::emplace_front(_Args&&... __args)
                                   _VSTD::forward<_Args>(__args)...);
     __h->__next_ = base::__before_begin()->__next_;
     base::__before_begin()->__next_ = __h.release();
+#if _LIBCPP_STD_VER > 14
     return base::__before_begin()->__next_->__value_;
+#endif
 }
 
 template <class _Tp, class _Alloc>
@@ -1732,6 +1747,18 @@ swap(forward_list<_Tp, _Alloc>& __x, forward_list<_Tp, _Alloc>& __y)
 {
     __x.swap(__y);
 }
+
+#if _LIBCPP_STD_VER > 17
+template <class _Tp, class _Allocator, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+void erase_if(forward_list<_Tp, _Allocator>& __c, _Predicate __pred)
+{ __c.remove_if(__pred); }
+
+template <class _Tp, class _Allocator, class _Up>
+inline _LIBCPP_INLINE_VISIBILITY
+void erase(forward_list<_Tp, _Allocator>& __c, const _Up& __v)
+{ _VSTD::erase_if(__c, [&](auto& __elem) { return __elem == __v; }); }
+#endif
 
 _LIBCPP_END_NAMESPACE_STD
 

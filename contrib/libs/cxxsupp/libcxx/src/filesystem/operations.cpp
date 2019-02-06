@@ -1,9 +1,8 @@
 //===--------------------- filesystem/ops.cpp -----------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -206,8 +205,20 @@ public:
     return *this;
   }
 
+  bool atEnd() const noexcept {
+    return State == PS_AtEnd;
+  }
+
+  bool inRootDir() const noexcept {
+    return State == PS_InRootDir;
+  }
+
+  bool inRootName() const noexcept {
+    return State == PS_InRootName;
+  }
+
   bool inRootPath() const noexcept {
-    return State == PS_InRootDir || State == PS_InRootName;
+    return inRootName() || inRootDir();
   }
 
 private:
@@ -352,7 +363,6 @@ struct FileDescriptor {
 
   ~FileDescriptor() { close(); }
 
-  FileDescriptor() = default;
   FileDescriptor(FileDescriptor const&) = delete;
   FileDescriptor& operator=(FileDescriptor const&) = delete;
 
@@ -428,7 +438,8 @@ file_status posix_lstat(path const& p, error_code* ec) {
   return posix_lstat(p, path_stat, ec);
 }
 
-bool posix_ftruncate(const FileDescriptor& fd, size_t to_size, error_code& ec) {
+// http://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html
+bool posix_ftruncate(const FileDescriptor& fd, off_t to_size, error_code& ec) {
   if (::ftruncate(fd.fd, to_size) == -1) {
     ec = capture_errno();
     return true;
@@ -531,11 +542,19 @@ path __canonical(path const& orig_p, error_code* ec) {
   ErrorHandler<path> err("canonical", ec, &orig_p, &cwd);
 
   path p = __do_absolute(orig_p, &cwd, ec);
+#if _POSIX_VERSION >= 200112
+  std::unique_ptr<char, decltype(&::free)>
+    hold(::realpath(p.c_str(), nullptr), &::free);
+  if (hold.get() == nullptr)
+    return err.report(capture_errno());
+  return {hold.get()};
+#else
   char buff[PATH_MAX + 1];
   char* ret;
   if ((ret = ::realpath(p.c_str(), buff)) == nullptr)
     return err.report(capture_errno());
   return {ret};
+#endif
 }
 
 void __copy(const path& from, const path& to, copy_options options,
@@ -1077,16 +1096,27 @@ void __permissions(const path& p, perms prms, perm_options opts,
 path __read_symlink(const path& p, error_code* ec) {
   ErrorHandler<path> err("read_symlink", ec, &p);
 
-  char buff[PATH_MAX + 1];
-  error_code m_ec;
-  ::ssize_t ret;
-  if ((ret = ::readlink(p.c_str(), buff, PATH_MAX)) == -1) {
+#ifdef PATH_MAX
+  struct NullDeleter { void operator()(void*) const {} };
+  const size_t size = PATH_MAX + 1;
+  char stack_buff[size];
+  auto buff = std::unique_ptr<char[], NullDeleter>(stack_buff);
+#else
+  StatT sb;
+  if (::lstat(p.c_str(), &sb) == -1) {
     return err.report(capture_errno());
   }
-  _LIBCPP_ASSERT(ret <= PATH_MAX, "TODO");
+  const size_t size = sb.st_size + 1;
+  auto buff = unique_ptr<char[]>(new char[size]);
+#endif
+  ::ssize_t ret;
+  if ((ret = ::readlink(p.c_str(), buff.get(), size)) == -1)
+    return err.report(capture_errno());
   _LIBCPP_ASSERT(ret > 0, "TODO");
+  if (static_cast<size_t>(ret) >= size)
+    return err.report(errc::value_too_large);
   buff[ret] = 0;
-  return {buff};
+  return {buff.get()};
 }
 
 bool __remove(const path& p, error_code* ec) {
@@ -1295,7 +1325,19 @@ string_view_t path::__root_path_raw() const {
   return {};
 }
 
+static bool ConsumeRootName(PathParser *PP) {
+  static_assert(PathParser::PS_BeforeBegin == 1 &&
+      PathParser::PS_InRootName == 2,
+      "Values for enums are incorrect");
+  while (PP->State <= PathParser::PS_InRootName)
+    ++(*PP);
+  return PP->State == PathParser::PS_AtEnd;
+}
+
 static bool ConsumeRootDir(PathParser* PP) {
+  static_assert(PathParser::PS_BeforeBegin == 1 &&
+                PathParser::PS_InRootName == 2 &&
+                PathParser::PS_InRootDir == 3, "Values for enums are incorrect");
   while (PP->State <= PathParser::PS_InRootDir)
     ++(*PP);
   return PP->State == PathParser::PS_AtEnd;
@@ -1455,7 +1497,7 @@ static int DetermineLexicalElementCount(PathParser PP) {
     auto Elem = *PP;
     if (Elem == "..")
       --Count;
-    else if (Elem != ".")
+    else if (Elem != "." && Elem != "")
       ++Count;
   }
   return Count;
@@ -1469,8 +1511,7 @@ path path::lexically_relative(const path& base) const {
       return PP.State != PPBase.State &&
              (PP.inRootPath() || PPBase.inRootPath());
     };
-    if (PP.State == PathParser::PS_InRootName &&
-        PPBase.State == PathParser::PS_InRootName) {
+    if (PP.inRootName() && PPBase.inRootName()) {
       if (*PP != *PPBase)
         return {};
     } else if (CheckIterMismatchAtBase())
@@ -1502,6 +1543,10 @@ path path::lexically_relative(const path& base) const {
   if (ElemCount < 0)
     return {};
 
+  // if n == 0 and (a == end() || a->empty()), returns path("."); otherwise
+  if (ElemCount == 0 && (PP.atEnd() || *PP == ""))
+    return ".";
+
   // return a path constructed with 'n' dot-dot elements, followed by the the
   // elements of '*this' after the mismatch.
   path Result;
@@ -1515,21 +1560,68 @@ path path::lexically_relative(const path& base) const {
 
 ////////////////////////////////////////////////////////////////////////////
 // path.comparisons
-int path::__compare(string_view_t __s) const {
-  auto PP = PathParser::CreateBegin(__pn_);
-  auto PP2 = PathParser::CreateBegin(__s);
-  while (PP && PP2) {
-    int res = (*PP).compare(*PP2);
-    if (res != 0)
-      return res;
-    ++PP;
-    ++PP2;
-  }
-  if (PP.State == PP2.State && !PP)
+static int CompareRootName(PathParser *LHS, PathParser *RHS) {
+  if (!LHS->inRootName() && !RHS->inRootName())
     return 0;
-  if (!PP)
+
+  auto GetRootName = [](PathParser *Parser) -> string_view_t {
+    return Parser->inRootName() ? **Parser : "";
+  };
+  int res = GetRootName(LHS).compare(GetRootName(RHS));
+  ConsumeRootName(LHS);
+  ConsumeRootName(RHS);
+  return res;
+}
+
+static int CompareRootDir(PathParser *LHS, PathParser *RHS) {
+  if (!LHS->inRootDir() && RHS->inRootDir())
     return -1;
-  return 1;
+  else if (LHS->inRootDir() && !RHS->inRootDir())
+    return 1;
+  else {
+    ConsumeRootDir(LHS);
+    ConsumeRootDir(RHS);
+    return 0;
+  }
+}
+
+static int CompareRelative(PathParser *LHSPtr, PathParser *RHSPtr) {
+  auto &LHS = *LHSPtr;
+  auto &RHS = *RHSPtr;
+  
+  int res;
+  while (LHS && RHS) {
+    if ((res = (*LHS).compare(*RHS)) != 0)
+      return res;
+    ++LHS;
+    ++RHS;
+  }
+  return 0;
+}
+
+static int CompareEndState(PathParser *LHS, PathParser *RHS) {
+  if (LHS->atEnd() && !RHS->atEnd())
+    return -1;
+  else if (!LHS->atEnd() && RHS->atEnd())
+    return 1;
+  return 0;
+}
+
+int path::__compare(string_view_t __s) const {
+  auto LHS = PathParser::CreateBegin(__pn_);
+  auto RHS = PathParser::CreateBegin(__s);
+  int res;
+
+  if ((res = CompareRootName(&LHS, &RHS)) != 0)
+    return res;
+
+  if ((res = CompareRootDir(&LHS, &RHS)) != 0)
+    return res;
+
+  if ((res = CompareRelative(&LHS, &RHS)) != 0)
+    return res;
+
+  return CompareEndState(&LHS, &RHS);
 }
 
 ////////////////////////////////////////////////////////////////////////////
