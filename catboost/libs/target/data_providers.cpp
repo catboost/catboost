@@ -691,8 +691,6 @@ namespace NCB {
         }
 
         if (needTargetDataForCtrs) {
-            CB_ENSURE(maybeConvertedTarget, "CTR features require Target data");
-
             TTargetDataSpecification specification(ETargetType::Simple);
             result.emplace(
                 specification,
