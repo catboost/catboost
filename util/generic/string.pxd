@@ -5,6 +5,7 @@ cdef extern from "<util/generic/strbuf.h>" nogil:
     cdef cppclass TStringBuf:
         TStringBuf() except +
         TStringBuf(const char*) except +
+        TStringBuf(const char*, size_t) except +
         char* Data()
         size_t Size()
 

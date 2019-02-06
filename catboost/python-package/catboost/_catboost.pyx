@@ -32,7 +32,7 @@ from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.maybe cimport TMaybe
 from util.generic.ptr cimport THolder
-from util.generic.string cimport TString
+from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui32, ui64, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
@@ -75,15 +75,6 @@ cdef extern from "util/generic/ptr.h" nogil:
         T* Get()
         T* Release()
         void Drop()
-
-# TODO(akhropov): Add necessary methods to util's def
-cdef extern from "util/generic/strbuf.h":
-    cdef cppclass TStringBuf:
-        TStringBuf() except +
-        TStringBuf(const char*) except +
-        TStringBuf(const char*, size_t) except +
-        char* Data()
-        size_t Size()
 
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
