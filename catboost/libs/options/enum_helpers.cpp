@@ -15,7 +15,7 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
         ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
         ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
         ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
-        ELossFunction::Lq};
+        ELossFunction::Lq, ELossFunction::Huber};
     return allObjectives;
 }
 
@@ -145,7 +145,8 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::Quantile ||
             lossFunction == ELossFunction::RMSE ||
             lossFunction == ELossFunction::LogLinQuantile ||
-            lossFunction == ELossFunction::Lq
+            lossFunction == ELossFunction::Lq ||
+            lossFunction == ELossFunction::Huber
     );
 }
 
