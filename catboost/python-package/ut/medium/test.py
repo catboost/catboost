@@ -2905,12 +2905,16 @@ def test_compare(test_case):
     model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE', train_dir="catboost_info2")
     model2.fit(dataset, train_labels)
 
-    if test_case == "dataset_and_metrics":
-        model.compare(model2, Pool(dataset, label=train_labels), ["RMSE"])
-    elif test_case == "no_dataset_and_no_metrics":
-        model.compare(model2)
-    elif test_case == "dataset_and_no_metrics":
-        model.compare(model2, Pool(dataset, label=train_labels))
+    kwargs = {"second_model": model2}   # "no_dataset_and_no_metrics" case
+    if test_case == "dataset_and_no_metrics":
+        kwargs.update({"data": Pool(dataset, label=train_labels)})
+    elif test_case == "dataset_and_metrics":
+        kwargs.update({"data": Pool(dataset, label=train_labels), "metrics": ["RMSE"]})
+
+    try:
+        model.compare(**kwargs)
+    except ImportError as ie:
+        pytest.xfail(reason=str(ie))
 
 
 def test_cv_fold_count_alias(task_type):
