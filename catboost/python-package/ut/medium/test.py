@@ -2911,10 +2911,10 @@ def test_compare(test_case):
     elif test_case == "dataset_and_metrics":
         kwargs.update({"data": Pool(dataset, label=train_labels), "metrics": ["RMSE"]})
 
-    try:
+    with pytest.raises(ImportError) as excinfo:
         model.compare(**kwargs)
-    except ImportError as ie:
-        pytest.xfail(reason=str(ie))
+    pytest.xfail(excinfo.value.msg) if excinfo.value.msg == "No module named 'widget'" \
+        else pytest.fail(excinfo.value.msg)
 
 
 def test_cv_fold_count_alias(task_type):
