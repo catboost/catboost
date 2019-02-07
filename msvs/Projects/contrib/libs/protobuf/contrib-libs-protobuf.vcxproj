@@ -213,6 +213,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_shared_code_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_string_field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\java\java_string_field_lite.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\js\js_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\js\well_known_types_embed.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\parser.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_generator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\compiler\perlxs\perlxs_helpers.h"/>
