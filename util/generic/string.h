@@ -220,10 +220,6 @@ public:
         return begin() <= it && end() > it ? size_t(it - begin()) : npos;
     }
 
-    constexpr inline const TCharType* c_str() const noexcept {
-        return Ptr();
-    }
-
     inline const_iterator begin() const noexcept {
         return Ptr();
     }
