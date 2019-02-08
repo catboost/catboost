@@ -19,7 +19,7 @@ namespace NNetliba {
     }
 
     TIBMemSuperBlock::~TIBMemSuperBlock() {
-        Y_ASSERT(UseCount == 0);
+        Y_ASSERT(AtomicGet(UseCount) == 0);
     }
 
     char* TIBMemSuperBlock::GetData() {
@@ -103,7 +103,7 @@ namespace NNetliba {
 
     void TIBMemPool::Return(TPtrArg<TIBMemSuperBlock> blk) {
         TGuard<TMutex> gg(CacheLock);
-        Y_ASSERT(blk->UseCount == 0);
+        Y_ASSERT(AtomicGet(blk->UseCount) == 0);
         size_t sz = 1ul << blk->SzLog;
         if (sz + AllocCacheSize > IB_MEM_POOL_SIZE) {
             AllocCache.clear();
