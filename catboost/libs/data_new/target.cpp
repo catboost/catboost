@@ -711,6 +711,7 @@ void TTargetSerialization::Load(
             CREATE_TARGET_TYPE(GroupwiseRanking)
             CREATE_TARGET_TYPE(GroupPairwiseRanking)
             CREATE_TARGET_TYPE(Simple)
+            CREATE_TARGET_TYPE(UserDefined)
 
 #undef CREATE_TARGET_TYPE
 
@@ -1262,6 +1263,72 @@ TSimpleTarget TSimpleTarget::Load(
 }
 
 
+TUserDefinedTarget::TUserDefinedTarget(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    TSharedVector<float> target,
+    TSharedWeights<float> weights,
+    bool skipCheck
+)
+    : TTargetDataProvider(
+        TTargetDataSpecification(ETargetType::UserDefined, description),
+        std::move(objectsGrouping)
+      )
+{
+    if (!skipCheck) {
+        if (target) {
+            CheckDataSize(target->size(), (size_t)GetObjectCount(), "target");
+        }
+        CheckDataSize(weights->GetSize(), GetObjectCount(), "weights");
+    }
+    Target = std::move(target);
+    Weights = std::move(weights);
+}
+
+void TUserDefinedTarget::GetSourceDataForSubsetCreation(
+    TSubsetTargetDataCache* subsetTargetDataCache
+) const {
+    if (Target) {
+        subsetTargetDataCache->Targets.emplace(Target, TSharedVector<float>());
+    }
+    subsetTargetDataCache->Weights.emplace(Weights, TSharedWeights<float>());
+}
+
+TTargetDataProviderPtr TUserDefinedTarget::GetSubset(
+    TObjectsGroupingPtr objectsGrouping,
+    const TSubsetTargetDataCache& subsetTargetDataCache
+) const {
+    return MakeIntrusive<TUserDefinedTarget>(
+        GetSpecification().Description,
+        std::move(objectsGrouping),
+        Target ? subsetTargetDataCache.Targets.at(Target) : Target,
+        subsetTargetDataCache.Weights.at(Weights),
+        true
+    );
+}
+
+void TUserDefinedTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
+    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
+}
+
+TUserDefinedTarget TUserDefinedTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto target = LoadById(cache.Targets, binSaver);
+    auto weights = LoadById(cache.Weights, binSaver);
+
+    return TUserDefinedTarget(description, objectsGrouping, target, weights, true);
+}
+
+
 TMaybeData<TConstArrayRef<float>> NCB::GetMaybeTarget(const TTargetDataProviders& targetDataProviders) {
     for (const auto& specAndDataProvider : targetDataProviders) {
         switch (specAndDataProvider.first.Type) {
@@ -1275,6 +1342,7 @@ TMaybeData<TConstArrayRef<float>> NCB::GetMaybeTarget(const TTargetDataProviders
             GET_FIELD_FROM_TYPE(Regression);
             GET_FIELD_FROM_TYPE(GroupwiseRanking);
             GET_FIELD_FROM_TYPE(Simple);
+            GET_FIELD_FROM_TYPE(UserDefined);
 
 #undef GET_FIELD_FROM_TYPE
 
@@ -1307,6 +1375,7 @@ TConstArrayRef<float> NCB::GetWeights(const TTargetDataProviders& targetDataProv
             GET_FIELD_FROM_TYPE(MultiClass);
             GET_FIELD_FROM_TYPE(Regression);
             GET_FIELD_FROM_TYPE(GroupwiseRanking);
+            GET_FIELD_FROM_TYPE(UserDefined);
 
 #undef GET_FIELD_FROM_TYPE
 

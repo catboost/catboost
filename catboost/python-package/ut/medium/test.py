@@ -2277,7 +2277,7 @@ class TestInvalidCustomLossAndMetric(object):
         def calc_ders_range(self, approxes, targets, weights):
             assert len(approxes) == len(targets)
             der1 = 2.0 * (np.array(approxes) - np.array(targets))
-            der2 = -2.0
+            der2 = np.full(len(approxes), -2.0)
             if weights is not None:
                 assert len(weights) == len(targets)
                 der1 *= np.array(weights)
@@ -2369,6 +2369,14 @@ class TestInvalidCustomLossAndMetric(object):
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
             model.fit(pool)
+
+    def test_custom_loss_and_metric(self):
+        model = CatBoost(
+            {"loss_function": self.GoodCustomLoss(), "eval_metric": self.GoodCustomMetric(), "iterations": 2}
+        )
+        prng = np.random.RandomState(seed=20181219)
+        pool = Pool(*random_xy(10, 5, prng=prng))
+        model.fit(pool)
 
 
 def test_silent():

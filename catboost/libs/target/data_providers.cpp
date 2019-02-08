@@ -390,6 +390,7 @@ namespace NCB {
             [](ELossFunction lossFunction) {
                 return IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction);
             });
+        bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
         CB_ENSURE(
             !(hasBinClassOnlyMetrics && hasMultiClassOnlyMetrics),
@@ -645,11 +646,12 @@ namespace NCB {
 
         // TODO(akhropov): always create group data if it is available (for compatibility)
         if (hasGroupNonPairwiseDataMetrics ||
-            (!rawData.GetObjectsGrouping()->IsTrivial() && maybeConvertedTarget))
+            (!rawData.GetObjectsGrouping()->IsTrivial() && (maybeConvertedTarget || hasUserDefinedMetrics)))
         {
             CB_ENSURE(
                 metricsThatRequireTargetCanBeSkipped || maybeConvertedTarget,
-                "Groupwise loss/metrics require target data"
+                (hasGroupNonPairwiseDataMetrics ? "Groupwise" : "User defined")
+                << " loss/metrics require target data"
             );
 
             if (!oneBaseline) {
@@ -670,10 +672,7 @@ namespace NCB {
                     groupInfos));
         }
 
-        // TODO(akhropov): always create group data if it is available (for compatibility)
-        if (isAnyOfMetrics(IsPairwiseMetric) ||
-            (!rawData.GetObjectsGrouping()->IsTrivial() && !groupInfos))
-        {
+        if (isAnyOfMetrics(IsPairwiseMetric)) {
             if (!oneBaseline) {
                 oneBaseline = MakeOneBaseline(rawData.GetBaseline());
             }
@@ -690,7 +689,8 @@ namespace NCB {
                     groupInfos));
         }
 
-        if (needTargetDataForCtrs) {
+        // TODO(akhropov): always create target data if it is available (for compatibility)
+        if (needTargetDataForCtrs || maybeConvertedTarget) {
             TTargetDataSpecification specification(ETargetType::Simple);
             result.emplace(
                 specification,
@@ -698,6 +698,21 @@ namespace NCB {
                     specification.Description,
                     rawData.GetObjectsGrouping(),
                     maybeConvertedTarget));
+        }
+
+        if ((mainLossFunction && IsUserDefined((*mainLossFunction)->GetLossFunction())) ||
+            hasUserDefinedMetrics)
+        {
+            CB_ENSURE(maybeConvertedTarget, "User defined objective/metrics require Target data");
+
+            TTargetDataSpecification specification(ETargetType::UserDefined);
+            result.emplace(
+                specification,
+                MakeIntrusive<TUserDefinedTarget>(
+                    specification.Description,
+                    rawData.GetObjectsGrouping(),
+                    maybeConvertedTarget,
+                    adjustedWeights));
         }
 
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.

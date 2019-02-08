@@ -278,3 +278,14 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
             return false;
     }
 }
+
+bool IsUserDefined(ELossFunction lossFunction) {
+    switch (lossFunction) {
+        case ELossFunction::Custom:
+        case ELossFunction::UserPerObjMetric:
+        case ELossFunction::UserQuerywiseMetric:
+            return true;
+        default:
+            return false;
+    }
+}
