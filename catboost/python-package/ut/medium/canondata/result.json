@@ -79,6 +79,10 @@
         "checksum": "391684c271078c8e172ffaea9f3d14cc",
         "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"
     },
+    "test.test_cv_skip_train_default[CPU]": {
+        "checksum": "00deed2bfe1d94c81a6f9f35f50df57a",
+        "uri": "file://test.test_cv_skip_train_default_CPU_/catboost_training.json"
+    },
     "test.test_cv_with_not_binarized_target[CPU]": {
         "checksum": "63bed0c6ce8f4ae88010f51fd284485e",
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"

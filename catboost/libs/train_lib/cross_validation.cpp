@@ -295,32 +295,6 @@ public:
 };
 
 
-static void DisableMetricSkipTrain(NJson::TJsonValue* metric) {
-    NJson::TJsonValue& params = (*metric)["params"];
-    TMap<TString, TString> hints;
-    if (params.Has("hints")) {
-        hints = ParseHintsDescription(params["hints"].GetStringSafe());
-    }
-    hints["skip_train"] = "false";
-    params["hints"] = MakeHintsDescription(hints);
-}
-
-// TODO(akhropov): proper support - MLTOOLS-1863
-static void DisableMetricsSkipTrain(NJson::TJsonValue* trainOptionsJson) {
-    NJson::TJsonValue& metrics = (*trainOptionsJson)["metrics"];
-
-    if (metrics.Has("eval_metric")) {
-        DisableMetricSkipTrain(&metrics["eval_metric"]);
-    }
-    if (metrics.Has("custom_metrics")) {
-        NJson::TJsonValue& customMetrics = metrics["custom_metrics"];
-        for (auto& metricDescription : customMetrics.GetArraySafe()) {
-            DisableMetricSkipTrain(&metricDescription);
-        }
-    }
-}
-
-
 static void UpdatePermutationBlockSize(
     ETaskType taskType,
     TConstArrayRef<TTrainingDataProviders> foldsData,
@@ -426,9 +400,6 @@ void CrossValidate(
     // internal training output shouldn't interfere with main stdout
     updatedTrainOptionsJson["logging_level"] = "Silent";
 
-    DisableMetricsSkipTrain(&updatedTrainOptionsJson);
-
-    // TODO(nikitxskv): Remove this hot-fix and make correct skip-metrics support in cv.
     const ETaskType taskType = catBoostOptions.GetTaskType();
 
     THolder<IModelTrainer> modelTrainerHolder;
