@@ -330,7 +330,7 @@ namespace NNetliba {
                 TimeSinceLastRecv += deltaT;
                 if (TimeSinceLastRecv > START_CHECK_PORT_DELAY) {
                     if (TimeSinceLastRecv < FINISH_CHECK_PORT_DELAY) {
-                        if (!PortTester && ActivePortTestersCount < N_PORT_TEST_COUNT_LIMIT) {
+                        if (!PortTester && AtomicGet(ActivePortTestersCount) < N_PORT_TEST_COUNT_LIMIT) {
                             PortTester = new TPortUnreachableTester;
                             if (PortTester->IsValid()) {
                                 PortTester->Connect(toAddress);
