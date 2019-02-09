@@ -1663,6 +1663,10 @@ namespace NNeh {
                     return Headers_;
                 }
 
+                TStringBuf Method() const override {
+                    return H_.Method;
+                }
+
                 TStringBuf Cgi() const override {
                     return H_.Cgi;
                 }

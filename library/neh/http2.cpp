@@ -1295,6 +1295,10 @@ namespace {
                 return P_->Headers();
             }
 
+            TStringBuf Method() const override {
+                return H_.Method;
+            }
+
             TStringBuf Body() const override {
                 return P_->DecodedContent();
             }

@@ -21,6 +21,7 @@ namespace NNeh {
         using IRequest::SendReply;
         virtual void SendReply(TData& data, const TString& headers, int httpCode = 200) = 0;
         virtual const THttpHeaders& Headers() const = 0;
+        virtual TStringBuf Method() const = 0;
         virtual TStringBuf Body() const = 0;
         virtual TStringBuf Cgi() const = 0;
     };
