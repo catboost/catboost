@@ -63,6 +63,18 @@
         "checksum": "8773cd9d8f4124174510265248975d78",
         "uri": "file://test.test_cv_logging_CPU_/catboost_training.json"
     },
+    "test.test_cv_metric_period[CPU]": {
+        "checksum": "75c95a8da4948f3d2a8fb6f9e0d23896",
+        "uri": "file://test.test_cv_metric_period_CPU_/catboost_training.json"
+    },
+    "test.test_cv_overfitting_detector[CPU-with_metric_period=False]": {
+        "checksum": "b97c025406c06cb790e6e2ccf19a0b35",
+        "uri": "file://test.test_cv_overfitting_detector_CPU-with_metric_period=False_/catboost_training.json"
+    },
+    "test.test_cv_overfitting_detector[CPU-with_metric_period=True]": {
+        "checksum": "8fc4e4faf0615c5f7bb168cf6213d68b",
+        "uri": "file://test.test_cv_overfitting_detector_CPU-with_metric_period=True_/catboost_training.json"
+    },
     "test.test_cv_pairs[CPU]": {
         "checksum": "428944103884a945a0d2bba7583f1bc5",
         "uri": "file://test.test_cv_pairs_CPU_/catboost_training.json"

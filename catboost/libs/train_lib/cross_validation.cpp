@@ -26,6 +26,7 @@
 
 #include <util/folder/tempdir.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/mapfindptr.h>
 #include <util/generic/scope.h>
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
@@ -268,10 +269,12 @@ public:
                     const auto& metric = metrics[metricIdx];
                     const TString& metricDescription = metric->GetDescription();
 
+                    const auto* metricValueOnTrain
+                        = MapFindPtr(metricsAndTimeHistory.LearnMetricsHistory.back(), metricDescription);
                     MetricValuesOnTrain[iteration].push_back(
-                        skipMetricOnTrain[metricIdx] ?
-                        0.0 :
-                        metricsAndTimeHistory.LearnMetricsHistory.back().at(metricDescription));
+                        (skipMetricOnTrain[metricIdx] || (metricValueOnTrain == nullptr)) ?
+                            std::numeric_limits<double>::quiet_NaN() :
+                            *metricValueOnTrain);
 
                     MetricValuesOnTest[iteration].push_back(
                         metricsAndTimeHistory.TestMetricsHistory.back()[0].at(metricDescription));
@@ -638,7 +641,9 @@ void CrossValidate(
 
                 TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, cvParams.FoldCount);
 
-                (*results)[metricIdx].AppendOneIterationResults(cvResults);
+                if (calcMetrics) {
+                    (*results)[metricIdx].AppendOneIterationResults(iteration, cvResults);
+                }
 
                 if (metricIdx == errorTrackerMetricIdx) {
                     TVector<double> valuesToLog;

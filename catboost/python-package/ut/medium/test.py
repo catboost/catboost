@@ -1682,6 +1682,58 @@ def test_cv_custom_loss(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
+def test_cv_metric_period(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        },
+        metric_period=5,
+        dev_max_iterations_batch_size=6
+    )
+    assert "train-Logloss-mean" in results
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+@pytest.mark.parametrize(
+    'with_metric_period',
+    [False, True],
+    ids=['with_metric_period=' + val for val in ['False', 'True']]
+)
+def test_cv_overfitting_detector(with_metric_period, task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        },
+        metric_period=5 if with_metric_period else None,
+        early_stopping_rounds=7,
+        dev_max_iterations_batch_size=6
+    )
+    assert "train-Logloss-mean" in results
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
