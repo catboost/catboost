@@ -975,7 +975,7 @@ public:
             return -1;
         }
 
-        ShouldDie = 0;
+        AtomicSet(ShouldDie, 0);
         DieEvent.Reset();
         RecvThread.Start();
         RecvThread.Detach();
