@@ -58,8 +58,11 @@ inline bool IsConst(TConstArrayRef<float> array) {
     if (array.empty()) {
         return true;
     }
-    auto bounds = CalcMinMax(array);
-    return bounds.Min == bounds.Max;
+    return FindIf(
+        array.begin() + 1,
+        array.end(),
+        [first = array.front()] (auto element) { return element != first; }
+    ) == array.end();
 }
 
 template <typename Int1, typename Int2, typename T>
