@@ -7,6 +7,7 @@ enum class EConvertTargetPolicy {
 };
 
 enum class EOverfittingDetectorType {
+    None,
     Wilcoxon,
     IncToDec,
     Iter

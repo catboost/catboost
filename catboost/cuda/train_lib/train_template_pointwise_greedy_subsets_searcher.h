@@ -16,6 +16,7 @@ namespace NCatboostCuda {
         template <template <class TMapping> class TTargetTemplate, class TModel = TObliviousTreeModel>
         class TGpuTrainer: public IGpuTrainer {
             virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
+                                                                            const TTrainModelInternalOptions& internalOptions,
                                                                             const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                             const NCB::TTrainingDataProvider& learn,
@@ -30,6 +31,7 @@ namespace NCatboostCuda {
                 using TWeakLearner = TGreedySubsetsSearcher<TModel>;
                 using TBoostingImpl = TBoosting<TTargetTemplate, TWeakLearner>;
                 auto resultModel = Train<TBoostingImpl>(featuresManager,
+                                                        internalOptions,
                                                         catBoostOptions,
                                                         outputOptions,
                                                         learn,

@@ -125,6 +125,7 @@ static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues
 }
 
 static void Train(
+    bool forceCalcEvalMetricOnEveryIteration,
     const TTrainingForCPUDataProviders& data,
     const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
     TLearnContext* ctx,
@@ -152,13 +153,19 @@ static void Train(
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
+    const bool lastTestDatasetHasTargetData = (data.Test.size() > 0) && data.Test.back()->MetaInfo.HasTarget;
+
+    if (hasTest && metrics[0]->NeedTarget() && !lastTestDatasetHasTargetData) {
+        CATBOOST_WARNING_LOG << "Warning: Eval metric " << metrics[0]->GetDescription() <<
+            " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
+    }
+
+    const bool canCalcEvalMetric = hasTest && (!metrics[0]->NeedTarget() || lastTestDatasetHasTargetData);
+
     TMaybe<TErrorTracker> errorTracker;
     TMaybe<TErrorTracker> bestModelMinTreesTracker;
 
-    if (metrics[0]->NeedTarget() && (data.Test.size() > 0) && (!data.Test.back()->MetaInfo.HasTarget)) {
-        CATBOOST_WARNING_LOG << "Warning: Eval metric " << metrics[0]->GetDescription() <<
-            " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
-    } else {
+    if (canCalcEvalMetric) {
         EMetricBestValue bestValueType;
         float bestPossibleValue;
 
@@ -166,6 +173,9 @@ static void Train(
         errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
         bestModelMinTreesTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
     }
+
+    const bool calcEvalMetricOnEveryIteration
+        = canCalcEvalMetric && (forceCalcEvalMetricOnEveryIteration || errorTracker->IsActive());
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
@@ -208,7 +218,7 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
-        const bool calcErrorTrackerMetric = calcAllMetrics || (errorTracker && errorTracker->IsActive());
+        const bool calcErrorTrackerMetric = calcAllMetrics || calcEvalMetricOnEveryIteration;
         if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric && errorTracker) {
             const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
             const double error = testMetricsHistory[iter].back().at(errorTrackerMetricDescription);
@@ -294,7 +304,7 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
-        const bool calcErrorTrackerMetric = calcAllMetrics || (errorTracker && errorTracker->IsActive());
+        const bool calcErrorTrackerMetric = calcAllMetrics || calcEvalMetricOnEveryIteration;
 
         CalcErrors(data, metrics, calcAllMetrics, calcErrorTrackerMetric, ctx);
 
@@ -387,7 +397,7 @@ namespace {
     class TCPUModelTrainer : public IModelTrainer {
 
         void TrainModel(
-            bool calcMetricsOnly,
+            const TTrainModelInternalOptions& internalOptions,
             const NJson::TJsonValue& jsonParams,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -404,7 +414,7 @@ namespace {
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
-            if (!calcMetricsOnly) {
+            if (!internalOptions.CalcMetricsOnly) {
                 if (model != nullptr) {
                     CB_ENSURE(
                         !outputOptions.ResultModelPath.IsSet(),
@@ -472,7 +482,13 @@ namespace {
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
 
-            Train(trainingDataForCpu, onEndIterationCallback, &ctx, &rawValues);
+            Train(
+                internalOptions.ForceCalcEvalMetricOnEveryIteration,
+                trainingDataForCpu,
+                onEndIterationCallback,
+                &ctx,
+                &rawValues
+            );
 
             for (int testIdx = 0; testIdx < trainingDataForCpu.Test.ysize(); ++testIdx) {
                 evalResultPtrs[testIdx]->SetRawValuesByMove(rawValues[testIdx]);
@@ -488,7 +504,7 @@ namespace {
                 trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
             }
 
-            if (calcMetricsOnly) {
+            if (internalOptions.CalcMetricsOnly) {
                 return;
             }
 
@@ -695,7 +711,7 @@ static void TrainModel(
     }
 
     modelTrainerHolder->TrainModel(
-        false,
+        TTrainModelInternalOptions(),
         updatedTrainOptionsJson,
         updatedOutputOptions,
         objectiveDescriptor,

@@ -211,10 +211,14 @@ public:
         const bool estimateUpToIteration = !upToIteration->Defined();
         double batchIterationsTime = 0.0; // without initialization time
 
+        TTrainModelInternalOptions internalOptions;
+        internalOptions.CalcMetricsOnly = true;
+        internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
+
         THPTimer trainTimer;
 
         modelTrainer->TrainModel(
-            true,
+            internalOptions,
             trainOptionsJson,
             OutputOptions,
             objectiveDescriptor,
@@ -419,9 +423,8 @@ void CrossValidate(
     UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
 
     // disable overfitting detector on folds training, it will work on average values
-    updatedTrainOptionsJson["boosting_options"]["od_config"]["type"] = "Iter";
-    updatedTrainOptionsJson["boosting_options"]["od_config"]["wait_iterations"] =
-        catBoostOptions.BoostingOptions->IterationCount.Get();
+    updatedTrainOptionsJson["boosting_options"]["od_config"]["type"]
+        = ToString(EOverfittingDetectorType::None);
 
     // internal training output shouldn't interfere with main stdout
     updatedTrainOptionsJson["logging_level"] = "Silent";
@@ -509,6 +512,11 @@ void CrossValidate(
         bestPossibleValue,
         bestValueType,
         /* hasTest */ true);
+
+    if (outputFileOptions.GetMetricPeriod() > 1 && errorTracker.IsActive()) {
+        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
+            "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
+    }
 
     results->reserve(metrics.size());
     for (const auto& metric : metrics) {

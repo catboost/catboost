@@ -20,6 +20,7 @@ namespace NCatboostCuda {
 
     TBoostingProgressTracker::TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                        const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
+                                                       bool forceCalcEvalMetricOnEveryIteration,
                                                        bool hasTest,
                                                        bool testHasTarget,
                                                        ui32 cpuApproxDim,
@@ -39,6 +40,7 @@ namespace NCatboostCuda {
         , MetricDescriptions(GetMetricsDescription(GetCpuMetrics(Metrics)))
         , IsSkipOnTrainFlags(GetSkipMetricOnTrain(GetCpuMetrics(Metrics)))
         , IsSkipOnTestFlags(GetSkipMetricOnTest(testHasTarget, GetCpuMetrics(Metrics)))
+        , CalcEvalMetricOnEveryIteration(forceCalcEvalMetricOnEveryIteration || ErrorTracker.IsActive())
     {
         if (OutputOptions.AllowWriteFiles()) {
             CreateMetaFile(OutputFiles,
@@ -128,7 +130,7 @@ namespace NCatboostCuda {
         History.TestMetricsHistory.emplace_back(); // new iter
 
         const bool calcAllMetrics = ShouldCalcMetricOnIteration();
-        const bool calcErrorTrackerMetric = calcAllMetrics || ErrorTracker.IsActive();
+        const bool calcErrorTrackerMetric = calcAllMetrics || CalcEvalMetricOnEveryIteration;
 
         // Error tracker metric is first metric (explicitly set by option --eval-metric or loss function).
         // In case of changing the order it should be changed in CPU mode also.
