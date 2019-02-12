@@ -1608,12 +1608,6 @@ public:
     }
 };
 
-template <class TChar>
-struct TCharToString {
-    //compat for TStringBufImpl<wchar32>
-    using TResult = TFixedString<TChar>;
-};
-
 class TString: public TBasicString<TString, char, TCharTraits<char>> {
     using TBase = TBasicString<TString, char, TCharTraits<char>>;
 
@@ -1721,11 +1715,6 @@ public:
     }
 };
 
-template <>
-struct TCharToString<char> {
-    using TResult = TString;
-};
-
 class TUtf16String: public TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>> {
     using TBase = TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>;
 
@@ -1819,11 +1808,6 @@ public:
         ret.to_title();
         return ret;
     }
-};
-
-template <>
-struct TCharToString<wchar16> {
-    using TResult = TUtf16String;
 };
 
 class TUtf32String: public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
@@ -1931,15 +1915,38 @@ public:
     }
 };
 
-template <>
-struct TCharToString<wchar32> {
-    using TResult = TUtf32String;
-};
-
 std::ostream& operator<<(std::ostream&, const TString&);
 
-template <class TChar>
-using TGenericString = typename TCharToString<TChar>::TResult;
+namespace NPrivate {
+    template <class Char>
+    struct TCharToString {
+        class TDerivedString : public TBasicString<TDerivedString, Char, TCharTraits<Char>> {
+            using TBase = TBasicString<TDerivedString, Char, TCharTraits<Char>>;
+        public:
+            using TBase::TBase;
+        };
+
+        using type = TDerivedString;
+    };
+
+    template <>
+    struct TCharToString<char> {
+        using type = TString;
+    };
+
+    template <>
+    struct TCharToString<wchar16> {
+        using type = TUtf16String;
+    };
+
+    template <>
+    struct TCharToString<wchar32> {
+        using type = TUtf32String;
+    };
+}
+
+template <class Char>
+using TGenericString = typename NPrivate::TCharToString<Char>::type;
 
 namespace std {
     template <>
