@@ -1,7 +1,4 @@
-catboost-cli (0.12.2) unstable; urgency=low
-  * Fixed multiclass learning on GPU for >255 classes
-  * Improved error handling
-  * Some other minor fixes
+yandex-catboost-cli (0.12.2.1ubuntu1) stable; urgency=low
   * Initial deb package release
 
  -- Stanislav Kirillov <kirillovs@yandex-team.ru>  Mon, 7 Feb 2019 19:00:00 +0300

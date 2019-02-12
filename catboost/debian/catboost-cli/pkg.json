@@ -1,7 +1,7 @@
 {
     "meta": {
         "name": "yandex-catboost-cli",
-        "maintainer": "Stanislav Kirillov <kirillovs@yandex-team.ru>",
+        "maintainer": "Kirillov Stanislav <kirillovs@yandex-team.ru>",
         "description": "CatBoost command line application",
         "version": "{changelog_version}",
         "homepage": "https://catboost.ai"
