@@ -1839,7 +1839,7 @@ def test_fstr(fstr_type, boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_fstr_groupwise(boosting_type):
+def test_loss_change_fstr(boosting_type):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
     train_fstr_path = yatest.common.test_output_path('t_fstr.tsv')
@@ -1849,7 +1849,7 @@ def test_fstr_groupwise(boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'PairLogit',
-        '-f', data_file('querywise', 'train'),
+        '--learn-set', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--boosting-type', boosting_type,
@@ -1859,7 +1859,7 @@ def test_fstr_groupwise(boosting_type):
         '--one-hot-max-size', '10',
         '--fstr-file', train_fstr_path,
         '--fstr-type', 'LossFunctionChange',
-        '-m', model_path
+        '--model-file', model_path
 
     )
     yatest.common.execute(cmd)
@@ -1869,13 +1869,68 @@ def test_fstr_groupwise(boosting_type):
         'fstr',
         '--input-path', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
-        '-m', model_path,
-        '-o', output_fstr_path,
+        '--input-pairs', data_file('querywise', 'train.pairs'),
+        '--model-file', model_path,
+        '--output-path', output_fstr_path,
         '--fstr-type', 'LossFunctionChange',
     )
     yatest.common.execute(fstr_cmd)
 
-    return [local_canonical_file(train_fstr_path), local_canonical_file(output_fstr_path)]
+    fit_otuput = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
+    fstr_output = np.loadtxt(output_fstr_path, dtype='float', delimiter='\t')
+    assert(np.allclose(fit_otuput, fstr_output, rtol=1e-6))
+
+    return [local_canonical_file(output_fstr_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_loss_change_fstr_without_pairs(boosting_type):
+    model_path = yatest.common.test_output_path('model.bin')
+    output_fstr_path = yatest.common.test_output_path('fstr.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'PairLogit',
+        '--learn-set', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '--learning-rate', '0.03',
+        '-T', '4',
+        '--one-hot-max-size', '10',
+        '--model-file', model_path
+
+    )
+    yatest.common.execute(cmd)
+
+    fstr_cmd = (
+        CATBOOST_PATH,
+        'fstr',
+        '--input-path', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--model-file', model_path,
+        '--output-path', output_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    yatest.common.execute(fstr_cmd)
+
+    try:
+        fstr_cmd = (
+            CATBOOST_PATH,
+            'fstr',
+            '--input-path', data_file('querywise', 'train'),
+            '--column-description', data_file('querywise', 'train.cd.no_target'),
+            '--model-file', model_path,
+            '--fstr-type', 'LossFunctionChange',
+        )
+        yatest.common.execute(fstr_cmd)
+    except:
+        return [local_canonical_file(output_fstr_path)]
+
+    assert False
 
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)

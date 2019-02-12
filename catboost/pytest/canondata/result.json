@@ -2131,26 +2131,6 @@
         "checksum": "ef9fa3d8dcbe91d61e020e9ddce31870",
         "uri": "file://test.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
-    "test.test_fstr_groupwise[Ordered]": [
-        {
-            "checksum": "747ad4c3a611e0024776cc57f35fedec",
-            "uri": "file://test.test_fstr_groupwise_Ordered_/t_fstr.tsv"
-        },
-        {
-            "checksum": "a86b978748b87f37f18484667f728456",
-            "uri": "file://test.test_fstr_groupwise_Ordered_/fstr.tsv"
-        }
-    ],
-    "test.test_fstr_groupwise[Plain]": [
-        {
-            "checksum": "4799428b5b30970a8b7b40c0947d7540",
-            "uri": "file://test.test_fstr_groupwise_Plain_/t_fstr.tsv"
-        },
-        {
-            "checksum": "3e9d6339a964c468df7b1b564b0c9dc4",
-            "uri": "file://test.test_fstr_groupwise_Plain_/fstr.tsv"
-        }
-    ],
     "test.test_gradient[calc_block=5000000-Ordered]": [
         {
             "checksum": "83011fa70cafb4299ae9919c85989054",
@@ -2367,6 +2347,30 @@
         {
             "checksum": "4dd661c4706fc14301e8f6a1f79974cf",
             "uri": "file://test.test_logloss_with_not_binarized_target_calc_block=60-Plain_/test.eval"
+        }
+    ],
+    "test.test_loss_change_fstr[Ordered]": [
+        {
+            "checksum": "760ecc536f8332d09a27797d1e930990",
+            "uri": "file://test.test_loss_change_fstr_Ordered_/fstr.tsv"
+        }
+    ],
+    "test.test_loss_change_fstr[Plain]": [
+        {
+            "checksum": "e9e193c7a5e9e3d46e009ecaf9f5b931",
+            "uri": "file://test.test_loss_change_fstr_Plain_/fstr.tsv"
+        }
+    ],
+    "test.test_loss_change_fstr_without_pairs[Ordered]": [
+        {
+            "checksum": "a86b978748b87f37f18484667f728456",
+            "uri": "file://test.test_loss_change_fstr_without_pairs_Ordered_/fstr.tsv"
+        }
+    ],
+    "test.test_loss_change_fstr_without_pairs[Plain]": [
+        {
+            "checksum": "3e9d6339a964c468df7b1b564b0c9dc4",
+            "uri": "file://test.test_loss_change_fstr_without_pairs_Plain_/fstr.tsv"
         }
     ],
     "test.test_lost_class[MultiClass-Ordered]": [
