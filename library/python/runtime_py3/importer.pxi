@@ -220,7 +220,7 @@ class ResourceImporter(object):
         if fullname + '.__init__' in self.memory:
             return True
 
-        raise ImportError
+        raise ImportError(fullname)
 
     # Extension for contrib/python/coverage.
     def file_source(self, filename):
