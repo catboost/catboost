@@ -2433,7 +2433,7 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
-    cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2446,11 +2446,11 @@ cdef class _CatBoost:
         cdef TDataProviderPtr dataProviderPtr
         if pool:
             dataProviderPtr = pool.__pool
-        cdef TString fstr_type_name_str = to_arcadia_string(fstr_type_name)
-        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+        cdef TString type_name_str = to_arcadia_string(type_name)
+        if type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
-                    fstr_type_name_str,
+                    type_name_str,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
@@ -2464,7 +2464,7 @@ cdef class _CatBoost:
         else:
             with nogil:
                 fstr = GetFeatureImportances(
-                    fstr_type_name_str,
+                    type_name_str,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,

@@ -899,9 +899,9 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, fstr_type, pool, thread_count, verbose):
+    def _calc_fstr(self, type, pool, thread_count, verbose):
         """returns (fstr_values, feature_ids)."""
-        return self._object._calc_fstr(fstr_type.name, pool, thread_count, verbose)
+        return self._object._calc_fstr(type.name, pool, thread_count, verbose)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
@@ -1555,7 +1555,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
-    def get_feature_importance(self, data=None, fstr_type=EFstrType.PredictionValuesChange, prettified=False, thread_count=-1, verbose=False):
+    def get_feature_importance(self, data=None, type=EFstrType.PredictionValuesChange, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
         """
         Parameters
         ----------
@@ -1564,7 +1564,7 @@ class CatBoost(_CatBoostBase):
             If type == Shap data is a dataset. For every object in this dataset feature importances will be calculated.
             If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
-        fstr_type : EFStrType or string (deprecated, converted to EFstrType), optional
+        type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.PredictionValuesChange)
             Possible values:
                 - PredictionValuesChange
@@ -1575,7 +1575,7 @@ class CatBoost(_CatBoostBase):
                     Calculate pairwise score between every feature.
 
         prettified : bool, optional (default=False)
-            used only for PredictionValuesChange fstr_type
+            used only for PredictionValuesChange type
             change returned data format to the list of (feature_id, importance) pairs sorted by importance
 
         thread_count : int, optional (default=-1)
@@ -1587,10 +1587,11 @@ class CatBoost(_CatBoostBase):
             If a positive integer, then it stands for the size of batch N. After processing each batch, print progress
             and remaining time.
 
+        fstr_type : string, deprecated, use type instead
 
         Returns
         -------
-        depends on fstr_type:
+        depends on type:
             - PredictionValuesChange with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
             - PredictionValuesChange with prettified=True
@@ -1610,9 +1611,13 @@ class CatBoost(_CatBoostBase):
         if verbose < 0:
             raise CatboostError('verbose should be non-negative.')
 
-        fstr_type = enum_from_enum_or_str(EFstrType, fstr_type)
-        empty_data_is_ok = (((fstr_type == EFstrType.PredictionValuesChange) and self._object._has_leaf_weights_in_model())
-                            or (fstr_type == EFstrType.Interaction))
+        if fstr_type is not None and type is None:
+            type = fstr_type
+            warnings.warn("fstr_type soon be deprecated, use type instead")
+
+        type = enum_from_enum_or_str(EFstrType, type)
+        empty_data_is_ok = (((type == EFstrType.PredictionValuesChange) and self._object._has_leaf_weights_in_model())
+                            or (type == EFstrType.Interaction))
         if not empty_data_is_ok:
             if not isinstance(data, Pool):
                 raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
@@ -1620,20 +1625,20 @@ class CatBoost(_CatBoostBase):
                 raise CatboostError("data is empty.")
 
         with log_fixup():
-            fstr, feature_names = self._calc_fstr(fstr_type, data, thread_count, verbose)
-        if fstr_type == EFstrType.PredictionValuesChange or fstr_type == EFstrType.LossFunctionChange:
+            fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose)
+        if type == EFstrType.PredictionValuesChange or type == EFstrType.LossFunctionChange:
             feature_importances = [value[0] for value in fstr]
             if prettified:
                 return sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
             else:
                 return feature_importances
-        if fstr_type == EFstrType.ShapValues:
+        if type == EFstrType.ShapValues:
             if isinstance(fstr[0][0], ARRAY_TYPES):
                 return np.array([np.array([np.array([
                     value for value in dimension]) for dimension in doc]) for doc in fstr])
             else:
                 return np.array([np.array([value for value in doc]) for doc in fstr])
-        elif fstr_type == EFstrType.Interaction:
+        elif type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
     def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1, verbose=False):

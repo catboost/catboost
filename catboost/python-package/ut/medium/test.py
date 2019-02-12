@@ -1749,7 +1749,7 @@ def test_feature_importance_explicit(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.PredictionValuesChange)))
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.PredictionValuesChange)))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -1758,7 +1758,7 @@ def test_feature_importance_prettified(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
 
-    feature_importances = model.get_feature_importance(fstr_type=EFstrType.PredictionValuesChange, prettified=True)
+    feature_importances = model.get_feature_importance(type=EFstrType.PredictionValuesChange, prettified=True)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     with open(fimp_txt_path, 'w') as ofile:
         for f_id, f_imp in feature_importances:
@@ -1771,7 +1771,7 @@ def test_interaction_feature_importance(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.Interaction)))
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.Interaction)))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -1780,7 +1780,7 @@ def test_shap_feature_importance(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)))
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -2047,7 +2047,7 @@ def test_shap(task_type):
     test_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]])
     model = CatBoostRegressor(iterations=1, max_ctr_complexity=1, depth=2, task_type=task_type, devices='0')
     model.fit(train_pool)
-    shap_values = model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=test_pool)
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool)
 
     dataset = [(0.5, 1.2), (1.6, 0.5), (1.8, 1.0), (0.4, 0.6), (0.3, 1.6), (1.5, 0.2)]
     labels = [1.1, 1.85, 2.3, 0.7, 1.1, 1.6]
@@ -2058,7 +2058,7 @@ def test_shap(task_type):
 
     testset = [(0.6, 1.2), (1.4, 0.3), (1.5, 0.8), (1.4, 0.6)]
     predictions = model.predict(testset)
-    shap_values = model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=Pool(testset))
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=Pool(testset))
     assert(len(predictions) == len(shap_values))
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
@@ -2071,7 +2071,7 @@ def test_shap(task_type):
 def test_shap_complex_ctr(task_type):
     pool = Pool([[0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 2]], [0, 0, 5, 8], cat_features=[0, 1, 2])
     model = train(pool, {'random_seed': 12302113, 'iterations': 100, 'task_type': task_type, 'devices': '0'})
-    shap_values = model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     predictions = model.predict(pool)
     assert(len(predictions) == len(shap_values))
     for pred_idx in range(len(predictions)):
@@ -2626,7 +2626,7 @@ def test_model_and_pool_compatibility():
     with pytest.raises(CatboostError):
         model.predict(pool2)
     with pytest.raises(CatboostError):
-        model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool2)
+        model.get_feature_importance(type=EFstrType.ShapValues, data=pool2)
 
 
 def test_shap_verbose():
@@ -2637,7 +2637,7 @@ def test_shap_verbose():
 
     tmpfile = test_output_path('test_data_dumps')
     with LogStdout(open(tmpfile, 'w')):
-        model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool, verbose=12)
+        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12)
     assert(_count_lines(tmpfile) == 5)
 
 
@@ -2689,7 +2689,7 @@ def test_shap_multiclass(task_type):
     classifier.fit(pool)
     pred = classifier.predict(pool, prediction_type='RawFormulaVal')
     shap_values = classifier.get_feature_importance(
-        fstr_type=EFstrType.ShapValues,
+        type=EFstrType.ShapValues,
         data=pool,
         thread_count=8
     )
