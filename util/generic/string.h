@@ -1920,13 +1920,8 @@ std::ostream& operator<<(std::ostream&, const TString&);
 namespace NPrivate {
     template <class Char>
     struct TCharToString {
-        class TDerivedString : public TBasicString<TDerivedString, Char, TCharTraits<Char>> {
-            using TBase = TBasicString<TDerivedString, Char, TCharTraits<Char>>;
-        public:
-            using TBase::TBase;
-        };
-
-        using type = TDerivedString;
+        // TODO: switch to TBaseString derived type when compilation with nvcc on windows will succeed
+        using type = TFixedString<Char>;
     };
 
     template <>
