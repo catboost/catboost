@@ -91,9 +91,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\test_tool\build-platform-test_tool.vcxproj">
-      <Project>{D38E06E8-D80F-A9E8-2B38-47E2176EBF28}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
     </ProjectReference>

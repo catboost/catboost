@@ -83,16 +83,16 @@ namespace {
                 {
                 }
 
-                TInstant::TValue Val;
+                std::atomic<TInstant::TValue> Val;
             };
 
         public:
             TInstant::TValue Get(size_t idAddr) {
-                return Tm_.Get(idAddr).Val;
+                return Tm_.Get(idAddr).Val.load(std::memory_order_acquire);
             }
 
             void Set(size_t idAddr) {
-                Tm_.Get(idAddr).Val = TInstant::Now().GetValue();
+                Tm_.Get(idAddr).Val.store(TInstant::Now().GetValue(), std::memory_order_release);
             }
 
             static TLastAckTimes& Common() {

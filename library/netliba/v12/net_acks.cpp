@@ -208,9 +208,10 @@ namespace NNetliba_v12 {
         }
     }
 
-    static ui32 netAckRndVal = (ui32)GetCycleCount();
+    static std::atomic<ui32> netAckRndVal = (ui32)GetCycleCount();
     ui32 NetAckRnd() {
-        netAckRndVal = static_cast<ui32>(((ui64)netAckRndVal * 279470273) % 4294967291);
-        return netAckRndVal;
+        const auto nextNetAckRndVal = static_cast<ui32>(((ui64)netAckRndVal.load(std::memory_order_acquire) * 279470273) % 4294967291);
+        netAckRndVal.store(nextNetAckRndVal, std::memory_order_release);
+        return nextNetAckRndVal;
     }
 }

@@ -59,6 +59,18 @@
         "checksum": "6170cd5b861b847832766479f30fe5ca",
         "uri": "file://test.test_cv_logging_GPU_/catboost_training.json"
     },
+    "test.test_cv_metric_period[GPU]": {
+        "checksum": "aad312a600c44af13b4e3e2eb5f74c55",
+        "uri": "file://test.test_cv_metric_period_GPU_/catboost_training.json"
+    },
+    "test.test_cv_overfitting_detector[GPU-with_metric_period=False]": {
+        "checksum": "32ac21d50b3098d7f355ecca4a596ae4",
+        "uri": "file://test.test_cv_overfitting_detector_GPU-with_metric_period=False_/catboost_training.json"
+    },
+    "test.test_cv_overfitting_detector[GPU-with_metric_period=True]": {
+        "checksum": "aad312a600c44af13b4e3e2eb5f74c55",
+        "uri": "file://test.test_cv_overfitting_detector_GPU-with_metric_period=True_/catboost_training.json"
+    },
     "test.test_cv_pairs[GPU]": {
         "checksum": "372ddf21ab3e4239bb6e735a139bc23f",
         "uri": "file://test.test_cv_pairs_GPU_/catboost_training.json"

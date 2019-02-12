@@ -100,9 +100,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\test_tool\build-platform-test_tool.vcxproj">
-      <Project>{D38E06E8-D80F-A9E8-2B38-47E2176EBF28}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\common\libs-brotli-common.vcxproj">
       <Project>{8892D418-C7EA-5D54-5335-0BAA71F39229}</Project>
     </ProjectReference>

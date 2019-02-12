@@ -312,9 +312,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\test_tool\build-platform-test_tool.vcxproj">
-      <Project>{D38E06E8-D80F-A9E8-2B38-47E2176EBF28}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
       <Project>{32E78DFF-5451-B440-4B35-E627E82B514E}</Project>
     </ProjectReference>

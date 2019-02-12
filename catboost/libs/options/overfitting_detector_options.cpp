@@ -27,11 +27,13 @@ void NCatboostOptions::TOverfittingDetectorOptions::Load(const NJson::TJsonValue
             OverfittingDetectorType.Set(EOverfittingDetectorType::IncToDec);
         } else if (options.Has("wait_iterations")) {
             OverfittingDetectorType.Set(EOverfittingDetectorType::Iter);
+        } else {
+            OverfittingDetectorType.Set(EOverfittingDetectorType::None);
         }
     }
     CheckedLoad(options, &AutoStopPValue, &OverfittingDetectorType, &IterationsWait);
     CB_ENSURE(
-            OverfittingDetectorType.Get() == EOverfittingDetectorType::IncToDec
+            (OverfittingDetectorType.Get() != EOverfittingDetectorType::Iter)
             || !options.Has("stop_pvalue"),
             "Auto-stop PValue is not a valid parameter for Iter overfitting detector."
             );

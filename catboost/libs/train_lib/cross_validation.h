@@ -26,12 +26,14 @@ struct TCVIterationResults {
 
 struct TCVResult {
     TString Metric;
+    TVector<ui32> Iterations;
     TVector<double> AverageTrain;
     TVector<double> StdDevTrain;
     TVector<double> AverageTest;
     TVector<double> StdDevTest;
 
-    void AppendOneIterationResults(const TCVIterationResults& results) {
+    void AppendOneIterationResults(ui32 iteration, const TCVIterationResults& results) {
+        Iterations.push_back(iteration);
         AverageTrain.push_back(results.AverageTrain);
         StdDevTrain.push_back(results.StdDevTrain);
         AverageTest.push_back(results.AverageTest);

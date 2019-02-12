@@ -643,6 +643,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
     cdef cppclass TCVResult:
         TString Metric
+        TVector[ui32] Iterations
         TVector[double] AverageTrain
         TVector[double] StdDevTrain
         TVector[double] AverageTest
@@ -2432,7 +2433,7 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
-    cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2445,11 +2446,11 @@ cdef class _CatBoost:
         cdef TDataProviderPtr dataProviderPtr
         if pool:
             dataProviderPtr = pool.__pool
-        cdef TString fstr_type_name_str = to_arcadia_string(fstr_type_name)
-        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+        cdef TString type_name_str = to_arcadia_string(type_name)
+        if type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
-                    fstr_type_name_str,
+                    type_name_str,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
@@ -2463,7 +2464,7 @@ cdef class _CatBoost:
         else:
             with nogil:
                 fstr = GetFeatureImportances(
-                    fstr_type_name_str,
+                    type_name_str,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
@@ -2679,7 +2680,16 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         if metric_name in used_metric_names:
             continue
         used_metric_names.add(metric_name)
+        fill_iterations_column = 'iterations' not in result
+        if fill_iterations_column:
+            result['iterations'] = list()
         for it in xrange(results[metric_idx].AverageTrain.size()):
+            iteration = results[metric_idx].Iterations[it]
+            if fill_iterations_column:
+                result['iterations'].append(iteration)
+            else:
+                # ensure that all metrics have the same iterations specified
+                assert(result['iterations'][it] == iteration)
             result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
             result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
             result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])

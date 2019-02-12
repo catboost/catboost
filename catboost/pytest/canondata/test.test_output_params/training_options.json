@@ -8,7 +8,7 @@
         "iterations" : 5,
         "od_config" : {
             "wait_iterations" : 20,
-            "type" : "IncToDec",
+            "type" : "None",
             "stop_pvalue" : 0
         },
         "permutation_count" : 4,
