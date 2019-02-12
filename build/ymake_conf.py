@@ -1058,6 +1058,7 @@ class MSVCToolchainOptions(ToolchainOptions):
         self.under_wine = 'wine' in self.params
         self.system_msvc = 'system_msvc' in self.params
         self.ide_msvs = 'ide_msvs' in self.params
+        self.use_clang = self.params.get('use_clang', False)
 
         self.sdk_version = None
 
@@ -1999,7 +2000,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             flags.append('/I"{}"'.format(vc_include))
 
         if self.tc.ide_msvs:
-            flags += ['/FD', '/MP']
+            if not self.tc.use_clang:
+                flags += ['/FD', '/MP']
             debug_info_flags = '/Zi /FS'
         else:
             debug_info_flags = '/Z7'
@@ -2144,7 +2146,8 @@ class MSVCLinker(MSVC, Linker):
         # TODO(nslus): DEVTOOLS-1868 remove restriction.
         if not self.tc.under_wine:
             if self.tc.ide_msvs:
-                flags_debug_only.append('/DEBUG:FASTLINK')
+                if not self.tc.use_clang:
+                    flags_debug_only.append('/DEBUG:FASTLINK')
                 flags_release_only.append('/DEBUG')
             else:
                 # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
