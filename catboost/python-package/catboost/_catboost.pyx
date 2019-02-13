@@ -31,7 +31,7 @@ from libcpp.pair cimport pair
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder
+from util.generic.ptr cimport THolder, TIntrusivePtr
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui32, ui64, i64
@@ -64,17 +64,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
 
-
-# TODO(akhropov): Add to util's def
-cdef extern from "util/generic/ptr.h" nogil:
-    cdef cppclass TIntrusivePtr[T]:
-        TIntrusivePtr()
-        TIntrusivePtr(T*)
-        TIntrusivePtr& operator=(...) except +
-        void Reset(T*)
-        T* Get()
-        T* Release()
-        void Drop()
 
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
