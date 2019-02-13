@@ -1,6 +1,7 @@
 #pragma once
 
 #include "features_layout.h"
+#include "packed_binary_features.h"
 
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
@@ -16,6 +17,7 @@
 #include <util/stream/buffer.h>
 #include <util/system/yassert.h>
 
+#include <climits>
 #include <cmath>
 #include <type_traits>
 
@@ -187,6 +189,72 @@ namespace NCB {
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
+    template <class TBase>
+    class TPackedBinaryValuesHolderImpl : public TBase {
+    public:
+        TPackedBinaryValuesHolderImpl(ui32 featureId,
+                                      NCB::TMaybeOwningArrayHolder<NCB::TBinaryFeaturesPack> srcData,
+                                      ui8 bitIdx,
+                                      const TFeaturesArraySubsetIndexing* subsetIndexing)
+            : TBase(featureId, subsetIndexing->Size())
+            , SrcData(std::move(srcData))
+            , BitIdx(bitIdx)
+            , SubsetIndexing(subsetIndexing)
+        {
+            CB_ENSURE(
+                BitIdx < sizeof(NCB::TBinaryFeaturesPack) * CHAR_BIT,
+                "BitIdx=" << BitIdx << " is bigger than limit ("
+                << sizeof(NCB::TBinaryFeaturesPack) * CHAR_BIT << ')'
+            );
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
+        }
+
+        THolder<TBase> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override {
+            return MakeHolder<TPackedBinaryValuesHolderImpl>(
+                TBase::GetId(),
+                SrcData,
+                BitIdx,
+                subsetIndexing
+            );
+        }
+
+        // in some cases non-standard T can be useful / more efficient
+        template <class T = typename TBase::TValueType>
+        TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
+            TConstArrayRef<NCB::TBinaryFeaturesPack> srcData = *SrcData;
+            NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
+
+            TVector<T> dst;
+            dst.yresize(SubsetIndexing->Size());
+
+            SubsetIndexing->ParallelForEach(
+                [&dst, srcData, bitIdx = BitIdx, bitMask] (ui32 idx, ui32 srcDataIdx) {
+                    dst[idx] = (srcData[srcDataIdx] & bitMask) >> bitIdx;
+                },
+                localExecutor
+            );
+
+            return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
+        }
+
+        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(
+            NPar::TLocalExecutor* localExecutor
+        ) const override {
+            return ExtractValuesT<typename TBase::TValueType>(localExecutor);
+        }
+
+        ui8 GetBitIdx() const {
+            return BitIdx;
+        }
+
+    private:
+        NCB::TMaybeOwningArrayHolder<NCB::TBinaryFeaturesPack> SrcData;
+        ui8 BitIdx;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
+    };
+
 
     /* interface instead of concrete TQuantizedFloatValuesHolder because there is
      * an alternative implementation TExternalFloatValuesHolder for GPU
@@ -218,7 +286,7 @@ namespace NCB {
     };
 
     using TQuantizedFloatValuesHolder = TCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>;
-
+    using TQuantizedFloatPackedBinaryValuesHolder = TPackedBinaryValuesHolderImpl<IQuantizedFloatValuesHolder>;
 
     /* interface instead of concrete TQuantizedFloatValuesHolder because there is
      * an alternative implementation TExternalFloatValuesHolder for GPU
@@ -250,5 +318,6 @@ namespace NCB {
     };
 
     using TQuantizedCatValuesHolder = TCompressedValuesHolderImpl<IQuantizedCatValuesHolder>;
+    using TQuantizedCatPackedBinaryValuesHolder = TPackedBinaryValuesHolderImpl<IQuantizedCatValuesHolder>;
 
 }

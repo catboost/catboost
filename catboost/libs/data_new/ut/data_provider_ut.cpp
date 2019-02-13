@@ -66,7 +66,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
     commonObjectsData.Timestamp = TVector<ui64>{10, 20, 10, 30, 50, 70};
 
 
-    TQuantizedObjectsData quantizedObjectsData;
+    TQuantizedForCPUObjectsData quantizedObjectsData;
 
     TVector<TVector<ui8>> quantizedFloatFeatures = {
         TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2, 0, 3, 4, 1},
@@ -83,14 +83,14 @@ static void CreateQuantizedObjectsDataProviderTestData(
         quantizedFloatFeatures,
         commonObjectsData.SubsetIndexing.Get(),
         {0, 2, 4},
-        &quantizedObjectsData.FloatFeatures
+        &quantizedObjectsData.Data.FloatFeatures
     );
 
     InitQuantizedFeatures(
         quantizedCatFeatures,
         commonObjectsData.SubsetIndexing.Get(),
         {1, 3},
-        &quantizedObjectsData.CatFeatures
+        &quantizedObjectsData.Data.CatFeatures
     );
 
 
@@ -100,7 +100,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         ENanMode::Min
     );
 
-    quantizedObjectsData.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+    quantizedObjectsData.Data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
         *metaInfo->FeaturesLayout,
         TConstArrayRef<ui32>(),
         binarizationOptions
@@ -126,25 +126,40 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
     for (auto i : xrange(3)) {
         auto floatFeatureIdx = TFloatFeatureIdx(i);
-        quantizedObjectsData.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
-        quantizedObjectsData.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
+        quantizedObjectsData.Data.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
+        quantizedObjectsData.Data.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
     }
 
     for (auto i : xrange(2)) {
         auto catFeatureIdx = TCatFeatureIdx(i);
-        quantizedObjectsData.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
+        quantizedObjectsData.Data.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
             catFeatureIdx,
             std::move(expectedPerfectHash[i])
         );
     }
 
-    *objectsData = MakeIntrusive<TTObjectsDataProvider>(
-        *objectsGrouping,
-        std::move(commonObjectsData),
-        std::move(quantizedObjectsData),
-        true,
-        Nothing()
+    quantizedObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+        true
     );
+
+    if constexpr(std::is_same<TTObjectsDataProvider, TQuantizedForCPUObjectsDataProvider>::value) {
+        *objectsData = MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+            *objectsGrouping,
+            std::move(commonObjectsData),
+            std::move(quantizedObjectsData),
+            true,
+            Nothing()
+        );
+    } else {
+        *objectsData = MakeIntrusive<TQuantizedObjectsDataProvider>(
+            *objectsGrouping,
+            std::move(commonObjectsData),
+            std::move(quantizedObjectsData.Data),
+            true,
+            Nothing()
+        );
+    }
 }
 
 

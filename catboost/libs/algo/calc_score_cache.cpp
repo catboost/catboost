@@ -13,17 +13,17 @@ bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fit
     return fitParams.SamplingFrequency.Get() == ESamplingFrequency::PerTree;
 }
 
-TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitCandidate& split, int splitStatsCount, bool* areStatsDirty) {
+TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitEnsemble& splitEnsemble, int splitStatsCount, bool* areStatsDirty) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
-        if (Stats.contains(split) && Stats[split] != nullptr) {
-            splitStats = Stats[split].Get();
+        if (Stats.contains(splitEnsemble) && Stats[splitEnsemble] != nullptr) {
+            splitStats = Stats[splitEnsemble].Get();
             Y_ASSERT(splitStats->ysize() >= splitStatsCount);
             *areStatsDirty = false;
         } else {
             splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
             splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
-            Stats[split] = splitStats;
+            Stats[splitEnsemble] = splitStats;
             *areStatsDirty = true;
         }
     }
@@ -612,9 +612,13 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
 }
 
 void TStats3D::Add(const TStats3D& stats3D) {
-    CB_ENSURE(stats3D.BucketCount == BucketCount
+    CB_ENSURE(
+        stats3D.BucketCount == BucketCount
         && stats3D.MaxLeafCount == MaxLeafCount
-        && stats3D.Stats.ysize() == Stats.ysize(), "Leaf, bucket, dimension, and fold counts must match");
+        && stats3D.Stats.ysize() == Stats.ysize()
+        && stats3D.SplitEnsembleSpec == SplitEnsembleSpec,
+        "SplitEnsembleSpec, SplitType, Leaf, bucket, dimension, and fold counts must match"
+    );
     for (int statIdx = 0; statIdx < Stats.ysize(); ++statIdx) {
         Stats[statIdx].Add(stats3D.Stats[statIdx]);
     }

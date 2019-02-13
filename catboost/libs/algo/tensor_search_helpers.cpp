@@ -1,6 +1,31 @@
 #include "tensor_search_helpers.h"
 
+#include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+
+#include <util/generic/maybe.h>
+
+
+using namespace NCB;
+
+
+TSplit TCandidateInfo::GetBestSplit(const TQuantizedForCPUObjectsDataProvider& objectsData) const {
+    if (SplitEnsemble.IsBinarySplitsPack) {
+        TPackedBinaryIndex packedBinaryIndex(SplitEnsemble.BinarySplitsPack.PackIdx, BestBinId);
+        auto featureInfo = objectsData.GetPackedBinaryFeatureSrcIndex(packedBinaryIndex);
+        TSplitCandidate splitCandidate;
+        splitCandidate.Type
+            = featureInfo.first == EFeatureType::Float ?
+                ESplitType::FloatFeature :
+                ESplitType::OneHotFeature;
+        splitCandidate.FeatureIdx = featureInfo.second;
+
+        return TSplit(std::move(splitCandidate), (featureInfo.first == EFeatureType::Float) ? 0 : 1);
+    } else {
+        return TSplit(SplitEnsemble.SplitCandidate, BestBinId);
+    }
+}
+
 
 THolder<IDerCalcer> BuildError(
     const NCatboostOptions::TCatBoostOptions& params,
@@ -311,21 +336,35 @@ void SetBestScore(
     ui64 randSeed,
     const TVector<TVector<double>>& allScores,
     double scoreStDev,
+    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
     TVector<TCandidateInfo>* subcandidates
 ) {
     TRestorableFastRng64 rand(randSeed);
     rand.Advance(10); // reduce correlation between RNGs in different threads
     for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
         double bestScoreInstance = MINIMAL_SCORE;
-        auto& splitInfo = (*subcandidates)[subcandidateIdx];
+        auto& subcandidateInfo = (*subcandidates)[subcandidateIdx];
+        const bool isBinaryFeaturesPackEnsemble = subcandidateInfo.SplitEnsemble.IsBinarySplitsPack;
+
+        NCB::TBinaryFeaturesPack binaryFeaturesBinMask;
+        if (isBinaryFeaturesPackEnsemble) {
+            binaryFeaturesBinMask = perPackMasks[subcandidateInfo.SplitEnsemble.BinarySplitsPack.PackIdx];
+        }
+
         const auto& scores = allScores[subcandidateIdx];
         for (int binFeatureIdx = 0; binFeatureIdx < scores.ysize(); ++binFeatureIdx) {
+            if (isBinaryFeaturesPackEnsemble &&
+                !(binaryFeaturesBinMask & (NCB::TBinaryFeaturesPack(1) << binFeatureIdx)))
+            {
+                continue;
+            }
+
             const double score = scores[binFeatureIdx];
             const double scoreInstance = TRandomScore(score, scoreStDev).GetInstance(rand);
             if (scoreInstance > bestScoreInstance) {
                 bestScoreInstance = scoreInstance;
-                splitInfo.BestScore = TRandomScore(score, scoreStDev);
-                splitInfo.BestBinBorderId = binFeatureIdx;
+                subcandidateInfo.BestScore = TRandomScore(score, scoreStDev);
+                subcandidateInfo.BestBinId = binFeatureIdx;
             }
         }
     }

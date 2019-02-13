@@ -9,20 +9,30 @@
 #include "approx_calcer.h"
 #include "custom_objective_descriptor.h"
 
+#include <catboost/libs/data_new/packed_binary_features.h>
 #include <catboost/libs/options/enums.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
 
+namespace NCB {
+    class TQuantizedForCPUObjectsDataProvider;
+}
+
+
 struct TCandidateInfo {
-    TSplitCandidate SplitCandidate;
+    TSplitEnsemble SplitEnsemble;
     TRandomScore BestScore;
-    int BestBinBorderId = -1;
+    int BestBinId = -1;
     bool ShouldDropAfterScoreCalc = false;
-    SAVELOAD(SplitCandidate, BestScore, BestBinBorderId, ShouldDropAfterScoreCalc);
+    SAVELOAD(SplitEnsemble, BestScore, BestBinId, ShouldDropAfterScoreCalc);
+
+    TSplit GetBestSplit(const NCB::TQuantizedForCPUObjectsDataProvider& objectsData) const;
 };
 
 struct TCandidatesInfoList {
@@ -77,4 +87,10 @@ inline void UpdateBodyTailApprox(const TVector<TVector<TVector<double>>>& approx
     }
 }
 
-void SetBestScore(ui64 randSeed, const TVector<TVector<double>>& allScores, double scoreStDev, TVector<TCandidateInfo>* subcandidates);
+void SetBestScore(
+    ui64 randSeed,
+    const TVector<TVector<double>>& allScores,
+    double scoreStDev,
+    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
+    TVector<TCandidateInfo>* subcandidates
+);
