@@ -67,16 +67,9 @@ public:
     static int compare(const TCiString& s1, const char* p, const CodePage& cp = csYandex);
     static int compare(const TFixedString& p1, const TFixedString& p2, const CodePage& cp = csYandex);
 
+    // TODO: implement properly in TString via enum ECaseSensitivity
     static bool is_prefix(const TFixedString& what, const TFixedString& of, const CodePage& cp = csYandex);
     static bool is_suffix(const TFixedString& what, const TFixedString& of, const CodePage& cp = csYandex);
-
-    bool is_prefix(const TFixedString& s, const CodePage& cp = csYandex) const {
-        return is_prefix(*this, s, cp);
-    }
-
-    bool is_suffix(const TFixedString& s, const CodePage& cp = csYandex) const {
-        return is_suffix(*this, s, cp);
-    }
 
     bool StartsWith(const TFixedString& s, const CodePage& cp = csYandex) const {
         return is_prefix(s, *this, cp);
