@@ -72,6 +72,7 @@
         "godoc": { "description": "Run godoc tool" },
         "gofmt": { "description": "Run gofmt tool" },
         "yo": { "description": "Tool for managing vendor/ directory" },
+	"tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "golangci-lint": { "description": "Linters Runner for Go" }
     },
     "toolchain": {
@@ -338,6 +339,16 @@
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "tvmknife": {
+            "tools": {
+                "tvmknife": { "bottle": "tvmknife", "executable": "tvmknife" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+		{"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
@@ -1378,6 +1389,15 @@
             },
             "executable": {
                 "yo": ["yo"]
+            }
+        },
+        "tvmknife": {
+            "formula": {
+                "sandbox_id": [375826288],
+                "match": "tvmknife"
+            },
+            "executable": {
+                "tvmknife": ["tvmknife"]
             }
         },
         "golangci-lint": {
