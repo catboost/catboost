@@ -151,7 +151,7 @@ class TestSize(Enum):
             TestRequirements.RamDisk: 4,
         },
         Large: {
-            TestRequirements.Cpu: TestRequirementsConstants.All,
+            TestRequirements.Cpu: 4,
             TestRequirements.Ram: 32,
             TestRequirements.RamDisk: 4,
         },
