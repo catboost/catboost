@@ -7,7 +7,7 @@ from __future__ import print_function
 
 import os
 
-from catboost import CatboostError
+from catboost import CatBoostError
 from catboost.eval.log_config import get_eval_logger
 from .utils import make_dirs_if_not_exists
 
@@ -114,21 +114,21 @@ class _FoldFile(FoldStorage):
         if self._file is None:
             self._file = open(self._file_path, mode='a')
         else:
-            raise CatboostError("File already opened {}".format(self._file_path))
+            raise CatBoostError("File already opened {}".format(self._file_path))
 
     def is_opened(self):
         return self._file is not None
 
     def close(self):
         if self._file is None:
-            raise CatboostError("Trying to close None {}".format(self._file_path))
+            raise CatBoostError("Trying to close None {}".format(self._file_path))
 
         self._file.close()
         self._file = None
 
     def delete(self):
         if self._file is not None:
-            raise CatboostError("Close file before delete")
+            raise CatBoostError("Close file before delete")
 
         if os.path.exists(self._file_path):
             os.remove(self._file_path)

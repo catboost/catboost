@@ -12,7 +12,7 @@ from catboost import (
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
-    CatboostError,
+    CatBoostError,
     EFstrType,
     FeaturesData,
     Pool,
@@ -536,58 +536,58 @@ def test_features_data_good(order):
 
 def test_features_data_bad():
     # empty
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData()
 
     # names w/o data
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(cat_feature_data=[[b'amazon', b'bing']], num_feature_names=['price'])
 
     # bad matrix type
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(
             cat_feature_data=[[b'amazon', b'bing']],
             num_feature_data=np.array([1.0, 2.0, 3.0], dtype=np.float32)
         )
 
     # bad matrix shape
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(num_feature_data=np.array([[[1.0], [2.0], [3.0]]], dtype=np.float32))
 
     # bad element type
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(
             cat_feature_data=np.array([b'amazon', b'bing'], dtype=object),
             num_feature_data=np.array([1.0, 2.0, 3.0], dtype=np.float64)
         )
 
     # bad element type
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(cat_feature_data=np.array(['amazon', 'bing']))
 
     # bad names type
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(
             cat_feature_data=np.array([[b'google'], [b'reddit']], dtype=object),
             cat_feature_names=[None, 'news_aggregator']
         )
 
     # bad names length
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(
             cat_feature_data=np.array([[b'google'], [b'bing']], dtype=object),
             cat_feature_names=['search_engine', 'news_aggregator']
         )
 
     # no features
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(
             cat_feature_data=np.array([[], [], []], dtype=object),
             num_feature_data=np.array([[], [], []], dtype=np.float32)
         )
 
     # number of objects is different
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         FeaturesData(
             cat_feature_data=np.array([[b'google'], [b'bing']], dtype=object),
             num_feature_data=np.array([1.0, 2.0, 3.0], dtype=np.float32)
@@ -692,7 +692,7 @@ def test_fit_from_features_data(order, task_type):
 
 def test_fit_from_empty_features_data(task_type):
     model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(
             X=FeaturesData(num_feature_data=np.empty((0, 2), dtype=np.float32)),
             y=np.empty((0), dtype=np.int32)
@@ -1058,7 +1058,7 @@ def test_inconsistent_labels_and_class_names():
         loss_function='MultiClass',
         class_names=class_names,
     )
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         classifier.fit(train_pool)
 
 
@@ -1296,35 +1296,35 @@ def test_staged_predict_funcs_from_features_data(staged_function_name, task_type
 def test_invalid_loss_base(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({"loss_function": "abcdef", 'task_type': task_type, 'devices': '0'})
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_invalid_loss_classifier(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(loss_function="abcdef", task_type=task_type, devices='0')
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_invalid_loss_regressor(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostRegressor(loss_function="fee", task_type=task_type, devices='0')
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
 def test_fit_no_label(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(task_type=task_type, devices='0')
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(pool.get_features())
 
 
 def test_predict_without_fit(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(task_type=task_type, devices='0')
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.predict(pool)
 
 
@@ -1332,14 +1332,14 @@ def test_real_numbers_cat_features():
     prng = np.random.RandomState(seed=20181219)
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         Pool(data, label, [1, 2])
 
 
 def test_wrong_ctr_for_classification(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform'], task_type=task_type, devices='0')
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(pool)
 
 
@@ -1349,7 +1349,7 @@ def test_wrong_feature_count(task_type):
     label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoostClassifier(task_type=task_type, devices='0')
     model.fit(data, label)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.predict(data[:, :-1])
 
 
@@ -1363,7 +1363,7 @@ def test_wrong_params_base():
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoost({'wrong_param': 1})
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(data, label)
 
 
@@ -1377,7 +1377,7 @@ def test_wrong_kwargs_base():
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoost({'kwargs': {'wrong_param': 1}})
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(data, label)
 
 
@@ -1386,7 +1386,7 @@ def test_duplicate_params_base():
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoost({'iterations': 100, 'n_estimators': 50})
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(data, label)
 
 
@@ -1395,7 +1395,7 @@ def test_duplicate_params_classifier():
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoostClassifier(depth=3, max_depth=4, random_seed=42, random_state=12)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(data, label)
 
 
@@ -1404,7 +1404,7 @@ def test_duplicate_params_regressor():
     data = prng.rand(100, 10)
     label = _generate_nontrivial_binary_target(100, prng=prng)
     model = CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(data, label)
 
 
@@ -1971,19 +1971,19 @@ def test_call_score_with_pool_and_y(catboost_class):
     model.fit(train_pool)
     model.score(test_pool)
 
-    with pytest.raises(CatboostError, message="Label in X has not initialized."):
+    with pytest.raises(CatBoostError, message="Label in X has not initialized."):
         model.score(test_pool_without_label, test_target)
 
-    with pytest.raises(CatboostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
+    with pytest.raises(CatBoostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
         model.score(test_pool, test_target)
 
-    with pytest.raises(CatboostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
+    with pytest.raises(CatBoostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
         model.score(test_pool_without_label, test_target)
 
     model.fit(train_features, train_target)
     model.score(test_features, test_target)
 
-    with pytest.raises(CatboostError, message="y should be specified."):
+    with pytest.raises(CatBoostError, message="y should be specified."):
         model.score(test_features)
 
 
@@ -2112,19 +2112,19 @@ def test_multiple_eval_sets_no_empty():
     x1, y1 = random_xy(3, 4, prng=prng)
     test0_file = save_and_give_path(y0, x0, 'test0.txt')  # empty file eval set
 
-    with pytest.raises(CatboostError, message="Do not create Pool for empty data"):
+    with pytest.raises(CatBoostError, message="Do not create Pool for empty data"):
         Pool(x0, y0, cat_features=cat_features)
 
     model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2,
                       'allow_const_label': True})
 
-    with pytest.raises(CatboostError, message="Do not fit with empty tuple in multiple eval sets"):
+    with pytest.raises(CatBoostError, message="Do not fit with empty tuple in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), (x0, y0)], column_description=cd_file)
 
-    with pytest.raises(CatboostError, message="Do not fit with empty file in multiple eval sets"):
+    with pytest.raises(CatBoostError, message="Do not fit with empty file in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), test0_file], column_description=cd_file)
 
-    with pytest.raises(CatboostError, message="Do not fit with None in multiple eval sets"):
+    with pytest.raises(CatBoostError, message="Do not fit with None in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), None], column_description=cd_file)
 
     model.fit(train_pool, eval_set=[None], column_description=cd_file)
@@ -2180,9 +2180,9 @@ def test_multiple_eval_sets():
 
 def test_get_metadata_notrain():
     model = CatBoost()
-    with pytest.raises(CatboostError, message='Only string keys should be allowed'):
+    with pytest.raises(CatBoostError, message='Only string keys should be allowed'):
         model.get_metadata()[1] = '1'
-    with pytest.raises(CatboostError, message='Only string values should be allowed'):
+    with pytest.raises(CatBoostError, message='Only string values should be allowed'):
         model.get_metadata()['1'] = 1
     model.get_metadata()['1'] = '1'
     assert model.get_metadata().get('1', 'EMPTY') == '1'
@@ -2360,7 +2360,7 @@ class TestInvalidCustomLossAndMetric(object):
         pass
 
     def test_loss_good_metric_none(self):
-        with pytest.raises(CatboostError, match='metric is not defined|No metrics specified'):
+        with pytest.raises(CatBoostError, match='metric is not defined|No metrics specified'):
             model = CatBoost({"loss_function": self.GoodCustomLoss(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -2403,7 +2403,7 @@ class TestInvalidCustomLossAndMetric(object):
             model.fit(pool)
 
     def test_custom_metric_object(self):
-        with pytest.raises(CatboostError, match='custom_metric.*must be string'):
+        with pytest.raises(CatBoostError, match='custom_metric.*must be string'):
             model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -2416,7 +2416,7 @@ class TestInvalidCustomLossAndMetric(object):
         model.fit(pool)
 
     def test_loss_none_metric_incomplete(self):
-        with pytest.raises(CatboostError, match='evaluate.*returned incorrect value'):
+        with pytest.raises(CatBoostError, match='evaluate.*returned incorrect value'):
             model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2})
             prng = np.random.RandomState(seed=20181219)
             pool = Pool(*random_xy(10, 5, prng=prng))
@@ -2542,7 +2542,7 @@ def test_feature_names_from_model():
             model = CatBoost(dict(iterations=10))
             try:
                 print(model.feature_names_)
-            except CatboostError:
+            except CatBoostError:
                 pass
             else:
                 assert False
@@ -2593,7 +2593,7 @@ class TestMissingValues(object):
             self.assert_expected(Pool(object([[1], [value]])))
             self.assert_expected(Pool(object([1, value])))
         else:
-            with pytest.raises(CatboostError):
+            with pytest.raises(CatBoostError):
                 Pool(object([1, value]))
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', Value_AcceptableAsEmpty)
@@ -2603,7 +2603,7 @@ class TestMissingValues(object):
         if value_acceptable_as_empty:
             self.assert_expected(Pool(pool_path))
         else:
-            with pytest.raises(CatboostError):
+            with pytest.raises(CatBoostError):
                 Pool(pool_path)
 
 
@@ -2623,9 +2623,9 @@ def test_model_and_pool_compatibility():
     pool2 = Pool(features, targets, cat_features=[1, 2])
     model = CatBoostRegressor(iterations=4)
     model.fit(pool1)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.predict(pool2)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.get_feature_importance(type=EFstrType.ShapValues, data=pool2)
 
 
@@ -2775,7 +2775,7 @@ def test_early_stopping_rounds(task_type):
     test_pool = Pool([[0], [1]], [1, 0])
 
     model = CatBoostRegressor(od_type='Iter', od_pval=2)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=test_pool)
 
     model = CatBoost(params={'od_pval': 0.001, 'early_stopping_rounds': 2})
@@ -2801,7 +2801,7 @@ def test_slice_pool():
         pairs=[(0, 1), (0, 2), (1, 2), (3, 4)])
 
     for bad_indices in [[0], [2], [0, 0, 0]]:
-        with pytest.raises(CatboostError):
+        with pytest.raises(CatBoostError):
             pool.slice(bad_indices)
     rindexes = [
         [0, 1, 2],
@@ -2937,7 +2937,7 @@ def test_roc(task_type):
     try:
         select_threshold(model, data=test_pool, FNR=0.5, FPR=0.5)
         assert False, 'Only one of FNR, FPR must be defined.'
-    except CatboostError:
+    except CatBoostError:
         pass
 
     bounds = test_output_path('bounds')
@@ -2949,7 +2949,7 @@ def test_roc(task_type):
         try:
             select_threshold(model, data=test_pool, curve=curve)
             assert False, 'Only one of data and curve parameters must be defined.'
-        except CatboostError:
+        except CatBoostError:
             pass
 
         assert fnr_boundary == select_threshold(model, curve=curve, FNR=0.4)
@@ -3481,7 +3481,7 @@ def test_set_cat_features_in_init():
     params_with_wrong_cat_features = params.copy()
     params_with_wrong_cat_features['cat_features'] = [0, 2]
     model2 = CatBoost(params_with_wrong_cat_features)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model2.fit(train_pool)
 
     model1 = CatBoost(params_with_cat_features)
@@ -3491,7 +3491,7 @@ def test_set_cat_features_in_init():
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
 
     model1 = CatBoost(params_with_cat_features)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model1.fit(X=data, y=label, cat_features=[1, 3])
 
     model1 = CatBoost(params_with_cat_features)
@@ -3499,7 +3499,7 @@ def test_set_cat_features_in_init():
     assert(model1.get_cat_feature_indices() == [1, 2])
 
     model1 = CatBoost(params_with_wrong_cat_features)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model1.fit(X=data, y=label, eval_set=test_pool)
 
     model1 = CatBoost(params_with_cat_features)
@@ -3551,18 +3551,18 @@ def test_deprecated_behavoir():
     }
 
     model = CatBoost(params)
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.metadata_
 
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.is_fitted_
 
     model.fit(train_pool)
 
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.metadata_
 
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.is_fitted_
 
 
@@ -3693,7 +3693,7 @@ def test_model_merging():
 
 def test_tree_depth_pairwise(task_type):
     if task_type == 'GPU':
-        with pytest.raises(CatboostError):
+        with pytest.raises(CatBoostError):
             CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 9})
         CatBoost({'iterations': 2, 'loss_function': 'PairLogitPairwise', 'task_type': task_type, 'devices': '0', 'depth': 8})
 
@@ -3722,7 +3722,7 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
             'devices': '0'
         }
     )
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=eval_set_pool)
 
 
@@ -3738,10 +3738,10 @@ def test_model_comparison():
     model2 = fit_model(5)
 
     # Test checks that model is fitted.
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model1 == model0
 
-    with pytest.raises(CatboostError):
+    with pytest.raises(CatBoostError):
         model0 == model1
 
     # Trained model must not equal to object of other type.

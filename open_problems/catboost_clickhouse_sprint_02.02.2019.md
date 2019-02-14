@@ -76,7 +76,7 @@ It is a useful feature to be able to avoid unnecessary memory copying and CPU re
 
 See issue <https://github.com/catboost/catboost/issues/549>.
 
-The task is to make a boolean parameter (flag) (could be called `ensure_no_features_copy` for example) to ensure that usage of this feature is enforced: if this flag is set to `True` (the default should be `False`) then all methods that accept features data as parameters must ensure that zero-copy implementation is used or raise CatboostError exception otherwise. If flag is set to `False` less effective copying cases are allowed. This feature is useful to ensure that optimal performance implementation is used and avoid unexpected performance degradation.
+The task is to make a boolean parameter (flag) (could be called `ensure_no_features_copy` for example) to ensure that usage of this feature is enforced: if this flag is set to `True` (the default should be `False`) then all methods that accept features data as parameters must ensure that zero-copy implementation is used or raise CatBoostError exception otherwise. If flag is set to `False` less effective copying cases are allowed. This feature is useful to ensure that optimal performance implementation is used and avoid unexpected performance degradation.
 
 Github issue for this task is <https://github.com/catboost/catboost/issues/601>.
 

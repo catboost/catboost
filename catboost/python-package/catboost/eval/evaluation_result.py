@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from enum import Enum
 
-from catboost import CatboostError
+from catboost import CatBoostError
 from catboost.core import metric_description_or_str_to_str
 from catboost.core import compute_wx_test
 
@@ -96,7 +96,7 @@ class CaseEvaluationResult:
 
     def _add(self, model, learning_curve):
         if model.get_case() != self._case:
-            raise CatboostError("Model case should be equal to result case")
+            raise CatBoostError("Model case should be equal to result case")
 
         fold_id = model.get_fold_id()
 
@@ -244,7 +244,7 @@ class MetricEvaluationResult:
 
     def __init__(self, case_results):
         if len(case_results) <= 1:
-            raise CatboostError("Need at least 2 case results, got {} ".format(len(case_results)))
+            raise CatBoostError("Need at least 2 case results, got {} ".format(len(case_results)))
 
         self._case_results = dict()
         self._case_comparisons = dict()
@@ -261,13 +261,13 @@ class MetricEvaluationResult:
 
         for (case, case_result) in self._case_results.items():
             if case_result.get_metric_description() != self._metric_description:
-                raise CatboostError("Metric names should be equal for all case results")
+                raise CatBoostError("Metric names should be equal for all case results")
 
             if case_result.get_fold_ids() != self.get_fold_ids():
-                raise CatboostError("Case results should be computed on the same folds")
+                raise CatBoostError("Case results should be computed on the same folds")
 
             if case_result.get_eval_step() != self.get_eval_step():
-                raise CatboostError("Eval steps should be equal for different cases")
+                raise CatBoostError("Eval steps should be equal for different cases")
 
     def __clear_comparisons(self):
         self._case_comparisons = dict()
@@ -280,7 +280,7 @@ class MetricEvaluationResult:
                 elif config == ScoreType.Rel:
                     config = ScoreConfig.rel_score()
                 else:
-                    raise CatboostError("Unknown scoreType {}".format(config))
+                    raise CatBoostError("Unknown scoreType {}".format(config))
             if self._score_config != config:
                 self._score_config = config
                 self.__clear_comparisons()
@@ -381,7 +381,7 @@ class MetricEvaluationResult:
         :return:
         """
         if case not in self._case_results:
-            raise CatboostError("Case {} is unknown. Can't use it as baseline".format(case))
+            raise CatBoostError("Case {} is unknown. Can't use it as baseline".format(case))
         self._baseline_case = case
 
     def get_case_result(self, case):
@@ -453,7 +453,7 @@ class EvaluationResults:
 
     def __init__(self, metric_results):
         if len(metric_results) < 1:
-            raise CatboostError("Need at least one result")
+            raise CatBoostError("Need at least one result")
 
         self._results = dict()
         self._metrics = dict()
@@ -462,7 +462,7 @@ class EvaluationResults:
         for result in metric_results:
             metric_description = result.get_metric_description()
             if metric_description in self._results:
-                raise CatboostError("Duplicate metric {}".format(metric_description))
+                raise CatBoostError("Duplicate metric {}".format(metric_description))
             if self._cases is None:
                 self._cases = result.get_cases()
             key = metric_description_or_str_to_str(metric_description)
