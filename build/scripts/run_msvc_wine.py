@@ -317,9 +317,17 @@ def colorize(out):
 
 def trim_path(path, winepath):
     p = run_subprocess([winepath, '-s', path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    short_bld_root, stderr = p.communicate()
-    short_bld_root = short_bld_root.rstrip().split('\n')[-1]
-    return short_bld_root
+    stdout, stderr = p.communicate()
+
+    stdout = stdout.split('\n')
+    current_string = len(stdout) - 1
+
+    while current_string >= 0:
+        if stdout[current_string].startswith((path[:4], path[:4].upper())):
+            return stdout[current_string]
+        current_string -= 1
+
+    raise Exception('Cannot trim path {}, error:\n{}'.format(path, stdout))
 
 
 def downsize_path(path, short_names):
@@ -328,10 +336,9 @@ def downsize_path(path, short_names):
         flag = '/Fo'
         path = path[3:]
 
-    if len(path) > 250:
-        for full_name, short_name in short_names.items():
-            if path.startswith(full_name):
-                path = path.replace(full_name, short_name)
+    for full_name, short_name in short_names.items():
+        if path.startswith(full_name):
+            path = path.replace(full_name, short_name)
 
     return flag + path
 
@@ -381,7 +388,6 @@ def run_main():
     version = args.version
     incl_paths = args.incl_paths
     free_args = args.free_args
-    arc_root = args.arcadia_root
     bld_root = args.arcadia_build_root
 
     wine_dir = os.path.dirname(os.path.dirname(wine))
@@ -408,7 +414,6 @@ def run_main():
 
     short_names = {}
     winepath = os.path.join(os.path.dirname(wine), 'winepath')
-    short_names[arc_root] = trim_path(arc_root, winepath)
     short_names[bld_root] = trim_path(bld_root, winepath)
 
     process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
