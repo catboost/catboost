@@ -14,8 +14,7 @@
  */
 
 namespace NNonCopyable { // protection from unintended ADL
-    class TNonCopyable {
-    protected:
+    struct TNonCopyable {
         TNonCopyable(const TNonCopyable&) = delete;
         TNonCopyable& operator=(const TNonCopyable&) = delete;
 
@@ -23,8 +22,7 @@ namespace NNonCopyable { // protection from unintended ADL
         ~TNonCopyable() = default;
     };
 
-    class TMoveOnly {
-    protected:
+    struct TMoveOnly {
         TMoveOnly(TMoveOnly&&) noexcept = default;
         TMoveOnly& operator=(TMoveOnly&&) noexcept = default;
 
