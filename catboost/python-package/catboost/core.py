@@ -1858,6 +1858,10 @@ class CatBoostClassifier(CatBoost):
             - 'GreedyLogSum'
             - 'MaxLogSum'
             - 'MinEntropy'
+    input_borders : string, [default=None]
+        file with borders
+    output_borders : string, [default=None]
+        float feature borders output file name
     fold_permutation_block_size : int, [default=1]
         To accelerate the learning.
         The recommended value is within [1, 256]. On small samples, must be set to 1.
@@ -2104,6 +2108,8 @@ class CatBoostClassifier(CatBoost):
         loss_function='Logloss',
         border_count=None,
         feature_border_type=None,
+        input_borders=None,
+        output_borders=None,
         fold_permutation_block_size=None,
         od_pval=None,
         od_wait=None,

@@ -705,6 +705,12 @@ static void TrainModel(
     CheckConsistency(trainingData);
 
     if (outputOptions.NeedSaveBorders()) {
+        if (outputOptions.GetTrainDir()) {
+            TFsPath dirPath(outputOptions.GetTrainDir());
+            if (!dirPath.Exists()) {
+                dirPath.MkDirs();
+            }
+        }
         SaveBordersAndNanModesToFileInMatrixnetFormat(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());

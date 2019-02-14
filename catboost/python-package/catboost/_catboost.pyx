@@ -106,6 +106,11 @@ cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "
         )
 
 
+cdef extern from "catboost/libs/options/binarization_options.h" namespace "NCatboostOptions" nogil:
+    cdef cppclass TBinarizationOptions:
+        TBinarizationOptions(...)
+
+
 cdef extern from "catboost/libs/options/enums.h":
     cdef cppclass EFeatureType:
         bool_t operator==(EFeatureType)
@@ -215,7 +220,7 @@ cdef extern from "catboost/libs/data_new/util.h" namespace "NCB":
 
 cdef extern from "catboost/libs/data_new/quantized_features_info.h" namespace "NCB":
     cdef cppclass TQuantizedFeaturesInfo:
-        pass
+        TQuantizedFeaturesInfo(...)
 
     ctypedef TIntrusivePtr[TQuantizedFeaturesInfo] TQuantizedFeaturesInfoPtr
 
@@ -786,7 +791,7 @@ cdef extern from "catboost/libs/documents_importance/docs_importance.h":
         int logPeriod
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/helpers/wx_test.h":
+cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
     cdef cppclass TWxTestResult:
         double WPlus
         double WMinus
@@ -795,7 +800,12 @@ cdef extern from "catboost/libs/helpers/wx_test.h":
 
 cdef float _FLOAT_NAN = float('nan')
 
-cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB":
+cdef extern from "catboost/libs/data_new/borders_io.h" namespace "NCB" nogil:
+    void LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+        const TString& path,
+        TQuantizedFeaturesInfo* quantizedFeaturesInfo) except *
+
+cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB" nogil:
     int IsMissingValue(const TStringBuf& s)
 
 cdef inline float _FloatOrNanFromString(const TString& s) except *:
@@ -2265,11 +2275,15 @@ cdef class _CatBoost:
             dereference(self.__test_evals[i]).ClearRawValues()
 
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool):
+        _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
         cdef TDataProviders dataProviders
         dataProviders.Learn = train_pool.__pool
         cdef _PoolBase test_pool
+        cdef TVector[ui32] ignored_features
+        cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+        cdef TString input_borders_str
         if isinstance(test_pools, list):
             if params.get('task_type', 'CPU') == 'GPU' and len(test_pools) > 1:
                 raise CatBoostError('Multiple eval sets are not supported on GPU')
@@ -2281,12 +2295,24 @@ cdef class _CatBoost:
         self._reserve_test_evals(dataProviders.Test.size())
         self._clear_test_evals()
 
+        if (_input_borders):
+            quantizedFeaturesInfo = new TQuantizedFeaturesInfo(
+                dereference(dereference(dataProviders.Learn.Get()).MetaInfo.FeaturesLayout.Get()),
+                TConstArrayRef[ui32](),
+                TBinarizationOptions()
+            )
+            input_borders_str = to_arcadia_string(_input_borders)
+            with nogil:
+                LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+                    input_borders_str,
+                    quantizedFeaturesInfo.Get())
+
         with nogil:
             SetPythonInterruptHandler()
             try:
                 TrainModel(
                     prep_params.tree,
-                    TQuantizedFeaturesInfoPtr(),
+                    quantizedFeaturesInfo,
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
                     dataProviders,
@@ -3013,6 +3039,8 @@ cpdef _check_train_params(dict params):
     params_to_check = params.copy()
     if 'cat_features' in params_to_check:
         del params_to_check['cat_features']
+    if 'input_borders' in params_to_check:
+        del params_to_check['input_borders']
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(
