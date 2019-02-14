@@ -165,6 +165,7 @@ def onpy_srcs(unit, *args):
         ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
 
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
+    cythonize_py = False
     optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
 
     cython_includes = []
@@ -206,6 +207,8 @@ def onpy_srcs(unit, *args):
             pyxs = pyxs_cpp
         elif arg == 'CYTHON_DIRECTIVE':
             cython_directives += ['-X', next(args)]
+        elif arg == 'CYTHONIZE_PY':
+            cythonize_py = True
         # Unsupported but legal PROTO_LIBRARY arguments.
         elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
             pass
@@ -245,7 +248,10 @@ def onpy_srcs(unit, *args):
                 dump_output.write('{path}\t{module}\n'.format(path=rootrel_arc_src(path, unit), module=mod))
 
             if path.endswith('.py'):
-                pys.append(pathmod)
+                if cythonize_py:
+                    pyxs.append(pathmod)
+                else:
+                    pys.append(pathmod)
             elif path.endswith('.pyx'):
                 pyxs.append(pathmod)
             elif path.endswith('.proto'):
