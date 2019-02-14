@@ -260,7 +260,7 @@ void NCatboostOptions::TOutputFilesOptions::Load(const NJson::TJsonValue& option
             &TestErrorLogPath, &TimeLeftLog, &ResultModelPath, &SnapshotPath, &ModelFormats,
             &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel,
             &BestModelMinTrees, &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns,
-            &FstrRegularFileName, &FstrInternalFileName, &TrainingOptionsFileName, &MetricPeriod,
+            &FstrRegularFileName, &FstrInternalFileName, &FstrType, &TrainingOptionsFileName, &MetricPeriod,
             &VerbosePeriod, &PredictionTypes, &OutputBordersFileName, &RocOutputPath
             );
     if (!VerbosePeriod.IsSet()) {

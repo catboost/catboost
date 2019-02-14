@@ -63,6 +63,34 @@ def create_cd(
 
 
 def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=-1):
+    """
+    Evaluate metrics with raw approxes and labels.
+
+    Parameters
+    ----------
+    label : list or numpy.arrays or pandas.DataFrame or pandas.Series
+        Object labels.
+
+    approx : list or numpy.arrays or pandas.DataFrame or pandas.Series
+        Object approxes.
+
+    metrics : list of strings
+        List of eval metrics.
+
+    weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        Object weights.
+
+    group_id : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        Object group ids.
+
+    thread_count : int, optional (default=-1)
+        Number of threads to work with.
+        If -1, then the number of threads is set to the number of cores.
+
+    Returns
+    -------
+    metric results : list with metric values.
+    """
     if len(approx) == 0:
         approx = [[]]
     if not isinstance(approx[0], ARRAY_TYPES):

@@ -5,6 +5,7 @@
 #include "score_bin.h"
 #include "split.h"
 
+#include <catboost/libs/data_new/packed_binary_features.h>
 #include <catboost/libs/index_range/index_range.h>
 
 #include <library/binsaver/bin_saver.h>
@@ -23,10 +24,17 @@ struct TBucketPairWeightStatistics {
 
 struct TPairwiseStats {
     TVector<TVector<double>> DerSums; // [leafCount][bucketCount]
-    TArray2D<TVector<TBucketPairWeightStatistics>> PairWeightStatistics; // [leafCount][leafCount][bucketCount]
+
+    /* statsCount is
+     *  For SplitCandidates:  bucketCount
+     *  For Binary packs:     binaryFeaturesCount * 2 (binIdx)
+     */
+    TArray2D<TVector<TBucketPairWeightStatistics>> PairWeightStatistics; // [leafCount][leafCount][statsCount]
+
+    TSplitEnsembleSpec SplitEnsembleSpec;
 
     void Add(const TPairwiseStats& rhs);
-    SAVELOAD(DerSums, PairWeightStatistics);
+    SAVELOAD(DerSums, PairWeightStatistics, SplitEnsembleSpec);
 };
 
 
@@ -85,10 +93,54 @@ inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistic
     return weightSums;
 }
 
+// TGetBinaryFeaturesPack is of type TBinaryFeaturesPack(ui32 docId)
+template <class TGetBinaryFeaturesPack>
+inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatisticsForBinaryFeaturesPacks(
+    const TFlatPairsInfo& pairs,
+    int leafCount,
+    int bucketCount,
+    const TVector<TIndexType>& leafIndices,
+    TGetBinaryFeaturesPack getBinaryFeaturesPack,
+    NCB::TIndexRange<int> pairIndexRange
+) {
+    const int binaryFeaturesCount = (int)GetValueBitCount(bucketCount - 1);
+
+    TArray2D<TVector<TBucketPairWeightStatistics>> weightSums(leafCount, leafCount);
+    weightSums.FillEvery(TVector<TBucketPairWeightStatistics>(2 * binaryFeaturesCount));
+    for (size_t pairIdx : pairIndexRange.Iter()) {
+        const auto winnerIdx = pairs[pairIdx].WinnerId;
+        const auto loserIdx = pairs[pairIdx].LoserId;
+        if (winnerIdx == loserIdx) {
+            continue;
+        }
+        const NCB::TBinaryFeaturesPack winnerFeaturesPack = getBinaryFeaturesPack(winnerIdx);
+        const auto winnerLeafId = leafIndices[winnerIdx];
+        const NCB::TBinaryFeaturesPack loserFeaturesPack = getBinaryFeaturesPack(loserIdx);
+        const auto loserLeafId = leafIndices[loserIdx];
+        const float weight = pairs[pairIdx].Weight;
+
+        for (auto bitIndex : xrange<NCB::TBinaryFeaturesPack>(binaryFeaturesCount)) {
+            auto winnerBit = (winnerFeaturesPack >> bitIndex) & 1;
+            auto loserBit = (loserFeaturesPack >> bitIndex) & 1;
+
+            if (winnerBit > loserBit) {
+                weightSums[loserLeafId][winnerLeafId][2 * bitIndex].SmallerBorderWeightSum -= weight;
+                weightSums[loserLeafId][winnerLeafId][2 * bitIndex + 1].GreaterBorderRightWeightSum -= weight;
+            } else {
+                auto winnerBucketId = 2 * bitIndex + winnerBit;
+                weightSums[winnerLeafId][loserLeafId][winnerBucketId].SmallerBorderWeightSum -= weight;
+                auto loserBucketId = 2 * bitIndex + loserBit;
+                weightSums[winnerLeafId][loserLeafId][loserBucketId].GreaterBorderRightWeightSum -= weight;
+            }
+        }
+    }
+
+    return weightSums;
+}
+
 void CalculatePairwiseScore(
     const TPairwiseStats& pairwiseStats,
     int bucketCount,
-    ESplitType splitType,
     float l2DiagReg,
     float pairwiseBucketWeightPriorReg,
     TVector<TScoreBin>* scoreBins

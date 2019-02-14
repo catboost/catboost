@@ -19,6 +19,8 @@
 #include <util/network/socket.h>
 #include <util/string/cast.h>
 
+#include <atomic>
+
 //#define DEBUG_TCP2 1
 #ifdef DEBUG_TCP2
 TSpinLock OUT_LOCK;
@@ -486,7 +488,7 @@ namespace {
                 }
 
                 void OnError(const TString& err, const i32 systemCode = 0) {
-                    DBGOUT("TRequest::OnError: " << Id_);
+                    DBGOUT("TRequest::OnError: " << Id_.load(std::memory_order_acquire));
                     THandleRef h = ReleaseHandler();
                     if (!h) {
                         return;
@@ -522,7 +524,7 @@ namespace {
                 }
 
                 bool RequestSendedCompletely() const noexcept {
-                    if (Id_ == 0) {
+                    if (Id_.load(std::memory_order_acquire) == 0) {
                         return false;
                     }
 
@@ -532,9 +534,9 @@ namespace {
                     }
 
                     TRequestId lastSendedReqId = conn->LastSendedRequestId();
-                    if (lastSendedReqId >= Id_) {
+                    if (lastSendedReqId >= Id_.load(std::memory_order_acquire)) {
                         return true;
-                    } else if (Y_UNLIKELY((Id_ - lastSendedReqId) > (Max<TRequestId>() - Max<ui32>()))) {
+                    } else if (Y_UNLIKELY((Id_.load(std::memory_order_acquire) - lastSendedReqId) > (Max<TRequestId>() - Max<ui32>()))) {
                         //overflow req-id value
                         return true;
                     }
@@ -549,19 +551,19 @@ namespace {
                     }
 
                     TConnectionRef conn = ReleaseConn();
-                    if (!!conn && Id_) {
-                        conn->Cancel(Id_);
+                    if (!!conn && Id_.load(std::memory_order_acquire)) {
+                        conn->Cancel(Id_.load(std::memory_order_acquire));
                     }
                     h->NotifyError(new TError(canceled, TError::Cancelled));
                 }
 
                 void SetReqId(TRequestId reqId) noexcept {
                     auto guard = Guard(IdLock_);
-                    Id_ = reqId;
+                    Id_.store(reqId, std::memory_order_release);
                 }
 
                 TRequestId ReqId() const noexcept {
-                    return Id_;
+                    return Id_.load(std::memory_order_acquire);
                 }
 
             private:
@@ -597,7 +599,7 @@ namespace {
                 TConnectionRef Conn_;
                 NAtomic::TBool Canceled_;
                 TSpinLock IdLock_;
-                volatile TRequestId Id_;
+                std::atomic<TRequestId> Id_;
             };
 
             class TConnection: public TThrRefBase {
@@ -885,7 +887,7 @@ namespace {
                         }
 
                         if (vec.Complete()) {
-                            LastSendedReqId_ = reqId;
+                            LastSendedReqId_.store(reqId, std::memory_order_release);
                             DBGOUT("Client::FlushOutputBuffers(" << reqId << ")");
                             OutputBuffers_.Clear();
                             return true;
@@ -905,7 +907,7 @@ namespace {
                     } else {
                         if (Y_LIKELY(reqId)) {
                             DBGOUT("Client::OnSend(" << reqId << ")");
-                            LastSendedReqId_ = reqId;
+                            LastSendedReqId_.store(reqId, std::memory_order_release);
                         }
                         //output already aquired, used asio thread
                         OutputBuffers_.Clear();
@@ -1041,7 +1043,7 @@ namespace {
                 }
 
                 TRequestId LastSendedRequestId() const noexcept {
-                    return LastSendedReqId_;
+                    return LastSendedReqId_.load(std::memory_order_acquire);
                 }
 
             private:
@@ -1062,8 +1064,8 @@ namespace {
                 TAtomic NeedCheckCancelsQueue_;
                 TLockFreeQueue<TRequestId> Cancels_;
                 TAdaptiveLock GenReqIdLock_;
-                volatile TRequestId GenReqId_;
-                volatile TRequestId LastSendedReqId_;
+                std::atomic<TRequestId> GenReqId_;
+                std::atomic<TRequestId> LastSendedReqId_;
                 TLockFreeQueue<TRequest*> ReqsInFlyQueue_;
                 TReqsInFly ReqsInFly_;
                 TOutputBuffers OutputBuffers_;

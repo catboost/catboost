@@ -4,6 +4,8 @@
 #include <util/generic/hash.h>
 #include "net_queue_stat.h"
 
+#include <atomic>
+
 namespace NNetliba_v12 {
     struct TRequesterPendingDataStats: public IPeerQueueStats {
         int GetPacketCount() override {
@@ -69,7 +71,7 @@ namespace NNetliba_v12 {
     class TStatAggregator {
         float Swx;
         float Sw;
-        volatile float Result;
+        std::atomic<float> Result;
 
     public:
         TStatAggregator()
@@ -91,12 +93,12 @@ namespace NNetliba_v12 {
             Swx += weight * value;
         }
         void Update() {
-            Result = Swx / Sw;
+            Result.store(Swx / Sw, std::memory_order_release);
             Swx = 0.0;
             Sw = 0.0001;
         }
         float GetResult() const {
-            return Result;
+            return Result.load(std::memory_order_acquire);
         }
     };
 

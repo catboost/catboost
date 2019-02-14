@@ -26,6 +26,7 @@ public:
             WriteIncBin(constname, filename, data);
         }
         WriteFooter(constname, data);
+        WriteSymbolSize(constname, data);
     }
 
 private:
@@ -37,6 +38,13 @@ private:
 
     void WriteFooter(TStringBuf constname, const TString& data) {
         AsmOut << AsmPrefix << constname << "Size:\ndd " << data.size() << "\n";
+    }
+
+    void WriteSymbolSize(TStringBuf constname, const TString& data) {
+        AsmOut << "%ifidn __OUTPUT_FORMAT__,elf64\n";
+        AsmOut << "size " << AsmPrefix << constname << " " << data.size() << "\n";
+        AsmOut << "size " << AsmPrefix << constname << "Size 4\n";
+        AsmOut << "%endif\n";
     }
 
     void WriteIncBin(TStringBuf constname, TStringBuf filename, const TString& data) {

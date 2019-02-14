@@ -36,6 +36,8 @@
 #include <util/system/types.h>
 #include <util/thread/factory.h>
 
+#include <atomic>
+
 #if defined(_unix_)
 #include <sys/ioctl.h>
 #endif
@@ -99,11 +101,11 @@ namespace NNeh {
                 }
 
                 inline size_t ExceedSoftLimit() const noexcept {
-                    return NHttp::TFdLimits::ExceedLimit(Counter.Val(), Limits.Soft);
+                    return NHttp::TFdLimits::ExceedLimit(Counter.Val(), Limits.Soft());
                 }
 
                 inline size_t ExceedHardLimit() const noexcept {
-                    return NHttp::TFdLimits::ExceedLimit(Counter.Val(), Limits.Hard);
+                    return NHttp::TFdLimits::ExceedLimit(Counter.Val(), Limits.Hard());
                 }
 
                 inline size_t DeltaLimit() const noexcept {
@@ -114,21 +116,21 @@ namespace NNeh {
                     if (size_t e = ExceedSoftLimit()) {
                         size_t d = DeltaLimit();
                         size_t leftAvailableFd = NHttp::TFdLimits::ExceedLimit(d, e);
-                        unsigned r = static_cast<unsigned>(MaxUnusedConnKeepaliveTimeout * leftAvailableFd / (d + 1));
-                        return Max(r, (unsigned)MinUnusedConnKeepaliveTimeout);
+                        unsigned r = static_cast<unsigned>(MaxUnusedConnKeepaliveTimeout.load(std::memory_order_acquire) * leftAvailableFd / (d + 1));
+                        return Max(r, (unsigned)MinUnusedConnKeepaliveTimeout.load(std::memory_order_acquire));
                     }
-                    return MaxUnusedConnKeepaliveTimeout;
+                    return MaxUnusedConnKeepaliveTimeout.load(std::memory_order_acquire);
                 }
 
                 void SetFdLimits(size_t soft, size_t hard) {
-                    Limits.Soft = soft;
-                    Limits.Hard = hard;
+                    Limits.SetSoft(soft);
+                    Limits.SetHard(hard);
                 }
 
                 NHttp::TFdLimits Limits;
                 TAtomicCounter Counter;
-                volatile unsigned MaxUnusedConnKeepaliveTimeout; //in seconds
-                volatile unsigned MinUnusedConnKeepaliveTimeout; //in seconds
+                std::atomic<unsigned> MaxUnusedConnKeepaliveTimeout; //in seconds
+                std::atomic<unsigned> MinUnusedConnKeepaliveTimeout; //in seconds
             };
 
             TInputConnections* InputConnections() {
@@ -611,11 +613,15 @@ namespace NNeh {
 
             inline void Release(TConnection& conn) {
                 if (!ExceedHardLimit()) {
-                    size_t maxConnId = MaxConnId_;
+                    size_t maxConnId = MaxConnId_.load(std::memory_order_acquire);
 
                     while (maxConnId < conn.Host->Id) {
-                        AtomicCas(&MaxConnId_, conn.Host->Id, maxConnId);
-                        maxConnId = MaxConnId_;
+                        MaxConnId_.compare_exchange_strong(
+                            maxConnId,
+                            conn.Host->Id,
+                            std::memory_order_seq_cst,
+                            std::memory_order_seq_cst);
+                        maxConnId = MaxConnId_.load(std::memory_order_acquire);
                     }
 
                     CachedSockets.Inc();
@@ -630,8 +636,8 @@ namespace NNeh {
             }
 
             void SetFdLimits(size_t soft, size_t hard) {
-                Limits.Soft = soft;
-                Limits.Hard = hard;
+                Limits.SetSoft(soft);
+                Limits.SetHard(hard);
             }
 
         private:
@@ -639,7 +645,7 @@ namespace NNeh {
                 if (AtomicTryLock(&InPurging_)) {
                     //evaluate the usefulness of purging the cache
                     //если в кеше мало соединений (< MaxConnId_/16 или 64), не чистим кеш
-                    if ((size_t)CachedSockets.Val() > (Min((size_t)MaxConnId_, (size_t)1024U) >> 4)) {
+                    if ((size_t)CachedSockets.Val() > (Min((size_t)MaxConnId_.load(std::memory_order_acquire), (size_t)1024U) >> 4)) {
                         //по мере приближения к hardlimit нужда в чистке cache приближается к 100%
                         size_t closenessToHardLimit256 = ((ActiveSockets.Val() + 1) << 8) / (Limits.Delta() + 1);
                         //чем больше соединений в кеше, а не в работе, тем менее нужен кеш (можно его почистить)
@@ -692,7 +698,7 @@ namespace NNeh {
                 TSocketRef tmp;
 
                 ui64 processed = 0;
-                for (size_t i = 0; i < MaxConnId_ && !Shutdown_; i++) {
+                for (size_t i = 0; i < MaxConnId_.load(std::memory_order_acquire) && !Shutdown_; i++) {
                     TConnList& tc = Lst_.Get(i);
                     if (size_t qsize = tc.Size()) {
                         //в каждой очереди чистим вычисленную долю
@@ -728,11 +734,11 @@ namespace NNeh {
             }
 
             inline size_t ExceedSoftLimit() const noexcept {
-                return NHttp::TFdLimits::ExceedLimit(TotalSockets(), Limits.Soft);
+                return NHttp::TFdLimits::ExceedLimit(TotalSockets(), Limits.Soft());
             }
 
             inline size_t ExceedHardLimit() const noexcept {
-                return NHttp::TFdLimits::ExceedLimit(TotalSockets(), Limits.Hard);
+                return NHttp::TFdLimits::ExceedLimit(TotalSockets(), Limits.Hard());
             }
 
             NHttp::TFdLimits Limits;
@@ -742,12 +748,12 @@ namespace NNeh {
             NHttp::TLockFreeSequence<TConnList> Lst_;
 
             TAtomic InPurging_;
-            volatile size_t MaxConnId_;
+            std::atomic<size_t> MaxConnId_;
 
             TAutoPtr<IThreadFactory::IThread> T_;
             TCondVar CondPurge_;
             TMutex PurgeMutex_;
-            volatile bool Shutdown_;
+            TAtomicBool Shutdown_;
         };
 
         class TSslCtx: public TThrRefBase {
@@ -1657,6 +1663,10 @@ namespace NNeh {
                     return Headers_;
                 }
 
+                TStringBuf Method() const override {
+                    return H_.Method;
+                }
+
                 TStringBuf Cgi() const override {
                     return H_.Cgi;
                 }
@@ -2015,7 +2025,7 @@ namespace NNeh {
             "invalid input fd limits timeouts; maxSec=%u, minSec=%u",
             maxSec, minSec);
 
-        NHttps::InputConnections()->MinUnusedConnKeepaliveTimeout = minSec;
-        NHttps::InputConnections()->MaxUnusedConnKeepaliveTimeout = maxSec;
+        NHttps::InputConnections()->MinUnusedConnKeepaliveTimeout.store(minSec, std::memory_order_release);
+        NHttps::InputConnections()->MaxUnusedConnKeepaliveTimeout.store(maxSec, std::memory_order_release);
     }
 }

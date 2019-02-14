@@ -8,6 +8,7 @@
 #include <util/system/atomic.h>
 #include <util/system/event.h>
 #include <util/system/yassert.h>
+#include <util/system/atomic_ops.h>
 #include <utility>
 
 namespace NNetlibaSocket {
@@ -47,13 +48,13 @@ namespace NNetlibaSocket {
         }
 
         bool IsDataPartFull() const {
-            return (NumPackets >= MAX_PACKETS_IN_QUEUE || DataSize >= MAX_DATA_IN_QUEUE - CMD_QUEUE_RESERVE);
+            return (AtomicGet(NumPackets) >= MAX_PACKETS_IN_QUEUE || AtomicGet(DataSize) >= MAX_DATA_IN_QUEUE - CMD_QUEUE_RESERVE);
         }
 
         bool Push(TUdpRecvPacket* packet, const TPacketMeta& meta) {
             // simulate OS behavior on buffer overflow - drop packets.
             // yeah it contains small data race (we can add little bit more packets, but nobody cares)
-            if (NumPackets >= MAX_PACKETS_IN_QUEUE || DataSize >= MAX_DATA_IN_QUEUE) {
+            if (AtomicGet(NumPackets) >= MAX_PACKETS_IN_QUEUE || AtomicGet(DataSize) >= MAX_DATA_IN_QUEUE) {
                 return false;
             }
             AtomicAdd(NumPackets, 1);
@@ -80,7 +81,7 @@ namespace NNetlibaSocket {
 
             AtomicSub(NumPackets, 1);
             AtomicSub(DataSize, (*packet)->DataSize);
-            Y_ASSERT(NumPackets >= 0 && DataSize >= 0);
+            Y_ASSERT(AtomicGet(NumPackets) >= 0 && AtomicGet(DataSize) >= 0);
 
             return true;
         }

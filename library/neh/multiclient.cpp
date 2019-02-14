@@ -3,6 +3,8 @@
 
 #include <library/containers/intrusive_rb_tree/rb_tree.h>
 
+#include <atomic>
+
 namespace {
     using namespace NNeh;
 
@@ -317,21 +319,21 @@ namespace {
     private:
         void SetNearDeadline_(const TInstant::TValue& v) noexcept {
             TGuard<TAdaptiveLock> g(NDLock_);
-            NearDeadline_ = v;
+            NearDeadline_.store(v, std::memory_order_release);
         }
 
         TInstant::TValue GetNearDeadline_() const noexcept {
             TGuard<TAdaptiveLock> g(NDLock_);
-            return NearDeadline_;
+            return NearDeadline_.load(std::memory_order_acquire);
         }
 
         NNeh::TAutoLockFreeQueue<IJob> JQ_;
         TAtomicBool Interrupt_;
         TRequestsSupervisors RS_;
         TAdaptiveLock NDLock_;
-        volatile TInstant::TValue NearDeadline_;
+        std::atomic<TInstant::TValue> NearDeadline_;
         ::TSystemEvent E_;
-        volatile bool Shutdown_;
+        TAtomicBool Shutdown_;
     };
 
     class TMultiClientAutoShutdown: public IMultiClient {

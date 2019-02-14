@@ -691,7 +691,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 std::make_pair(false, true),
                 std::make_pair(true, true)
             }) {
-                TQuantizedObjectsData data;
+                TQuantizedForCPUObjectsData data;
 
                 TVector<ui32> catFeatureIndices;
                 if (useFeatureTypes.second) {
@@ -717,10 +717,15 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 TCommonObjectsData commonDataCopy(commonData);
                 commonDataCopy.FeaturesLayout = featuresLayoutPtr;
 
-                data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                data.Data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
                     featuresLayout,
                     TConstArrayRef<ui32>(),
                     NCatboostOptions::TBinarizationOptions()
+                );
+
+                data.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                    *data.Data.QuantizedFeaturesInfo,
+                    true
                 );
 
                 ui32 featureId = 0;
@@ -737,7 +742,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(floatFeature.data(), floatFeature.size(), bitsPerKey)
                         );
 
-                        data.FloatFeatures.emplace_back(
+                        data.Data.FloatFeatures.emplace_back(
                             MakeHolder<TQuantizedFloatValuesHolder>(
                                 featureId,
                                 TCompressedArray(floatFeature.size(), bitsPerKey, storage),
@@ -749,7 +754,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 }
 
                 if (useFeatureTypes.second) {
-                    TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(data.QuantizedFeaturesInfo);
+                    TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(
+                        data.Data.QuantizedFeaturesInfo
+                    );
 
                     for (auto catFeatureIdx : xrange(srcCatFeatures.size())) {
                         const auto& catFeature = srcCatFeatures[catFeatureIdx];
@@ -783,7 +790,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(catFeature.data(), catFeature.size(), bitsPerKey)
                         );
 
-                        data.CatFeatures.emplace_back(
+                        data.Data.CatFeatures.emplace_back(
                             MakeHolder<TQuantizedCatValuesHolder>(
                                 featureId,
                                 TCompressedArray(catFeature.size(), bitsPerKey, storage),
@@ -821,7 +828,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             TQuantizedObjectsDataProvider(
                                 Nothing(),
                                 std::move(commonDataCopy),
-                                std::move(data),
+                                std::move(data.Data),
                                 false,
                                 &localExecutor
                             ),
@@ -864,7 +871,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             UNIT_ASSERT(
                                 Equal<ui8>(
                                     subsetFloatFeatures[i],
-                                    (*quantizedForCPUObjectsDataProvider.GetFloatFeature(i))->GetArrayData()
+                                    (*quantizedForCPUObjectsDataProvider.GetNonPackedFloatFeature(i))
+                                        ->GetArrayData()
                                 )
                             );
                         }
@@ -875,7 +883,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             UNIT_ASSERT(
                                 Equal<ui32>(
                                     subsetCatFeatures[i],
-                                    (*quantizedForCPUObjectsDataProvider.GetCatFeature(i))->GetArrayData()
+                                    (*quantizedForCPUObjectsDataProvider.GetNonPackedCatFeature(i))
+                                        ->GetArrayData()
                                 )
                             );
 

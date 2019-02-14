@@ -129,8 +129,13 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
         Consume(consumer);
     }
 
+    /**
+        * Collects all splitted arguments into args
+        * @param args: Output arguments
+        * @return bool: true, if all items collected successfully, else - false
+    */
     template <typename... Args>
-    inline void CollectInto(Args*... args) {
+    inline bool TryCollectInto(Args*... args) {
         size_t filled = 0;
         auto it = this->begin();
 
@@ -142,7 +147,17 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
             }
         }, args...);
 
-        Y_ENSURE(filled == sizeof...(args) && it == this->end());
+        return filled == sizeof...(args) && it == this->end();
+    }
+
+    /**
+        * Collects all splitted arguments into args
+        * Throws exception, if not all items collected successfully
+        * @param args: Output arguments
+    */
+    template <typename... Args>
+    inline void CollectInto(Args*... args) {
+        Y_ENSURE(TryCollectInto<Args...>(args...));
     }
 
     inline size_t Count() const {

@@ -2,6 +2,8 @@
 
 #include <util/generic/ptr.h>
 #include <util/stream/output.h>
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 
 namespace NNeh {
     class TStatCollector;
@@ -14,11 +16,11 @@ namespace NNeh {
         TServiceStat();
 
         static void ConfigureValidator(unsigned maxContinuousErrors, unsigned reSendValidatorPeriod) noexcept {
-            MaxContinuousErrors_ = maxContinuousErrors;
-            ReSendValidatorPeriod_ = reSendValidatorPeriod;
+            AtomicSet(MaxContinuousErrors_, maxContinuousErrors);
+            AtomicSet(ReSendValidatorPeriod_, reSendValidatorPeriod);
         }
         static bool Disabled() noexcept {
-            return !MaxContinuousErrors_;
+            return !AtomicGet(MaxContinuousErrors_);
         }
 
         enum EStatus {

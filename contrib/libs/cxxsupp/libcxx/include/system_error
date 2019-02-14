@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===---------------------------- system_error ----------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -201,7 +200,7 @@ public:
 
 // ODR violation is used for binary compatibility with older versions of libc++.
 // We don't have old libc++ versions for MSVC, so we don't need it.
-#if defined(_LIBCPP_BUILDING_SYSTEM_ERROR) && \
+#if defined(_LIBCPP_BUILDING_LIBRARY) && \
     defined(_LIBCPP_DEPRECATED_ABI_LEGACY_LIBRARY_DEFINITIONS_FOR_INLINE_FUNCTIONS)
     error_category() _NOEXCEPT;
 #else

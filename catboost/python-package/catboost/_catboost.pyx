@@ -31,8 +31,8 @@ from libcpp.pair cimport pair
 from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder
-from util.generic.string cimport TString
+from util.generic.ptr cimport THolder, TIntrusivePtr
+from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui32, ui64, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
@@ -64,26 +64,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
 
-
-# TODO(akhropov): Add to util's def
-cdef extern from "util/generic/ptr.h" nogil:
-    cdef cppclass TIntrusivePtr[T]:
-        TIntrusivePtr()
-        TIntrusivePtr(T*)
-        TIntrusivePtr& operator=(...) except +
-        void Reset(T*)
-        T* Get()
-        T* Release()
-        void Drop()
-
-# TODO(akhropov): Add necessary methods to util's def
-cdef extern from "util/generic/strbuf.h":
-    cdef cppclass TStringBuf:
-        TStringBuf() except +
-        TStringBuf(const char*) except +
-        TStringBuf(const char*, size_t) except +
-        char* Data()
-        size_t Size()
 
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
@@ -503,6 +483,9 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
 
+        bool_t operator==(const TFullModel& other) except +ProcessException
+        bool_t operator!=(const TFullModel& other) except +ProcessException
+
         THashMap[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
@@ -654,6 +637,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
     cdef cppclass TCVResult:
         TString Metric
+        TVector[ui32] Iterations
         TVector[double] AverageTrain
         TVector[double] StdDevTrain
         TVector[double] AverageTest
@@ -2273,6 +2257,12 @@ cdef class _CatBoost:
         for i in range(self.__test_evals.size()):
             del self.__test_evals[i]
 
+    def __eq__(self, _CatBoost other):
+        return self.__model == other.__model
+
+    def __neq__(self, _CatBoost other):
+        return self.__model != other.__model
+
     cpdef _reserve_test_evals(self, num_tests):
         if self.__test_evals.size() < num_tests:
             self.__test_evals.resize(num_tests)
@@ -2458,7 +2448,7 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
-    cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2471,11 +2461,11 @@ cdef class _CatBoost:
         cdef TDataProviderPtr dataProviderPtr
         if pool:
             dataProviderPtr = pool.__pool
-        cdef TString fstr_type_name_str = to_arcadia_string(fstr_type_name)
-        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+        cdef TString type_name_str = to_arcadia_string(type_name)
+        if type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
-                    fstr_type_name_str,
+                    type_name_str,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
@@ -2489,7 +2479,7 @@ cdef class _CatBoost:
         else:
             with nogil:
                 fstr = GetFeatureImportances(
-                    fstr_type_name_str,
+                    type_name_str,
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
@@ -2705,7 +2695,16 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         if metric_name in used_metric_names:
             continue
         used_metric_names.add(metric_name)
+        fill_iterations_column = 'iterations' not in result
+        if fill_iterations_column:
+            result['iterations'] = list()
         for it in xrange(results[metric_idx].AverageTrain.size()):
+            iteration = results[metric_idx].Iterations[it]
+            if fill_iterations_column:
+                result['iterations'].append(iteration)
+            else:
+                # ensure that all metrics have the same iterations specified
+                assert(result['iterations'][it] == iteration)
             result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
             result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
             result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])

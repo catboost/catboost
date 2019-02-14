@@ -24,6 +24,8 @@
 #include <util/system/yassert.h>
 #include <util/thread/factory.h>
 
+#include <atomic>
+
 #if defined(_unix_)
 #include <sys/ioctl.h>
 #endif
@@ -96,49 +98,49 @@ namespace {
 
 #ifdef DEBUG_STAT
     struct TDebugStat {
-        static volatile size_t ConnTotal;
-        static volatile size_t ConnActive;
-        static volatile size_t ConnCached;
-        static volatile size_t ConnDestroyed;
-        static volatile size_t ConnFailed;
-        static volatile size_t ConnConnCanceled;
-        static volatile size_t ConnSlow;
-        static volatile size_t Conn2Success;
-        static volatile size_t ConnPurgedInCache;
-        static volatile size_t ConnDestroyedInCache;
-        static volatile size_t RequestTotal;
-        static volatile size_t RequestSuccessed;
-        static volatile size_t RequestFailed;
+        static std::atomic<size_t> ConnTotal;
+        static std::atomic<size_t> ConnActive;
+        static std::atomic<size_t> ConnCached;
+        static std::atomic<size_t> ConnDestroyed;
+        static std::atomic<size_t> ConnFailed;
+        static std::atomic<size_t> ConnConnCanceled;
+        static std::atomic<size_t> ConnSlow;
+        static std::atomic<size_t> Conn2Success;
+        static std::atomic<size_t> ConnPurgedInCache;
+        static std::atomic<size_t> ConnDestroyedInCache;
+        static std::atomic<size_t> RequestTotal;
+        static std::atomic<size_t> RequestSuccessed;
+        static std::atomic<size_t> RequestFailed;
         static void Print() {
-            Cout << "ct=" << ConnTotal
-                 << " ca=" << ConnActive
-                 << " cch=" << ConnCached
-                 << " cd=" << ConnDestroyed
-                 << " cf=" << ConnFailed
-                 << " ccc=" << ConnConnCanceled
-                 << " csl=" << ConnSlow
-                 << " c2s=" << Conn2Success
-                 << " cpc=" << ConnPurgedInCache
-                 << " cdc=" << ConnDestroyedInCache
-                 << " rt=" << RequestTotal
-                 << " rs=" << RequestSuccessed
-                 << " rf=" << RequestFailed
+            Cout << "ct=" << ConnTotal.load(std::memory_order_acquire)
+                 << " ca=" << ConnActive.load(std::memory_order_acquire)
+                 << " cch=" << ConnCached.load(std::memory_order_acquire)
+                 << " cd=" << ConnDestroyed.load(std::memory_order_acquire)
+                 << " cf=" << ConnFailed.load(std::memory_order_acquire)
+                 << " ccc=" << ConnConnCanceled.load(std::memory_order_acquire)
+                 << " csl=" << ConnSlow.load(std::memory_order_acquire)
+                 << " c2s=" << Conn2Success.load(std::memory_order_acquire)
+                 << " cpc=" << ConnPurgedInCache.load(std::memory_order_acquire)
+                 << " cdc=" << ConnDestroyedInCache.load(std::memory_order_acquire)
+                 << " rt=" << RequestTotal.load(std::memory_order_acquire)
+                 << " rs=" << RequestSuccessed.load(std::memory_order_acquire)
+                 << " rf=" << RequestFailed.load(std::memory_order_acquire)
                  << Endl;
         }
     };
-    volatile size_t TDebugStat::ConnTotal = 0;
-    volatile size_t TDebugStat::ConnActive = 0;
-    volatile size_t TDebugStat::ConnCached = 0;
-    volatile size_t TDebugStat::ConnDestroyed = 0;
-    volatile size_t TDebugStat::ConnFailed = 0;
-    volatile size_t TDebugStat::ConnConnCanceled = 0;
-    volatile size_t TDebugStat::ConnSlow = 0;
-    volatile size_t TDebugStat::Conn2Success = 0;
-    volatile size_t TDebugStat::ConnPurgedInCache = 0;
-    volatile size_t TDebugStat::ConnDestroyedInCache = 0;
-    volatile size_t TDebugStat::RequestTotal = 0;
-    volatile size_t TDebugStat::RequestSuccessed = 0;
-    volatile size_t TDebugStat::RequestFailed = 0;
+    std::atomic<size_t> TDebugStat::ConnTotal = 0;
+    std::atomic<size_t> TDebugStat::ConnActive = 0;
+    std::atomic<size_t> TDebugStat::ConnCached = 0;
+    std::atomic<size_t> TDebugStat::ConnDestroyed = 0;
+    std::atomic<size_t> TDebugStat::ConnFailed = 0;
+    std::atomic<size_t> TDebugStat::ConnConnCanceled = 0;
+    std::atomic<size_t> TDebugStat::ConnSlow = 0;
+    std::atomic<size_t> TDebugStat::Conn2Success = 0;
+    std::atomic<size_t> TDebugStat::ConnPurgedInCache = 0;
+    std::atomic<size_t> TDebugStat::ConnDestroyedInCache = 0;
+    std::atomic<size_t> TDebugStat::RequestTotal = 0;
+    std::atomic<size_t> TDebugStat::RequestSuccessed = 0;
+    std::atomic<size_t> TDebugStat::RequestFailed = 0;
 #endif
 
     static inline void PrepareSocket(SOCKET s) {
@@ -818,8 +820,8 @@ namespace {
             , Shutdown_(false)
         {
             T_ = SystemThreadFactory()->Run(this);
-            Limits.Soft = 40000;
-            Limits.Hard = 50000;
+            Limits.SetSoft(40000);
+            Limits.SetHard(50000);
         }
 
         ~THttpConnManager() override {
@@ -836,8 +838,8 @@ namespace {
         }
 
         inline void SetLimits(size_t softLimit, size_t hardLimit) noexcept {
-            Limits.Soft = softLimit;
-            Limits.Hard = hardLimit;
+            Limits.SetSoft(softLimit);
+            Limits.SetHard(hardLimit);
         }
 
         inline void CheckLimits() {
@@ -853,9 +855,9 @@ namespace {
 
         inline bool Get(THttpConnRef& conn, size_t addrId) {
 #ifdef DEBUG_STAT
-            TDebugStat::ConnTotal = TotalConn.Val();
-            TDebugStat::ConnActive = Active();
-            TDebugStat::ConnCached = Cache_.Size();
+            TDebugStat::ConnTotal.store(TotalConn.Val(), std::memory_order_release);
+            TDebugStat::ConnActive(Active(), std::memory_order_release);
+            TDebugStat::ConnCached(Cache_.Size(), std::memory_order_release);
 #endif
             return Cache_.Get(conn, addrId);
         }
@@ -881,7 +883,7 @@ namespace {
         }
 
         bool CacheDisabled() const {
-            return Limits.Soft == 0;
+            return Limits.Soft() == 0;
         }
 
         bool IsShutdown() const noexcept {
@@ -900,11 +902,11 @@ namespace {
         }
 
         inline size_t ExceedSoftLimit() const noexcept {
-            return TFdLimits::ExceedLimit(Total(), Limits.Soft);
+            return TFdLimits::ExceedLimit(Total(), Limits.Soft());
         }
 
         inline size_t ExceedHardLimit() const noexcept {
-            return TFdLimits::ExceedLimit(Total(), Limits.Hard);
+            return TFdLimits::ExceedLimit(Total(), Limits.Hard());
         }
 
         void SuggestPurgeCache() {
@@ -1291,6 +1293,10 @@ namespace {
 
             const THttpHeaders& Headers() const override {
                 return P_->Headers();
+            }
+
+            TStringBuf Method() const override {
+                return H_.Method;
             }
 
             TStringBuf Body() const override {
@@ -1760,7 +1766,7 @@ namespace {
                     Cdbg << "acc: " << ec.Text() << Endl;
                 }
             } else {
-                if (static_cast<size_t>(HttpInConnCounter()->Val()) < HttpInConnLimits()->Hard) {
+                if (static_cast<size_t>(HttpInConnCounter()->Val()) < HttpInConnLimits()->Hard()) {
                     try {
                         SetNonBlock(s->Native());
                         PrepareSocket(s->Native());
@@ -1802,16 +1808,16 @@ namespace {
             size_t cc = HttpInConnCounter()->Val();
             TFdLimits lim(*HttpInConnLimits());
 
-            if (!TFdLimits::ExceedLimit(cc, lim.Soft)) {
+            if (!TFdLimits::ExceedLimit(cc, lim.Soft())) {
                 return THttp2Options::ServerInputDeadlineKeepAliveMax;
             }
 
-            if (cc > lim.Hard) {
-                cc = lim.Hard;
+            if (cc > lim.Hard()) {
+                cc = lim.Hard();
             }
             TDuration::TValue softTuneRange = THttp2Options::ServerInputDeadlineKeepAliveMax.Seconds() - THttp2Options::ServerInputDeadlineKeepAliveMin.Seconds();
 
-            return TDuration::Seconds((softTuneRange * (cc - lim.Soft)) / (lim.Hard - lim.Soft + 1)) + THttp2Options::ServerInputDeadlineKeepAliveMin;
+            return TDuration::Seconds((softTuneRange * (cc - lim.Soft())) / (lim.Hard() - lim.Soft() + 1)) + THttp2Options::ServerInputDeadlineKeepAliveMin;
         }
 
     private:
@@ -1879,8 +1885,8 @@ namespace NNeh {
     }
 
     void SetHttp2InputConnectionsLimits(size_t softLimit, size_t hardLimit) {
-        HttpInConnLimits()->Soft = softLimit;
-        HttpInConnLimits()->Hard = hardLimit;
+        HttpInConnLimits()->SetSoft(softLimit);
+        HttpInConnLimits()->SetHard(hardLimit);
     }
 
     TAtomicBase GetHttpOutputConnectionCount() {

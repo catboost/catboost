@@ -25,10 +25,20 @@ using NCB::TEvalResult;
 using TOnEndIterationCallback = std::function<bool(const TMetricsAndTimeLeftHistory&)>;
 
 
+// options used internally in CatBoost libraries, not to be specified by end users
+struct TTrainModelInternalOptions {
+    // Don't save the model, only calculate metrics during training.
+    bool CalcMetricsOnly = false;
+
+    // force it even if overfitting detector is disabled, used in Cross-Validation
+    bool ForceCalcEvalMetricOnEveryIteration = false;
+};
+
+
 class IModelTrainer {
 public:
     virtual void TrainModel(
-        bool calcMetricsOnly,
+        const TTrainModelInternalOptions& internalOptions,
         const NJson::TJsonValue& jsonParams,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,

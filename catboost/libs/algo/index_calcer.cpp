@@ -11,6 +11,10 @@
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/helpers/dense_hash.h>
 
+#include <library/containers/stack_vector/stack_vec.h>
+
+#include <functional>
+
 
 using namespace NCB;
 
@@ -31,21 +35,21 @@ static inline const ui8* GetFloatHistogram(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
 
-    return *(*objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
+    return *(*objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
 }
 
 static inline const ui32* GetRemappedCatFeatures(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
 
-    return *(*objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
+    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
 }
 
-template <typename TCount, bool (*CmpOp)(TCount, TCount), int vectorWidth>
-void BuildIndicesKernel(
+template <typename TCount, typename TCmpOp, int vectorWidth>
+inline void BuildIndicesKernel(
     const ui32* permutation,
     const TCount* histogram,
-    TCount value,
+    TCmpOp cmpOp,
     int level,
     TIndexType* indices) {
 
@@ -62,19 +66,20 @@ void BuildIndicesKernel(
     const TIndexType idx1 = indices[1];
     const TIndexType idx2 = indices[2];
     const TIndexType idx3 = indices[3];
-    indices[0] = idx0 + CmpOp(hist0, value) * level;
-    indices[1] = idx1 + CmpOp(hist1, value) * level;
-    indices[2] = idx2 + CmpOp(hist2, value) * level;
-    indices[3] = idx3 + CmpOp(hist3, value) * level;
+    indices[0] = idx0 + cmpOp(hist0) * level;
+    indices[1] = idx1 + cmpOp(hist1) * level;
+    indices[2] = idx2 + cmpOp(hist2) * level;
+    indices[3] = idx3 + cmpOp(hist3) * level;
 }
 
-template <typename TCount, bool (*CmpOp)(TCount, TCount)>
-void OfflineCtrBlock(
+
+template <typename TCount, typename TCmpOp>
+inline void OfflineCtrBlock(
     const NPar::TLocalExecutor::TExecRangeParams& params,
     int blockIdx,
     const ui32* permutation,
     const TCount* histogram,
-    TCount value,
+    TCmpOp cmpOp,
     int level,
     TIndexType* indices) {
 
@@ -83,18 +88,54 @@ void OfflineCtrBlock(
     constexpr int vectorWidth = 4;
     int doc;
     for (doc = blockStart; doc + vectorWidth <= nextBlockStart; doc += vectorWidth) {
-        BuildIndicesKernel<TCount, CmpOp, vectorWidth>(
-            permutation + doc,
-            histogram,
-            value,
-            level,
-            indices + doc);
+        BuildIndicesKernel<TCount, TCmpOp, vectorWidth>(permutation + doc, histogram, cmpOp, level, indices + doc);
     }
     for (; doc < nextBlockStart; ++doc) {
         const int idxOriginal = permutation[doc];
-        indices[doc] += CmpOp(histogram[idxOriginal], value) * level;
+        indices[doc] += cmpOp(histogram[idxOriginal]) * level;
     }
 }
+
+template <typename TCount, class TCmpOp>
+inline void OfflineCtrBlock(
+    const NPar::TLocalExecutor::TExecRangeParams& params,
+    int blockIdx,
+    TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
+    const ui32* permutation,
+    const TCount* histogram, // can be nullptr if maybeBinaryIndex
+    std::function<TPackedBinaryFeaturesArraySubset(ui32)>&& getBinaryFeaturesPack,
+    TCmpOp cmpOp,
+    int level,
+    TIndexType* indices) {
+
+    if (maybeBinaryIndex) {
+        TBinaryFeaturesPack bitMask = TBinaryFeaturesPack(1) << maybeBinaryIndex->BitIdx;
+        TBinaryFeaturesPack bitIdx = maybeBinaryIndex->BitIdx;
+
+        NCB::TPackedBinaryFeaturesArraySubset packSubset = getBinaryFeaturesPack(maybeBinaryIndex->PackIdx);
+
+        OfflineCtrBlock(
+            params,
+            blockIdx,
+            permutation,
+            (**packSubset.GetSrc()).data(),
+            [bitMask, bitIdx, cmpOp = std::move(cmpOp)] (NCB::TBinaryFeaturesPack featuresPack) {
+                return cmpOp((featuresPack & bitMask) >> bitIdx);
+            },
+            level,
+            indices);
+    } else {
+        OfflineCtrBlock(
+            params,
+            blockIdx,
+            permutation,
+            histogram,
+            std::move(cmpOp),
+            level,
+            indices);
+    }
+}
+
 
 void SetPermutedIndices(
     const TSplit& split,
@@ -113,14 +154,26 @@ void SetPermutedIndices(
     const int splitWeight = 1 << (curDepth - 1);
     TIndexType* indicesData = indices->data();
     if (split.Type == ESplitType::FloatFeature) {
+        auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
+
+        const ui8* histogram = nullptr;
+        auto maybeBinaryIndex = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
+        if (!maybeBinaryIndex) {
+            histogram = GetFloatHistogram(split, objectsDataProvider);
+        }
+
         localExecutor->ExecRange(
             [&](int blockIdx) {
-                OfflineCtrBlock<ui8, IsTrueHistogram>(
+                OfflineCtrBlock(
                     blockParams,
                     blockIdx,
+                    maybeBinaryIndex,
                     fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
-                    GetFloatHistogram(split, objectsDataProvider),
-                    GetFeatureSplitIdx(split),
+                    histogram,
+                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    [splitIdx = GetFeatureSplitIdx(split)] (ui8 bucket) {
+                        return IsTrueHistogram(bucket, splitIdx);
+                    },
                     splitWeight,
                     indicesData);
             },
@@ -137,14 +190,27 @@ void SetPermutedIndices(
             NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
+
+        auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
+
+        const ui32* histogram = nullptr;
+        auto maybeBinaryIndex = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
+        if (!maybeBinaryIndex) {
+            histogram = GetRemappedCatFeatures(split, objectsDataProvider);
+        }
+
         localExecutor->ExecRange(
             [&] (int blockIdx) {
-                OfflineCtrBlock<ui32, IsTrueOneHotFeature>(
+                OfflineCtrBlock(
                     blockParams,
                     blockIdx,
+                    maybeBinaryIndex,
                     fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
-                    GetRemappedCatFeatures(split, objectsDataProvider),
-                    (ui32)split.BinBorder,
+                    histogram,
+                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
+                        return IsTrueOneHotFeature(bucket, bucketIdx);
+                    },
                     splitWeight,
                     indicesData);
             },
@@ -222,17 +288,44 @@ static void BuildIndicesForDataset(
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, (int)sampleCount);
     blockParams.SetBlockSize(blockSize);
 
+    // precalc to avoid recalculation in each block
+    TStackVec<const ui8*> splitFloatHistograms;
+    splitFloatHistograms.yresize(tree.GetDepth());
+
+    TStackVec<const ui32*> splitRemappedCatHistograms;
+    splitRemappedCatHistograms.yresize(tree.GetDepth());
+
+    for (auto splitIdx : xrange(tree.GetDepth())) {
+        const auto& split = tree.Splits[splitIdx];
+        if (split.Type == ESplitType::FloatFeature) {
+            if (!objectsDataProvider.IsFeaturePackedBinary(TFloatFeatureIdx((ui32)split.FeatureIdx))) {
+                splitFloatHistograms[splitIdx] = GetFloatHistogram(split, objectsDataProvider);
+            }
+        } else if (split.Type == ESplitType::OneHotFeature) {
+            if (!objectsDataProvider.IsFeaturePackedBinary(TCatFeatureIdx((ui32)split.FeatureIdx))) {
+                splitRemappedCatHistograms[splitIdx] = GetRemappedCatFeatures(split, objectsDataProvider);
+            }
+        }
+    }
+
+
     auto updateLearnIndex = [&](int blockIdx) {
         for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
             const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
-                OfflineCtrBlock<ui8, IsTrueHistogram>(
+                auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
+
+                OfflineCtrBlock(
                     blockParams,
                     blockIdx,
+                    objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
                     permutation,
-                    GetFloatHistogram(split, objectsDataProvider),
-                    GetFeatureSplitIdx(split),
+                    splitFloatHistograms[splitIdx],
+                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    [splitIdx = GetFeatureSplitIdx(split)] (ui8 bucket) {
+                        return IsTrueHistogram(bucket, splitIdx);
+                    },
                     splitWeight,
                     indices);
             } else if (split.Type == ESplitType::OnlineCtr) {
@@ -245,12 +338,19 @@ static void BuildIndicesForDataset(
                 )(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-                OfflineCtrBlock<ui32, IsTrueOneHotFeature>(
+
+                auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
+
+                OfflineCtrBlock(
                     blockParams,
                     blockIdx,
+                    objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                     permutation,
-                    GetRemappedCatFeatures(split, objectsDataProvider),
-                    (ui32)split.BinBorder,
+                    splitRemappedCatHistograms[splitIdx],
+                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
+                        return IsTrueOneHotFeature(bucket, bucketIdx);
+                    },
                     splitWeight,
                     indices);
             }

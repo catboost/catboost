@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===--------------- support/xlocale/__posix_l_fallback.h -----------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 // These are reimplementations of some extended locale functions ( *_l ) that
@@ -133,28 +132,28 @@ inline _LIBCPP_INLINE_VISIBILITY wint_t towlower_l(wint_t c, locale_t) {
 }
 
 inline _LIBCPP_INLINE_VISIBILITY int strcoll_l(const char *s1, const char *s2,
-                                           locale_t) {
+                                               locale_t) {
   return ::strcoll(s1, s2);
 }
 
 inline _LIBCPP_INLINE_VISIBILITY size_t strxfrm_l(char *dest, const char *src,
-                                              size_t n, locale_t) {
+                                                  size_t n, locale_t) {
   return ::strxfrm(dest, src, n);
 }
 
 inline _LIBCPP_INLINE_VISIBILITY size_t strftime_l(char *s, size_t max,
-                                               const char *format,
-                                               const struct tm *tm, locale_t) {
+                                                   const char *format,
+                                                   const struct tm *tm, locale_t) {
   return ::strftime(s, max, format, tm);
 }
 
 inline _LIBCPP_INLINE_VISIBILITY int wcscoll_l(const wchar_t *ws1,
-                                           const wchar_t *ws2, locale_t) {
+                                               const wchar_t *ws2, locale_t) {
   return ::wcscoll(ws1, ws2);
 }
 
 inline _LIBCPP_INLINE_VISIBILITY size_t wcsxfrm_l(wchar_t *dest, const wchar_t *src,
-                                              size_t n, locale_t) {
+                                                  size_t n, locale_t) {
   return ::wcsxfrm(dest, src, n);
 }
 

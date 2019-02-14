@@ -343,13 +343,21 @@ void ComputeOnlineCTRs(const TTrainingForCPUDataProviders& data,
     TVector<ui64>& hashArr = tlsHashArr.Get();
     if (proj.IsSingleCatFeature()) {
         // Shortcut for simple ctrs
+
+        auto catFeatureIdx = TCatFeatureIdx((ui32)proj.CatFeatures[0]);
+
         Clear(&hashArr, totalSampleCount);
         TArrayRef<ui64> hashArrView = hashArr;
         if (learnSampleCount > 0) {
-            SubsetWithAlternativeIndexing(
-                data.Learn->ObjectsData->GetCatFeature((ui32)proj.CatFeatures[0]),
-                &fold.LearnPermutationFeaturesSubset
-            ).ForEach(
+            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+                data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                fold.LearnPermutationFeaturesSubset,
+                /*processBinaryInPacks*/ false,
+                /*isBinaryFeatureEquals1*/ false, // unused
+                TArrayRef<TBinaryFeaturesPack>(), // unused
+                TArrayRef<TBinaryFeaturesPack>(), // unused
+                [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
+                [&](ui32 packIdx) { return data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
                 [hashArrView] (ui32 i, ui32 featureValue) {
                     hashArrView[i] = (ui64)featureValue + 1;
                 }
@@ -357,12 +365,20 @@ void ComputeOnlineCTRs(const TTrainingForCPUDataProviders& data,
         }
         for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < data.Test.size(); ++testIdx) {
             const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
-            (*data.Test[testIdx]->ObjectsData->GetCatFeature((ui32)proj.CatFeatures[0]))->GetArrayData()
-                .ForEach(
-                    [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
-                        hashArrView[docOffset + i] = (ui64)featureValue + 1;
-                    }
-                );
+
+            ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+                data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                /*processBinaryInPacks*/ false,
+                /*isBinaryFeatureEquals1*/ false, // unused
+                TArrayRef<TBinaryFeaturesPack>(), // unused
+                TArrayRef<TBinaryFeaturesPack>(), // unused
+                [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
+                [&](ui32 packIdx) { return data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
+                    hashArrView[docOffset + i] = (ui64)featureValue + 1;
+                }
+            );
 
             docOffset += testSampleCount;
         }
@@ -376,6 +392,7 @@ void ComputeOnlineCTRs(const TTrainingForCPUDataProviders& data,
             *data.Learn->ObjectsData,
             fold.LearnPermutationFeaturesSubset,
             nullptr,
+            /*processBinaryFeaturesInPacks*/ true,
             hashArr.begin(),
             hashArr.begin() + learnSampleCount);
         for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < data.Test.size(); ++testIdx) {
@@ -385,6 +402,7 @@ void ComputeOnlineCTRs(const TTrainingForCPUDataProviders& data,
                 *data.Test[testIdx]->ObjectsData,
                 data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
                 nullptr,
+                /*processBinaryFeaturesInPacks*/ true,
                 hashArr.begin() + docOffset,
                 hashArr.begin() + docOffset + testSampleCount);
             docOffset += testSampleCount;
@@ -573,6 +591,7 @@ static void CalcFinalCtrs(
         *datasetDataForFinalCtrs.Data.Learn->ObjectsData,
         learnFeaturesSubsetIndexing,
         &perfectHashedToHashedCatValuesMap,
+        /*processBinaryFeaturesInPacks*/ false,
         hashArr.begin(),
         hashArr.begin() + learnSampleCount
     );
@@ -585,6 +604,7 @@ static void CalcFinalCtrs(
                 *testDataPtr->ObjectsData,
                 testDataPtr->ObjectsData->GetFeaturesArraySubsetIndexing(),
                 &perfectHashedToHashedCatValuesMap,
+                /*processBinaryFeaturesInPacks*/ false,
                 testHashBegin,
                 testHashEnd);
             testHashBegin = testHashEnd;

@@ -11,6 +11,8 @@
 #include "neh.h"
 #include "rpc.h"
 
+#include <atomic>
+
 //common primitives for http/http2
 
 namespace NNeh {
@@ -19,6 +21,7 @@ namespace NNeh {
         using IRequest::SendReply;
         virtual void SendReply(TData& data, const TString& headers, int httpCode = 200) = 0;
         virtual const THttpHeaders& Headers() const = 0;
+        virtual TStringBuf Method() const = 0;
         virtual TStringBuf Body() const = 0;
         virtual TStringBuf Cgi() const = 0;
     };
@@ -27,21 +30,43 @@ namespace NNeh {
         struct TFdLimits {
         public:
             TFdLimits()
-                : Soft(10000)
-                , Hard(15000)
+                : Soft_(10000)
+                , Hard_(15000)
             {
             }
 
+            TFdLimits(const TFdLimits& other)  {
+                Soft_.store(other.Soft(), std::memory_order_release);
+                Hard_.store(other.Hard(), std::memory_order_release);
+            }
+
             inline size_t Delta() const noexcept {
-                return ExceedLimit(Hard, Soft);
+                return ExceedLimit(Hard_.load(std::memory_order_acquire), Soft_.load(std::memory_order_acquire));
             }
 
             inline static size_t ExceedLimit(size_t val, size_t limit) noexcept {
                 return val > limit ? val - limit : 0;
             }
 
-            volatile size_t Soft;
-            volatile size_t Hard;
+            void SetSoft(size_t value) noexcept {
+                Soft_.store(value, std::memory_order_release);
+            }
+
+            void SetHard(size_t value) noexcept {
+                Hard_.store(value, std::memory_order_release);
+            }
+
+            size_t Soft() const noexcept {
+                return Soft_.load(std::memory_order_acquire);
+            }
+
+            size_t Hard() const noexcept {
+                return Hard_.load(std::memory_order_acquire);
+            }
+
+        private:
+            std::atomic<size_t> Soft_;
+            std::atomic<size_t> Hard_;
         };
 
         template <class T>

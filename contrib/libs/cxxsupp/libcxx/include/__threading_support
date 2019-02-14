@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===----------------------------------------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -72,7 +71,7 @@ typedef pthread_t __libcpp_thread_id;
 
 typedef pthread_t __libcpp_thread_t;
 
-// Thrad Local Storage
+// Thread Local Storage
 typedef pthread_key_t __libcpp_tls_key;
 
 #define _LIBCPP_TLS_DESTRUCTOR_CC

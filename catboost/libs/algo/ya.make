@@ -54,6 +54,7 @@ PEERDIR(
     library/binsaver
     library/containers/2d_array
     library/containers/dense_hash
+    library/containers/stack_vector
     library/digest/crc32c
     library/digest/md5
     library/dot_product

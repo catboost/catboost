@@ -1,8 +1,6 @@
 #include "ci_string.h"
 #include "wide.h"
 
-#ifndef DONT_USE_CODEPAGE
-
 int TCiString::compare(const TCiString& s1, const TCiString& s2, const CodePage& cp) {
     return cp.stricmp(s1.Data_, s2.Data_);
 }
@@ -30,8 +28,6 @@ bool TCiString::is_suffix(const TFixedString& what, const TFixedString& of, cons
     size_t slen = of.Length;
     return (len <= slen) && (0 == cp.strnicmp(what.Start, of.Start + slen - len, len));
 }
-
-#endif
 
 size_t TCiString::hashVal(const char* s, size_t len, const CodePage& cp) {
     size_t h = len;

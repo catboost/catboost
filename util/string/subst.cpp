@@ -45,7 +45,7 @@ static bool IsIntersect(const T& a, const U& b) noexcept {
  **/
 template <class TStringType, typename TStringViewType = TStringBufImpl<typename TStringType::value_type>>
 static inline size_t SubstGlobalImpl(TStringType& s, const TStringViewType from, const TStringViewType to, size_t fromPos = 0) {
-    if (!from) {
+    if (from.empty()) {
         return 0;
     }
 
@@ -174,7 +174,10 @@ size_t SubstGlobal(TUtf32String& text, const TUtf32StringBuf what, const TUtf32S
 }
 
 size_t SubstGlobal(std::u16string& text, const TWtringBuf what, const TWtringBuf with, size_t from) {
-    return SubstGlobalImpl(text, {(const char16_t*)what.data(), what.size()}, {(const char16_t*)with.data(), with.size()}, from);
+    return SubstGlobalImpl(text,
+        std::u16string_view(reinterpret_cast<const char16_t*>(what.data()), what.size()),
+        std::u16string_view(reinterpret_cast<const char16_t*>(with.data()), with.size()),
+        from);
 }
 
 size_t SubstGlobal(TString& text, char what, char with, size_t from) {

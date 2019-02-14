@@ -315,6 +315,33 @@ def colorize(out):
     return '\n'.join(colorize_line(l) for l in out.split('\n'))
 
 
+def trim_path(path, winepath):
+    p = run_subprocess([winepath, '-s', path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    short_bld_root, stderr = p.communicate()
+    short_bld_root = short_bld_root.rstrip().split('\n')[-1]
+    return short_bld_root
+
+
+def downsize_path(path, short_names):
+    flag = ''
+    if path.startswith('/Fo'):
+        flag = '/Fo'
+        path = path[3:]
+
+    if len(path) > 250:
+        for full_name, short_name in short_names.items():
+            if path.startswith(full_name):
+                path = path.replace(full_name, short_name)
+
+    return flag + path
+
+
+def make_full_path_arg(arg, bld_root, short_root):
+    if arg[0] != '/' and len(os.path.join(bld_root, arg)) > 250:
+        return os.path.join(short_root, arg)
+    return arg
+
+
 def run_main():
     topdirs = ['/%s/' % d for d in os.listdir('/')]
 
@@ -342,6 +369,8 @@ def run_main():
     parser.add_argument('-v', action='store', dest='version', default='120')
     parser.add_argument('-I', action='append', dest='incl_paths')
     parser.add_argument('mode', action='store')
+    parser.add_argument('arcadia_root', action='store')
+    parser.add_argument('arcadia_build_root', action='store')
     parser.add_argument('binary', action='store')
     parser.add_argument('free_args', nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -352,6 +381,8 @@ def run_main():
     version = args.version
     incl_paths = args.incl_paths
     free_args = args.free_args
+    arc_root = args.arcadia_root
+    bld_root = args.arcadia_build_root
 
     wine_dir = os.path.dirname(os.path.dirname(wine))
     bin_dir = os.path.dirname(binary)
@@ -374,7 +405,15 @@ def run_main():
     env['LIBPATH'] = fix_path(tc_dir + '/VC/lib/amd64')
     env['LIB'] = fix_path(tc_dir + '/VC/lib/amd64')
     env['LD_LIBRARY_PATH'] = ':'.join(wine_dir + d for d in ['/lib', '/lib64', '/lib64/wine'])
-    cmd = [binary] + [fix_path(x) for x in free_args]
+
+    short_names = {}
+    winepath = os.path.join(os.path.dirname(wine), 'winepath')
+    short_names[arc_root] = trim_path(arc_root, winepath)
+    short_names[bld_root] = trim_path(bld_root, winepath)
+
+    process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+
+    cmd = [binary] + [fix_path(process_link(downsize_path(x, short_names))) for x in free_args]
 
     for x in ('/NOLOGO', '/nologo', '/FD'):
         try:

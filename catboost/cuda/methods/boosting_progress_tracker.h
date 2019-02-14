@@ -26,6 +26,7 @@ namespace NCatboostCuda {
     public:
         TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                  const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
+                                 bool forceCalcEvalMetricOnEveryIteration,
                                  bool hasTest,
                                  bool testHasTarget,
                                  ui32 cpuApproxDim,
@@ -133,6 +134,7 @@ namespace NCatboostCuda {
         TVector<bool> IsSkipOnTrainFlags;
         TVector<bool> IsSkipOnTestFlags;
         TVector<TVector<double>> BestTestCursor;
+        bool CalcEvalMetricOnEveryIteration;
 
         size_t Iteration = 0;
         TInstant LastSnapshotTime = Now();

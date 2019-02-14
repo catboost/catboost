@@ -17,7 +17,8 @@ from catboost_pytest_lib import (
     apply_catboost,
     permute_dataset_columns,
     generate_random_labeled_set,
-    execute_catboost_fit
+    execute_catboost_fit,
+    format_crossvalidation
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -1455,7 +1456,7 @@ def test_cv(is_inverted, boosting_type):
         '-w', '0.03',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/10',
+        '--cv', format_crossvalidation(is_inverted, 2, 10),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1479,7 +1480,7 @@ def test_cv_for_query(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/7',
+        '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1504,7 +1505,7 @@ def test_cv_for_pairs(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/7',
+        '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
@@ -1528,11 +1529,14 @@ def test_multiple_cv_spec(bad_cv_params):
         '--eval-file', output_eval_path,
     )
     if bad_cv_params == 'XX':
-        cmd += ('-X', '2/10', '-X', '4/7')
+        cmd += ('--cv', format_crossvalidation(is_inverted=False, n=2, k=10),
+                '--cv', format_crossvalidation(is_inverted=False, n=4, k=7))
     elif bad_cv_params == 'XY':
-        cmd += ('-X', '2/10', '-Y', '4/7')
+        cmd += ('--cv', format_crossvalidation(is_inverted=False, n=2, k=10),
+                '--cv', format_crossvalidation(is_inverted=True, n=4, k=7))
     elif bad_cv_params == 'YY':
-        cmd += ('-Y', '2/10', '-Y', '4/7')
+        cmd += ('--cv', format_crossvalidation(is_inverted=True, n=2, k=10),
+                '--cv', format_crossvalidation(is_inverted=True, n=4, k=7))
     else:
         raise Exception('bad bad_cv_params value:' + bad_cv_params)
 
@@ -1555,7 +1559,8 @@ def test_bad_fold_cv_spec(is_inverted, error_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), {'0folds': '0/0', 'fold_idx_overflow': '3/2'}[error_type],
+        ('--cv:Inverted' if is_inverted else '--cv:Classical'),
+        {'0folds': '0/0', 'fold_idx_overflow': '3/2'}[error_type],
         '--eval-file', output_eval_path,
     )
 
@@ -1834,7 +1839,7 @@ def test_fstr(fstr_type, boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_fstr_groupwise(boosting_type):
+def test_loss_change_fstr(boosting_type):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
     train_fstr_path = yatest.common.test_output_path('t_fstr.tsv')
@@ -1844,7 +1849,7 @@ def test_fstr_groupwise(boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'PairLogit',
-        '-f', data_file('querywise', 'train'),
+        '--learn-set', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--boosting-type', boosting_type,
@@ -1854,7 +1859,7 @@ def test_fstr_groupwise(boosting_type):
         '--one-hot-max-size', '10',
         '--fstr-file', train_fstr_path,
         '--fstr-type', 'LossFunctionChange',
-        '-m', model_path
+        '--model-file', model_path
 
     )
     yatest.common.execute(cmd)
@@ -1864,13 +1869,68 @@ def test_fstr_groupwise(boosting_type):
         'fstr',
         '--input-path', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
-        '-m', model_path,
-        '-o', output_fstr_path,
+        '--input-pairs', data_file('querywise', 'train.pairs'),
+        '--model-file', model_path,
+        '--output-path', output_fstr_path,
         '--fstr-type', 'LossFunctionChange',
     )
     yatest.common.execute(fstr_cmd)
 
-    return [local_canonical_file(train_fstr_path), local_canonical_file(output_fstr_path)]
+    fit_otuput = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
+    fstr_output = np.loadtxt(output_fstr_path, dtype='float', delimiter='\t')
+    assert(np.allclose(fit_otuput, fstr_output, rtol=1e-6))
+
+    return [local_canonical_file(output_fstr_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_loss_change_fstr_without_pairs(boosting_type):
+    model_path = yatest.common.test_output_path('model.bin')
+    output_fstr_path = yatest.common.test_output_path('fstr.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'PairLogit',
+        '--learn-set', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '--learning-rate', '0.03',
+        '-T', '4',
+        '--one-hot-max-size', '10',
+        '--model-file', model_path
+
+    )
+    yatest.common.execute(cmd)
+
+    fstr_cmd = (
+        CATBOOST_PATH,
+        'fstr',
+        '--input-path', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--model-file', model_path,
+        '--output-path', output_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    yatest.common.execute(fstr_cmd)
+
+    try:
+        fstr_cmd = (
+            CATBOOST_PATH,
+            'fstr',
+            '--input-path', data_file('querywise', 'train'),
+            '--column-description', data_file('querywise', 'train.cd.no_target'),
+            '--model-file', model_path,
+            '--fstr-type', 'LossFunctionChange',
+        )
+        yatest.common.execute(fstr_cmd)
+    except:
+        return [local_canonical_file(output_fstr_path)]
+
+    assert False
 
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
@@ -3113,7 +3173,12 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit, d
     return [local_canonical_file(output_eval_path)]
 
 
-def test_apply_with_permuted_columns():
+@pytest.mark.parametrize(
+    'ignored_features',
+    [True, False],
+    ids=['ignored_features=True', 'ignored_features=False']
+)
+def test_apply_with_permuted_columns(ignored_features):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -3131,6 +3196,9 @@ def test_apply_with_permuted_columns():
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
+    if ignored_features:
+        cmd += ('--ignore-features', '0:2:5')
+
     yatest.common.execute(cmd)
 
     permuted_test_path, permuted_cd_path = permute_dataset_columns(
@@ -5948,7 +6016,7 @@ def test_gradient_walker():
         '-T', '4',
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
-        '--leaf-estimation-backtracking', 'AnyImprovment',
+        '--leaf-estimation-backtracking', 'AnyImprovement',
     )
     yatest.common.execute(cmd)
 
@@ -6005,3 +6073,47 @@ def test_train_on_quantized_pool_with_large_grid():
         '-i', '10')
 
     yatest.common.execute(cmd)
+
+
+def test_write_predictions_to_streams():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    calc_output_eval_path_redirected = yatest.common.test_output_path('calc_test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--eval-file', output_eval_path,
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-m', output_model_path
+    )
+    yatest.common.execute(cmd)
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', 'stream://stdout',
+    )
+    with open(calc_output_eval_path_redirected, 'w') as catboost_stdout:
+        yatest.common.execute(calc_cmd, stdout=catboost_stdout)
+
+    assert compare_evals(output_eval_path, calc_output_eval_path_redirected)
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', 'stream://stderr'
+    )
+    with open(calc_output_eval_path_redirected, 'w') as catboost_stderr:
+        yatest.common.execute(calc_cmd, stderr=catboost_stderr)
+
+    assert compare_evals(output_eval_path, calc_output_eval_path_redirected)

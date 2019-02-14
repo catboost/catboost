@@ -194,7 +194,6 @@ namespace NCB {
                 return Equal<ui32>(*rhs.ExtractValues(&localExecutor), lhs);
             }
         );
-
         UNIT_ASSERT_EQUAL(
             *objectsData.GetQuantizedFeaturesInfo(),
             *expectedData.Objects.QuantizedFeaturesInfo
@@ -215,11 +214,39 @@ namespace NCB {
 
         const auto& featuresLayout = *objectsData.GetFeaturesLayout();
 
+        for (auto floatFeatureIdx : xrange(featuresLayout.GetFloatFeatureCount())) {
+            auto expectedMaybeBinaryIndex
+                = expectedData.Objects.PackedBinaryFeaturesData
+                    .FloatFeatureToPackedBinaryIndex[floatFeatureIdx];
+
+            UNIT_ASSERT_EQUAL(
+                objectsData.GetFloatFeatureToPackedBinaryIndex(TFloatFeatureIdx(floatFeatureIdx)),
+                expectedMaybeBinaryIndex
+            );
+            UNIT_ASSERT_VALUES_EQUAL(
+                objectsData.IsFeaturePackedBinary(TFloatFeatureIdx(floatFeatureIdx)),
+                expectedMaybeBinaryIndex.Defined()
+            );
+        }
+
         const ui32 catFeatureCount = featuresLayout.GetFeatureCount(EFeatureType::Categorical);
 
         UNIT_ASSERT(!catFeatureCount || expectedData.Objects.CatFeatureUniqueValuesCounts);
 
         for (auto catFeatureIdx : xrange(catFeatureCount)) {
+            auto expectedMaybeBinaryIndex
+                = expectedData.Objects.PackedBinaryFeaturesData
+                    .CatFeatureToPackedBinaryIndex[catFeatureIdx];
+
+            UNIT_ASSERT_EQUAL(
+                objectsData.GetCatFeatureToPackedBinaryIndex(TCatFeatureIdx(catFeatureIdx)),
+                expectedMaybeBinaryIndex
+            );
+            UNIT_ASSERT_VALUES_EQUAL(
+                objectsData.IsFeaturePackedBinary(TCatFeatureIdx(catFeatureIdx)),
+                expectedMaybeBinaryIndex.Defined()
+            );
+
             if (!featuresLayout.GetInternalFeatureMetaInfo(
                     catFeatureIdx,
                     EFeatureType::Categorical
@@ -233,6 +260,35 @@ namespace NCB {
                 (*expectedData.Objects.CatFeatureUniqueValuesCounts)[catFeatureIdx]
             );
         }
+
+        UNIT_ASSERT_EQUAL(
+            objectsData.GetPackedBinaryFeaturesSize(),
+            expectedData.Objects.PackedBinaryFeaturesData.PackedBinaryToSrcIndex.size()
+        );
+
+        for (auto packedBinaryFeatureLinearIdx : xrange(objectsData.GetPackedBinaryFeaturesSize())) {
+            UNIT_ASSERT_EQUAL(
+                objectsData.GetPackedBinaryFeatureSrcIndex(
+                    TPackedBinaryIndex::FromLinearIdx(packedBinaryFeatureLinearIdx)),
+                expectedData.Objects.PackedBinaryFeaturesData
+                    .PackedBinaryToSrcIndex[packedBinaryFeatureLinearIdx]
+            );
+        }
+
+        UNIT_ASSERT_EQUAL(
+            objectsData.GetBinaryFeaturesPacksSize(),
+            expectedData.Objects.PackedBinaryFeaturesData.SrcData.size()
+        );
+
+        for (auto packIdx : xrange(objectsData.GetBinaryFeaturesPacksSize())) {
+            UNIT_ASSERT(
+                Equal(
+                    *expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx],
+                    objectsData.GetBinaryFeaturesPack(packIdx)
+                )
+            );
+        }
+
     }
 
     void CompareTargetData(

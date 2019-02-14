@@ -1526,7 +1526,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Default value: -1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
-catboost.get_feature_importance <- function(model, pool = NULL, type = 'PredictionValuesChange', thread_count = -1, fstr_type = None) {
+catboost.get_feature_importance <- function(model, pool = NULL, type = 'PredictionValuesChange', thread_count = -1, fstr_type = NULL) {
     if (fstr_type != '')
         type = fstr_type
         warning("fstr_type option is deprecated, use type instead")

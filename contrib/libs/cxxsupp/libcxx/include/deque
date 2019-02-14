@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===---------------------------- deque -----------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -150,6 +149,11 @@ template <class T, class Allocator>
     void swap(deque<T,Allocator>& x, deque<T,Allocator>& y)
          noexcept(noexcept(x.swap(y)));
 
+template <class T, class Allocator, class U>
+    void erase(deque<T, Allocator>& c, const U& value);       // C++20
+template <class T, class Allocator, class Predicate>
+    void erase_if(deque<T, Allocator>& c, Predicate pred);    // C++20
+
 }  // std
 
 */
@@ -161,6 +165,7 @@ template <class T, class Allocator>
 #include <iterator>
 #include <algorithm>
 #include <stdexcept>
+#include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -169,10 +174,6 @@ template <class T, class Allocator>
 _LIBCPP_PUSH_MACROS
 #include <__undef_macros>
 
-
-#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
-#endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -1351,8 +1352,13 @@ public:
     void push_front(const value_type& __v);
     void push_back(const value_type& __v);
 #ifndef _LIBCPP_CXX03_LANG
+#if _LIBCPP_STD_VER > 14
     template <class... _Args> reference emplace_front(_Args&&... __args);
     template <class... _Args> reference emplace_back (_Args&&... __args);
+#else
+    template <class... _Args> void      emplace_front(_Args&&... __args);
+    template <class... _Args> void      emplace_back (_Args&&... __args);
+#endif
     template <class... _Args> iterator emplace(const_iterator __p, _Args&&... __args);
 
     void push_front(value_type&& __v);
@@ -1854,7 +1860,11 @@ deque<_Tp, _Allocator>::push_back(value_type&& __v)
 
 template <class _Tp, class _Allocator>
 template <class... _Args>
+#if _LIBCPP_STD_VER > 14
 typename deque<_Tp, _Allocator>::reference
+#else
+void
+#endif
 deque<_Tp, _Allocator>::emplace_back(_Args&&... __args)
 {
     allocator_type& __a = __base::__alloc();
@@ -1864,7 +1874,9 @@ deque<_Tp, _Allocator>::emplace_back(_Args&&... __args)
     __alloc_traits::construct(__a, _VSTD::addressof(*__base::end()),
                               _VSTD::forward<_Args>(__args)...);
     ++__base::size();
+#if _LIBCPP_STD_VER > 14
     return *--__base::end();
+#endif
 }
 
 template <class _Tp, class _Allocator>
@@ -1883,7 +1895,11 @@ deque<_Tp, _Allocator>::push_front(value_type&& __v)
 
 template <class _Tp, class _Allocator>
 template <class... _Args>
+#if _LIBCPP_STD_VER > 14
 typename deque<_Tp, _Allocator>::reference
+#else
+void
+#endif
 deque<_Tp, _Allocator>::emplace_front(_Args&&... __args)
 {
     allocator_type& __a = __base::__alloc();
@@ -1893,7 +1909,9 @@ deque<_Tp, _Allocator>::emplace_front(_Args&&... __args)
     __alloc_traits::construct(__a, _VSTD::addressof(*--__base::begin()), _VSTD::forward<_Args>(__args)...);
     --__base::__start_;
     ++__base::size();
+#if _LIBCPP_STD_VER > 14
     return *__base::begin();
+#endif
 }
 
 template <class _Tp, class _Allocator>
@@ -2592,6 +2610,7 @@ template <class _Tp, class _Allocator>
 void
 deque<_Tp, _Allocator>::pop_back()
 {
+    _LIBCPP_ASSERT(!empty(), "deque::pop_back called for empty deque");
     allocator_type& __a = __base::__alloc();
     size_type __p = __base::size() + __base::__start_ - 1;
     __alloc_traits::destroy(__a, __to_raw_pointer(*(__base::__map_.begin() +
@@ -2914,6 +2933,19 @@ swap(deque<_Tp, _Allocator>& __x, deque<_Tp, _Allocator>& __y)
 {
     __x.swap(__y);
 }
+
+#if _LIBCPP_STD_VER > 17
+template <class _Tp, class _Allocator, class _Up>
+inline _LIBCPP_INLINE_VISIBILITY
+void erase(deque<_Tp, _Allocator>& __c, const _Up& __v)
+{ __c.erase(_VSTD::remove(__c.begin(), __c.end(), __v), __c.end()); }
+
+template <class _Tp, class _Allocator, class _Predicate>
+inline _LIBCPP_INLINE_VISIBILITY
+void erase_if(deque<_Tp, _Allocator>& __c, _Predicate __pred)
+{ __c.erase(_VSTD::remove_if(__c.begin(), __c.end(), __pred), __c.end()); }
+#endif
+
 
 _LIBCPP_END_NAMESPACE_STD
 

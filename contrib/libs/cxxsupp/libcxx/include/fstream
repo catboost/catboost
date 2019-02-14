@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===------------------------- fstream ------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -264,25 +263,25 @@ public:
     virtual void imbue(const locale& __loc);
 
 private:
-    char*       __extbuf_;
-    const char* __extbufnext_;
-    const char* __extbufend_;
-    char __extbuf_min_[8];
-    size_t __ebs_;
-    char_type* __intbuf_;
-    size_t __ibs_;
-    FILE* __file_;
-    const codecvt<char_type, char, state_type>* __cv_;
-    state_type __st_;
-    state_type __st_last_;
-    ios_base::openmode __om_;
-    ios_base::openmode __cm_;
-    bool __owns_eb_;
-    bool __owns_ib_;
-    bool __always_noconv_;
+  char* __extbuf_;
+  const char* __extbufnext_;
+  const char* __extbufend_;
+  char __extbuf_min_[8];
+  size_t __ebs_;
+  char_type* __intbuf_;
+  size_t __ibs_;
+  FILE* __file_;
+  const codecvt<char_type, char, state_type>* __cv_;
+  state_type __st_;
+  state_type __st_last_;
+  ios_base::openmode __om_;
+  ios_base::openmode __cm_;
+  bool __owns_eb_;
+  bool __owns_ib_;
+  bool __always_noconv_;
 
-    bool __read_mode();
-    void __write_mode();
+  bool __read_mode();
+  void __write_mode();
 };
 
 template <class _CharT, class _Traits>
@@ -702,6 +701,7 @@ basic_filebuf<_CharT, _Traits>::close()
             __file_ = 0;
         else
             __rt = 0;
+        setbuf(0, 0);
     }
     return __rt;
 }
@@ -757,7 +757,7 @@ basic_filebuf<_CharT, _Traits>::underflow()
                                        this->eback() + __ibs_, __inext);
                 if (__r == codecvt_base::noconv)
                 {
-                    this->setg((char_type*)__extbuf_, (char_type*)__extbuf_,
+                    this->setg((char_type*)__extbuf_, (char_type*)__extbuf_, 
                                           (char_type*)const_cast<char *>(__extbufend_));
                     __c = traits_type::to_int_type(*this->gptr());
                 }
