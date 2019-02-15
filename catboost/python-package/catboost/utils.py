@@ -74,8 +74,8 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=
     approx : list or numpy.arrays or pandas.DataFrame or pandas.Series
         Object approxes.
 
-    metrics : list of strings
-        List of eval metrics.
+    metric : string
+        Metric name.
 
     weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
         Object weights.
