@@ -85,6 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\features_layout_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\load_data_from_dsv_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\meta_info_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\model_dataset_compatibility_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_grouping_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\order_ut.cpp"/>
