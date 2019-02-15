@@ -795,10 +795,6 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         TExitStatus status = 0;
 
         while (true) {
-            bool haveIn = false;
-            bool haveOut = false;
-            bool haveErr = false;
-
             {
                 with_lock (pi->Parent->TerminateMutex) {
                     if (TerminateIsRequired(pi)) {
@@ -819,6 +815,10 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
             }
 /// @todo factor out (poll + wfmo)
 #if defined(_unix_)
+            bool haveIn = false;
+            bool haveOut = false;
+            bool haveErr = false;
+
             if (!input && pi->InputFd.IsOpen()) {
                 DBG(Cerr << "closing input stream..." << Endl);
                 pi->InputFd.Close();
