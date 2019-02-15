@@ -1,4 +1,5 @@
 #include "apply.h"
+#include "index_calcer.h"
 #include "features_data_helpers.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
@@ -17,27 +18,131 @@
 using namespace NCB;
 using NPar::TLocalExecutor;
 
+TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int begin, int end) {
+    const int threadCount = executorThreadCount + 1; // one for current thread
+    const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
+    const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
-template <class TGetFeatureDataBeginPtr>
-static inline TVector<TConstArrayRef<float>> GetRepackedFeatures(
-    int blockFirstIdx,
-    int blockLastIdx,
-    size_t flatFeatureVectorExpectedSize,
+    TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    blockParams.SetBlockCount(effectiveBlockCount);
+    return blockParams;
+};
+
+static void ApplyOnRawFeatures(
+    const TFullModel& model,
+    const TRawObjectsDataProvider* rawObjectsData,
+    int begin,
+    int end,
     const THashMap<ui32, ui32>& columnReorderMap,
-    const TGetFeatureDataBeginPtr& getFeatureDataBeginPtr)
+    const TLocalExecutor::TExecRangeParams& blockParams,
+    TVector<double>* approxesFlat,
+    TLocalExecutor* executor)
 {
-    TVector<TConstArrayRef<float>> repackedFeatures(flatFeatureVectorExpectedSize);
-    const int blockSize = blockLastIdx - blockFirstIdx;
-    if (columnReorderMap.empty()) {
-        for (size_t i = 0; i < flatFeatureVectorExpectedSize; ++i) {
-            repackedFeatures[i] = MakeArrayRef(getFeatureDataBeginPtr(i) + blockFirstIdx, blockSize);
-        }
+    const int approxesDimension = model.ObliviousTrees.ApproxDimension;
+    int consecutiveSubsetBegin = GetConsecutiveSubsetBegin(*rawObjectsData);
+
+    const auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx, TVector<TMaybe<TPackedBinaryIndex>>*) -> const float* {
+        return GetRawFeatureDataBeginPtr(
+            *rawObjectsData,
+            consecutiveSubsetBegin,
+            flatFeatureIdx);
+    };
+    const auto applyOnBlock = [&](int blockId) {
+        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+        const int blockSize = blockLastIdx - blockFirstIdx;
+
+        TVector<TConstArrayRef<float>> repackedFeatures;
+        GetRepackedFeatures(
+            blockFirstIdx,
+            blockLastIdx,
+            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+            columnReorderMap,
+            getFeatureDataBeginPtr,
+            *rawObjectsData->GetFeaturesLayout(),
+            &repackedFeatures);
+
+        model.CalcFlatTransposed(
+            repackedFeatures,
+            begin,
+            end,
+            MakeArrayRef(
+                approxesFlat->data() + blockFirstIdx * approxesDimension,
+                blockSize * approxesDimension));
+    };
+    if (executor) {
+        executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
     } else {
-        for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
-            repackedFeatures[origIdx] = MakeArrayRef(getFeatureDataBeginPtr(sourceIdx) + blockFirstIdx, blockSize);
-        }
+        applyOnBlock(0);
     }
-    return repackedFeatures;
+}
+
+static void ApplyOnQuantizedFeatures(
+    const TFullModel& model,
+    const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
+    int begin,
+    int end,
+    const THashMap<ui32, ui32>& columnReorderMap,
+    const TLocalExecutor::TExecRangeParams& blockParams,
+    TVector<double>* approxesFlat,
+    TLocalExecutor* executor)
+{
+    const int approxesDimension = model.ObliviousTrees.ApproxDimension;
+    int consecutiveSubsetBegin = GetConsecutiveSubsetBegin(quantizedObjectsData);
+
+    auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
+
+    auto getFeatureDataBeginPtr = [&](ui32 featureIdx, TVector<TMaybe<TPackedBinaryIndex>>* packedIdx) -> const ui8* {
+        (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(TFeatureIdx<EFeatureType::Float>(featureIdx));
+        if (!(*packedIdx)[featureIdx].Defined()) {
+            return GetQuantizedForCpuFloatFeatureDataBeginPtr(
+                quantizedObjectsData,
+                consecutiveSubsetBegin,
+                featureIdx);
+        } else {
+            return (**quantizedObjectsData.GetBinaryFeaturesPack((*packedIdx)[featureIdx]->PackIdx).GetSrc()).Data();
+        }
+    };
+
+    const auto applyOnBlock = [&](int blockId) {
+        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+        const int blockSize = blockLastIdx - blockFirstIdx;
+
+        TVector<TConstArrayRef<ui8>> repackedFeatures;
+        TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
+        GetRepackedFeatures(
+            blockFirstIdx,
+            blockLastIdx,
+            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+            columnReorderMap,
+            getFeatureDataBeginPtr,
+            *quantizedObjectsData.GetFeaturesLayout(),
+            &repackedFeatures,
+            &packedIndexes);
+
+        constexpr bool isQuantized = true;
+        CalcGeneric<isQuantized>(
+            model,
+            [&floatBinsRemap, &repackedFeatures, &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
+                return QuantizedFeaturesFloatAccessor(floatBinsRemap, repackedFeatures, packedIndexes, floatFeature, index);
+            },
+            [](const TCatFeature&, size_t) -> ui32 {
+                Y_ASSERT("Quantized datasets with categorical features are not currently supported");
+                return 0;
+            },
+            repackedFeatures[0].size(),
+            begin,
+            end,
+            MakeArrayRef(
+                approxesFlat->data() + blockFirstIdx * approxesDimension,
+                blockSize * approxesDimension));
+    };
+    if (executor) {
+        executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+    } else {
+        applyOnBlock(0);
+    }
 }
 
 
@@ -49,60 +154,39 @@ TVector<TVector<double>> ApplyModelMulti(
     int end,   /*= 0*/
     TLocalExecutor* executor)
 {
-    const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
-    CB_ENSURE(rawObjectsData, "Not supported for quantized pools");
-
-    end = end == 0 ? model.GetTreeCount() : Min<int>(end, model.GetTreeCount());
-    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
     const int docCount = SafeIntegerCast<int>(objectsData.GetObjectCount());
     const int approxesDimension = model.ObliviousTrees.ApproxDimension;
-
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
-
-    TVector<double> approxesFlat;
-    approxesFlat.yresize(docCount * approxesDimension);
+    TVector<double> approxesFlat(docCount * approxesDimension);
     if (docCount > 0) {
-        const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(*rawObjectsData);
-        const int threadCount = executorThreadCount + 1; // one for current thread
-        const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
-        const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
+        end = end == 0 ? model.GetTreeCount() : Min<int>(end, model.GetTreeCount());
+        const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+        auto blockParams = GetBlockParams(executorThreadCount, docCount, begin, end);
 
-        TLocalExecutor::TExecRangeParams blockParams(0, docCount);
-        blockParams.SetBlockCount(effectiveBlockCount);
+        THashMap<ui32, ui32> columnReorderMap;
+        CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
 
-        const auto featuresLayout = rawObjectsData->GetFeaturesLayout();
-        const auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx) -> const float* {
-            return GetRawFeatureDataBeginPtr(
-                *rawObjectsData,
-                *featuresLayout,
-                consecutiveSubsetBegin,
-                flatFeatureIdx);
-        };
-        const auto applyOnBlock = [&](int blockId) {
-            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
-            const int blockSize = blockLastIdx - blockFirstIdx;
-
-            TVector<TConstArrayRef<float>> repackedFeatures = GetRepackedFeatures(
-                blockFirstIdx,
-                blockLastIdx,
-                model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-                columnReorderMap,
-                getFeatureDataBeginPtr);
-
-            model.CalcFlatTransposed(
-                repackedFeatures,
+        if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
+            ApplyOnRawFeatures(
+                model,
+                rawObjectsData,
                 begin,
                 end,
-                MakeArrayRef(
-                    approxesFlat.data() + blockFirstIdx * approxesDimension,
-                    blockSize * approxesDimension));
-        };
-        if (executor) {
-            executor->ExecRange(applyOnBlock, 0, blockParams.GetBlockCount(), TLocalExecutor::WAIT_COMPLETE);
+                columnReorderMap,
+                blockParams,
+                &approxesFlat,
+                executor);
+        } else if (const auto *const quantizedObjectsData = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
+            ApplyOnQuantizedFeatures(
+                model,
+                *quantizedObjectsData,
+                begin,
+                end,
+                columnReorderMap,
+                blockParams,
+                &approxesFlat,
+                executor);
         } else {
-            applyOnBlock(0);
+            ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
         }
     }
 
@@ -170,7 +254,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
     TVector<double>* flatApproxBuffer,
     TVector<TVector<double>>* approx)
 {
-    const ui32 docCount = RawObjectsData->GetObjectCount();
+    const ui32 docCount = ObjectsData->GetObjectCount();
     auto approxDimension = SafeIntegerCast<ui32>(Model->ObliviousTrees.ApproxDimension);
     TVector<double>& approxFlat = *flatApproxBuffer;
     approxFlat.resize(static_cast<unsigned long>(docCount * approxDimension)); // TODO(annaveronika): yresize?
@@ -214,47 +298,36 @@ void TModelCalcerOnPool::ApplyModelMulti(
     flatApproxBuffer->clear();
 }
 
-TModelCalcerOnPool::TModelCalcerOnPool(
+void TModelCalcerOnPool::InitForRawFeatures(
     const TFullModel& model,
-    TObjectsDataProviderPtr objectsData,
-    NPar::TLocalExecutor* executor)
-    : Model(&model)
-    , RawObjectsData(dynamic_cast<TRawObjectsDataProvider*>(objectsData.Get()))
-    , Executor(executor)
-    , BlockParams(0, SafeIntegerCast<int>(objectsData->GetObjectCount()))
+    const TRawObjectsDataProvider& rawObjectsData,
+    const THashMap<ui32, ui32>& columnReorderMap,
+    const TLocalExecutor::TExecRangeParams& blockParams,
+    TLocalExecutor* executor)
 {
-    if (BlockParams.FirstId == BlockParams.LastId) {
-        return;
-    }
-    CB_ENSURE(RawObjectsData, "Not supported for quantized pools");
-    THashMap<ui32, ui32> columnReorderMap;
-    CheckModelAndDatasetCompatibility(model, *RawObjectsData, &columnReorderMap);
+    const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
+    const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
 
-    const int threadCount = executor->GetThreadCount() + 1; // one for current thread
-    BlockParams.SetBlockCount(threadCount);
-    ThreadCalcers.resize(BlockParams.GetBlockCount());
-
-    const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(*RawObjectsData);
-    const auto& featuresLayout = *RawObjectsData->GetFeaturesLayout();
-
-    auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx) -> const float* {
+    auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx, TVector<TMaybe<TPackedBinaryIndex>>*) -> const float* {
         return GetRawFeatureDataBeginPtr(
-            *RawObjectsData,
-            featuresLayout,
+            rawObjectsData,
             consecutiveSubsetBegin,
             flatFeatureIdx);
     };
 
     executor->ExecRange([&](int blockId) {
-        const int blockFirstIdx = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
-        const int blockLastIdx = Min(BlockParams.LastId, blockFirstIdx + BlockParams.GetBlockSize());
+        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
 
-        TVector<TConstArrayRef<float>> repackedFeatures = GetRepackedFeatures(
+        TVector<TConstArrayRef<float>> repackedFeatures;
+        GetRepackedFeatures(
             blockFirstIdx,
             blockLastIdx,
-            Model->ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
             columnReorderMap,
-            getFeatureDataBeginPtr);
+            getFeatureDataBeginPtr,
+            featuresLayout,
+            &repackedFeatures);
 
         auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return repackedFeatures[floatFeature.FlatFeatureIndex][index];
@@ -264,6 +337,85 @@ TModelCalcerOnPool::TModelCalcerOnPool(
             return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
         };
         ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
-        ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(*Model, floatAccessor, catAccessor, docCount);
-    }, 0, BlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(model, floatAccessor, catAccessor, docCount);
+    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+void TModelCalcerOnPool::InitForQuantizedFeatures(
+    const TFullModel& model,
+    const TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
+    const THashMap<ui32, ui32>& columnReorderMap,
+    const NPar::TLocalExecutor::TExecRangeParams& blockParams,
+    NPar::TLocalExecutor* executor)
+{
+    const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(quantizedObjectsData);
+    const auto& featuresLayout = *quantizedObjectsData.GetFeaturesLayout();
+
+    executor->ExecRange([&](int blockId) {
+        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+
+        auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
+
+        TVector<TConstArrayRef<ui8>> repackedFeatures;
+        TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
+        GetRepackedFeatures(
+            blockFirstIdx,
+            blockLastIdx,
+            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+            columnReorderMap,
+            [&quantizedObjectsData, &consecutiveSubsetBegin](ui32 featureIdx, TVector<TMaybe<TPackedBinaryIndex>>* packedIdx) -> const ui8* {
+                return  GetFeatureDataBeginPtr(quantizedObjectsData, featureIdx, consecutiveSubsetBegin, packedIdx);
+            },
+            featuresLayout,
+            &repackedFeatures,
+            &packedIndexes);
+
+        ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
+        ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
+            model,
+            [&floatBinsRemap, &repackedFeatures, &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
+                return QuantizedFeaturesFloatAccessor(floatBinsRemap, repackedFeatures, packedIndexes, floatFeature, index);
+            },
+            docCount);
+    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+TModelCalcerOnPool::TModelCalcerOnPool(
+    const TFullModel& model,
+    TObjectsDataProviderPtr objectsData,
+    NPar::TLocalExecutor* executor)
+    : Model(&model)
+    , ObjectsData(objectsData)
+    , Executor(executor)
+    , BlockParams(0, SafeIntegerCast<int>(objectsData->GetObjectCount()))
+{
+    if (BlockParams.FirstId == BlockParams.LastId) {
+        return;
+    }
+    THashMap<ui32, ui32> columnReorderMap;
+    CheckModelAndDatasetCompatibility(model, *ObjectsData, &columnReorderMap);
+    const int threadCount = executor->GetThreadCount() + 1; // one for current thread
+    BlockParams.SetBlockCount(threadCount);
+    ThreadCalcers.resize(BlockParams.GetBlockCount());
+    if (const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(ObjectsData.Get())) {
+        TModelCalcerOnPool::InitForRawFeatures(
+            model,
+            *rawObjectsData,
+            columnReorderMap,
+            BlockParams,
+            executor);
+    } else if (
+        const auto *const quantizedObjectsData =
+            dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(ObjectsData.Get()))
+    {
+        TModelCalcerOnPool::InitForQuantizedFeatures(
+            model,
+            *quantizedObjectsData,
+            columnReorderMap,
+            BlockParams,
+            executor);
+    } else {
+        ythrow TCatBoostException() << "Unsupported objects data - neither raw nor quantized for CPU";
+    }
 }

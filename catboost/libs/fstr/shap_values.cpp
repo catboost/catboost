@@ -468,13 +468,10 @@ static void CalcShapValuesForDocumentBlockMulti(
     NPar::TLocalExecutor* localExecutor,
     TVector<TVector<TVector<double>>>* shapValuesForAllDocuments
 ) {
-    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
-    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
-
     const TObliviousTrees& forest = model.ObliviousTrees;
     const size_t documentCount = end - start;
 
-    TVector<ui8> binarizedFeaturesForBlock = BinarizeFeatures(model, *rawObjectsData, start, end);
+    TVector<ui8> binarizedFeaturesForBlock = GetModelCompatibleQuantizedFeatures(model, objectsData, start, end);
 
     const int flatFeatureCount = objectsData.GetFeaturesLayout()->GetExternalFeatureCount();
 
@@ -631,7 +628,7 @@ void CalcShapValuesInternalForFeature(
     const ui32 documentCount = end - start;
     shapValues->resize(documentCount);
 
-    TVector<ui8> binarizedFeaturesForBlock = BinarizeFeatures(model, *rawObjectsData, start, end);
+    TVector<ui8> binarizedFeaturesForBlock = GetModelCompatibleQuantizedFeatures(model, *rawObjectsData, start, end);
     const ui32 documentBlockSize = CB_THREAD_LIMIT;
     for (ui32 startIdx = 0; startIdx < documentCount; startIdx += documentBlockSize) {
         NPar::TLocalExecutor::TExecRangeParams blockParams(startIdx, startIdx + Min(documentBlockSize, documentCount - startIdx));

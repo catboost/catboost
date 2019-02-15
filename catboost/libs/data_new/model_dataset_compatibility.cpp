@@ -80,12 +80,9 @@ namespace NCB {
         const TObjectsDataProvider& objectsData,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
-        // TODO(akhropov): Quantized datasets support. MLTOOLS-2582.
-        CB_ENSURE(
-            dynamic_cast<const TRawObjectsDataProvider*>(&objectsData),
-            "Non-raw pools are incompatible with models"
-        );
-
+        if (dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
+            CB_ENSURE(model.GetUsedCatFeaturesCount() == 0, "Quantized datasets with categorical features are not currently supported");
+        }
         const auto& datasetFeaturesLayout = *objectsData.GetFeaturesLayout();
 
         const auto datasetCatFeatureInternalIdxToExternalIdx =
@@ -167,4 +164,41 @@ namespace NCB {
         }
     }
 
+    TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(
+        const TFullModel& model,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
+    {
+        TVector<TVector<ui8>> floatBinsRemap(model.ObliviousTrees.FloatFeatures.size());
+        for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
+            if (feature.Borders.empty()) {
+                continue;
+            }
+            CB_ENSURE(
+                quantizedFeaturesInfo.HasBorders(NCB::TFloatFeatureIdx(feature.FlatFeatureIndex)),
+                "Feature " << feature.FlatFeatureIndex <<  ": dataset does not have border information for it"
+            );
+            auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(NCB::TFloatFeatureIdx(feature.FlatFeatureIndex));
+            ui32 poolBucketIdx = 0;
+            auto addRemapBinIdx = [&] (ui8 bucketIdx) {
+                floatBinsRemap[feature.FlatFeatureIndex].push_back(bucketIdx);
+                ++poolBucketIdx;
+            };
+            for (ui32 modelBucketIdx = 0; modelBucketIdx < feature.Borders.size(); ++modelBucketIdx) {
+                while (poolBucketIdx < quantizedBorders.size() &&
+                    quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx] - std::numeric_limits<float>::epsilon()) {
+                    addRemapBinIdx(modelBucketIdx);
+                }
+                CB_ENSURE(
+                    poolBucketIdx < quantizedBorders.size() &&
+                    FuzzyEquals(quantizedBorders[poolBucketIdx], feature.Borders[modelBucketIdx]),
+                    "Feature " << feature.FlatFeatureIndex << " model borders do not correspond to quantization borders"
+                );
+                addRemapBinIdx(modelBucketIdx);
+            }
+            while (poolBucketIdx <= quantizedBorders.size()) {
+                addRemapBinIdx(feature.Borders.size());
+            }
+        }
+        return floatBinsRemap;
+    }
 }

@@ -5930,6 +5930,47 @@ def test_eval_result_on_different_pool_type():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_apply_on_different_pool_type():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')
+
+    def get_pool_path(set_name, is_quantized=False):
+        path = data_file('querywise', set_name)
+        return 'quantized://' + path + '.quantized' if is_quantized else path
+    cd_file = data_file('querywise', 'train.cd')
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '--learn-set', get_pool_path('train', True),
+        '--test-set', get_pool_path('test', True),
+        '--column-description', cd_file,
+        '-i', '10',
+        '-T', '4',
+        '--model-file', output_model_path,
+    )
+    yatest.common.execute(cmd)
+    cmd = (
+        CATBOOST_PATH, 'calc',
+        '--input-path', get_pool_path('test'),
+        '--column-description', cd_file,
+        '--model-file', output_model_path,
+        '--output-path', output_eval_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(cmd)
+    cmd = (
+        CATBOOST_PATH, 'calc',
+        '--input-path', get_pool_path('test', True),
+        '--model-file', output_model_path,
+        '--output-path', output_quantized_eval_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(cmd)
+    assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
+
+
 @pytest.mark.parametrize(
     'dataset_name,loss_function,has_pairs,has_group_weights',
     [
