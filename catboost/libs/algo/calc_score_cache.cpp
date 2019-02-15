@@ -369,8 +369,8 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
     SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
 }
 
-void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
-    SetSampledControl(indices.ysize(), rand);
+void TCalcScoreFold::Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
+    SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
 
     TVectorSlicing srcBlocks;
     TVectorSlicing dstBlocks;
@@ -485,9 +485,17 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TU
     }
 }
 
-void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand) {
+void TCalcScoreFold::SetSampledControl(int docCount, ESamplingUnit samplingUnit, const TVector<TQueryInfo>& queriesInfo, TRestorableFastRng64* rand) {
     if (BernoulliSampleRate == 1.0f || IsPairwiseScoring) {
         Fill(Control.begin(), Control.end(), true);
+        return;
+    }
+    if (samplingUnit == ESamplingUnit::Group) {
+        for (auto& queryInfo: queriesInfo) {
+            auto itBegin = GetDataPtr(Control, queryInfo.Begin);
+            auto itEnd = GetDataPtr(Control, queryInfo.End);
+            Fill(itBegin, itEnd, rand->GenRandReal1() < BernoulliSampleRate);
+        }
         return;
     }
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {

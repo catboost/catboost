@@ -1553,13 +1553,13 @@
     ],
     "test.test_eval_metrics[PairAccuracy-1]": [
         {
-            "checksum": "ca4777a1a2d06de885bfc54307876973",
+            "checksum": "f6a61596a583270b946f4fbe6583dada",
             "uri": "file://test.test_eval_metrics_PairAccuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[PairAccuracy-2]": [
         {
-            "checksum": "c33aadfd5aad90abbb0af745dbe01a71",
+            "checksum": "6752e8fdee1097a655ae3d1da5093edf",
             "uri": "file://test.test_eval_metrics_PairAccuracy-2_/output.tsv"
         }
     ],
@@ -2209,21 +2209,21 @@
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "ed81de96be43cb56556d13fa9c418e29",
+            "checksum": "57e3f9167196ed52dd30a4cae26210a8",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "4edb8d00b4a991097baf8913a93e85ea",
+            "checksum": "961b4ae65826fdb7da25b64cf2810589",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain]": [
         {
-            "checksum": "78b323c1b056423c0d2cfdfa946bedda",
+            "checksum": "62b50ca1371ebe80f12d8de6021e134b",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "a5a994d4f20df49763e1c1c1960f0817",
+            "checksum": "7fdd78d82cf13dce73ef92b55060a3a4",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/test_error.tsv"
         }
     ],
@@ -2253,7 +2253,7 @@
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "5b1a96de94b843db4bea62746d896d8f",
+            "checksum": "0ebd7a98a82b0c496581e243032c74eb",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
@@ -3043,25 +3043,25 @@
     ],
     "test.test_pairlogit_pairwise[train.pairs-calc_block=5000000]": [
         {
-            "checksum": "8a6415649895b322a7661d5d9673329a",
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs-calc_block=5000000_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[train.pairs-calc_block=60]": [
         {
-            "checksum": "8a6415649895b322a7661d5d9673329a",
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs-calc_block=60_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[train.pairs.weighted-calc_block=5000000]": [
         {
-            "checksum": "8a6415649895b322a7661d5d9673329a",
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs.weighted-calc_block=5000000_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[train.pairs.weighted-calc_block=60]": [
         {
-            "checksum": "8a6415649895b322a7661d5d9673329a",
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs.weighted-calc_block=60_/test.eval"
         }
     ],
@@ -3093,100 +3093,196 @@
             "uri": "file://test.test_pairs_generation_with_max_pairs/test.eval"
         }
     ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-0]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-0]": [
         {
             "checksum": "71478e75d9f496afb48d78e20cf36f1c",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-0_/test.eval"
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Group-0_/test.eval"
         }
     ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-1]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "6c41b551465143619823a19f09d4d7af",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-1_/test.eval"
+            "checksum": "c48c8e5d821c0f08518d7ce62cc47e26",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-0]": [
-        {
-            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-0_/test.eval"
-        }
-    ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-1]": [
-        {
-            "checksum": "4336fab6b03e1e462f5fe4a8542a6e7f",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-1_/test.eval"
-        }
-    ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-0]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Object-0]": [
         {
             "checksum": "71478e75d9f496afb48d78e20cf36f1c",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-0_/test.eval"
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Object-0_/test.eval"
         }
     ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-1]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Object-1]": [
         {
-            "checksum": "6c41b551465143619823a19f09d4d7af",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-1_/test.eval"
+            "checksum": "c48c8e5d821c0f08518d7ce62cc47e26",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Object-1_/test.eval"
         }
     ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-0]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-Group-0]": [
         {
             "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-0_/test.eval"
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-Group-0_/test.eval"
         }
     ],
-    "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-1]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-Group-1]": [
         {
-            "checksum": "4336fab6b03e1e462f5fe4a8542a6e7f",
-            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-1_/test.eval"
+            "checksum": "5c1ce963d6173d222cd3d71599578faf",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-Group-1_/test.eval"
         }
     ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-0.5]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-Object-0]": [
         {
-            "checksum": "8a6415649895b322a7661d5d9673329a",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-0.5_/test.eval"
+            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-Object-0_/test.eval"
         }
     ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-1]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-YetiRankPairwise-Object-1]": [
+        {
+            "checksum": "5c1ce963d6173d222cd3d71599578faf",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-YetiRankPairwise-Object-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Group-0]": [
         {
             "checksum": "71478e75d9f496afb48d78e20cf36f1c",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-1_/test.eval"
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Group-0_/test.eval"
         }
     ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-0.5]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "8f651dd25c3d2dc4f5b40fdaabb252ee",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-0.5_/test.eval"
+            "checksum": "c48c8e5d821c0f08518d7ce62cc47e26",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-1]": [
-        {
-            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-1_/test.eval"
-        }
-    ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-0.5]": [
-        {
-            "checksum": "8a6415649895b322a7661d5d9673329a",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-0.5_/test.eval"
-        }
-    ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-1]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Object-0]": [
         {
             "checksum": "71478e75d9f496afb48d78e20cf36f1c",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-1_/test.eval"
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Object-0_/test.eval"
         }
     ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-0.5]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Object-1]": [
         {
-            "checksum": "8f651dd25c3d2dc4f5b40fdaabb252ee",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-0.5_/test.eval"
+            "checksum": "c48c8e5d821c0f08518d7ce62cc47e26",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Object-1_/test.eval"
         }
     ],
-    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-1]": [
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-Group-0]": [
         {
             "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
-            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-1_/test.eval"
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-Group-0_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-Group-1]": [
+        {
+            "checksum": "5c1ce963d6173d222cd3d71599578faf",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-Group-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-Object-0]": [
+        {
+            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-Object-0_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[calc_block=60-YetiRankPairwise-Object-1]": [
+        {
+            "checksum": "5c1ce963d6173d222cd3d71599578faf",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-YetiRankPairwise-Object-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Group-0.5]": [
+        {
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Group-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Group-1]": [
+        {
+            "checksum": "71478e75d9f496afb48d78e20cf36f1c",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Group-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Object-0.5]": [
+        {
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Object-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Object-1]": [
+        {
+            "checksum": "71478e75d9f496afb48d78e20cf36f1c",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Object-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-Group-0.5]": [
+        {
+            "checksum": "351ee98a6dfb5a076b0bdb4f1a05dda1",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-Group-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-Group-1]": [
+        {
+            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-Group-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-Object-0.5]": [
+        {
+            "checksum": "351ee98a6dfb5a076b0bdb4f1a05dda1",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-Object-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-Object-1]": [
+        {
+            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-Object-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Group-0.5]": [
+        {
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Group-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Group-1]": [
+        {
+            "checksum": "71478e75d9f496afb48d78e20cf36f1c",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Group-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Object-0.5]": [
+        {
+            "checksum": "7e27805700a00f23e90832a24d6cd9c2",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Object-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Object-1]": [
+        {
+            "checksum": "71478e75d9f496afb48d78e20cf36f1c",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Object-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-Group-0.5]": [
+        {
+            "checksum": "351ee98a6dfb5a076b0bdb4f1a05dda1",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-Group-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-Group-1]": [
+        {
+            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-Group-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-Object-0.5]": [
+        {
+            "checksum": "351ee98a6dfb5a076b0bdb4f1a05dda1",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-Object-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-Object-1]": [
+        {
+            "checksum": "56c4aa8a04b25fa382a7e742d568ac17",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-Object-1_/test.eval"
         }
     ],
     "test.test_params_from_file[Ordered]": [
@@ -3793,52 +3889,100 @@
             "uri": "file://test.test_querysoftmax_calc_block=60-Newton-Plain_/test.eval"
         }
     ],
-    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-0]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-Group-0]": [
         {
             "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
-            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-0_/test.eval"
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-Group-0_/test.eval"
         }
     ],
-    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-1]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-Group-1]": [
         {
             "checksum": "16bad1f01b6f7e81ab86cc4eef08c7dd",
-            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-1_/test.eval"
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-Group-1_/test.eval"
         }
     ],
-    "test.test_querywise_bayesian_bootstrap[calc_block=60-0]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-Object-0]": [
         {
             "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
-            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-0_/test.eval"
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-Object-0_/test.eval"
         }
     ],
-    "test.test_querywise_bayesian_bootstrap[calc_block=60-1]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-Object-1]": [
         {
             "checksum": "16bad1f01b6f7e81ab86cc4eef08c7dd",
-            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-1_/test.eval"
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-Object-1_/test.eval"
         }
     ],
-    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-0.5]": [
-        {
-            "checksum": "37598cdd60d8f78fcab7e2e76ce10691",
-            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-0.5_/test.eval"
-        }
-    ],
-    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-1]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=60-Group-0]": [
         {
             "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
-            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-1_/test.eval"
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-Group-0_/test.eval"
         }
     ],
-    "test.test_querywise_bernoulli_bootstrap[calc_block=60-0.5]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=60-Group-1]": [
         {
-            "checksum": "37598cdd60d8f78fcab7e2e76ce10691",
-            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-0.5_/test.eval"
+            "checksum": "16bad1f01b6f7e81ab86cc4eef08c7dd",
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-Group-1_/test.eval"
         }
     ],
-    "test.test_querywise_bernoulli_bootstrap[calc_block=60-1]": [
+    "test.test_querywise_bayesian_bootstrap[calc_block=60-Object-0]": [
         {
             "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
-            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-1_/test.eval"
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-Object-0_/test.eval"
+        }
+    ],
+    "test.test_querywise_bayesian_bootstrap[calc_block=60-Object-1]": [
+        {
+            "checksum": "16bad1f01b6f7e81ab86cc4eef08c7dd",
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-Object-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-Group-0.5]": [
+        {
+            "checksum": "37598cdd60d8f78fcab7e2e76ce10691",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-Group-0.5_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-Group-1]": [
+        {
+            "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-Group-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-Object-0.5]": [
+        {
+            "checksum": "37598cdd60d8f78fcab7e2e76ce10691",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-Object-0.5_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-Object-1]": [
+        {
+            "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-Object-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=60-Group-0.5]": [
+        {
+            "checksum": "37598cdd60d8f78fcab7e2e76ce10691",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-Group-0.5_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=60-Group-1]": [
+        {
+            "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-Group-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=60-Object-0.5]": [
+        {
+            "checksum": "37598cdd60d8f78fcab7e2e76ce10691",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-Object-0.5_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=60-Object-1]": [
+        {
+            "checksum": "24e0b1e3b48243f135ad93ca35c3502c",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-Object-1_/test.eval"
         }
     ],
     "test.test_random_strength[calc_block=5000000-Ordered]": [
@@ -4489,13 +4633,13 @@
     ],
     "test.test_yetirank_pairwise[calc_block=5000000]": [
         {
-            "checksum": "115f77feea8258961a946d3a603780a6",
+            "checksum": "f920487900b1d6d989a1cf53bbb0e780",
             "uri": "file://test.test_yetirank_pairwise_calc_block=5000000_/test.eval"
         }
     ],
     "test.test_yetirank_pairwise[calc_block=60]": [
         {
-            "checksum": "115f77feea8258961a946d3a603780a6",
+            "checksum": "f920487900b1d6d989a1cf53bbb0e780",
             "uri": "file://test.test_yetirank_pairwise_calc_block=60_/test.eval"
         }
     ],

@@ -99,9 +99,15 @@ THolder<IDerCalcer> BuildError(
     }
 }
 
+static float GenerateBayessianWeight(float baggingTemperature, TRestorableFastRng64& rand) {
+    const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
+    return powf(w, baggingTemperature);
+}
+
 static void GenerateRandomWeights(
     int learnSampleCount,
     float baggingTemperature,
+    ESamplingUnit samplingUnit,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
@@ -111,22 +117,32 @@ static void GenerateRandomWeights(
         return;
     }
 
+    const int groupCount = fold->LearnQueriesInfo.ysize();
     const ui64 randSeed = rand->GenRand();
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, learnSampleCount);
+    const int sampleCount = (samplingUnit == ESamplingUnit::Group) ? groupCount : learnSampleCount;
+
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
     blockParams.SetBlockSize(1000);
     localExecutor->ExecRange([&](int blockIdx) {
         TRestorableFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads
         float* sampleWeightsData = fold->SampleWeights.data();
         NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=,&rand](int i) {
-            const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
-            sampleWeightsData[i] = powf(w, baggingTemperature);
+            const float w = GenerateBayessianWeight(baggingTemperature, rand);
+            if (samplingUnit == ESamplingUnit::Object) {
+                sampleWeightsData[i] = w;
+            } else {
+                ui32 begin = fold->LearnQueriesInfo[i].Begin;
+                ui32 end = fold->LearnQueriesInfo[i].End;
+                Fill(sampleWeightsData + begin, sampleWeightsData + end, w);
+            }
         })(blockIdx);
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 static void GenerateBayesianWeightsForPairs(
     float baggingTemperature,
+    ESamplingUnit samplingUnit,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
@@ -141,10 +157,12 @@ static void GenerateBayesianWeightsForPairs(
         TRestorableFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads
         NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int i) {
+            const float wGroup = GenerateBayessianWeight(baggingTemperature, rand);
             for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
                 for (auto& competitor : competitors) {
-                    const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
-                    competitor.SampleWeight = competitor.Weight * powf(w, baggingTemperature);
+                    float w = (samplingUnit == ESamplingUnit::Group) ?
+                            wGroup : GenerateBayessianWeight(baggingTemperature, rand);
+                    competitor.SampleWeight = competitor.Weight * w;
                 }
             }
         })(blockIdx);
@@ -153,6 +171,7 @@ static void GenerateBayesianWeightsForPairs(
 
 static void GenerateBernoulliWeightsForPairs(
     float takenFraction,
+    ESamplingUnit samplingUnit,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
@@ -167,9 +186,11 @@ static void GenerateBernoulliWeightsForPairs(
         TRestorableFastRng64 rand(randSeed + blockIdx);
         rand.Advance(10); // reduce correlation between RNGs in different threads
         NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int i) {
+            const double wGroup = rand.GenRandReal1();
             for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
                 for (auto& competitor : competitors) {
-                    if (rand.GenRandReal1() < takenFraction) {
+                    double w = (samplingUnit == ESamplingUnit::Group) ? wGroup : rand.GenRandReal1();
+                    if (w < takenFraction) {
                         competitor.SampleWeight = competitor.Weight;
                     } else {
                         competitor.SampleWeight = 0.0f;
@@ -231,6 +252,7 @@ void Bootstrap(
 ) {
     const int learnSampleCount = indices.ysize();
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
+    const ESamplingUnit samplingUnit = params.ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
     const float baggingTemperature = params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
     const float takenFraction = params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
     const bool isPairwiseScoring = IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction());
@@ -238,16 +260,16 @@ void Bootstrap(
         case EBootstrapType::Bernoulli:
             if (isPairwiseScoring) {
                 // TODO(nikitxskv): Need to add groupwise sampling (take the whole group or not)
-                GenerateBernoulliWeightsForPairs(takenFraction, localExecutor, rand, fold);
+                GenerateBernoulliWeightsForPairs(takenFraction, samplingUnit, localExecutor, rand, fold);
             } else {
                 Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
             }
             break;
         case EBootstrapType::Bayesian:
             if (isPairwiseScoring) {
-                GenerateBayesianWeightsForPairs(baggingTemperature, localExecutor, rand, fold);
+                GenerateBayesianWeightsForPairs(baggingTemperature, samplingUnit, localExecutor, rand, fold);
             } else {
-                GenerateRandomWeights(learnSampleCount, baggingTemperature, localExecutor, rand, fold);
+                GenerateRandomWeights(learnSampleCount, baggingTemperature, samplingUnit, localExecutor, rand, fold);
             }
             break;
         case EBootstrapType::No:
@@ -261,7 +283,7 @@ void Bootstrap(
     if (!isPairwiseScoring) {
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
-    sampledDocs->Sample(*fold, indices, rand, localExecutor);
+    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor);
 }
 
 void CalcWeightedDerivatives(

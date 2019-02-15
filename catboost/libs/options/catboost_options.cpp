@@ -376,6 +376,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         }
     }
 
+    ESamplingUnit samplingUnit = ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
     if (GetTaskType() == ETaskType::GPU) {
         if (!IsPairwiseScoring(lossFunction)) {
             CB_ENSURE(ObliviousTreeOptions->Rsm.IsDefault(), "Error: rsm on GPU is supported for pairwise modes only");
@@ -384,6 +385,11 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
                 CATBOOST_WARNING_LOG << "RSM on GPU will work only for non-binary features. Plus current implementation will sample by groups, so this could slightly affect quality in positive or negative way" << Endl;
             }
             CB_ENSURE(ObliviousTreeOptions->MaxDepth.Get() <= 8, "Error: GPU pairwise learning works with tree depth <= 8 only");
+        }
+
+        if (samplingUnit == ESamplingUnit::Group) {
+            CB_ENSURE(lossFunction == ELossFunction::YetiRankPairwise,
+                      "sampling_unit option on GPU is supported only for loss function YetiRankPairwise");
         }
     }
 
@@ -405,9 +411,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
-        const auto& lossParams = LossFunctionDescription->GetLossParams();
-        CB_ENSURE(!(lossFunction == ELossFunction::YetiRankPairwise && lossParams.contains("sampling_type")),
-                  "Parameter sampling_type is not supported for YetiRankPairwise objective for CPU learning");
         CB_ENSURE(
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");

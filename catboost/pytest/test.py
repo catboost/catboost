@@ -35,6 +35,8 @@ GROUPWISE_LOSSES = ['YetiRank', 'YetiRankPairwise', 'QueryRMSE', 'QuerySoftMax']
 RANKING_LOSSES = PAIRWISE_LOSSES + GROUPWISE_LOSSES
 ALL_LOSSES = CLASSIFICATION_LOSSES + REGRESSION_LOSSES + RANKING_LOSSES
 
+SAMPLING_UNIT_TYPES = ['Object', 'Group']
+
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
 # test both parallel in and non-parallel modes
@@ -5366,12 +5368,13 @@ def test_shap_verbose():
 
 
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
+@pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
-def test_querywise_bayesian_bootstrap(bagging_temperature, dev_score_calc_obj_block_size):
+def test_querywise_bayesian_bootstrap(bagging_temperature, sampling_unit, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -5382,6 +5385,7 @@ def test_querywise_bayesian_bootstrap(bagging_temperature, dev_score_calc_obj_bl
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--bootstrap-type', 'Bayesian',
+        '--sampling-unit', sampling_unit,
         '--bagging-temperature', bagging_temperature,
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
@@ -5396,12 +5400,13 @@ def test_querywise_bayesian_bootstrap(bagging_temperature, dev_score_calc_obj_bl
 
 
 @pytest.mark.parametrize('subsample', ['0.5', '1'])
+@pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
-def test_querywise_bernoulli_bootstrap(subsample, dev_score_calc_obj_block_size):
+def test_querywise_bernoulli_bootstrap(subsample, sampling_unit, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -5412,6 +5417,7 @@ def test_querywise_bernoulli_bootstrap(subsample, dev_score_calc_obj_block_size)
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--bootstrap-type', 'Bernoulli',
+        '--sampling-unit', sampling_unit,
         '--subsample', subsample,
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
@@ -5429,13 +5435,14 @@ LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING = ['YetiRankPairwise', 'PairLogitPairwise'
 
 
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
+@pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
-def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function, dev_score_calc_obj_block_size):
+def test_pairwise_bayesian_bootstrap(bagging_temperature, sampling_unit, loss_function, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -5448,6 +5455,7 @@ def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function, dev_sco
         '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--test-pairs', data_file('querywise', 'test.pairs'),
         '--bootstrap-type', 'Bayesian',
+        '--sampling-unit', sampling_unit,
         '--bagging-temperature', bagging_temperature,
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
@@ -5462,13 +5470,14 @@ def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function, dev_sco
 
 
 @pytest.mark.parametrize('subsample', ['0.5', '1'])
+@pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
-def test_pairwise_bernoulli_bootstrap(subsample, loss_function, dev_score_calc_obj_block_size):
+def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -5481,6 +5490,7 @@ def test_pairwise_bernoulli_bootstrap(subsample, loss_function, dev_score_calc_o
         '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--test-pairs', data_file('querywise', 'test.pairs'),
         '--bootstrap-type', 'Bernoulli',
+        '--sampling-unit', sampling_unit,
         '--subsample', subsample,
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',

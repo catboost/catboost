@@ -563,6 +563,14 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["bootstrap_type"] = ToString(type);
         });
 
+    parser
+        .AddLongOption("sampling-unit")
+        .RequiredArgument("STRING")
+        .Help("Allows to manage the sampling scheme. Sample weights for each object individually or for an entire group of objects together.")
+        .Handler1T<ESamplingUnit>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["sampling_unit"] = ToString(type);
+        });
+
     parser.AddLongOption("bagging-temperature")
         .AddLongName("tmp")
         .RequiredArgument("float")
