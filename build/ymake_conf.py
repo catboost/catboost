@@ -2495,7 +2495,7 @@ class Cuda(object):
         if host != target:
             return False
 
-        if self.cuda_version.value in ('9.0', '9.1', '9.2'):
+        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0'):
             return True
 
         if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
@@ -2545,6 +2545,7 @@ class Cuda(object):
 
     def cuda_windows_host_compiler(self):
         vc_version = {
+            '10.0': '14.13.26128',  # (not latest)
             '9.2': '14.13.26128',
             '9.1': '14.11.25503',
             '9.0': '14.11.25503',
