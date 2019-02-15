@@ -3978,7 +3978,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::YetiRankPairwise:
             result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations", "sampling_type"};
+            validParams = {"decay", "permutations"};
             CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
