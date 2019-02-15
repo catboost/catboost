@@ -187,7 +187,7 @@ class ResourceImporter(object):
             if abspath:
                 return utf_8_decode(file_bytes(abspath))[0]
         data = resfs_read(mod_path(fullname))
-        return utf_8_decode(data)[0] if data else ""
+        return utf_8_decode(data)[0] if data else ''
 
     def get_code(self, fullname):
         modname = fullname
@@ -196,10 +196,11 @@ class ResourceImporter(object):
 
         path = mod_path(fullname)
         relpath = _relpath(path)
-        abspath = resfs_resolve(relpath)
-        if abspath:
-            data = resfs_read(path, builtin=False)
-            return compile(data, abspath, 'exec', dont_inherit=True)
+        if relpath:
+            abspath = resfs_resolve(relpath)
+            if abspath:
+                data = resfs_read(path, builtin=False)
+                return compile(data, abspath, 'exec', dont_inherit=True)
 
         yapyc_path = path + b'.yapyc3'
         yapyc_data = resfs_read(yapyc_path, builtin=True)
