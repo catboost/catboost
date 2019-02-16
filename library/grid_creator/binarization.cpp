@@ -14,10 +14,20 @@ using NSplitSelection::IBinarizer;
 
 namespace {
     class TMedianInBinBinarizer: public IBinarizer {
+    // TODO: add penaltyType option.
     public:
         THashSet<float> BestSplit(TVector<float>& featureValues,
                                     int maxBordersCount,
                                     bool isSorted) const override;
+
+        // Make virtual and move to IBinarizer?
+        // Make weights optional? (weights are assumed to be ones by default)
+        template <typename TWeight>  // TWeight may be uint (for testing and binarization without weights).
+        THashSet<float> BestSplit(const TVector<float>& featureValues,
+                                    const TVector<TWeight>& weights,
+                                    int maxBordersCount,
+                                    bool filterNans,
+                                    bool isSorted) const;
     };
 
     class TMedianPlusUniformBinarizer: public IBinarizer {
@@ -106,6 +116,15 @@ THashSet<float> BestSplit(TVector<float>& features,
 
     const auto binarizer = NSplitSelection::MakeBinarizer(type);
     return binarizer->BestSplit(features, maxBordersCount, true);
+}
+
+THashSet<float> BestWeightedSplit(const TVector<float>& featureValues,
+                                    const TVector<float>& weights,
+                                    int maxBordersCount,
+                                    bool filterNans,
+                                    bool featuresAreSorted) {
+    return  TMedianInBinBinarizer().BestSplit<float>(featureValues, weights,
+                                                        maxBordersCount, filterNans, featuresAreSorted);
 }
 
 namespace {
@@ -770,106 +789,305 @@ THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
 }
 
 namespace {
-    class TFeatureBin {
-    private:
-        ui32 BinStart;
-        ui32 BinEnd;
-        TVector<float>::const_iterator FeaturesStart;
-        TVector<float>::const_iterator FeaturesEnd;
+    template <class TFeatureValue = float>
+    class IFeatureBin {
+    protected:
+        using TValueIterator = typename TVector<TFeatureValue>::const_iterator;
 
-        ui32 BestSplit;
-        double BestScore;
+        TValueIterator BinStart;
+        TValueIterator BinEnd;
+        TValueIterator BestSplit;
+        TValueIterator FeaturesEnd;
+        double BestSplitScore;
+        EPenaltyType PenaltyType;
 
-        inline void UpdateBestSplitProperties() {
-            const int mid = (BinStart + BinEnd) / 2;
-            float midValue = *(FeaturesStart + mid);
+        virtual void UpdateBestSplitProperties() = 0;
 
-            ui32 lb = (ui32)(LowerBound(FeaturesStart + BinStart, FeaturesStart + mid, midValue) - FeaturesStart);
-            ui32 up = (ui32)(UpperBound(FeaturesStart + mid, FeaturesStart + BinEnd, midValue) - FeaturesStart);
-
-            const double scoreLeft = lb != BinStart ? log((double)(lb - BinStart)) + log((double)(BinEnd - lb)) : 0.0;
-            const double scoreRight = up != BinEnd ? log((double)(up - BinStart)) + log((double)(BinEnd - up)) : 0.0;
-            BestSplit = scoreLeft >= scoreRight ? lb : up;
-            BestScore = BestSplit == lb ? scoreLeft : scoreRight;
+        IFeatureBin(TValueIterator binStart, TValueIterator binEnd, TValueIterator featuresEnd,
+                    EPenaltyType penaltyType = EPenaltyType::MaxSumLog)
+            : BinStart(binStart)
+            , BinEnd(binEnd)
+            , BestSplit(binStart)
+            , FeaturesEnd(featuresEnd)
+            , BestSplitScore(0.0)
+            , PenaltyType(penaltyType) {
         }
 
     public:
-        TFeatureBin(ui32 binStart, ui32 binEnd, const TVector<float>::const_iterator featuresStart, const TVector<float>::const_iterator featuresEnd)
-            : BinStart(binStart)
-            , BinEnd(binEnd)
-            , FeaturesStart(featuresStart)
-            , FeaturesEnd(featuresEnd)
-            , BestSplit(BinStart)
-            , BestScore(0.0)
-        {
-            UpdateBestSplitProperties();
-        }
+        virtual ~IFeatureBin() = default;
 
         ui32 Size() const {
             return BinEnd - BinStart;
         }
 
-        bool operator<(const TFeatureBin& bf) const {
+        bool operator<(const IFeatureBin& bf) const {
             return Score() < bf.Score();
         }
 
         double Score() const {
-            return BestScore;
-        }
-
-        TFeatureBin Split() {
-            if (!CanSplit()) {
-                throw yexception() << "Can't add new split";
-            }
-            TFeatureBin left = TFeatureBin(BinStart, BestSplit, FeaturesStart, FeaturesEnd);
-            BinStart = BestSplit;
-            UpdateBestSplitProperties();
-            return left;
+            return BestSplitScore;
         }
 
         bool CanSplit() const {
             return (BinStart != BestSplit && BinEnd != BestSplit);
         }
 
-        float Border() const {
-            Y_ASSERT(BinStart < BinEnd);
-            float borderValue = 0.5f * (*(FeaturesStart + BinEnd - 1));
-            const float nextValue = ((FeaturesStart + BinEnd) < FeaturesEnd)
-                                        ? (*(FeaturesStart + BinEnd))
-                                        : (*(FeaturesStart + BinEnd - 1));
-            borderValue += 0.5f * nextValue;
-            return borderValue;
-        }
+        virtual float Border() const = 0;
 
         bool IsLast() const {
-            return BinEnd == (FeaturesEnd - FeaturesStart);
+            return BinEnd == FeaturesEnd;
         }
     };
-}
 
-THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
-                                                 int maxBordersCount, bool isSorted) const {
-    THashSet<float> borders;
-    if (featureValues.size()) {
-        if (!isSorted) {
-            Sort(featureValues.begin(), featureValues.end());
+    template <class TFeatureValue = float>
+    class TFeatureBin;
+
+    template <class TFeatureValue,
+              class TValueIterator = typename TVector<TFeatureValue>::const_iterator>
+    TFeatureBin<TFeatureValue> MakeBin(TValueIterator binStart,
+                                       TValueIterator binEnd,
+                                       TValueIterator featuresEnd,
+                                       EPenaltyType penaltyType) {
+        static_assert(std::is_same<TValueIterator, typename TVector<TFeatureValue>::const_iterator>::value);
+        TFeatureBin<TFeatureValue> bin(binStart, binEnd, featuresEnd, penaltyType);
+        bin.UpdateBestSplitProperties();
+        return bin;
+    }
+
+    template <class TFeatureValue>
+    std::pair<TFeatureBin<TFeatureValue>, TFeatureBin<TFeatureValue>> Split(TFeatureBin<TFeatureValue> bin) {
+        if (!bin.CanSplit()) {
+            throw yexception() << "Can't add new split";
+        }
+        auto left = MakeBin<TFeatureValue>(bin.BinStart, bin.BestSplit, bin.FeaturesEnd, bin.PenaltyType);
+        bin.BinStart = bin.BestSplit;
+        bin.UpdateBestSplitProperties();
+        return {left, bin};
+    }
+
+    template <>
+    class TFeatureBin<float> : public IFeatureBin<float> {
+    protected:
+        using IFeatureBin::TValueIterator;
+        friend TFeatureBin MakeBin<float>(TValueIterator binStart,
+            TValueIterator binEnd, TValueIterator featuresEnd, EPenaltyType penaltyType);
+        friend std::pair<TFeatureBin, TFeatureBin> Split<float>(TFeatureBin bin);
+
+        TFeatureBin(TValueIterator binStart, TValueIterator binEnd, TValueIterator featuresEnd,
+                    EPenaltyType penaltyType)
+            : IFeatureBin<float>(binStart, binEnd, featuresEnd, penaltyType) {
         }
 
-        std::priority_queue<TFeatureBin> splits;
-        splits.push(TFeatureBin(0, (ui32) featureValues.size(), featureValues.begin(), featureValues.end()));
+        double CalcSplitScore(TValueIterator splitPos) {
+            if (splitPos == BinStart || splitPos == BinEnd) {
+                return -std::numeric_limits<double>::infinity();
+            }
+            const double currBinScore = -Penalty(BinEnd - BinStart, 0.0, PenaltyType);
+            const double newBinsScore = (-Penalty(BinEnd - splitPos, 0.0, PenaltyType) -
+                                            Penalty(splitPos - BinStart, 0.0, PenaltyType));
+            return newBinsScore - currBinScore;
+        }
+
+        void UpdateBestSplitProperties() override {
+            Y_ASSERT(BinStart < BinEnd);
+            const auto mid = BinStart + (BinEnd - BinStart) / 2;
+            float midValue = *mid;
+
+            const auto lb = LowerBound(BinStart, mid, midValue);
+            const auto ub = UpperBound(mid, BinEnd, midValue);
+
+            const double scoreLeft = CalcSplitScore(lb);
+            const double scoreRight = CalcSplitScore(ub);
+            BestSplit = scoreLeft >= scoreRight ? lb : ub;
+            BestSplitScore = BestSplit == lb ? scoreLeft : scoreRight;
+        }
+    public:
+        float Border() const override {
+            Y_ASSERT(BinStart < BinEnd);
+            if (IsLast()) {
+                return *(BinEnd - 1);
+            }
+            return 0.5f * (*(BinEnd - 1) + *BinEnd);
+        }
+    };
+
+
+    template <typename TWeight>
+    struct TWeigthedValue {
+        TWeight CumulativeWeight;
+        float Value;
+
+        TWeigthedValue(float value, TWeight cumulativeWeight)
+            : CumulativeWeight(cumulativeWeight)
+            , Value(value) {
+        }
+
+        bool operator<(const TWeigthedValue& rhs) const {
+            return Value < rhs.Value;
+        }
+    };
+
+    template <typename TWeight>
+    class TFeatureBin<TWeigthedValue<TWeight>> : public IFeatureBin<TWeigthedValue<TWeight>> {
+    protected:
+        using typename IFeatureBin<TWeigthedValue<TWeight>>::TValueIterator;
+        using TValue = TWeigthedValue<TWeight>;
+
+        using IFeatureBin<TWeigthedValue<TWeight>>::BinStart;
+        using IFeatureBin<TWeigthedValue<TWeight>>::BinEnd;
+        using IFeatureBin<TWeigthedValue<TWeight>>::BestSplit;
+        using IFeatureBin<TWeigthedValue<TWeight>>::FeaturesEnd;
+        using IFeatureBin<TWeigthedValue<TWeight>>::BestSplitScore;
+        using IFeatureBin<TWeigthedValue<TWeight>>::PenaltyType;
+
+        friend TFeatureBin MakeBin<TWeigthedValue<TWeight>, TValueIterator>(TValueIterator binStart,
+            TValueIterator binEnd, TValueIterator featuresEnd, EPenaltyType penaltyType);
+        friend std::pair<TFeatureBin, TFeatureBin> Split<TWeigthedValue<TWeight>>(TFeatureBin bin);
+
+        TFeatureBin(TValueIterator binStart, TValueIterator binEnd, TValueIterator featuresEnd,
+                    EPenaltyType penaltyType)
+            : IFeatureBin<TWeigthedValue<TWeight>>(binStart, binEnd, featuresEnd, penaltyType) {
+        }
+
+        void UpdateBestSplitProperties() override {
+            Y_ASSERT(BinStart < BinEnd);
+            const double midCumulativeWeight = (BinStart->CumulativeWeight + BinEnd->CumulativeWeight) / 2;
+
+            const auto ub = LowerBoundBy(BinStart, BinEnd, midCumulativeWeight,
+                [] (const TValue& value) -> double {return value.CumulativeWeight;});
+            const auto lb = ub - 1; // weights are (strictly) positive hence ub > BinStart
+
+            const double scoreLeft = CalcSplitScore(lb);
+            const double scoreRight = CalcSplitScore(ub);
+
+            BestSplit = scoreLeft >= scoreRight ? lb : ub;
+            BestSplitScore = BestSplit == lb ? scoreLeft : scoreRight;
+        }
+
+        double CalcSplitScore(TValueIterator splitPos) {
+            if (splitPos == BinStart || splitPos == BinEnd) {
+                return -std::numeric_limits<double>::infinity();
+            }
+            // Weights positivity is used here (possible call to log(0))
+            const double currBinScore = -Penalty(
+                BinEnd->CumulativeWeight - BinStart->CumulativeWeight, 0.0, PenaltyType
+            );
+            const double newBinsScore = - (
+                Penalty(BinEnd->CumulativeWeight - splitPos->CumulativeWeight, 0.0, PenaltyType) +
+                Penalty(splitPos->CumulativeWeight - BinStart->CumulativeWeight, 0.0, PenaltyType)
+            );
+            return newBinsScore - currBinScore;
+        }
+
+    public:
+        float Border() const override {
+            Y_ASSERT(BinStart < BinEnd);
+            if (this->IsLast()) {
+                return (BinEnd - 1)->Value;
+            }
+            return 0.5f * ((BinEnd - 1)->Value + BinEnd->Value);
+        }
+    };
+
+    template <class TFeatureValue, class Bin = TFeatureBin<TFeatureValue>>
+    THashSet<float> GreedySplit(const Bin& initialBin, int maxBordersCount) {
+        std::priority_queue<Bin> splits;
+        splits.push(initialBin);
 
         while (splits.size() <= (ui32) maxBordersCount && splits.top().CanSplit()) {
             TFeatureBin top = splits.top();
             splits.pop();
-            splits.push(top.Split());
-            splits.push(top);
+            auto [left, right] = Split(top);
+            splits.push(left);
+            splits.push(right);
         }
 
-        while (splits.size()) {
+        THashSet<float> borders;
+        borders.reserve(splits.size() - 1);
+        while (!splits.empty()) {
             if (!splits.top().IsLast())
                 borders.insert(splits.top().Border());
             splits.pop();
         }
+        return borders;
     }
-    return borders;
+}
+
+THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
+                                                 int maxBordersCount, bool isSorted) const {
+    if (featureValues.empty()) {
+        return THashSet<float>();
+    }
+    if (!isSorted) {
+        Sort(featureValues.begin(), featureValues.end());
+    }
+    auto initialBin = MakeBin<float>(featureValues.cbegin(), featureValues.cend(),
+        featureValues.cend(), EPenaltyType::MaxSumLog);
+    return GreedySplit<float>(initialBin, maxBordersCount);
+}
+
+template <typename TWeight>
+THashSet<float> TMedianInBinBinarizer::BestSplit(const TVector<float>& featureValues,
+                                                 const TVector<TWeight>& weights,
+                                                 int maxBordersCount,
+                                                 bool filterNans, bool isSorted) const {
+    Y_ASSERT(featureValues.size() == weights.size());
+
+    TVector<TWeigthedValue<TWeight>> featureCumulativeDistribution;
+    TWeight cumulativeWeight = 0;
+    if (isSorted) {
+        float currValue = 0.0;
+        TWeight nanValueWeight = 0;
+        auto weightsIterator = weights.begin();
+        for (auto valueIterator = featureValues.begin(); valueIterator != featureValues.end();
+             ++valueIterator, ++weightsIterator) // Is there Zip at yandex?
+        {
+            // avoid handling zero weights in TFeatureBin::UpdateBestSplitProperties:
+            if (filterNans && std::isnan(*valueIterator) || *weightsIterator <= 0) {
+                continue;
+            }
+            if (currValue != *valueIterator || valueIterator == featureValues.begin()) {
+                currValue = *valueIterator;
+                featureCumulativeDistribution.emplace_back(currValue, cumulativeWeight);
+            }
+            cumulativeWeight += *weightsIterator;
+        }
+        cumulativeWeight += nanValueWeight;
+    } else {
+        THashMap<float, TWeight> valueWeights;
+        auto weightsIterator = weights.begin();
+        for (auto valueIterator = featureValues.begin(); valueIterator != featureValues.end();
+             ++valueIterator, ++weightsIterator)
+        {
+            if (filterNans && std::isnan(*valueIterator) || *weightsIterator <= 0) {
+                continue;
+            }
+            if (valueWeights.contains(*valueIterator)) {
+                valueWeights.at(*valueIterator) += *weightsIterator;
+            } else {
+                valueWeights.emplace(*valueIterator, *weightsIterator);
+            }
+        }
+        featureCumulativeDistribution.reserve(valueWeights.size() + 1);
+        for (auto [value, weight] : valueWeights) {
+            featureCumulativeDistribution.emplace_back(value, weight);
+        }
+        Sort(featureCumulativeDistribution.begin(), featureCumulativeDistribution.end());
+        for (auto& weightedValue : featureCumulativeDistribution) {
+            const TWeight currValueWeight = weightedValue.CumulativeWeight;
+            weightedValue.CumulativeWeight = cumulativeWeight;
+            cumulativeWeight += currValueWeight;
+        }
+    }
+    if (featureCumulativeDistribution.empty()) {
+        return THashSet<float>();
+    }
+    featureCumulativeDistribution.emplace_back(std::numeric_limits<float>::infinity(), cumulativeWeight);
+
+    auto initialBin = MakeBin<TWeigthedValue<TWeight>>(
+        featureCumulativeDistribution.cbegin(),
+        featureCumulativeDistribution.cend() - 1,
+        featureCumulativeDistribution.cend() - 1,
+        EPenaltyType::MaxSumLog);
+    return GreedySplit<TWeigthedValue<TWeight>>(initialBin, maxBordersCount);
 }

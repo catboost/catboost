@@ -15,7 +15,15 @@ THashSet<float> BestSplit(
     TVector<float>& features,
     int maxBordersCount,
     EBorderSelectionType type,
-    bool nanValueIsInfty = false,
+    bool nanValueIsInfty = false, // Sounds like there may be a border between usual values and nans. Better call it filterNans.
+    bool featuresAreSorted = false);
+
+// TODO: support EBorderSelectionType
+THashSet<float> BestWeightedSplit(
+    const TVector<float>& featureValues,
+    const TVector<float>& weights,
+    int maxBordersCount,
+    bool filterNans = false,
     bool featuresAreSorted = false);
 
 size_t CalcMemoryForFindBestSplit(
