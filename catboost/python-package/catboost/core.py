@@ -585,6 +585,10 @@ class Pool(_PoolBase):
         """
         if isinstance(data, DataFrame):
             feature_names = list(data.columns)
+            cat_features = [
+                data.columns.get_loc(cf) if isinstance(cf, STRING_TYPES) else cf
+                for cf in cat_features
+            ]
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
