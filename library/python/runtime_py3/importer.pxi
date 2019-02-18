@@ -158,6 +158,8 @@ class ResourceImporter(object):
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
+        if isinstance(path, str):
+            path = utf_8_encode(path)[0]
         data = resfs_read(path)
         if data is None:
             raise IOError
