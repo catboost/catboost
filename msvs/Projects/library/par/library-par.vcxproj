@@ -271,8 +271,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
       <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\compat\library-openssl-compat.vcxproj">
+      <Project>{116B0E1A-B4E8-F1BE-0208-27DA4E6AF3C4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
       <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\io_method\library-openssl-io_method.vcxproj">
+      <Project>{2482C3EF-A72F-91CC-47C9-B48D225CE247}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\streams\brotli\library-streams-brotli.vcxproj">
       <Project>{C372D0A1-5406-DEDE-C1E4-5FDC44B12554}</Project>
