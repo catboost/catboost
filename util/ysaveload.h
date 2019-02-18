@@ -624,32 +624,20 @@ public:
     }
 };
 
+namespace NPrivate {
+    template <class Variant, class T, size_t I>
+    void LoadVariantAlternative(IInputStream* is, Variant& v) {
+        T loaded;
+        ::Load(is, loaded);
+        v.template emplace<I>(std::move(loaded));
+    }
+}
+
 template <typename... Args>
 struct TSerializer<TVariant<Args...>> {
     using TVar = TVariant<Args...>;
 
     static_assert(sizeof...(Args) < 256, "We use ui8 to store tag");
-
-    struct TTypeListTagLoader {
-        IInputStream* InputStream;
-        TVar& Target;
-        int Tag;
-
-        void Load(TTypeList<>) {
-            ythrow TLoadEOF() << "Unexpected tag value " << Tag << " while loading TVariant";
-        }
-
-        template <class THead, class... TTail>
-        void Load(TTypeList<THead, TTail...>) {
-            if (Tag == TVar::template TagOf<THead>()) {
-                THead x;
-                ::Load(InputStream, x);
-                Target = std::move(x);
-            } else {
-                Load(TTypeList<TTail...>{});
-            }
-        }
-    };
 
     static void Save(IOutputStream* os, const TVar& v) {
         ::Save<ui8>(os, v.index());
@@ -659,9 +647,20 @@ struct TSerializer<TVariant<Args...>> {
     }
 
     static void Load(IInputStream* is, TVar& v) {
-        ui8 tag;
-        ::Load(is, tag);
-        TTypeListTagLoader{is, v, static_cast<int>(tag)}.Load(TTypeList<Args...>{});
+        ui8 index;
+        ::Load(is, index);
+        if (index >= sizeof...(Args)) {
+            ythrow TLoadEOF() << "Unexpected tag value " << index << " while loading TVariant";
+        }
+        LoadImpl(is, v, index, std::index_sequence_for<Args...>{});
+    }
+
+private:
+    template <size_t... Is>
+    static void LoadImpl(IInputStream* is, TVar& v, ui8 index, std::index_sequence<Is...>) {
+        using TLoader = void(*)(IInputStream*, TVar& v);
+        constexpr TLoader loaders[] = {::NPrivate::LoadVariantAlternative<TVar, Args, Is>...};
+        loaders[index](is, v);
     }
 };
 
