@@ -249,8 +249,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     documentCount = dataset.ObjectsData->GetObjectCount();
     const TObjectsDataProvider& objectsData = *dataset.ObjectsData;
-    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
-    CB_ENSURE(rawObjectsData, "Quantized dataProviders are not supported yet");
 
     TRestorableFastRng64 rand(0);
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {lossDescription}, model, &rand, localExecutor).TargetData;
@@ -279,8 +277,16 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             end = queriesInfo[queryEnd - 1].End;
         }
         TVector<TVector<TVector<double>>> shapValues;
-        CalcShapValuesInternalForFeature(preparedTrees, model, dataset, 0, begin, end, featuresCount,
-                                         rawObjectsData, &shapValues, localExecutor);
+        CalcShapValuesInternalForFeature(
+            preparedTrees,
+            model,
+            0,
+            begin,
+            end,
+            featuresCount,
+            objectsData,
+            &shapValues,
+            localExecutor);
 
         for (int featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
             NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
@@ -324,22 +330,15 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
-     if (type == EFstrType::LossFunctionChange) {
-         CB_ENSURE(dataset, "dataset is not provided");
-
-         const TObjectsDataProvider& objectsData = *(dataset->ObjectsData);
-         const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
-         CB_ENSURE(rawObjectsData); // Not supported for quantized pools
-         NCatboostOptions::TLossDescription lossDescription;
-         CB_ENSURE(TryGetLossDescription(model, lossDescription));
-         NCatboostOptions::TLossDescription loss_description;
-         loss_description.Load(ReadTJsonValue(model.ModelInfo.at("params"))["loss_function"]);
-         CB_ENSURE(IsGroupwiseMetric(loss_description.LossFunction), "Use loss change fstr only for groupwise metric");
-
-         return CalcFeatureEffectLossChange(model, *dataset, localExecutor);
-     } else {
-         return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
-     }
+    if (type == EFstrType::LossFunctionChange) {
+        CB_ENSURE(dataset, "dataset is not provided");
+        NCatboostOptions::TLossDescription lossDescription;
+        CB_ENSURE(TryGetLossDescription(model, lossDescription));
+        CB_ENSURE(IsGroupwiseMetric(lossDescription.LossFunction), "Use loss change fstr only for groupwise metric");
+        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
+    } else {
+        return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
+    }
 }
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(

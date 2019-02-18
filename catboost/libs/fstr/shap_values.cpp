@@ -613,22 +613,21 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 void CalcShapValuesInternalForFeature(
         TShapPreparedTrees& preparedTrees,
         const TFullModel& model,
-        const TDataProvider& dataset,
         int /*logPeriod*/,
         ui32 start,
         ui32 end,
         ui32 featuresCount,
-        const NCB::TRawObjectsDataProvider* rawObjectsData,
+        const NCB::TObjectsDataProvider& objectsData,
         TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
         NPar::TLocalExecutor* localExecutor
 ) {
-    CB_ENSURE(start <= end && end <= dataset.ObjectsGrouping->GetObjectCount());
+    CB_ENSURE(start <= end && end <= objectsData.GetObjectCount());
     const TObliviousTrees& forest = model.ObliviousTrees;
     shapValues->clear();
     const ui32 documentCount = end - start;
     shapValues->resize(documentCount);
 
-    TVector<ui8> binarizedFeaturesForBlock = GetModelCompatibleQuantizedFeatures(model, *rawObjectsData, start, end);
+    TVector<ui8> binarizedFeaturesForBlock = GetModelCompatibleQuantizedFeatures(model, objectsData, start, end);
     const ui32 documentBlockSize = CB_THREAD_LIMIT;
     for (ui32 startIdx = 0; startIdx < documentCount; startIdx += documentBlockSize) {
         NPar::TLocalExecutor::TExecRangeParams blockParams(startIdx, startIdx + Min(documentBlockSize, documentCount - startIdx));

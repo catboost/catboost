@@ -1935,6 +1935,59 @@ def test_loss_change_fstr_without_pairs(boosting_type):
     assert False
 
 
+def test_loss_change_fstr_on_different_pool_type():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_dsv_fstr_path = yatest.common.test_output_path('fstr.tsv')
+    output_quantized_fstr_path = yatest.common.test_output_path('fstr.tsv.quantized')
+    train_fstr_path = yatest.common.test_output_path('train_fstr.tsv')
+
+    def get_pool_path(set_name, is_quantized=False):
+        path = data_file('querywise', set_name)
+        return 'quantized://' + path + '.quantized' if is_quantized else path
+
+    cd_file = data_file('querywise', 'train.cd')
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'PairLogit',
+        '--learn-set', get_pool_path('train', True),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '-i', '10',
+        '-T', '4',
+        '--fstr-file', train_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+        '--model-file', output_model_path,
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH, 'fstr',
+        '--input-path', get_pool_path('train'),
+        '--column-description', cd_file,
+        '--input-pairs', data_file('querywise', 'train.pairs'),
+        '--model-file', output_model_path,
+        '--output-path', output_dsv_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH, 'fstr',
+        '--input-path', get_pool_path('train', True),
+        '--input-pairs', data_file('querywise', 'train.pairs'),
+        '--model-file', output_model_path,
+        '--output-path', output_quantized_fstr_path,
+        '--fstr-type', 'LossFunctionChange',
+    )
+    yatest.common.execute(cmd)
+
+    fstr_dsv = np.loadtxt(output_dsv_fstr_path, dtype='float', delimiter='\t')
+    fstr_quantized = np.loadtxt(output_quantized_fstr_path, dtype='float', delimiter='\t')
+    train_fstr = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
+    assert(np.allclose(fstr_dsv, fstr_quantized, rtol=1e-6))
+    assert(np.allclose(fstr_dsv, train_fstr, rtol=1e-6))
+
+
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
