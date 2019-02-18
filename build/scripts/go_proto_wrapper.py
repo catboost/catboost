@@ -8,15 +8,14 @@ import tempfile
 OUT_DIR_FLAG = '--go_out='
 
 
-def move_tree(src_dir, dst_dir):
-    for root, dirs, files in os.walk(src_dir):
-        subdir = os.path.relpath(root, src_dir)
-        dst_subdir = os.path.join(dst_dir, subdir)
-        for dir in dirs:
-            if not os.path.exists(dst_subdir):
-                os.mkdir(dst_subdir)
+def move_tree(src_root, dst_root):
+    for root, _, files in os.walk(src_root):
+        rel_dir = os.path.relpath(root, src_root)
+        dst_dir = os.path.join(dst_root, rel_dir)
+        if not os.path.exists(dst_dir):
+            os.mkdir(dst_dir)
         for file in files:
-            os.rename(os.path.join(root, file), os.path.join(dst_subdir, file))
+            os.rename(os.path.join(root, file), os.path.join(dst_dir, file))
 
 
 def main(arcadia_prefix, contrib_prefix, args):
