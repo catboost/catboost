@@ -143,14 +143,14 @@ size_t TThreadedLogBackend::QueueSize() const {
 }
 
 TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave)
-    : TThreadedLogBackend(slave)
-    , Slave_(slave)
+    : THolder<TLogBackend>(slave)
+    , TThreadedLogBackend(Get())
 {
 }
 
 TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave, size_t queuelen)
-    : TThreadedLogBackend(slave, queuelen)
-    , Slave_(slave)
+    : THolder<TLogBackend>(slave)
+    , TThreadedLogBackend(Get(), queuelen)
 {
 }
 
