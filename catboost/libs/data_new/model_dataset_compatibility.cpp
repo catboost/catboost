@@ -190,7 +190,7 @@ namespace NCB {
                 }
                 CB_ENSURE(
                     poolBucketIdx < quantizedBorders.size() &&
-                    FuzzyEquals(quantizedBorders[poolBucketIdx], feature.Borders[modelBucketIdx]),
+                    std::abs(quantizedBorders[poolBucketIdx] - feature.Borders[modelBucketIdx]) < std::numeric_limits<float>::epsilon(),
                     "Feature " << feature.FlatFeatureIndex << " model borders do not correspond to quantization borders"
                 );
                 addRemapBinIdx(modelBucketIdx);

@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         bool hasNans = false;
         TFullModel model;
         model.ObliviousTrees.FloatFeatures = {
-            TFloatFeature(hasNans, 0, 0, {0.f, 1.f, 2.f}),
+            TFloatFeature(hasNans, 0, 0, {1e-9, 1.f, 2.f}),
         };
 
         TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
