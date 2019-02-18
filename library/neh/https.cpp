@@ -14,7 +14,10 @@
 #include <contrib/libs/openssl/include/openssl/bio.h>
 #include <contrib/libs/openssl/include/openssl/x509v3.h>
 
+#include <library/openssl/compat/asn1.h> // Remove after OpenSSL upgrade
+#include <library/openssl/compat/bio.h> // Remove after OpenSSL upgrade
 #include <library/openssl/init/init.h>
+#include <library/openssl/io_method/io.h>
 #include <library/coroutine/listener/listen.h>
 #include <library/dns/cache.h>
 #include <library/http/misc/parsed_request.h>
@@ -172,82 +175,45 @@ namespace NNeh {
             };
             using TSslHolder = THolder<SSL, TSslDeleter>;
 
-            struct TBIODeleter {
-                static void Destroy(BIO* bio) {
-                    BIO_free(bio);
-                }
-            };
-            using TBIOHolder = TAutoPtr<BIO, TBIODeleter>;
-
             // read from bio and write via operator<<() to dst
             template <typename T>
-            class TBIOInput {
+            class TBIOInput : public NOpenSSL::TAbstractIO {
             public:
                 TBIOInput(T& dst)
                     : Dst_(dst)
-                    , BIO_(BIO_new(&Ops_))
                 {
-                    BIO_->ptr = this;
                 }
 
-                operator BIO*() {
-                    return BIO_.Get();
+                int Write(const char* data, size_t dlen, size_t* written) override {
+                    Dst_ << TStringBuf(data, dlen);
+                    *written = dlen;
+                    return 1;
+                }
+
+                int Read(char* data, size_t dlen, size_t* readbytes) override {
+                    Y_UNUSED(data);
+                    Y_UNUSED(dlen);
+                    Y_UNUSED(readbytes);
+                    return -1;
+                }
+
+                int Puts(const char* buf) override {
+                    Y_UNUSED(buf);
+                    return -1;
+                }
+
+                int Gets(char* buf, int len) override {
+                    Y_UNUSED(buf);
+                    Y_UNUSED(len);
+                    return -1;
+                }
+
+                void Flush() override {
                 }
 
             private:
                 T& Dst_;
-                TBIOHolder BIO_;
-
-            private:
-                static int BIOWriteMethod(BIO* bio, const char* buf, int len) {
-                    if (!bio->ptr) {
-                        return -1;
-                    }
-                    TBIOInput* in = static_cast<TBIOInput*>(bio->ptr);
-                    in->Dst_ << TStringBuf(buf, len);
-                    return len;
-                }
-
-                static int CreateMethod(BIO* bi) {
-                    bi->init = 1;
-                    bi->num = 0;
-                    bi->ptr = nullptr;
-                    bi->flags = 0;
-                    return 1;
-                }
-
-                static long CtrlMethod(BIO* /*b*/, int cmd, long /*num*/, void* /*ptr*/) {
-                    if (BIO_CTRL_FLUSH == cmd) {
-                        return 1;
-                    }
-                    return 0;
-                }
-
-                static int DestroyMethod(BIO* b) {
-                    if (!b) {
-                        return 0;
-                    }
-                    b->ptr = nullptr;
-                    b->init = 0;
-                    b->flags = 0;
-                    return 1;
-                }
-
-                static BIO_METHOD Ops_;
             };
-
-            template <typename T>
-            BIO_METHOD TBIOInput<T>::Ops_ = {
-                (100 | 0x400),
-                "TBIOInput",
-                TBIOInput<T>::BIOWriteMethod,
-                nullptr, // read
-                nullptr, // puts
-                nullptr, // gets
-                TBIOInput<T>::CtrlMethod,
-                TBIOInput<T>::CreateMethod,
-                TBIOInput<T>::DestroyMethod,
-                nullptr};
         }
 
         class TSslException: public yexception {
@@ -334,7 +300,7 @@ namespace NNeh {
                     const GENERAL_NAME* name = sk_GENERAL_NAME_value(names, i);
 
                     if (name->type == GEN_DNS) {
-                        TStringBuf dnsName((char*)ASN1_STRING_data(name->d.dNSName), ASN1_STRING_length(name->d.dNSName));
+                        TStringBuf dnsName((const char*)ASN1_STRING_get0_data(name->d.dNSName), ASN1_STRING_length(name->d.dNSName));
                         if (MatchDomainName(dnsName, hostname)) {
                             result = MATCH_FOUND;
                             break;
@@ -361,7 +327,7 @@ namespace NNeh {
                     return ERROR;
                 }
 
-                TStringBuf commonName((char*)ASN1_STRING_data(commonNameAsn1), ASN1_STRING_length(commonNameAsn1));
+                TStringBuf commonName((const char*)ASN1_STRING_get0_data(commonNameAsn1), ASN1_STRING_length(commonNameAsn1));
 
                 return MatchDomainName(commonName, hostname)
                            ? MATCH_FOUND
@@ -915,33 +881,18 @@ namespace NNeh {
             }
         };
 
-        class TContBIO {
-        private:
-            BIO* CreateBIO() {
-                TBIOHolder bio(BIO_new(&CarrierSslOps_));
-                if (Y_UNLIKELY(!bio)) {
-                    ythrow TSslException(AsStringBuf("BIO_new"));
-                }
-                bio->ptr = this;
-                return bio.Release();
-            }
-
+        class TContBIO : public NOpenSSL::TAbstractIO {
         public:
             TContBIO(SOCKET s, const TAtomicBool* canceled = nullptr)
                 : Timeout_(TDuration::MicroSeconds(10000))
                 , S_(s)
                 , Canceled_(canceled)
                 , Cont_(nullptr)
-                , Bio_(CreateBIO())
             {
             }
 
             SOCKET Socket() {
                 return S_;
-            }
-
-            BIO* Bio() {
-                return Bio_;
             }
 
             int PollT(int what, const TDuration& timeout) {
@@ -986,114 +937,76 @@ namespace NNeh {
                 Cont_ = nullptr;
             }
 
-        private:
-            TDuration Timeout_;
-            SOCKET S_;
-            const TAtomicBool* Canceled_;
-            TCont* Cont_;
-            BIO* Bio_;
-
-        private:
-            static int BIOReadMethod(BIO* bio, char* buf, int len) {
-                if (Y_UNLIKELY(!bio->ptr)) {
+            int Write(const char* data, size_t dlen, size_t* written) override {
+                if (Y_UNLIKELY(!Cont_)) {
                     return -1;
                 }
 
-                TContBIO* conn = static_cast<TContBIO*>(bio->ptr);
-                TCont* c = conn->Cont_;
-                if (Y_UNLIKELY(!c)) {
+                Cdbg << '[' << S_ << AsStringBuf("] TContBIO::Write(") << dlen << ')' << Endl;
+
+                while (true) {
+                    auto done = Cont_->WriteI(S_, data, dlen);
+                    if (done.Status() != EAGAIN) {
+                        *written = done.Checked();
+                        return 1;
+                    }
+                }
+            }
+
+            int Read(char* data, size_t dlen, size_t* readbytes) override {
+                if (Y_UNLIKELY(!Cont_)) {
                     return -1;
                 }
 
-                SOCKET fd = conn->S_;
-                const TAtomicBool* canceled = conn->Canceled_;
+                Cdbg << '[' << S_ << AsStringBuf("] TContBIO::Read(") << dlen << ')' << Endl;
 
-                Cdbg << '[' << fd << AsStringBuf("] TSSLConnection::BIOReadMethod(") << len << ')' << Endl;
-
-                if (!canceled) {
+                if (!Canceled_) {
                     while (true) {
-                        auto done = c->ReadI(fd, buf, len);
+                        auto done = Cont_->ReadI(S_, data, dlen);
                         if (EAGAIN != done.Status()) {
-                            return done.Processed();
+                            *readbytes = done.Processed();
+                            return 1;
                         }
                     }
                 }
 
                 while (true) {
-                    if (*canceled) {
+                    if (*Canceled_) {
                         return SSL_RVAL_TIMEOUT;
                     }
 
-                    TContIOStatus ioStat(c->ReadT(fd, buf, len, conn->Timeout_));
+                    TContIOStatus ioStat(Cont_->ReadT(S_, data, dlen, Timeout_));
                     if (ioStat.Status() == ETIMEDOUT) {
                         //increase to 1.5 times every iteration (to 1sec floor)
-                        conn->Timeout_ = TDuration::MicroSeconds(Min<ui64>(1000000, conn->Timeout_.MicroSeconds() + (conn->Timeout_.MicroSeconds() >> 1)));
+                        Timeout_ = TDuration::MicroSeconds(Min<ui64>(1000000, Timeout_.MicroSeconds() + (Timeout_.MicroSeconds() >> 1)));
                         continue;
                     }
 
-                    return ioStat.Processed();
-                }
-            }
-
-            static int BIOWriteMethod(BIO* bio, const char* buf, int len) {
-                if (Y_UNLIKELY(!bio->ptr)) {
-                    return -1;
-                }
-
-                auto* conn = static_cast<TContBIO*>(bio->ptr);
-                if (Y_UNLIKELY(!conn->Cont_)) {
-                    return -1;
-                }
-
-                Cdbg << '[' << conn->S_ << AsStringBuf("] TSSLConnection::BIOWriteMethod(") << len << ')' << Endl;
-
-                while (true) {
-                    auto done = conn->Cont_->WriteI(conn->S_, buf, len);
-                    if (done.Status() != EAGAIN) {
-                        return done.Checked();
-                    }
-                }
-            }
-
-            static int BIOCreateMethod(BIO* bi) {
-                bi->init = 1;
-                bi->num = 0;
-                bi->ptr = nullptr;
-                bi->flags = 0;
-                return 1;
-            }
-
-            static long BIOCtrlMethod(BIO* /*bio*/, int cmd, long /*num*/, void* /*ptr*/) {
-                if (BIO_CTRL_FLUSH == cmd) {
+                    *readbytes = ioStat.Processed();
                     return 1;
                 }
-                return 0;
             }
 
-            static int BIODestroyMethod(BIO* b) {
-                if (!b) {
-                    return 0;
-                }
-                b->ptr = nullptr;
-                b->init = 0;
-                b->flags = 0;
-                return 1;
+            int Puts(const char* buf) override {
+                Y_UNUSED(buf);
+                return -1;
             }
 
-            static BIO_METHOD CarrierSslOps_;
+            int Gets(char* buf, int size) override {
+                Y_UNUSED(buf);
+                Y_UNUSED(size);
+                return -1;
+            }
+
+            void Flush() override {
+            }
+
+        private:
+            TDuration Timeout_;
+            SOCKET S_;
+            const TAtomicBool* Canceled_;
+            TCont* Cont_;
         };
-
-        BIO_METHOD TContBIO::CarrierSslOps_ = {
-            (100 | 0x400),
-            "TContBIO",
-            TContBIO::BIOWriteMethod,
-            TContBIO::BIOReadMethod,
-            nullptr,
-            nullptr,
-            TContBIO::BIOCtrlMethod,
-            TContBIO::BIOCreateMethod,
-            TContBIO::BIODestroyMethod,
-            nullptr};
 
         class TSslIOStream: public IInputStream, public IOutputStream {
         protected:
@@ -1280,9 +1193,8 @@ namespace NNeh {
                     SSL_set_info_callback(Ssl_.Get(), InfoCB);
                 }
 
-                THolder<BIO> bio = Connection_->Bio();
-                SSL_set_bio(Ssl_.Get(), bio.Get(), bio.Get());
-                Y_UNUSED(bio.Release());
+                BIO_up_ref(*Connection_); // SSL_set_bio consumes only one reference if rbio and wbio are the same
+                SSL_set_bio(Ssl_.Get(), *Connection_, *Connection_);
 
                 const TString hostname(Location_.Host);
                 const int rev = SSL_set_tlsext_host_name(Ssl_.Get(), hostname.data());
@@ -1485,9 +1397,8 @@ namespace NNeh {
                             SSL_set_info_callback(Ssl_.Get(), InfoCB);
                         }
 
-                        THolder<BIO> bio = Connection_->Bio();
-                        SSL_set_bio(Ssl_.Get(), bio.Get(), bio.Get());
-                        Y_UNUSED(bio.Release());
+                        BIO_up_ref(*Connection_); // SSL_set_bio consumes only one reference if rbio and wbio are the same
+                        SSL_set_bio(Ssl_.Get(), *Connection_, *Connection_);
 
                         const int rc = SSL_accept(Ssl_.Get());
                         if (1 != rc) {
