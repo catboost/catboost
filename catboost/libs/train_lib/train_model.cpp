@@ -715,6 +715,8 @@ static void TrainModel(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
+    Cout << "Number of samples: " << trainingData.Learn->GetObjectCount() << Endl;
+    Cout << "Number of features: " << trainingData.Learn->MetaInfo.GetFeatureCount() << Endl;
 
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
@@ -803,7 +805,6 @@ void TrainModel(
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
     const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
-
     TrainModel(
         updatedTrainJson,
         outputOptions,
@@ -817,7 +818,6 @@ void TrainModel(
         nullptr,
         &executor
     );
-
     auto modelFormat = outputOptions.GetModelFormats()[0];
     const auto fullModelPath = NCatboostOptions::AddExtension(
         modelFormat,
