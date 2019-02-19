@@ -23,6 +23,7 @@
 #include <util/system/spinlock.h>
 #include <util/system/yassert.h>
 #include <util/thread/factory.h>
+#include <util/system/sanitizers.h>
 
 #include <atomic>
 
@@ -62,18 +63,34 @@ using namespace std::placeholders;
 // '->' -- weak_ptr
 //
 
-TDuration THttp2Options::ConnectTimeout = TDuration::MilliSeconds(1000);
-TDuration THttp2Options::SymptomSlowConnect = TDuration::MilliSeconds(10);
+static TDuration FixTimeoutForSanitizer(const TDuration timeout) {
+    ui64 multiplier = 1;
+    if (NSan::ASanIsOn()) {
+        // https://github.com/google/sanitizers/wiki/AddressSanitizer
+        multiplier = 4;
+    } else if (NSan::MSanIsOn()) {
+        // via https://github.com/google/sanitizers/wiki/MemorySanitizer
+        multiplier = 3;
+    } else if (NSan::TSanIsOn()) {
+        // via https://clang.llvm.org/docs/ThreadSanitizer.html
+        multiplier = 15;
+    }
+
+    return TDuration::FromValue(timeout.GetValue() * multiplier);
+}
+
+TDuration THttp2Options::ConnectTimeout = FixTimeoutForSanitizer(TDuration::MilliSeconds(1000));
+TDuration THttp2Options::SymptomSlowConnect = FixTimeoutForSanitizer(TDuration::MilliSeconds(10));
 size_t THttp2Options::InputBufferSize = 16 * 1024;
 bool THttp2Options::KeepInputBufferForCachedConnections = false;
 size_t THttp2Options::AsioThreads = 4;
 size_t THttp2Options::AsioServerThreads = 4;
 bool THttp2Options::EnsureSendingCompleteByAck = false;
 int THttp2Options::Backlog = 100;
-TDuration THttp2Options::ServerInputDeadline = TDuration::MilliSeconds(500);
+TDuration THttp2Options::ServerInputDeadline = FixTimeoutForSanitizer(TDuration::MilliSeconds(500));
 TDuration THttp2Options::ServerOutputDeadline = TDuration::Max();
-TDuration THttp2Options::ServerInputDeadlineKeepAliveMax = TDuration::Seconds(120);
-TDuration THttp2Options::ServerInputDeadlineKeepAliveMin = TDuration::Seconds(10);
+TDuration THttp2Options::ServerInputDeadlineKeepAliveMax = FixTimeoutForSanitizer(TDuration::Seconds(120));
+TDuration THttp2Options::ServerInputDeadlineKeepAliveMin = FixTimeoutForSanitizer(TDuration::Seconds(10));
 bool THttp2Options::ServerUseDirectWrite = false;
 bool THttp2Options::UseResponseAsErrorMessage = false;
 bool THttp2Options::FullHeadersAsErrorMessage = false;
