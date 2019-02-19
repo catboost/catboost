@@ -23,7 +23,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {-0.1f, 0.f, 1.f, 1.5f, 2.f, 3.f});
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(1), {0.f});
 
-        auto floatBinsRemap =GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
+        auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
 
         UNIT_ASSERT(Equal<ui8>(floatBinsRemap[0], {0, 0, 1, 2, 2, 3, 3}));
     }
