@@ -3036,9 +3036,9 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
             if with_resume_from_snapshot:
                 final_training_stdout_len_with_snapshot = final_training_stdout_len
 
-                assert first_training_stdout_len == expected_metric_lines(0, FIRST_ITERATIONS, metric_period, False) + 4
-                assert final_training_stdout_len_wo_snapshot == expected_metric_lines(0, models[0].tree_count_, metric_period, True) + 5
-                assert final_training_stdout_len_with_snapshot == expected_metric_lines(FIRST_ITERATIONS, models[0].tree_count_, metric_period, True) + 5
+                assert first_training_stdout_len == expected_metric_lines(0, FIRST_ITERATIONS, metric_period, False) + 6
+                assert final_training_stdout_len_wo_snapshot == expected_metric_lines(0, models[0].tree_count_, metric_period, True) + 7
+                assert final_training_stdout_len_with_snapshot == expected_metric_lines(FIRST_ITERATIONS, models[0].tree_count_, metric_period, True) + 7
 
             else:
                 final_training_stdout_len_wo_snapshot = final_training_stdout_len
