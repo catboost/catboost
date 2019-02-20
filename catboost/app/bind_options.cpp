@@ -318,13 +318,10 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("prediction-type")
         .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal. CPU only")
         .Handler1T<TString>([plainJsonPtr](const TString& predictionTypes) {
-            (*plainJsonPtr)["output_columns"].AppendValue("DocId");
             for (const auto& t : StringSplitter(predictionTypes).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["prediction_type"].AppendValue(t.Token());
-                (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
             }
             CB_ENSURE(!(*plainJsonPtr)["prediction_type"].GetArray().empty(), "Empty prediction type list " << predictionTypes);
-            (*plainJsonPtr)["output_columns"].AppendValue(ToString(EColumn::Label));
         });
 
     parser.AddLongOption('i', "iterations", "iterations count")
