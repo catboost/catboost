@@ -739,15 +739,16 @@ const size_t TStringBase<TDerived, TCharType, TTraitsType>::npos;
 template <typename TDerived, typename TCharType, typename TTraits>
 class TBasicString: public TStringBase<TDerived, TCharType, TTraits> {
 public:
+    // TODO: Move to private section
     using TSelf = TBasicString;
     using TBase = TStringBase<TDerived, TCharType, TTraits>;
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
     using TFixedString = typename TBase::TFixedString;
 
-    using TdChar = TCharType;
-    using TCharRef = TBasicCharRef<TDerived>;
-    using char_type = TCharType;
+    using TdChar = TCharType; // TODO: DROP
+    using TCharRef = TBasicCharRef<TDerived>; // TODO: reference
+    using char_type = TCharType; // TODO: DROP
     using value_type = TCharType;
     using traits_type = TTraits;
 
