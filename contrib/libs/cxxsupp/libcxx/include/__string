@@ -214,7 +214,13 @@ struct _LIBCPP_TEMPLATE_VIS char_traits<char>
     static _LIBCPP_CONSTEXPR_AFTER_CXX14
     int compare(const char_type* __s1, const char_type* __s2, size_t __n) _NOEXCEPT;
 #ifdef _LIBCPP_COMPILER_MSVC
-    static inline size_t length(const char_type* __s)  _NOEXCEPT {return strlen(__s);}
+    static inline size_t _LIBCPP_CONSTEXPR_AFTER_CXX14 length(const char_type* __s)  _NOEXCEPT
+        {
+            size_t __len = 0;
+            for (; !eq(*__s, char_type(0)); ++__s)
+                ++__len;
+            return __len;
+        }
 #else
     static inline size_t _LIBCPP_CONSTEXPR_AFTER_CXX14
     length(const char_type* __s)  _NOEXCEPT {return __builtin_strlen(__s);}
