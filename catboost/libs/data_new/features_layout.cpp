@@ -175,12 +175,12 @@ ui32 TFeaturesLayout::GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureTyp
 }
 
 ui32 TFeaturesLayout::GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
-    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx) && "Training and validation sets have different number of features");
+    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
     return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
 }
 
 EFeatureType TFeaturesLayout::GetExternalFeatureType(ui32 externalFeatureIdx) const {
-    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx) && "Training and validation sets have different number of features");
+    Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
     return ExternalIdxToMetaInfo[externalFeatureIdx].Type;
 }
 
