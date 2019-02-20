@@ -561,7 +561,7 @@ public:
         UNIT_ASSERT_VALUES_EQUAL(str.front(), (ui8)'r');
     }
 
-    void TestInterators() {
+    void TestIterators() {
         const char_type chars[] = {'f', 'o', 0};
 
         TStringType str = chars;
@@ -599,7 +599,7 @@ public:
         UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
     }
 
-    void TestReverseInterators() {
+    void TestReverseIterators() {
         const char_type chars[] = {'f', 'o', 0};
 
         TStringType str = chars;
@@ -1812,8 +1812,8 @@ public:
     UNIT_TEST(TestCharRef);
     UNIT_TEST(TestBack)
     UNIT_TEST(TestFront)
-    UNIT_TEST(TestInterators);
-    UNIT_TEST(TestReverseInterators);
+    UNIT_TEST(TestIterators);
+    UNIT_TEST(TestReverseIterators);
     //UNIT_TEST(TestOperatorsCI); must fail
     UNIT_TEST_SUITE_END();
 };
@@ -1842,8 +1842,8 @@ public:
     UNIT_TEST(TestBack);
     UNIT_TEST(TestFront)
     UNIT_TEST(TestDecodingMethods);
-    UNIT_TEST(TestInterators);
-    UNIT_TEST(TestReverseInterators);
+    UNIT_TEST(TestIterators);
+    UNIT_TEST(TestReverseIterators);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -1954,8 +1954,8 @@ public:
     UNIT_TEST(TestFront)
     UNIT_TEST(TestDecodingMethods);
     UNIT_TEST(TestDecodingMethodsMixedStr);
-    UNIT_TEST(TestInterators);
-    UNIT_TEST(TestReverseInterators);
+    UNIT_TEST(TestIterators);
+    UNIT_TEST(TestReverseIterators);
     UNIT_TEST_SUITE_END();
 
 private:
