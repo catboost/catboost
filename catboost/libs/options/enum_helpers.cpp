@@ -15,10 +15,9 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
         ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
         ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
         ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
-        ELossFunction::Lq};
+        ELossFunction::Lq, ELossFunction::Huber};
     return allObjectives;
 }
-
 
 bool IsSingleDimensionalError(ELossFunction lossFunction) {
     return (lossFunction != ELossFunction::MultiClass &&
@@ -146,7 +145,8 @@ bool IsRegressionObjective(ELossFunction lossFunction) {
             lossFunction == ELossFunction::Quantile ||
             lossFunction == ELossFunction::RMSE ||
             lossFunction == ELossFunction::LogLinQuantile ||
-            lossFunction == ELossFunction::Lq
+            lossFunction == ELossFunction::Lq ||
+            lossFunction == ELossFunction::Huber
     );
 }
 
@@ -273,6 +273,17 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
         case ELossFunction::NDCG:
         case ELossFunction::AUC:
         case ELossFunction::MedianAbsoluteError:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool IsUserDefined(ELossFunction lossFunction) {
+    switch (lossFunction) {
+        case ELossFunction::Custom:
+        case ELossFunction::UserPerObjMetric:
+        case ELossFunction::UserQuerywiseMetric:
             return true;
         default:
             return false;

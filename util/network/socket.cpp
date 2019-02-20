@@ -917,14 +917,16 @@ TSocketOutput::~TSocketOutput() {
 }
 
 void TSocketOutput::DoWrite(const void* buf, size_t len) {
+    size_t send = 0;
     while (len) {
         const ssize_t ret = S_.Send(buf, len);
 
         if (ret < 0) {
-            ythrow TSystemError(-(int)ret) << "can not write to socket output stream";
+            ythrow TSystemError(-(int)ret) << "can not write to socket output stream; " << send << " bytes already send";
         }
         buf = (const char*)buf + ret;
         len -= ret;
+        send += ret;
     }
 }
 

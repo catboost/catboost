@@ -1,4 +1,4 @@
-from .core import Pool, CatboostError, get_catboost_bin_module, ARRAY_TYPES
+from .core import Pool, CatBoostError, get_catboost_bin_module, ARRAY_TYPES
 from collections import defaultdict
 import numpy as np
 
@@ -38,15 +38,15 @@ def create_cd(
                     value = [value]
                 for index in value:
                     if not isinstance(index, int):
-                        raise CatboostError('Unsupported index type. Expected int, got {}'.format(type(index)))
+                        raise CatBoostError('Unsupported index type. Expected int, got {}'.format(type(index)))
                     if index in _column_description:
-                        raise CatboostError('The index {} occurs more than once'.format(index))
+                        raise CatBoostError('The index {} occurs more than once'.format(index))
                     _column_description[index] = ['Categ', ''] if key == 'cat_features' else ['Auxiliary', '']
             elif key not in ('feature_names', 'output_path'):
                 if not isinstance(value, int):
-                    raise CatboostError('Unsupported index type. Expected int, got {}'.format(type(value)))
+                    raise CatBoostError('Unsupported index type. Expected int, got {}'.format(type(value)))
                 if value in _column_description:
-                    raise CatboostError('The index {} occurs more than once'.format(value))
+                    raise CatBoostError('The index {} occurs more than once'.format(value))
                 _column_description[value] = [_from_param_to_cd[key], '']
     if feature_names is not None:
         for feature_index, name in feature_names.items():
@@ -63,6 +63,34 @@ def create_cd(
 
 
 def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=-1):
+    """
+    Evaluate metrics with raw approxes and labels.
+
+    Parameters
+    ----------
+    label : list or numpy.arrays or pandas.DataFrame or pandas.Series
+        Object labels.
+
+    approx : list or numpy.arrays or pandas.DataFrame or pandas.Series
+        Object approxes.
+
+    metric : string
+        Metric name.
+
+    weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        Object weights.
+
+    group_id : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        Object group ids.
+
+    thread_count : int, optional (default=-1)
+        Number of threads to work with.
+        If -1, then the number of threads is set to the number of cores.
+
+    Returns
+    -------
+    metric results : list with metric values.
+    """
     if len(approx) == 0:
         approx = [[]]
     if not isinstance(approx[0], ARRAY_TYPES):
@@ -101,10 +129,10 @@ def get_roc_curve(model, data, thread_count=-1):
     if type(data) == Pool:
         data = [data]
     if not isinstance(data, list):
-        raise CatboostError('data must be a catboost.Pool or list of pools.')
+        raise CatBoostError('data must be a catboost.Pool or list of pools.')
     for pool in data:
         if not isinstance(pool, Pool):
-            raise CatboostError('one of data pools is not catboost.Pool')
+            raise CatBoostError('one of data pools is not catboost.Pool')
 
     return _get_roc_curve(model._object, data, thread_count)
 
@@ -135,13 +163,13 @@ def get_fpr_curve(model=None, data=None, curve=None, thread_count=-1):
     """
     if curve is not None:
         if data is not None:
-            raise CatboostError('Only one of the parameters data and curve should be set.')
+            raise CatBoostError('Only one of the parameters data and curve should be set.')
         if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
-            raise CatboostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
+            raise CatBoostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
         fpr, thresholds = curve[0][:], curve[2][:]
     else:
         if model is None or data is None:
-            raise CatboostError('model and data parameters should be set when curve parameter is None.')
+            raise CatBoostError('model and data parameters should be set when curve parameter is None.')
         fpr, _, thresholds = get_roc_curve(model, data, thread_count)
     return thresholds, fpr
 
@@ -172,13 +200,13 @@ def get_fnr_curve(model=None, data=None, curve=None, thread_count=-1):
     """
     if curve is not None:
         if data is not None:
-            raise CatboostError('Only one of the parameters data and curve should be set.')
+            raise CatBoostError('Only one of the parameters data and curve should be set.')
         if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
-            raise CatboostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
+            raise CatBoostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
         tpr, thresholds = curve[1], curve[2][:]
     else:
         if model is None or data is None:
-            raise CatboostError('model and data parameters should be set when curve parameter is None.')
+            raise CatBoostError('model and data parameters should be set when curve parameter is None.')
         _, tpr, thresholds = get_roc_curve(model, data, thread_count)
     fnr = np.array([1 - x for x in tpr])
     return thresholds, fnr
@@ -215,20 +243,20 @@ def select_threshold(model=None, data=None, curve=None, FPR=None, FNR=None, thre
     """
     if data is not None:
         if curve is not None:
-            raise CatboostError('Only one of the parameters data and curve should be set.')
+            raise CatBoostError('Only one of the parameters data and curve should be set.')
         if model is None:
-            raise CatboostError('model and data parameters should be set when curve parameter is None.')
+            raise CatBoostError('model and data parameters should be set when curve parameter is None.')
         if type(data) == Pool:
             data = [data]
         if not isinstance(data, list):
-            raise CatboostError('data must be a catboost.Pool or list of pools.')
+            raise CatBoostError('data must be a catboost.Pool or list of pools.')
         for pool in data:
             if not isinstance(pool, Pool):
-                raise CatboostError('one of data pools is not catboost.Pool')
+                raise CatBoostError('one of data pools is not catboost.Pool')
     elif curve is not None:
         if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
-            raise CatboostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
+            raise CatBoostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
     else:
-        raise CatboostError('One of the parameters data and curve should be set.')
+        raise CatBoostError('One of the parameters data and curve should be set.')
 
     return _select_threshold(model._object, data, curve, FPR, FNR, thread_count)

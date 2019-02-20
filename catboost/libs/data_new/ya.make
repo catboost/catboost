@@ -22,6 +22,7 @@ SRCS(
     objects.cpp
     objects_grouping.cpp
     order.cpp
+    packed_binary_features.cpp
     quantization.cpp
     quantized_features_info.cpp
     target.cpp

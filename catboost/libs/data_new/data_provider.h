@@ -30,6 +30,9 @@ namespace NCB {
 
     using TRawBuilderData = TBuilderData<TRawObjectsData>;
     using TQuantizedBuilderData = TBuilderData<TQuantizedObjectsData>;
+    using TQuantizedForCPUBuilderData = TBuilderData<TQuantizedForCPUObjectsData>;
+
+    TQuantizedBuilderData CastToBase(TQuantizedForCPUBuilderData&& builderData);
 
 
     template <class TTObjectsDataProvider>
@@ -73,7 +76,6 @@ namespace NCB {
                 return nullptr;
             } else {
                 CB_ENSURE_INTERNAL(RefCount() == 1, "Can't move from shared object");
-                ;
                 return MakeIntrusive<TDataProviderTemplate<TNewObjectsDataProvider>>(
                     std::move(MetaInfo),
                     TIntrusivePtr<TNewObjectsDataProvider>(newObjectsDataProvider),

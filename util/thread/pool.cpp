@@ -600,27 +600,6 @@ size_t TSimpleThreadPool::Size() const noexcept {
 }
 
 namespace {
-    class TThrFuncObj: public IObjectInQueue {
-    public:
-        TThrFuncObj(const TThreadFunction& func)
-            : Func(func)
-        {
-        }
-
-        TThrFuncObj(TThreadFunction&& func)
-            : Func(std::move(func))
-        {
-        }
-
-        void Process(void*) override {
-            THolder<TThrFuncObj> self(this);
-            Func();
-        }
-
-    private:
-        TThreadFunction Func;
-    };
-
     class TOwnedObjectInQueue: public IObjectInQueue {
     private:
         THolder<IObjectInQueue> Owned;
@@ -642,21 +621,8 @@ void IThreadPool::SafeAdd(IObjectInQueue* obj) {
     Y_ENSURE_EX(Add(obj), TThreadPoolException() << AsStringBuf("can not add object to queue"));
 }
 
-void IThreadPool::SafeAddFunc(TThreadFunction func) {
-    Y_ENSURE_EX(AddFunc(std::move(func)), TThreadPoolException() << AsStringBuf("can not add function to queue"));
-}
-
 void IThreadPool::SafeAddAndOwn(TAutoPtr<IObjectInQueue> obj) {
     Y_ENSURE_EX(AddAndOwn(obj), TThreadPoolException() << AsStringBuf("can not add to queue and own"));
-}
-
-bool IThreadPool::AddFunc(TThreadFunction func) {
-    THolder<IObjectInQueue> wrapper(new ::TThrFuncObj(std::move(func)));
-    bool added = Add(wrapper.Get());
-    if (added) {
-        Y_UNUSED(wrapper.Release());
-    }
-    return added;
 }
 
 bool IThreadPool::AddAndOwn(TAutoPtr<IObjectInQueue> obj) {

@@ -44,6 +44,21 @@ def print_java_footer(result):
     ]))
 
 
+def print_go_header(result):
+    result.write('\n'.join([
+        'package buildinfo',
+        '',
+        'var buildinfo = map[string]string{',
+        '',
+    ]))
+
+
+def print_go_footer(result):
+    result.write('\n'.join([
+        '}'
+    ]))
+
+
 def escape_special_symbols(strval):
     retval = ""
     for c in strval:
@@ -70,6 +85,10 @@ def escape_line_feed_java(strval):
 
 def escaped_define(strkey, strval):
     return "#define " + strkey + " \"" + escape_line_feed(escape_special_symbols(strval)) + "\""
+
+
+def escaped_go_map_key(strkey, strval):
+    return '\t' + '"' + strkey + '": `' + strval + '`,'
 
 
 def escaped_constant(strkey, strval):
@@ -421,7 +440,10 @@ def main(header, footer, line):
     footer(result)
 
 if __name__ == "__main__":
-    if 'output-java-class' in sys.argv:
+    if 'output-go' in sys.argv:
+        sys.argv.remove('output-go')
+        main(print_go_header, print_go_footer, escaped_go_map_key)
+    elif 'output-java-class' in sys.argv:
         sys.argv.remove('output-java-class')
         main(print_java_header, print_java_footer, escaped_constant)
     else:

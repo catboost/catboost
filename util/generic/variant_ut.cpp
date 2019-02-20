@@ -159,25 +159,37 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         static_assert(std::is_same<TVariantAlternative<0, TV1>::type, int>::value, "");
         static_assert(std::is_same<TVariantAlternative<1, TV1>::type, double>::value, "");
         static_assert(std::is_same<TVariantAlternative<2, TV1>::type, short>::value, "");
+        static_assert(TVariantIndexV<int, TV1> == 0);
+        static_assert(TVariantIndexV<double, TV1> == 1);
+        static_assert(TVariantIndexV<short, TV1> == 2);
         static_assert(TVariantSize<TV1>::value == 3, "");
 
         static_assert(std::is_same<TVariantAlternative<0, TV2>::type, TString>::value, "");
         static_assert(std::is_same<TVariantAlternative<1, TV2>::type, double>::value, "");
+        static_assert(TVariantIndexV<TString, TV2> == 0);
+        static_assert(TVariantIndexV<double, TV2> == 1);
         static_assert(TVariantSize<TV2>::value == 2, "");
 
         static_assert(std::is_same<TVariantAlternative<0, TV3>::type, S>::value, "");
         static_assert(std::is_same<TVariantAlternative<1, TV3>::type, TNonCopyable>::value, "");
+        static_assert(TVariantIndexV<S, TV3> == 0);
+        static_assert(TVariantIndexV<TNonCopyable, TV3> == 1);
         static_assert(TVariantSize<TV3>::value == 2, "");
 
         static_assert(std::is_same<TVariantAlternative<0, TV4>::type, TNonCopyable1>::value, "");
         static_assert(std::is_same<TVariantAlternative<1, TV4>::type, int>::value, "");
+        static_assert(TVariantIndexV<TNonCopyable1, TV4> == 0);
+        static_assert(TVariantIndexV<int, TV4> == 1);
         static_assert(TVariantSize<TV4>::value == 2, "");
 
         static_assert(std::is_same<TVariantAlternative<0, TV5>::type, TMonostate>::value, "");
+        static_assert(TVariantIndexV<TMonostate, TV5> == 0);
         static_assert(TVariantSize<TV5>::value == 1, "");
 
         static_assert(std::is_same<TVariantAlternative<0, TV6>::type, TMonostate>::value, "");
         static_assert(std::is_same<TVariantAlternative<1, TV6>::type, size_t>::value, "");
+        static_assert(TVariantIndexV<TMonostate, TV6> == 0);
+        static_assert(TVariantIndexV<size_t, TV6> == 1);
         static_assert(TVariantSize<TV6>::value == 2, "");
     }
 
@@ -187,7 +199,6 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT(HoldsAlternative<int>(v));
 
         UNIT_ASSERT_EQUAL(0, v.index());
-        UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
 
         UNIT_ASSERT_EQUAL(123, Get<int>(v));
         UNIT_ASSERT(GetIf<int>(&v));
@@ -201,8 +212,6 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
         UNIT_ASSERT(!HoldsAlternative<int>(v));
 
         UNIT_ASSERT_EQUAL(1, v.index());
-        UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
-        UNIT_ASSERT_EQUAL(1, v.TagOf<double>());
 
         UNIT_ASSERT_EQUAL(3.14, Get<double>(v));
         UNIT_ASSERT(GetIf<double>(&v));
@@ -456,7 +465,6 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(123, Get<S>(var).Value);
-            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.index());
             var.emplace<0>();
             UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
@@ -465,7 +473,6 @@ Y_UNIT_TEST_SUITE(TVariantTest) {
             UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(321, Get<S>(var).Value);
-            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.index());
         }
         UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
         UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);

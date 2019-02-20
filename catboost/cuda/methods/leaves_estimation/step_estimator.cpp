@@ -73,7 +73,7 @@ namespace NCatboostCuda {
             case ELeavesEstimationStepBacktracking::None: {
                 return new TSkipStepEstimation;
             }
-            case ELeavesEstimationStepBacktracking::AnyImprovment: {
+            case ELeavesEstimationStepBacktracking::AnyImprovement: {
                 return new TSimpleStepEstimator(currentPoint);
             }
             case ELeavesEstimationStepBacktracking::Armijo: {

@@ -64,20 +64,30 @@ void TSystemError::Init() {
     exc << AsStringBuf(") ");
 }
 
-static inline const char* ZeroTerminate(TTempBuf& buf) {
-    char* end = (char*)buf.Current();
+NPrivateException::yexception::yexception() {
+    ZeroTerminate();
+}
 
-    if (!buf.Left()) {
+TStringBuf NPrivateException::yexception::AsStrBuf() const {
+    if (Buf_.Left()) {
+        return TStringBuf(Buf_.Data(), Buf_.Filled());
+    }
+
+    return TStringBuf(Buf_.Data(), Buf_.Filled() - 1);
+}
+
+void NPrivateException::yexception::ZeroTerminate() noexcept {
+    char* end = (char*)Buf_.Current();
+
+    if (!Buf_.Left()) {
         --end;
     }
 
     *end = 0;
-
-    return buf.Data();
 }
 
 const char* NPrivateException::yexception::what() const noexcept {
-    return ZeroTerminate(Buf_);
+    return Buf_.Data();
 }
 
 const TBackTrace* NPrivateException::yexception::BackTrace() const noexcept {

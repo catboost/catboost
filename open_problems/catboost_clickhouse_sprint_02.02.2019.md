@@ -76,7 +76,7 @@ It is a useful feature to be able to avoid unnecessary memory copying and CPU re
 
 See issue <https://github.com/catboost/catboost/issues/549>.
 
-The task is to make a boolean parameter (flag) (could be called `ensure_no_features_copy` for example) to ensure that usage of this feature is enforced: if this flag is set to `True` (the default should be `False`) then all methods that accept features data as parameters must ensure that zero-copy implementation is used or raise CatboostError exception otherwise. If flag is set to `False` less effective copying cases are allowed. This feature is useful to ensure that optimal performance implementation is used and avoid unexpected performance degradation.
+The task is to make a boolean parameter (flag) (could be called `ensure_no_features_copy` for example) to ensure that usage of this feature is enforced: if this flag is set to `True` (the default should be `False`) then all methods that accept features data as parameters must ensure that zero-copy implementation is used or raise CatBoostError exception otherwise. If flag is set to `False` less effective copying cases are allowed. This feature is useful to ensure that optimal performance implementation is used and avoid unexpected performance degradation.
 
 Github issue for this task is <https://github.com/catboost/catboost/issues/601>.
 
@@ -102,17 +102,6 @@ THashSet<float> BestSplit(TVector<float>& featureValues,
                           int maxBordersCount,
                           bool isSorted) const;
 ```
-
-
-
-Описание на русском (from sancho@ wiki):
-Бинаризация факторов, то есть набор граничных условий `(math inline)f_i(d) > c_{ij}`, по которым будет построено дерево.
- 
-Медианный грид MedianInBin предлагает выбирать условия, соответствующие медиане распределения значений фактора в данной части. Медиана вычисляется рекурсивно в каждом полученном разбиении до тех пор, пока не будет достигнуто необходимое количество условий. Таким образом, мы позволяем сохранить все точки, имеющие одинаковое значение фактора, в одном разбиении. Помимо этого медианный грид оставляет только одно условие из тех, которые создают идентичные по составу разбиения. Другими словами, фактор, являющийся линейным преобразованием другого фактора, никогда не будет использоваться в обучении (в любом случае, с точки зрения Матрикснета такие факторы не различимы).
-
-Рекурсивное вычисление грида: Пусть `(math inline) x_1,x_2,…, x_n ` — набор признаков. По нему будем строить набор бинарных признаков `(math inline)b_1,…b_l` , где `(math inline)b_i = \{ x > c_i\}, c_i` — значение какого-то из `(math inline) x_1,x_2,…, x_n `, рекурсивно. Пусть найдены бинарные признаки `(math inline)b_1,…,b_{i-1}`. Данные признаки разбивают точки  `(math inline) x_1,x_2,…, x_n ` на i групп. Пусть `(math inline) y_1,y_2,…, y_m ` — точки, попавшие в какую-то из групп (пусть ее индекс k). Среди этих точек найдем `(math inline) (c_k, score_k) = (argmax_{i} log(\#{y_j < y_i}) + log(\#\{y_j >= y_i\}),max_{i} log(\#\{y_j < y_i\}) + log(\#\{y_j >= y_i\}))`. Получили k кандидатов на разбиение, для каждого из которых подсчитан какой-то score. Выберем в качестве `(math inline)c_i = argmax_{score_k} c_k` и  качестве `(math inline)b_i = \{ x > c_i\}`
-
-Таким образом, мы на каждом шаге добавляем разбиение, несущее «больше всего информации». Чем больше размер разбиваемой группы и чем на более равные части разбивается группа с помощью бинарной фичи, тем она лучше
 
 ## 7. Allow `skip_train` `loss_function` property in cv method.
 

@@ -17,8 +17,6 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const NCB::TProcessedDataProvider& processedData,
     int logPeriod
 ) {
-    const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());
-    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
 
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
     const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
@@ -28,7 +26,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const float l2LeafReg = paramsJson["tree_learner_options"]["l2_leaf_reg"].GetDouble();
     const ui32 treeCount = model.ObliviousTrees.GetTreeCount();
 
-    const TVector<ui8> binarizedFeatures = BinarizeFeatures(model, *rawObjectsData);
+    const TVector<ui8> binarizedFeatures = GetModelCompatibleQuantizedFeatures(model, *processedData.ObjectsData.Get());
     TVector<TTreeStatistics> treeStatistics;
     treeStatistics.reserve(treeCount);
     TVector<double> approxes(DocCount);

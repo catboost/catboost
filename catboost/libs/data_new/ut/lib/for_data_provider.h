@@ -50,6 +50,7 @@ namespace NCB {
         ui32 MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
         // only for TQuantizedForCPUDataProvider
+        TPackedBinaryFeaturesData PackedBinaryFeaturesData;
         TMaybe<TVector<TCatFeatureUniqueValuesCounts>> CatFeatureUniqueValuesCounts;
     };
 

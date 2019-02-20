@@ -107,15 +107,6 @@ int NCatboostOptions::GetYetiRankPermutations(const TLossDescription& lossFuncti
     return 10;
 }
 
-ESamplingType NCatboostOptions::GetYetiRankSamplingType(const TLossDescription& lossFunctionConfig) {
-    CB_ENSURE(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRankPairwise);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("sampling_type")) {
-        return FromString<ESamplingType>(lossParams.at("sampling_type"));
-    }
-    return ESamplingType::Groupwise;
-}
-
 double NCatboostOptions::GetYetiRankDecay(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank || lossFunctionConfig.GetLossFunction()  == ELossFunction::YetiRankPairwise);
     const auto& lossParams = lossFunctionConfig.GetLossParams();

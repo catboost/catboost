@@ -7,6 +7,7 @@
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate>
     THolder<TAdditiveModel<TObliviousTreeModel>> TrainPairwise(TBinarizedFeaturesManager& featureManager,
+                                                               const TTrainModelInternalOptions& internalOptions,
                                                                const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                const NCB::TTrainingDataProvider& learn,
@@ -24,6 +25,7 @@ namespace NCatboostCuda {
 
         using TDocParallelBoosting = TBoosting<TTargetTemplate, TPairwiseObliviousTree>;
         return Train<TDocParallelBoosting>(featureManager,
+                                           internalOptions,
                                            catBoostOptions,
                                            outputOptions,
                                            learn,
@@ -39,6 +41,7 @@ namespace NCatboostCuda {
     template <template <class> class TTargetTemplate>
     class TPairwiseGpuTrainer: public IGpuTrainer {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
+                                                                        const TTrainModelInternalOptions& internalOptions,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                         const NCB::TTrainingDataProvider& learn,
@@ -50,6 +53,7 @@ namespace NCatboostCuda {
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return TrainPairwise<TTargetTemplate>(featuresManager,
+                                                  internalOptions,
                                                   catBoostOptions,
                                                   outputOptions,
                                                   learn,

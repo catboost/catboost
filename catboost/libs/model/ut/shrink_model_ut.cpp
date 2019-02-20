@@ -13,7 +13,7 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
     Y_UNIT_TEST(TestTruncateModel) {
         NJson::TJsonValue params;
         params.InsertValue("learning_rate", 0.3);
-        params.InsertValue("iterations", 10);
+        params.InsertValue("iterations", 7);
         TFullModel model, model2;
         TEvalResult evalResult;
 
@@ -28,7 +28,7 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
             "",
             &model,
             {&evalResult});
-        params.InsertValue("iterations", 7);
+        params.InsertValue("iterations", 5);
         TrainModel(
             params,
             nullptr,
@@ -39,13 +39,13 @@ Y_UNIT_TEST_SUITE(TShrinkModel) {
             &model2,
             {&evalResult});
 
-        model.Truncate(0, 7);
+        model.Truncate(0, 5);
         auto result = ApplyModel(model, *(pool->ObjectsData));
         auto result2 = ApplyModel(model, *(pool->ObjectsData));
         UNIT_ASSERT_EQUAL(result.ysize(), result2.ysize());
         for (int idx = 0; idx < result.ysize(); ++idx) {
             UNIT_ASSERT_DOUBLES_EQUAL(result[idx], result2[idx], 1e-6);
         }
-        model.Truncate(1, 4);
+        model.Truncate(1, 3);
     }
 }

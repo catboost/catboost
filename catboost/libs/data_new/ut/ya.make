@@ -11,6 +11,7 @@ SRCS(
     features_layout_ut.cpp
     load_data_from_dsv_ut.cpp
     meta_info_ut.cpp
+    model_dataset_compatibility_ut.cpp
     objects_grouping_ut.cpp
     objects_ut.cpp
     order_ut.cpp

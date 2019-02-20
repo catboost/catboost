@@ -78,6 +78,7 @@ class ROData(iw.CustomCommand):
         in_file = self.resolve_path(common.get(self.input, 0))
         in_file_no_ext = common.stripext(in_file)
         file_name = os.path.basename(in_file_no_ext)
+        file_size = os.path.getsize(in_file)
         tmp_file = self.resolve_path(common.get(self.output, 0) + '.asm')
 
         with open(tmp_file, 'w') as f:
@@ -86,7 +87,11 @@ class ROData(iw.CustomCommand):
             f.write('SECTION .rodata ALIGN=16\n')
             f.write(self._prefix + file_name + ':\nincbin "' + in_file + '"\n')
             f.write('align 4, db 0\n')
-            f.write(self._prefix + file_name + 'Size:\ndd ' + str(os.path.getsize(in_file)) + '\n')
+            f.write(self._prefix + file_name + 'Size:\ndd ' + str(file_size) + '\n')
+
+            if self._fmt.startswith('elf'):
+                f.write('size ' + self._prefix + file_name + ' ' + str(file_size) + '\n')
+                f.write('size ' + self._prefix + file_name + 'Size 4\n')
 
         return self.do_run(binary, tmp_file)
 

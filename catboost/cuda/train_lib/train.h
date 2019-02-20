@@ -22,6 +22,7 @@ namespace NCatboostCuda {
     public:
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(
             TBinarizedFeaturesManager& featureManager,
+            const TTrainModelInternalOptions& internalOptions,
             const NCatboostOptions::TCatBoostOptions& catBoostOptions,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const NCB::TTrainingDataProvider& learn,

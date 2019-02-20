@@ -17,6 +17,7 @@ from catboost_pytest_lib import (
     execute_catboost_fit,
     get_limited_precision_dsv_diff_tool,
     local_canonical_file,
+    format_crossvalidation
 )
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -781,7 +782,7 @@ def test_cv(is_inverted, boosting_type):
         '-w', '0.03',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/10',
+        '--cv', format_crossvalidation(is_inverted, 2, 10),
         '--eval-file', output_eval_path,
     )
     fit_catboost_gpu(params)
@@ -803,7 +804,7 @@ def test_cv_for_query(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/7',
+        '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     fit_catboost_gpu(params)
@@ -826,7 +827,7 @@ def test_cv_for_pairs(is_inverted, boosting_type):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
-        ('-Y' if is_inverted else '-X'), '2/7',
+        '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
     )
     fit_catboost_gpu(params)

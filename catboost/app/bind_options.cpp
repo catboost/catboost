@@ -82,29 +82,25 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             loadParamsPtr->TestGroupWeightsFilePath = TPathWithScheme(str, "file");
         });
 
-    parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
-        .RequiredArgument("n/k")
-        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+    const auto cvDescription = TString::Join(
+        "Cross validation type. Should be one of: ",
+        GetEnumAllNames<ECrossValidation>(),
+        ". Classical: test on fold n of k, n is 0-based",
+        ". Inverted: train on fold n of k, n is 0-based",
+        ". All cv types have two parameters n and k, they should be written in format cvtype:n;k.");
+    parser->AddLongOption("cv", cvDescription)
+        .RequiredArgument("string")
+        .Handler1T<TString>([loadParamsPtr](const auto& str) {
             CB_ENSURE(
                 !loadParamsPtr->CvParams.Initialized(),
                 "Cross-validation params have already been initialized"
             );
-            Split(str,
-                  '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
-            loadParamsPtr->CvParams.Inverted = false;
-            loadParamsPtr->CvParams.Check();
-        });
-
-    parser->AddCharOption('Y', "inverted cross validation, train on fold n of k, n is 0-based")
-        .RequiredArgument("n/k")
-        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            CB_ENSURE(
-                !loadParamsPtr->CvParams.Initialized(),
-                "Cross-validation params have already been initialized"
-            );
-            Split(str,
-                  '/', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
-            loadParamsPtr->CvParams.Inverted = true;
+            const auto cvType = FromString<ECrossValidation>(TStringBuf(str).Before(':'));
+            const auto params = TStringBuf(str).After(':');
+            if (cvType == ECrossValidation::Classical || cvType == ECrossValidation::Inverted) {
+                Split(params, ';', loadParamsPtr->CvParams.FoldIdx, loadParamsPtr->CvParams.FoldCount);
+                loadParamsPtr->CvParams.Inverted = (cvType == ECrossValidation::Inverted);
+            }
             loadParamsPtr->CvParams.Check();
         });
 
@@ -322,13 +318,10 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("prediction-type")
         .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal. CPU only")
         .Handler1T<TString>([plainJsonPtr](const TString& predictionTypes) {
-            (*plainJsonPtr)["output_columns"].AppendValue("DocId");
             for (const auto& t : StringSplitter(predictionTypes).Split(',').SkipEmpty()) {
                 (*plainJsonPtr)["prediction_type"].AppendValue(t.Token());
-                (*plainJsonPtr)["output_columns"].AppendValue(t.Token());
             }
             CB_ENSURE(!(*plainJsonPtr)["prediction_type"].GetArray().empty(), "Empty prediction type list " << predictionTypes);
-            (*plainJsonPtr)["output_columns"].AppendValue(ToString(EColumn::Label));
         });
 
     parser.AddLongOption('i', "iterations", "iterations count")
@@ -439,7 +432,7 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     const auto leafEstimationBacktrackingHelp = TString::Join(
-        "Backtracking type (GPU only); Must be one of: ",
+        "Backtracking type; Must be one of: ",
         GetEnumAllNames<ELeavesEstimationStepBacktracking>());
     parser.AddLongOption("leaf-estimation-backtracking", leafEstimationBacktrackingHelp)
         .RequiredArgument("str")
@@ -565,6 +558,14 @@ void ParseCommandLine(int argc, const char* argv[],
         .Help(bootstrapTypeHelp)
         .Handler1T<EBootstrapType>([plainJsonPtr](const auto type) {
             (*plainJsonPtr)["bootstrap_type"] = ToString(type);
+        });
+
+    parser
+        .AddLongOption("sampling-unit")
+        .RequiredArgument("STRING")
+        .Help("Allows to manage the sampling scheme. Sample weights for each object individually or for an entire group of objects together.")
+        .Handler1T<ESamplingUnit>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["sampling_unit"] = ToString(type);
         });
 
     parser.AddLongOption("bagging-temperature")

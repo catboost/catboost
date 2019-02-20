@@ -284,6 +284,7 @@ using _mm_or_si128 = TWrapperDual<uint64x2_t, decltype(vorrq_u64), vorrq_u64>;
 using _mm_and_si128 = TWrapperDual<uint64x2_t, decltype(vandq_u64), vandq_u64>;
 using _mm_andnot_si128 =
     TWrapperDualSwap<uint64x2_t, decltype(vbicq_u64), vbicq_u64>;
+using _mm_xor_si128 = TWrapperDual<uint64x2_t, decltype(veorq_u64), veorq_u64>;
 
 using _mm_add_epi16 = TWrapperDual<uint16x8_t, decltype(vaddq_u16), vaddq_u16>;
 using _mm_add_epi32 = TWrapperDual<uint32x4_t, decltype(vaddq_u32), vaddq_u32>;

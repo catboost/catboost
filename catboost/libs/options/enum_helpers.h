@@ -62,3 +62,5 @@ bool AreZeroWeightsAfterBootstrap(EBootstrapType type);
 
 bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
+bool IsUserDefined(ELossFunction lossFunction);
+

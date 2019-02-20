@@ -1,7 +1,9 @@
 #include "util.h"
 
+#include <catboost/libs/algo/features_data_helpers.h>
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/target/data_providers.h>
 
@@ -15,11 +17,6 @@ TVector<TVector<double>> CollectLeavesStatistics(
     const NCB::TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor) {
-
-    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(dataset.ObjectsData.Get());
-    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
-
-
     TConstArrayRef<float> weights;
 
     if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
@@ -53,9 +50,7 @@ TVector<TVector<double>> CollectLeavesStatistics(
         leavesStatistics[index].resize(1 << model.ObliviousTrees.TreeSizes[index]);
     }
 
-    auto binFeatures = BinarizeFeatures(model, *rawObjectsData);
-
-
+    TVector<ui8> binFeatures = GetModelCompatibleQuantizedFeatures(model, *dataset.ObjectsData.Get());
 
     const auto documentsCount = dataset.GetObjectCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {

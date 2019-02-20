@@ -662,7 +662,7 @@ void THashTest::TestSizeOf() {
      * THashTable are empty. It does rely on knowledge of THashTable internals,
      * so if those change, the test will have to be adjusted accordingly. */
 
-    size_t expectedSize = sizeof(uintptr_t) + 2 * sizeof(size_t);
+    size_t expectedSize = sizeof(uintptr_t) + 3 * sizeof(size_t);
 
     UNIT_ASSERT_VALUES_EQUAL(sizeof(THashMap<int, int>), expectedSize);
     UNIT_ASSERT_VALUES_EQUAL(sizeof(THashMap<std::pair<int, int>, std::pair<int, int>>), expectedSize);

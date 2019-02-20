@@ -1,3 +1,5 @@
+
+
 RECURSE(
     accurate_accumulate
     accurate_accumulate/benchmark
@@ -117,7 +119,6 @@ CHECK_DEPENDENT_DIRS(
     library
     contrib
     util
-    yandex #TO REMOVE
     yweb/config
 )
 

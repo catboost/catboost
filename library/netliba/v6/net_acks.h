@@ -3,6 +3,8 @@
 #include "net_test.h"
 #include "net_queue_stat.h"
 
+#include <util/system/spinlock.h>
+
 namespace NNetliba {
     const float MIN_PACKET_RTT_SKO = 0.001f; // avoid drops due to small hiccups
 
@@ -111,6 +113,7 @@ namespace NNetliba {
         bool FullSpeed, DoCountTime;
         TPingTracker PingTracker;
         double TimeSinceLastRecv;
+        TAdaptiveLock PortTesterLock;
         TIntrusivePtr<TPortUnreachableTester> PortTester;
         int ActiveTransferCount;
         float AvrgRTT;
@@ -269,8 +272,11 @@ namespace NNetliba {
         }
         void MarkAlive() {
             TimeSinceLastRecv = 0;
-            if (PortTester.Get())
+
+            with_lock (PortTesterLock) {
                 PortTester = nullptr;
+            }
+
         }
         void HasTriedToSend() {
             DoCountTime = true;
@@ -330,20 +336,34 @@ namespace NNetliba {
                 TimeSinceLastRecv += deltaT;
                 if (TimeSinceLastRecv > START_CHECK_PORT_DELAY) {
                     if (TimeSinceLastRecv < FINISH_CHECK_PORT_DELAY) {
-                        if (!PortTester && ActivePortTestersCount < N_PORT_TEST_COUNT_LIMIT) {
-                            PortTester = new TPortUnreachableTester;
-                            if (PortTester->IsValid()) {
-                                PortTester->Connect(toAddress);
+                        TIntrusivePtr<TPortUnreachableTester> portTester;
+                        with_lock (PortTesterLock) {
+                            portTester = PortTester;
+                        }
+
+                        if (!portTester && AtomicGet(ActivePortTestersCount) < N_PORT_TEST_COUNT_LIMIT) {
+                            portTester = new TPortUnreachableTester();
+                            with_lock (PortTesterLock) {
+                                PortTester = portTester;
+                            }
+
+                            if (portTester->IsValid()) {
+                                portTester->Connect(toAddress);
                             } else {
-                                PortTester = nullptr;
+                                with_lock (PortTesterLock) {
+                                    PortTester = nullptr;
+                                }
                             }
                         }
-                        if (PortTester.Get() && !PortTester->Test(deltaT)) {
+                        if (portTester && !portTester->Test(deltaT)) {
                             Kill();
                             return false;
                         }
-                    } else
-                        PortTester = nullptr;
+                    } else {
+                        with_lock (PortTesterLock) {
+                            PortTester = nullptr;
+                        }
+                    }
                 }
                 if (TimeSinceLastRecv > timeout) {
                     Kill();

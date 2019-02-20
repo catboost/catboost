@@ -672,6 +672,7 @@ class Build(object):
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
             emit('SVN_DEPENDS')
+            emit('SVN_DEPENDS_CACHE')
         else:
             def find_svn():
                 for i in range(0, 3):
@@ -686,6 +687,7 @@ class Build(object):
                 return ''
 
             emit('SVN_DEPENDS', find_svn())
+            emit('SVN_DEPENDS_CACHE', '${hide;kv:"disable_cache"}')
 
     @staticmethod
     def _load_json_from_base64(base64str):
@@ -1133,7 +1135,7 @@ class MSVCToolchainOptions(ToolchainOptions):
             def prefix(_type, _path):
                 if not self.under_wine:
                     return _path
-                return '{wine} {type} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140', type=_type, path=_path)
+                return '{wine} {type} ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140', type=_type, path=_path)
 
             self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
             self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
@@ -1364,9 +1366,6 @@ class GnuCompiler(Compiler):
         self.debug_info_flags = ['-g']
         if self.target.is_linux:
             self.debug_info_flags.append('-ggnu-pubnames')
-        if is_positive('DEBUG_PREFIX_MAP'):
-            self.c_foptions.append('-fdebug-prefix-map=${ARCADIA_ROOT}/=')
-            self.c_foptions.append('-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}/=')
 
         self.cross_suffix = '' if is_positive('FORCE_NO_PIC') else '.pic'
 
@@ -1717,6 +1716,14 @@ class LD(Linker):
         if self.type in (Linker.LLD, Linker.GOLD):
             self.ld_flags.append('-Wl,--gdb-index')
 
+        if is_positive('DUMP_LINKER_MAP'):
+            if self.type == Linker.LLD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.lld:REALPRJNAME}')
+            elif self.type == Linker.GOLD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.gold:REALPRJNAME}')
+            elif self.type == Linker.BFD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.bfd:REALPRJNAME}')
+
     def print_linker(self):
         super(LD, self).print_linker()
 
@@ -1920,7 +1927,7 @@ class MSVCCompiler(Compiler, MSVC):
             'SSE2_ENABLED=1',
             'SSE3_ENABLED=1',
             'SSSE3_ENABLED=1',
-            '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES'
+            '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
         ]
 
         if target.is_x86_64:
@@ -2488,7 +2495,7 @@ class Cuda(object):
         if host != target:
             return False
 
-        if self.cuda_version.value in ('9.0', '9.1', '9.2'):
+        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0'):
             return True
 
         if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
@@ -2538,6 +2545,7 @@ class Cuda(object):
 
     def cuda_windows_host_compiler(self):
         vc_version = {
+            '10.0': '14.13.26128',  # (not latest)
             '9.2': '14.13.26128',
             '9.1': '14.11.25503',
             '9.0': '14.11.25503',

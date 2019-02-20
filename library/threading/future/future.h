@@ -27,6 +27,8 @@ namespace NThreading {
     TFuture<std::remove_reference_t<T>> MakeFuture(T&& value);
     template <typename T>
     TFuture<T> MakeFuture();
+    template <typename T>
+    TFuture<T> MakeErrorFuture(std::exception_ptr exception);
     TFuture<void> MakeFuture();
 
     // waits for all futures

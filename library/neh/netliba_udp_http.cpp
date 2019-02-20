@@ -1,4 +1,5 @@
 #include "netliba_udp_http.h"
+#include "utils.h"
 
 #include <library/netliba/v6/cpu_affinity.h>
 #include <library/netliba/v6/stdafx.h>
@@ -15,6 +16,8 @@
 #include <util/system/yassert.h>
 #include <util/thread/lfqueue.h>
 
+#include <atomic>
+
 #if !defined(_win_)
 #include <signal.h>
 #include <pthread.h>
@@ -27,9 +30,9 @@ namespace {
     const size_t MIN_SHARED_MEM_PACKET = 1000;
     const size_t MAX_PACKET_SIZE = 0x70000000;
 
-    static volatile bool PanicAttack;
-    static volatile NHPTimer::STime LastHeartbeat;
-    static volatile double HeartbeatTimeout;
+    static NNeh::TAtomicBool PanicAttack;
+    static std::atomic<NHPTimer::STime> LastHeartbeat;
+    static std::atomic<double> HeartbeatTimeout;
 
     bool IsLocal(const TUdpAddress& addr) {
         return addr.IsIPv4() ? IsLocalIPv4(addr.GetIPv4()) : IsLocalIPv6(addr.Network, addr.Interface);
@@ -733,9 +736,9 @@ namespace NNehNetliba {
 
             NHPTimer::GetTime(&pThis->PingsSendT_);
             while (AtomicGet(pThis->KeepRunning_) && !PanicAttack) {
-                if (HeartbeatTimeout > 0) {
-                    NHPTimer::STime chk = LastHeartbeat;
-                    if (NHPTimer::GetTimePassed(&chk) > HeartbeatTimeout) {
+                if (HeartbeatTimeout.load(std::memory_order_acquire) > 0) {
+                    NHPTimer::STime chk = LastHeartbeat.load(std::memory_order_acquire);
+                    if (NHPTimer::GetTimePassed(&chk) > HeartbeatTimeout.load(std::memory_order_acquire)) {
                         StopAllNetLibaThreads();
 #ifndef _win_
                         killpg(0, SIGKILL);

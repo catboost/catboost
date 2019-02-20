@@ -11,13 +11,13 @@
 
 namespace std {
     template <>
-    struct less<const char*>: public std::function<bool(const char*, const char*)> {
+    struct less<const char*> {
         bool operator()(const char* x, const char* y) const {
             return strcmp(x, y) < 0;
         }
     };
     template <>
-    struct equal_to<const char*>: public std::function<bool(const char*, const char*)> {
+    struct equal_to<const char*> {
         bool operator()(const char* x, const char* y) const {
             return strcmp(x, y) == 0;
         }

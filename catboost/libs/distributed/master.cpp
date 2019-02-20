@@ -8,6 +8,9 @@
 
 #include <library/par/par_settings.h>
 
+#include <util/system/yassert.h>
+
+
 using namespace NCatboostDistributed;
 using namespace NCB;
 
@@ -104,6 +107,7 @@ template <typename TScoreCalcMapper, typename TGetScore>
 void MapGenericCalcScore(
     TGetScore getScore,
     double scoreStDev,
+    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
     TCandidateList* candidateList,
     TLearnContext* ctx) {
 
@@ -134,28 +138,40 @@ void MapGenericCalcScore(
                 const auto& splitInfo = subCandidates[subcandidateIdx];
                 allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
             }
-            SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &subCandidates);
+            SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, perPackMasks, &subCandidates);
         });
 }
 
 // TODO(espetrov): Remove unused code.
-void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx) {
+void MapCalcScore(
+    double scoreStDev,
+    int depth,
+    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
+    TCandidateList* candidateList,
+    TLearnContext* ctx) {
+
     const auto& plainFold = ctx->LearnProgress.Folds[0];
     const auto getScore = [&] (const TStats3D& stats3D, const TCandidateInfo& splitInfo) {
+        Y_UNUSED(splitInfo);
+
         return GetScores(
             GetScoreBins(
                 stats3D,
-                splitInfo.SplitCandidate.Type,
                 depth,
                 plainFold.GetSumWeight(),
                 plainFold.GetLearnSampleCount(),
                 ctx->Params));
     };
-    MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidateList, ctx);
+    MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, perPackMasks, candidateList, ctx);
 }
 
 template <typename TBinCalcMapper, typename TScoreCalcMapper>
-void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+void MapGenericRemoteCalcScore(
+    double scoreStDev,
+    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
+    TCandidateList* candidateList,
+    TLearnContext* ctx) {
+
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     NPar::TJobDescription job;
     NPar::Map(&job, new TBinCalcMapper(), candidateList);
@@ -169,32 +185,51 @@ void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList,
     const ui64 randSeed = ctx->Rand.GenRand();
     ctx->LocalExecutor->ExecRange(
         [&] (int candidateIdx) {
+            auto& candidates = (*candidateList)[candidateIdx].Candidates;
+            Y_VERIFY(candidates.size() > 0);
+
             SetBestScore(
                 randSeed + candidateIdx,
                 allScores[candidateIdx],
                 scoreStDev,
-                &(*candidateList)[candidateIdx].Candidates);
+                perPackMasks,
+                &candidates);
         },
         0,
         candidateCount,
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+void MapRemotePairwiseCalcScore(
+    double scoreStDev,
+    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
+    TCandidateList* candidateList,
+    TLearnContext* ctx) {
+
     MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(
         scoreStDev,
+        perPackMasks,
         candidateList,
         ctx);
 }
 
-void MapRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
-    MapGenericRemoteCalcScore<TRemoteBinCalcer, TRemoteScoreCalcer>(scoreStDev, candidateList, ctx);
+void MapRemoteCalcScore(
+    double scoreStDev,
+    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
+    TCandidateList* candidateList,
+    TLearnContext* ctx) {
+
+    MapGenericRemoteCalcScore<TRemoteBinCalcer, TRemoteScoreCalcer>(
+        scoreStDev,
+        perPackMasks,
+        candidateList,
+        ctx);
 }
 
-void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx) {
+void MapSetIndices(const TSplit& bestSplit, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, MakeEnvelope(bestSplitCandidate));
+    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, MakeEnvelope(bestSplit));
 }
 
 int MapGetRedundantSplitIdx(TLearnContext* ctx) {

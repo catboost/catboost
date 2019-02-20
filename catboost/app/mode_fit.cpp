@@ -21,6 +21,7 @@
 #include <util/system/fs.h>
 
 
+
 using namespace NCB;
 
 
@@ -36,8 +37,7 @@ int mode_fit(int argc, const char* argv[]) {
         RunSlave();
         return 0;
     }
-    #endif
-
+	#endif
     NCatboostOptions::TPoolLoadParams poolLoadOptions;
     TString paramsFile;
     NJson::TJsonValue catBoostFlatJsonOptions;

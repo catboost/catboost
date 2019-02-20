@@ -72,6 +72,7 @@
         "godoc": { "description": "Run godoc tool" },
         "gofmt": { "description": "Run gofmt tool" },
         "yo": { "description": "Tool for managing vendor/ directory" },
+	"tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "golangci-lint": { "description": "Linters Runner for Go" }
     },
     "toolchain": {
@@ -135,8 +136,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -152,8 +153,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -169,8 +170,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -204,8 +205,7 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
-                "version": "2017",
-                "for_ide": "msvs2017"
+                "version": "2017"
             }
         },
         "msvc2017-arm-next": {
@@ -235,8 +235,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -252,8 +252,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -269,8 +269,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -338,6 +338,16 @@
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "tvmknife": {
+            "tools": {
+                "tvmknife": { "bottle": "tvmknife", "executable": "tvmknife" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+		{"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
@@ -1310,7 +1320,7 @@
     "bottles": {
         "msvc2017": {
             "formula": {
-                "sandbox_id": 313958584,
+                "sandbox_id": 374735561,
                 "match": "2017"
             },
             "executable": {
@@ -1319,7 +1329,7 @@
         },
         "msvc2017next": {
             "formula": {
-                "sandbox_id": 367076918,
+                "sandbox_id": 374735561,
                 "match": "2017"
             },
             "executable": {
@@ -1328,7 +1338,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [370077335],
+                "sandbox_id": [380448500],
                 "match": "ymake"
             },
             "executable": {
@@ -1346,7 +1356,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": [370774111],
+                "sandbox_id": [381389509],
                 "match": "test_tool"
             },
             "executable": {
@@ -1364,7 +1374,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [371268002],
+                "sandbox_id": [380631007],
                 "match": "arc"
             },
             "executable": {
@@ -1373,16 +1383,25 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [369222292, 369222304],
+                "sandbox_id": [377408534, 377408891],
                 "match": "yo"
             },
             "executable": {
                 "yo": ["yo"]
             }
         },
+        "tvmknife": {
+            "formula": {
+                "sandbox_id": [375826288],
+                "match": "tvmknife"
+            },
+            "executable": {
+                "tvmknife": ["tvmknife"]
+            }
+        },
         "golangci-lint": {
             "formula": {
-                "sandbox_id": [352933824, 352932977],
+                "sandbox_id": [381327628, 381318659],
                 "match": "golangci-lint"
             },
             "executable": {
@@ -1418,7 +1437,7 @@
         },
         "bloat": {
             "formula": {
-                "sandbox_id": [276489202],
+                "sandbox_id": [372488594],
                 "match": "Bloat"
             },
             "executable": {
@@ -2093,7 +2112,7 @@
         },
         "graphs_difference": {
             "formula": {
-                "sandbox_id": 371407361,
+                "sandbox_id": 374662639,
                 "match": "graphs_difference"
             },
             "executable": {

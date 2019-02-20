@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===--------------------------- queue ------------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -309,8 +308,13 @@ public:
     void push(value_type&& __v)      {c.push_back(_VSTD::move(__v));}
     template <class... _Args>
         _LIBCPP_INLINE_VISIBILITY
+#if _LIBCPP_STD_VER > 14
         decltype(auto) emplace(_Args&&... __args)
             { return c.emplace_back(_VSTD::forward<_Args>(__args)...);}
+#else
+        void     emplace(_Args&&... __args)
+            {        c.emplace_back(_VSTD::forward<_Args>(__args)...);}
+#endif
 #endif  // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     void pop() {c.pop_front();}

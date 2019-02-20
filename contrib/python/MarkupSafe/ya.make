@@ -2,6 +2,8 @@
 
 PY23_LIBRARY()
 
+VERSION(0.23)
+
 LICENSE(
     BSD3
 )

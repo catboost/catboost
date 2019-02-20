@@ -19,6 +19,7 @@
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
+#include <util/generic/ymath.h>
 #include <util/random/shuffle.h>
 #include <util/stream/format.h>
 #include <util/system/compiler.h>
@@ -201,6 +202,156 @@ namespace NCB {
     }
 
 
+    template <class TBase>
+    static void SetBinaryFeatureColumn(
+        ui32 featureId,
+        TMaybeOwningArrayHolder<TBinaryFeaturesPack> binaryFeaturesPack,
+        ui8 bitIdx,
+        const TFeaturesArraySubsetIndexing* subsetIndexing,
+        THolder<TBase>* featureColumn
+    ) {
+        featureColumn->Reset(
+            new TPackedBinaryValuesHolderImpl<TBase>(
+                featureId,
+                std::move(binaryFeaturesPack),
+                bitIdx,
+                subsetIndexing
+            )
+        );
+    }
+
+
+    /* arguments are idx, srcIdx from rawDataSubsetIndexing
+     * each function returns TBinaryFeaturesPack = 0 or 1
+     */
+    using TGetBitFunction = std::function<TBinaryFeaturesPack(size_t, size_t)>;
+
+    static TGetBitFunction GetBinaryFloatFeatureFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedObjectsData& quantizedObjectsData,
+        TFloatFeatureIdx floatFeatureIdx
+    ) {
+        TConstArrayRef<float> srcRawData
+            = **(rawObjectsData.FloatFeatures[*floatFeatureIdx]->GetArrayData().GetSrc());
+        float border = quantizedObjectsData.QuantizedFeaturesInfo->GetBorders(floatFeatureIdx)[0];
+
+        return [srcRawData, border](ui32 /*idx*/, ui32 srcIdx) -> TBinaryFeaturesPack {
+            return srcRawData[srcIdx] >= border ?
+                TBinaryFeaturesPack(1) : TBinaryFeaturesPack(0);
+        };
+    }
+
+    static TGetBitFunction GetBinaryCatFeatureFunction(
+        const TQuantizedObjectsData& quantizedObjectsData,
+        TCatFeatureIdx catFeatureIdx
+    ) {
+        const ui32* nonpackedQuantizedValuesArrayBegin
+            = *(dynamic_cast<const TQuantizedCatValuesHolder&>(
+                    *quantizedObjectsData.CatFeatures[*catFeatureIdx]
+                ).GetArrayData().GetSrc());
+
+        return [nonpackedQuantizedValuesArrayBegin](ui32 idx, ui32 /*srcIdx*/) -> TBinaryFeaturesPack {
+            Y_ASSERT(nonpackedQuantizedValuesArrayBegin[idx] < 2);
+            return TBinaryFeaturesPack(nonpackedQuantizedValuesArrayBegin[idx]);
+        };
+    }
+
+
+    static void BinarizeFeatures(
+        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        bool clearSrcObjectsData,
+        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+        TRawObjectsData* rawObjectsData,
+        TQuantizedForCPUObjectsData* quantizedObjectsData
+    ) {
+        auto& packedBinaryFeaturesData = quantizedObjectsData->PackedBinaryFeaturesData;
+
+        packedBinaryFeaturesData = TPackedBinaryFeaturesData(
+            *quantizedObjectsData->Data.QuantizedFeaturesInfo
+        );
+
+        const auto& packedBinaryToSrcIndex = packedBinaryFeaturesData.PackedBinaryToSrcIndex;
+
+        const ui32 objectCount = rawDataSubsetIndexing.Size();
+        const size_t bitsPerPack = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
+
+
+        localExecutor->ExecRangeWithThrow(
+            [&] (int packIdx) {
+                TVector<TBinaryFeaturesPack> dstPackedFeaturesData;
+                dstPackedFeaturesData.yresize(objectCount);
+
+                TVector<TGetBitFunction> getBitFunctions;
+
+                size_t startIdx = size_t(packIdx)*bitsPerPack;
+                size_t endIdx = Min(startIdx + bitsPerPack, packedBinaryToSrcIndex.size());
+
+                auto endIt = packedBinaryToSrcIndex.begin() + endIdx;
+                for (auto it = packedBinaryToSrcIndex.begin() + startIdx; it != endIt; ++it) {
+                    if (it->first == EFeatureType::Float) {
+                        getBitFunctions.push_back(
+                            GetBinaryFloatFeatureFunction(
+                                *rawObjectsData,
+                                quantizedObjectsData->Data,
+                                TFloatFeatureIdx(it->second)
+                            )
+                        );
+                    } else {
+                        getBitFunctions.push_back(
+                            GetBinaryCatFeatureFunction(quantizedObjectsData->Data, TCatFeatureIdx(it->second))
+                        );
+                    }
+                }
+
+                rawDataSubsetIndexing.ParallelForEach(
+                    [&] (ui32 idx, ui32 srcIdx) {
+                        TBinaryFeaturesPack pack = 0;
+                        for (auto bitIdx : xrange(getBitFunctions.size())) {
+                            pack |= (getBitFunctions[bitIdx](idx, srcIdx) << bitIdx);
+                        }
+                        dstPackedFeaturesData[idx] = pack;
+                    },
+                    localExecutor
+                );
+
+                packedBinaryFeaturesData.SrcData[packIdx]
+                    = TMaybeOwningArrayHolder<TBinaryFeaturesPack>::CreateOwning(
+                            std::move(dstPackedFeaturesData)
+                        );
+
+                for (ui8 bitIdx = 0; bitIdx < (endIdx - startIdx); ++bitIdx) {
+                    auto it = packedBinaryToSrcIndex.begin() + startIdx + bitIdx;
+
+                    if (it->first == EFeatureType::Float) {
+                        SetBinaryFeatureColumn(
+                            rawObjectsData->FloatFeatures[it->second]->GetId(),
+                            packedBinaryFeaturesData.SrcData[packIdx],
+                            bitIdx,
+                            quantizedDataSubsetIndexing,
+                            &(quantizedObjectsData->Data.FloatFeatures[it->second])
+                        );
+                        if (clearSrcObjectsData) {
+                            rawObjectsData->FloatFeatures[it->second].Destroy();
+                        }
+                    } else {
+                        SetBinaryFeatureColumn(
+                            quantizedObjectsData->Data.CatFeatures[it->second]->GetId(),
+                            packedBinaryFeaturesData.SrcData[packIdx],
+                            bitIdx,
+                            quantizedDataSubsetIndexing,
+                            &(quantizedObjectsData->Data.CatFeatures[it->second])
+                        );
+                    }
+                }
+            },
+            0,
+            SafeIntegerCast<int>(packedBinaryFeaturesData.SrcData.size()),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
+    }
+
+
     static void ProcessFloatFeature(
         TFloatFeatureIdx floatFeatureIdx,
         const TFloatValuesHolder& srcFeature,
@@ -264,7 +415,10 @@ namespace NCB {
                     dstSubsetIndexing,
                     quantizedFeaturesInfo
                 );
-            } else {
+            } else if (!options.CpuCompatibleFormat ||
+                !options.PackBinaryFeaturesForCpu ||
+                (borders.size() > 1)) // binary features are binarized later by packs
+            {
                 // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
                 const ui32 bitsPerKey = 8;
                 TIndexHelper<ui64> indexHelper(bitsPerKey);
@@ -381,7 +535,8 @@ namespace NCB {
             );
         }
 
-        if (quantizedFeaturesInfo->GetUniqueValuesCounts(catFeatureIdx).OnLearnOnly > 1) {
+        auto uniqueValuesCounts = quantizedFeaturesInfo->GetUniqueValuesCounts(catFeatureIdx);
+        if (uniqueValuesCounts.OnLearnOnly > 1) {
             if (storeAsExternalValuesHolder) {
                 *dstQuantizedFeature = MakeHolder<TExternalCatValuesHolder>(
                     srcFeature.GetId(),
@@ -390,6 +545,11 @@ namespace NCB {
                     quantizedFeaturesInfo
                 );
             } else {
+                /* binary features are temporarily stored as TQuantizedCatValuesHolder
+                 * and compressed to packs at the last stage of quantization processing
+                 * then this dstQuantizedFeature will be replaced with TQuantizedCatPackedBinaryValuesHolder
+                 */
+
                 *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
                     srcFeature.GetId(),
                     TCompressedArray(
@@ -405,6 +565,31 @@ namespace NCB {
 
             quantizedFeaturesInfo->GetFeaturesLayout()->IgnoreExternalFeature(srcFeature.GetId());
         }
+    }
+
+
+    static bool IsFloatFeatureToBeBinarized(
+        const TQuantizationOptions& options,
+        TQuantizedFeaturesInfo& quantizedFeaturesInfo, // non const because of GetRWMutex
+        TFloatFeatureIdx floatFeatureIdx
+    ) {
+        if (!options.CpuCompatibleFormat || !options.PackBinaryFeaturesForCpu) {
+            return false;
+        }
+
+        {
+            TReadGuard guard(quantizedFeaturesInfo.GetRWMutex());
+
+            if (quantizedFeaturesInfo.GetFeaturesLayout()->GetInternalFeatureMetaInfo(
+                    *floatFeatureIdx,
+                    EFeatureType::Float
+                ).IsAvailable &&
+                (quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size() == 1))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -451,12 +636,21 @@ namespace NCB {
                 rand
             );
 
-            TMaybe<TQuantizedBuilderData> data;
+            TMaybe<TQuantizedForCPUBuilderData> data;
             TAtomicSharedPtr<TArraySubsetIndexing<ui32>> subsetIndexing;
 
             if (!calcBordersAndNanModeOnly) {
                 data.ConstructInPlace();
-                data->ObjectsData.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
+
+                data->ObjectsData.Data.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
+                data->ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex.resize(
+                    featuresLayout->GetFloatFeatureCount()
+                );
+
+                data->ObjectsData.Data.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
+                data->ObjectsData.PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex.resize(
+                    featuresLayout->GetCatFeatureCount()
+                );
 
                 subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                     TFullSubset<ui32>(objectsGrouping->GetObjectCount())
@@ -511,9 +705,18 @@ namespace NCB {
                                         quantizedFeaturesInfo,
                                         calcBordersAndNanModeOnly ?
                                             nullptr
-                                            : &(data->ObjectsData.FloatFeatures[*floatFeatureIdx])
+                                            : &(data->ObjectsData.Data.FloatFeatures[*floatFeatureIdx])
                                     );
-                                    if (clearSrcObjectsData) {
+
+                                    // binary features are binarized later by packs
+                                    if (clearSrcObjectsData &&
+                                        (calcBordersAndNanModeOnly ||
+                                         !IsFloatFeatureToBeBinarized(
+                                             options,
+                                             *quantizedFeaturesInfo,
+                                             floatFeatureIdx
+                                         )))
+                                    {
                                         srcFloatFeatureHolder.Destroy();
                                     }
                                 }
@@ -523,7 +726,6 @@ namespace NCB {
                 );
 
                 if (!calcBordersAndNanModeOnly) {
-                    data->ObjectsData.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
                     const ui64 maxMemUsageForCatFeature = EstimateMaxMemUsageForCatFeature(
                         objectsGrouping->GetObjectCount(),
                         options,
@@ -546,8 +748,14 @@ namespace NCB {
                                             clearSrcObjectsData,
                                             subsetIndexing.Get(),
                                             quantizedFeaturesInfo,
-                                            &(data->ObjectsData.CatFeatures[*catFeatureIdx])
+                                            &(data->ObjectsData.Data.CatFeatures[*catFeatureIdx])
                                         );
+
+                                        /* binary features are binarized later by packs
+                                         * but non-packed quantized data is still saved as an intermediate
+                                         * in data->ObjectsData.Data.CatFeatures
+                                         * so we can clear raw data anyway
+                                         */
                                         if (clearSrcObjectsData) {
                                             srcCatFeatureHolder.Destroy();
                                         }
@@ -570,7 +778,18 @@ namespace NCB {
                 "All features are either constant or ignored."
             );
 
-            data->ObjectsData.QuantizedFeaturesInfo = quantizedFeaturesInfo;
+            data->ObjectsData.Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
+
+            if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
+                BinarizeFeatures(
+                    *(srcObjectsCommonData.SubsetIndexing),
+                    clearSrcObjectsData,
+                    subsetIndexing.Get(),
+                    localExecutor,
+                    &rawDataProvider->ObjectsData->Data,
+                    &data->ObjectsData
+                );
+            }
 
             if (clearSrcData) {
                 data->MetaInfo = std::move(rawDataProvider->MetaInfo);
@@ -599,7 +818,7 @@ namespace NCB {
             } else {
                 return MakeDataProvider<TQuantizedObjectsDataProvider>(
                     objectsGrouping,
-                    std::move(*data),
+                    CastToBase(std::move(*data)),
                     false,
                     localExecutor
                 );
