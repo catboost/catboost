@@ -267,6 +267,7 @@ __indexed<_Idx, _Tp> __at_index(__indexed<_Idx, _Tp> const&);
 
 } // namespace __indexer_detail
 
+#if !defined(__CUDACC__) || !defined(_MSC_VER)
 template <size_t _Idx, class ..._Types>
 using __type_pack_element = typename decltype(
     __indexer_detail::__at_index<_Idx>(
@@ -275,6 +276,20 @@ using __type_pack_element = typename decltype(
             typename __make_tuple_indices<sizeof...(_Types)>::type
         >{})
   )::type;
+
+#else // !defined(__CUDACC__) || !defined(_MSC_VER)
+template <size_t _Idx, class ..._Types>
+struct __y_type_pack_element {
+    using __t1 = typename __make_tuple_indices<sizeof...(_Types)>::type;
+    using __t2 = __indexer_detail::__indexer<__tuple_types<_Types...>, __t1>;
+    using __t3 = decltype(__indexer_detail::__at_index<_Idx>(__t2{}));
+    using __t4 = typename __t3::type;
+};
+
+template <size_t _Idx, class ..._Types>
+using __type_pack_element = typename __y_type_pack_element<_Idx, _Types...>::__t4;
+
+#endif // !defined(__CUDACC__) || !defined(_MSC_VER)
 
 #endif // __has_builtin(__type_pack_element)
 
