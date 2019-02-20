@@ -459,7 +459,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
             break;
         }
-        case ELossFunction::Custom: {
+        case ELossFunction::PythonUserDefinedPerObject: {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::None);
             break;
         }

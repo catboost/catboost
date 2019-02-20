@@ -281,7 +281,7 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
 
 bool IsUserDefined(ELossFunction lossFunction) {
     switch (lossFunction) {
-        case ELossFunction::Custom:
+        case ELossFunction::PythonUserDefinedPerObject:
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
             return true;
