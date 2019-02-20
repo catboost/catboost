@@ -49,7 +49,8 @@ ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
         auto& floatInfo = map.FloatFeatures.at(featureId);
         const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForFloatFeature(floatInfo.DataProviderId);
         CB_ENSURE(floatInfo.Borders == featuresManager.GetBorders(featureManagerId),
-                  "Error: progress borders should be consistent");
+                  "Error: progress borders should be consistent: featureId=" << featureId << " borders "
+                  << Print(floatInfo.Borders) << " vs " << Print(featuresManager.GetBorders(featureManagerId)));
         return featureManagerId;
     } else if (map.CatFeaturesMap.contains(featureId)) {
         const ui32 dataProviderId = map.CatFeaturesMap.at(featureId);
