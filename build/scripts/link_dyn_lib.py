@@ -126,6 +126,9 @@ def fix_cmd(arch, c):
 
             return list(f(list(parse_export_file(fname))))
 
+        if p.endswith('.supp.o'):
+            return []
+
         return [p]
 
     return sum((do_fix(x) for x in c), [])
