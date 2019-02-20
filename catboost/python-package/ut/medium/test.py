@@ -862,6 +862,13 @@ def test_predict_class(task_type):
     return local_canonical_file(preds_path)
 
 
+def test_zero_learning_rate(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=0, task_type=task_type, devices='0')
+    with pytest.raises(CatboostError):
+        model.fit(train_pool)
+
+
 def test_predict_class_proba(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

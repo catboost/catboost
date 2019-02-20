@@ -4038,6 +4038,26 @@ def test_negative_weights():
         yatest.common.execute(cmd)
 
 
+def test_zero_learning_rate():
+    train_path = yatest.common.test_output_path('train')
+    cd_path = yatest.common.test_output_path('train.cd')
+
+    open(cd_path, 'wt').write(
+        '0\tNum\n'
+        '1\tNum\n'
+        '2\tTarget\n')
+    np.savetxt(train_path, [
+        [0, 1, 2],
+        [1, 1, 1]], delimiter='\t', fmt='%.4f')
+    cmd = (CATBOOST_PATH, 'fit',
+           '-f', train_path,
+           '--cd', cd_path,
+           '--learning-rate', '0.0',
+           )
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
+
+
 @pytest.mark.parametrize('metric_period', ['1', '2'])
 @pytest.mark.parametrize('metric', ['Logloss', 'F1', 'Accuracy', 'PFound', 'TotalF1', 'MCC', 'PairAccuracy'])
 def test_eval_metrics(metric, metric_period):
