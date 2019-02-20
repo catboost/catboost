@@ -117,7 +117,6 @@ CHECK_DEPENDENT_DIRS(
     library
     contrib
     util
-    yandex #TO REMOVE
     yweb/config
 )
 
