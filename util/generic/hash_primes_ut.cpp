@@ -65,4 +65,19 @@ Y_UNIT_TEST_SUITE(TestHashPrimes) {
 
         UNIT_ASSERT_VALUES_EQUAL(divisors.size(), _y_last_prime - _y_first_prime + 1);
     }
+
+    Y_UNIT_TEST(MisleadingHints) {
+        TFastRng64 rng{332142};
+        TVector<size_t> cases = Numbers();
+        for (size_t d : Divisors()) {
+            cases.push_back(d);
+        }
+
+        for (size_t c : cases) {
+            for (size_t reps = 0; reps < 3; ++reps) {
+                const i8 hint = rng.Uniform(256) - 128;
+                UNIT_ASSERT_VALUES_EQUAL_C(HashBucketCountExt(c)(), HashBucketCountExt(c, hint)(), (TStringBuilder() << "c=" << c << "; hint=" << hint));
+            }
+        }
+    }
 }

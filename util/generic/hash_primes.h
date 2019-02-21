@@ -37,10 +37,11 @@ namespace NPrivate {
     public:
         constexpr TReciprocalDivisor() noexcept = default;
 
-        constexpr TReciprocalDivisor(TDividend reciprocal, ui8 reciprocalShift, TDivisor divisor) noexcept
+        constexpr TReciprocalDivisor(TDividend reciprocal, ui8 reciprocalShift, i8 hint, TDivisor divisor) noexcept
             : Reciprocal(reciprocal)
             , Divisor(divisor)
             , ReciprocalShift(reciprocalShift)
+            , Hint(hint)
         {
         }
 
@@ -58,7 +59,7 @@ namespace NPrivate {
         }
 
         Y_FORCE_INLINE static constexpr TReciprocalDivisor One() noexcept {
-            return {1u, 0u, 1u};
+            return {1u, 0u, -1, 1u};
         }
 
     private:
@@ -73,6 +74,7 @@ namespace NPrivate {
         TDividend Reciprocal = 0;
         TDivisor Divisor = 0;
         ui8 ReciprocalShift = 0;
+        i8 Hint = 0; ///< Additional data: needless for division, but useful for the adjacent divisors search
     };
 
     template <typename T, typename TExtended, size_t shift>
@@ -107,11 +109,12 @@ namespace NPrivate {
         {
         }
 
-        constexpr TNaiveDivisor(TDividend reciprocal, ui8 reciprocalShift, TDivisor divisor) noexcept
+        constexpr TNaiveDivisor(TDividend reciprocal, ui8 reciprocalShift, i8 hint, TDivisor divisor) noexcept
             : TNaiveDivisor(divisor)
         {
             Y_UNUSED(reciprocal);
             Y_UNUSED(reciprocalShift);
+            Y_UNUSED(hint);
         }
 
         Y_FORCE_INLINE TDividend Remainder(TDividend dividend) const noexcept {
@@ -128,6 +131,7 @@ namespace NPrivate {
 
     public:
         TDivisor Divisor = 0;
+        static constexpr i8 Hint = -1;
     };
 
     using THashDivisor = ::NPrivate::TNaiveDivisor<ui32, ui64>;
@@ -136,4 +140,7 @@ namespace NPrivate {
 }
 
 Y_CONST_FUNCTION
-const ::NPrivate::THashDivisor& HashBucketCountExt(unsigned long elementCount);
+::NPrivate::THashDivisor HashBucketCountExt(unsigned long elementCount);
+
+Y_CONST_FUNCTION
+::NPrivate::THashDivisor HashBucketCountExt(unsigned long elementCount, int hint);
