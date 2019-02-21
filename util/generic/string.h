@@ -203,6 +203,7 @@ public:
         return s ? TTraits::GetLength(s) : 0;
     }
 
+    // TODO: DROP! this one provides an implicit TStringBuf -> std::string conversion!
     template <class T, class A>
     inline operator std::basic_string<TCharType, T, A>() const {
         return std::basic_string<TCharType, T, A>(Ptr(), Len());
