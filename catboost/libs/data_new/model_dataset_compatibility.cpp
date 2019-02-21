@@ -185,13 +185,16 @@ namespace NCB {
             };
             for (ui32 modelBucketIdx = 0; modelBucketIdx < feature.Borders.size(); ++modelBucketIdx) {
                 while (poolBucketIdx < quantizedBorders.size() &&
-                    quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx] - std::numeric_limits<float>::epsilon()) {
+                    quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx]) {
                     addRemapBinIdx(modelBucketIdx);
                 }
-                CB_ENSURE(
-                    poolBucketIdx < quantizedBorders.size() &&
-                    std::abs(quantizedBorders[poolBucketIdx] - feature.Borders[modelBucketIdx]) < std::numeric_limits<float>::epsilon(),
-                    "Feature " << feature.FlatFeatureIndex << " model borders do not correspond to quantization borders"
+                CB_ENSURE(poolBucketIdx < quantizedBorders.size(),
+                    "Feature " << feature.FlatFeatureIndex << ": inconsistent borders, last quantized vs model: "
+                    << double(quantizedBorders.back()) << " vs " << feature.Borders[modelBucketIdx]
+                );
+                CB_ENSURE(quantizedBorders[poolBucketIdx] == feature.Borders[modelBucketIdx],
+                    "Feature " << feature.FlatFeatureIndex << ": inconsistent borders, quantized vs model: "
+                    << double(quantizedBorders[poolBucketIdx]) << " vs " << feature.Borders[modelBucketIdx]
                 );
                 addRemapBinIdx(modelBucketIdx);
             }

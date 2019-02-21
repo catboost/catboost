@@ -10,6 +10,52 @@ using namespace NCB;
 
 
 Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
+    void Check(TVector<float> poolBorders, TVector<float> modelBorders, TVector<ui8> expectedMap) {
+        bool hasNans = false;
+        TFullModel model;
+        model.ObliviousTrees.FloatFeatures = { TFloatFeature(hasNans, 0, 0, modelBorders) };
+
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
+        TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
+
+        quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), std::move(poolBorders));
+
+        if (expectedMap.empty()) {
+
+            // Cerr << "Expecting EXCEPTION for P=" << poolBorders << ", M=" << modelBorders << Endl;
+            UNIT_ASSERT_EXCEPTION(GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo), TCatBoostException);
+
+        } else {
+
+           auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
+           UNIT_ASSERT_VALUES_EQUAL(floatBinsRemap[0], expectedMap);
+
+        }
+    }
+
+    Y_UNIT_TEST(TestThreeBorders) {
+
+        const float a = 0;
+        const float b = 1;
+        const float c = 2;
+        Check({a, b, c}, {a}, {0, 1, 1, 1});
+        Check({a, b, c}, {b}, {0, 0, 1, 1});
+        Check({a, b, c}, {c}, {0, 0, 0, 1});
+        Check({a, b, c}, {a, b}, {0, 1, 2, 2});
+        Check({a, b, c}, {a, c}, {0, 1, 1, 2});
+        Check({a, b, c}, {b, c}, {0, 0, 1, 2});
+
+        const float d = -0.5;
+        const float e = 0.5;
+        const float f = 2.5;
+        Check({a, b, c}, {d}, {});
+        Check({a, b, c}, {e}, {});
+        Check({a, b, c}, {f}, {});
+        Check({a, b, c}, {d, a, b, c}, {});
+        Check({a, b, c}, {a, e, b, c}, {});
+        Check({a, b, c}, {a, b, c, f}, {});
+    }
+
     Y_UNIT_TEST(Test) {
         bool hasNans = false;
         TFullModel model;
@@ -20,7 +66,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
-        quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {-0.1f, 0.f, 1.f, 1.5f, 2.f, 3.f});
+        quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {-0.1f, 1e-9f, 1.f, 1.5f, 2.f, 3.f});
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(1), {0.f});
 
         auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
@@ -64,5 +110,46 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
             TFloatFeature(hasNans, 0, 0, {0.f, 0.5f, 1.f}),
         };
         UNIT_ASSERT_EXCEPTION(GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo), TCatBoostException);
+
+        quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {0.f, 1.f, 3.f, 4.f});
+
+        model.ObliviousTrees.FloatFeatures = {
+            TFloatFeature(hasNans, 0, 0, {0.f, 0.5f, 0.7f, 1.f}),
+        };
+        UNIT_ASSERT_EXCEPTION(GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo), TCatBoostException);
+    }
+
+    Y_UNIT_TEST(Precision) {
+        bool hasNans = false;
+        TFullModel model;
+
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
+        TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
+
+        const float a = 0.0000006269f;
+        const float a_plus_eps = std::nextafterf(a, 1.0);
+        const float b = 0.000000746f;
+        const float b_plus_eps = std::nextafterf(b, 1.0);
+
+        quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {a, a_plus_eps, b, b_plus_eps});
+
+        model.ObliviousTrees.FloatFeatures = {
+            TFloatFeature(hasNans, 0, 0, {a}),
+        };
+        auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
+
+        UNIT_ASSERT(Equal<ui8>(floatBinsRemap[0], {0, 1, 1, 1, 1}));
+
+        model.ObliviousTrees.FloatFeatures = {
+            TFloatFeature(hasNans, 0, 0, {a_plus_eps}),
+        };
+        floatBinsRemap = GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
+        UNIT_ASSERT(Equal<ui8>(floatBinsRemap[0], {0, 0, 1, 1, 1}));
+
+        model.ObliviousTrees.FloatFeatures = {
+            TFloatFeature(hasNans, 0, 0, {b_plus_eps}),
+        };
+        floatBinsRemap = GetFloatFeaturesBordersRemap(model, quantizedFeaturesInfo);
+        UNIT_ASSERT(Equal<ui8>(floatBinsRemap[0], {0, 0, 0, 0, 1}));
     }
 }
