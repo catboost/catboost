@@ -1036,6 +1036,12 @@ public:
         }
     }
 
+    template <typename Traits>
+    explicit inline TBasicString(const std::basic_string_view<TCharType, Traits>& s) {
+        Data_ = Allocate(s.size());
+        TTraits::Copy(Data_, s.data(), s.size());
+    }
+
     static TDerived Uninitialized(size_t n) {
         return TDerived(TUninitialized(n));
     }
