@@ -1,5 +1,8 @@
 #include "iterator.h"
 
+#include <string>
+#include <string_view>
+
 #include <util/charset/wide.h>
 
 #include <library/unittest/registar.h>
@@ -310,5 +313,38 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         answer1.clear();
         StringSplitter("  \n 1    2  \n\n\n   3 4\n ").SplitBySet(" \n").SkipEmpty().ParseInto(&answer1);
         UNIT_ASSERT_VALUES_EQUAL(actual0, answer1);
+    }
+
+    Y_UNIT_TEST(TestStdString) {
+        std::vector<std::string_view> r0, r1, answer = {"lol", "zomg"};
+        std::string s = "lol zomg";
+        for (std::string_view ss : StringSplitter(s).Split(' '))
+            r0.push_back(ss);
+        StringSplitter(s).Split(' ').Collect(&r1);
+
+        UNIT_ASSERT_VALUES_EQUAL(r0, answer);
+        UNIT_ASSERT_VALUES_EQUAL(r1, answer);
+    }
+
+    Y_UNIT_TEST(TestStdStringView) {
+        std::string_view s = "aaacccbbb";
+        std::vector<std::string_view> expected = {"aaa", "bbb"};
+        std::vector<std::string_view> actual = StringSplitter(s).SplitByString("ccc");
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestArcadiaStdInterop) {
+        TVector<TString> expected0 = { "a", "b" };
+        TVector<TStringBuf> expected1 = { "a", "b" };
+        std::string src1("a  b");
+        std::string_view src2("a  b");
+        TVector<TString> actual0 = StringSplitter(src1).Split(' ').SkipEmpty();
+        TVector<TString> actual1 = StringSplitter(src2).Split(' ').SkipEmpty();
+        TVector<TStringBuf> actual2 = StringSplitter(src1).Split(' ').SkipEmpty();
+        TVector<TStringBuf> actual3 = StringSplitter(src2).Split(' ').SkipEmpty();
+        UNIT_ASSERT_VALUES_EQUAL(expected0, actual0);
+        UNIT_ASSERT_VALUES_EQUAL(expected0, actual1);
+        UNIT_ASSERT_VALUES_EQUAL(expected1, actual2);
+        UNIT_ASSERT_VALUES_EQUAL(expected1, actual3);
     }
 }

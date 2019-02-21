@@ -9,6 +9,7 @@
 #include <util/generic/store_policy.h>
 
 #include <utility>
+#include <stlfwd>
 
 //
 // Provides convenient way to split strings.
@@ -27,19 +28,19 @@ namespace NPrivate {
         {
         }
 
-        template<class Char>
-        void operator()(TGenericStringBuf<Char> e) const {
+        template<class StringBuf>
+        void operator()(StringBuf e) const {
             this->operator()(C_, e);
         }
 
     private:
-        template<class OtherContainer, class Char>
-        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->push_back(value_type(e))) {
+        template<class OtherContainer, class StringBuf>
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->push_back(value_type(e))) {
             return c->push_back(value_type(e));
         }
 
-        template<class OtherContainer, class Char>
-        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(value_type(e))) {
+        template<class OtherContainer, class StringBuf>
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->insert(value_type(e))) {
             return c->insert(value_type(e));
         }
 
@@ -55,24 +56,42 @@ namespace NPrivate {
         {
         }
 
-        template <class Char>
-        void operator()(TGenericStringBuf<Char> e) const {
+        template <class StringBuf>
+        void operator()(StringBuf e) const {
             this->operator()(C_, e);
         }
 
     private:
-        template<class OtherContainer, class Char>
-        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->push_back(FromString<value_type>(e))) {
+        template<class OtherContainer, class StringBuf>
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->push_back(FromString<value_type>(e))) {
             return c->push_back(FromString<value_type>(e));
         }
 
-        template<class OtherContainer, class Char>
-        auto operator()(OtherContainer* c, TGenericStringBuf<Char> e) const -> decltype(c->insert(FromString<value_type>(e))) {
+        template<class OtherContainer, class StringBuf>
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->insert(FromString<value_type>(e))) {
             return c->insert(FromString<value_type>(e));
         }
 
         Container* C_;
     };
+
+    template <class String>
+    struct TStringBufOfImpl {
+        using type = TGenericStringBuf<typename String::value_type>;
+    };
+
+    template <class Char, class Traits, class Allocator>
+    struct TStringBufOfImpl<std::basic_string<Char, Traits, Allocator>> {
+        using type = std::basic_string_view<Char, Traits>;
+    };
+
+    template <class Char, class Traits>
+    struct TStringBufOfImpl<std::basic_string_view<Char, Traits>> {
+        using type = std::basic_string_view<Char, Traits>;
+    };
+
+    template<class String>
+    using TStringBufOf = typename TStringBufOfImpl<String>::type;
 }
 
 template <class It>
@@ -170,6 +189,7 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
     }
 };
 
+// TODO: NPrivate
 template <class TIt>
 class TExternalOwnerPolicy {
 public:
@@ -199,6 +219,7 @@ private:
     TIt E_;
 };
 
+// TODO: NPrivate
 template <class TStr>
 class TCopyOwnerPolicy {
     using TIt = decltype(std::cbegin(TStr()));
@@ -245,11 +266,13 @@ private:
     TIt E_;
 };
 
-template <class It, class TOwnerPolicy = TExternalOwnerPolicy<It>>
+template <class It, class StringBuf = void /* =default */, class TOwnerPolicy = TExternalOwnerPolicy<It>>
 class TStringSplitter {
     using TCVChar = std::remove_reference_t<decltype(*std::declval<It>())>;
     using TChar = std::remove_cv_t<TCVChar>;
-    using TStrBuf = TGenericStringBuf<TChar>;
+    using TStrBuf = std::conditional_t<std::is_same<StringBuf, void>::value, TGenericStringBuf<TChar>, StringBuf>;
+
+    static_assert(std::is_same<typename TStrBuf::value_type, TChar>::value, "Character type mismatch.");
 
     struct TIteratorState {
         inline TIteratorState(const TStringSplitter* s) noexcept
@@ -283,11 +306,11 @@ class TStringSplitter {
         }
 
         inline TStrBuf Token() const noexcept {
-            return {TokenStart(), TokenDelim()};
+            return TStrBuf(TokenStart(), TokenDelim() - TokenStart());
         }
 
         inline TStrBuf Delim() const noexcept {
-            return {TokenDelim(), TokenEnd()};
+            return TStrBuf(TokenDelim(), TokenEnd() - TokenDelim());
         }
 
         TOwnerPolicy Base;
@@ -499,16 +522,15 @@ static inline TStringSplitter<It> StringSplitter(It begin, size_t len) {
 }
 
 // enable_if for solving ambiguous overload for raw pointers. char* a = something; StringSplitter(a)...
-template <class Str, std::enable_if_t<!std::is_pointer<std::remove_cv_t<std::remove_reference_t<Str>>>::value, int> = 0>
+template <class Str, class NakedStr = std::remove_cv_t<std::remove_reference_t<Str>>, std::enable_if_t<!std::is_pointer<NakedStr>::value, int> = 0>
 static inline auto StringSplitter(Str& s) {
-    return TStringSplitter<decltype(std::cbegin(s))>(std::cbegin(s), std::cend(s));
+    return TStringSplitter<decltype(std::cbegin(s)), ::NPrivate::TStringBufOf<NakedStr>>(std::cbegin(s), std::cend(s));
 }
 
 // enable_if for solving ambiguous overload for raw pointers. char* a = something; StringSplitter(a)...
-template <class Str, std::enable_if_t<!std::is_pointer<std::remove_cv_t<std::remove_reference_t<Str>>>::value, int> = 0>
+template <class Str, class NakedStr = std::remove_cv_t<std::remove_reference_t<Str>>, std::enable_if_t<!std::is_pointer<NakedStr>::value, int> = 0>
 static inline auto StringSplitter(Str&& s) {
-    using TRes = TStringSplitter<decltype(std::cbegin(s)), TCopyOwnerPolicy<std::remove_cv_t<std::remove_reference_t<Str>>>>;
-    return TRes(std::move(s));
+    return TStringSplitter<decltype(std::cbegin(s)), ::NPrivate::TStringBufOf<NakedStr>, TCopyOwnerPolicy<NakedStr>>(std::move(s));
 }
 
 template <class TChar>

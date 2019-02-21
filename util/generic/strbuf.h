@@ -14,7 +14,8 @@ class TStringBufImpl: public TFixedString<TChar, TTraits>, public TStringBase<TS
     using TBase = TStringBase<TdSelf, TChar, TTraits>;
 
 public:
-    using char_type = TChar;
+    using char_type = TChar; // TODO: DROP
+    using value_type = TChar;
     using traits_type = TTraits;
 
     constexpr inline TStringBufImpl(const TChar* data, size_t len) noexcept
@@ -487,13 +488,6 @@ private:
 };
 
 std::ostream& operator<< (std::ostream& os, TStringBuf buf);
-
-//string type -> stringbuf type
-template <class TStringType>
-class TToStringBuf {
-public:
-    using TType = TGenericStringBuf<std::remove_cv_t<std::remove_reference_t<decltype(*std::declval<TStringType>().begin())>>>;
-};
 
 static inline TString ToString(const TStringBuf str) {
     return TString(str);
