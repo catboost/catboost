@@ -747,7 +747,6 @@ public:
     using TData = typename TDataTraits::TData;
     using TFixedString = typename TBase::TFixedString;
 
-    using TdChar = TCharType; // TODO: DROP
     using TCharRef = TBasicCharRef<TDerived>; // TODO: reference
     using char_type = TCharType; // TODO: DROP
     using value_type = TCharType;
@@ -1654,7 +1653,7 @@ public:
         return assign(s);
     }
 
-    TString& operator=(const TdChar* s) {
+    TString& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1781,7 +1780,7 @@ public:
         return assign(s);
     }
 
-    TUtf16String& operator=(const TdChar* s) {
+    TUtf16String& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1886,7 +1885,7 @@ public:
         return assign(s);
     }
 
-    TUtf32String& operator=(const TdChar* s) {
+    TUtf32String& operator=(const value_type* s) {
         return assign(s);
     }
 
