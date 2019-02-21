@@ -647,6 +647,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>806C141C-ADC5-203A-DF01-02F7E1563621</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\split\library-deprecated-split.vcxproj">
+      <Project>12DB8983-9B49-8E6F-8DFD-6A13F0FD9BF7</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
       <Project>CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC</Project>
     </ProjectReference>

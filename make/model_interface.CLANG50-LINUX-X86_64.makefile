@@ -2117,7 +2117,6 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/builder.cpp\
         $(SOURCE_ROOT)/util/string/cgiparam.cpp\
         $(SOURCE_ROOT)/util/string/cstriter.cpp\
-        $(SOURCE_ROOT)/util/string/delim_string_iter.cpp\
         $(SOURCE_ROOT)/util/string/escape.cpp\
         $(SOURCE_ROOT)/util/string/hex.cpp\
         $(SOURCE_ROOT)/util/string/iterator.cpp\
@@ -2128,7 +2127,6 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/quote.cpp\
         $(SOURCE_ROOT)/util/string/scan.cpp\
         $(SOURCE_ROOT)/util/string/split.cpp\
-        $(SOURCE_ROOT)/util/string/split_iterator.cpp\
         $(SOURCE_ROOT)/util/string/strip.cpp\
         $(SOURCE_ROOT)/util/string/strspn.cpp\
         $(SOURCE_ROOT)/util/string/subst.cpp\
@@ -2138,7 +2136,7 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/vector.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cgiparam.cpp util/string/cstriter.cpp util/string/delim_string_iter.cpp util/string/escape.cpp util/string/hex.cpp util/string/iterator.cpp util/string/join.cpp util/string/kmp.cpp util/string/pcdata.cpp util/string/printf.cpp util/string/quote.cpp util/string/scan.cpp util/string/split.cpp util/string/split_iterator.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/url.cpp util/string/util.cpp util/string/vector.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cgiparam.cpp util/string/cstriter.cpp util/string/escape.cpp util/string/hex.cpp util/string/iterator.cpp util/string/join.cpp util/string/kmp.cpp util/string/pcdata.cpp util/string/printf.cpp util/string/quote.cpp util/string/scan.cpp util/string/split.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/url.cpp util/string/util.cpp util/string/vector.cpp
 
 $(BUILD_ROOT)/util/all_system_1.cpp.pic.o\
         ::\
@@ -3354,7 +3352,6 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/builder.cpp\
         $(SOURCE_ROOT)/util/string/cgiparam.cpp\
         $(SOURCE_ROOT)/util/string/cstriter.cpp\
-        $(SOURCE_ROOT)/util/string/delim_string_iter.cpp\
         $(SOURCE_ROOT)/util/string/escape.cpp\
         $(SOURCE_ROOT)/util/string/hex.cpp\
         $(SOURCE_ROOT)/util/string/iterator.cpp\
@@ -3365,7 +3362,6 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/quote.cpp\
         $(SOURCE_ROOT)/util/string/scan.cpp\
         $(SOURCE_ROOT)/util/string/split.cpp\
-        $(SOURCE_ROOT)/util/string/split_iterator.cpp\
         $(SOURCE_ROOT)/util/string/strip.cpp\
         $(SOURCE_ROOT)/util/string/strspn.cpp\
         $(SOURCE_ROOT)/util/string/subst.cpp\
@@ -3375,7 +3371,7 @@ $(BUILD_ROOT)/util/all_string.cpp\
         $(SOURCE_ROOT)/util/string/vector.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cgiparam.cpp util/string/cstriter.cpp util/string/delim_string_iter.cpp util/string/escape.cpp util/string/hex.cpp util/string/iterator.cpp util/string/join.cpp util/string/kmp.cpp util/string/pcdata.cpp util/string/printf.cpp util/string/quote.cpp util/string/scan.cpp util/string/split.cpp util/string/split_iterator.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/url.cpp util/string/util.cpp util/string/vector.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_string.cpp' util/string/ascii.cpp util/string/builder.cpp util/string/cgiparam.cpp util/string/cstriter.cpp util/string/escape.cpp util/string/hex.cpp util/string/iterator.cpp util/string/join.cpp util/string/kmp.cpp util/string/pcdata.cpp util/string/printf.cpp util/string/quote.cpp util/string/scan.cpp util/string/split.cpp util/string/strip.cpp util/string/strspn.cpp util/string/subst.cpp util/string/type.cpp util/string/url.cpp util/string/util.cpp util/string/vector.cpp
 
 $(BUILD_ROOT)/util/all_system_1.cpp.pic.o\
         ::\
