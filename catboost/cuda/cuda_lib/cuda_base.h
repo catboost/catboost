@@ -126,7 +126,13 @@ namespace NCudaLib {
         cudaPointerAttributes attributes;
         CUDA_SAFE_CALL(cudaPointerGetAttributes(&attributes, (void*)(ptr)));
         //TODO(noxoomo): currently don't distinguish pinned/non-pinned memory
+#ifndef CUDART_VERSION
+#error "CUDART_VERSION is not defined: include cuda_runtime_api.h"
+#elif (CUDART_VERSION >= 10000)
+        return attributes.type == cudaMemoryTypeHost ? EPtrType::CudaHost : EPtrType::CudaDevice;
+#else
         return attributes.memoryType == cudaMemoryTypeHost ? EPtrType::CudaHost : EPtrType::CudaDevice;
+#endif
     }
 
     template <EPtrType From, EPtrType To>
@@ -258,7 +264,13 @@ namespace NCudaLib {
     inline int GetDeviceForPointer(const T* ptr) {
         cudaPointerAttributes result;
         CUDA_SAFE_CALL(cudaPointerGetAttributes(&result, (const void*)ptr));
+#ifndef CUDART_VERSION
+#error "CUDART_VERSION is not defined: include cuda_runtime_api.h"
+#elif (CUDART_VERSION >= 10000)
+        CB_ENSURE(result.type == cudaMemoryTypeDevice, "Error: this pointer is not GPU pointer");
+#else
         CB_ENSURE(result.memoryType == cudaMemoryTypeDevice, "Error: this pointer is not GPU pointer");
+#endif
         return result.device;
     }
 
