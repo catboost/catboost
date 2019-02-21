@@ -3,7 +3,7 @@
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
 #include <util/string/split.h>
-#include <util/string/delim_string_iter.h>
+#include <util/string/iterator.h>
 #include <util/charset/utf8.h>
 
 ////////////////////////////////////
@@ -59,9 +59,9 @@ void AddToNameValueHash(TStringBuf input, TMapType& nameValueMap) {
 
     TStringBuf name;
     TStringBuf value;
-    for (TDelimStringIter it(input, "\t"); it.Valid(); ++it) {
-        if (!ExtractField(it, name, value))
-            ythrow yexception() << "Failed to extract field from \"" << *it << "\"";
+    for (const auto& it : StringSplitter(input).Split('\t')) {
+        if (!it.Token().TrySplit('=', name, value))
+            ythrow yexception() << "Failed to extract field from \"" << it.Token() << "\"";
 
         T val = FromString<T>(value);
         std::pair<typename TMapType::iterator, bool> insertionResult =
