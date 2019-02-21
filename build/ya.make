@@ -6,6 +6,7 @@ PACKAGE()
 
 PEERDIR(
     library/deprecated/enum_codegen
+    library/deprecated/split
 )
 
 END()
@@ -29,5 +30,3 @@ RECURSE(
     platform/python/ldflags
     platform/java
 )
-
-

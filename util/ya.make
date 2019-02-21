@@ -222,7 +222,6 @@ JOIN_SRCS(
     string/builder.cpp
     string/cgiparam.cpp
     string/cstriter.cpp
-    string/delim_string_iter.cpp
     string/escape.cpp
     string/hex.cpp
     string/iterator.cpp
@@ -233,7 +232,6 @@ JOIN_SRCS(
     string/quote.cpp
     string/scan.cpp
     string/split.cpp
-    string/split_iterator.cpp
     string/strip.cpp
     string/strspn.cpp
     string/subst.cpp
