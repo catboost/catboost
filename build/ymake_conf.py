@@ -2452,6 +2452,8 @@ class Cuda(object):
         if self.use_arcadia_cuda.value and self.cuda_host_compiler.value is None:
             logger.warning('$USE_ARCADIA_CUDA is set, but no $CUDA_HOST_COMPILER')
 
+        self.setup_vc_root()
+
         self.cuda_root.emit()
         self.cuda_version.emit()
         self.use_arcadia_cuda.emit()
@@ -2563,6 +2565,27 @@ class Cuda(object):
         self.cuda_host_compiler_env.value = format_env(env)
         self.cuda_host_msvc_version.value = vc_version
         return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
+
+    def setup_vc_root(self):
+        if not self.cuda_host_compiler.from_user:
+            return  # Already set in cuda_windows_host_compiler()
+
+        if self.cuda_host_compiler_env.from_user:
+            return  # We won't override user setting
+
+        def is_root(dir):
+            return all(os.path.isdir(os.path.join(dir, name)) for name in ('bin', 'include', 'lib'))
+
+        def get_root():
+            path, old_path = os.path.normpath(self.cuda_host_compiler.value), None
+            while path != old_path:
+                if is_root(path):
+                    return path
+                path, old_path = os.path.dirname(path), path
+
+        vc_root = get_root()
+        if vc_root:
+            self.cuda_host_compiler_env.value = format_env({'Y_VC_Root': vc_root})
 
     def auto_cuda_arcadia_includes(self):
         return self.cuda_version_list >= [9, 0]
