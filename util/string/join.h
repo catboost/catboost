@@ -129,7 +129,9 @@ inline TString JoinRange(const TStringBuf delim, const TIter beg, const TIter en
 
 template <typename TContainer>
 TString JoinSeq(const TStringBuf delim, const TContainer& data) {
-    return JoinRange(delim, data.begin(), data.end());
+    using std::begin;
+    using std::end;
+    return JoinRange(delim, begin(data), end(data));
 }
 
 /** \brief Functor for streaming iterative objects from TIterB e to TIterE b, separated with delim.
