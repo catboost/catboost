@@ -100,7 +100,7 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\util\random\random.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\util\string\cast.cc"/>
+    <ClCompile Include="$(SolutionDir)..\util\string\cast.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\fs_win.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\mktemp_system.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\strlcpy.c">

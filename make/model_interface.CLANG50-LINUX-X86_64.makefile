@@ -1125,7 +1125,7 @@ $(BUILD_ROOT)/util/libyutil.a\
         ::\
         $(BUILD_ROOT)/util/digest/city.cpp.pic.o\
         $(BUILD_ROOT)/util/random/random.cpp.pic.o\
-        $(BUILD_ROOT)/util/string/cast.cc.pic.o\
+        $(BUILD_ROOT)/util/string/cast.cpp.pic.o\
         $(BUILD_ROOT)/util/system/context_x86.o\
         $(BUILD_ROOT)/util/system/valgrind.cpp.pic.o\
         $(BUILD_ROOT)/util/system/strlcpy.c.pic.o\
@@ -1149,7 +1149,7 @@ $(BUILD_ROOT)/util/libyutil.a\
 
 	mkdir -p '$(BUILD_ROOT)/util'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yutil -o util/libyutil.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/digest/city.cpp.pic.o' '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(BUILD_ROOT)/util/string/cast.cc.pic.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.pic.o' '$(BUILD_ROOT)/util/system/strlcpy.c.pic.o' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o' '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o' '$(BUILD_ROOT)/util/all_digest.cpp.pic.o' '$(BUILD_ROOT)/util/all_util.cpp.pic.o' '$(BUILD_ROOT)/util/all_folder.cpp.pic.o' '$(BUILD_ROOT)/util/all_generic.cpp.pic.o' '$(BUILD_ROOT)/util/all_memory.cpp.pic.o' '$(BUILD_ROOT)/util/all_network.cpp.pic.o' '$(BUILD_ROOT)/util/all_random.cpp.pic.o' '$(BUILD_ROOT)/util/all_stream.cpp.pic.o' '$(BUILD_ROOT)/util/all_string.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o' '$(BUILD_ROOT)/util/all_thread.cpp.pic.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/digest/city.cpp.pic.o' '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(BUILD_ROOT)/util/string/cast.cpp.pic.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.pic.o' '$(BUILD_ROOT)/util/system/strlcpy.c.pic.o' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o' '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o' '$(BUILD_ROOT)/util/all_digest.cpp.pic.o' '$(BUILD_ROOT)/util/all_util.cpp.pic.o' '$(BUILD_ROOT)/util/all_folder.cpp.pic.o' '$(BUILD_ROOT)/util/all_generic.cpp.pic.o' '$(BUILD_ROOT)/util/all_memory.cpp.pic.o' '$(BUILD_ROOT)/util/all_network.cpp.pic.o' '$(BUILD_ROOT)/util/all_random.cpp.pic.o' '$(BUILD_ROOT)/util/all_stream.cpp.pic.o' '$(BUILD_ROOT)/util/all_string.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o' '$(BUILD_ROOT)/util/all_thread.cpp.pic.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o'
 
 $(BUILD_ROOT)/util/digest/city.cpp.pic.o\
         ::\
@@ -1165,12 +1165,12 @@ $(BUILD_ROOT)/util/random/random.cpp.pic.o\
 	mkdir -p '$(BUILD_ROOT)/util/random'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(SOURCE_ROOT)/util/random/random.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4418251 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
-$(BUILD_ROOT)/util/string/cast.cc.pic.o\
+$(BUILD_ROOT)/util/string/cast.cpp.pic.o\
         ::\
-        $(SOURCE_ROOT)/util/string/cast.cc\
+        $(SOURCE_ROOT)/util/string/cast.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util/string'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/string/cast.cc.pic.o' '$(SOURCE_ROOT)/util/string/cast.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4418251 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/string/cast.cpp.pic.o' '$(SOURCE_ROOT)/util/string/cast.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4418251 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/util/system/context_x86.o\
         ::\
@@ -3019,7 +3019,7 @@ $(BUILD_ROOT)/util/libyutil.a\
         ::\
         $(BUILD_ROOT)/util/digest/city.cpp.pic.o\
         $(BUILD_ROOT)/util/random/random.cpp.pic.o\
-        $(BUILD_ROOT)/util/string/cast.cc.pic.o\
+        $(BUILD_ROOT)/util/string/cast.cpp.pic.o\
         $(BUILD_ROOT)/util/system/context_x86.o\
         $(BUILD_ROOT)/util/system/valgrind.cpp.pic.o\
         $(BUILD_ROOT)/util/system/strlcpy.c.pic.o\
@@ -3043,7 +3043,7 @@ $(BUILD_ROOT)/util/libyutil.a\
 
 	mkdir -p '$(BUILD_ROOT)/util'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name yutil -o util/libyutil.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/digest/city.cpp.pic.o' '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(BUILD_ROOT)/util/string/cast.cc.pic.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.pic.o' '$(BUILD_ROOT)/util/system/strlcpy.c.pic.o' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o' '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o' '$(BUILD_ROOT)/util/all_digest.cpp.pic.o' '$(BUILD_ROOT)/util/all_util.cpp.pic.o' '$(BUILD_ROOT)/util/all_folder.cpp.pic.o' '$(BUILD_ROOT)/util/all_generic.cpp.pic.o' '$(BUILD_ROOT)/util/all_memory.cpp.pic.o' '$(BUILD_ROOT)/util/all_network.cpp.pic.o' '$(BUILD_ROOT)/util/all_random.cpp.pic.o' '$(BUILD_ROOT)/util/all_stream.cpp.pic.o' '$(BUILD_ROOT)/util/all_string.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o' '$(BUILD_ROOT)/util/all_thread.cpp.pic.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/digest/city.cpp.pic.o' '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(BUILD_ROOT)/util/string/cast.cpp.pic.o' '$(BUILD_ROOT)/util/system/context_x86.o' '$(BUILD_ROOT)/util/system/valgrind.cpp.pic.o' '$(BUILD_ROOT)/util/system/strlcpy.c.pic.o' '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o' '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o' '$(BUILD_ROOT)/util/all_digest.cpp.pic.o' '$(BUILD_ROOT)/util/all_util.cpp.pic.o' '$(BUILD_ROOT)/util/all_folder.cpp.pic.o' '$(BUILD_ROOT)/util/all_generic.cpp.pic.o' '$(BUILD_ROOT)/util/all_memory.cpp.pic.o' '$(BUILD_ROOT)/util/all_network.cpp.pic.o' '$(BUILD_ROOT)/util/all_random.cpp.pic.o' '$(BUILD_ROOT)/util/all_stream.cpp.pic.o' '$(BUILD_ROOT)/util/all_string.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_1.cpp.pic.o' '$(BUILD_ROOT)/util/all_system_2.cpp.pic.o' '$(BUILD_ROOT)/util/all_thread.cpp.pic.o' '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp.pic.o'
 
 $(BUILD_ROOT)/util/digest/city.cpp.pic.o\
         ::\
@@ -3059,12 +3059,12 @@ $(BUILD_ROOT)/util/random/random.cpp.pic.o\
 	mkdir -p '$(BUILD_ROOT)/util/random'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/random/random.cpp.pic.o' '$(SOURCE_ROOT)/util/random/random.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4418251 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
-$(BUILD_ROOT)/util/string/cast.cc.pic.o\
+$(BUILD_ROOT)/util/string/cast.cpp.pic.o\
         ::\
-        $(SOURCE_ROOT)/util/string/cast.cc\
+        $(SOURCE_ROOT)/util/string/cast.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util/string'
-	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/string/cast.cc.pic.o' '$(SOURCE_ROOT)/util/string/cast.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4418251 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
+	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/util/string/cast.cpp.pic.o' '$(SOURCE_ROOT)/util/string/cast.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4418251 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o\
         ::\
@@ -9344,7 +9344,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/libyutil.a.mf'
 	rm -f '$(BUILD_ROOT)/util/digest/city.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/util/random/random.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/util/string/cast.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/util/string/cast.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/util/system/context_x86.o'
 	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/yasm' '$(BUILD_ROOT)/contrib/tools/yasm/yasm.mf'
 	rm -f '$(BUILD_ROOT)/contrib/tools/yasm/frontends/yasm/yasm-options.c.pic.o'
@@ -9533,7 +9533,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/util/libyutil.a' '$(BUILD_ROOT)/util/libyutil.a.mf'
 	rm -f '$(BUILD_ROOT)/util/digest/city.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/util/random/random.cpp.pic.o'
-	rm -f '$(BUILD_ROOT)/util/string/cast.cc.pic.o'
+	rm -f '$(BUILD_ROOT)/util/string/cast.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/util/system/mktemp_system.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/util/all_datetime.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/util/all_datetime.cpp'
