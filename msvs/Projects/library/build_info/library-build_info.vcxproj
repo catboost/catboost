@@ -88,7 +88,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\build_info
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/build_info/sandbox.cpp.in" "$(SolutionDir)$(Configuration)/library/build_info/sandbox.cpp" "KOSHER_SVN_VERSION=$KOSHER_SVN_VERSION" "SANDBOX_TASK_ID=0"
+"python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/build_info/sandbox.cpp.in" "$(SolutionDir)$(Configuration)/library/build_info/sandbox.cpp" "KOSHER_SVN_VERSION=" "SANDBOX_TASK_ID=0"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,7 +103,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\build_info
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/build_info/sandbox.cpp.in" "$(SolutionDir)$(Configuration)/library/build_info/sandbox.cpp" "KOSHER_SVN_VERSION=$KOSHER_SVN_VERSION" "SANDBOX_TASK_ID=0"
+"python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/build_info/sandbox.cpp.in" "$(SolutionDir)$(Configuration)/library/build_info/sandbox.cpp" "KOSHER_SVN_VERSION=" "SANDBOX_TASK_ID=0"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
