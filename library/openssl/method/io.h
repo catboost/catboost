@@ -1,9 +1,6 @@
 #pragma once
 
-#include "io_method.h"
-
-#include <util/generic/yexception.h>
-#include <util/system/compiler.h>
+#include <library/openssl/holders/bio.h>
 
 namespace NOpenSSL {
 
@@ -28,7 +25,7 @@ public:
     }
 
 private:
-    static TIOMethod Method;
+    static TBioMethod Method;
 
     BIO* Bio;
 };

@@ -15,7 +15,7 @@ PEERDIR(
     library/netliba/v6
     library/openssl/compat # Remove after OpenSSL upgrade
     library/openssl/init
-    library/openssl/io_method
+    library/openssl/method
     library/threading/atomic
 )
 

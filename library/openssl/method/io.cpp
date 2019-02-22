@@ -1,17 +1,16 @@
 #include "io.h"
 
-#include <functional>
-
 #include <util/generic/yexception.h>
-
-#define BIO_TYPE_START 128
+#include <util/system/compiler.h>
+#include <util/system/yassert.h>
 
 namespace {
     using NOpenSSL::TAbstractIO;
 
     TAbstractIO* IO(BIO* bio) noexcept {
-        Y_VERIFY(bio->ptr);
-        return static_cast<TAbstractIO*>(bio->ptr);
+        void* ptr = BIO_get_data(bio);
+        Y_VERIFY(ptr);
+        return static_cast<TAbstractIO*>(ptr);
     }
 
     template<class T, class Callable, class... Args>
@@ -44,17 +43,14 @@ namespace {
     }
 
     int Create(BIO* bio) noexcept {
-        bio->init = 1;
-        bio->num = 0;
-        bio->ptr = nullptr;
-        bio->flags = 0;
+        BIO_set_data(bio, nullptr);
+        BIO_set_init(bio, 1);
         return 1;
     }
 
     int Destroy(BIO* bio) noexcept {
-        bio->ptr = nullptr; // XXX
-        bio->init = 0;
-        bio->flags = 0;
+        BIO_set_data(bio, nullptr);
+        BIO_set_init(bio, 0);
         return 1;
     }
 }
@@ -66,7 +62,7 @@ namespace NOpenSSL {
         if (Y_UNLIKELY(!Bio)) {
             ThrowBadAlloc();
         }
-        Bio->ptr = this;
+        BIO_set_data(Bio, this);
     }
 
     TAbstractIO::~TAbstractIO() {
@@ -107,8 +103,8 @@ namespace NOpenSSL {
         return 0;
     }
 
-    TIOMethod TAbstractIO::Method(
-        (BIO_TYPE_START + 1) | BIO_TYPE_SOURCE_SINK,
+    TBioMethod TAbstractIO::Method(
+        BIO_get_new_index() | BIO_TYPE_SOURCE_SINK,
         "AbstractIO",
         ::Write,
         ::Read,

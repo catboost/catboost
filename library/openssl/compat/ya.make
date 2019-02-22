@@ -16,6 +16,7 @@ SRCS(
     rsa.c
     ssl.c
     x509.c
+    x509_vfy.c
 )
 
 END()

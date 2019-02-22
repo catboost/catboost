@@ -17,7 +17,7 @@
 #include <library/openssl/compat/asn1.h> // Remove after OpenSSL upgrade
 #include <library/openssl/compat/bio.h> // Remove after OpenSSL upgrade
 #include <library/openssl/init/init.h>
-#include <library/openssl/io_method/io.h>
+#include <library/openssl/method/io.h>
 #include <library/coroutine/listener/listen.h>
 #include <library/dns/cache.h>
 #include <library/http/misc/parsed_request.h>
