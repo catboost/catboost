@@ -148,11 +148,13 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
         Consume(consumer);
     }
 
+    // TODO: this is actually TryParseInto
     /**
-        * Collects all splitted arguments into args
-        * @param args: Output arguments
-        * @return bool: true, if all items collected successfully, else - false
-    */
+     * Same as `CollectInto`, just doesn't throw.
+     *
+     * \param[out] args                 Output arguments.
+     * \returns                         Whether parsing was successful.
+     */
     template <typename... Args>
     inline bool TryCollectInto(Args*... args) {
         size_t filled = 0;
@@ -169,11 +171,20 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
         return filled == sizeof...(args) && it == this->end();
     }
 
+    // TODO: this is actually ParseInto
     /**
-        * Collects all splitted arguments into args
-        * Throws exception, if not all items collected successfully
-        * @param args: Output arguments
-    */
+     * Splits and parses everything that's in this splitter into `args`.
+     *
+     * Example usage:
+     * \code
+     * int l, r;
+     * StringSplitter("100*200").Split('*').CollectInto(&l, &r);
+     * \endcode
+     *
+     * \param[out] args                 Output arguments.
+     * \throws                          If not all items were parsed, or
+     *                                  if there were too many items in the split.
+     */
     template <typename... Args>
     inline void CollectInto(Args*... args) {
         Y_ENSURE(TryCollectInto<Args...>(args...));
