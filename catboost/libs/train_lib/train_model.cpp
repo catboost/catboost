@@ -43,7 +43,6 @@
 #include <util/random/shuffle.h>
 #include <util/system/compiler.h>
 #include <util/system/hp_timer.h>
-#include <util/system/info.h>
 
 
 using namespace NCB;
@@ -61,10 +60,6 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
             progress->UsedCtrSplits.insert(std::make_pair(ctrType, projection));
         }
     }
-}
-
-static int GetThreadCount(const NCatboostOptions::TCatBoostOptions& options) {
-    return Min<int>(options.SystemOptions->NumThreads, (int)NSystemInfo::CachedNumberOfCpus());
 }
 
 
@@ -753,7 +748,7 @@ void TrainModel(
     );
 
     NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(GetThreadCount(catBoostOptions) - 1);
+    executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
     TDataProviders pools = LoadPools(
         loadOptions,
@@ -904,7 +899,8 @@ void TrainModel(
     outputOptions.Load(outputFilesOptionsJson);
 
     NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(GetThreadCount(NCatboostOptions::LoadOptions(trainOptionsJson)) - 1);
+    executor.RunAdditionalThreads(
+        NCatboostOptions::LoadOptions(trainOptionsJson).SystemOptions.Get().NumThreads.Get() - 1);
 
     TrainModel(
         trainOptionsJson,
