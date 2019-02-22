@@ -318,8 +318,9 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     Y_UNIT_TEST(TestStdString) {
         std::vector<std::string_view> r0, r1, answer = {"lol", "zomg"};
         std::string s = "lol zomg";
-        for (std::string_view ss : StringSplitter(s).Split(' '))
+        for (std::string_view ss : StringSplitter(s).Split(' ')) {
             r0.push_back(ss);
+        }
         StringSplitter(s).Split(' ').Collect(&r1);
 
         UNIT_ASSERT_VALUES_EQUAL(r0, answer);
@@ -331,6 +332,27 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         std::vector<std::string_view> expected = {"aaa", "bbb"};
         std::vector<std::string_view> actual = StringSplitter(s).SplitByString("ccc");
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestSplitAfterSplit) {
+        std::string_view input = "a*b+a*b";
+        for (std::string_view summand: StringSplitter(input).Split('+')) {
+            //FIXME: std::string is used to workaround MSVC ICE
+            UNIT_ASSERT_VALUES_EQUAL(std::string(summand), "a*b");
+            std::string_view multiplier1, multiplier2;
+            bool splitResult = StringSplitter(summand).Split('*').TryCollectInto(&multiplier1, &multiplier2);
+            UNIT_ASSERT(splitResult);
+            UNIT_ASSERT_VALUES_EQUAL(std::string(multiplier1), "a");
+            UNIT_ASSERT_VALUES_EQUAL(std::string(multiplier2), "b");
+        }
+    }
+
+    Y_UNIT_TEST(TestSplitWithParsing) {
+        std::string_view input = "1,2,3,4";
+        TVector<ui64> numbers;
+        const TVector<ui64> expected{1, 2, 3, 4};
+        StringSplitter(input).Split(',').ParseInto(&numbers);
+        UNIT_ASSERT_VALUES_EQUAL(numbers, expected);
     }
 
     Y_UNIT_TEST(TestArcadiaStdInterop) {

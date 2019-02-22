@@ -6,7 +6,6 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/iterator.h>
 #include <util/generic/typetraits.h>
-#include <util/generic/store_policy.h>
 
 #include <utility>
 #include <stlfwd>
@@ -18,6 +17,16 @@
 namespace NPrivate {
     Y_HAS_MEMBER(push_back, PushBack);
     Y_HAS_MEMBER(insert, Insert);
+
+    template<class StringBuf, class T>
+    inline void FromStringBuf(StringBuf buf, T* dst) {
+        *dst = ::FromString<T>(buf);
+    }
+
+    template<class StringBuf>
+    inline void FromStringBuf(StringBuf buf, StringBuf* dst) {
+        *dst = buf;
+    }
 
     template <class Container>
     struct TContainerConsumer {
@@ -63,13 +72,17 @@ namespace NPrivate {
 
     private:
         template<class OtherContainer, class StringBuf>
-        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->push_back(FromString<value_type>(e))) {
-            return c->push_back(FromString<value_type>(e));
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->push_back(std::declval<value_type>())) {
+            value_type v;
+            ::NPrivate::FromStringBuf(e, &v);
+            return c->push_back(std::move(v));
         }
 
         template<class OtherContainer, class StringBuf>
-        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->insert(FromString<value_type>(e))) {
-            return c->insert(FromString<value_type>(e));
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->insert(std::declval<value_type>())) {
+            value_type v;
+            ::NPrivate::FromStringBuf(e, &v);
+            return c->insert(std::move(v));
         }
 
         Container* C_;
@@ -163,7 +176,7 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
         ApplyToMany([&](auto&& arg) {
             if (it != this->end()) {
                 ++filled;
-                *arg = ::FromString<std::remove_reference_t<decltype(*arg)>>(it->Token());
+                ::NPrivate::FromStringBuf(it->Token(), arg);
                 ++it;
             }
         }, args...);
