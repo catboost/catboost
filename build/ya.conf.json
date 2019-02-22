@@ -72,7 +72,8 @@
         "godoc": { "description": "Run godoc tool" },
         "gofmt": { "description": "Run gofmt tool" },
         "yo": { "description": "Tool for managing vendor/ directory" },
-	"tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
+        "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
+        "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
         "golangci-lint": { "description": "Linters Runner for Go" }
     },
     "toolchain": {
@@ -347,7 +348,17 @@
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
-		{"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "sandboxctl": {
+            "tools": {
+                "sandboxctl": { "bottle" : "sandboxctl", "executable": "sandboxctl" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
@@ -1397,6 +1408,15 @@
             },
             "executable": {
                 "tvmknife": ["tvmknife"]
+            }
+        },
+        "sandboxctl": {
+            "formula": {
+                "sandbox_id": [381312133],
+                "match": "sandboxctl"
+            },
+            "executable": {
+                "sandboxctl": ["sandboxctl"]
             }
         },
         "golangci-lint": {
