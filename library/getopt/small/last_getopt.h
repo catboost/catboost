@@ -33,34 +33,24 @@ namespace NLastGetopt {
         void HandleOpt(const TOptsParser* parser) override {
             const TStringBuf curval(parser->CurValOrDef());
             if (curval.IsInited()) {
-                TConsumer cons = {parser->CurOpt(), Target, RangesDelim};
-                StringSplitter(curval).Split(ElementsDelim).AddTo(&cons);
+                StringSplitter(curval).Split(ElementsDelim).Consume([&](const TStringBuf& val) {
+                    TStringBuf mutableValue = val;
+
+                    TValue first = NPrivate::OptFromString<TValue>(mutableValue.NextTok(RangesDelim), parser->CurOpt());
+                    TValue last = mutableValue ? NPrivate::OptFromString<TValue>(mutableValue, parser->CurOpt()) : first;
+
+                    if (last < first) {
+                        ythrow TUsageException() << "failed to parse opt " << NPrivate::OptToString(parser->CurOpt()) << " value " << TString(val).Quote() << ": the second argument is less than the first one";
+                    }
+
+                    for (++last; first < last; ++first) {
+                        Target->insert(Target->end(), first);
+                    }
+                });
             }
         }
 
     private:
-        struct TConsumer {
-            const TOpt* CurOpt;
-            TContainer* Target;
-            const char RangesDelim;
-
-            typedef TStringBuf value_type;
-            void push_back(const TStringBuf& val) {
-                TStringBuf mutableValue = val;
-
-                TValue first = NPrivate::OptFromString<TValue>(mutableValue.NextTok(RangesDelim), CurOpt);
-                TValue last = mutableValue ? NPrivate::OptFromString<TValue>(mutableValue, CurOpt) : first;
-
-                if (last < first) {
-                    ythrow TUsageException() << "failed to parse opt " << NPrivate::OptToString(CurOpt) << " value " << TString(val).Quote() << ": the second argument is less than the first one";
-                }
-
-                for (++last; first < last; ++first) {
-                    Target->insert(Target->end(), first);
-                }
-            }
-        };
-
         TContainer* Target;
         char ElementsDelim;
         char RangesDelim;
@@ -81,21 +71,13 @@ namespace NLastGetopt {
         void HandleOpt(const TOptsParser* parser) override {
             const TStringBuf curval(parser->CurValOrDef());
             if (curval.IsInited()) {
-                TConsumer cons = {parser->CurOpt(), Target};
-                StringSplitter(curval).Split(Delim).AddTo(&cons);
+                StringSplitter(curval).Split(Delim).Consume([&](const TStringBuf& val) {
+                    Target->insert(Target->end(), NPrivate::OptFromString<TValue>(val, parser->CurOpt()));
+                });
             }
         }
 
     private:
-        struct TConsumer {
-            const TOpt* CurOpt;
-            TContainer* Target;
-            typedef TStringBuf value_type;
-            void push_back(const TStringBuf& val) {
-                Target->insert(Target->end(), NPrivate::OptFromString<TValue>(val, CurOpt));
-            }
-        };
-
         TContainer* Target;
         char Delim;
     };
