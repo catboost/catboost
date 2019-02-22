@@ -3,6 +3,80 @@
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
 #include "crypto.h"
+#include "x509.h"
+
+X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a)
+{
+    if (a == NULL || a->type != X509_LU_X509)
+        return NULL;
+    return a->data.x509;
+}
+
+X509_CRL *X509_OBJECT_get0_X509_CRL(X509_OBJECT *a)
+{
+    if (a == NULL || a->type != X509_LU_CRL)
+        return NULL;
+    return a->data.crl;
+}
+
+X509_LOOKUP_TYPE X509_OBJECT_get_type(const X509_OBJECT *a)
+{
+    return a->type;
+}
+
+X509_OBJECT *X509_OBJECT_new()
+{
+    X509_OBJECT *ret = OPENSSL_zalloc(sizeof(*ret));
+
+    if (ret == NULL) {
+        return NULL;
+    }
+    ret->type = X509_LU_NONE;
+    return ret;
+}
+
+static void x509_object_free_internal(X509_OBJECT *a)
+{
+    if (a == NULL)
+        return;
+    switch (a->type) {
+    default:
+        break;
+    case X509_LU_X509:
+        X509_free(a->data.x509);
+        break;
+    case X509_LU_CRL:
+        X509_CRL_free(a->data.crl);
+        break;
+    }
+}
+int X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj)
+{
+    if (a == NULL || !X509_up_ref(obj))
+        return 0;
+
+    x509_object_free_internal(a);
+    a->type = X509_LU_X509;
+    a->data.x509 = obj;
+    return 1;
+}
+
+int X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj)
+{
+    if (a == NULL || !X509_CRL_up_ref(obj))
+        return 0;
+
+    x509_object_free_internal(a);
+    a->type = X509_LU_CRL;
+    a->data.crl = obj;
+    return 1;
+}
+
+void X509_OBJECT_free(X509_OBJECT *a)
+{
+    x509_object_free_internal(a);
+    OPENSSL_free(a);
+}
 
 X509_LOOKUP_METHOD *X509_LOOKUP_meth_new(const char *name)
 {

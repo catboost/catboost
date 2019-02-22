@@ -13,6 +13,7 @@ SRCS(
     crypto.c
     dsa.c
     ecdsa.c
+    evp.c
     rsa.c
     ssl.c
     x509.c

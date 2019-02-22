@@ -8,7 +8,17 @@ extern "C" {
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
+#define X509_LU_NONE 0
+
 typedef int X509_LOOKUP_TYPE;
+
+X509_OBJECT *X509_OBJECT_new(void);
+void X509_OBJECT_free(X509_OBJECT *a);
+X509_LOOKUP_TYPE X509_OBJECT_get_type(const X509_OBJECT *a);
+X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a);
+int X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj);
+X509_CRL *X509_OBJECT_get0_X509_CRL(X509_OBJECT *a);
+int X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj);
 
 typedef int (*X509_LOOKUP_ctrl_fn)(X509_LOOKUP *ctx, int cmd, const char *argc,
                                    long argl, char **ret);

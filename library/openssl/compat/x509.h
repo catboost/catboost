@@ -15,6 +15,10 @@ const ASN1_TIME *X509_get0_notAfter(const X509 *x);
 ASN1_TIME *X509_getm_notAfter(const X509 *x);
 int X509_set1_notAfter(X509 *x, const ASN1_TIME *tm);
 
+int X509_up_ref(X509 *x);
+
+int X509_CRL_up_ref(X509_CRL *crl);
+
 #endif
 
 #ifdef  __cplusplus
