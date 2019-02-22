@@ -901,11 +901,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\compat\library-openssl-compat.vcxproj">
       <Project>{116B0E1A-B4E8-F1BE-0208-27DA4E6AF3C4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
+      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
       <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\io_method\library-openssl-io_method.vcxproj">
-      <Project>{2482C3EF-A72F-91CC-47C9-B48D225CE247}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
+      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>

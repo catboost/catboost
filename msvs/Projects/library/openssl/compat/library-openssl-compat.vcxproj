@@ -104,6 +104,9 @@
     <ClCompile Include="$(SolutionDir)..\library\openssl\compat\x509.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\library\openssl\compat\x509_vfy.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\asn1.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\bio.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\bn.h"/>
@@ -113,6 +116,7 @@
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\rsa.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\ssl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\x509.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\openssl\compat\x509_vfy.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
