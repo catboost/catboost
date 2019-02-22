@@ -4,12 +4,15 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/options/plain_options_helper.h>
 
 #include <library/getopt/small/last_getopt_opts.h>
 #include <library/grid_creator/binarization.h>
+#include <library/json/json_reader.h>
 #include <library/logger/log.h>
 
 #include <util/generic/algorithm.h>
@@ -20,10 +23,38 @@
 #include <util/string/iterator.h>
 #include <util/string/join.h>
 #include <util/string/split.h>
+#include <util/stream/file.h>
+#include <util/system/fs.h>
 #include <util/system/yassert.h>
 
 
 using namespace NCB;
+
+void InitOptions(
+    const TString& optionsFile,
+    NJson::TJsonValue* catBoostJsonOptions,
+    NJson::TJsonValue* outputOptionsJson
+) {
+    if (!optionsFile.empty()) {
+        CB_ENSURE(NFs::Exists(optionsFile), "Params file does not exist " << optionsFile);
+        TIFStream in(optionsFile);
+        NJson::TJsonValue fromOptionsFile;
+        CB_ENSURE(NJson::ReadJsonTree(&in, &fromOptionsFile), "can't parse params file");
+        NCatboostOptions::PlainJsonToOptions(fromOptionsFile, catBoostJsonOptions, outputOptionsJson);
+    }
+    if (!outputOptionsJson->Has("train_dir")) {
+        (*outputOptionsJson)["train_dir"] = ".";
+    }
+}
+
+void CopyIgnoredFeaturesToPoolParams(
+    const NJson::TJsonValue& catBoostJsonOptions,
+    NCatboostOptions::TPoolLoadParams* poolLoadParams
+) {
+    poolLoadParams->IgnoredFeatures = GetOptionIgnoredFeatures(catBoostJsonOptions);
+    const auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
+    poolLoadParams->Validate(taskType);
+}
 
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
@@ -113,22 +144,8 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             .StoreResult(&loadParamsPtr->BordersFile);
 }
 
-
-void ParseCommandLine(int argc, const char* argv[],
-                      NJson::TJsonValue* plainJsonPtr,
-                      TString* paramsPath,
-                      NCatboostOptions::TPoolLoadParams* params) {
-    auto parser = NLastGetopt::TOpts();
-    parser.AddHelpOption();
-    BindPoolLoadParams(&parser, params);
-
-    parser
-        .AddLongOption("trigger-core-dump")
-        .NoArgument()
-        .Handler0([] {  Y_FAIL("Aborting on user request"); })
-        .Help("Trigger core dump")
-        .Hidden();
-
+static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     const auto allObjectives = GetAllObjectives();
     const auto lossFunctionDescription = TString::Join(
         "Should be one of: ",
@@ -137,7 +154,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("loss-function", lossFunctionDescription)
         .RequiredArgument("string")
-        .Handler1T<TString>([&](const auto& value) {
+        .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
             const auto enum_ = FromString<ELossFunction>(TStringBuf(value).Before(':'));
             CB_ENSURE(IsIn(allObjectives, enum_), "objective is not allowed");
             (*plainJsonPtr)["loss_function"] = value;
@@ -149,7 +166,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("custom-metric", customMetricsDescription)
         .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
-        .Handler1T<TString>([&](const TString& lossFunctionsLine) {
+        .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {
             for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',').SkipEmpty()) {
                 FromString<ELossFunction>(lossFunction.Token().Before(':'));
                 (*plainJsonPtr)["custom_metric"].AppendValue(NJson::TJsonValue(lossFunction.Token()));
@@ -164,8 +181,10 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("evaluation metric for overfitting detector (if enabled) and best model "
               "selection in format MetricName:param=value. If not specified default metric for objective is used.");
+}
 
-    //output files
+static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     parser.AddLongOption('m', "model-file", "model file name")
         .RequiredArgument("PATH")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
@@ -323,7 +342,21 @@ void ParseCommandLine(int argc, const char* argv[],
             }
             CB_ENSURE(!(*plainJsonPtr)["prediction_type"].GetArray().empty(), "Empty prediction type list " << predictionTypes);
         });
+    parser.AddLongOption("final-ctr-computation-mode", "Should be one of: Default, Skip. Use all pools to compute final ctrs by default or skip final ctr computation. WARNING: model can't be applied if final ctrs computation is skipped!")
+            .RequiredArgument("string")
+            .Handler1T<TString>([plainJsonPtr](const TString& finalCtrComputationMode) {
+                (*plainJsonPtr)["final_ctr_computation_mode"] = finalCtrComputationMode;
+            });
+    parser.AddLongOption("allow-writing-files", "Allow writing files on disc. Possible values: true, false")
+            .RequiredArgument("bool")
+            .Handler1T<TString>([plainJsonPtr](const TString& param) {
+                (*plainJsonPtr)["allow_writing_files"] = FromString<bool>(param);
+            });
 
+}
+
+static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     parser.AddLongOption('i', "iterations", "iterations count")
         .RequiredArgument("ITERATIONS")
         .Handler1T<int>([plainJsonPtr](int iterations) {
@@ -384,7 +417,6 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<EBoostingType>([plainJsonPtr](const auto boostingType) {
             (*plainJsonPtr)["boosting_type"] = ToString(boostingType);
         });
-
     const auto dataPartitionHelp = TString::Join(
         "Sets method to split learn samples between multiple workers (GPU only currently). Possible values are: ",
         GetEnumAllNames<EDataPartitionType>(),
@@ -417,8 +449,10 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<EOverfittingDetectorType>([plainJsonPtr](const auto type) {
             (*plainJsonPtr)["od_type"] = ToString(type);
         });
+}
 
-    //tree options
+static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     parser.AddLongOption("rsm", "random subspace method (feature bagging)")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float rsm) {
@@ -603,7 +637,10 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([plainJsonPtr](const TString& type) {
             (*plainJsonPtr)["observations_to_bootstrap"] = type;
         });
+}
 
+static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     parser.AddLongOption("max-ctr-complexity", "max count of cat features for combinations ctr")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](int count) {
@@ -687,8 +724,10 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr).InsertValue("one_hot_max_size", oneHotMaxSize);
         })
         .Help("If parameter is specified than features with no more than specified value different values will be converted to float features using one-hot encoding. No ctrs will be calculated on this features.");
+}
 
-    //data processing
+static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     parser.AddLongOption('I', "ignore-features",
                          "don't use the specified features in the learn set (the features are separated by colon and can be specified as an inclusive interval, for example: -I 4:78-89:312)")
         .RequiredArgument("INDEXES")
@@ -738,6 +777,88 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
+    const auto gpuCatFeatureStorageHelp = TString::Join(
+        "GPU only. Must be one of: ",
+        GetEnumAllNames<EGpuCatFeaturesStorage>(),
+        ". Default: ",
+        ToString(EGpuCatFeaturesStorage::GpuRam));
+    parser
+        .AddLongOption("gpu-cat-features-storage", gpuCatFeatureStorageHelp)
+        .RequiredArgument("String")
+        .Handler1T<EGpuCatFeaturesStorage>([plainJsonPtr](const auto storage) {
+            (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(storage);
+        });
+}
+
+static void BindDistributedTrainingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    const auto nodeTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ENodeType>());
+    parser
+        .AddLongOption("node-type", nodeTypeHelp)
+        .RequiredArgument("String")
+        .Handler1T<ENodeType>([plainJsonPtr](const auto nodeType) {
+            (*plainJsonPtr)["node_type"] = ToString(nodeType);
+        });
+
+    parser
+        .AddLongOption("node-port")
+        .RequiredArgument("int")
+        .Help("TCP port for this worker; default is 0")
+        .Handler1T<int>([plainJsonPtr](int nodePort) {
+            (*plainJsonPtr)["node_port"] = nodePort;
+        });
+
+    parser
+        .AddLongOption("file-with-hosts")
+        .RequiredArgument("String")
+        .Help("File listing <worker's IP address>:<worker's TCP port> for all workers employed by this master; default is hosts.txt")
+        .Handler1T<TString>([plainJsonPtr](const TString& nodeFile) {
+            (*plainJsonPtr)["file_with_hosts"] = nodeFile;
+        });
+}
+
+static void BindSystemParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    parser.AddCharOption('T', "worker thread count (default: core count)")
+        .AddLongName("thread-count")
+        .RequiredArgument("count")
+        .Handler1T<int>([plainJsonPtr](int count) {
+            (*plainJsonPtr).InsertValue("thread_count", count);
+        });
+
+    parser.AddLongOption("used-ram-limit", "Try to limit used memory. CPU only. WARNING: This option affects CTR memory usage only.\nAllowed suffixes: GB, MB, KB in different cases")
+            .RequiredArgument("TARGET_RSS")
+            .Handler1T<TString>([plainJsonPtr](const TString& param) {
+                (*plainJsonPtr)["used_ram_limit"] = param;
+            });
+
+    parser
+            .AddLongOption("gpu-ram-part")
+            .RequiredArgument("double")
+            .Help("Fraction of GPU memory to use. Should be in range (0, 1]")
+            .Handler1T<double>([plainJsonPtr](const double part) {
+                (*plainJsonPtr)["gpu_ram_part"] = part;
+            });
+
+    parser
+        .AddLongOption("devices")
+        .RequiredArgument("String")
+        .Help("List of devices. Could be enumeration with : separator (1:2:4), range 1-3; 1-3:5. Default -1 (use all devices)")
+        .Handler1T<TString>([plainJsonPtr](const TString& devices) {
+            (*plainJsonPtr)["devices"] = devices;
+        });
+
+    parser
+            .AddLongOption("pinned-memory-size")
+            .RequiredArgument("int")
+            .Help("GPU only. Minimum CPU pinned memory to use")
+            .Handler1T<TString>([plainJsonPtr](const TString& param) {
+                (*plainJsonPtr)["pinned_memory_size"] = param;
+            });
+}
+
+static void BindBinarizationParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
     parser.AddLongOption('x', "border-count", "count of borders per float feature. Should be in range [1, 255]")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](int count) {
@@ -763,58 +884,15 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<ENanMode>([plainJsonPtr](const auto nanMode) {
             (*plainJsonPtr)["nan_mode"] = ToString(nanMode);
         });
+}
 
-    parser.AddCharOption('T', "worker thread count (default: core count)")
-        .AddLongName("thread-count")
+static void BindCatboostParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    parser.AddLongOption('r', "seed")
+        .AddLongName("random-seed")
         .RequiredArgument("count")
-        .Handler1T<int>([plainJsonPtr](int count) {
-            (*plainJsonPtr).InsertValue("thread_count", count);
-        });
-
-    parser.AddLongOption("used-ram-limit", "Try to limit used memory. CPU only. WARNING: This option affects CTR memory usage only.\nAllowed suffixes: GB, MB, KB in different cases")
-            .RequiredArgument("TARGET_RSS")
-            .Handler1T<TString>([&plainJsonPtr](const TString& param) {
-                (*plainJsonPtr)["used_ram_limit"] = param;
-            });
-
-    parser.AddLongOption("allow-writing-files", "Allow writing files on disc. Possible values: true, false")
-            .RequiredArgument("bool")
-            .Handler1T<TString>([&plainJsonPtr](const TString& param) {
-                (*plainJsonPtr)["allow_writing_files"] = FromString<bool>(param);
-            });
-
-    parser.AddLongOption("final-ctr-computation-mode", "Should be one of: Default, Skip. Use all pools to compute final ctrs by default or skip final ctr computation. WARNING: model can't be applied if final ctrs computation is skipped!")
-            .RequiredArgument("string")
-            .Handler1T<TString>([&plainJsonPtr](const TString& finalCtrComputationMode) {
-                (*plainJsonPtr)["final_ctr_computation_mode"] = finalCtrComputationMode;
-            });
-
-    parser
-            .AddLongOption("gpu-ram-part")
-            .RequiredArgument("double")
-            .Help("Fraction of GPU memory to use. Should be in range (0, 1]")
-            .Handler1T<double>([&plainJsonPtr](const double part) {
-                (*plainJsonPtr)["gpu_ram_part"] = part;
-            });
-
-    parser
-            .AddLongOption("pinned-memory-size")
-            .RequiredArgument("int")
-            .Help("GPU only. Minimum CPU pinned memory to use")
-            .Handler1T<TString>([&plainJsonPtr](const TString& param) {
-                (*plainJsonPtr)["pinned_memory_size"] = param;
-            });
-
-    const auto gpuCatFeatureStorageHelp = TString::Join(
-        "GPU only. Must be one of: ",
-        GetEnumAllNames<EGpuCatFeaturesStorage>(),
-        ". Default: ",
-        ToString(EGpuCatFeaturesStorage::GpuRam));
-    parser
-        .AddLongOption("gpu-cat-features-storage", gpuCatFeatureStorageHelp)
-        .RequiredArgument("String")
-        .Handler1T<EGpuCatFeaturesStorage>([plainJsonPtr](const auto storage) {
-            (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(storage);
+        .Handler1T<ui64>([plainJsonPtr](ui64 seed) {
+            (*plainJsonPtr)["random_seed"] = seed;
         });
 
     const auto taskTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ETaskType>());
@@ -823,45 +901,6 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("String")
         .Handler1T<ETaskType>([plainJsonPtr](const auto taskType) {
             (*plainJsonPtr)["task_type"] = ToString(taskType);
-        });
-
-    parser
-        .AddLongOption("devices")
-        .RequiredArgument("String")
-        .Help("List of devices. Could be enumeration with : separator (1:2:4), range 1-3; 1-3:5. Default -1 (use all devices)")
-        .Handler1T<TString>([plainJsonPtr](const TString& devices) {
-            (*plainJsonPtr)["devices"] = devices;
-        });
-
-    const auto nodeTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ENodeType>());
-    parser
-        .AddLongOption("node-type", nodeTypeHelp)
-        .RequiredArgument("String")
-        .Handler1T<ENodeType>([plainJsonPtr](const auto nodeType) {
-            (*plainJsonPtr)["node_type"] = ToString(nodeType);
-        });
-
-    parser
-        .AddLongOption("node-port")
-        .RequiredArgument("int")
-        .Help("TCP port for this worker; default is 0")
-        .Handler1T<int>([plainJsonPtr](int nodePort) {
-            (*plainJsonPtr)["node_port"] = nodePort;
-        });
-
-    parser
-        .AddLongOption("file-with-hosts")
-        .RequiredArgument("String")
-        .Help("File listing <worker's IP address>:<worker's TCP port> for all workers employed by this master; default is hosts.txt")
-        .Handler1T<TString>([plainJsonPtr](const TString& nodeFile) {
-            (*plainJsonPtr)["file_with_hosts"] = nodeFile;
-        });
-
-    parser.AddLongOption('r', "seed")
-        .AddLongName("random-seed")
-        .RequiredArgument("count")
-        .Handler1T<ui64>([plainJsonPtr](ui64 seed) {
-            (*plainJsonPtr)["random_seed"] = seed;
         });
 
     parser
@@ -877,11 +916,47 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr)["detailed_profile"] = true;
         });
+}
+
+void ParseCommandLine(int argc, const char* argv[],
+                      NJson::TJsonValue* plainJsonPtr,
+                      TString* paramsPath,
+                      NCatboostOptions::TPoolLoadParams* params) {
+    auto parser = NLastGetopt::TOpts();
+    parser.AddHelpOption();
+    BindPoolLoadParams(&parser, params);
+
+    parser
+        .AddLongOption("trigger-core-dump")
+        .NoArgument()
+        .Handler0([] { Y_FAIL("Aborting on user request"); })
+        .Help("Trigger core dump")
+        .Hidden();
 
     parser.AddLongOption("params-file", "Path to JSON file with params.")
         .RequiredArgument("PATH")
         .StoreResult(paramsPath)
         .Help("If param is given in json file and in command line then one from command line will be used.");
+
+    BindMetricParams(&parser, plainJsonPtr);
+
+    BindOutputParams(&parser, plainJsonPtr);
+
+    BindBoostingParams(&parser, plainJsonPtr);
+
+    BindTreeParams(&parser, plainJsonPtr);
+
+    BindCatFeatureParams(&parser, plainJsonPtr);
+
+    BindDataProcessingParams(&parser, plainJsonPtr);
+
+    BindBinarizationParams(&parser, plainJsonPtr);
+
+    BindSystemParams(&parser, plainJsonPtr);
+
+    BindDistributedTrainingParams(&parser, plainJsonPtr);
+
+    BindCatboostParams(&parser, plainJsonPtr);
 
     bool setModelMetadata = false;
     parser.AddLongOption("set-metadata-from-freeargs", "treat [key value] freeargs pairs as model metadata")

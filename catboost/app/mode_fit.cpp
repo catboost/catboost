@@ -17,8 +17,6 @@
 #include <library/json/json_reader.h>
 
 #include <util/generic/ptr.h>
-#include <util/stream/fwd.h>
-#include <util/system/fs.h>
 
 
 
@@ -37,36 +35,23 @@ int mode_fit(int argc, const char* argv[]) {
         RunSlave();
         return 0;
     }
-	#endif
-    NCatboostOptions::TPoolLoadParams poolLoadOptions;
+    #endif
+    NCatboostOptions::TPoolLoadParams poolLoadParams;
     TString paramsFile;
     NJson::TJsonValue catBoostFlatJsonOptions;
-    ParseCommandLine(argc, argv, &catBoostFlatJsonOptions, &paramsFile, &poolLoadOptions);
+    ParseCommandLine(argc, argv, &catBoostFlatJsonOptions, &paramsFile, &poolLoadParams);
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
-    if (!paramsFile.empty()) {
-        CB_ENSURE(NFs::Exists(paramsFile), "Params file does not exist " << paramsFile);
-        TIFStream in(paramsFile);
-        NJson::TJsonValue fromFileParams;
-        CB_ENSURE(NJson::ReadJsonTree(&in, &fromFileParams), "can't parse params file");
-        NCatboostOptions::PlainJsonToOptions(fromFileParams, &catBoostJsonOptions, &outputOptionsJson);
-    }
+    InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
 
-    poolLoadOptions.IgnoredFeatures = GetOptionIgnoredFeatures(catBoostJsonOptions);
+    CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
 
-    auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
-    poolLoadOptions.Validate(taskType);
-
-    THolder<IModelTrainer> modelTrainerHolder;
     NCatboostOptions::TOutputFilesOptions outputOptions;
-    if (!outputOptionsJson.Has("train_dir")) {
-        outputOptionsJson["train_dir"] = ".";
-    }
     outputOptions.Load(outputOptionsJson);
     //Cout << LabeledOutput(outputOptions.UseBestModel.IsSet()) << Endl;
 
-    TrainModel(poolLoadOptions, outputOptions, catBoostJsonOptions);
+    TrainModel(poolLoadParams, outputOptions, catBoostJsonOptions);
 
     #if defined(USE_MPI)
     if (mpiManager.IsMaster()) {
