@@ -2307,21 +2307,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "25fde96624e5878ac6b4943306978d08",
+            "checksum": "cf34d64f37a7987061e6527302b36f89",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "70d03b36535d43490d108c64584db2ba",
+            "checksum": "4e7b29f694dd166fe09e8f98d5d20ed3",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "ac5c30a5d2a04ea6e151b1eb951ccfc1",
+            "checksum": "929bfc53ed05f3d50d21ee54c84b61fb",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "669ea1e4dbf1b52655eec1e1287cb00e",
+            "checksum": "22dcad504ca6e9d78b6d2bfc3c716f11",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
