@@ -27,7 +27,7 @@ SRCS(
     datetime/parser.rl6
     digest/city.cpp
     random/random.cpp
-    string/cast.cc
+    string/cast.cpp
 )
 
 IF (OS_WINDOWS)

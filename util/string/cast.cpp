@@ -8,9 +8,9 @@
 #include <string>
 #include <cmath>
 
-#include "type.h"
-#include "cast.h"
-#include "escape.h"
+#include <util/string/type.h>
+#include <util/string/cast.h>
+#include <util/string/escape.h>
 
 #include <contrib/libs/double-conversion/double-conversion.h>
 
