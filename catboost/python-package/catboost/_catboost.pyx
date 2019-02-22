@@ -509,6 +509,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+    cdef TVector[TString] GetModelClassNames(const TFullModel& model) except +ProcessException
 
 ctypedef const TFullModel* TFullModel_const_ptr
 
@@ -2620,6 +2621,9 @@ cdef class _CatBoost:
 
     def _get_feature_names(self):
         return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
+
+    def _get_class_names(self):
+        return [to_native_str(s) for s in GetModelClassNames(dereference(self.__model))]
 
     cpdef _sum_models(self, models, weights, ctr_merge_policy):
         cdef TVector[TFullModel_const_ptr] models_vector

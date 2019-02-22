@@ -1050,6 +1050,7 @@ def test_class_names(task_type):
     classes = new_classifier.predict(test_pool)
     assert pred.shape == (25, 3)
     assert all(((class1 in class_names) for class1 in classes))
+    assert sorted(classifier.classes_) == sorted(class_names)
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(pred), fmt='%.8f')
     return local_canonical_file(preds_path)

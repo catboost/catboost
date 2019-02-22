@@ -993,6 +993,12 @@ class _CatBoostBase(object):
         return self._object._get_feature_names()
 
     @property
+    def classes_(self):
+        if not self.is_fitted():
+            raise CatBoostError('Model is not fitted.')
+        return self._object._get_class_names()
+
+    @property
     def evals_result_(self):
         return self.get_evals_result()
 
