@@ -30,6 +30,20 @@ static void FromJson(const TJsonValue& value, TString* result) {
     *result = value.GetString();
 }
 
+static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, IOutputStream* out) {
+    TJsonWriterConfig config;
+    config.FormatOutput = true;
+    config.FloatNDigits = 9;
+    config.DoubleNDigits = 17;
+    WriteJson(out, &value, config);
+}
+
+static TString WriteJsonWithCatBoostPrecision(const TJsonValue& value) {
+    TStringStream ss;
+    WriteJsonWithCatBoostPrecision(value, &ss);
+    return ss.Str();
+}
+
 template <typename T>
 static void FromJson(const TJsonValue& value, T* result) {
     switch (value.GetType()) {
@@ -136,7 +150,7 @@ static TJsonValue ToJson(const TModelCtrBase& modelCtrBase) {
 }
 
 TString ModelCtrBaseToStr(const TModelCtrBase& modelCtrBase) {
-    return WriteJson(ToJson(modelCtrBase), false, true);
+    return WriteJsonWithCatBoostPrecision(ToJson(modelCtrBase));
 }
 
 static TModelCtrBase ModelCtrBaseFromJson(const TJsonValue& jsonValue) {
@@ -479,5 +493,5 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
 void OutputModelJson(const TFullModel& model, const TString& outputPath, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
     TOFStream out(outputPath);
     auto jsonModel = ConvertModelToJson(model, featureId, catFeaturesHashToString);
-    WriteJson(&out, &jsonModel, true, false);
+    WriteJsonWithCatBoostPrecision(jsonModel, &out);
 }
