@@ -62,6 +62,8 @@ SRCS(
     multf3.c
     mulxc3.c
 
+    popcountdi2.c
+
     subtf3.c
 
     trunctfdf2.c
