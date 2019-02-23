@@ -172,7 +172,7 @@ inline T FromString(const TWtringBuf& s) {
 
 template <class T>
 inline T FromString(const TUtf16String& s) {
-    return ::FromString<T, typename TUtf16String::char_type>(s.data(), s.size());
+    return ::FromString<T, wchar16>(s.data(), s.size());
 }
 
 namespace NPrivate {
