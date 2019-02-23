@@ -18,14 +18,14 @@ namespace NPrivate {
     Y_HAS_MEMBER(push_back, PushBack);
     Y_HAS_MEMBER(insert, Insert);
 
-    template<class StringBuf, class T>
-    inline void FromStringBuf(StringBuf buf, T* dst) {
-        *dst = ::FromString<T>(buf);
+    template<class Src, class Dst>
+    inline void DoFromString(const Src& src, Dst* dst) {
+        *dst = ::FromString<Dst>(src);
     }
 
-    template<class StringBuf>
-    inline void FromStringBuf(StringBuf buf, StringBuf* dst) {
-        *dst = buf;
+    template<class T>
+    inline void DoFromString(const T& src, T* dst) {
+        *dst = src;
     }
 
     template <class Container>
@@ -44,13 +44,13 @@ namespace NPrivate {
 
     private:
         template<class OtherContainer, class StringBuf>
-        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->push_back(value_type(e))) {
-            return c->push_back(value_type(e));
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->emplace_back()) {
+            return c->emplace_back(value_type(e));
         }
 
         template<class OtherContainer, class StringBuf>
-        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->insert(value_type(e))) {
-            return c->insert(value_type(e));
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->emplace()) {
+            return c->emplace(value_type(e));
         }
 
         Container* C_;
@@ -72,17 +72,17 @@ namespace NPrivate {
 
     private:
         template<class OtherContainer, class StringBuf>
-        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->push_back(std::declval<value_type>())) {
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->emplace_back()) {
             value_type v;
-            ::NPrivate::FromStringBuf(e, &v);
-            return c->push_back(std::move(v));
+            ::NPrivate::DoFromString(e, &v);
+            return c->emplace_back(std::move(v));
         }
 
         template<class OtherContainer, class StringBuf>
-        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->insert(std::declval<value_type>())) {
+        auto operator()(OtherContainer* c, StringBuf e) const -> decltype(c->emplace()) {
             value_type v;
-            ::NPrivate::FromStringBuf(e, &v);
-            return c->insert(std::move(v));
+            ::NPrivate::DoFromString(e, &v);
+            return c->emplace(std::move(v));
         }
 
         Container* C_;
@@ -177,7 +177,7 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
         ApplyToMany([&](auto&& arg) {
             if (it != this->end()) {
                 ++filled;
-                ::NPrivate::FromStringBuf(it->Token(), arg);
+                ::NPrivate::DoFromString(it->Token(), arg);
                 ++it;
             }
         }, args...);

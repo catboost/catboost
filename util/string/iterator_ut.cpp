@@ -334,7 +334,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    Y_UNIT_TEST(TestSplitAfterSplit) {
+    Y_UNIT_TEST(TestStdSplitAfterSplit) {
         std::string_view input = "a*b+a*b";
         for (std::string_view summand: StringSplitter(input).Split('+')) {
             //FIXME: std::string is used to workaround MSVC ICE
@@ -347,7 +347,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         }
     }
 
-    Y_UNIT_TEST(TestSplitWithParsing) {
+    Y_UNIT_TEST(TestStdSplitWithParsing) {
         std::string_view input = "1,2,3,4";
         TVector<ui64> numbers;
         const TVector<ui64> expected{1, 2, 3, 4};
