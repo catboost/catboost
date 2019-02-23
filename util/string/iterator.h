@@ -162,6 +162,7 @@ struct TStlIteratorFace: public It, public TInputRangeAdaptor<TStlIteratorFace<I
     }
 
     // TODO: this is actually TryParseInto
+    // TODO: despite starting with 'Try', this method throws! Need to use TryFromString inside.
     /**
      * Same as `CollectInto`, just doesn't throw.
      *
