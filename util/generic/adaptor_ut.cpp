@@ -65,8 +65,8 @@ Y_UNIT_TEST_SUITE(TReverseAdaptor) {
         const TStub cstub;
 
         using namespace NPrivate;
-        UNIT_ASSERT_TYPES_EQUAL(decltype(Reversed(stub)), TReverseImpl<TStub&>);
-        UNIT_ASSERT_TYPES_EQUAL(decltype(Reversed(cstub)), TReverseImpl<const TStub&>);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(Reversed(stub)), TReverseRange<TStub&>);
+        UNIT_ASSERT_TYPES_EQUAL(decltype(Reversed(cstub)), TReverseRange<const TStub&>);
     }
 
     Y_UNIT_TEST(CopyMoveTest) {
