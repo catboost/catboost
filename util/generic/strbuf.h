@@ -8,8 +8,8 @@
 #include <string_view>
 
 template <typename TChar, typename TTraits>
-class TStringBufImpl: public TFixedString<TChar, TTraits>, public TStringBase<TStringBufImpl<TChar, TTraits>, TChar, TTraits> {
-    using TdSelf = TStringBufImpl;
+class TBasicStringBuf: public TFixedString<TChar, TTraits>, public TStringBase<TBasicStringBuf<TChar, TTraits>, TChar, TTraits> {
+    using TdSelf = TBasicStringBuf;
     using TBaseStr = TFixedString<TChar, TTraits>;
     using TBase = TStringBase<TdSelf, TChar, TTraits>;
 
@@ -18,58 +18,58 @@ public:
     using value_type = TChar;
     using traits_type = TTraits;
 
-    constexpr inline TStringBufImpl(const TChar* data, size_t len) noexcept
+    constexpr inline TBasicStringBuf(const TChar* data, size_t len) noexcept
         : TBaseStr(data, len)
     {
     }
 
-    inline TStringBufImpl(const TChar* data) noexcept
+    inline TBasicStringBuf(const TChar* data) noexcept
         : TBaseStr(data, TBase::StrLen(data))
     {
     }
 
-    inline TStringBufImpl(const TChar* beg, const TChar* end) noexcept
+    inline TBasicStringBuf(const TChar* beg, const TChar* end) noexcept
         : TBaseStr(beg, end)
     {
         Y_ASSERT(beg <= end);
     }
 
     template <typename D, typename T>
-    inline TStringBufImpl(const TStringBase<D, TChar, T>& str) noexcept
+    inline TBasicStringBuf(const TStringBase<D, TChar, T>& str) noexcept
         : TBaseStr(str)
     {
     }
 
     template <typename T, typename A>
-    inline TStringBufImpl(const std::basic_string<TChar, T, A>& str) noexcept
+    inline TBasicStringBuf(const std::basic_string<TChar, T, A>& str) noexcept
         : TBaseStr(str)
     {
     }
 
     template <typename TCharTraits>
-    inline TStringBufImpl(std::basic_string_view<TChar, TCharTraits> view) noexcept
+    inline TBasicStringBuf(std::basic_string_view<TChar, TCharTraits> view) noexcept
         : TBaseStr(view.data(), view.size())
     {
     }
 
-    constexpr TStringBufImpl() noexcept
+    constexpr TBasicStringBuf() noexcept
         : TBaseStr()
     {
     }
 
-    constexpr inline TStringBufImpl(const TBaseStr& src) noexcept
+    constexpr inline TBasicStringBuf(const TBaseStr& src) noexcept
         : TBaseStr(src)
     {
     }
 
-    inline TStringBufImpl(const TBaseStr& src, size_t pos, size_t n) noexcept
+    inline TBasicStringBuf(const TBaseStr& src, size_t pos, size_t n) noexcept
         : TBaseStr(src)
     {
         Skip(pos).Trunc(n);
     }
 
-    inline TStringBufImpl(const TBaseStr& src, size_t pos) noexcept
-        : TStringBufImpl(src, pos, TBase::npos)
+    inline TBasicStringBuf(const TBaseStr& src, size_t pos) noexcept
+        : TBasicStringBuf(src, pos, TBase::npos)
     {
     }
 
@@ -502,6 +502,6 @@ static inline TUtf32String ToUtf32String(const TUtf32String wtr) {
 }
 
 template <typename TChar, size_t size>
-constexpr inline TStringBufImpl<TChar> AsStringBuf(const TChar (&str)[size]) noexcept {
-    return TStringBufImpl<TChar>(str, size - 1);
+constexpr inline TBasicStringBuf<TChar> AsStringBuf(const TChar (&str)[size]) noexcept {
+    return TBasicStringBuf<TChar>(str, size - 1);
 }

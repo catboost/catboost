@@ -287,9 +287,9 @@ public:
         UNIT_ASSERT(s > Data.abc0123456xyz());
         UNIT_ASSERT(s == Data.abcd());
 
-        UNIT_ASSERT(s > TStringBufImpl<char_type>(Data.abc0123456xyz()));
-        UNIT_ASSERT(TStringBufImpl<char_type>(Data.abc0123456xyz()) < s);
-        UNIT_ASSERT(s == TStringBufImpl<char_type>(Data.abcd()));
+        UNIT_ASSERT(s > TBasicStringBuf<char_type>(Data.abc0123456xyz()));
+        UNIT_ASSERT(TBasicStringBuf<char_type>(Data.abc0123456xyz()) < s);
+        UNIT_ASSERT(s == TBasicStringBuf<char_type>(Data.abcd()));
     }
 
     void TestMulOperators() {

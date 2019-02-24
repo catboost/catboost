@@ -93,7 +93,7 @@ struct hash<TUtf32String> {
 
 template <class C, class T, class A>
 struct hash<std::basic_string<C, T, A>> {
-    inline size_t operator()(const TStringBufImpl<C>& s) const {
+    inline size_t operator()(const TBasicStringBuf<C>& s) const {
         return s.hash();
     }
 };
