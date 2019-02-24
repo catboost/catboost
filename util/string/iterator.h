@@ -90,7 +90,7 @@ namespace NPrivate {
 
     template <class String>
     struct TStringBufOfImpl {
-        using type = TGenericStringBuf<typename String::value_type>;
+        using type = TBasicStringBuf<typename String::value_type>;
     };
 
     template <class Char, class Traits, class Allocator>
@@ -295,7 +295,7 @@ template <class It, class StringBuf = void /* =default */, class TOwnerPolicy = 
 class TStringSplitter {
     using TCVChar = std::remove_reference_t<decltype(*std::declval<It>())>;
     using TChar = std::remove_cv_t<TCVChar>;
-    using TStrBuf = std::conditional_t<std::is_same<StringBuf, void>::value, TGenericStringBuf<TChar>, StringBuf>;
+    using TStrBuf = std::conditional_t<std::is_same<StringBuf, void>::value, TBasicStringBuf<TChar>, StringBuf>;
 
     static_assert(std::is_same<typename TStrBuf::value_type, TChar>::value, "Character type mismatch.");
 
@@ -560,5 +560,5 @@ static inline auto StringSplitter(Str&& s) {
 
 template <class TChar>
 static inline auto StringSplitter(const TChar* str) {
-    return StringSplitter(TGenericStringBuf<TChar>(str));
+    return StringSplitter(TBasicStringBuf<TChar>(str));
 }

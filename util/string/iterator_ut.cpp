@@ -160,7 +160,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     Y_UNIT_TEST(TestStringSplitterConsume) {
         TVector<TString> expected = {"1", "2", "3"};
         TVector<TString> actual;
-        auto func = [&actual](const TGenericStringBuf<char>& token) {
+        auto func = [&actual](const TBasicStringBuf<char>& token) {
             actual.push_back(TString(token));
         };
         StringSplitter("1 2 3").Split(' ').Consume(func);

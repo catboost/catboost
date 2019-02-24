@@ -71,11 +71,11 @@ struct TIndentScope {
 
 template <class TChar>
 struct TRawLiteral {
-    const TGenericStringBuf<TChar> S;
+    const TBasicStringBuf<TChar> S;
 };
 
 template <class TChar>
-static inline TRawLiteral<TChar> DumpRaw(const TGenericStringBuf<TChar>& s) noexcept {
+static inline TRawLiteral<TChar> DumpRaw(const TBasicStringBuf<TChar>& s) noexcept {
     return {s};
 }
 

@@ -34,10 +34,6 @@ using TStringBuf = TBasicStringBuf<char>;
 using TWtringBuf = TBasicStringBuf<wchar16>;
 using TUtf32StringBuf = TBasicStringBuf<wchar32>;
 
-//alias for compatibility with TGenericString
-template <typename TChar>
-using TGenericStringBuf = TBasicStringBuf<TChar>;
-
 //intrusive containers
 template <class T>
 class TIntrusiveList;
