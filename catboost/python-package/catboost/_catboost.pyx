@@ -1107,13 +1107,13 @@ cdef class _PreprocessParams:
                 params_to_json[k] = deepcopy(v)
 
             for k in keys_to_replace:
-                params_to_json[k] = "Custom"
+                params_to_json[k] = "PythonUserDefinedPerObject"
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
-        if params_to_json.get("loss_function") == "Custom":
+        if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-        if params_to_json.get("eval_metric") == "Custom":
+        if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
 
         self.tree = ReadTJsonValue(to_arcadia_string(dumps_params))

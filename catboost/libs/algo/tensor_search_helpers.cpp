@@ -88,7 +88,7 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TPairLogitError>(isStoreExpApprox);
         case ELossFunction::Lq:
             return MakeHolder<TLqError>(NCatboostOptions::GetLqParam(params.LossFunctionDescription), isStoreExpApprox);
-        case ELossFunction::Custom:
+        case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
             return MakeHolder<TUserDefinedPerObjectError>(params.LossFunctionDescription->GetLossParams(), isStoreExpApprox);

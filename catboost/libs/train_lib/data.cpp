@@ -18,7 +18,7 @@ namespace NCB {
         const NCatboostOptions::TCatBoostOptions& params) {
 
         TVector<NCatboostOptions::TLossDescription> result;
-        if (params.LossFunctionDescription->GetLossFunction() != ELossFunction::Custom) {
+        if (params.LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
             result.emplace_back(params.LossFunctionDescription);
         }
 
