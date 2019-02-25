@@ -2,6 +2,11 @@
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
+const ASN1_INTEGER *X509_get0_serialNumber(const X509 *a)
+{
+    return a->cert_info->serialNumber;
+}
+
 const ASN1_TIME *X509_get0_notBefore(const X509 *x)
 {
     return x->cert_info->validity->notBefore;
