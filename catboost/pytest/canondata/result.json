@@ -1021,11 +1021,11 @@
     ],
     "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "b91b3a898dae0f88884f061fd0b175a9",
+            "checksum": "67014f403cee294e76e4aec81770eaae",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "e7322f0f0ed111c062f00861f9ce8913",
+            "checksum": "7213c78ac04a98583c6b21695e3b4533",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
@@ -1061,11 +1061,11 @@
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "1b169a2840556ee205bf023418683747",
+            "checksum": "2440d5c9d0a931caa45a7d976b2eb24b",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "6d26dbec205c5c42f41621d1b8feae89",
+            "checksum": "8e06a58aa48e070d34eb3b47e59a67f1",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
