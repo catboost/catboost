@@ -2,6 +2,8 @@
 
 PY23_LIBRARY()
 
+VERSION(1.12.0)
+
 LICENSE(
     MIT
 )
