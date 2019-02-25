@@ -1,4 +1,5 @@
 #include "tensor_search_helpers.h"
+#include "mvs.h"
 
 #include <catboost/libs/data_new/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -252,10 +253,13 @@ void Bootstrap(
 ) {
     const int learnSampleCount = indices.ysize();
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
+    const EBoostingType boostingType = params.BoostingOptions->BoostingType;
     const ESamplingUnit samplingUnit = params.ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit();
     const float baggingTemperature = params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
     const float takenFraction = params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
     const bool isPairwiseScoring = IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction());
+    const float headFraction = params.ObliviousTreeOptions->BootstrapConfig->GetMvsHeadFraction();
+    bool isCoinFlipping = true;
     switch (bootstrapType) {
         case EBootstrapType::Bernoulli:
             if (isPairwiseScoring) {
@@ -272,6 +276,13 @@ void Bootstrap(
                 GenerateRandomWeights(learnSampleCount, baggingTemperature, samplingUnit, localExecutor, rand, fold);
             }
             break;
+        case EBootstrapType::MVS:
+            if (!isPairwiseScoring) {
+                isCoinFlipping = false;
+                TMvsSampler sampler(learnSampleCount, headFraction);
+                sampler.GenSampleWeights(*fold, boostingType, rand, localExecutor);
+            }
+            break;
         case EBootstrapType::No:
             if (!isPairwiseScoring) {
                 Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
@@ -283,7 +294,7 @@ void Bootstrap(
     if (!isPairwiseScoring) {
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
-    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor);
+    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, isCoinFlipping);
 }
 
 void CalcWeightedDerivatives(

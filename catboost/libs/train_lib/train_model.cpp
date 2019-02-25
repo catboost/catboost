@@ -277,6 +277,7 @@ static void Train(
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize();
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
          ++iter)
+
     {
         if (errorTracker && errorTracker->GetIsNeedStop()) {
             CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "

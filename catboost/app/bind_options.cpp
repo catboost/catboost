@@ -631,6 +631,14 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         );
 
     parser
+        .AddLongOption("mvs-head-fraction")
+        .RequiredArgument("Float")
+        .Handler1T<float>([plainJsonPtr](float mvs_head_fraction) {
+            (*plainJsonPtr)["mvs_head_fraction"] = mvs_head_fraction;
+        })
+        .Help("Controls fraction of highest by absolute value gradients taken for minimal variance sampling. Possible values are from (0, 1]");
+
+    parser
         .AddLongOption("observations-to-bootstrap")
         .RequiredArgument("FLAG")
         .Help("GPU only.Use bootstraped weights on learn and test folds. By default bootstrap used only for test fold part.")

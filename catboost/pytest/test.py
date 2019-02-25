@@ -6241,3 +6241,39 @@ def test_write_predictions_to_streams():
         yatest.common.execute(calc_cmd, stderr=catboost_stderr)
 
     assert compare_evals(output_eval_path, calc_output_eval_path_redirected)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_mvs_bootstrap_head_frac(boosting_type):
+    def run_catboost(eval_path, mvs_head_fraction):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--use-best-model', 'false',
+            '--allow-writing-files', 'false',
+            '--loss-function', 'Logloss',
+            '--max-ctr-complexity', '5',
+            '-f', data_file('airlines_5K', 'train'),
+            '-t', data_file('airlines_5K', 'test'),
+            '--column-description', data_file('airlines_5K', 'cd'),
+            '--has-header',
+            '--boosting-type', boosting_type,
+            '--bootstrap-type', 'MVS',
+            '--mvs-head-fraction', mvs_head_fraction,
+            '-i', '50',
+            '-w', '0.03',
+            '-T', '6',
+            '-r', '0',
+            '--eval-file', eval_path,
+        ]
+        yatest.common.execute(cmd)
+
+    ref_eval_path = yatest.common.test_output_path('test.eval')
+    run_catboost(ref_eval_path, '0.5')
+
+    for head_fraction in ('0.1', '0.9'):
+        eval_path = yatest.common.test_output_path('test_{}.eval'.format(head_fraction))
+        run_catboost(eval_path, head_fraction)
+        assert (filecmp.cmp(ref_eval_path, eval_path) is False)
+
+    return [local_canonical_file(ref_eval_path)]

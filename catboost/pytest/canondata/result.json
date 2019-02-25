@@ -2701,6 +2701,18 @@
             "uri": "file://test.test_multiple_eval_sets_err_log/json.log"
         }
     ],
+    "test.test_mvs_bootstrap_head_frac[Ordered]": [
+        {
+            "checksum": "15f45844c659feabeaf3442d5cafed7e",
+            "uri": "file://test.test_mvs_bootstrap_head_frac_Ordered_/test.eval"
+        }
+    ],
+    "test.test_mvs_bootstrap_head_frac[Plain]": [
+        {
+            "checksum": "6c75c08158f089c9f54405b98421c822",
+            "uri": "file://test.test_mvs_bootstrap_head_frac_Plain_/test.eval"
+        }
+    ],
     "test.test_nan_mode[Ordered-Max]": [
         {
             "checksum": "d8db0164d3c89096d9686df50edc7dcb",

@@ -76,6 +76,7 @@ enum class EBootstrapType {
     Poisson,
     Bayesian,
     Bernoulli,
+    MVS, // Minimal Variance Sampling, scheme of bootstrap with subsampling, which reduces variance in score approximation
     No
 };
 
