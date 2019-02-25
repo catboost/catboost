@@ -26,7 +26,6 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
 
     template <typename T, typename TFunc>
     void FunctionTakingRefDefaultIsObject(T&& a, TFunc func) {
-        static_assert(std::is_pointer<typename TAutoEmbedOrPtrPolicy<T>::TObjectStorage>::value);
         TAutoEmbedOrPtrPolicy<T> refHolder(a);
         func(refHolder);
     }
@@ -49,8 +48,7 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
             static_assert(std::is_const<decltype(a)>::value);
 
             FunctionTakingRefDefaultIsObject(a, [](auto& holder) {
-                using TConcreteRefOfObjectHolder = typename std::remove_reference<decltype(holder)>::type;
-                static_assert(std::is_const<typename TConcreteRefOfObjectHolder::TObject>::value);
+                static_assert(std::is_const<std::remove_reference_t<decltype(*holder.Ptr())>>::value);
                 UNIT_ASSERT_VALUES_EQUAL(holder.Ptr()->size(), 3);
             });
 
@@ -59,7 +57,7 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
 
     template <typename T, typename TFunc>
     void FunctionTakingObjectDefaultObject(T&& a, TFunc func) {
-        TAutoEmbedOrPtrPolicy<T> objectHolder(a);
+        TAutoEmbedOrPtrPolicy<T> objectHolder(std::forward<T>(a));
         func(objectHolder);
     }
 
