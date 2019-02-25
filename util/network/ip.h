@@ -68,8 +68,7 @@ struct TIpAddress: public sockaddr_in {
         Set(ip, port);
     }
 
-    template <typename D, typename C, typename T>
-    inline TIpAddress(const TStringBase<D, C, T>& ip, TIpPort port) {
+    inline TIpAddress(TStringBuf ip, TIpPort port) {
         Set(ResolveHost(ip.Data(), ip.Size()), port);
     }
 

@@ -203,6 +203,7 @@ public:
         return s ? TTraits::GetLength(s) : 0;
     }
 
+    // TODO: DROP! this one provides an implicit TStringBuf -> std::string conversion!
     template <class T, class A>
     inline operator std::basic_string<TCharType, T, A>() const {
         return std::basic_string<TCharType, T, A>(Ptr(), Len());
@@ -218,10 +219,6 @@ public:
 
     inline size_t IterOff(const_iterator it) const noexcept {
         return begin() <= it && end() > it ? size_t(it - begin()) : npos;
-    }
-
-    constexpr inline const TCharType* c_str() const noexcept {
-        return Ptr();
     }
 
     inline const_iterator begin() const noexcept {
@@ -743,15 +740,15 @@ const size_t TStringBase<TDerived, TCharType, TTraitsType>::npos;
 template <typename TDerived, typename TCharType, typename TTraits>
 class TBasicString: public TStringBase<TDerived, TCharType, TTraits> {
 public:
+    // TODO: Move to private section
     using TSelf = TBasicString;
     using TBase = TStringBase<TDerived, TCharType, TTraits>;
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
     using TFixedString = typename TBase::TFixedString;
 
-    using TdChar = TCharType;
-    using TCharRef = TBasicCharRef<TDerived>;
-    using char_type = TCharType;
+    using TCharRef = TBasicCharRef<TDerived>; // TODO: reference
+    using char_type = TCharType; // TODO: DROP
     using value_type = TCharType;
     using traits_type = TTraits;
 
@@ -881,6 +878,10 @@ public:
     }
 
     inline const TCharType* data() const noexcept {
+        return Data_;
+    }
+
+    inline const TCharType* c_str() const noexcept {
         return Data_;
     }
 
@@ -1033,6 +1034,12 @@ public:
         if (0 != s.Length) {
             TTraits::Copy(Data_, s.Start, s.Length);
         }
+    }
+
+    template <typename Traits>
+    explicit inline TBasicString(const std::basic_string_view<TCharType, Traits>& s) {
+        Data_ = Allocate(s.size());
+        TTraits::Copy(Data_, s.data(), s.size());
     }
 
     static TDerived Uninitialized(size_t n) {
@@ -1608,12 +1615,6 @@ public:
     }
 };
 
-template <class TChar>
-struct TCharToString {
-    //compat for TStringBufImpl<wchar32>
-    using TResult = TFixedString<TChar>;
-};
-
 class TString: public TBasicString<TString, char, TCharTraits<char>> {
     using TBase = TBasicString<TString, char, TCharTraits<char>>;
 
@@ -1652,7 +1653,7 @@ public:
         return assign(s);
     }
 
-    TString& operator=(const TdChar* s) {
+    TString& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1721,11 +1722,6 @@ public:
     }
 };
 
-template <>
-struct TCharToString<char> {
-    using TResult = TString;
-};
-
 class TUtf16String: public TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>> {
     using TBase = TBasicString<TUtf16String, wchar16, TCharTraits<wchar16>>;
 
@@ -1784,7 +1780,7 @@ public:
         return assign(s);
     }
 
-    TUtf16String& operator=(const TdChar* s) {
+    TUtf16String& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1819,11 +1815,6 @@ public:
         ret.to_title();
         return ret;
     }
-};
-
-template <>
-struct TCharToString<wchar16> {
-    using TResult = TUtf16String;
 };
 
 class TUtf32String: public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
@@ -1894,7 +1885,7 @@ public:
         return assign(s);
     }
 
-    TUtf32String& operator=(const TdChar* s) {
+    TUtf32String& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1931,15 +1922,33 @@ public:
     }
 };
 
-template <>
-struct TCharToString<wchar32> {
-    using TResult = TUtf32String;
-};
-
 std::ostream& operator<<(std::ostream&, const TString&);
 
-template <class TChar>
-using TGenericString = typename TCharToString<TChar>::TResult;
+namespace NPrivate {
+    template <class Char>
+    struct TCharToString {
+        // TODO: switch to TBaseString derived type when compilation with nvcc on windows will succeed
+        using type = TFixedString<Char>;
+    };
+
+    template <>
+    struct TCharToString<char> {
+        using type = TString;
+    };
+
+    template <>
+    struct TCharToString<wchar16> {
+        using type = TUtf16String;
+    };
+
+    template <>
+    struct TCharToString<wchar32> {
+        using type = TUtf32String;
+    };
+}
+
+template <class Char>
+using TGenericString = typename NPrivate::TCharToString<Char>::type;
 
 namespace std {
     template <>

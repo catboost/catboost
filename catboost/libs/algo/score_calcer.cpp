@@ -8,6 +8,8 @@
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/options/defaults_helper.h>
 
+#include <util/generic/array_ref.h>
+
 #include <type_traits>
 
 using namespace NCB;
@@ -137,19 +139,19 @@ inline static void SetSingleIndex(
 }
 
 
-// Calculate index of leaf for each document given a new split.
+// Calculate index of leaf for each document given a new split ensemble.
 template <typename TFullIndexType>
 inline static void BuildSingleIndex(
     const TCalcScoreFold& fold,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
-    const TSplitCandidate& split,
+    const TSplitEnsemble& splitEnsemble,
     const TStatsIndexer& indexer,
     NCB::TIndexRange<int> docIndexRange,
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
-    if (split.Type == ESplitType::OnlineCtr) {
-        const TCtr& ctr = split.Ctr;
+    if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
+        const TCtr& ctr = splitEnsemble.SplitCandidate.Ctr;
         const bool simpleIndexing = fold.CtrDataPermutationBlockSize == fold.GetDocCount();
         const ui32* docInFoldIndexing = simpleIndexing ? nullptr : GetDataPtr(fold.IndexInFold);
         SetSingleIndex(
@@ -170,11 +172,12 @@ inline static void BuildSingleIndex(
             : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
         const int docInDataProviderBeginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
 
-        if (split.Type == ESplitType::FloatFeature) {
+        if (splitEnsemble.IsBinarySplitsPack) {
             SetSingleIndex(
                 fold,
                 indexer,
-                *((*objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc()),
+                (**objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPack.PackIdx).GetSrc())
+                    .Data(),
                 docInDataProviderIndexing,
                 docInDataProviderBeginOffset,
                 fold.NonCtrDataPermutationBlockSize,
@@ -182,17 +185,34 @@ inline static void BuildSingleIndex(
                 singleIdx
             );
         } else {
-            Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-            SetSingleIndex(
-                fold,
-                indexer,
-                *((*objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc()),
-                docInDataProviderIndexing,
-                docInDataProviderBeginOffset,
-                fold.NonCtrDataPermutationBlockSize,
-                docIndexRange,
-                singleIdx
-            );
+            const auto& splitCandidate = splitEnsemble.SplitCandidate;
+
+            if (splitCandidate.Type == ESplitType::FloatFeature) {
+                SetSingleIndex(
+                    fold,
+                    indexer,
+                    *((*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx))
+                        ->GetArrayData().GetSrc()),
+                    docInDataProviderIndexing,
+                    docInDataProviderBeginOffset,
+                    fold.NonCtrDataPermutationBlockSize,
+                    docIndexRange,
+                    singleIdx
+                );
+            } else {
+                Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
+                SetSingleIndex(
+                    fold,
+                    indexer,
+                    *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
+                        ->GetArrayData().GetSrc()),
+                    docInDataProviderIndexing,
+                    docInDataProviderBeginOffset,
+                    fold.NonCtrDataPermutationBlockSize,
+                    docIndexRange,
+                    singleIdx
+                );
+            }
         }
     }
 }
@@ -330,7 +350,7 @@ static void CalcStatsImpl(
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TFlatPairsInfo& pairs,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
-    const TSplitCandidate& split,
+    const TSplitEnsemble& splitEnsemble,
     const TStatsIndexer& indexer,
     const TIsCaching& /*isCaching*/,
     bool /*isPlainMode*/,
@@ -371,52 +391,89 @@ static void CalcStatsImpl(
                 Min(pairCount, pairPart * partIndexRange.End)
             );
 
-            auto setOutput = [&] (auto&& getBucketFunc) {
+            if (splitEnsemble.IsBinarySplitsPack) {
+                const TBinaryFeaturesPack* bucketSrcData =
+                    (**objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPack.PackIdx)
+                        .GetSrc()).Data();
+                const ui32* bucketIndexing
+                    = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+
                 output->DerSums = ComputeDerSums(
                     weightedDerivativesData,
                     leafCount,
                     indexer.BucketCount,
                     fold.Indices,
-                    getBucketFunc,
+                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                        return bucketSrcData[bucketIndexing[docIdx]];
+                    },
                     docIndexRange
                 );
-                auto pairWeightStatistics = ComputePairWeightStatistics(
+                auto pairWeightStatistics = ComputePairWeightStatisticsForBinaryFeaturesPacks(
                     pairs,
                     leafCount,
                     indexer.BucketCount,
                     fold.Indices,
-                    getBucketFunc,
+                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                        return bucketSrcData[bucketIndexing[docIdx]];
+                    },
                     pairIndexRange
                 );
                 output->PairWeightStatistics.Swap(pairWeightStatistics);
-            };
 
-            if (split.Type == ESplitType::OnlineCtr) {
-                const TCtr& ctr = split.Ctr;
-                TConstArrayRef<ui8> buckets =
-                    GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
-                setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
-            } else if (split.Type == ESplitType::FloatFeature) {
-                const ui8* bucketSrcData =
-                    *((*objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc());
-                const ui32* bucketIndexing
-                    = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                setOutput(
-                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                        return bucketSrcData[bucketIndexing[docIdx]];
-                    }
-                );
+                output->SplitEnsembleSpec = TSplitEnsembleSpec::BinarySplitsPack();
             } else {
-                Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-                const ui32* bucketSrcData =
-                    *((*objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc());
-                const ui32* bucketIndexing
-                    = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                setOutput(
-                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                        return bucketSrcData[bucketIndexing[docIdx]];
-                    }
-                );
+                const auto& splitCandidate = splitEnsemble.SplitCandidate;
+
+                auto setOutput = [&] (auto&& getBucketFunc) {
+                    output->DerSums = ComputeDerSums(
+                        weightedDerivativesData,
+                        leafCount,
+                        indexer.BucketCount,
+                        fold.Indices,
+                        getBucketFunc,
+                        docIndexRange
+                    );
+                    auto pairWeightStatistics = ComputePairWeightStatistics(
+                        pairs,
+                        leafCount,
+                        indexer.BucketCount,
+                        fold.Indices,
+                        getBucketFunc,
+                        pairIndexRange
+                    );
+                    output->PairWeightStatistics.Swap(pairWeightStatistics);
+                    output->SplitEnsembleSpec = TSplitEnsembleSpec::OneSplit(splitCandidate.Type);
+                };
+
+                if (splitCandidate.Type == ESplitType::OnlineCtr) {
+                    const TCtr& ctr = splitCandidate.Ctr;
+                    TConstArrayRef<ui8> buckets =
+                        GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
+                    setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
+                } else if (splitCandidate.Type == ESplitType::FloatFeature) {
+                    const ui8* bucketSrcData =
+                        *((*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx))
+                            ->GetArrayData().GetSrc());
+                    const ui32* bucketIndexing
+                        = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+                    setOutput(
+                        [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                            return bucketSrcData[bucketIndexing[docIdx]];
+                        }
+                    );
+                } else {
+                    Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
+                    const ui32* bucketSrcData =
+                        *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
+                            ->GetArrayData().GetSrc());
+                    const ui32* bucketIndexing
+                        = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+                    setOutput(
+                        [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                            return bucketSrcData[bucketIndexing[docIdx]];
+                        }
+                    );
+                }
             }
         },
         /*mergeFunc*/[&](TPairwiseStats* output, TVector<TPairwiseStats>&& addVector) {
@@ -435,7 +492,7 @@ static void CalcStatsImpl(
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TFlatPairsInfo& /*pairs*/,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
-    const TSplitCandidate& split,
+    const TSplitEnsemble& splitEnsemble,
     const TStatsIndexer& indexer,
     const TIsCaching& isCaching,
     bool isPlainMode,
@@ -475,7 +532,14 @@ static void CalcStatsImpl(
                 )
                 : indexRange;
 
-            BuildSingleIndex(fold, objectsDataProvider, allCtrs, split, indexer, docIndexRange, &singleIdx);
+            BuildSingleIndex(
+                fold,
+                objectsDataProvider,
+                allCtrs,
+                splitEnsemble,
+                indexer,
+                docIndexRange,
+                &singleIdx);
 
             if (output->NonInited()) {
                 (*output) = TBucketStatsRefOptionalHolder(statsCount);
@@ -545,123 +609,156 @@ inline static double CountD2(double avrg, const TBucketStats& leafStats) {
 }
 
 
+inline void UpdateScoreBin(
+    bool isPlainMode,
+    float l2Regularizer,
+    double sumAllWeights,
+    int allDocCount,
+    const TBucketStats& trueStats,
+    const TBucketStats& falseStats,
+    TScoreBin* scoreBin
+) {
+    double trueAvrg, falseAvrg;
+    if (isPlainMode) {
+        trueAvrg = CalcAverage(
+            trueStats.SumWeightedDelta,
+            trueStats.SumWeight,
+            l2Regularizer,
+            sumAllWeights,
+            allDocCount
+        );
+        falseAvrg = CalcAverage(
+            falseStats.SumWeightedDelta,
+            falseStats.SumWeight,
+            l2Regularizer,
+            sumAllWeights,
+            allDocCount
+        );
+    } else {
+        trueAvrg = CalcAverage(
+            trueStats.SumDelta,
+            trueStats.Count,
+            l2Regularizer,
+            sumAllWeights,
+            allDocCount
+        );
+        falseAvrg = CalcAverage(
+            falseStats.SumDelta,
+            falseStats.Count,
+            l2Regularizer,
+            sumAllWeights,
+            allDocCount
+        );
+    }
+    (*scoreBin).DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
+    (*scoreBin).D2 += CountD2(trueAvrg, trueStats) + CountD2(falseAvrg, falseStats);
+}
+
+
 
 /* This function calculates resulting sums for each split given statistics that are calculated for each bucket
  * of the histogram.
  */
 template <typename TIsPlainMode>
-inline static void UpdateScoreBin(
+inline static void UpdateScoreBins(
     const TBucketStats* stats,
     int leafCount,
     const TStatsIndexer& indexer,
-    ESplitType splitType,
+    const TSplitEnsembleSpec& splitEnsembleSpec,
     float l2Regularizer,
     TIsPlainMode isPlainMode,
     double sumAllWeights,
     int allDocCount,
-    TVector<TScoreBin>* scoreBin
+    TVector<TScoreBin>* scoreBins
 ) {
+    auto updateScoreBinClosure = [=] (
+        const TBucketStats& trueStats,
+        const TBucketStats& falseStats,
+        TScoreBin* scoreBin) {
+
+        UpdateScoreBin(
+            isPlainMode,
+            l2Regularizer,
+            sumAllWeights,
+            allDocCount,
+            trueStats,
+            falseStats,
+            scoreBin);
+    };
+
     for (int leaf = 0; leaf < leafCount; ++leaf) {
-        TBucketStats allStats{0, 0, 0, 0};
-        for (int bucket = 0; bucket < indexer.BucketCount; ++bucket) {
-            const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucket)];
-            allStats.Add(leafStats);
-        }
-        TBucketStats trueStats{0, 0, 0, 0};
-        TBucketStats falseStats{0, 0, 0, 0};
-        if (splitType == ESplitType::OnlineCtr || splitType == ESplitType::FloatFeature) {
-            trueStats = allStats;
-            for (int splitIdx = 0; splitIdx < indexer.BucketCount - 1; ++splitIdx) {
-                falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx)]);
-                trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
-                double trueAvrg, falseAvrg;
-                if (isPlainMode) {
-                    trueAvrg = CalcAverage(
-                        trueStats.SumWeightedDelta,
-                        trueStats.SumWeight,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
-                    falseAvrg = CalcAverage(
-                        falseStats.SumWeightedDelta,
-                        falseStats.SumWeight,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
-                } else {
-                    trueAvrg = CalcAverage(
-                        trueStats.SumDelta,
-                        trueStats.Count,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
-                    falseAvrg = CalcAverage(
-                        falseStats.SumDelta,
-                        falseStats.Count,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
+        if (splitEnsembleSpec.IsBinarySplitsPack) {
+            int binaryFeaturesCount = (int)GetValueBitCount(indexer.BucketCount - 1);
+            for (int binFeatureIdx = 0; binFeatureIdx < binaryFeaturesCount; ++binFeatureIdx) {
+                TBucketStats trueStats{0, 0, 0, 0};
+                TBucketStats falseStats{0, 0, 0, 0};
+
+                for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
+                    auto& dstStats = ((bucketIdx >> binFeatureIdx) & 1) ? trueStats : falseStats;
+                    dstStats.Add(stats[indexer.GetIndex(leaf, bucketIdx)]);
                 }
-                (*scoreBin)[splitIdx].DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
-                (*scoreBin)[splitIdx].D2 += CountD2(trueAvrg, trueStats) + CountD2(falseAvrg, falseStats);
+
+                updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[binFeatureIdx]));
             }
         } else {
-            Y_ASSERT(splitType == ESplitType::OneHotFeature);
-            falseStats = allStats;
-            for (int splitIdx = 0; splitIdx < indexer.BucketCount - 1; ++splitIdx) {
-                if (splitIdx > 0) {
-                    falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx - 1)]);
+            auto splitType = splitEnsembleSpec.SplitType;
+
+            TBucketStats allStats{0, 0, 0, 0};
+
+            for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
+                const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucketIdx)];
+                allStats.Add(leafStats);
+            }
+
+            TBucketStats trueStats{0, 0, 0, 0};
+            TBucketStats falseStats{0, 0, 0, 0};
+            if (splitType == ESplitType::OnlineCtr || splitType == ESplitType::FloatFeature) {
+                trueStats = allStats;
+                for (int splitIdx = 0; splitIdx < indexer.BucketCount - 1; ++splitIdx) {
+                    falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx)]);
+                    trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
+
+                    updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[splitIdx]));
                 }
-                falseStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
-                trueStats = stats[indexer.GetIndex(leaf, splitIdx)];
-                double trueAvrg, falseAvrg;
-                if (isPlainMode) {
-                    trueAvrg = CalcAverage(
-                        trueStats.SumWeightedDelta,
-                        trueStats.SumWeight,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
-                    falseAvrg = CalcAverage(
-                        falseStats.SumWeightedDelta,
-                        falseStats.SumWeight,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
-                } else {
-                    trueAvrg = CalcAverage(
-                        trueStats.SumDelta,
-                        trueStats.Count,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
-                    falseAvrg = CalcAverage(
-                        falseStats.SumDelta,
-                        falseStats.Count,
-                        l2Regularizer,
-                        sumAllWeights,
-                        allDocCount
-                    );
+            } else {
+                Y_ASSERT(splitType == ESplitType::OneHotFeature);
+                falseStats = allStats;
+                for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
+                    if (bucketIdx > 0) {
+                        falseStats.Add(stats[indexer.GetIndex(leaf, bucketIdx - 1)]);
+                    }
+                    falseStats.Remove(stats[indexer.GetIndex(leaf, bucketIdx)]);
+
+                    updateScoreBinClosure(
+                        /*trueStats*/ stats[indexer.GetIndex(leaf, bucketIdx)],
+                        falseStats,
+                        &((*scoreBins)[bucketIdx]));
                 }
-                (*scoreBin)[splitIdx].DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
-                (*scoreBin)[splitIdx].D2 += CountD2(trueAvrg, trueStats) + CountD2(falseAvrg, falseStats);
             }
         }
     }
 }
 
 
+static inline int CalcScoreBinCount(
+    const TSplitEnsembleSpec& splitEnsembleSpec,
+    int bucketCount
+) {
+    if (splitEnsembleSpec.IsBinarySplitsPack) {
+        return GetValueBitCount(bucketCount - 1);
+    }
+    if (splitEnsembleSpec.SplitType == ESplitType::OneHotFeature) {
+        return bucketCount;
+    }
+    // FloatFeature or Ctr
+    return bucketCount - 1;
+}
+
+
 static void CalculateNonPairwiseScore(
     const TCalcScoreFold& fold,
     const TFold& initialFold,
-    const TSplitCandidate& split,
+    const TSplitEnsembleSpec& splitEnsembleSpec,
     bool isPlainMode,
     const int leafCount,
     const float l2Regularizer,
@@ -672,7 +769,7 @@ static void CalculateNonPairwiseScore(
 ) {
     const int approxDimension = fold.GetApproxDimension();
 
-    scoreBins->assign(indexer.BucketCount, TScoreBin());
+    scoreBins->assign(CalcScoreBinCount(splitEnsembleSpec, indexer.BucketCount), TScoreBin());
 
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
         double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
@@ -681,11 +778,11 @@ static void CalculateNonPairwiseScore(
             const TBucketStats* stats = splitStats
                 + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
             if (isPlainMode) {
-                UpdateScoreBin(
+                UpdateScoreBins(
                     stats,
                     leafCount,
                     indexer,
-                    split.Type,
+                    splitEnsembleSpec,
                     l2Regularizer,
                     /*isPlainMode=*/std::true_type(),
                     sumAllWeights,
@@ -693,11 +790,11 @@ static void CalculateNonPairwiseScore(
                     scoreBins
                 );
             } else {
-                UpdateScoreBin(
+                UpdateScoreBins(
                     stats,
                     leafCount,
                     indexer,
-                    split.Type,
+                    splitEnsembleSpec,
                     l2Regularizer,
                     /*isPlainMode=*/std::false_type(),
                     sumAllWeights,
@@ -718,7 +815,7 @@ void CalcStatsAndScores(
     const TFold* initialFold,
     const TFlatPairsInfo& pairs,
     const NCatboostOptions::TCatBoostOptions& fitParams,
-    const TSplitCandidate& split,
+    const TSplitEnsemble& splitEnsemble,
     int depth,
     bool useTreeLevelCaching,
     NPar::TLocalExecutor* localExecutor,
@@ -730,10 +827,15 @@ void CalcStatsAndScores(
     CB_ENSURE(stats3d || pairwiseStats || scoreBins, "stats3d, pairwiseStats, and scoreBins are empty - nothing to calculate");
     CB_ENSURE(!scoreBins || initialFold, "initialFold must be non-nullptr for scoreBins calculation");
 
-    const int bucketCount = GetSplitCount(*objectsDataProvider.GetQuantizedFeaturesInfo(), split) + 1;
-    const TStatsIndexer indexer(bucketCount);
-    const int bucketIndexBits = GetValueBitCount(bucketCount) + depth + 1;
     const bool isPairwiseScoring = IsPairwiseScoring(fitParams.LossFunctionDescription->GetLossFunction());
+
+    const int bucketCount = GetBucketCount(
+        splitEnsemble,
+        *objectsDataProvider.GetQuantizedFeaturesInfo(),
+        objectsDataProvider.GetPackedBinaryFeaturesSize()
+    );
+    const TStatsIndexer indexer(bucketCount);
+    const int fullIndexBitCount = depth + GetValueBitCount(bucketCount - 1);
     const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
 
     const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
@@ -744,13 +846,13 @@ void CalcStatsAndScores(
         int splitStatsCount,
         auto* stats
     ) {
-        if (bucketIndexBits <= 8) {
+        if (fullIndexBitCount <= 8) {
             CalcStatsImpl<ui8>(
                 fold,
                 objectsDataProvider,
                 pairs,
                 allCtrs,
-                split,
+                splitEnsemble,
                 indexer,
                 isCaching,
                 isPlainMode,
@@ -759,13 +861,13 @@ void CalcStatsAndScores(
                 localExecutor,
                 stats
             );
-        } else if (bucketIndexBits <= 16) {
+        } else if (fullIndexBitCount <= 16) {
             CalcStatsImpl<ui16>(
                 fold,
                 objectsDataProvider,
                 pairs,
                 allCtrs,
-                split,
+                splitEnsemble,
                 indexer,
                 isCaching,
                 isPlainMode,
@@ -774,13 +876,13 @@ void CalcStatsAndScores(
                 localExecutor,
                 stats
             );
-        } else if (bucketIndexBits <= 32) {
+        } else if (fullIndexBitCount <= 32) {
             CalcStatsImpl<ui32>(
                 fold,
                 objectsDataProvider,
                 pairs,
                 allCtrs,
-                split,
+                splitEnsemble,
                 indexer,
                 isCaching,
                 isPlainMode,
@@ -808,7 +910,6 @@ void CalcStatsAndScores(
             CalculatePairwiseScore(
                 *pairwiseStats,
                 bucketCount,
-                split.Type,
                 l2Regularizer,
                 pairwiseBucketWeightPriorReg,
                 scoreBins
@@ -830,6 +931,7 @@ void CalcStatsAndScores(
                 stats3d->Stats.yresize(statsCount);
                 stats3d->BucketCount = bucketCount;
                 stats3d->MaxLeafCount = 1U << depth;
+                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(splitEnsemble);
 
                 extOrInSplitStats = TBucketStatsRefOptionalHolder(stats3d->Stats);
             }
@@ -843,7 +945,7 @@ void CalcStatsAndScores(
             splitStatsCount = indexer.CalcSize(treeOptions.MaxDepth);
             bool areStatsDirty;
             TVector<TBucketStats, TPoolAllocator>& splitStatsFromCache =
-                statsFromPrevTree->GetStats(split, splitStatsCount, &areStatsDirty); // thread-safe access
+                statsFromPrevTree->GetStats(splitEnsemble, splitStatsCount, &areStatsDirty); // thread-safe access
             extOrInSplitStats = TBucketStatsRefOptionalHolder(splitStatsFromCache);
             if (depth == 0 || areStatsDirty) {
                 selectCalcStatsImpl(
@@ -868,6 +970,7 @@ void CalcStatsAndScores(
                 ).swap(stats3d->Stats);
                 stats3d->BucketCount = bucketCount;
                 stats3d->MaxLeafCount = 1U << depth;
+                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(splitEnsemble);
             }
         }
         if (scoreBins) {
@@ -875,7 +978,7 @@ void CalcStatsAndScores(
             CalculateNonPairwiseScore(
                 fold,
                 *initialFold,
-                split,
+                TSplitEnsembleSpec(splitEnsemble),
                 isPlainMode,
                 leafCount,
                 l2Regularizer,
@@ -889,27 +992,26 @@ void CalcStatsAndScores(
 }
 
 TVector<TScoreBin> GetScoreBins(
-    const TStats3D& stats,
-    ESplitType splitType,
+    const TStats3D& stats3d,
     int depth,
     double sumAllWeights,
     int allDocCount,
     const NCatboostOptions::TCatBoostOptions& fitParams
 ) {
-    const TVector<TBucketStats>& bucketStats = stats.Stats;
-    const int splitStatsCount = stats.BucketCount * stats.MaxLeafCount;
-    const int bucketCount = stats.BucketCount;
+    const TVector<TBucketStats>& bucketStats = stats3d.Stats;
+    const int splitStatsCount = stats3d.BucketCount * stats3d.MaxLeafCount;
+    const int bucketCount = stats3d.BucketCount;
     const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
     const int leafCount = 1 << depth;
     const TStatsIndexer indexer(bucketCount);
     TVector<TScoreBin> scoreBin(bucketCount);
     for (int statsIdx = 0; statsIdx * splitStatsCount < bucketStats.ysize(); ++statsIdx) {
         const TBucketStats* stats = GetDataPtr(bucketStats) + statsIdx * splitStatsCount;
-        UpdateScoreBin(
+        UpdateScoreBins(
             stats,
             leafCount,
             indexer,
-            splitType,
+            stats3d.SplitEnsembleSpec,
             l2Regularizer,
             /*isPlainMode=*/std::true_type(),
             sumAllWeights,

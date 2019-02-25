@@ -168,3 +168,8 @@ def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
 
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
+
+
+def format_crossvalidation(is_inverted, n, k):
+    cv_type = 'Inverted' if is_inverted else 'Classical'
+    return '{}:{};{}'.format(cv_type, n, k)

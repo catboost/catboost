@@ -3,11 +3,7 @@ from libc.stdint cimport uint64_t
 from libcpp cimport bool as bool_t
 from posix.types cimport time_t
 
-from util.generic.string cimport TString
-
-cdef extern from "util/generic/strbuf.h" nogil:
-    cdef cppclass TStringBuf:
-        pass
+from util.generic.string cimport TString, TStringBuf
 
 
 cdef extern from "<util/datetime/base.h>" nogil:

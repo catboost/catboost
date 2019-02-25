@@ -4,7 +4,6 @@ PY_LIBRARY()
 
 PY_SRCS(
     code_generator.py
-    gobuild.py
     flatc.py
     pyx.py
     swig.py

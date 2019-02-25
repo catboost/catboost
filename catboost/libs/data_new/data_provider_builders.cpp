@@ -779,7 +779,7 @@ namespace NCB {
             Data.MetaInfo = metaInfo;
             Data.TargetData.PrepareForInitialization(metaInfo, objectCount, 0);
             Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount, 0);
-            Data.ObjectsData.PrepareForInitialization(
+            Data.ObjectsData.Data.PrepareForInitialization(
                 metaInfo,
 
                 // TODO(akhropov): get from quantized pool meta info when it will be available: MLTOOLS-2392.
@@ -792,15 +792,27 @@ namespace NCB {
 
             FillQuantizedFeaturesInfo(
                 poolQuantizationSchema,
-                Data.ObjectsData.QuantizedFeaturesInfo.Get());
+                Data.ObjectsData.Data.QuantizedFeaturesInfo.Get()
+            );
+
+            Data.ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+
+                // packed binary features are present only in TQuantizedForCPUObjectsDataProvider
+                /*dontPack*/ !Options.CpuCompatibleFormat
+            );
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
 
+            PrepareBinaryFeaturesStorage();
+
             FloatFeaturesStorage.PrepareForInitialization(
                 *metaInfo.FeaturesLayout,
                 objectCount,
-                poolQuantizationSchema
+                poolQuantizationSchema,
+                BinaryFeaturesStorage,
+                Data.ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex
             );
 
             if (metaInfo.HasWeights) {
@@ -845,7 +857,8 @@ namespace NCB {
             FloatFeaturesStorage.Set(
                 GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx),
                 objectOffset,
-                *featuresPart
+                *featuresPart,
+                LocalExecutor
             );
         }
 
@@ -936,11 +949,14 @@ namespace NCB {
                 TFullSubset<ui32>(ObjectCount)
             );
 
+            GetBinaryFeaturesDataResult();
+
             FloatFeaturesStorage.GetResult(
                 ObjectCount,
                 *Data.MetaInfo.FeaturesLayout,
                 Data.CommonObjectsData.SubsetIndexing.Get(),
-                &Data.ObjectsData.FloatFeatures
+                Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
+                &Data.ObjectsData.Data.FloatFeatures
             );
 
             ResultTaken = true;
@@ -955,7 +971,7 @@ namespace NCB {
             } else {
                 return MakeDataProvider<TQuantizedObjectsDataProvider>(
                     /*objectsGrouping*/ Nothing(), // will init from data
-                    std::move(Data),
+                    CastToBase(std::move(Data)),
                     Options.SkipCheck,
                     LocalExecutor
                 )->CastMoveTo<TObjectsDataProvider>();
@@ -1033,32 +1049,94 @@ namespace NCB {
             }
         }
 
+        void PrepareBinaryFeaturesStorage() {
+            auto binaryFeaturesStorageSize = CeilDiv(
+                Data.ObjectsData.PackedBinaryFeaturesData.PackedBinaryToSrcIndex.size(),
+                sizeof(TBinaryFeaturesPack) * CHAR_BIT
+            );
+            BinaryFeaturesStorage.resize(binaryFeaturesStorageSize);
+            if (!binaryFeaturesStorageSize) {
+                return;
+            }
+
+            LocalExecutor->ExecRangeWithThrow(
+                [&] (int i) {
+                    auto& binaryFeaturesStorageElement = BinaryFeaturesStorage[i];
+                    if (!binaryFeaturesStorageElement || (binaryFeaturesStorageElement->RefCount() > 1)) {
+                        /* storage is either uninited or shared with some other references
+                         * so it has to be reset to be reused
+                         */
+                        binaryFeaturesStorageElement = MakeIntrusive<TVectorHolder<TBinaryFeaturesPack>>();
+                    }
+                    auto& data = binaryFeaturesStorageElement->Data;
+                    data.yresize(ObjectCount);
+                    Fill(data.begin(), data.end(), TBinaryFeaturesPack(0));
+                },
+                0,
+                SafeIntegerCast<int>(binaryFeaturesStorageSize),
+                NPar::TLocalExecutor::WAIT_COMPLETE
+            );
+        }
+
+        void GetBinaryFeaturesDataResult() {
+            auto& dst = Data.ObjectsData.PackedBinaryFeaturesData.SrcData;
+            dst.clear();
+            for (auto& binaryFeaturesStorageElement : BinaryFeaturesStorage) {
+                dst.push_back(
+                    TMaybeOwningArrayHolder<TBinaryFeaturesPack>::CreateOwning(
+                        binaryFeaturesStorageElement->Data,
+                        binaryFeaturesStorageElement
+                    )
+                );
+            }
+        }
+
     private:
+        using TBinaryFeaturesStorage = TVector<TIntrusivePtr<TVectorHolder<TBinaryFeaturesPack>>>;
+
+
         template <EFeatureType FeatureType>
         class TFeaturesStorage {
         private:
             static_assert(FeatureType == EFeatureType::Float, "Only float features are currently supported");
 
+            /******************************************************************************************/
+            // non-binary features
+
             /* shared between this builder and created data provider for efficiency
              * (can be reused for cache here if there's no more references to data
              *  (data provider was freed))
              */
-
             TVector<TIntrusivePtr<TVectorHolder<ui64>>> Storage; // [perTypeFeatureIdx]
 
             // view into storage for faster access
             TVector<TArrayRef<ui64>> DstView; // [perTypeFeatureIdx]
 
+            TVector<TIndexHelper<ui64>> IndexHelpers; // [perTypeFeatureIdx]
+
+            /******************************************************************************************/
+            // binary features
+
+            // view into BinaryStorage for faster access
+            // BinaryStorage is not owned by TFeaturesStorage but common for all FeatureTypes
+            TVector<TArrayRef<TBinaryFeaturesPack>> DstBinaryView; // [packIdx][objectIdx][bitIdx]
+
+            // copy from Data.ObjectsData.PackedBinaryFeaturesData for fast access
+            TConstArrayRef<TMaybe<TPackedBinaryIndex>> FeatureIdxToPackedBinaryIndex; // [perTypeFeatureIdx]
+
+
+            /******************************************************************************************/
+
             // copy from Data.MetaInfo.FeaturesLayout for fast access
             TVector<bool> IsAvailable; // [perTypeFeatureIdx]
-
-            TVector<TIndexHelper<ui64>> IndexHelpers; // [perTypeFeatureIdx]
 
         public:
             void PrepareForInitialization(
                 const TFeaturesLayout& featuresLayout,
                 ui32 objectCount,
-                const TPoolQuantizationSchema& quantizationSchema
+                const TPoolQuantizationSchema& quantizationSchema,
+                TBinaryFeaturesStorage& binaryStorage,
+                TConstArrayRef<TMaybe<TPackedBinaryIndex>> featureIdxToPackedBinaryIndex
             ) {
                 Y_UNUSED(quantizationSchema);
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
@@ -1066,6 +1144,8 @@ namespace NCB {
                 DstView.resize(perTypeFeatureCount);
                 IsAvailable.resize(perTypeFeatureCount, false); // filled from quantization Schema, then checked
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
+
+                FeatureIdxToPackedBinaryIndex = featureIdxToPackedBinaryIndex;
 
                 const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
                 for (size_t flatFeatureIdx = 0; flatFeatureIdx < metaInfos.size(); ++flatFeatureIdx) {
@@ -1077,6 +1157,7 @@ namespace NCB {
                         flatFeatureIdx);
 
                     IsAvailable[typedFeatureIdx.Idx] = true;
+
                     IndexHelpers[typedFeatureIdx.Idx] = TIndexHelper<ui64>(8);
                 }
 
@@ -1084,7 +1165,8 @@ namespace NCB {
                     if (featuresLayout.GetInternalFeatureMetaInfo(
                             perTypeFeatureIdx,
                             FeatureType
-                        ).IsAvailable)
+                        ).IsAvailable &&
+                        !FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx])
                     {
                         CB_ENSURE(
                             IsAvailable[perTypeFeatureIdx],
@@ -1108,33 +1190,54 @@ namespace NCB {
                         DstView[perTypeFeatureIdx] = TArrayRef<ui64>();
                     }
                 }
+
+                for (auto& binaryStorageElement : binaryStorage) {
+                    DstBinaryView.push_back(binaryStorageElement->Data);
+                }
             }
 
             void Set(
                 TFeatureIdx<FeatureType> perTypeFeatureIdx,
                 ui32 objectOffset,
-                TConstArrayRef<ui8> featuresPart
+                TConstArrayRef<ui8> featuresPart,
+                NPar::TLocalExecutor* localExecutor
             ) {
                 if (!IsAvailable[*perTypeFeatureIdx]) {
                     return;
                 }
 
-                const auto dstCapacityInBytes =
-                    DstView[*perTypeFeatureIdx].size() *
-                    sizeof(decltype(*DstView[*perTypeFeatureIdx].data()));
-                const auto objectOffsetInBytes = objectOffset * sizeof(ui8);
+                if (FeatureIdxToPackedBinaryIndex[*perTypeFeatureIdx]) {
+                    auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[*perTypeFeatureIdx];
+                    auto dstSlice = DstBinaryView[packedBinaryIndex.PackIdx].Slice(
+                        objectOffset,
+                        featuresPart.size()
+                    );
+                    ParallelSetBinaryFeatureInPackArray(
+                        featuresPart,
+                        packedBinaryIndex.BitIdx,
+                        /*needToClearDstBits*/ false,
+                        localExecutor,
+                        &dstSlice
+                    );
+                } else {
+                    const auto dstCapacityInBytes =
+                        DstView[*perTypeFeatureIdx].size() *
+                        sizeof(decltype(*DstView[*perTypeFeatureIdx].data()));
+                    const auto objectOffsetInBytes = objectOffset * sizeof(ui8);
 
-                CB_ENSURE_INTERNAL(
-                    objectOffsetInBytes < dstCapacityInBytes,
-                    LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
-                CB_ENSURE_INTERNAL(
-                    objectOffsetInBytes + featuresPart.size() <= dstCapacityInBytes,
-                    LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
+                    CB_ENSURE_INTERNAL(
+                        objectOffsetInBytes < dstCapacityInBytes,
+                        LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
+                    CB_ENSURE_INTERNAL(
+                        objectOffsetInBytes + featuresPart.size() <= dstCapacityInBytes,
+                        LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
 
-                memcpy(
-                    ((ui8*)DstView[*perTypeFeatureIdx].data()) + objectOffset,
-                    featuresPart.data(),
-                    featuresPart.size());
+
+                    memcpy(
+                        ((ui8*)DstView[*perTypeFeatureIdx].data()) + objectOffset,
+                        featuresPart.data(),
+                        featuresPart.size());
+                }
             }
 
             template <class IColumnType>
@@ -1142,6 +1245,7 @@ namespace NCB {
                 ui32 objectCount,
                 const TFeaturesLayout& featuresLayout,
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
+                const TVector<TMaybeOwningArrayHolder<TBinaryFeaturesPack>>& binaryFeaturesData,
                 TVector<THolder<IColumnType>>* result
             ) {
                 CB_ENSURE_INTERNAL(
@@ -1160,22 +1264,35 @@ namespace NCB {
                 result->reserve(featureCount);
                 for (auto perTypeFeatureIdx : xrange(featureCount)) {
                     if (IsAvailable[perTypeFeatureIdx]) {
-                        result->push_back(
-                            MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
-                                /* featureId */ featuresLayout.GetExternalFeatureIdx(
-                                    perTypeFeatureIdx, FeatureType
-                                ),
-                                TCompressedArray(
-                                    objectCount,
-                                    IndexHelpers[perTypeFeatureIdx].GetBitsPerKey(),
-                                    TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                                        DstView[perTypeFeatureIdx],
-                                        Storage[perTypeFeatureIdx]
-                                    )
-                                ),
-                                subsetIndexing
-                            )
-                        );
+                        auto featureId = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, FeatureType);
+
+                        if (FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx]) {
+                            auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx];
+
+                            result->push_back(
+                                MakeHolder<TPackedBinaryValuesHolderImpl<IColumnType>>(
+                                    featureId,
+                                    binaryFeaturesData[packedBinaryIndex.PackIdx],
+                                    packedBinaryIndex.BitIdx,
+                                    subsetIndexing
+                                )
+                            );
+                        } else {
+                            result->push_back(
+                                MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
+                                    featureId,
+                                    TCompressedArray(
+                                        objectCount,
+                                        IndexHelpers[perTypeFeatureIdx].GetBitsPerKey(),
+                                        TMaybeOwningArrayHolder<ui64>::CreateOwning(
+                                            DstView[perTypeFeatureIdx],
+                                            Storage[perTypeFeatureIdx]
+                                        )
+                                    ),
+                                    subsetIndexing
+                                )
+                            );
+                        }
                     } else {
                         result->push_back(nullptr);
                     }
@@ -1193,13 +1310,17 @@ namespace NCB {
          */
         TVector<TString> ClassNames;
 
-        TQuantizedBuilderData Data;
+        /* ForCPU because TQuantizedForCPUObjectsData is more generic than TQuantizedObjectsData -
+         * it contains it as a subset
+         */
+        TQuantizedForCPUBuilderData Data;
 
         // will be moved to Data.RawTargetData at GetResult
         TVector<float> WeightsBuffer;
         TVector<float> GroupWeightsBuffer;
 
         TFeaturesStorage<EFeatureType::Float> FloatFeaturesStorage;
+        TBinaryFeaturesStorage BinaryFeaturesStorage;
 
         TDataProviderBuilderOptions Options;
 

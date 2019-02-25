@@ -17,6 +17,7 @@ namespace NCB {
         bool GpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForSlowBuildBordersAlgorithms = 200000;
+        bool PackBinaryFeaturesForCpu = true;
         bool AllowWriteFiles = true;
 
         // TODO(akhropov): remove after checking global tests consistency

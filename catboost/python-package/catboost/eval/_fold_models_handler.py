@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import time
 
-from catboost import CatboostError
+from catboost import CatBoostError
 from catboost.eval.log_config import get_eval_logger
 from catboost.eval.utils import make_dirs_if_not_exists
 from catboost.eval.evaluation_result import CaseEvaluationResult
@@ -69,7 +69,7 @@ class FoldModelsHandler(object):
                 if self._metric_descriptions is None:
                     self._init_case_results(metric_calcer.metric_descriptions())
                 elif self._metric_descriptions != metric_calcer.metric_descriptions():
-                    raise CatboostError("Error: metric names should be consistent")
+                    raise CatBoostError("Error: metric names should be consistent")
 
         for file_num, fold_file in enumerate(learn_folds + skipped_folds + rest_folds):
             pool = FoldModelsHandler._create_pool(fold_file, self._thread_count)
@@ -99,7 +99,7 @@ class FoldModelsHandler(object):
         if "ignored_features" in case.get_params():
             ignored_features = case.get_params()["ignored_features"]
             if len(ignored_features) and max(ignored_features) >= feature_count:
-                raise CatboostError("Error: input parameter contains feature indices wich are not available in pool: "
+                raise CatBoostError("Error: input parameter contains feature indices wich are not available in pool: "
                                     "{}\n "
                                     "Check eval_feature set and ignored features options".format(ignored_features))
         get_eval_logger().debug('Learn model {} on fold #{}'.format(str(case), fold_id))

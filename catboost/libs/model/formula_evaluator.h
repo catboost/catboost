@@ -329,6 +329,31 @@ inline void BinarizeFeatures(
     }
 }
 
+/**
+* This function is for quantized pool
+*/
+template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+inline void AssignFeatureBins(
+    const TFullModel& model,
+    TFloatFeatureAccessor floatAccessor,
+    TCatFeatureAccessor /*catAccessor*/,
+    size_t start,
+    size_t end,
+    TArrayRef<ui8> result
+) {
+    CB_ENSURE(!model.HasCategoricalFeatures(), "Quantized datasets with categorical features are not currently supported");
+    ui8* resultPtr = result.data();
+    for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
+        for (ui32 docId = start; docId < end; ++docId) {
+            *resultPtr = floatAccessor(floatFeature, docId);
+            resultPtr++;
+        }
+    }
+}
+
 using TCalcerIndexType = ui32;
 
 using TTreeCalcFunction = std::function<void(
@@ -357,7 +382,7 @@ inline X* GetAligned(X* val) {
     return val;
 }
 
-template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+template <bool isQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcGeneric(
     const TFullModel& model,
     TFloatFeatureAccessor floatFeatureAccessor,
@@ -379,32 +404,6 @@ inline void CalcGeneric(
         binFeatures = binFeaturesHolder;
     }
     auto calcTrees = GetCalcTreesFunction(model, blockSize);
-    if (docCount == 1) {
-        CB_ENSURE((int)results.size() == model.ObliviousTrees.ApproxDimension);
-        std::fill(results.begin(), results.end(), 0.0);
-        TVector<ui32> transposedHash(model.GetUsedCatFeaturesCount());
-        TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size());
-        BinarizeFeatures(
-            model,
-            floatFeatureAccessor,
-            catFeaturesAccessor,
-            0,
-            1,
-            binFeatures,
-            transposedHash,
-            ctrs
-        );
-        calcTrees(
-            model,
-            binFeatures.data(),
-            1,
-            nullptr,
-            treeStart,
-            treeEnd,
-            results.data()
-        );
-        return;
-    }
 
     CB_ENSURE(
         results.size() == docCount * model.ObliviousTrees.ApproxDimension,
@@ -416,21 +415,33 @@ inline void CalcGeneric(
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
     for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-        BinarizeFeatures(
-            model,
-            floatFeatureAccessor,
-            catFeaturesAccessor,
-            blockStart,
-            blockStart + docCountInBlock,
-            binFeatures,
-            transposedHash,
-            ctrs
-        );
+        if constexpr (!isQuantizedFeaturesData) {
+            BinarizeFeatures(
+                model,
+                floatFeatureAccessor,
+                catFeaturesAccessor,
+                blockStart,
+                blockStart + docCountInBlock,
+                binFeatures,
+                transposedHash,
+                ctrs
+            );
+        } else {
+            AssignFeatureBins(
+                model,
+                floatFeatureAccessor,
+                catFeaturesAccessor,
+                blockStart,
+                blockStart + docCountInBlock,
+                binFeatures
+            );
+        }
+
         calcTrees(
             model,
             binFeatures.data(),
             docCountInBlock,
-            indexesVec.data(),
+            docCount == 1 ? nullptr : indexesVec.data(),
             treeStart,
             treeEnd,
             results.data() + blockStart * model.ObliviousTrees.ApproxDimension
@@ -477,6 +488,34 @@ public:
                 );
                 BinFeatures.push_back(std::move(binFeatures));
             }
+        }
+    }
+
+    template <typename TFloatFeatureAccessor>
+    TFeatureCachedTreeEvaluator(
+        const TFullModel& model,
+        TFloatFeatureAccessor floatFeatureAccessor,
+        size_t docCount
+    )
+        : Model(model)
+        , DocCount(docCount)
+    {
+        size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
+        BlockSize = Min(blockSize, docCount);
+        CalcFunction = GetCalcTreesFunction(Model, BlockSize);
+        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
+            TVector<ui8> binFeatures(
+                model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * blockSize);
+            AssignFeatureBins(
+                model,
+                floatFeatureAccessor,
+                nullptr,
+                blockStart,
+                blockStart + docCountInBlock,
+                binFeatures
+            );
+            BinFeatures.push_back(std::move(binFeatures));
         }
     }
 

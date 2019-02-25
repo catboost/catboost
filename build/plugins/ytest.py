@@ -22,6 +22,7 @@ CANON_DATA_DIR_NAME = 'canondata'
 CANON_OUTPUT_STORAGE = 'canondata_storage'
 CANON_RESULT_FILE_NAME = 'result.json'
 CANON_MDS_RESOURCE_REGEX = re.compile(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)')
+CANON_SB_VAULT_REGEX = re.compile(r"\w+=(value|file):[-\w]+:\w+")
 CANON_SBR_RESOURCE_REGEX = re.compile(r'(sbr:/?/?(\d+))')
 
 VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
@@ -53,7 +54,57 @@ def prepare_env(data):
     return serialize_list(shlex.split(data))
 
 
-def validate_test(kw, is_fuzz_test):
+def validate_sb_vault(name, value):
+    if not CANON_SB_VAULT_REGEX.match(value):
+        return "sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(value)
+
+
+def validate_numerical_requirement(name, value):
+    if mr.resolve_value(value) is None:
+        return "Cannot convert [[imp]]{}[[rst]] to the proper [[imp]]{}[[rst]] requirement value".format(value, name)
+
+
+def validate_choice_requirement(name, val, valid):
+    if val not in valid:
+        return "Unknown [[imp]]{}[[rst]] requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(name, val, ", ".join(valid))
+
+
+def validate_force_sandbox_requirement(name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing, check_func):
+    if is_force_sandbox or not in_autocheck or is_fuzzing:
+        if value == 'all':
+            return
+        return validate_numerical_requirement(name, value)
+    error_msg = validate_numerical_requirement(name, value)
+    if error_msg:
+        return error_msg
+    return check_func(mr.resolve_value(value), test_size)
+
+
+def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autocheck, is_fuzzing):
+    req_checks = {
+        'container': validate_numerical_requirement,
+        'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_cpu),
+        'disk_usage': validate_numerical_requirement,
+        'dns': lambda n, v: validate_choice_requirement(n, v, VALID_DNS_REQUIREMENTS),
+        'network': lambda n, v: validate_choice_requirement(n, v, VALID_NETWORK_REQUIREMENTS),
+        'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_ram),
+        'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, reqs.check_ram_disk),
+        'sb': None,
+        'sb_vault': validate_sb_vault,
+    }
+
+    if req_name not in req_checks:
+        return "Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(req_checks)))
+
+    if req_name in ('container', 'disk') and not is_force_sandbox:
+        return "Only [[imp]]LARGE[[rst]] tests with [[imp]]ya:force_sandbox[[rst]] tag can have [[imp]]{}[[rst]] requirement".format(req_name)
+
+    check_func = req_checks[req_name]
+    if check_func:
+        return check_func(req_name, value)
+
+
+def validate_test(kw):
     def get_list(key):
         return deserialize_list(kw.get(key, ""))
 
@@ -84,74 +135,28 @@ def validate_test(kw, is_fuzz_test):
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_sandbox' in tags
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
+    is_fuzzing = valid_kw.get("FUZZING", False)
     requirements = {}
-    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network', 'dns'}
+    list_requirements = ('sb_vault')
     for req in get_list("REQUIREMENTS"):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
-            if req_name not in valid_requirements:
-                errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(valid_requirements))))
-                continue
-            elif req_name in ('disk_usage'):
-                if mr.resolve_value(req_value.lower()) is None:
-                    errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
-                    continue
-            # TODO: Remove this special rules for ram and cpu requirements of FAT-tests
-            elif ((is_fat and is_force_sandbox) or not in_autocheck) and req_name in ('ram', 'cpu', 'ram_disk'):
-                if req_value.strip() == 'all':
-                    pass
-                elif mr.resolve_value(req_value) is None:
-                    errors.append("Cannot convert [[imp]]{}[[rst]]: [[imp]]{}[[rst]] to the proper requirement value".format(req_name, req_value))
-                    continue
-            elif req_name == 'ram_disk':
-                if req_value.strip() == 'all':
-                    pass
+            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing)
+            if error_msg:
+                errors += [error_msg]
+                has_fatal_error = True
+            else:
+                if req_name in list_requirements:
+                    requirements[req_name] = ",".join(filter(None, [requirements.get(req_name), req_value]))
                 else:
-                    ram_disk_errors = reqs.check_ram_disk(mr.resolve_value(req_value), size)
-                    # XXX
-                    # errors += ram_disk_errors
-                    if ram_disk_errors:
-                        req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.RamDisk))
-            elif req_name == 'ram':
-                if req_value.strip() == 'all':
-                    pass
-                else:
-                    ram_errors = reqs.check_ram(mr.resolve_value(req_value), size)
-                    errors += ram_errors
-                    if ram_errors:
-                        req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Ram))
-            elif req_name == 'cpu':
-                if req_value.strip() == 'all' and is_fuzz_test:
-                    pass
-                else:
-                    cpu_errors = reqs.check_cpu(mr.resolve_value(req_value), size)
-                    # XXX
-                    # errors += cpu_errors
-                    if cpu_errors:
-                        req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
-            elif req_name == "sb_vault":
-                if not re.match("\w+=(value|file)\:[-\w]+\:\w+", req_value):
-                    errors.append("sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(req_value))
-                    continue
-                req_value = ",".join(filter(None, [requirements.get(req_name), req_value]))
-            elif req_name == "network":
-                if req_value not in VALID_NETWORK_REQUIREMENTS:
-                    errors.append("Unknown 'network' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_NETWORK_REQUIREMENTS)))
-                    continue
-            elif req_name == "dns":
-                if req_value not in VALID_DNS_REQUIREMENTS:
-                    errors.append("Unknown 'dns' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_DNS_REQUIREMENTS)))
-                    continue
-            requirements[req_name] = req_value
+                    if req_name in requirements:
+                        errors.append("Requirement [[imp]]{}[[rst]] is redefined [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
+                    requirements[req_name] = req_value
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
     invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'ram_disk', 'cpu', 'network')]
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
-    # XXX remove when the dust settles
-    if 'ya:force_distbuild' in tags:
-        errors.append("Don't use ya:force_distbuild tag. Distbuild is default build system for autocheck. You can specify only ya:force_sandbox if you want")
-        has_fatal_error = True
 
     if is_fat:
         if in_autocheck and not is_force_sandbox:
@@ -202,11 +207,6 @@ def validate_test(kw, is_fuzz_test):
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
             has_fatal_error = True
-
-        for req in ["container", "disk"]:
-            if req in requirements and not is_fat:
-                errors.append("Only [[imp]]FAT[[rst]] tests can have [[imp]]{}[[rst]] requirement".format(req))
-                has_fatal_error = True
 
         if in_autocheck and size == consts.TestSize.Large and not is_fat:
             errors.append("LARGE test must have ya:fat tag")
@@ -265,8 +265,8 @@ def validate_test(kw, is_fuzz_test):
     return valid_kw, errors
 
 
-def dump_test(kw, is_fuzz_test=False):
-    valid_kw, errors = validate_test(kw, is_fuzz_test)
+def dump_test(kw):
+    valid_kw, errors = validate_test(kw)
     if errors:
         for e in errors:
             ymake.report_configure_error(e)
@@ -374,12 +374,12 @@ def onadd_ytest(unit, *args):
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
     }
 
-    is_fuzz_test = flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes'
-    if is_fuzz_test:
+    if flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes':
+        test_record['FUZZING'] = '1'
         # use all cores if fuzzing requested
         test_record['REQUIREMENTS'] = serialize_list(filter(None, deserialize_list(test_record['REQUIREMENTS']) + ["cpu:all", "ram:all"]))
 
-    data = dump_test(test_record, is_fuzz_test=is_fuzz_test)
+    data = dump_test(test_record)
     if data:
         unit.set_property(["DART_DATA", data])
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)

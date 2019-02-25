@@ -176,6 +176,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
         cmd = [test_miner, '-tests', test_module_path]
         tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
+    test_main_found = '#TestMain' in tests
 
     # Get the list of "external" tests
     if xtest_lib_args:
@@ -184,8 +185,15 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-tests', xtest_module_path]
         xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
+    xtest_main_found = '#TestMain' in xtests
 
-    test_main_found = '#TestMain' in tests + xtests
+    test_main_package = None
+    if test_main_found and xtest_main_found:
+        assert False, 'multiple definition of TestMain'
+    elif test_main_found:
+        test_main_package = '_test'
+    elif xtest_main_found:
+        test_main_package = '_xtest'
 
     shutil.rmtree(go_path_root)
 
@@ -193,7 +201,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
 
 import (
 """
-    if not test_main_found:
+    if test_main_package is None:
         content += """    "os"
 """
     content += """    "testing"
@@ -216,8 +224,8 @@ import (
     content += """func main() {
     m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)
 """
-    if test_main_found:
-        content += '    _test.TestMain(m)'
+    if test_main_package:
+        content += '    {}.TestMain(m)'.format(test_main_package)
     else:
         content += '    os.Exit(m.Run())'
     content += """
@@ -275,6 +283,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prefix_chars='+')
     parser.add_argument('++mode', choices=['lib', 'exe', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)
+    parser.add_argument('++test_srcs', nargs='*')
     parser.add_argument('++xtest_srcs', nargs='*')
     parser.add_argument('++output', nargs='?', default=None)
     parser.add_argument('++build-root', required=True)
@@ -306,6 +315,15 @@ if __name__ == '__main__':
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
     args.module_map = {}
+
+    assert args.mode == 'test' or args.test_srcs is None and args.xtest_srcs is None
+    # add lexical oreder by basename for go sources
+    args.srcs.sort(key=lambda x: os.path.basename(x))
+    if args.test_srcs:
+        args.srcs += sorted(args.test_srcs, key=lambda x: os.path.basename(x))
+        del args.test_srcs
+    if args.xtest_srcs:
+        args.xtest_srcs.sort(key=lambda x: os.path.basename(x))
 
     arc_project_prefix = args.arc_project_prefix
     std_lib_prefix = args.std_lib_prefix

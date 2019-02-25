@@ -1,0 +1,33 @@
+{
+    "meta": {
+        "name": "yandex-catboost-cli",
+        "maintainer": "Kirillov Stanislav <kirillovs@yandex-team.ru>",
+        "description": "CatBoost command line application",
+        "version": "{changelog_version}",
+        "homepage": "https://catboost.ai"
+    },
+    "build": {
+         "catboost": {
+            "targets": [
+                "catboost/app"
+            ]
+        }
+    },
+    "data": [
+        {
+            "source": {
+                "type": "BUILD_OUTPUT",
+                "build_key": "catboost",
+                "path": "catboost/app/catboost"
+            },
+            "destination": {
+                "path": "/usr/bin/catboost",
+                "attributes": {
+                    "mode": {
+                        "value": "+x"
+                    }
+                }
+            }
+        }
+    ]
+}

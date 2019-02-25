@@ -20,6 +20,8 @@
 #include <util/system/yassert.h>
 #include <util/thread/factory.h>
 
+#include <atomic>
+
 using namespace NDns;
 using namespace NNeh;
 namespace NNeh {
@@ -81,16 +83,16 @@ namespace {
                 {
                 }
 
-                TInstant::TValue Val;
+                std::atomic<TInstant::TValue> Val;
             };
 
         public:
             TInstant::TValue Get(size_t idAddr) {
-                return Tm_.Get(idAddr).Val;
+                return Tm_.Get(idAddr).Val.load(std::memory_order_acquire);
             }
 
             void Set(size_t idAddr) {
-                Tm_.Get(idAddr).Val = TInstant::Now().GetValue();
+                Tm_.Get(idAddr).Val.store(TInstant::Now().GetValue(), std::memory_order_release);
             }
 
             static TLastAckTimes& Common() {
@@ -367,8 +369,8 @@ namespace {
             class TEventsHandler: public IEventsCollector {
             public:
                 TEventsHandler(TRequester* parent)
-                    : P_(parent)
                 {
+                    P_.store(parent, std::memory_order_release);
                 }
 
                 void RequestProcessed(const TRequest* r) {
@@ -377,7 +379,7 @@ namespace {
 
                 //thread safe method for disable proxy callbacks to parent (OnRequest(...))
                 void SyncStop() {
-                    AtomicSet(P_, nullptr);
+                    P_.store(nullptr, std::memory_order_release);
                     while (!RequesterPtrPotector_.TryAcquire()) {
                         Sleep(TDuration::MicroSeconds(100));
                     }
@@ -395,7 +397,7 @@ namespace {
                     InProcess_[req->ReqId] = state;
                     try {
                         TGuard<TSpinLock> m(RequesterPtrPotector_);
-                        if (TRequester* p = AtomicGet(P_)) {
+                        if (TRequester* p = P_.load(std::memory_order_acquire)) {
                             p->OnRequest(ptr, state); //move req. owning to parent
                         }
                     } catch (...) {
@@ -430,14 +432,14 @@ namespace {
                 TLockFreeStack<TGUID> FinishedReqs_; //processed requests (responded or destroyed)
                 TStatesInProcessRequests InProcess_;
                 TSpinLock RequesterPtrPotector_;
-                TRequester* volatile P_;
+                std::atomic<TRequester*> P_;
             };
 
         public:
             inline TRequester(IOnRequest* cb, ui16 port)
-                : EH_(new TEventsHandler(this))
+                : CB_(cb)
+                , EH_(new TEventsHandler(this))
                 , R_(CreateHttpUdpRequester(port, EH_.Get()))
-                , CB_(cb)
             {
                 R_->EnableReportRequestCancel();
             }
@@ -463,9 +465,9 @@ namespace {
             }
 
         private:
+            IOnRequest* CB_;
             TIntrusivePtr<TEventsHandler> EH_;
             TIntrusivePtr<INetLibaRequester> R_;
-            IOnRequest* CB_;
             bool Shutdown_ = false;
         };
 

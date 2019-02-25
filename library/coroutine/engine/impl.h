@@ -744,7 +744,7 @@ public:
         Free_.PushFront(cont);
     }
 
-    size_t Allocated() const Y_WARN_UNUSED_RESULT {
+    [[nodiscard]] size_t Allocated() const {
         return Allocated_;
     }
 

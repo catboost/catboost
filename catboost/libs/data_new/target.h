@@ -191,7 +191,8 @@ namespace NCB {
         Regression,
         GroupwiseRanking,
         GroupPairwiseRanking,
-        Simple
+        Simple,
+        UserDefined
     };
 
 
@@ -707,6 +708,57 @@ namespace NCB {
 
     protected:
         TSharedVector<float> Target; // [objectIdx], can be nullptr
+    };
+
+    // TODO(akhropov): remove when custom objective type can be properly specified. MLTOOLS-3022.
+    class TUserDefinedTarget : public TTargetDataProvider {
+    public:
+        TUserDefinedTarget(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            TSharedVector<float> target,
+            TSharedWeights<float> weights,
+            bool skipCheck = false
+        );
+
+        bool operator==(const TUserDefinedTarget& rhs) const {
+            return ((const TTargetDataProvider&)(*this) == (const TTargetDataProvider&)rhs) &&
+                (*Target == *rhs.Target) && (*Weights == *rhs.Weights);
+        }
+
+        void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
+
+        TTargetDataProviderPtr GetSubset(
+            TObjectsGroupingPtr objectsGrouping,
+            const TSubsetTargetDataCache& subsetTargetDataCache
+        ) const override;
+
+
+        TMaybeData<TConstArrayRef<float>> GetTarget() const { // [objectIdx]
+            return Target ? TMaybeData<TConstArrayRef<float>>(*Target) : Nothing();
+        }
+
+        // after preprocessing - adjusted for group etc. weights
+        const TWeights<float>& GetWeights() const { // [objectIdx]
+            return *Weights;
+        }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TUserDefinedTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
+
+    protected:
+        TSharedVector<float> Target; // [objectIdx], can be nullptr
+        TSharedWeights<float> Weights; // [objectIdx]
     };
 
 

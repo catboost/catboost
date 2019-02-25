@@ -3424,7 +3424,7 @@ namespace {
             int /*end*/,
             NPar::TLocalExecutor& /*executor*/
         ) const override {
-            CB_ENSURE("Custom metrics do not support approx deltas and exponentiated approxes");
+            CB_ENSURE(false, "Custom metrics do not support approx deltas and exponentiated approxes");
             return TMetricHolder();
         }
         TString GetDescription() const override;
@@ -3528,7 +3528,9 @@ namespace {
             int /*end*/,
             NPar::TLocalExecutor& /*executor*/
         ) const override {
-            CB_ENSURE("User-defined per object metrics do not support approx deltas and exponentiated approxes");
+            CB_ENSURE(
+                false,
+                "User-defined per object metrics do not support approx deltas and exponentiated approxes");
             return TMetricHolder();
         }
         TString GetDescription() const override;
@@ -3605,6 +3607,80 @@ namespace {
 THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& params) {
     return MakeHolder<TUserDefinedQuerywiseMetric>(params);
 }
+
+/* Huber loss */
+
+namespace {
+    struct THuberLossMetric : public TAdditiveMetric<THuberLossMetric> {
+
+        explicit THuberLossMetric(double delta) : Delta(delta) {
+            CB_ENSURE(delta >= 0, "Huber metric is defined for delta >= 0, got " << delta);
+        }
+
+        TMetricHolder EvalSingleThread(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end
+        ) const;
+
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
+
+    private:
+        double Delta;
+    };
+}
+
+THolder<IMetric> MakeHuberLossMetric(double delta) {
+    return MakeHolder<THuberLossMetric>(delta);
+}
+
+TMetricHolder THuberLossMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+    const TVector<double> &approxVals = approx[0];
+    Y_ASSERT(target.size() == approxVals.size());
+
+    TMetricHolder error(2);
+
+    bool hasWeight = !weight.empty();
+
+    for (int k : xrange(begin, end)) {
+        double targetMismatch = fabs(approxVals[k] - target[k]);
+        const float w = hasWeight ? weight[k] : 1;
+        if (targetMismatch < Delta) {
+            error.Stats[0] += 0.5 * Sqr(targetMismatch) * w;
+        } else {
+            error.Stats[0] += Delta * (targetMismatch - 0.5 * Delta) * w;
+        }
+        error.Stats[1] += w;
+    }
+    return error;
+}
+
+TString THuberLossMetric::GetDescription() const {
+    const TMetricParam<double> delta("delta", Delta, true);
+    return BuildDescription(ELossFunction::Huber, UseWeights, delta);
+}
+
+void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 
 TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
         : Alpha(0.0)
@@ -3902,7 +3978,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::YetiRankPairwise:
             result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations", "sampling_type"};
+            validParams = {"decay", "permutations"};
             CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
@@ -4110,6 +4186,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"alpha"};
             break;
         }
+        case ELossFunction::Huber:
+            CB_ENSURE(params.contains("delta"), "Metric " << ELossFunction::Huber << " requires delta as parameter");
+            validParams={"delta"};
+            result.push_back(MakeHuberLossMetric(FromString<float>(params.at("delta"))));
+            break;
         default:
             CB_ENSURE(false, "Unsupported loss_function: " << metric);
             return TVector<THolder<IMetric>>();
@@ -4194,7 +4275,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     THashSet<TString> usedDescriptions;
 
     if (evalMetricOptions->EvalMetric.IsSet()) {
-        if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
+        if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
             errors.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
         } else {
             TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetricOptions->EvalMetric, approxDimension);
@@ -4208,7 +4289,7 @@ TVector<THolder<IMetric>> CreateMetrics(
         usedDescriptions.insert(errors.back()->GetDescription());
     }
 
-    if (lossFunctionOption->GetLossFunction() != ELossFunction::Custom) {
+    if (lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
         for (auto& metric : createdMetrics) {
             if (!usedDescriptions.contains(metric->GetDescription())) {
@@ -4464,7 +4545,7 @@ void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*)
 }
 
 inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
-    if (metric == ELossFunction::Custom || modelLoss == ELossFunction::Custom) {
+    if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
         return;
     }
 
@@ -4503,7 +4584,7 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
         try {
             metric = ParseLossType(metrics[i]->GetDescription());
         } catch (...) {
-            metric = ELossFunction::Custom;
+            metric = ELossFunction::PythonUserDefinedPerObject;
         }
         CheckMetric(metric, modelLoss);
     }

@@ -1,6 +1,6 @@
 import json
 
-from catboost import CatboostError
+from catboost import CatBoostError
 from catboost.eval.factor_utils import FactorUtils
 from catboost.core import _NumpyAwareEncoder
 
@@ -51,7 +51,7 @@ class ExecutionCase:
     def _validate_ignored_features(ignored_features, eval_features):
         for eval_feature in eval_features:
             if eval_feature in ignored_features:
-                raise CatboostError(
+                raise CatBoostError(
                     "Feature {} is in ignored set and in tmp-features set at the same time".format(eval_feature))
 
     def get_params(self):

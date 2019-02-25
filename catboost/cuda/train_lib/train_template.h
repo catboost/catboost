@@ -11,6 +11,7 @@
 namespace NCatboostCuda {
     template <class TBoosting>
     inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
+                                                                         const TTrainModelInternalOptions& internalOptions,
                                                                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                          const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                          const NCB::TTrainingDataProvider& learn,
@@ -42,6 +43,7 @@ namespace NCatboostCuda {
 
         TBoostingProgressTracker progressTracker(catBoostOptions,
                                                  outputOptions,
+                                                 internalOptions.ForceCalcEvalMetricOnEveryIteration,
                                                  test != nullptr,
                                                  /*testHasTarget*/ (test != nullptr) && test->MetaInfo.HasTarget,
                                                  approxDimension,

@@ -18,14 +18,14 @@ NNeh::TServiceStat::TServiceStat()
 }
 
 NNeh::TServiceStat::EStatus NNeh::TServiceStat::GetStatus() {
-    if (!MaxContinuousErrors_ || LastContinuousErrors_ < MaxContinuousErrors_) {
+    if (!AtomicGet(MaxContinuousErrors_) || AtomicGet(LastContinuousErrors_) < AtomicGet(MaxContinuousErrors_)) {
         return Ok;
     }
 
     if (RequestsInProcess_.Val() != 0)
         return Fail;
 
-    if (AtomicIncrement(SendValidatorCounter_) != ReSendValidatorPeriod_) {
+    if (AtomicIncrement(SendValidatorCounter_) != AtomicGet(ReSendValidatorPeriod_)) {
         return Fail;
     }
 
@@ -38,9 +38,9 @@ NNeh::TServiceStat::EStatus NNeh::TServiceStat::GetStatus() {
 void NNeh::TServiceStat::DbgOut(IOutputStream& out) const {
     out << "----------------------------------------------------" << Endl;
     out << "RequestsInProcess: " << RequestsInProcess_.Val() << Endl;
-    out << "LastContinuousErrors: " << LastContinuousErrors_ << Endl;
-    out << "SendValidatorCounter: " << SendValidatorCounter_ << Endl;
-    out << "ReSendValidatorPeriod: " << ReSendValidatorPeriod_ << Endl;
+    out << "LastContinuousErrors: " << AtomicGet(LastContinuousErrors_) << Endl;
+    out << "SendValidatorCounter: " << AtomicGet(SendValidatorCounter_) << Endl;
+    out << "ReSendValidatorPeriod: " << AtomicGet(ReSendValidatorPeriod_) << Endl;
 }
 
 void NNeh::TServiceStat::OnBegin() {
@@ -58,7 +58,7 @@ void NNeh::TServiceStat::OnCancel() {
 
 void NNeh::TServiceStat::OnFail() {
     RequestsInProcess_.Dec();
-    if (AtomicIncrement(LastContinuousErrors_) == MaxContinuousErrors_) {
+    if (AtomicIncrement(LastContinuousErrors_) == AtomicGet(MaxContinuousErrors_)) {
         AtomicSet(SendValidatorCounter_, 0);
     }
 }

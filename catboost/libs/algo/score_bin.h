@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 
 #include <cmath>
 
@@ -15,10 +16,9 @@ struct TScoreBin {
 
 // Helper function that calculates deterministic scores given bins with statistics for each split.
 inline TVector<double> GetScores(const TVector<TScoreBin>& scoreBin) {
-    const int splitCount = scoreBin.ysize() - 1;
-    TVector<double> scores(splitCount);
-    for (int splitIdx = 0; splitIdx < splitCount; ++splitIdx) {
-        scores[splitIdx] = scoreBin[splitIdx].GetScore();
+    TVector<double> scores(scoreBin.size());
+    for (auto i : xrange(scoreBin.size())) {
+        scores[i] = scoreBin[i].GetScore();
     }
     return scores;
 }

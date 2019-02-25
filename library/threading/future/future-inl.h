@@ -16,6 +16,10 @@ namespace NThreading {
 
         ////////////////////////////////////////////////////////////////////////////////
 
+        enum class TError {
+            Error
+        };
+
         template <typename T>
         class TFutureState: public TAtomicRefCount<TFutureState<T>> {
             enum {
@@ -85,6 +89,13 @@ namespace NThreading {
             TFutureState(TT&& value)
                 : State(ValueSet)
                 , Value(std::forward<TT>(value))
+            {
+            }
+
+            TFutureState(std::exception_ptr exception, TError)
+                : State(ExceptionSet)
+                , Exception(std::move(exception))
+                , NullValue(0)
             {
             }
 
@@ -245,6 +256,12 @@ namespace NThreading {
         public:
             TFutureState(bool valueSet = false)
                 : State(valueSet ? ValueSet : NotReady)
+            {
+            }
+
+            TFutureState(std::exception_ptr exception, TError)
+                : State(ExceptionSet)
+                , Exception(std::move(exception))
             {
             }
 
@@ -935,6 +952,12 @@ namespace NThreading {
         return Singleton<TCache>()->Instance;
     }
 
+    template <typename T>
+    inline TFuture<T> MakeErrorFuture(std::exception_ptr exception)
+    {
+        return {new NImpl::TFutureState<T>(std::move(exception), NImpl::TError::Error)};
+    }
+
     inline TFuture<void> MakeFuture() {
         struct TCache {
             TFuture<void> Instance{new NImpl::TFutureState<void>(true)};
@@ -1010,7 +1033,7 @@ namespace NThreading {
         if (futures.empty()) {
             return MakeFuture();
         }
-        
+
         if (futures.size() == 1) {
             return futures.front().IgnoreResult();
         }

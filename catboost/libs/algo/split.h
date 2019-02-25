@@ -2,17 +2,21 @@
 
 #include "projection.h"
 
+#include <catboost/libs/data_new/packed_binary_features.h>
 #include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/model/split.h>
 
 #include <library/binsaver/bin_saver.h>
 
 #include <util/digest/multi.h>
+#include <util/digest/numeric.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 #include <util/str_stl.h>
 #include <util/ysaveload.h>
 
+#include <limits>
 #include <tuple>
 
 
@@ -91,11 +95,6 @@ public:
     }
 };
 
-int GetSplitCount(
-    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-    const TSplitCandidate& split
-);
-
 
 template <>
 struct THash<TSplitCandidate> {
@@ -103,6 +102,119 @@ struct THash<TSplitCandidate> {
         return split.GetHash();
     }
 };
+
+
+struct TBinarySplitsPack {
+    ui32 PackIdx = std::numeric_limits<ui32>::max();
+
+public:
+    bool operator==(const TBinarySplitsPack& other) const {
+        return PackIdx == other.PackIdx;
+    }
+};
+
+
+// could have been a TVariant but SAVELOAD is easier this way
+struct TSplitEnsemble {
+    // variant switch
+    bool IsBinarySplitsPack;
+
+    // variant members
+    TSplitCandidate SplitCandidate;
+    TBinarySplitsPack BinarySplitsPack;
+
+    static constexpr size_t BinarySplitsPackHash = 118223;
+
+public:
+    TSplitEnsemble()
+        : IsBinarySplitsPack(false)
+    {}
+
+    explicit TSplitEnsemble(TSplitCandidate&& splitCandidate)
+        : IsBinarySplitsPack(false)
+        , SplitCandidate(std::move(splitCandidate))
+    {}
+
+    /* move is not really needed for such a simple structure but do it in the same way as splitCandidate for
+     * consistency
+     */
+    explicit TSplitEnsemble(TBinarySplitsPack&& binarySplitsPack)
+        : IsBinarySplitsPack(true)
+        , BinarySplitsPack(std::move(binarySplitsPack))
+    {}
+
+    bool operator==(const TSplitEnsemble& other) const {
+        if (IsBinarySplitsPack) {
+            return other.IsBinarySplitsPack && (BinarySplitsPack == other.BinarySplitsPack);
+        }
+        return !other.IsBinarySplitsPack && (SplitCandidate == other.SplitCandidate);
+    }
+
+    SAVELOAD(IsBinarySplitsPack, SplitCandidate, BinarySplitsPack);
+
+    size_t GetHash() const {
+        if (IsBinarySplitsPack) {
+            return MultiHash(BinarySplitsPackHash, BinarySplitsPack.PackIdx);
+        }
+        return SplitCandidate.GetHash();
+    }
+
+    bool IsSplitOfType(ESplitType type) const {
+        return !IsBinarySplitsPack && (SplitCandidate.Type == type);
+    }
+};
+
+template <>
+struct THash<TSplitEnsemble> {
+    inline size_t operator()(const TSplitEnsemble& splitEnsemble) const {
+        return splitEnsemble.GetHash();
+    }
+};
+
+
+struct TSplitEnsembleSpec {
+    bool IsBinarySplitsPack;
+    ESplitType SplitType; // not used if IsBinarySplitsPack == true
+
+public:
+    explicit TSplitEnsembleSpec(
+        bool isBinarySplitsPack = false,
+        ESplitType splitType = ESplitType::FloatFeature
+    )
+        : IsBinarySplitsPack(isBinarySplitsPack)
+        , SplitType(splitType)
+    {}
+
+    explicit TSplitEnsembleSpec(const TSplitEnsemble& splitEnsemble)
+        : IsBinarySplitsPack(splitEnsemble.IsBinarySplitsPack)
+        , SplitType(splitEnsemble.SplitCandidate.Type)
+    {}
+
+    SAVELOAD(IsBinarySplitsPack, SplitType);
+
+    bool operator==(const TSplitEnsembleSpec& other) const {
+        if (IsBinarySplitsPack) {
+            return other.IsBinarySplitsPack;
+        }
+        return !other.IsBinarySplitsPack && (SplitType == other.SplitType);
+    }
+
+    static TSplitEnsembleSpec OneSplit(ESplitType splitType) {
+        return TSplitEnsembleSpec(false, splitType);
+    }
+
+    static TSplitEnsembleSpec BinarySplitsPack() {
+        return TSplitEnsembleSpec(true, ESplitType::FloatFeature);
+    }
+};
+
+
+int GetBucketCount(
+    const TSplitEnsemble& splitEnsemble,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    size_t packedBinaryFeaturesCount
+);
+
 
 class TLearnContext;
 

@@ -1,6 +1,8 @@
 #include <catboost/libs/data_new/columns.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/is_in.h>
+#include <util/generic/xrange.h>
 
 #include <library/unittest/registar.h>
 
@@ -70,4 +72,43 @@ Y_UNIT_TEST_SUITE(Columns) {
         UNIT_ASSERT(!IsIn(visitedIndices, false));
     }
 
+
+    Y_UNIT_TEST(TQuantizedFloatPackedBinaryValuesHolder) {
+        TVector<NCB::TBinaryFeaturesPack> src = {
+            0b00010001, // 0
+            0b01001111, // 1
+            0b11101010, // 2
+            0b11001110, // 3
+            0b10101010, // 4
+            0b11111111, // 5
+            0b00000000, // 6
+            0b11001011  // 7
+        };
+
+        auto storage = NCB::TMaybeOwningArrayHolder<NCB::TBinaryFeaturesPack>::CreateOwning(std::move(src));
+
+        TFeaturesArraySubsetIndexing subsetIndexing( TIndexedSubset<ui32>{6, 5, 0, 2} );
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(2);
+
+        TVector<TVector<ui8>> expectedFeatureValues = {
+            TVector<ui8>{0, 1, 1, 0}, // 0
+            TVector<ui8>{0, 1, 0, 1}, // 1
+            TVector<ui8>{0, 1, 0, 0}, // 2
+            TVector<ui8>{0, 1, 0, 1}, // 3
+            TVector<ui8>{0, 1, 1, 0}, // 4
+            TVector<ui8>{0, 1, 0, 1}, // 5
+            TVector<ui8>{0, 1, 0, 1}, // 6
+            TVector<ui8>{0, 1, 0, 1}  // 7
+        };
+
+
+        for (auto bitIdx : xrange(ui8(8))) {
+            TQuantizedFloatPackedBinaryValuesHolder valuesHolder(bitIdx, storage, bitIdx, &subsetIndexing);
+
+            auto values = valuesHolder.ExtractValues(&localExecutor);
+            UNIT_ASSERT(Equal<ui8>(*values, expectedFeatureValues[bitIdx]));
+        }
+    }
 }

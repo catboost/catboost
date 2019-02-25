@@ -158,6 +158,8 @@ class ResourceImporter(object):
 
     # PEP-302 extension 1 of 3: data loader.
     def get_data(self, path):
+        if isinstance(path, str):
+            path = utf_8_encode(path)[0]
         data = resfs_read(path)
         if data is None:
             raise IOError
@@ -187,7 +189,7 @@ class ResourceImporter(object):
             if abspath:
                 return utf_8_decode(file_bytes(abspath))[0]
         data = resfs_read(mod_path(fullname))
-        return utf_8_decode(data)[0] if data else ""
+        return utf_8_decode(data)[0] if data else ''
 
     def get_code(self, fullname):
         modname = fullname
@@ -196,10 +198,11 @@ class ResourceImporter(object):
 
         path = mod_path(fullname)
         relpath = _relpath(path)
-        abspath = resfs_resolve(relpath)
-        if abspath:
-            data = resfs_read(path, builtin=False)
-            return compile(data, abspath, 'exec', dont_inherit=True)
+        if relpath:
+            abspath = resfs_resolve(relpath)
+            if abspath:
+                data = resfs_read(path, builtin=False)
+                return compile(data, abspath, 'exec', dont_inherit=True)
 
         yapyc_path = path + b'.yapyc3'
         yapyc_data = resfs_read(yapyc_path, builtin=True)
@@ -220,7 +223,7 @@ class ResourceImporter(object):
         if fullname + '.__init__' in self.memory:
             return True
 
-        raise ImportError
+        raise ImportError(fullname)
 
     # Extension for contrib/python/coverage.
     def file_source(self, filename):

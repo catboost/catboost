@@ -10,6 +10,8 @@ namespace NCB {
     template <class T>
     class TMaybeOwningArrayHolder {
     public:
+        TMaybeOwningArrayHolder() = default;
+
         static TMaybeOwningArrayHolder CreateNonOwning(TArrayRef<T> arrayRef)
         {
             return TMaybeOwningArrayHolder(arrayRef, nullptr);

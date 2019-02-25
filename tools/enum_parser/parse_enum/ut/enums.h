@@ -156,6 +156,24 @@ namespace NOuterSimple {
     }
 }
 
+
+constexpr int func(int value) {
+    return value;
+}
+
+#define MACRO(x, y) x
+
+// enum with nonliteral values
+enum ENonLiteralValues {
+    one = MACRO(1, 2),
+    two = 2,
+    three = func(3),
+    four,
+    five = MACRO(MACRO(1, 2), 2),
+};
+
+#undef MACRO
+
 /*
  * Still unsupported features:
  *

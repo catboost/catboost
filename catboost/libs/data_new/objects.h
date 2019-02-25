@@ -1,6 +1,7 @@
 #pragma once
 
 #include "columns.h"
+#include "feature_index.h"
 #include "features_layout.h"
 #include "meta_info.h"
 #include "objects_grouping.h"
@@ -28,6 +29,8 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/system/types.h>
+
+#include <utility>
 
 
 namespace NCB {
@@ -356,12 +359,7 @@ namespace NCB {
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::TLocalExecutor* localExecutor
-        ) const override {
-            return GetSubsetImpl<TQuantizedObjectsDataProvider>(
-                objectsGroupingSubset,
-                localExecutor
-            );
-        }
+        ) const override;
 
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
@@ -391,27 +389,6 @@ namespace NCB {
             Data.SaveNonSharedPart(binSaver);
         }
 
-        // for common implementation in TQuantizedObjectsDataProvider & TQuantizedObjectsForCPUDataProvider
-        template <class TTQuantizedObjectsDataProvider>
-        TIntrusivePtr<TQuantizedObjectsDataProvider> GetSubsetImpl(
-            const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::TLocalExecutor* localExecutor
-        ) const {
-            TCommonObjectsData subsetCommonData = CommonData.GetSubset(
-                objectsGroupingSubset,
-                localExecutor
-            );
-            TQuantizedObjectsData subsetData = Data.GetSubset(subsetCommonData.SubsetIndexing.Get());
-
-            return MakeIntrusive<TTQuantizedObjectsDataProvider>(
-                objectsGroupingSubset.GetSubsetGrouping(),
-                std::move(subsetCommonData),
-                std::move(subsetData),
-                true,
-                Nothing()
-            );
-        }
-
     protected:
         TQuantizedObjectsData Data;
     };
@@ -419,12 +396,56 @@ namespace NCB {
     using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
 
 
+    struct TPackedBinaryFeaturesData {
+        // lookups
+        TVector<TMaybe<TPackedBinaryIndex>> FloatFeatureToPackedBinaryIndex; // [floatFeatureIdx]
+        TVector<TMaybe<TPackedBinaryIndex>> CatFeatureToPackedBinaryIndex;// [catFeatureIdx]
+        TVector<std::pair<EFeatureType, ui32>> PackedBinaryToSrcIndex; // [linearPackedBinaryIndex]
+
+        // shared source data, apply SubsetIndexing
+        TVector<TMaybeOwningArrayHolder<TBinaryFeaturesPack>> SrcData; // [packIdx][objectIdx][bitIdx]
+
+    public:
+        TPackedBinaryFeaturesData() = default;
+
+        // does not init data in SrcData elements, it has to be filled later if necessary
+        TPackedBinaryFeaturesData(
+            const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+            bool dontPack = false // set true to disable binary features packing
+        );
+
+        void Save(const TArraySubsetIndexing<ui32>& subsetIndexing, IBinSaver* binSaver) const;
+        void Load(IBinSaver* binSaver);
+
+        TPackedBinaryIndex AddFeature(EFeatureType featureType, ui32 perTypeFeatureIdx);
+    };
+
+    using TPackedBinaryFeaturesArraySubset
+        = TArraySubset<const TMaybeOwningArrayHolder<TBinaryFeaturesPack>, ui32>;
+
+
+    struct TQuantizedForCPUObjectsData {
+        TQuantizedObjectsData Data;
+        TPackedBinaryFeaturesData PackedBinaryFeaturesData;
+
+    public:
+        void Load(
+            const TArraySubsetIndexing<ui32>* subsetIndexing,
+            TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+            IBinSaver* binSaver
+        );
+    };
+
+
     class TQuantizedForCPUObjectsDataProvider : public TQuantizedObjectsDataProvider {
+    public:
+        using TData = TQuantizedForCPUObjectsData;
+
     public:
         TQuantizedForCPUObjectsDataProvider(
             TMaybe<TObjectsGroupingPtr> objectsGrouping, // if not defined - init from groupId
             TCommonObjectsData&& commonData,
-            TQuantizedObjectsData&& data,
+            TQuantizedForCPUObjectsData&& data,
             bool skipCheck,
 
             // needed for check, can pass Nothing() if skipCheck is true
@@ -438,12 +459,7 @@ namespace NCB {
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::TLocalExecutor* localExecutor
-        ) const override {
-            return GetSubsetImpl<TQuantizedForCPUObjectsDataProvider>(
-                objectsGroupingSubset,
-                localExecutor
-            );
-        }
+        ) const override;
 
         // needed for effective calculation with Permutation blocks on CPU
         void EnsureConsecutiveFeaturesData(NPar::TLocalExecutor* localExecutor);
@@ -453,13 +469,14 @@ namespace NCB {
             return *CommonData.SubsetIndexing;
         }
 
-        /* overrides base class implementation with more restricted type
-         * (more efficient for CPU score calculation)
-         * features guaranteed to be stored as an array of ui8
-         */
-        TMaybeData<const TQuantizedFloatValuesHolder*> GetFloatFeature(ui32 floatFeatureIdx) const {
+        TMaybeData<const TQuantizedFloatValuesHolder*> GetNonPackedFloatFeature(ui32 floatFeatureIdx) const {
+            CB_ENSURE_INTERNAL(
+                !PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex[floatFeatureIdx],
+                "Called TQuantizedForCPUObjectsDataProvider::GetFloatFeature for binary packed float feature #"
+                << floatFeatureIdx
+            );
             return MakeMaybeData(
-                // already checked in ctor that this cast is safe
+                // checked above that this cast is safe
                 static_cast<const TQuantizedFloatValuesHolder*>(
                     Data.FloatFeatures[floatFeatureIdx].Get()
                 )
@@ -468,16 +485,17 @@ namespace NCB {
 
         // low-level function, data is without subset indexing, apply external subset indexing!
         const ui8* GetFloatFeatureRawSrcData(ui32 floatFeatureIdx) const {
-            return *((*GetFloatFeature(floatFeatureIdx))->GetArrayData().GetSrc());
+            return *((*GetNonPackedFloatFeature(floatFeatureIdx))->GetArrayData().GetSrc());
         }
 
-        /* overrides base class implementation with more restricted type
-         * (more efficient for CPU score calculation)
-         * features guaranteed to be stored as an array of ui32
-         */
-        TMaybeData<const TQuantizedCatValuesHolder*> GetCatFeature(ui32 catFeatureIdx) const {
+        TMaybeData<const TQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
+            CB_ENSURE_INTERNAL(
+                !PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex[catFeatureIdx],
+                "Called TQuantizedForCPUObjectsDataProvider::GetCatFeature for binary packed cat feature #"
+                << catFeatureIdx
+            );
             return MakeMaybeData(
-                // already checked in ctor that this cast is safe
+                // checked above that this cast is safe
                 static_cast<const TQuantizedCatValuesHolder*>(
                     Data.CatFeatures[catFeatureIdx].Get()
                 )
@@ -486,18 +504,72 @@ namespace NCB {
 
         // low-level function, data is without subset indexing, apply external subset indexing!
         const ui32* GetCatFeatureRawSrcData(ui32 catFeatureIdx) const {
-            return *((*GetCatFeature(catFeatureIdx))->GetArrayData().GetSrc());
+            return *((*GetNonPackedCatFeature(catFeatureIdx))->GetArrayData().GetSrc());
         }
 
         TCatFeatureUniqueValuesCounts GetCatFeatureUniqueValuesCounts(ui32 catFeatureIdx) const {
             return CatFeatureUniqueValuesCounts[catFeatureIdx];
         }
 
-    private:
-        // check that additional CPU-specific constraints are respected
-        void Check() const;
+
+        size_t GetPackedBinaryFeaturesSize() const {
+            return PackedBinaryFeaturesData.PackedBinaryToSrcIndex.size();
+        }
+
+        size_t GetBinaryFeaturesPacksSize() const {
+            return PackedBinaryFeaturesData.SrcData.size();
+        }
+
+        TPackedBinaryFeaturesArraySubset GetBinaryFeaturesPack(ui32 packIdx) const {
+            return TPackedBinaryFeaturesArraySubset(
+                &PackedBinaryFeaturesData.SrcData[packIdx],
+                CommonData.SubsetIndexing.Get()
+            );
+        }
+
+        TMaybe<TPackedBinaryIndex> GetFloatFeatureToPackedBinaryIndex(TFloatFeatureIdx floatFeatureIdx) const {
+            return PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex[*floatFeatureIdx];
+        }
+
+        TMaybe<TPackedBinaryIndex> GetCatFeatureToPackedBinaryIndex(TCatFeatureIdx catFeatureIdx) const {
+            return PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex[*catFeatureIdx];
+        }
+
+        template <EFeatureType FeatureType>
+        TMaybe<TPackedBinaryIndex> GetFeatureToPackedBinaryIndex(TFeatureIdx<FeatureType> featureIdx) const {
+            if constexpr (FeatureType == EFeatureType::Float) {
+                return GetFloatFeatureToPackedBinaryIndex(featureIdx);
+            } else {
+                return GetCatFeatureToPackedBinaryIndex(featureIdx);
+            }
+        }
+
+        template <EFeatureType FeatureType>
+        bool IsFeaturePackedBinary(TFeatureIdx<FeatureType> featureIdx) const {
+            return GetFeatureToPackedBinaryIndex(featureIdx).Defined();
+        }
+
+        std::pair<EFeatureType, ui32> GetPackedBinaryFeatureSrcIndex(
+            TPackedBinaryIndex packedBinaryIndex
+        ) const {
+            return PackedBinaryFeaturesData.PackedBinaryToSrcIndex[packedBinaryIndex.GetLinearIdx()];
+        }
+
+    protected:
+        friend class TObjectsSerialization;
+
+    protected:
+        void SaveDataNonSharedPart(IBinSaver* binSaver) const {
+            PackedBinaryFeaturesData.Save(*CommonData.SubsetIndexing, binSaver);
+            Data.SaveNonSharedPart(binSaver);
+        }
 
     private:
+        void Check(const TPackedBinaryFeaturesData& packedBinaryData) const;
+
+    private:
+        TPackedBinaryFeaturesData PackedBinaryFeaturesData;
+
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
@@ -535,7 +607,7 @@ namespace NCB {
                 false
             );
             quantizedFeaturesInfo->LoadNonSharedPart(binSaver);
-            TQuantizedObjectsData quantizedObjectsData;
+            typename TObjectsDataProviderType::TData quantizedObjectsData;
             quantizedObjectsData.Load(
                 commonObjectsData.SubsetIndexing.Get(),
                 quantizedFeaturesInfo,

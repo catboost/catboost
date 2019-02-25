@@ -375,4 +375,30 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT(TShellCommand::SHELL_INTERNAL_ERROR == cmd.GetStatus());
         UNIT_ASSERT_VALUES_UNEQUAL(cmd.GetInternalError().size(), 0u);
     }
+    Y_UNIT_TEST(TestHugeOutput) {
+        TShellCommandOptions options;
+        TGuardedStringStream stream;
+        options.SetOutputStream(&stream);
+        options.SetUseShell(true);
+
+        TString input = TString(7000, 'a');
+        TString command = TStringBuilder{} << "echo " << input;
+        TShellCommand cmd(command, options);
+        cmd.Run().Wait();
+
+        UNIT_ASSERT_VALUES_EQUAL(stream.Str(), input + NL);
+    }
+    Y_UNIT_TEST(TestHugeError) {
+        TShellCommandOptions options;
+        TGuardedStringStream stream;
+        options.SetErrorStream(&stream);
+        options.SetUseShell(true);
+
+        TString input = TString(7000, 'a');
+        TString command = TStringBuilder{} << "echo " << input << ">&2";
+        TShellCommand cmd(command, options);
+        cmd.Run().Wait();
+
+        UNIT_ASSERT_VALUES_EQUAL(stream.Str(), input + NL);
+    }
 }

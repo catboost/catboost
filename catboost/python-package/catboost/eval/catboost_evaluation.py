@@ -4,7 +4,7 @@ import os
 from copy import copy
 from enum import Enum
 
-from catboost import CatboostError, CatBoost
+from catboost import CatBoostError, CatBoost
 from .evaluation_result import EvaluationResults, MetricEvaluationResult
 from ._fold_models_handler import FoldModelsHandler
 from ._readers import _SimpleStreamingFileReader
@@ -91,7 +91,7 @@ class CatboostEvaluation(object):
     @staticmethod
     def _create_eval_feature_cases(params, features_to_eval, eval_type, label_mode):
         if len(features_to_eval) == 0:
-            raise CatboostError("Provide at least one feature to evaluation")
+            raise CatBoostError("Provide at least one feature to evaluation")
 
         # baseline
         test_cases = list()
@@ -161,7 +161,7 @@ class CatboostEvaluation(object):
         """
         cases_set = set(cases)
         if len(cases_set) != len(cases):
-            raise CatboostError("Found duplicate cases in " + cases)
+            raise CatBoostError("Found duplicate cases in " + cases)
         current_wd = self.__go_to_working_dir()
         try:
             if self._fold_count <= self._fold_offset:
@@ -224,11 +224,11 @@ class CatboostEvaluation(object):
 
         if loss_function is not None:
             if "loss_function" in params and params["loss_function"] != loss_function:
-                raise CatboostError("Loss function in params {} should be equal to feature evaluation objective "
+                raise CatBoostError("Loss function in params {} should be equal to feature evaluation objective "
                                     "function {}".format(params["loss_function"], loss_function))
         else:
             if "loss_function" not in params:
-                raise CatboostError("Provide loss function in params or as option to eval_features method")
+                raise CatBoostError("Provide loss function in params or as option to eval_features method")
 
         if thread_count is not None and thread_count != -1:
             params["thread_count"] = thread_count
@@ -242,7 +242,7 @@ class CatboostEvaluation(object):
             loss_function = params["loss_function"]
 
         if params["loss_function"] == "PairLogit":
-            raise CatboostError("Pair classification is not supported")
+            raise CatBoostError("Pair classification is not supported")
 
         baseline_case, test_cases = self._create_eval_feature_cases(params,
                                                                     features_to_eval,

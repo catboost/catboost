@@ -303,7 +303,7 @@ namespace NCatboostCuda {
         }
 
     private:
-        ELossFunction Type = ELossFunction::Custom;
+        ELossFunction Type = ELossFunction::PythonUserDefinedPerObject;
         double Alpha = 0;
         double Border = 0;
         TString MetricName;

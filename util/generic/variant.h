@@ -16,6 +16,24 @@ using TVariantAlternative = ::NVariant::TAlternative<I, V>;
 template <size_t I, class V>
 using TVariantAlternativeType = ::NVariant::TAlternativeType<I, V>;
 
+template <class T, class V>
+struct TVariantIndex;
+
+template <class T, class... Ts>
+struct TVariantIndex<T, TVariant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
+
+// Since there is now standard metafunction for std::variant,
+// we need template specialization for it
+#if _LIBCPP_STD_VER >= 17
+#include <variant>
+
+template <class T, class... Ts>
+struct TVariantIndex<T, std::variant<Ts...>> : ::NVariant::TIndexOf<T, Ts...> {};
+#endif
+
+template <class T, class V>
+constexpr size_t TVariantIndexV = TVariantIndex<T, V>::value;
+
 template <class V>
 using TVariantSize = ::NVariant::TSize<V>;
 
@@ -244,12 +262,6 @@ public:
     //! Standart integration
     constexpr size_t index() const noexcept {
         return valueless_by_exception() ? TVARIANT_NPOS : Index_;
-    }
-
-    //! Returns the discriminating index of the given type.
-    template <class T>
-    static constexpr size_t TagOf() noexcept {
-        return TIndex<T>::value;
     }
 
     /* A TVariant that is valueless by exception is treated as being in an invalid state:

@@ -77,19 +77,19 @@ namespace NCatboostDistributed {
     };
     class TRemoteBinCalcer: public NPar::TMapReduceCmd<TCandidatesInfoList, TStats4D> { // [subcand]
         OBJECT_NOCOPY_METHODS(TRemoteBinCalcer);
-        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* buckets, TOutput* bucketStats) const final;
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidatesInfoList, TOutput* bucketStats) const final;
         void DoReduce(TVector<TOutput>* statsFromAllWorkers, TOutput* bucketStats) const final;
     };
     class TRemoteScoreCalcer: public NPar::TMapReduceCmd<TStats4D, TVector<TVector<double>>> {
         OBJECT_NOCOPY_METHODS(TRemoteScoreCalcer);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* bucketStats, TOutput* scores) const final;
     };
-    class TLeafIndexSetter: public NPar::TMapReduceCmd<TEnvelope<TCandidateInfo>, TUnusedInitializedParam> {
+    class TLeafIndexSetter: public NPar::TMapReduceCmd<TEnvelope<TSplit>, TUnusedInitializedParam> {
         OBJECT_NOCOPY_METHODS(TLeafIndexSetter);
         void DoMap(
             NPar::IUserContext* ctx,
             int hostId,
-            TInput* bestSplitCandidate,
+            TInput* bestSplit,
             TOutput* /*unused*/) const final;
     };
     class TEmptyLeafFinder: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<TIsLeafEmpty>> {

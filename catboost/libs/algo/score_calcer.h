@@ -27,7 +27,7 @@ void CalcStatsAndScores(
     const TFold* initialFold,  // used only in score calculation, nullptr can be passed for stats (used in distibuted mode now)
     const TFlatPairsInfo& pairs,
     const NCatboostOptions::TCatBoostOptions& fitParams,
-    const TSplitCandidate& split,
+    const TSplitEnsemble& splitEnsemble,
     int depth,
     bool useTreeLevelCaching,
     NPar::TLocalExecutor* localExecutor,
@@ -39,7 +39,6 @@ void CalcStatsAndScores(
 
 TVector<TScoreBin> GetScoreBins(
     const TStats3D& stats,
-    ESplitType splitType,
     int depth,
     double sumAllWeights,
     int allDocCount,

@@ -14,6 +14,7 @@ namespace NCatboostOptions {
             : TakenFraction("subsample", 0.66f)
             , BaggingTemperature("bagging_temperature", 1.0)
             , BootstrapType("type", EBootstrapType::Bayesian)
+            , SamplingUnit("sampling_unit", ESamplingUnit::Object)
             , TaskType(taskType)
         {
         }
@@ -29,6 +30,10 @@ namespace NCatboostOptions {
 
         EBootstrapType GetBootstrapType() const {
             return BootstrapType.Get();
+        }
+
+        ESamplingUnit GetSamplingUnit() const {
+            return SamplingUnit.Get();
         }
 
         float GetBaggingTemperature() const {
@@ -50,7 +55,7 @@ namespace NCatboostOptions {
         }
 
         void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options, &TakenFraction, &BaggingTemperature, &BootstrapType);
+            CheckedLoad(options, &TakenFraction, &BaggingTemperature, &BootstrapType, &SamplingUnit);
         }
 
         void Save(NJson::TJsonValue* options) const {
@@ -84,6 +89,7 @@ namespace NCatboostOptions {
         TOption<float> TakenFraction;
         TOption<float> BaggingTemperature;
         TOption<EBootstrapType> BootstrapType;
+        TOption<ESamplingUnit> SamplingUnit;
         ETaskType TaskType;
     };
 

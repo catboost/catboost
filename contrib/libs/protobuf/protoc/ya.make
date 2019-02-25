@@ -19,6 +19,7 @@ SRCDIR(
     contrib/libs/protobuf/compiler
     contrib/libs/protobuf/compiler/cpp
     contrib/libs/protobuf/compiler/java
+    contrib/libs/protobuf/compiler/js
     contrib/libs/protobuf/compiler/perlxs
     contrib/libs/protobuf/compiler/python
     contrib/libs/protobuf/io
@@ -72,6 +73,7 @@ SRCS(
     java_shared_code_generator.cc
     java_string_field.cc
     java_string_field_lite.cc
+    js_generator.cc
     main.cc
     parser.cc
     perlxs_generator.cc
@@ -80,6 +82,7 @@ SRCS(
     plugin.pb.cc
     python_generator.cc
     subprocess.cc
+    well_known_types_embed.cpp
     zip_writer.cc
 )
 

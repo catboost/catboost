@@ -55,7 +55,12 @@ public:
     }
 
     size_t GetSectionCount() const noexcept {
-        return GetHeader()->e_shnum;
+        size_t count = GetHeader()->e_shnum;
+        if (count == 0) {
+            count = GetSection(0)->sh_size;
+        }
+
+        return count;
     }
 
     Elf64_Shdr* GetSectionBegin() const noexcept {
@@ -63,11 +68,19 @@ public:
     }
 
     Elf64_Shdr* GetSectionEnd() const noexcept {
-        return reinterpret_cast<Elf64_Shdr*>(Begin + GetHeader()->e_shoff) + GetHeader()->e_shnum;
+        return reinterpret_cast<Elf64_Shdr*>(Begin + GetHeader()->e_shoff) + GetSectionCount();
     }
 
     Elf64_Shdr* GetSection(size_t i) const noexcept {
         return GetSectionBegin() + i;
+    }
+
+    Elf64_Shdr* GetSectionsNameSection() const noexcept {
+        size_t index = GetHeader()->e_shstrndx;
+        if (index == SHN_XINDEX) {
+            index = GetSection(0)->sh_link;
+        }
+        return GetSection(index);
     }
 
 private:
@@ -96,7 +109,7 @@ public:
     }
 
     TStringBuf GetName() const noexcept {
-        return TSection(Elf, Elf->GetSection(Elf->GetHeader()->e_shstrndx)).GetPtr(This->sh_name);
+        return TSection{Elf, Elf->GetSectionsNameSection()}.GetPtr(This->sh_name);
     }
 
     size_t GetLink() const noexcept {

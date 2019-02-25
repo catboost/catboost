@@ -14,7 +14,6 @@
 
 #include <cstdlib>
 
-
 static int mode_calc(int argc, const char** argv) {
     THolder<NCB::IModeCalcImplementation> modeCalcImplementaion;
     if (NCB::TModeCalcImplementationFactory::Has(NCB::EImplementationType::YandexSpecific)) {

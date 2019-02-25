@@ -7,6 +7,7 @@ enum class EConvertTargetPolicy {
 };
 
 enum class EOverfittingDetectorType {
+    None,
     Wilcoxon,
     IncToDec,
     Iter
@@ -17,9 +18,9 @@ enum class ESamplingFrequency {
     PerTreeLevel
 };
 
-enum class ESamplingType {
-    Groupwise,
-    Docwise
+enum class ESamplingUnit {
+    Object,
+    Group
 };
 
 enum class EFeatureType {
@@ -91,6 +92,11 @@ enum class ENanMode {
     Forbidden
 };
 
+enum class ECrossValidation {
+    Classical,
+    Inverted
+};
+
 enum class ELossFunction {
     /* binary classification errors */
 
@@ -110,6 +116,7 @@ enum class ELossFunction {
     MSLE,
     MedianAbsoluteError,
     SMAPE,
+    Huber,
 
     /* multiclassification errors */
 
@@ -130,7 +137,7 @@ enum class ELossFunction {
 
     /* user defined errors */
 
-    Custom,
+    PythonUserDefinedPerObject,
     UserPerObjMetric,
     UserQuerywiseMetric,
 
@@ -247,7 +254,7 @@ enum class EFinalCtrComputationMode {
 
 enum class ELeavesEstimationStepBacktracking {
     None,
-    AnyImprovment,
+    AnyImprovement,
     Armijo
 };
 

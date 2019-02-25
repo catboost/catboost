@@ -3,7 +3,12 @@
 #include "learn_context.h"
 #include "online_ctr.h"
 
+#include <catboost/libs/data_new/packed_binary_features.h>
+
 #include <util/system/yassert.h>
+
+#include <climits>
+
 
 using namespace NCB;
 
@@ -60,16 +65,36 @@ TModelSplit TSplit::GetModelSplit(
 }
 
 
-int GetSplitCount(
-    const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-    const TSplitCandidate& split
+int GetBucketCount(
+    const TSplitEnsemble& splitEnsemble,
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    size_t packedBinaryFeaturesCount
 ) {
-    if (split.Type == ESplitType::OnlineCtr) {
-        return split.Ctr.BorderCount;
-    } else if (split.Type == ESplitType::FloatFeature) {
-        return (int)quantizedFeaturesInfo.GetBorders(TFloatFeatureIdx(split.FeatureIdx)).size();
+    if (splitEnsemble.IsBinarySplitsPack) {
+        // TBinarySplitsPack
+        size_t packIdx = splitEnsemble.BinarySplitsPack.PackIdx;
+        size_t startIdx = packIdx * sizeof(TBinaryFeaturesPack) * CHAR_BIT;
+        Y_ASSERT(packedBinaryFeaturesCount > startIdx);
+        size_t featuresInPackCount = Min(
+            sizeof(TBinaryFeaturesPack) * CHAR_BIT,
+            packedBinaryFeaturesCount - startIdx
+        );
+        return int(1 << featuresInPackCount);
+    }
+
+    // TSplitCandidate
+    const auto& splitCandidate = splitEnsemble.SplitCandidate;
+    if (splitCandidate.Type == ESplitType::OnlineCtr) {
+        return splitCandidate.Ctr.BorderCount + 1;
+    } else if (splitCandidate.Type == ESplitType::FloatFeature) {
+        return int(
+            quantizedFeaturesInfo.GetBorders(TFloatFeatureIdx(splitCandidate.FeatureIdx)).size()
+        ) + 1;
     } else {
-        Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-        return (int)quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(split.FeatureIdx)).OnLearnOnly;
+        Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
+        return int(
+            quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(splitCandidate.FeatureIdx))
+                .OnLearnOnly
+        );
     }
 }

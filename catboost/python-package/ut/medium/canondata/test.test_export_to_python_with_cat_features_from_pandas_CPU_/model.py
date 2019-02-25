@@ -11,13 +11,13 @@ class catboost_model(object):
         [2]
     ]
     tree_depth = [1, 1, 1, 1, 1]
-    tree_split_border = [1, 255, 1, 255, 1]
-    tree_split_feature_index = [0, 1, 0, 1, 0]
-    tree_split_xor_mask = [0, 254, 0, 253, 0]
+    tree_split_border = [1, 1, 255, 1, 1]
+    tree_split_feature_index = [0, 0, 1, 0, 0]
+    tree_split_xor_mask = [0, 0, 254, 0, 0]
     cat_features_index = [0]
     one_hot_cat_feature_index = [0]
     one_hot_hash_values = [
-        [-1284790409, -78686594]
+        [-1284790409]
     ]
     ctr_feature_borders = [
     ]
@@ -25,8 +25,8 @@ class catboost_model(object):
     ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
     leaf_values = [
         0.007499999832361937, 0,
-        0, 0.007443749834876508,
-        0.00738792171236279, 0,
+        0.007443749834876508, 0,
+        0, 0.00738792171236279,
         0.007332512300758566, 0,
         0.007277518459732084, 0
     ]
