@@ -3291,7 +3291,7 @@ class Metrics(object):
             'BrierScore',
             'CrossEntropy',
             'CtrFactor',
-            'Custom',
+            'PythonUserDefinedPerObject',
             'F1',
             'HammingLoss',
             'HingeLoss',
