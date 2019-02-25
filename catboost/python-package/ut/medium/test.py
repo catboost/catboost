@@ -1690,6 +1690,7 @@ def test_cv_custom_loss(task_type):
     assert "test-AUC-mean" in results
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
+
 def test_cv_skip_train(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(
@@ -1703,12 +1704,13 @@ def test_cv_skip_train(task_type):
         },
         dev_max_iterations_batch_size=6
     )
-    assert not "train-Logloss-mean" in results
-    assert not "train-Logloss-std" in results
-    assert not "train-AUC-mean" in results
-    assert not "train-AUC-std" in results
+    assert "train-Logloss-mean" not in results
+    assert "train-Logloss-std" not in results
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
 
 def test_cv_skip_train_default(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
@@ -1723,10 +1725,11 @@ def test_cv_skip_train_default(task_type):
         },
         dev_max_iterations_batch_size=6
     )
-    assert not "train-AUC-mean" in results
-    assert not "train-AUC-std" in results
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
 
 def test_cv_metric_period(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
