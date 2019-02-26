@@ -245,7 +245,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     NCatboostOptions::TLossDescription lossDescription;
     CB_ENSURE(TryGetLossDescription(model, lossDescription));
     ui32 totalDocumentCount = dataProvider.ObjectsData->GetObjectCount();
-    ui32 maxDocuments = Min(totalDocumentCount, Max(ui32(1e5), ui32(1e9 / dataProvider.ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
+    ui32 maxDocuments = Min(totalDocumentCount, Max(ui32(2e5), ui32(2e9 / dataProvider.ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
 
     const auto dataset = GetSubset(dataProvider, maxDocuments, localExecutor);
 
