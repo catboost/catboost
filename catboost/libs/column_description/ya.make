@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     cd_parser.cpp
+    column.cpp
 )
 
 PEERDIR(
