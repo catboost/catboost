@@ -137,8 +137,15 @@ def do_link_exe(args):
     if import_config_name:
         cmd += ['-importcfg', import_config_name]
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
+    extldflags = ''
     if args.extldflags is not None and len(args.extldflags) > 0:
-        cmd += ['-extldflags={}'.format(x) for x in args.extldflags]
+        extldflags = ' '.join(args.extldflags)
+    if args.cgo_peers is not None and len(args.cgo_peers) > 0:
+        peer_libs = ' '.join(os.path.join(args.build_root, x) for x in args.cgo_peers)
+        extldflags += ' ' if len(extldflags) > 0 else ''
+        extldflags += '-Wl,--start-group {} -Wl,--end-group'.format(peer_libs)
+    if extldflags:
+        cmd.append('-extldflags=' + extldflags)
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
@@ -294,6 +301,7 @@ if __name__ == '__main__':
     parser.add_argument('++targ-os', choices=['linux', 'darwin', 'windows'], required=True)
     parser.add_argument('++targ-arch', choices=['amd64', 'x86'], required=True)
     parser.add_argument('++peers', nargs='*')
+    parser.add_argument('++cgo-peers', nargs='*')
     parser.add_argument('++asmhdr', nargs='?', default=None)
     parser.add_argument('++test-import-path', nargs='?')
     parser.add_argument('++test-miner', nargs='?')
