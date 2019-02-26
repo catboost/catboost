@@ -46,8 +46,9 @@ namespace ZLib {
  */
 class TZLibDecompress: public IInputStream {
 public:
-    TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type = ZLib::Auto);
-    TZLibDecompress(IInputStream* input, ZLib::StreamType type = ZLib::Auto, size_t buflen = ZLib::ZLIB_BUF_LEN);
+    TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type = ZLib::Auto, TStringBuf dict = {});
+    TZLibDecompress(IInputStream* input, ZLib::StreamType type = ZLib::Auto, size_t buflen = ZLib::ZLIB_BUF_LEN,
+                    TStringBuf dict = {});
 
     /**
      * Allows/disallows multiple sequential compressed streams. Allowed by default.

@@ -75,6 +75,21 @@ Y_UNIT_TEST_SUITE(TZLibTest) {
         }
     }
 
+    Y_UNIT_TEST(Dictionary) {
+        static constexpr auto data = AsStringBuf("<html><body></body></html>");
+        static constexpr auto dict = AsStringBuf("</<html><body>");
+        for (auto type : {ZLib::Raw, ZLib::ZLib}) {
+            TStringStream compressed;
+            {
+                TZLibCompress compressor(TZLibCompress::TParams(&compressed).SetDict(dict).SetType(type));
+                compressor.Write(data);
+            }
+
+            TZLibDecompress decompressor(&compressed, type, ZLib::ZLIB_BUF_LEN, dict);
+            UNIT_ASSERT_STRINGS_EQUAL(decompressor.ReadAll(), data);
+        }
+    }
+
     Y_UNIT_TEST(DecompressTwoStreams) {
         // Check that Decompress(Compress(X) + Compress(Y)) == X + Y
         TTempFile tmpFile(ZDATA);

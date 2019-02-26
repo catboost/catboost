@@ -79,11 +79,16 @@ namespace {
 
 class TZLibDecompress::TImpl: private TZLibCommon, public TChunkedZeroCopyInput {
 public:
-    inline TImpl(IZeroCopyInput* in, ZLib::StreamType type)
+    inline TImpl(IZeroCopyInput* in, ZLib::StreamType type, TStringBuf dict)
         : TChunkedZeroCopyInput(in)
+        , Dict(dict)
     {
         if (inflateInit2(Z(), opts[type]) != Z_OK) {
             ythrow TZLibDecompressorError() << "can not init inflate engine";
+        }
+
+        if (dict.size() && type == ZLib::Raw) {
+            SetDict();
         }
     }
 
@@ -107,6 +112,11 @@ public:
             }
 
             switch (inflate(Z(), Z_SYNC_FLUSH)) {
+                case Z_NEED_DICT: {
+                    SetDict();
+                    continue;
+                }
+
                 case Z_STREAM_END: {
                     if (AllowMultipleStreams_) {
                         if (inflateReset(Z()) != Z_OK) {
@@ -138,14 +148,21 @@ private:
         return Next(&Z()->next_in, &Z()->avail_in);
     }
 
+    void SetDict() {
+        if (inflateSetDictionary(Z(), (const Bytef*)Dict.data(), Dict.size()) != Z_OK) {
+            ythrow TZLibCompressorError() << "can not set inflate dictionary";
+        }
+    }
+
     bool AllowMultipleStreams_ = true;
+    TStringBuf Dict;
 };
 
 namespace {
     class TDecompressStream: public IZeroCopyInput, public TZLibDecompress::TImpl, public TAdditionalStorage<TDecompressStream> {
     public:
-        inline TDecompressStream(IInputStream* input, ZLib::StreamType type)
-            : TZLibDecompress::TImpl(this, type)
+        inline TDecompressStream(IInputStream* input, ZLib::StreamType type, TStringBuf dict)
+            : TZLibDecompress::TImpl(this, type, dict)
             , Stream_(input)
         {
         }
@@ -273,13 +290,13 @@ private:
     IOutputStream* Stream_;
 };
 
-TZLibDecompress::TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type)
-    : Impl_(new TZeroCopyDecompress(input, type))
+TZLibDecompress::TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type, TStringBuf dict)
+    : Impl_(new TZeroCopyDecompress(input, type, dict))
 {
 }
 
-TZLibDecompress::TZLibDecompress(IInputStream* input, ZLib::StreamType type, size_t buflen)
-    : Impl_(new (buflen) TDecompressStream(input, type))
+TZLibDecompress::TZLibDecompress(IInputStream* input, ZLib::StreamType type, size_t buflen, TStringBuf dict)
+    : Impl_(new (buflen) TDecompressStream(input, type, dict))
 {
 }
 
