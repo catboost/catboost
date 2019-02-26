@@ -28,8 +28,19 @@ namespace NPrivate {
     }
 
     template<class T>
-    inline void DoFromString(const T& src, T* dst) {
+    inline void DoFromString(const T& src, T* dst) noexcept {
         *dst = src;
+    }
+
+    template<class Src, class Dst>
+    inline Y_WARN_UNUSED_RESULT bool TryDoFromString(const Src& src, Dst* dst) noexcept {
+        return ::TryFromString(src, *dst);
+    }
+
+    template<class T>
+    inline Y_WARN_UNUSED_RESULT bool TryDoFromString(const T& src, T* dst) noexcept {
+        *dst = src;
+        return true;
     }
 
     /**
@@ -228,7 +239,6 @@ struct TSplitRange: public Base, public TInputRangeAdaptor<TSplitRange<Base>> {
     }
 
     // TODO: this is actually TryParseInto
-    // TODO: despite starting with 'Try', this method throws! Need to use TryFromString inside.
     /**
      * Same as `CollectInto`, just doesn't throw.
      *
@@ -236,19 +246,21 @@ struct TSplitRange: public Base, public TInputRangeAdaptor<TSplitRange<Base>> {
      * \returns                         Whether parsing was successful.
      */
     template <typename... Args>
-    inline bool TryCollectInto(Args*... args) {
-        size_t filled = 0;
+    inline bool TryCollectInto(Args*... args) noexcept {
+        size_t successfullyFilled = 0;
         auto it = this->begin();
 
+        //FIXME: actually, some kind of TryApplyToMany is needed in order to stop iteration upon first failure
         ApplyToMany([&](auto&& arg) {
             if (it != this->end()) {
-                ++filled;
-                ::NPrivate::DoFromString(it->Token(), arg);
+                if (::NPrivate::TryDoFromString(it->Token(), arg)) {
+                    ++successfullyFilled;
+                }
                 ++it;
             }
         }, args...);
 
-        return filled == sizeof...(args) && it == this->end();
+        return successfullyFilled == sizeof...(args) && it == this->end();
     }
 
     // TODO: this is actually ParseInto

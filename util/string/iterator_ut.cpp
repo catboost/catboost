@@ -215,6 +215,28 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_EXCEPTION(StringSplitter("1 2 3").Split(' ').CollectInto(&a, &a), yexception);
     }
 
+    Y_UNIT_TEST(TestTryCollectInto) {
+        int a, b, c;
+        bool parsingSucceeded;
+        parsingSucceeded = StringSplitter("100,500,3").Split(',').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(parsingSucceeded);
+        UNIT_ASSERT_VALUES_EQUAL(a, 100);
+        UNIT_ASSERT_VALUES_EQUAL(b, 500);
+        UNIT_ASSERT_VALUES_EQUAL(c, 3);
+
+        //not enough tokens
+        parsingSucceeded = StringSplitter("3,14").Split(',').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(!parsingSucceeded);
+
+        //too many tokens
+        parsingSucceeded = StringSplitter("3,14,15,92,6").Split(',').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(!parsingSucceeded);
+
+        //where single TryFromString fails
+        parsingSucceeded = StringSplitter("ot topota kopyt pyl po polu letit").Split(' ').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(!parsingSucceeded);
+    }
+
     Y_UNIT_TEST(TestOwningSplit1) {
         int sum = 0;
 
