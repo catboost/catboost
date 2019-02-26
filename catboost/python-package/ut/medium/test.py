@@ -244,6 +244,12 @@ def test_pool_cat_features():
     assert np.all(pool.get_cat_feature_indices() == CAT_FEATURES)
 
 
+def test_pool_feature_names():
+    df = DataFrame(data=[[1, 2], [3, 4]], columns=['col1', 'col2'])
+    pool = Pool(df, cat_features=['col2'])
+    assert np.all(pool.get_cat_feature_indices() == [1])
+
+
 def test_load_generated():
     pool_size = (100, 10)
     prng = np.random.RandomState(seed=20181219)
