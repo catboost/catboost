@@ -1249,8 +1249,11 @@ sys/proc_info.h
 sys/statfs.h
 Cocoa/Cocoa.h
 CommonCrypto/CommonCrypto.h
-CoreFoundation/CoreFoundation.h
+CoreFoundation/CFLocale.h
+CoreFoundation/CFPreferences.h
 CoreFoundation/CFRunLoop.h
+CoreFoundation/CFString.h
+CoreFoundation/CoreFoundation.h
 CoreGraphics/CoreGraphics.h
 CoreText/CoreText.h
 IOKit/ps/IOPSKeys.h
@@ -1311,6 +1314,7 @@ stsdef.h
 syidef.h
 times.h
 unixio.h
+sys/bitypes.h
 tcpSocketVaxRoutines.h
 #endif
 #if defined(_SOLARIS_) && TODO
