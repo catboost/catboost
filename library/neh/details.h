@@ -91,7 +91,7 @@ namespace NNeh {
         }
 
     private:
-        volatile bool SendComplete_;
+        TAtomicBool SendComplete_;
         TAtomicBool Canceled_;
     };
 

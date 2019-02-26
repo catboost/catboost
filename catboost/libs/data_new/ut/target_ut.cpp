@@ -1239,6 +1239,51 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     }
 
 
+    Y_UNIT_TEST(TUserDefinedTarget_GetSubset) {
+        TVector<TUserDefinedTarget> targetVector;
+        TVector<TUserDefinedTarget> expectedSecondSubsets;
+
+        targetVector.push_back(
+            TUserDefinedTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
+                /*weights*/ Share(TWeights<float>(6))
+            )
+        );
+        expectedSecondSubsets.push_back(
+            TUserDefinedTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                /*target*/ ShareVector<float>({1.0f, 0.0f}),
+                /*weights*/ Share(TWeights<float>(2))
+            )
+        );
+
+        targetVector.push_back(
+            TUserDefinedTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                /*target*/ ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}),
+                /*weights*/ Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f}))
+            )
+        );
+        expectedSecondSubsets.push_back(
+            TUserDefinedTarget(
+                "",
+                MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                /*target*/ ShareVector<float>({1.0f, 0.0f}),
+                /*weights*/ Share(TWeights<float>({2.0f, 3.0f}))
+            )
+        );
+
+        TestGetSubset(
+            targetVector,
+            expectedSecondSubsets
+        );
+    }
+
+
     TWeights<float> CreateWeights() {
         return TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.98f, 0.11f, 0.43f, 0.24f, 0.2f});
     }
@@ -1480,6 +1525,25 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
                 expectedSubsetTargets
             )
         );
+
+        targetDataProviders->emplace(
+            TTargetDataSpecification(ETargetType::UserDefined),
+            MakeIntrusive<TUserDefinedTarget>(
+                "",
+                objectsGrouping,
+                targets,
+                weights
+            )
+        );
+        expectedSubsetTargetDataProviders->emplace(
+            TTargetDataSpecification(ETargetType::UserDefined),
+            MakeIntrusive<TUserDefinedTarget>(
+                "",
+                expectedSubsetObjectsGrouping,
+                expectedSubsetTargets,
+                expectedSubsetWeights
+            )
+        );
     }
 
 
@@ -1609,6 +1673,19 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             UNIT_ASSERT_EQUAL(GetWeights(onlySimple), TConstArrayRef<float>());
             UNIT_ASSERT_EQUAL(GetBaseline(onlySimple), TVector<TConstArrayRef<float>>());
             UNIT_ASSERT_EQUAL(GetGroupInfo(onlySimple), TConstArrayRef<TQueryInfo>());
+        }
+
+        {
+            TTargetDataProviders onlyUserDefined;
+            onlyUserDefined.emplace(
+                TTargetDataSpecification(ETargetType::UserDefined),
+                targetDataProviders[TTargetDataSpecification(ETargetType::UserDefined)]
+            );
+
+            COMPARE_COMPATIBILITY_FIELD(onlyUserDefined, Target);
+            CompareCompatibilityWeights(GetWeights(onlyUserDefined),  CreateWeights());
+            UNIT_ASSERT_EQUAL(GetBaseline(onlyUserDefined), TVector<TConstArrayRef<float>>());
+            UNIT_ASSERT_EQUAL(GetGroupInfo(onlyUserDefined), TConstArrayRef<TQueryInfo>());
         }
 
         {

@@ -75,16 +75,19 @@
   #define PyString_Check PyUnicode_Check
   #define PyString_FromString PyUnicode_FromString
   #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
+  #define PyString_FromFormat PyUnicode_FromFormat
   #if PY_VERSION_HEX < 0x03030000
     #error "Python 3.0 - 3.2 are not supported."
   #else
   #define PyString_AsString(ob) \
     (PyUnicode_Check(ob)? PyUnicode_AsUTF8(ob): PyBytes_AsString(ob))
-  #define PyString_AsStringAndSize(ob, charpp, sizep) \
-    (PyUnicode_Check(ob)? \
-       ((*(charpp) = PyUnicode_AsUTF8AndSize(ob, (sizep))) == NULL? -1: 0): \
-       PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
-  #endif
+#define PyString_AsStringAndSize(ob, charpp, sizep)                           \
+  (PyUnicode_Check(ob) ? ((*(charpp) = const_cast<char*>(                     \
+                               PyUnicode_AsUTF8AndSize(ob, (sizep)))) == NULL \
+                              ? -1                                            \
+                              : 0)                                            \
+                       : PyBytes_AsStringAndSize(ob, (charpp), (sizep)))
+#endif
 #endif
 
 namespace google {
@@ -1520,7 +1523,7 @@ PyObject* HasField(CMessage* self, PyObject* arg) {
     return NULL;
   }
 #else
-  field_name = PyUnicode_AsUTF8AndSize(arg, &size);
+  field_name = const_cast<char*>(PyUnicode_AsUTF8AndSize(arg, &size));
   if (!field_name) {
     return NULL;
   }

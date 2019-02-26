@@ -156,7 +156,7 @@ UNIT_TEST_SUITE_REGISTRATION(TConversionTest);
     do {                                                                                                                              \
         /* convert char to wchar32 */                                                                                                 \
         TTempBuf tmpbuf1(sbuf.length() * sizeof(wchar32));                                                                            \
-        const TStringBufImpl<wchar32> s4buf = NDetail::NBaseOps::Recode<char>(sbuf, reinterpret_cast<wchar32*>(tmpbuf1.Data()), enc); \
+        const TBasicStringBuf<wchar32> s4buf = NDetail::NBaseOps::Recode<char>(sbuf, reinterpret_cast<wchar32*>(tmpbuf1.Data()), enc); \
                                                                                                                                       \
         /* convert wchar32 to char */                                                                                                 \
         TTempBuf tmpbuf2(s4buf.length() * 4);                                                                                         \

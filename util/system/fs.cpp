@@ -38,7 +38,7 @@ void NFs::RemoveRecursive(const TString& path) {
 
     TDirIterator dir(path);
 
-    for (TDirIterator::TIterator it = dir.begin(); it != dir.end(); ++it) {
+    for (auto it = dir.begin(); it != dir.end(); ++it) {
         switch (it->fts_info) {
             case FTS_DOT:
             case FTS_D:

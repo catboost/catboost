@@ -156,7 +156,7 @@ namespace NCatboostCuda {
         }
 
     private:
-        ELossFunction Type = ELossFunction::Custom;
+        ELossFunction Type = ELossFunction::PythonUserDefinedPerObject;
         TString MetricName;
         ui32 NumClasses = 0;
     };

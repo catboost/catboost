@@ -56,30 +56,30 @@ namespace NDetail {
         // Depending on template params, perform conversion of single-byte/multi-byte/utf8 string to/from wide string.
 
         template <typename TCharType>
-        inline TStringBufImpl<TCharType> RecodeSingleByteChar(const TStringBuf src, TCharType* dst, const CodePage& cp) {
+        inline TBasicStringBuf<TCharType> RecodeSingleByteChar(const TStringBuf src, TCharType* dst, const CodePage& cp) {
             Y_ASSERT(cp.SingleByteCodepage());
             ::CharToWide(src.data(), src.size(), dst, cp);
-            return TStringBufImpl<TCharType>(dst, src.size());
+            return TBasicStringBuf<TCharType>(dst, src.size());
         }
 
         template <typename TCharType>
-        inline TStringBuf RecodeSingleByteChar(const TStringBufImpl<TCharType> src, char* dst, const CodePage& cp) {
+        inline TStringBuf RecodeSingleByteChar(const TBasicStringBuf<TCharType> src, char* dst, const CodePage& cp) {
             Y_ASSERT(cp.SingleByteCodepage());
             ::WideToChar(src.data(), src.size(), dst, cp.CPEnum);
             return TStringBuf(dst, src.size());
         }
 
         template <typename TCharType>
-        inline TStringBufImpl<TCharType> RecodeMultiByteChar(const TStringBuf src, TCharType* dst, ECharset encoding) {
+        inline TBasicStringBuf<TCharType> RecodeMultiByteChar(const TStringBuf src, TCharType* dst, ECharset encoding) {
             Y_ASSERT(!NCodepagePrivate::NativeCodepage(encoding));
             size_t read = 0;
             size_t written = 0;
             ::NICONVPrivate::RecodeToUnicode(encoding, src.data(), dst, src.size(), src.size(), read, written);
-            return TStringBufImpl<TCharType>(dst, written);
+            return TBasicStringBuf<TCharType>(dst, written);
         }
 
         template <typename TCharType>
-        inline TStringBuf RecodeMultiByteChar(const TStringBufImpl<TCharType> src, char* dst, ECharset encoding) {
+        inline TStringBuf RecodeMultiByteChar(const TBasicStringBuf<TCharType> src, char* dst, ECharset encoding) {
             Y_ASSERT(!NCodepagePrivate::NativeCodepage(encoding));
             size_t read = 0;
             size_t written = 0;
@@ -88,15 +88,15 @@ namespace NDetail {
         }
 
         template <typename TCharType>
-        inline TStringBufImpl<TCharType> RecodeUtf8(const TStringBuf src, TCharType* dst) {
+        inline TBasicStringBuf<TCharType> RecodeUtf8(const TStringBuf src, TCharType* dst) {
             size_t len = 0;
             if (!::UTF8ToWide(src.data(), src.size(), dst, len))
                 ythrow yexception() << "Invalid UTF8: \"" << src.SubStr(0, 50) << (src.size() > 50 ? "...\"" : "\"");
-            return TStringBufImpl<TCharType>(dst, len);
+            return TBasicStringBuf<TCharType>(dst, len);
         }
 
         template <typename TCharType>
-        inline TStringBuf RecodeUtf8(const TStringBufImpl<TCharType> src, char* dst) {
+        inline TStringBuf RecodeUtf8(const TBasicStringBuf<TCharType> src, char* dst) {
             size_t len = 0;
             ::WideToUTF8(src.data(), src.size(), dst, len);
             return TStringBuf(dst, len);
@@ -105,7 +105,7 @@ namespace NDetail {
         // Select one of re-coding methods from above, based on provided @encoding
 
         template <typename TCharFrom, typename TCharTo>
-        TStringBufImpl<TCharTo> Recode(const TStringBufImpl<TCharFrom> src, TCharTo* dst, ECharset encoding) {
+        TBasicStringBuf<TCharTo> Recode(const TBasicStringBuf<TCharFrom> src, TCharTo* dst, ECharset encoding) {
             if (encoding == CODES_UTF8)
                 return RecodeUtf8(src, dst);
             else if (SingleByteCodepage(encoding))
@@ -159,12 +159,12 @@ namespace NDetail {
     // Main template interface for recoding in both directions
 
     template <typename TCharFrom, typename TResult>
-    typename TRecodeTraits<TCharFrom>::TStringBufTo Recode(const TStringBufImpl<TCharFrom> src, TResult& dst, ECharset encoding) {
+    typename TRecodeTraits<TCharFrom>::TStringBufTo Recode(const TBasicStringBuf<TCharFrom> src, TResult& dst, ECharset encoding) {
         using TCharTo = typename TRecodeTraits<TCharFrom>::TCharTo;
         // make enough room for re-coded string
         TCharTo* dstbuf = TRecodeResultOps<TResult>::Reserve(dst, src.size() * TRecodeTraits<TCharTo>::ReserveSize);
         // do re-coding
-        TStringBufImpl<TCharTo> res = NBaseOps::Recode(src, dstbuf, encoding);
+        TBasicStringBuf<TCharTo> res = NBaseOps::Recode(src, dstbuf, encoding);
         // truncate result back to proper size
         TRecodeResultOps<TResult>::Truncate(dst, res.size());
         return res;
@@ -172,14 +172,14 @@ namespace NDetail {
 
     // appending version of Recode()
     template <typename TCharFrom, typename TResult>
-    typename TRecodeTraits<TCharFrom>::TStringBufTo RecodeAppend(const TStringBufImpl<TCharFrom> src, TResult& dst, ECharset encoding) {
+    typename TRecodeTraits<TCharFrom>::TStringBufTo RecodeAppend(const TBasicStringBuf<TCharFrom> src, TResult& dst, ECharset encoding) {
         using TCharTo = typename TRecodeTraits<TCharFrom>::TCharTo;
         size_t dstOrigSize = TRecodeResultOps<TResult>::Size(dst);
         TCharTo* dstbuf = TRecodeResultOps<TResult>::Reserve(dst, dstOrigSize + src.size() * TRecodeTraits<TCharTo>::ReserveSize);
-        TStringBufImpl<TCharTo> appended = NBaseOps::Recode(src, dstbuf + dstOrigSize, encoding);
+        TBasicStringBuf<TCharTo> appended = NBaseOps::Recode(src, dstbuf + dstOrigSize, encoding);
         size_t dstFinalSize = dstOrigSize + appended.size();
         TRecodeResultOps<TResult>::Truncate(dst, dstFinalSize);
-        return TStringBufImpl<TCharTo>(dstbuf, dstFinalSize);
+        return TBasicStringBuf<TCharTo>(dstbuf, dstFinalSize);
     }
 
     // special implementation for robust utf8 functions
@@ -198,7 +198,7 @@ namespace NDetail {
     }
 
     template <typename TCharFrom>
-    inline typename TRecodeTraits<TCharFrom>::TStringTo Recode(const TStringBufImpl<TCharFrom> src, ECharset encoding) {
+    inline typename TRecodeTraits<TCharFrom>::TStringTo Recode(const TBasicStringBuf<TCharFrom> src, ECharset encoding) {
         typename TRecodeTraits<TCharFrom>::TStringTo res;
         Recode<TCharFrom>(src, res, encoding);
         return res;

@@ -3,3 +3,8 @@
 extern "C" const char* GetSandboxTaskId() {
     return "@SANDBOX_TASK_ID@";
 }
+
+// Experimental code for RMDEV-365
+extern "C" const char* GetKosherSvnVersion() {
+    return "@KOSHER_SVN_VERSION@";
+}

@@ -13,14 +13,13 @@ TMetricHolder CalcLlp(TConstArrayRef<double> approx,
                       TConstArrayRef<float> weight,
                       int begin,
                       int end) {
-    TConstArrayRef<double> partOfApproxes = approx.Slice(begin, end - begin);
-    TVector<double> prediction = CalcSigmoid(TVector<double>(partOfApproxes.begin(), partOfApproxes.end()));
-
     TMetricHolder metric(3); // metric.Stats[0] = result, metric.Stats[1] = clicks, metric.Stats[2] = shows
     for (int i = begin; i < end; ++i) {
-        float w = weight.empty() ? 1 : weight[i];
-        metric.Stats[0] += target[i] * log(prediction[i - begin] * w) + (w - target[i]) * log(1 - prediction[i - begin] * w);
-        metric.Stats[1] += target[i];
+        const float w = weight.empty() ? 1 : weight[i];
+        const float expVal = exp(approx[i]);
+        const float logExpPlusOne = IsFinite(expVal) ? log(1 + expVal) : static_cast<float>(approx[i]);
+        metric.Stats[0] += (target[i] * approx[i] - logExpPlusOne) * w;
+        metric.Stats[1] += target[i] * w;
         metric.Stats[2] += w;
     }
     return metric;

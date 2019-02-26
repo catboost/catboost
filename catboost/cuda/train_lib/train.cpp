@@ -227,7 +227,8 @@ namespace NCatboostCuda {
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
     }
 
-    THolder<TAdditiveModel<TObliviousTreeModel>> TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
+    THolder<TAdditiveModel<TObliviousTreeModel>> TrainModelImpl(const TTrainModelInternalOptions& internalOptions,
+                                                                const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                                                 const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                 const TTrainingDataProvider& dataProvider,
                                                                 const TTrainingDataProvider* testProvider,
@@ -265,6 +266,7 @@ namespace NCatboostCuda {
         if (TGpuTrainerFactory::Has(optimizationImplementation)) {
             THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(optimizationImplementation);
             model = trainer->TrainModel(featuresManager,
+                                        internalOptions,
                                         trainCatBoostOptions,
                                         outputOptions,
                                         dataProvider,
@@ -295,7 +297,7 @@ namespace NCatboostCuda {
     class TGPUModelTrainer: public IModelTrainer {
     public:
         void TrainModel(
-            bool calcMetricsOnly,
+            const TTrainModelInternalOptions& internalOptions,
             const NJson::TJsonValue& params,
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -317,7 +319,7 @@ namespace NCatboostCuda {
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
             catBoostOptions.Load(params);
 
-            bool saveFinalCtrsInModel = !calcMetricsOnly &&
+            bool saveFinalCtrsInModel = !internalOptions.CalcMetricsOnly &&
                 (outputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) &&
                 (trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo()
                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
@@ -362,6 +364,7 @@ namespace NCatboostCuda {
             TVector<TVector<double>> rawValues(approxDimension);
 
             THolder<TAdditiveModel<TObliviousTreeModel>> gpuFormatModel = TrainModelImpl(
+                internalOptions,
                 catBoostOptions,
                 updatedOutputOptions,
                 *trainingData.Learn,
@@ -377,7 +380,7 @@ namespace NCatboostCuda {
                 evalResultPtrs[0]->SetRawValuesByMove(rawValues);
             }
 
-            if (calcMetricsOnly) {
+            if (internalOptions.CalcMetricsOnly) {
                 return;
             }
 

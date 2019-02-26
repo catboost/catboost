@@ -617,7 +617,7 @@ namespace NCatboostCuda {
         THashSet<TString> usedDescriptions;
 
         if (evalMetricOptions->EvalMetric.IsSet()) {
-            if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
+            if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
                 CB_ENSURE(false, "Error: GPU doesn't support custom metrics");
             } else {
                 TVector<THolder<IGpuMetric>> createdMetrics = CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
@@ -631,7 +631,7 @@ namespace NCatboostCuda {
             }
         }
 
-        CB_ENSURE(lossFunctionOption->GetLossFunction() != ELossFunction::Custom, "Error: GPU doesn't support custom loss");
+        CB_ENSURE(lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject, "Error: GPU doesn't support user-defined loss");
 
         for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                             lossFunctionOption, cpuApproxDim)) {

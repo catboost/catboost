@@ -31,6 +31,7 @@
 #undef GetKValue
 #undef StartDoc
 #undef UpdateResource
+#undef GetNameInfo
 
 #undef IGNORE
 #undef ERROR

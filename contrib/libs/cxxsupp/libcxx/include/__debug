@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===--------------------------- __debug ----------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -74,7 +73,7 @@ typedef void(*__libcpp_debug_function_type)(__libcpp_debug_info const&);
 
 /// __libcpp_debug_function - The handler function called when a _LIBCPP_ASSERT
 ///    fails.
-extern _LIBCPP_EXTERN_VIS __libcpp_debug_function_type __libcpp_debug_function;
+extern _LIBCPP_EXPORTED_FROM_ABI __libcpp_debug_function_type __libcpp_debug_function;
 
 /// __libcpp_abort_debug_function - A debug handler that aborts when called.
 _LIBCPP_NORETURN _LIBCPP_FUNC_VIS

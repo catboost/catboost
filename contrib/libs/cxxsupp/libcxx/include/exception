@@ -1,10 +1,9 @@
 // -*- C++ -*-
 //===-------------------------- exception ---------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -81,6 +80,7 @@ template <class E> void rethrow_if_nested(const E& e);
 #include <cstddef>
 #include <cstdlib>
 #include <type_traits>
+#include <version>
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && !defined(_LIBCPP_NO_VCRUNTIME)
 #include <vcruntime_exception.h>
@@ -170,7 +170,7 @@ public:
 #ifndef _LIBCPP_ABI_MICROSOFT
 
 template<class _Ep>
-exception_ptr
+_LIBCPP_INLINE_VISIBILITY exception_ptr
 make_exception_ptr(_Ep __e) _NOEXCEPT
 {
 #ifndef _LIBCPP_NO_EXCEPTIONS

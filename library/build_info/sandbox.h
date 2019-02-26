@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 const char* GetSandboxTaskId();
+const char* GetKosherSvnVersion();
 
 #if defined(__cplusplus)
 }

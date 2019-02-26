@@ -2,7 +2,7 @@
 
 set WIN_COMMON_FLAGS=-DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DUSE_ARCADIA_CUDA_HOST_COMPILER=no --host-platform-flag USE_ARCADIA_CUDA_HOST_COMPILER=no
 
-call "%VS_VARS_PATH%\vcvars64.bat" -vcvars_ver=14.12
+call "%VS_VARS_PATH%\vcvars64.bat" -vcvars_ver=14.16
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 c:\Python27\python.exe ya make -r %WIN_COMMON_FLAGS% -DHAVE_CUDA=yes -o . catboost\app

@@ -9,4 +9,6 @@ PEERDIR(
     contrib/tools/python3/src/Lib
 )
 
+LSAN_SUPPRESSIONS(leaks.supp)
+
 END()

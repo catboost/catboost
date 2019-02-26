@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
         TEnumParser parser(input);
         const TEnums& enums = parser.Enums;
 
-        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 13u);
+        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 14u);
 
         // check ESimple
         {
@@ -230,6 +230,25 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
             UNIT_ASSERT_VALUES_EQUAL(it[0].CppName, "Key0");
             UNIT_ASSERT_VALUES_EQUAL(it[1].CppName, "Key1");
             UNIT_ASSERT_VALUES_EQUAL(*it[1].Value, "1");
+        }
+
+        // ENonLiteralValues
+        {
+            const TEnum& e = enums[13];
+            UNIT_ASSERT_VALUES_EQUAL(e.Scope.size(), 0u);
+            UNIT_ASSERT_VALUES_EQUAL(e.CppName, "ENonLiteralValues");
+            const TItems& it = e.Items;
+            UNIT_ASSERT_VALUES_EQUAL(it.size(), 5u);
+            UNIT_ASSERT_VALUES_EQUAL(it[0].CppName, "one");
+            UNIT_ASSERT_VALUES_EQUAL(*it[0].Value, "MACRO(1, 2)");
+            UNIT_ASSERT_VALUES_EQUAL(it[1].CppName, "two");
+            UNIT_ASSERT_VALUES_EQUAL(*it[1].Value, "2");
+            UNIT_ASSERT_VALUES_EQUAL(it[2].CppName, "three");
+            UNIT_ASSERT_VALUES_EQUAL(*it[2].Value, "func(3)");
+            UNIT_ASSERT_VALUES_EQUAL(it[3].CppName, "four");
+            UNIT_ASSERT_VALUES_EQUAL(it[3].Value.Defined(), false);
+            UNIT_ASSERT_VALUES_EQUAL(it[4].CppName, "five");
+            UNIT_ASSERT_VALUES_EQUAL(it[4].Value, "MACRO(MACRO(1, 2), 2)");
         }
     }
 

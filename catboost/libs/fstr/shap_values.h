@@ -92,14 +92,13 @@ void CalcAndOutputShapValues(
 );
 
 void CalcShapValuesInternalForFeature(
-        TShapPreparedTrees& preparedTrees,
-        const TFullModel& model,
-        const NCB::TDataProvider& dataset,
-        int logPeriod,
-        ui32 start,
-        ui32 end,
-        ui32 featuresCount,
-        const NCB::TRawObjectsDataProvider* rawObjectsData,
-        TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
-        NPar::TLocalExecutor* localExecutor
+    TShapPreparedTrees& preparedTrees,
+    const TFullModel& model,
+    int logPeriod,
+    ui32 start,
+    ui32 end,
+    ui32 featuresCount,
+    const NCB::TObjectsDataProvider& objectsData,
+    TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
+    NPar::TLocalExecutor* localExecutor
 );

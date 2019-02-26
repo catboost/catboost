@@ -21,11 +21,8 @@ using namespace NCB;
 TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
     const TProcessedDataProvider& processedData, int logPeriod
 ) {
-    const auto* rawObjectsData = dynamic_cast<TRawObjectsDataProvider*>(processedData.ObjectsData.Get());
-    CB_ENSURE(rawObjectsData, "Quantized datasets are not supported yet");
-
     TVector<TVector<ui32>> leafIndices(TreeCount);
-    const TVector<ui8> binarizedFeatures = BinarizeFeatures(Model, *rawObjectsData);
+    const TVector<ui8> binarizedFeatures = GetModelCompatibleQuantizedFeatures(Model, *processedData.ObjectsData.Get());
     LocalExecutor->ExecRange([&] (int treeId) {
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures, treeId);
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);

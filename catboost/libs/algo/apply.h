@@ -71,8 +71,22 @@ public:
         TVector<TVector<double>>* approx);
 
 private:
+    void InitForRawFeatures(
+        const TFullModel& model,
+        const NCB::TRawObjectsDataProvider& rawObjectsData,
+        const THashMap<ui32, ui32> &columnReorderMap,
+        const NPar::TLocalExecutor::TExecRangeParams& blockParams,
+        NPar::TLocalExecutor* executor);
+    void InitForQuantizedFeatures(
+        const TFullModel& model,
+        const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
+        const THashMap<ui32, ui32> &columnReorderMap,
+        const NPar::TLocalExecutor::TExecRangeParams& blockParams,
+        NPar::TLocalExecutor* executor);
+
+private:
     const TFullModel* Model;
-    NCB::TRawObjectsDataProviderPtr RawObjectsData;
+    NCB::TObjectsDataProviderPtr ObjectsData;
     NPar::TLocalExecutor* Executor;
     NPar::TLocalExecutor::TExecRangeParams BlockParams;
     TVector<THolder<TFeatureCachedTreeEvaluator>> ThreadCalcers;

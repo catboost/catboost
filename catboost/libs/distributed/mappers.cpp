@@ -205,7 +205,7 @@ namespace NCatboostDistributed {
             /*initialFold*/nullptr,
             /*pairs*/{},
             localData.Params,
-            candidate.SplitCandidate,
+            candidate.SplitEnsemble,
             localData.Depth,
             localData.UseTreeLevelCaching,
             &NPar::LocalExecutor(),
@@ -229,7 +229,7 @@ namespace NCatboostDistributed {
             /*initialFold*/nullptr,
             pairs,
             localData.Params,
-            candidate.SplitCandidate,
+            candidate.SplitEnsemble,
             localData.Depth,
             localData.UseTreeLevelCaching,
             &NPar::LocalExecutor(),
@@ -314,7 +314,6 @@ namespace NCatboostDistributed {
                 CalculatePairwiseScore(
                     candidatePairwiseStats,
                     bucketCount,
-                    ESplitType::FloatFeature,
                     localData.Params.ObliviousTreeOptions->L2Reg,
                     localData.Params.ObliviousTreeOptions->PairwiseNonDiagReg,
                     &scoreBins);
@@ -327,14 +326,14 @@ namespace NCatboostDistributed {
     void TRemoteBinCalcer::DoMap(
         NPar::IUserContext* ctx,
         int hostId,
-        TInput* candidate,
+        TInput* candidatesInfoList,
         TOutput* bucketStats
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto calcStats3D = [&](const TCandidateInfo& candidate, TStats3D* stats3D) {
             CalcStats3D(trainData, candidate, stats3D);
         };
-        MapVector(calcStats3D, candidate->Candidates, bucketStats);
+        MapVector(calcStats3D, candidatesInfoList->Candidates, bucketStats);
     }
 
     // vector<TStats4D> -> TStats4D
@@ -366,7 +365,6 @@ namespace NCatboostDistributed {
                 *candidateScores = GetScores(
                     GetScoreBins(
                         candidateStats3D,
-                        ESplitType::FloatFeature,
                         localData.Depth,
                         localData.SumAllWeights,
                         localData.AllDocCount,
@@ -378,17 +376,14 @@ namespace NCatboostDistributed {
     void TLeafIndexSetter::DoMap(
         NPar::IUserContext* ctx,
         int hostId,
-        TInput* bestSplitCandidate,
+        TInput* bestSplit,
         TOutput* /*unused*/
     ) const {
-        const TSplit bestSplit(
-            bestSplitCandidate->Data.SplitCandidate,
-            bestSplitCandidate->Data.BestBinBorderId);
-        Y_ASSERT(bestSplit.Type != ESplitType::OnlineCtr);
+        Y_ASSERT(bestSplit->Data.Type != ESplitType::OnlineCtr);
         auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         SetPermutedIndices(
-            bestSplit,
+            bestSplit->Data,
             *trainData->TrainData->ObjectsData,
             localData.Depth + 1,
             localData.Progress.AveragingFold,

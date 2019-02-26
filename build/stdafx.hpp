@@ -181,7 +181,7 @@
 #include <util/memory/smallobj.h>
 #include <util/memory/segmented_string_pool.h>
 #include <util/memory/mmapalloc.h>
-#include <util/string/delim_string_iter.h>
+#include <library/deprecated/split/delim_string_iter.h>
 #include <util/draft/ip.h>
 #include <util/draft/matrix.h>
 #include <util/draft/date.h>
@@ -268,7 +268,7 @@
 #include <util/string/ascii.h>
 #include <util/string/url.h>
 #include <util/string/cast.h>
-#include <util/string/split_iterator.h>
+#include <library/deprecated/split/split_iterator.h>
 #include <util/string/util.h>
 #include <util/string/strip.h>
 #include <util/string/builder.h>

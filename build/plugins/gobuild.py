@@ -1,5 +1,6 @@
 import os
 from _common import rootrel_arc_src
+import ymake
 
 
 runtime_cgo_path = os.path.join('runtime', 'cgo')
@@ -11,7 +12,7 @@ def get_appended_values(unit, key):
     value = []
     raw_value = unit.get(key)
     if raw_value:
-        value = raw_value.split(' ')
+        value = filter(lambda x: len(x) > 0, raw_value.split(' '))
         assert len(value) == 0 or value[0] == '$' + key
     return value[1:] if len(value) > 0 else value
 
@@ -24,6 +25,15 @@ def on_go_process_srcs(unit):
     """
 
     go_files = get_appended_values(unit, 'GO_SRCS_VALUE')
+    for f in go_files:
+        if f.endswith('_test.go'):
+            ymake.report_configure_error('file {} must be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
+    go_test_files = get_appended_values(unit, 'GO_TEST_SRCS_VALUE')
+    go_xtest_files = get_appended_values(unit, 'GO_XTEST_SRCS_VALUE')
+    for f in go_test_files + go_xtest_files:
+        if not f.endswith('_test.go'):
+            ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
+
     go_std_root = unit.get('GOSTD') + os.path.sep
 
     proto_files = filter(lambda x: x.endswith('.proto'), go_files)

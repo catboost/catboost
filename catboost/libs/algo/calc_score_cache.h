@@ -107,7 +107,7 @@ inline static int CountNonCtrBuckets(
 }
 
 struct TBucketStatsCache {
-    THashMap<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
+    THashMap<TSplitEnsemble, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
     inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
@@ -117,7 +117,7 @@ struct TBucketStatsCache {
         }
         MemoryPool = new TMemoryPool(InitialSize);
     }
-    TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty);
+    TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitEnsemble& splitEnsemble, int statsCount, bool* areStatsDirty);
     void GarbageCollect();
     static TVector<TBucketStats> GetStatsInUse(int segmentCount,
         int segmentSize,
@@ -217,7 +217,7 @@ struct TCalcScoreFold {
 
     void Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
-    void Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
+    void Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor, bool isCoinFlipping = true);
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     int GetDocCount() const;
     int GetBodyTailCount() const;
@@ -239,7 +239,8 @@ private:
     template <typename TFoldType>
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
-    void SetSampledControl(int docCount, TRestorableFastRng64* rand);
+    void SetSampledControl(int docCount, ESamplingUnit samplingUnit, const TVector<TQueryInfo>& queriesInfo, TRestorableFastRng64* rand);
+    void SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit);
 
     void CreateBlocksAndUpdateQueriesInfoByControl(
         NPar::TLocalExecutor* localExecutor,
@@ -265,13 +266,16 @@ private:
     THolder<NCB::IIndexRangesGenerator<int>> CalcStatsIndexRanges;
 };
 
+
 struct TStats3D {
     TVector<TBucketStats> Stats; // [bodyTail & approxDim][leaf][bucket]
     int BucketCount = 0;
     int MaxLeafCount = 0;
 
+    TSplitEnsembleSpec SplitEnsembleSpec;
+
     void Add(const TStats3D& stats3D);
 
-    SAVELOAD(Stats, BucketCount, MaxLeafCount);
+    SAVELOAD(Stats, BucketCount, MaxLeafCount, SplitEnsembleSpec);
 };
 

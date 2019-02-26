@@ -24,7 +24,7 @@ static inline TGenericString<TChar> EscapeC(const TChar* str, size_t len) {
 }
 
 template <typename TChar>
-static inline TGenericString<TChar> EscapeC(const TStringBufImpl<TChar>& str) {
+static inline TGenericString<TChar> EscapeC(const TBasicStringBuf<TChar>& str) {
     return EscapeC(str.data(), str.size());
 }
 

@@ -18,4 +18,4 @@
   Clang 7.0.0, Ubuntu Linux 14.04 ppc64le SDK
 * `win`
   * `i686`, `x86_64`  
-    Microsoft Visual C++ 14.13.26128, Windows Kits 10.0.16299.0
+    Microsoft Visual C++ 2017 14.16.27023, Windows Kits 10.0.16299.0

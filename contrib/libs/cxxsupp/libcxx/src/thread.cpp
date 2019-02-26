@@ -1,9 +1,8 @@
 //===------------------------- thread.cpp----------------------------------===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is dual licensed under the MIT and the University of Illinois Open
-// Source Licenses. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -19,9 +18,9 @@
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 # include <sys/param.h>
-# if defined(BSD)
+# if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__APPLE__)
 #   include <sys/sysctl.h>
-# endif // defined(BSD)
+# endif
 #endif // defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__)) || defined(__CloudABI__) || defined(__Fuchsia__)

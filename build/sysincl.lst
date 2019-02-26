@@ -28,6 +28,7 @@ linux/taskstats.h
 linux/tc_act/tc_gact.h
 linux/tc_act/tc_mirred.h
 linux/tc_act/tc_skbedit.h
+linux/tcp.h
 linux/vfio.h
 linux/vhost.h
 linux/virtio_ids.h

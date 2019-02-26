@@ -236,7 +236,7 @@ private:
         DataChunkStr(data, sizeof(TString::char_type));
     }
     void DataChunkWtroka(TUtf16String& data) {
-        DataChunkStr(data, sizeof(TUtf16String::char_type));
+        DataChunkStr(data, sizeof(wchar16));
     }
 
     void DataChunk(void* pData, i64 nSize) {

@@ -95,7 +95,7 @@ public:
     }
 
     void DoWhiteSpace(const TText& text) override {
-        if (InValue == InEnumState) {
+        if (InValue == InEnumState || InValueCall == InEnumState) {
             AppendValue(text.Data);
         }
     }
@@ -110,10 +110,23 @@ public:
             } else if ('=' == sym) {
                 InEnumState = InValue;
                 continue;
-            } else if (',' == sym) {
+            } else if ('(' == sym && (InValue == InEnumState || InValueCall == InEnumState)) {
+                // there may be constexpr function / macro call in value part,
+                // handle them appropriately
+                InEnumState = InValueCall;
+                ++BracesBalance;
+                AppendValue(sym);
+                continue;
+            } else if (')' == sym && InValueCall == InEnumState) {
+                if (!--BracesBalance) {
+                    InEnumState = InValue;
+                }
+                AppendValue(sym);
+                continue;
+            } else if (',' == sym && InValueCall != InEnumState) {
                 AddEnumItem();
                 continue;
-            } else if (InValue == InEnumState) {
+            } else if (InValue == InEnumState || InValueCall == InEnumState) {
                 AppendValue(sym);
             }
         }
@@ -124,7 +137,7 @@ public:
             return;
         }
 
-        if (InValue == InEnumState) {
+        if (InValue == InEnumState || InValueCall == InEnumState) {
             AppendValue(text.Data);
             return;
         }
@@ -151,12 +164,15 @@ public:
         Begin,
         AfterCppName,
         InValue,
+        InValueCall,
         End,
     };
     EInEnumState InEnumState = Begin;
 
     TEnum& CurrentEnum;
     TItem CurrentItem;
+
+    size_t BracesBalance = 0;
 };
 
 /**

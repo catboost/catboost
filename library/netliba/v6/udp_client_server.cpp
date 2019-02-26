@@ -17,6 +17,8 @@
 #include <util/random/random.h>
 #include <util/system/sanitizers.h>
 
+#include <atomic>
+
 namespace NNetliba {
     // rely on UDP checksum in packets, check crc only for complete packets
     // UPDATE: looks like UDP checksum is not enough, network errors do happen, we saw 600+ retransmits of a ~1MB data packet
@@ -286,7 +288,7 @@ namespace NNetliba {
         TList<TTransferKey> SendOrderLow, SendOrder, SendOrderHighPrior;
         TAtomic IsWaiting;
         float MaxWaitTime;
-        volatile float MaxWaitTime2;
+        std::atomic<float> MaxWaitTime2;
         float IBIdleTime;
         TVector<TTransferKey> RecvCompletedQueue, KeepCompletedQueue;
         float TimeSinceCompletedQueueClean, TimeSinceCongestionHistoryUpdate;

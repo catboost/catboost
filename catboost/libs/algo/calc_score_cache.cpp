@@ -13,17 +13,17 @@ bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fit
     return fitParams.SamplingFrequency.Get() == ESamplingFrequency::PerTree;
 }
 
-TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitCandidate& split, int splitStatsCount, bool* areStatsDirty) {
+TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitEnsemble& splitEnsemble, int splitStatsCount, bool* areStatsDirty) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
-        if (Stats.contains(split) && Stats[split] != nullptr) {
-            splitStats = Stats[split].Get();
+        if (Stats.contains(splitEnsemble) && Stats[splitEnsemble] != nullptr) {
+            splitStats = Stats[splitEnsemble].Get();
             Y_ASSERT(splitStats->ysize() >= splitStatsCount);
             *areStatsDirty = false;
         } else {
             splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
             splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
-            Stats[split] = splitStats;
+            Stats[splitEnsemble] = splitStats;
             *areStatsDirty = true;
         }
     }
@@ -369,8 +369,13 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
     SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
 }
 
-void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
-    SetSampledControl(indices.ysize(), rand);
+void TCalcScoreFold::Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor, bool isCoinFlipping) {
+    if (isCoinFlipping) {
+        SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
+    } else {
+        BernoulliSampleRate = 0.0f;
+        SetControlNoZeroWeighted(indices.ysize(), fold.SampleWeights.data(), samplingUnit);
+    }
 
     TVectorSlicing srcBlocks;
     TVectorSlicing dstBlocks;
@@ -485,9 +490,17 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TU
     }
 }
 
-void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand) {
+void TCalcScoreFold::SetSampledControl(int docCount, ESamplingUnit samplingUnit, const TVector<TQueryInfo>& queriesInfo, TRestorableFastRng64* rand) {
     if (BernoulliSampleRate == 1.0f || IsPairwiseScoring) {
         Fill(Control.begin(), Control.end(), true);
+        return;
+    }
+    if (samplingUnit == ESamplingUnit::Group) {
+        for (auto& queryInfo: queriesInfo) {
+            auto itBegin = GetDataPtr(Control, queryInfo.Begin);
+            auto itEnd = GetDataPtr(Control, queryInfo.End);
+            Fill(itBegin, itEnd, rand->GenRandReal1() < BernoulliSampleRate);
+        }
         return;
     }
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
@@ -495,6 +508,13 @@ void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand)
     }
 }
 
+void TCalcScoreFold::SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit) {
+    CB_ENSURE(samplingUnit != ESamplingUnit::Group, "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)");
+    constexpr float EPS = std::numeric_limits<float>::epsilon();
+    for (int docIdx = 0; docIdx < docCount; ++docIdx) {
+        Control[docIdx] = sampleWeights[docIdx] > EPS;
+    }
+}
 
 void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
     NPar::TLocalExecutor* localExecutor,
@@ -612,9 +632,13 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
 }
 
 void TStats3D::Add(const TStats3D& stats3D) {
-    CB_ENSURE(stats3D.BucketCount == BucketCount
+    CB_ENSURE(
+        stats3D.BucketCount == BucketCount
         && stats3D.MaxLeafCount == MaxLeafCount
-        && stats3D.Stats.ysize() == Stats.ysize(), "Leaf, bucket, dimension, and fold counts must match");
+        && stats3D.Stats.ysize() == Stats.ysize()
+        && stats3D.SplitEnsembleSpec == SplitEnsembleSpec,
+        "SplitEnsembleSpec, SplitType, Leaf, bucket, dimension, and fold counts must match"
+    );
     for (int statIdx = 0; statIdx < Stats.ysize(); ++statIdx) {
         Stats[statIdx].Add(stats3D.Stats[statIdx]);
     }

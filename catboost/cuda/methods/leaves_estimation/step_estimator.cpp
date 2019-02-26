@@ -70,10 +70,10 @@ namespace NCatboostCuda {
                                                 const TVector<double>& gradientAtPoint,
                                                 const TVector<float>& moveDirection) {
         switch (type) {
-            case ELeavesEstimationStepBacktracking::None: {
+            case ELeavesEstimationStepBacktracking::No: {
                 return new TSkipStepEstimation;
             }
-            case ELeavesEstimationStepBacktracking::AnyImprovment: {
+            case ELeavesEstimationStepBacktracking::AnyImprovement: {
                 return new TSimpleStepEstimator(currentPoint);
             }
             case ELeavesEstimationStepBacktracking::Armijo: {

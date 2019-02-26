@@ -20,6 +20,8 @@ RECURSE(
     sigc++
     udns
     mimepp
+    pygtrie
+    pygtrie/tests
 )
 
 

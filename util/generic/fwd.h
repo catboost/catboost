@@ -28,15 +28,11 @@ template <class TCharType>
 class TCharTraits;
 
 template <typename TChar, typename TTraits = TCharTraits<TChar>>
-class TStringBufImpl;
+class TBasicStringBuf;
 
-using TStringBuf = TStringBufImpl<char>;
-using TWtringBuf = TStringBufImpl<wchar16>;
-using TUtf32StringBuf = TStringBufImpl<wchar32>;
-
-//alias for compatibility with TGenericString
-template <typename TChar>
-using TGenericStringBuf = TStringBufImpl<TChar>;
+using TStringBuf = TBasicStringBuf<char>;
+using TWtringBuf = TBasicStringBuf<wchar16>;
+using TUtf32StringBuf = TBasicStringBuf<wchar32>;
 
 //intrusive containers
 template <class T>

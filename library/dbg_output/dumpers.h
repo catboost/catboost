@@ -173,5 +173,5 @@ struct TDumper<std::basic_string<C, T, A>>: public TStrDumper {
 };
 
 template <class TChar>
-struct TDumper<TGenericStringBuf<TChar>>: public TStrDumper {
+struct TDumper<TBasicStringBuf<TChar>>: public TStrDumper {
 };

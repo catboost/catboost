@@ -26,12 +26,14 @@ namespace NCatboostCuda {
 
             double queriesSampleRate = 1.0;
             double docwiseSampleRate = 1.0;
+            ESamplingUnit samplingUnit = bootstrapConfig.GetSamplingUnit();
+
             if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bernoulli) {
                 const double sampleRate = bootstrapConfig.GetTakenFraction();
-                if (SamplingType == ESamplingType::Groupwise) {
+                if (samplingUnit == ESamplingUnit::Group) {
                     queriesSampleRate = sampleRate;
                 } else {
-                    CB_ENSURE(SamplingType == ESamplingType::Docwise);
+                    CB_ENSURE(samplingUnit == ESamplingUnit::Object);
                     docwiseSampleRate = sampleRate;
                 }
             }

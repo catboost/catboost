@@ -2,8 +2,10 @@
 
 #include <library/unittest/registar.h>
 
+#include <string_view>
+
 Y_UNIT_TEST_SUITE(TStrBufTest) {
-    Y_UNIT_TEST(TestConstructors) {
+    Y_UNIT_TEST(TestConstructorsAndOperators) {
         TStringBuf str("qwerty");
 
         UNIT_ASSERT_EQUAL(*str.data(), 'q');
@@ -14,6 +16,13 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_VALUES_UNEQUAL(str1, str2);
         UNIT_ASSERT_VALUES_EQUAL(str1.size(), 7);
         UNIT_ASSERT_VALUES_EQUAL(str2.size(), 3);
+
+        std::string_view helloWorld("Hello, World!");
+        TStringBuf fromStringView(helloWorld);
+        UNIT_ASSERT_EQUAL(fromStringView.data(), helloWorld.data());
+
+        std::string_view fromStringBuf = fromStringView;
+        UNIT_ASSERT_EQUAL(helloWorld.data(), fromStringBuf.data());
     }
 
     Y_UNIT_TEST(TestConstExpr) {

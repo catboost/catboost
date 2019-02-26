@@ -37,6 +37,13 @@ namespace NPrivateException {
 
     class yexception: public std::exception {
     public:
+        yexception();
+        yexception(const yexception&) = default;
+        yexception(yexception&&) = default;
+
+        yexception& operator=(const yexception&) = default;
+        yexception& operator=(yexception&&) = default;
+
         const char* what() const noexcept override;
         virtual const TBackTrace* BackTrace() const noexcept;
 
@@ -44,14 +51,16 @@ namespace NPrivateException {
         inline void Append(const T& t) {
             TTempBufCuttingWrapperOutput tempBuf(Buf_);
             static_cast<IOutputStream&>(tempBuf) << t;
+            ZeroTerminate();
         }
 
-        TStringBuf AsStrBuf() const {
-            return TStringBuf(Buf_.Data(), Buf_.Filled());
-        }
+        TStringBuf AsStrBuf() const;
 
     private:
-        mutable TTempBuf Buf_;
+        void ZeroTerminate() noexcept;
+
+    private:
+        TTempBuf Buf_;
     };
 
     template <class E, class T>

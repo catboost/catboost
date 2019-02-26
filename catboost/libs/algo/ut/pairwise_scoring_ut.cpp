@@ -46,6 +46,7 @@ static TPairwiseStats CalcPairwiseStats(
         leafIndices,
         [&](ui32 docId) { return bucketIndices[docId]; },
         NCB::TIndexRange<int>(pairCount));
+    pairwiseStats.SplitEnsembleSpec = TSplitEnsembleSpec::OneSplit(ESplitType::FloatFeature);
 
     return pairwiseStats;
 }
@@ -140,7 +141,7 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         TVector<TScoreBin> scoreBins1(bucketCount - 1), scoreBins2(bucketCount - 1);
         {
             TPairwiseStats pairwiseStats = CalcPairwiseStats(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount);
-            CalculatePairwiseScore(pairwiseStats, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
+            CalculatePairwiseScore(pairwiseStats, bucketCount, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
         }
         CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins2);
 
@@ -177,7 +178,7 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         TVector<TScoreBin> scoreBins1(bucketCount - 1), scoreBins2(bucketCount - 1);
         {
             TPairwiseStats pairwiseStats = CalcPairwiseStats(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount);
-            CalculatePairwiseScore(pairwiseStats, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
+            CalculatePairwiseScore(pairwiseStats, bucketCount, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
         }
         CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins2);
 

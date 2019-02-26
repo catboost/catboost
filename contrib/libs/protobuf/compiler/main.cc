@@ -37,6 +37,7 @@
 #include "compiler/perlxs/perlxs_generator.h"
 #include "compiler/python/python_generator.h"
 #include "compiler/java/java_generator.h"
+#include "compiler/js/js_generator.h"
 #endif  // ! OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
 
 int main(int argc, char* argv[]) {
@@ -67,6 +68,11 @@ int main(int argc, char* argv[]) {
   google::protobuf::compiler::perlxs::PerlXSGenerator perlxs_generator;
   cli.RegisterGenerator("--perlxs_out", &perlxs_generator,
                         "Generate Perl/XS source files.");
+
+  // JavaScript
+  google::protobuf::compiler::js::Generator js_generator;
+  cli.RegisterGenerator("--js_out", &js_generator,
+                        "Generate JavaScript source.");
 #endif  // !OPENSOURCE_PROTOBUF_CPP_BOOTSTRAP
 
   return cli.Run(argc, argv);

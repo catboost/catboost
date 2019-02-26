@@ -170,8 +170,31 @@ void Patch(const TString& path, const TString& library, IOutputStream& verboseOu
     }
 }
 
+void PatchGnuUnique(const TString& path, IOutputStream& verboseOut) {
+    TElf elf(path);
+
+    for (Elf64_Shdr* it = elf.GetSectionBegin(), *end = elf.GetSectionEnd(); it != end; ++it) {
+        if (it->sh_type == SHT_SYMTAB) {
+
+            TSection section{&elf, it};
+            verboseOut << "Found symbol section [" << section.GetName() << ']' << Endl;
+
+            for (size_t i = 0, count = section.GetEntryCount(); i < count; ++i) {
+                Elf64_Sym* symbol = section.GetEntry<Elf64_Sym>(i);
+                auto& info = symbol->st_info;
+
+                if (ELF64_ST_BIND(info) == STB_GNU_UNIQUE) {
+                    verboseOut << "Found GNU unique symbol #" << i << Endl;
+                    info = ELF64_ST_INFO(STB_GLOBAL, ELF64_ST_TYPE(info));
+                }
+            }
+        }
+    }
+}
+
 int main(int argc, char* argv[]) {
     bool verbose = false;
+    bool rewrite_unique = false;
 
     using namespace NLastGetopt;
 
@@ -179,6 +202,7 @@ int main(int argc, char* argv[]) {
     opts.AddHelpOption();
 
     opts.AddLongOption('v', "verbose").NoArgument().StoreValue(&verbose, true);
+    opts.AddLongOption('u', "rewrite-gnu-unique", "Change STB_GNU_UNIQUE to STB_GLOBAL").NoArgument().StoreValue(&rewrite_unique, true);
 
     opts.SetFreeArgsMin(1);
     opts.SetFreeArgTitle(0, "<file>", "File");
@@ -203,8 +227,12 @@ int main(int argc, char* argv[]) {
         verboseOut << "Patching " << path << Endl;
 
         try {
-            Patch(path, "libc.so.6", verboseOut);
-            Patch(path, "libm.so.6", verboseOut);
+            if (rewrite_unique) {
+                PatchGnuUnique(path, verboseOut);
+            } else {
+                Patch(path, "libc.so.6", verboseOut);
+                Patch(path, "libm.so.6", verboseOut);
+            }
         } catch (const yexception& e) {
             Cerr << "Patching failed: " << e.what() << Endl;
         }

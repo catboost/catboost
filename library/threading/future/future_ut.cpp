@@ -412,6 +412,25 @@ namespace NThreading {
             UNIT_ASSERT(promise.TrySetValue(42));
             UNIT_ASSERT(!promise.TrySetValue(42));
         }
+
+        Y_UNIT_TEST(ShouldAllowToMakeFutureWithException)
+        {
+            auto future1 = MakeErrorFuture<void>(std::make_exception_ptr(TFutureException()));
+            UNIT_ASSERT(future1.HasException());
+            UNIT_CHECK_GENERATED_EXCEPTION(future1.GetValue(), TFutureException);
+
+            auto future2 = MakeErrorFuture<int>(std::make_exception_ptr(TFutureException()));
+            UNIT_ASSERT(future2.HasException());
+            UNIT_CHECK_GENERATED_EXCEPTION(future2.GetValue(), TFutureException);
+
+            auto future3 = MakeFuture<std::exception_ptr>(std::make_exception_ptr(TFutureException()));
+            UNIT_ASSERT(future3.HasValue());
+            UNIT_CHECK_GENERATED_NO_EXCEPTION(future3.GetValue(), TFutureException);
+
+            auto future4 = MakeFuture<std::unique_ptr<int>>(nullptr);
+            UNIT_ASSERT(future4.HasValue());
+            UNIT_CHECK_GENERATED_NO_EXCEPTION(future4.GetValue(), TFutureException);
+        }
     }
 
 }

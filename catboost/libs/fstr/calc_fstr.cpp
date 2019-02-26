@@ -10,6 +10,8 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/restrictions.h>
@@ -242,15 +244,15 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     NCatboostOptions::TLossDescription lossDescription;
     CB_ENSURE(TryGetLossDescription(model, lossDescription));
-    ui32 documentCount = dataProvider.ObjectsData->GetObjectCount();
-    ui32 maxDocuments = Min(documentCount, Max(ui32(1e5), ui32(1e9 / dataProvider.ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
+    ui32 totalDocumentCount = dataProvider.ObjectsData->GetObjectCount();
+    ui32 maxDocuments = Min(totalDocumentCount, Max(ui32(1e5), ui32(1e9 / dataProvider.ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
 
     const auto dataset = GetSubset(dataProvider, maxDocuments, localExecutor);
 
-    documentCount = dataset.ObjectsData->GetObjectCount();
+    ui32 documentCount = dataset.ObjectsData->GetObjectCount();
     const TObjectsDataProvider& objectsData = *dataset.ObjectsData;
-    const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
-    CB_ENSURE(rawObjectsData, "Quantized dataProviders are not supported yet");
+
+    CATBOOST_INFO_LOG << "Selected " << documentCount << " documents from " << totalDocumentCount << " for LossFunctionChange calculation." << Endl;
 
     TRestorableFastRng64 rand(0);
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {lossDescription}, model, &rand, localExecutor).TargetData;
@@ -268,7 +270,11 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     );
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
     int approDimension = model.ObliviousTrees.ApproxDimension;
+
+    TProfileInfo profile(documentCount);
+    TImportanceLogger importanceLogger(documentCount, "Process documents", "Started LossFunctionChange calculation", 1);
     for (ui32 queryBegin = 0; queryBegin < blockCount; queryBegin += blockSize) {
+        profile.StartIterationBlock();
         ui32 queryEnd = Min(blockCount, queryBegin + blockSize);
         ui32 begin, end;
         if (queriesInfo.empty()) {
@@ -279,8 +285,16 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             end = queriesInfo[queryEnd - 1].End;
         }
         TVector<TVector<TVector<double>>> shapValues;
-        CalcShapValuesInternalForFeature(preparedTrees, model, dataset, 0, begin, end, featuresCount,
-                                         rawObjectsData, &shapValues, localExecutor);
+        CalcShapValuesInternalForFeature(
+            preparedTrees,
+            model,
+            0,
+            begin,
+            end,
+            featuresCount,
+            objectsData,
+            &shapValues,
+            localExecutor);
 
         for (int featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
             NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
@@ -300,6 +314,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
         }
+        profile.FinishIterationBlock(end - begin);
+        importanceLogger.Log(profile.GetProfileResults());
     }
 
     TVector<std::pair<double, int>> featureScore(featuresCount);
@@ -324,22 +340,15 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
-     if (type == EFstrType::LossFunctionChange) {
-         CB_ENSURE(dataset, "dataset is not provided");
-
-         const TObjectsDataProvider& objectsData = *(dataset->ObjectsData);
-         const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData);
-         CB_ENSURE(rawObjectsData); // Not supported for quantized pools
-         NCatboostOptions::TLossDescription lossDescription;
-         CB_ENSURE(TryGetLossDescription(model, lossDescription));
-         NCatboostOptions::TLossDescription loss_description;
-         loss_description.Load(ReadTJsonValue(model.ModelInfo.at("params"))["loss_function"]);
-         CB_ENSURE(IsGroupwiseMetric(loss_description.LossFunction), "Use loss change fstr only for groupwise metric");
-
-         return CalcFeatureEffectLossChange(model, *dataset, localExecutor);
-     } else {
-         return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
-     }
+    if (type == EFstrType::LossFunctionChange) {
+        CB_ENSURE(dataset, "dataset is not provided");
+        NCatboostOptions::TLossDescription lossDescription;
+        CB_ENSURE(TryGetLossDescription(model, lossDescription));
+        CB_ENSURE(IsGroupwiseMetric(lossDescription.LossFunction), "Use loss change fstr only for groupwise metric");
+        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
+    } else {
+        return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
+    }
 }
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(

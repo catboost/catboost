@@ -5,6 +5,34 @@
 
 #include <library/statistics/statistics.h>
 
+#include <util/system/compiler.h>
+
+
+class TNoOverfittingDetector : public IOverfittingDetector {
+public:
+    void AddError(double err) override {
+        Y_UNUSED(err);
+    }
+    bool IsNeedStop() const override {
+        return false;
+    }
+    int GetIterationsWait() const override {
+        return 0;
+    }
+    double GetCurrentPValue() const override {
+        return 0.0;
+    }
+    double GetThreshold() const override {
+        return 0.0;
+    }
+    bool GetMaxIsOptimal() const override {
+        return false;
+    }
+    bool IsActive() const override {
+        return false;
+    }
+};
+
 
 class TOverfittingDetectorBase : public IOverfittingDetector {
 public:
@@ -156,6 +184,10 @@ private:
 
 THolder<IOverfittingDetector> CreateOverfittingDetector(EOverfittingDetectorType type, bool maxIsOptimal, double threshold, int iterationsWait, bool hasTest) {
     switch (type) {
+    case EOverfittingDetectorType::None:
+    {
+        return MakeHolder<TNoOverfittingDetector>();
+    }
     case EOverfittingDetectorType::IncToDec:
     {
         return MakeHolder<TOverfittingDetectorIncToDec>(maxIsOptimal, threshold, iterationsWait, hasTest);

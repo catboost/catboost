@@ -60,8 +60,8 @@ MARKER_EXPR = originalTextFor(MARKER_EXPR())("marker")
 MARKER_EXPR.setParseAction(
     lambda s, l, t: Marker(s[t._original_start:t._original_end])
 )
-MARKER_SEPERATOR = SEMICOLON
-MARKER = MARKER_SEPERATOR + MARKER_EXPR
+MARKER_SEPARATOR = SEMICOLON
+MARKER = MARKER_SEPARATOR + MARKER_EXPR
 
 VERSION_AND_MARKER = VERSION_SPEC + Optional(MARKER)
 URL_AND_MARKER = URL + Optional(MARKER)
@@ -70,6 +70,9 @@ NAMED_REQUIREMENT = \
     NAME + Optional(EXTRAS) + (URL_AND_MARKER | VERSION_AND_MARKER)
 
 REQUIREMENT = stringStart + NAMED_REQUIREMENT + stringEnd
+# pyparsing isn't thread safe during initialization, so we do it eagerly, see
+# issue #104
+REQUIREMENT.parseString("x[]")
 
 
 class Requirement(object):
@@ -89,16 +92,16 @@ class Requirement(object):
         try:
             req = REQUIREMENT.parseString(requirement_string)
         except ParseException as e:
-            raise InvalidRequirement(
-                "Invalid requirement, parse error at \"{0!r}\"".format(
-                    requirement_string[e.loc:e.loc + 8]))
+            raise InvalidRequirement("Parse error at \"{0!r}\": {1}".format(
+                requirement_string[e.loc:e.loc + 8], e.msg
+            ))
 
         self.name = req.name
         if req.url:
             parsed_url = urlparse.urlparse(req.url)
             if not (parsed_url.scheme and parsed_url.netloc) or (
                     not parsed_url.scheme and not parsed_url.netloc):
-                raise InvalidRequirement("Invalid URL given")
+                raise InvalidRequirement("Invalid URL: {0}".format(req.url))
             self.url = req.url
         else:
             self.url = None

@@ -63,7 +63,7 @@ namespace NStlIterator {
  */
 template <class TSlave>
 class TInputRangeAdaptor {
-public:
+public: // TODO: private
     class TIterator {
     public:
         static constexpr bool IsNoexceptNext = noexcept(std::declval<TSlave>().Next());

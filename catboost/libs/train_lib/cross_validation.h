@@ -18,22 +18,30 @@
 
 
 struct TCVIterationResults {
-    double AverageTrain;
-    double StdDevTrain;
+    TMaybe<double> AverageTrain;
+    TMaybe<double> StdDevTrain;
     double AverageTest;
     double StdDevTest;
 };
 
 struct TCVResult {
     TString Metric;
+    TVector<ui32> Iterations;
     TVector<double> AverageTrain;
     TVector<double> StdDevTrain;
     TVector<double> AverageTest;
     TVector<double> StdDevTest;
 
-    void AppendOneIterationResults(const TCVIterationResults& results) {
-        AverageTrain.push_back(results.AverageTrain);
-        StdDevTrain.push_back(results.StdDevTrain);
+    void AppendOneIterationResults(ui32 iteration, const TCVIterationResults& results) {
+        Iterations.push_back(iteration);
+        if (results.AverageTrain.Defined()) {
+            AverageTrain.push_back(results.AverageTrain.GetRef());
+        }
+
+        if (results.StdDevTrain.Defined()) {
+            StdDevTrain.push_back(results.StdDevTrain.GetRef());
+        }
+
         AverageTest.push_back(results.AverageTest);
         StdDevTest.push_back(results.StdDevTest);
     }

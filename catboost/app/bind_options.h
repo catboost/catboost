@@ -11,3 +11,14 @@ void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
                       TString* paramPath,
                       NCatboostOptions::TPoolLoadParams* params);
+
+void InitOptions(
+    const TString& optionsFile,
+    NJson::TJsonValue* catBoostJsonOptions,
+    NJson::TJsonValue* outputOptionsJson
+);
+
+void CopyIgnoredFeaturesToPoolParams(
+    const NJson::TJsonValue& catBoostJsonOptions,
+    NCatboostOptions::TPoolLoadParams* poolLoadParams
+);

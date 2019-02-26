@@ -47,7 +47,8 @@ namespace NPrivate {
     }
 }
 
-#if _LIBCPP_STD_VER >= 17
+#if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
+// Disable std::conjunction for MSVC by analogy with std::disjunction.
 template <class... Bs>
 using TConjunction = std::conjunction<Bs...>;
 #else
@@ -55,7 +56,10 @@ template <class... Bs>
 struct TConjunction : ::TBoolConstant< ::NPrivate::ConjunctionImpl<Bs...>()> {};
 #endif
 
-#if _LIBCPP_STD_VER >= 17
+#if _LIBCPP_STD_VER >= 17 && !defined(_MSC_VER)
+// Disable std::disjunction for MSVC.
+// It reduces build time (500 -> 20 seconds) and memory consumption (20 GB -> less than 1 GB)
+// for some files (notably search/dssm_boosting/dssm_boosting_calcer.cpp).
 template <class... Bs>
 using TDisjunction = std::disjunction<Bs...>;
 #else

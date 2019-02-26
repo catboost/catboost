@@ -672,6 +672,7 @@ class Build(object):
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
             emit('SVN_DEPENDS')
+            emit('SVN_DEPENDS_CACHE')
         else:
             def find_svn():
                 for i in range(0, 3):
@@ -686,6 +687,7 @@ class Build(object):
                 return ''
 
             emit('SVN_DEPENDS', find_svn())
+            emit('SVN_DEPENDS_CACHE', '${hide;kv:"disable_cache"}')
 
     @staticmethod
     def _load_json_from_base64(base64str):
@@ -1058,6 +1060,7 @@ class MSVCToolchainOptions(ToolchainOptions):
         self.under_wine = 'wine' in self.params
         self.system_msvc = 'system_msvc' in self.params
         self.ide_msvs = 'ide_msvs' in self.params
+        self.use_clang = self.params.get('use_clang', False)
 
         self.sdk_version = None
 
@@ -1133,7 +1136,7 @@ class MSVCToolchainOptions(ToolchainOptions):
             def prefix(_type, _path):
                 if not self.under_wine:
                     return _path
-                return '{wine} {type} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140', type=_type, path=_path)
+                return '{wine} {type} ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140', type=_type, path=_path)
 
             self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
             self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
@@ -1364,9 +1367,6 @@ class GnuCompiler(Compiler):
         self.debug_info_flags = ['-g']
         if self.target.is_linux:
             self.debug_info_flags.append('-ggnu-pubnames')
-        if is_positive('DEBUG_PREFIX_MAP'):
-            self.c_foptions.append('-fdebug-prefix-map=${ARCADIA_ROOT}/=')
-            self.c_foptions.append('-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}/=')
 
         self.cross_suffix = '' if is_positive('FORCE_NO_PIC') else '.pic'
 
@@ -1717,6 +1717,14 @@ class LD(Linker):
         if self.type in (Linker.LLD, Linker.GOLD):
             self.ld_flags.append('-Wl,--gdb-index')
 
+        if is_positive('DUMP_LINKER_MAP'):
+            if self.type == Linker.LLD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.lld:REALPRJNAME}')
+            elif self.type == Linker.GOLD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.gold:REALPRJNAME}')
+            elif self.type == Linker.BFD:
+                self.ld_flags.append('-Wl,-Map=${output;rootrel;suf=.map.bfd:REALPRJNAME}')
+
     def print_linker(self):
         super(LD, self).print_linker()
 
@@ -1920,7 +1928,7 @@ class MSVCCompiler(Compiler, MSVC):
             'SSE2_ENABLED=1',
             'SSE3_ENABLED=1',
             'SSSE3_ENABLED=1',
-            '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES'
+            '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
         ]
 
         if target.is_x86_64:
@@ -1994,7 +2002,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             flags.append('/I"{}"'.format(vc_include))
 
         if self.tc.ide_msvs:
-            flags += ['/FD', '/MP']
+            if not self.tc.use_clang:
+                flags += ['/FD', '/MP']
             debug_info_flags = '/Zi /FS'
         else:
             debug_info_flags = '/Z7'
@@ -2139,7 +2148,7 @@ class MSVCLinker(MSVC, Linker):
         # TODO(nslus): DEVTOOLS-1868 remove restriction.
         if not self.tc.under_wine:
             if self.tc.ide_msvs:
-                flags_debug_only.append('/DEBUG:FASTLINK')
+                flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
                 flags_release_only.append('/DEBUG')
             else:
                 # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
@@ -2445,6 +2454,8 @@ class Cuda(object):
         if self.use_arcadia_cuda.value and self.cuda_host_compiler.value is None:
             logger.warning('$USE_ARCADIA_CUDA is set, but no $CUDA_HOST_COMPILER')
 
+        self.setup_vc_root()
+
         self.cuda_root.emit()
         self.cuda_version.emit()
         self.use_arcadia_cuda.emit()
@@ -2488,7 +2499,7 @@ class Cuda(object):
         if host != target:
             return False
 
-        if self.cuda_version.value in ('9.0', '9.1', '9.2'):
+        if self.cuda_version.value in ('9.0', '9.1', '9.2', '10.0'):
             return True
 
         if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
@@ -2538,6 +2549,7 @@ class Cuda(object):
 
     def cuda_windows_host_compiler(self):
         vc_version = {
+            '10.0': '14.13.26128',  # (not latest)
             '9.2': '14.13.26128',
             '9.1': '14.11.25503',
             '9.0': '14.11.25503',
@@ -2555,6 +2567,27 @@ class Cuda(object):
         self.cuda_host_compiler_env.value = format_env(env)
         self.cuda_host_msvc_version.value = vc_version
         return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
+
+    def setup_vc_root(self):
+        if not self.cuda_host_compiler.from_user:
+            return  # Already set in cuda_windows_host_compiler()
+
+        if self.cuda_host_compiler_env.from_user:
+            return  # We won't override user setting
+
+        def is_root(dir):
+            return all(os.path.isdir(os.path.join(dir, name)) for name in ('bin', 'include', 'lib'))
+
+        def get_root():
+            path, old_path = os.path.normpath(self.cuda_host_compiler.value), None
+            while path != old_path:
+                if is_root(path):
+                    return path
+                path, old_path = os.path.dirname(path), path
+
+        vc_root = get_root()
+        if vc_root:
+            self.cuda_host_compiler_env.value = format_env({'Y_VC_Root': vc_root})
 
     def auto_cuda_arcadia_includes(self):
         return self.cuda_version_list >= [9, 0]

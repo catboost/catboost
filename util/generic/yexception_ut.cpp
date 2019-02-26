@@ -252,7 +252,7 @@ private:
             }
             yexception e;
             e << s;
-            UNIT_ASSERT_EQUAL(e.AsStrBuf(), s.substr(0, tmp.Size()));
+            UNIT_ASSERT_EQUAL(e.AsStrBuf(), s.substr(0, tmp.Size() - 1));
         }
     }
 };

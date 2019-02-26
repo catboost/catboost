@@ -20,6 +20,7 @@ SRCS(
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
+    mvs.cpp
     online_ctr.cpp
     online_predictor.cpp
     plot.cpp
@@ -54,6 +55,7 @@ PEERDIR(
     library/binsaver
     library/containers/2d_array
     library/containers/dense_hash
+    library/containers/stack_vector
     library/digest/crc32c
     library/digest/md5
     library/dot_product
