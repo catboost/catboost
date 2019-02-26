@@ -927,15 +927,19 @@ LOSS_FUNCTIONS_SHORT = ['Logloss', 'MultiClass']
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_SHORT)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_doc_id(loss_function, boosting_type):
+    """This is a test on proper parsing of column descriptors. In the future
+    DocId will be deprecated and replaced with SampleId. So, the test checks
+    that DocId is parsed correctly.
+    """
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--loss-function', loss_function,
-        '-f', data_file('adult_doc_id', 'train'),
-        '-t', data_file('adult_doc_id', 'test'),
-        '--column-description', data_file('adult_doc_id', 'train.cd'),
+        '-f', data_file('adult_sample_id', 'train'),
+        '-t', data_file('adult_sample_id', 'test'),
+        '--column-description', data_file('adult_sample_id', 'train-obsolete.cd'),
         '--boosting-type', boosting_type,
         '-i', '10',
         '-w', '0.03',
@@ -950,8 +954,46 @@ def test_doc_id(loss_function, boosting_type):
     cmd = (
         CATBOOST_PATH,
         'calc',
-        '--input-path', data_file('adult_doc_id', 'test'),
-        '--column-description', data_file('adult_doc_id', 'train.cd'),
+        '--input-path', data_file('adult_sample_id', 'test'),
+        '--column-description', data_file('adult_sample_id', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(cmd)
+
+    assert(compare_evals(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_SHORT)
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_sample_id(loss_function, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', data_file('adult_sample_id', 'train'),
+        '-t', data_file('adult_sample_id', 'test'),
+        '--column-description', data_file('adult_sample_id', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult_sample_id', 'test'),
+        '--column-description', data_file('adult_sample_id', 'train.cd'),
         '-m', output_model_path,
         '--output-path', formula_predict_path,
         '--prediction-type', 'RawFormulaVal'

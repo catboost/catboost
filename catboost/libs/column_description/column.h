@@ -12,7 +12,7 @@ enum class EColumn {
     Auxiliary,
     Baseline,
     Weight,
-    DocId,
+    SampleId,
     GroupId,
     GroupWeight,
     SubgroupId,
@@ -24,6 +24,9 @@ enum class EColumn {
 inline bool IsFactorColumn(EColumn column) {
     return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse;
 }
+
+TStringBuf ToCanonicalColumnName(TStringBuf columnName);
+
 
 struct TColumn {
     EColumn Type;

@@ -183,7 +183,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Weight:
                 pbColumnType = NCB::NIdl::CT_WEIGHT;
                 break;
-            case EColumn::DocId:
+            case EColumn::SampleId:
                 pbColumnType = NCB::NIdl::CT_DOCUMENT_ID;
                 break;
             case EColumn::GroupId:
@@ -392,7 +392,7 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
                 type = EColumn::SubgroupId;
                 break;
             case NCB::NIdl::CT_DOCUMENT_ID:
-                type = EColumn::DocId;
+                type = EColumn::SampleId;
                 break;
             case NCB::NIdl::CT_GROUP_ID:
                 type = EColumn::GroupId;
@@ -509,7 +509,7 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         } else {
             EColumn columnType;
             if (featureIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
-                columnType = EColumn::DocId;
+                columnType = EColumn::SampleId;
             } else if (featureIndex == poolMetainfo.GetStringGroupIdFakeColumnIndex()) {
                 columnType = EColumn::GroupId;
             } else if (featureIndex == poolMetainfo.GetStringSubgroupIdFakeColumnIndex()){
@@ -560,7 +560,7 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
     if (pool.HasStringColumns = !stringColumnChunks.empty()) {
         for (ui32 stringColumnId = 0; stringColumnId < stringColumnChunks.size(); ++stringColumnId) {
             const EColumn columnType = stringColumnIndexToColumnType[stringColumnId];
-            if (columnType == EColumn::DocId) {
+            if (columnType == EColumn::SampleId) {
                 pool.StringDocIdLocalIndex = pool.Chunks.size();
             } else if (columnType == EColumn::GroupId) {
                 pool.StringGroupIdLocalIndex = pool.Chunks.size();

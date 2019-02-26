@@ -25,7 +25,7 @@ ui32 TDataColumnsMetaInfo::CountColumns(const EColumn columnType) const {
 void TDataColumnsMetaInfo::Validate() const {
     CB_ENSURE(CountColumns(EColumn::Weight) <= 1, "Too many Weight columns.");
     CB_ENSURE(CountColumns(EColumn::Label) <= 1, "Too many Label columns.");
-    CB_ENSURE(CountColumns(EColumn::DocId) <= 1, "Too many DocId columns.");
+    CB_ENSURE(CountColumns(EColumn::SampleId) <= 1, "Too many SampleId columns.");
     CB_ENSURE(CountColumns(EColumn::GroupId) <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
     CB_ENSURE(CountColumns(EColumn::GroupWeight) <= 1, "Too many GroupWeight columns.");
     CB_ENSURE(CountColumns(EColumn::SubgroupId) <= 1, "Too many SubgroupId columns.");

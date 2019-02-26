@@ -40,7 +40,7 @@ namespace NCB {
             for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
                 const auto columnType = columnsMetaInfo->Columns[columnId].Type;
                 FromColumnTypeToColumnId[columnType] = columnId;
-                if (columnType == EColumn::DocId) {
+                if (columnType == EColumn::SampleId) {
                     HasDocIdColumn = true;
                 }
             }
@@ -69,7 +69,7 @@ namespace NCB {
             const auto columnType = QuantizedPool.ColumnTypes[columnId];
             ui32 localColumnIndex;
             switch (columnType) {
-                case EColumn::DocId:
+                case EColumn::SampleId:
                     HasDocIdColumn = true;
                     localColumnIndex = QuantizedPool.StringDocIdLocalIndex;
                     break;
@@ -98,7 +98,7 @@ namespace NCB {
             case EColumn::GroupWeight:
                 token = GetFloatColumnToken(docId, columnType);
                 break;
-            case EColumn::DocId:
+            case EColumn::SampleId:
             case EColumn::GroupId:
             case EColumn::SubgroupId:
                 token = GetStringColumnToken(docId, columnType);

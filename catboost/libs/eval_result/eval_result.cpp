@@ -86,7 +86,7 @@ namespace NCB {
             }
 
             EColumn columnType;
-            if (TryFromString<EColumn>(name, columnType)) {
+            if (TryFromString<EColumn>(ToCanonicalColumnName(name), columnType)) {
                 switch (columnType) {
                     case (EColumn::Label):
                         CB_ENSURE(pool.MetaInfo.HasTarget > 0, "bad output column name " << name << " (No target/label info in pool)");
@@ -182,12 +182,12 @@ namespace NCB {
                 continue;
             }
             EColumn outputType;
-            if (TryFromString<EColumn>(columnName, outputType)) {
+            if (TryFromString<EColumn>(ToCanonicalColumnName(columnName), outputType)) {
                 if (outputType == EColumn::Label) {
                     columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(*pool.RawTargetData.GetTarget(), columnName));
                     continue;
                 }
-                if (outputType == EColumn::DocId) {
+                if (outputType == EColumn::SampleId) {
                     if (testFileWhichOf.second > 1) {
                         columnPrinter.push_back(MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":"));
                     }

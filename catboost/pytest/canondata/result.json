@@ -4295,6 +4295,30 @@
             "uri": "file://test.test_rmse_on_qwise_pool_calc_block=60-Plain_/test.eval"
         }
     ],
+    "test.test_sample_id[Ordered-Logloss]": [
+        {
+            "checksum": "ba7dd31ffa876f474aec89555ea5f588",
+            "uri": "file://test.test_sample_id_Ordered-Logloss_/test.eval"
+        }
+    ],
+    "test.test_sample_id[Ordered-MultiClass]": [
+        {
+            "checksum": "8850c0f27ab2fb04a27dbe276791b143",
+            "uri": "file://test.test_sample_id_Ordered-MultiClass_/test.eval"
+        }
+    ],
+    "test.test_sample_id[Plain-Logloss]": [
+        {
+            "checksum": "b0f17451b75ed2a3248eb9aa00665dd6",
+            "uri": "file://test.test_sample_id_Plain-Logloss_/test.eval"
+        }
+    ],
+    "test.test_sample_id[Plain-MultiClass]": [
+        {
+            "checksum": "e15a47705eb170fd1dc533c0f2c6c48f",
+            "uri": "file://test.test_sample_id_Plain-MultiClass_/test.eval"
+        }
+    ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Class-MultiClassOneVsAll]": [
         {
             "checksum": "ca08d2694706116853168640e8812e6e",

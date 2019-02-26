@@ -63,13 +63,8 @@ namespace {
                 parsedColumns.insert(index);
                 columns.resize(Max(columns.size(), index + 1));
 
-                TStringBuf type = tokens[1];
-                if (type == "QueryId") {
-                    type = "GroupId";
-                }
-                if (type == "Target") {
-                    type = "Label";
-                }
+                TStringBuf type = ToCanonicalColumnName(tokens[1]);
+
                 CB_ENSURE(TryFromString<EColumn>(type, columns[index].Type), "unsupported column type " << type);
                 if (tokens.ysize() == 3) {
                     columns[index].Id = tokens[2];
