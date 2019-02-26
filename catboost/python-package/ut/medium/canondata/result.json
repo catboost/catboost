@@ -52,11 +52,11 @@
         "uri": "file://test.test_ctr_target_border_count_CPU_/model.bin"
     },
     "test.test_cv[CPU]": {
-        "checksum": "e1e685f994489bc3d90b909366a92b46",
+        "checksum": "36c18a222c64251fb3a4045765d35266",
         "uri": "file://test.test_cv_CPU_/catboost_training.json"
     },
     "test.test_cv_custom_loss[CPU]": {
-        "checksum": "6564d246ae532ab381c07c96e14ebec3",
+        "checksum": "d459758ae320ad9c0cd3149039a997d8",
         "uri": "file://test.test_cv_custom_loss_CPU_/catboost_training.json"
     },
     "test.test_cv_logging[CPU]": {
@@ -64,15 +64,15 @@
         "uri": "file://test.test_cv_logging_CPU_/catboost_training.json"
     },
     "test.test_cv_metric_period[CPU]": {
-        "checksum": "47637dec09172d2e7de1b159a7762d97",
+        "checksum": "e36e371f993d40fabe405af27c57240c",
         "uri": "file://test.test_cv_metric_period_CPU_/catboost_training.json"
     },
     "test.test_cv_overfitting_detector[CPU-with_metric_period=False]": {
-        "checksum": "b97c025406c06cb790e6e2ccf19a0b35",
+        "checksum": "314eafa56995eb3c33ab96a795712f10",
         "uri": "file://test.test_cv_overfitting_detector_CPU-with_metric_period=False_/catboost_training.json"
     },
     "test.test_cv_overfitting_detector[CPU-with_metric_period=True]": {
-        "checksum": "8fc4e4faf0615c5f7bb168cf6213d68b",
+        "checksum": "8f1adecc094e4fd549d0ccc8a15e68f8",
         "uri": "file://test.test_cv_overfitting_detector_CPU-with_metric_period=True_/catboost_training.json"
     },
     "test.test_cv_pairs[CPU]": {
@@ -86,6 +86,14 @@
     "test.test_cv_query[CPU]": {
         "checksum": "924d92fcda8524530f431b2d59e502a5",
         "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
+    },
+    "test.test_cv_skip_train[CPU]": {
+        "checksum": "dc70e6fe8a254f35ca0d0aea396263f0",
+        "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"
+    },
+    "test.test_cv_skip_train_default[CPU]": {
+        "checksum": "c8fdf8f00cb699df361d9ce3107b089e",
+        "uri": "file://test.test_cv_skip_train_default_CPU_/catboost_training.json"
     },
     "test.test_cv_with_not_binarized_target[CPU]": {
         "checksum": "498323376e9c80ed4119a1fb836e87c6",

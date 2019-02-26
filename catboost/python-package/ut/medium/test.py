@@ -1691,6 +1691,46 @@ def test_cv_custom_loss(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
+def test_cv_skip_train(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss:hints=skip_train~true",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        },
+        dev_max_iterations_batch_size=6
+    )
+    assert "train-Logloss-mean" not in results
+    assert "train-Logloss-std" not in results
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
+
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_cv_skip_train_default(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "custom_loss": "AUC",
+            "task_type": task_type,
+        },
+        dev_max_iterations_batch_size=6
+    )
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
+
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_cv_metric_period(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(

@@ -2728,10 +2728,11 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         if metric_name in used_metric_names:
             continue
         used_metric_names.add(metric_name)
+
         fill_iterations_column = 'iterations' not in result
         if fill_iterations_column:
             result['iterations'] = list()
-        for it in xrange(results[metric_idx].AverageTrain.size()):
+        for it in xrange(results[metric_idx].Iterations.size()):
             iteration = results[metric_idx].Iterations[it]
             if fill_iterations_column:
                 result['iterations'].append(iteration)
@@ -2740,8 +2741,10 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
                 assert(result['iterations'][it] == iteration)
             result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
             result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
-            result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
-            result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
+
+            if results[metric_idx].AverageTrain.size() != 0:
+                result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
+                result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
 
     if as_pandas:
         return pd.DataFrame.from_dict(result)
