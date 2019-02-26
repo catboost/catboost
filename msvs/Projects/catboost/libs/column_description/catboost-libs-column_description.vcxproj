@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\column_description\cd_parser.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\column_description\column.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\column_description\column.h_serialized.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\column_description\column.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
