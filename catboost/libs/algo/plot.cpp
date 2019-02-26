@@ -41,7 +41,7 @@ TMetricsPlotCalcer::TMetricsPlotCalcer(
     , TmpDir(tmpDir)
     , ProcessedIterationsCount(0)
     , ProcessedIterationsStep(processIterationStep)
-{   
+{
     EnsureCorrectParams();
     for (ui32 iteration = First; iteration < Last; iteration += Step) {
         Iterations.push_back(iteration);
@@ -401,11 +401,11 @@ TMetricsPlotCalcer CreateMetricCalcer(
     } else {
         end = Min<int>(end, model.GetTreeCount());
     }
-    
+
     if (evalPeriod > (end - begin)) {
-        evalPeriod = end - begin;    
+        evalPeriod = end - begin;
     }
-    
+
     TMetricsPlotCalcer plotCalcer(model, metrics, executor, tmpDir, begin, end, evalPeriod, processedIterationsStep);
 
     return plotCalcer;
