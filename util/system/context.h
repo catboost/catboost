@@ -8,7 +8,6 @@
 #include <util/generic/region.h>
 #include <util/generic/utility.h>
 #include <util/generic/yexception.h>
-#include <util/generic/reinterpretcast.h>
 
 #define STACK_ALIGN (8 * PLATFORM_DATA_ALIGN)
 

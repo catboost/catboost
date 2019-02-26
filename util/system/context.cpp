@@ -171,7 +171,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 
     __mysetjmp(Buf_);
 
-    JmpBufProgrReg(Buf_) = ReinterpretCast<void*>(ContextTrampoLine);
+    JmpBufProgrReg(Buf_) = reinterpret_cast<void*>(ContextTrampoLine);
     JmpBufStackReg(Buf_) = stack.StackPtr();
     JmpBufFrameReg(Buf_) = nullptr;
 }

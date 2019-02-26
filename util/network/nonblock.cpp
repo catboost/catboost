@@ -3,7 +3,6 @@
 #include <util/system/platform.h>
 
 #include <util/generic/singleton.h>
-#include <util/generic/reinterpretcast.h>
 
 #if defined(_unix_)
 #include <dlfcn.h>
@@ -23,7 +22,7 @@ namespace {
         {
 #if defined(_unix_) && defined(SOCK_NONBLOCK)
             {
-                Accept4 = ReinterpretCast<TAccept4>(dlsym(RTLD_DEFAULT, "accept4"));
+                Accept4 = reinterpret_cast<TAccept4>(dlsym(RTLD_DEFAULT, "accept4"));
 
 #if defined(_musl_)
                 //musl always statically linked

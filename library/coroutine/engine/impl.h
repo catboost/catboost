@@ -762,7 +762,7 @@ static void ContHelperFunc(TCont* cont, void* arg) {
 
 template <typename T, void (T::*M)(TCont*)>
 static void ContHelperMemberFunc(TCont* c, void* arg) {
-    ((ReinterpretCast<T*>(arg))->*M)(c);
+    ((reinterpret_cast<T*>(arg))->*M)(c);
 }
 
 /// Central coroutine class.

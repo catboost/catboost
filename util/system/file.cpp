@@ -15,7 +15,6 @@
 #include <util/generic/string.h>
 #include <util/generic/ylimits.h>
 #include <util/generic/yexception.h>
-#include <util/generic/reinterpretcast.h>
 
 #include <util/datetime/base.h>
 
@@ -59,7 +58,7 @@ static int PosixFadvise(int fd, off_t offset, off_t len, int advice) {
         TPosixFadviseFunc* Impl = nullptr;
 
         TPosixFadvise() {
-            Impl = ReinterpretCast<TPosixFadviseFunc*>(dlsym(RTLD_DEFAULT, "posix_fadvise"));
+            Impl = reinterpret_cast<TPosixFadviseFunc*>(dlsym(RTLD_DEFAULT, "posix_fadvise"));
 
             if (!Impl) {
                 Impl = Unimplemented;

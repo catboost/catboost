@@ -3,7 +3,6 @@
 
 #include <util/generic/singleton.h>
 #include <util/generic/yexception.h>
-#include <util/generic/reinterpretcast.h>
 #include <utility>
 
 #include <util/thread/singleton.h>
@@ -35,16 +34,16 @@ namespace {
             : Func(nullptr)
         {
             // not DEFAULT, cause library/gettimeofday
-            Func = ReinterpretCast<TFunc>(dlsym(RTLD_NEXT, "gettimeofday"));
+            Func = reinterpret_cast<TFunc>(dlsym(RTLD_NEXT, "gettimeofday"));
 
 #if defined(_musl_)
             if (!Func) {
-                Func = ReinterpretCast<TFunc>(NVdso::Function("__vdso_gettimeofday", "LINUX_2.6"));
+                Func = reinterpret_cast<TFunc>(NVdso::Function("__vdso_gettimeofday", "LINUX_2.6"));
             }
 #endif
 
             if (!Func) {
-                Func = ReinterpretCast<TFunc>(Libc()->Sym("gettimeofday"));
+                Func = reinterpret_cast<TFunc>(Libc()->Sym("gettimeofday"));
             }
         }
 

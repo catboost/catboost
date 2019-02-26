@@ -1,6 +1,5 @@
 #include "guid.h"
 #include "ylimits.h"
-#include "reinterpretcast.h"
 #include "string.h"
 
 #include <util/string/ascii.h>
@@ -10,7 +9,7 @@
 #include <util/random/easy.h>
 
 void CreateGuid(TGUID* res) {
-    ui64* dw = ReinterpretCast<ui64*>(res->dw);
+    ui64* dw = reinterpret_cast<ui64*>(res->dw);
 
     WriteUnaligned(&dw[0], RandomNumber<ui64>());
     WriteUnaligned(&dw[1], RandomNumber<ui64>());

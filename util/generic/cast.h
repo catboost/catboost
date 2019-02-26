@@ -2,7 +2,6 @@
 
 #include "typetraits.h"
 #include "yexception.h"
-#include "reinterpretcast.h"
 #include "type_name.h"
 
 #include <util/system/compat.h>
@@ -167,5 +166,11 @@ TTarget BitCast(const TSource& source) {
     static_assert(std::is_trivially_copyable<TSource>::value, "TSource is not trivially copyable");
     static_assert(std::is_trivial<TTarget>::value, "TTarget is not trivial");
 
-    return ReadUnaligned<TTarget>(&source);
+    // Support volatile qualifiers.
+    // ReadUnaligned does not work with volatile pointers, so cast away
+    // volatileness beforehand.
+    using TNonvolatileSource = std::remove_volatile_t<TSource>;
+    using TNonvolatileTarget = std::remove_volatile_t<TTarget>;
+
+    return ReadUnaligned<TNonvolatileTarget>(&const_cast<const TNonvolatileSource&>(source));
 }

@@ -2,7 +2,6 @@
 
 #include <library/unittest/registar.h>
 
-#include <util/generic/cast.h>
 #include <util/generic/yexception.h>
 
 class TSysIpTest: public TTestBase {
@@ -59,6 +58,6 @@ void TSysIpTest::TestIpToString() {
     const char* ipStr[] = {"192.168.0.1", "87.255.18.167", "255.255.0.31", "188.225.124.255"};
 
     for (size_t i = 0; i < Y_ARRAY_SIZE(ipStr); ++i) {
-        UNIT_ASSERT(IpToString(*ReinterpretCast<TIpHost*>(&(ipArr[i]))) == ipStr[i]);
+        UNIT_ASSERT(IpToString(*reinterpret_cast<TIpHost*>(&(ipArr[i]))) == ipStr[i]);
     }
 }

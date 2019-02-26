@@ -12,7 +12,7 @@ namespace NNeh {
 
     template <typename T, void (T::*M)()>
     static void* HelperMemberFunc(void* arg) {
-        T* obj = ReinterpretCast<T*>(arg);
+        T* obj = reinterpret_cast<T*>(arg);
         (obj->*M)();
         return nullptr;
     }

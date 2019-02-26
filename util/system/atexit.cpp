@@ -4,7 +4,6 @@
 #include "thread.h"
 
 #include <util/generic/ylimits.h>
-#include <util/generic/reinterpretcast.h>
 #include <util/generic/utility.h>
 #include <util/generic/deque.h>
 #include <util/generic/queue.h>
@@ -118,13 +117,13 @@ void AtExit(TAtExitFunc func, void* ctx) {
 }
 
 static void TraditionalCloser(void* ctx) {
-    ReinterpretCast<TTraditionalAtExitFunc>(ctx)();
+    reinterpret_cast<TTraditionalAtExitFunc>(ctx)();
 }
 
 void AtExit(TTraditionalAtExitFunc func) {
-    AtExit(TraditionalCloser, ReinterpretCast<void*>(func));
+    AtExit(TraditionalCloser, reinterpret_cast<void*>(func));
 }
 
 void AtExit(TTraditionalAtExitFunc func, size_t priority) {
-    AtExit(TraditionalCloser, ReinterpretCast<void*>(func), priority);
+    AtExit(TraditionalCloser, reinterpret_cast<void*>(func), priority);
 }

@@ -113,7 +113,6 @@ JOIN_SRCS(
     generic/queue.cpp
     generic/refcount.cpp
     generic/region.cpp
-    generic/reinterpretcast.cpp
     generic/serialized_enum.cpp
     generic/set.cpp
     generic/singleton.cpp
