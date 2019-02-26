@@ -254,7 +254,7 @@ enum class EFinalCtrComputationMode {
 };
 
 enum class ELeavesEstimationStepBacktracking {
-    None,
+    No,
     AnyImprovement,
     Armijo
 };

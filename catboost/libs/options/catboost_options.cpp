@@ -416,7 +416,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             "Backtracking type Armijo is supported only on GPU");
         CB_ENSURE(
             LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject
-            || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::None,
+            || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No,
             "Backtracking is not supported for custom loss functions on CPU");
     }
 
@@ -460,7 +460,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
         case ELossFunction::PythonUserDefinedPerObject: {
-            ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::None);
+            ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
         }
         default: {
