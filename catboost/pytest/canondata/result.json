@@ -1455,30 +1455,6 @@
             "uri": "file://test.test_dist_train_yetirank/test_1.eval"
         }
     ],
-    "test.test_doc_id[Ordered-Logloss]": [
-        {
-            "checksum": "6a2433d1fd49c2cb10af8f4d09795e14",
-            "uri": "file://test.test_doc_id_Ordered-Logloss_/test.eval"
-        }
-    ],
-    "test.test_doc_id[Ordered-MultiClass]": [
-        {
-            "checksum": "8850c0f27ab2fb04a27dbe276791b143",
-            "uri": "file://test.test_doc_id_Ordered-MultiClass_/test.eval"
-        }
-    ],
-    "test.test_doc_id[Plain-Logloss]": [
-        {
-            "checksum": "b0f17451b75ed2a3248eb9aa00665dd6",
-            "uri": "file://test.test_doc_id_Plain-Logloss_/test.eval"
-        }
-    ],
-    "test.test_doc_id[Plain-MultiClass]": [
-        {
-            "checksum": "e15a47705eb170fd1dc533c0f2c6c48f",
-            "uri": "file://test.test_doc_id_Plain-MultiClass_/test.eval"
-        }
-    ],
     "test.test_empty_eval[Ordered]": [
         {
             "checksum": "d41d8cd98f00b204e9800998ecf8427e",
@@ -4295,28 +4271,28 @@
             "uri": "file://test.test_rmse_on_qwise_pool_calc_block=60-Plain_/test.eval"
         }
     ],
-    "test.test_sample_id[Ordered-Logloss]": [
-        {
-            "checksum": "ba7dd31ffa876f474aec89555ea5f588",
-            "uri": "file://test.test_sample_id_Ordered-Logloss_/test.eval"
-        }
-    ],
-    "test.test_sample_id[Ordered-MultiClass]": [
-        {
-            "checksum": "8850c0f27ab2fb04a27dbe276791b143",
-            "uri": "file://test.test_sample_id_Ordered-MultiClass_/test.eval"
-        }
-    ],
-    "test.test_sample_id[Plain-Logloss]": [
+    "test.test_sample_id[column_name=doc_id-loss_function=Logloss]": [
         {
             "checksum": "b0f17451b75ed2a3248eb9aa00665dd6",
-            "uri": "file://test.test_sample_id_Plain-Logloss_/test.eval"
+            "uri": "file://test.test_sample_id_column_name=doc_id-loss_function=Logloss_/test.eval"
         }
     ],
-    "test.test_sample_id[Plain-MultiClass]": [
+    "test.test_sample_id[column_name=doc_id-loss_function=MultiClass]": [
         {
             "checksum": "e15a47705eb170fd1dc533c0f2c6c48f",
-            "uri": "file://test.test_sample_id_Plain-MultiClass_/test.eval"
+            "uri": "file://test.test_sample_id_column_name=doc_id-loss_function=MultiClass_/test.eval"
+        }
+    ],
+    "test.test_sample_id[column_name=sample_id-loss_function=Logloss]": [
+        {
+            "checksum": "b0f17451b75ed2a3248eb9aa00665dd6",
+            "uri": "file://test.test_sample_id_column_name=sample_id-loss_function=Logloss_/test.eval"
+        }
+    ],
+    "test.test_sample_id[column_name=sample_id-loss_function=MultiClass]": [
+        {
+            "checksum": "e15a47705eb170fd1dc533c0f2c6c48f",
+            "uri": "file://test.test_sample_id_column_name=sample_id-loss_function=MultiClass_/test.eval"
         }
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Class-MultiClassOneVsAll]": [
