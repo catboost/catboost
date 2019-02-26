@@ -3,6 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
+    library/deprecated/split
     library/getopt/small
 )
 

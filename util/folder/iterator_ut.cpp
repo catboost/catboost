@@ -93,7 +93,7 @@ private:
     inline void TestLocal() {
         TString dirname("." LOCSLASH_S);
         TDirIterator d(dirname, FTS_NOCHDIR);
-        for (TDirIterator::TIterator it = d.begin(); it != d.end(); ++it) {
+        for (auto it = d.begin(); it != d.end(); ++it) {
         }
     }
 
@@ -129,7 +129,7 @@ private:
 
         TDirIterator d(dir);
 
-        for (TDirIterator::TIterator it = d.begin(); it != d.end(); ++it) {
+        for (auto it = d.begin(); it != d.end(); ++it) {
             UNIT_ASSERT(hier.Have(it->fts_path, it->fts_info != FTS_F));
         }
     }
@@ -197,7 +197,7 @@ private:
         {
             TDirIterator d(dir, TDirIterator::TOptions().SetSortByName());
 
-            for (TDirIterator::TIterator it = d.begin(); it != d.end(); ++it) {
+            for (auto it = d.begin(); it != d.end(); ++it) {
                 if (it->fts_info == FTS_F) {
                     fnames.push_back(it->fts_name);
                 }

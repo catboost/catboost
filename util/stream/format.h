@@ -134,9 +134,9 @@ namespace NFormatPrivate {
 
     template <typename Char, size_t Base>
     struct TBaseText {
-        TGenericStringBuf<Char> Text;
+        TBasicStringBuf<Char> Text;
 
-        inline TBaseText(const TGenericStringBuf<Char> text)
+        inline TBaseText(const TBasicStringBuf<Char> text)
             : Text(text)
         {
         }
@@ -336,7 +336,7 @@ static constexpr ::NFormatPrivate::TBaseNumber<T, 2> SBin(const T& value, const 
  * @param value                         String to output.
  */
 template <typename TChar>
-static inline ::NFormatPrivate::TBaseText<TChar, 16> HexText(const TGenericStringBuf<TChar> value) {
+static inline ::NFormatPrivate::TBaseText<TChar, 16> HexText(const TBasicStringBuf<TChar> value) {
     return ::NFormatPrivate::TBaseText<TChar, 16>(value);
 }
 
@@ -354,7 +354,7 @@ static inline ::NFormatPrivate::TBaseText<TChar, 16> HexText(const TGenericStrin
  * @param value                         String to output.
  */
 template <typename TChar>
-static inline ::NFormatPrivate::TBaseText<TChar, 2> BinText(const TGenericStringBuf<TChar> value) {
+static inline ::NFormatPrivate::TBaseText<TChar, 2> BinText(const TBasicStringBuf<TChar> value) {
     return ::NFormatPrivate::TBaseText<TChar, 2>(value);
 }
 

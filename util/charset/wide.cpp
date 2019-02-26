@@ -185,7 +185,7 @@ static bool ModifySequence(const TCharType*& p, const TCharType* const pe, TChar
 }
 
 template <class TStringType>
-static void DetachAndFixPointers(TStringType& text, typename TStringType::TdChar*& p, const typename TStringType::TdChar*& pe) {
+static void DetachAndFixPointers(TStringType& text, typename TStringType::value_type*& p, const typename TStringType::value_type*& pe) {
     const auto pos = p - text.data();
     const auto count = pe - p;
     p = text.Detach() + pos;
@@ -202,7 +202,7 @@ static bool ModifyStringSymbolwise(TStringType& text, size_t pos, size_t count, 
     // TUtf16String is refcounted and it's `data` method return pointer to the constant memory.
     // To simplify the code we do a `const_cast`, though first write to the memory will be done only
     // after we call `Detach()` and get pointer to a writable piece of memory.
-    auto* p = const_cast<typename TStringType::TdChar*>(text.data() + pos);
+    auto* p = const_cast<typename TStringType::value_type*>(text.data() + pos);
     const auto* pe = text.data() + pos + count;
 
     if (ModifySequence<true>(p, pe, f)) {

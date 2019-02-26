@@ -173,13 +173,30 @@ const TVector<EPredictionType>& NCatboostOptions::TOutputFilesOptions::GetPredic
 
 const TVector<TString> NCatboostOptions::TOutputFilesOptions::GetOutputColumns(bool datasetHasLabels) const {
     if (!OutputColumns.IsSet()) {
-        TVector<TString> result{"DocId", "RawFormulaVal"};
+        TVector<TString> result{"DocId"};
+        if (!PredictionTypes.IsSet()) {
+            result.emplace_back("RawFormulaVal");
+        } else {
+            for (const auto& predictionType : PredictionTypes.Get()) {
+                result.emplace_back(ToString(predictionType));
+            }
+        }
         if (datasetHasLabels) {
             result.emplace_back("Label");
         }
         return result;
     } else {
-        return OutputColumns;
+        if (!PredictionTypes.IsSet()) {
+            return OutputColumns;
+        }
+        TVector<TString> result(OutputColumns);
+        for (const auto& predictionType : PredictionTypes.Get()) {
+            const auto column = ToString(predictionType);
+            if (Count(result, column) == 0) {
+                result.emplace_back(column);
+            }
+        }
+        return result;
     }
 }
 

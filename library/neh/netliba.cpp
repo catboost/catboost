@@ -437,9 +437,9 @@ namespace {
 
         public:
             inline TRequester(IOnRequest* cb, ui16 port)
-                : EH_(new TEventsHandler(this))
+                : CB_(cb)
+                , EH_(new TEventsHandler(this))
                 , R_(CreateHttpUdpRequester(port, EH_.Get()))
-                , CB_(cb)
             {
                 R_->EnableReportRequestCancel();
             }
@@ -465,9 +465,9 @@ namespace {
             }
 
         private:
+            IOnRequest* CB_;
             TIntrusivePtr<TEventsHandler> EH_;
             TIntrusivePtr<INetLibaRequester> R_;
-            IOnRequest* CB_;
             bool Shutdown_ = false;
         };
 

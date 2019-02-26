@@ -647,6 +647,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>806C141C-ADC5-203A-DF01-02F7E1563621</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\split\library-deprecated-split.vcxproj">
+      <Project>12DB8983-9B49-8E6F-8DFD-6A13F0FD9BF7</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
       <Project>CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC</Project>
     </ProjectReference>
@@ -743,8 +746,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\compat\library-openssl-compat.vcxproj">
+      <Project>116B0E1A-B4E8-F1BE-0208-27DA4E6AF3C4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
+      <Project>8BD519C9-FE74-64B1-416B-3052CA898BD0</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
       <Project>0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
+      <Project>EBC3626B-F273-EB61-E7BE-9BBC217D8FB4</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>33DA38DE-6DFE-3983-55A4-A689CCC58EFD</Project>

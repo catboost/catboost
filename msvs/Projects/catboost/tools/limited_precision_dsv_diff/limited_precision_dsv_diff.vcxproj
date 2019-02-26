@@ -97,6 +97,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
       <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\split\library-deprecated-split.vcxproj">
+      <Project>{12DB8983-9B49-8E6F-8DFD-6A13F0FD9BF7}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
     </ProjectReference>

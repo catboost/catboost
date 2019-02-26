@@ -244,34 +244,7 @@ public:
            "Attempted to uses-allocator construct a reference element in a tuple");}
 
     __tuple_leaf(const __tuple_leaf& __t) = default;
-// Workaround for MSVC default move constructor miscompilation
-#ifdef _LIBCPP_COMPILER_MSVC
-private:
-    // Workaround for MSVC not being able to move references.
-    template<class _Tp>
-    struct __vs_move {
-        typename std::remove_reference<_Tp>::type&& operator()(_Tp& __t) {
-            return static_cast<typename std::remove_reference<_Tp>::type&&>(__t);
-        }
-    };
-    template<class _Tp>
-    struct __vs_move<_Tp&> {
-        _Tp& operator()(_Tp& __t) {
-            return __t;
-        }
-    };
-    template<class _Tp>
-    struct __vs_move<_Tp&&> {
-        _Tp&& operator()(_Tp& __t) {
-            return static_cast<_Tp&&>(__t);
-        }
-    };
-public:
-    __tuple_leaf(__tuple_leaf&& __t)
-        : __value_(__vs_move<_Hp>()(__t.__value_)) {}
-#else
     __tuple_leaf(__tuple_leaf&& __t) = default;
-#endif
 
     template <class _Tp>
         _LIBCPP_INLINE_VISIBILITY

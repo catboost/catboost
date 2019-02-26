@@ -737,6 +737,7 @@ TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
 
+//TODO(kirillovs): make this method a member of TFullModel
 TVector<TString> GetModelClassNames(const TFullModel& model);
 
 TFullModel SumModels(

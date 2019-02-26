@@ -464,7 +464,7 @@ static void AssignFeatureBins(
     size_t end,
     TVector<ui8>* result)
 {
-THashMap<ui32, ui32> columnReorderMap;
+    THashMap<ui32, ui32> columnReorderMap;
     CheckModelAndDatasetCompatibility(model, quantizedObjectsData, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
@@ -500,8 +500,8 @@ THashMap<ui32, ui32> columnReorderMap;
             return QuantizedFeaturesFloatAccessor(floatBinsRemap, repackedBinFeatures, packedIndexes, floatFeature, index);
         },
         nullptr,
-        start,
-        end,
+        0,
+        end - start,
         *result);
 }
 

@@ -1,5 +1,8 @@
 #include "iterator.h"
 
+#include <string>
+#include <string_view>
+
 #include <util/charset/wide.h>
 
 #include <library/unittest/registar.h>
@@ -157,7 +160,7 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
     Y_UNIT_TEST(TestStringSplitterConsume) {
         TVector<TString> expected = {"1", "2", "3"};
         TVector<TString> actual;
-        auto func = [&actual](const TGenericStringBuf<char>& token) {
+        auto func = [&actual](const TBasicStringBuf<char>& token) {
             actual.push_back(TString(token));
         };
         StringSplitter("1 2 3").Split(' ').Consume(func);
@@ -210,6 +213,28 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_DOUBLES_EQUAL(d, 1.02, 0.0001);
         UNIT_ASSERT_EXCEPTION(StringSplitter("1").Split(' ').CollectInto(&a, &a), yexception);
         UNIT_ASSERT_EXCEPTION(StringSplitter("1 2 3").Split(' ').CollectInto(&a, &a), yexception);
+    }
+
+    Y_UNIT_TEST(TestTryCollectInto) {
+        int a, b, c;
+        bool parsingSucceeded;
+        parsingSucceeded = StringSplitter("100,500,3").Split(',').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(parsingSucceeded);
+        UNIT_ASSERT_VALUES_EQUAL(a, 100);
+        UNIT_ASSERT_VALUES_EQUAL(b, 500);
+        UNIT_ASSERT_VALUES_EQUAL(c, 3);
+
+        //not enough tokens
+        parsingSucceeded = StringSplitter("3,14").Split(',').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(!parsingSucceeded);
+
+        //too many tokens
+        parsingSucceeded = StringSplitter("3,14,15,92,6").Split(',').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(!parsingSucceeded);
+
+        //where single TryFromString fails
+        parsingSucceeded = StringSplitter("ot topota kopyt pyl po polu letit").Split(' ').TryCollectInto(&a, &b, &c);
+        UNIT_ASSERT(!parsingSucceeded);
     }
 
     Y_UNIT_TEST(TestOwningSplit1) {
@@ -310,5 +335,60 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         answer1.clear();
         StringSplitter("  \n 1    2  \n\n\n   3 4\n ").SplitBySet(" \n").SkipEmpty().ParseInto(&answer1);
         UNIT_ASSERT_VALUES_EQUAL(actual0, answer1);
+    }
+
+    Y_UNIT_TEST(TestStdString) {
+        std::vector<std::string_view> r0, r1, answer = {"lol", "zomg"};
+        std::string s = "lol zomg";
+        for (std::string_view ss : StringSplitter(s).Split(' ')) {
+            r0.push_back(ss);
+        }
+        StringSplitter(s).Split(' ').Collect(&r1);
+
+        UNIT_ASSERT_VALUES_EQUAL(r0, answer);
+        UNIT_ASSERT_VALUES_EQUAL(r1, answer);
+    }
+
+    Y_UNIT_TEST(TestStdStringView) {
+        std::string_view s = "aaacccbbb";
+        std::vector<std::string_view> expected = {"aaa", "bbb"};
+        std::vector<std::string_view> actual = StringSplitter(s).SplitByString("ccc");
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
+    Y_UNIT_TEST(TestStdSplitAfterSplit) {
+        std::string_view input = "a*b+a*b";
+        for (std::string_view summand: StringSplitter(input).Split('+')) {
+            //FIXME: std::string is used to workaround MSVC ICE
+            UNIT_ASSERT_VALUES_EQUAL(std::string(summand), "a*b");
+            std::string_view multiplier1, multiplier2;
+            bool splitResult = StringSplitter(summand).Split('*').TryCollectInto(&multiplier1, &multiplier2);
+            UNIT_ASSERT(splitResult);
+            UNIT_ASSERT_VALUES_EQUAL(std::string(multiplier1), "a");
+            UNIT_ASSERT_VALUES_EQUAL(std::string(multiplier2), "b");
+        }
+    }
+
+    Y_UNIT_TEST(TestStdSplitWithParsing) {
+        std::string_view input = "1,2,3,4";
+        TVector<ui64> numbers;
+        const TVector<ui64> expected{1, 2, 3, 4};
+        StringSplitter(input).Split(',').ParseInto(&numbers);
+        UNIT_ASSERT_VALUES_EQUAL(numbers, expected);
+    }
+
+    Y_UNIT_TEST(TestArcadiaStdInterop) {
+        TVector<TString> expected0 = { "a", "b" };
+        TVector<TStringBuf> expected1 = { "a", "b" };
+        std::string src1("a  b");
+        std::string_view src2("a  b");
+        TVector<TString> actual0 = StringSplitter(src1).Split(' ').SkipEmpty();
+        TVector<TString> actual1 = StringSplitter(src2).Split(' ').SkipEmpty();
+        TVector<TStringBuf> actual2 = StringSplitter(src1).Split(' ').SkipEmpty();
+        TVector<TStringBuf> actual3 = StringSplitter(src2).Split(' ').SkipEmpty();
+        UNIT_ASSERT_VALUES_EQUAL(expected0, actual0);
+        UNIT_ASSERT_VALUES_EQUAL(expected0, actual1);
+        UNIT_ASSERT_VALUES_EQUAL(expected1, actual2);
+        UNIT_ASSERT_VALUES_EQUAL(expected1, actual3);
     }
 }

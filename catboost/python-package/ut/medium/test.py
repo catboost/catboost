@@ -868,6 +868,13 @@ def test_predict_class(task_type):
     return local_canonical_file(preds_path)
 
 
+def test_zero_learning_rate(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=0, task_type=task_type, devices='0')
+    with pytest.raises(CatBoostError):
+        model.fit(train_pool)
+
+
 def test_predict_class_proba(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -1049,6 +1056,7 @@ def test_class_names(task_type):
     classes = new_classifier.predict(test_pool)
     assert pred.shape == (25, 3)
     assert all(((class1 in class_names) for class1 in classes))
+    assert sorted(classifier.classes_) == sorted(class_names)
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(pred), fmt='%.8f')
     return local_canonical_file(preds_path)
@@ -1686,6 +1694,46 @@ def test_cv_custom_loss(task_type):
         }
     )
     assert "test-AUC-mean" in results
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_cv_skip_train(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss:hints=skip_train~true",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+        },
+        dev_max_iterations_batch_size=6
+    )
+    assert "train-Logloss-mean" not in results
+    assert "train-Logloss-std" not in results
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
+
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_cv_skip_train_default(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "custom_loss": "AUC",
+            "task_type": task_type,
+        },
+        dev_max_iterations_batch_size=6
+    )
+    assert "train-AUC-mean" not in results
+    assert "train-AUC-std" not in results
+
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -3042,9 +3090,9 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
             if with_resume_from_snapshot:
                 final_training_stdout_len_with_snapshot = final_training_stdout_len
 
-                assert first_training_stdout_len == expected_metric_lines(0, FIRST_ITERATIONS, metric_period, False) + 4
-                assert final_training_stdout_len_wo_snapshot == expected_metric_lines(0, models[0].tree_count_, metric_period, True) + 5
-                assert final_training_stdout_len_with_snapshot == expected_metric_lines(FIRST_ITERATIONS, models[0].tree_count_, metric_period, True) + 5
+                assert first_training_stdout_len == expected_metric_lines(0, FIRST_ITERATIONS, metric_period, False) + 6
+                assert final_training_stdout_len_wo_snapshot == expected_metric_lines(0, models[0].tree_count_, metric_period, True) + 7
+                assert final_training_stdout_len_with_snapshot == expected_metric_lines(FIRST_ITERATIONS, models[0].tree_count_, metric_period, True) + 7
 
             else:
                 final_training_stdout_len_wo_snapshot = final_training_stdout_len
@@ -3290,7 +3338,7 @@ class Metrics(object):
             'BrierScore',
             'CrossEntropy',
             'CtrFactor',
-            'Custom',
+            'PythonUserDefinedPerObject',
             'F1',
             'HammingLoss',
             'HingeLoss',

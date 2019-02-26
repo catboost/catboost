@@ -92,7 +92,7 @@ private:
     void TestBitCast() {
         // Change sign of float
         {
-            const float floatValue = 17.33;
+            const float floatValue = 17.33f;
             ui32 ui32Value = BitCast<ui32>(floatValue);
             ui32Value ^= (ui32)1 << 31;
             UNIT_ASSERT_VALUES_EQUAL(-floatValue, BitCast<float>(ui32Value));

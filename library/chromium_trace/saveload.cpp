@@ -31,13 +31,6 @@ namespace {
         const TCounterEvent*,
         const TMetadataEvent*>;
 
-    struct TGetTagVisitor {
-        template <typename T>
-        constexpr i8 operator()(const T*) const {
-            return TAnyEvent::TagOf<T>();
-        }
-    };
-
     struct TSavePtrVisitor {
         IOutputStream* Out;
 
@@ -69,8 +62,7 @@ namespace {
         void Save(IOutputStream* out) const {
             static const TEventArgs emptyArgs;
 
-            i8 tag = Visit(TGetTagVisitor(), Event);
-            ::Save(out, tag);
+            ::Save(out, static_cast<i8>(Event.index()));
             Visit(TSavePtrVisitor{out}, Event);
             if (Args) {
                 ::Save(out, *Args);
@@ -92,14 +84,14 @@ namespace {
 }
 
 #define CHECK_EVENT_TAG_I8(type) static_assert( \
-    TAnyEvent::TagOf<type>() <= 127 && TAnyEvent::TagOf<type>() != TVARIANT_NPOS && \
-    TConstAnyEventPtr::TagOf<const type*>() <= 127 && \
-    TConstAnyEventPtr::TagOf<const type*>() != TVARIANT_NPOS, \
+    TVariantIndexV<type, TAnyEvent> <= 127 && TVariantIndexV<type, TAnyEvent> != TVARIANT_NPOS && \
+    TVariantIndexV<const type*, TConstAnyEventPtr> <= 127 && \
+    TVariantIndexV<const type*, TConstAnyEventPtr> != TVARIANT_NPOS, \
     "tag of " #type " is too big")
 
 #define CHECK_ARG_TAG_I8(type) static_assert( \
-    TEventArgs::TArg::TValue::TagOf<type>() <= 127 && \
-    TEventArgs::TArg::TValue::TagOf<type>() != TVARIANT_NPOS, \
+    TVariantIndexV<type, TEventArgs::TArg::TValue> <= 127 && \
+    TVariantIndexV<type, TEventArgs::TArg::TValue> != TVARIANT_NPOS, \
     "tag of " #type " is too big")
 
 CHECK_EVENT_TAG_I8(TDurationBeginEvent);
@@ -157,17 +149,17 @@ void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, 
     i8 tag = 0;
     ::Load(in, tag);
     switch (tag) {
-        case TValue::TagOf<TStringBuf>():
+        case TVariantIndexV<TStringBuf, TValue>:
             v.Value = TStringBuf();
             ::LoadStr(in, Get<TStringBuf>(v.Value), pool);
             break;
 
-        case TValue::TagOf<i64>():
+        case TVariantIndexV<i64, TValue>:
             v.Value = i64();
             ::Load(in, Get<i64>(v.Value));
             break;
 
-        case TValue::TagOf<double>():
+        case TVariantIndexV<double, TValue>:
             v.Value = double();
             ::Load(in, Get<double>(v.Value));
             break;
@@ -268,7 +260,7 @@ void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMem
     ::Load(in, tag);
     switch (tag) {
 #define CASE(type)                            \
-    case TAnyEvent::TagOf<type>():            \
+    case TVariantIndexV<type, TAnyEvent>:     \
         v.Event = type();                     \
         ::Load(in, Get<type>(v.Event), pool); \
         break;

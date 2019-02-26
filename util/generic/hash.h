@@ -298,6 +298,9 @@ public:
     TBucketDivisor ExtSize() const {
         return Size;
     }
+    int BucketDivisorHint() const {
+        return +Size.Hint;
+    }
 
     allocator_type get_allocator() const {
         return this->_get_alloc();
@@ -1266,7 +1269,7 @@ bool THashTable<V, K, HF, Ex, Eq, A>::reserve(size_type num_elements_hint) {
         if (old_n != 1 && num_elements_hint <= old_n) // TODO: this if is for backwards compatibility down to order-in-buckets level. Can be safely removed.
             return false;
 
-        const TBucketDivisor n = HashBucketCountExt(num_elements_hint + 1);
+        const TBucketDivisor n = HashBucketCountExt(num_elements_hint + 1, buckets.BucketDivisorHint() + 1);
         if (n() > old_n) {
             buckets_type tmp(buckets.get_allocator());
             initialize_buckets_dynamic(tmp, n);

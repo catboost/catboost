@@ -70,12 +70,11 @@ struct TRefPolicy {
     TIntrusivePtr<THelper> T_;
 };
 
-
 /**
- * Storage class that can be handy for implementing proxies / adaptors
- * that can accept both lvalues and rvalues.
- * In the latter case it's often required to extend the lifetime
- * of the passed rvalue, and the only option is to store it in your proxy / adaptor.
+ * Storage class that can be handy for implementing proxies / adaptors that can
+ * accept both lvalues and rvalues. In the latter case it's often required to
+ * extend the lifetime of the passed rvalue, and the only option is to store it
+ * in your proxy / adaptor.
  *
  * Example usage:
  * \code
@@ -88,38 +87,28 @@ struct TRefPolicy {
  * template<class T>
  * TProxy<T> MakeProxy(T&& value) {
  *     // Rvalues are automagically moved-from, and stored inside the proxy.
- *     return {value};
+ *     return {std::forward<T>(value)};
  * }
  * \endcode
  *
  * Look at `Reversed` in `adaptor.h` for real example.
  */
-template <class TRefOrObject, bool IsReference = std::is_reference<TRefOrObject>::value>
-struct TAutoEmbedOrPtrPolicy;
+template <class T, bool IsReference = std::is_reference<T>::value>
+struct TAutoEmbedOrPtrPolicy: TPtrPolicy<std::remove_reference_t<T>> {
+    using TBase = TPtrPolicy<std::remove_reference_t<T>>;
 
-template <class TReference>
-struct TAutoEmbedOrPtrPolicy<TReference, true> : TPtrPolicy<typename std::remove_reference<TReference>::type> {
-    using TObject = typename std::remove_reference<TReference>::type;
-    using TObjectStorage = TObject*;
-
-    TAutoEmbedOrPtrPolicy(TReference& reference)
-        : TPtrPolicy<TObject>(&reference)
+    TAutoEmbedOrPtrPolicy(T& reference)
+        : TBase(&reference)
     {
     }
 };
 
-template <class TObject_>
-struct TAutoEmbedOrPtrPolicy<TObject_, false> : TEmbedPolicy<TObject_> {
-    using TObject = TObject_;
-    using TObjectStorage = TObject;
+template <class T>
+struct TAutoEmbedOrPtrPolicy<T, false> : TEmbedPolicy<T> {
+    using TBase = TEmbedPolicy<T>;
 
-    TAutoEmbedOrPtrPolicy(TObject& object)
-        : TEmbedPolicy<TObject>(std::move(object))
-    {
-    }
-
-    TAutoEmbedOrPtrPolicy(TObject&& object)
-        : TEmbedPolicy<TObject>(std::move(object))
+    TAutoEmbedOrPtrPolicy(T&& object)
+        : TBase(std::move(object))
     {
     }
 };

@@ -6,7 +6,6 @@ SRCS(
     string/builder_ut.cpp
     string/cast_ut.cpp
     string/cgiparam_ut.cpp
-    string/delim_string_iter_ut.cpp
     string/escape_ut.cpp
     string/iterator_ut.cpp
     string/join_ut.cpp
@@ -15,7 +14,6 @@ SRCS(
     string/pcdata_ut.cpp
     string/printf_ut.cpp
     string/quote_ut.cpp
-    string/split_iterator_ut.cpp
     string/split_ut.cpp
     string/strip_ut.cpp
     string/subst_ut.cpp

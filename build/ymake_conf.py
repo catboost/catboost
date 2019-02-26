@@ -1060,6 +1060,7 @@ class MSVCToolchainOptions(ToolchainOptions):
         self.under_wine = 'wine' in self.params
         self.system_msvc = 'system_msvc' in self.params
         self.ide_msvs = 'ide_msvs' in self.params
+        self.use_clang = self.params.get('use_clang', False)
 
         self.sdk_version = None
 
@@ -2001,7 +2002,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             flags.append('/I"{}"'.format(vc_include))
 
         if self.tc.ide_msvs:
-            flags += ['/FD', '/MP']
+            if not self.tc.use_clang:
+                flags += ['/FD', '/MP']
             debug_info_flags = '/Zi /FS'
         else:
             debug_info_flags = '/Z7'
@@ -2146,7 +2148,7 @@ class MSVCLinker(MSVC, Linker):
         # TODO(nslus): DEVTOOLS-1868 remove restriction.
         if not self.tc.under_wine:
             if self.tc.ide_msvs:
-                flags_debug_only.append('/DEBUG:FASTLINK')
+                flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
                 flags_release_only.append('/DEBUG')
             else:
                 # No FASTLINK for ya make, because resulting PDB would require .obj files (build_root's) to persist
@@ -2452,6 +2454,8 @@ class Cuda(object):
         if self.use_arcadia_cuda.value and self.cuda_host_compiler.value is None:
             logger.warning('$USE_ARCADIA_CUDA is set, but no $CUDA_HOST_COMPILER')
 
+        self.setup_vc_root()
+
         self.cuda_root.emit()
         self.cuda_version.emit()
         self.use_arcadia_cuda.emit()
@@ -2563,6 +2567,27 @@ class Cuda(object):
         self.cuda_host_compiler_env.value = format_env(env)
         self.cuda_host_msvc_version.value = vc_version
         return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
+
+    def setup_vc_root(self):
+        if not self.cuda_host_compiler.from_user:
+            return  # Already set in cuda_windows_host_compiler()
+
+        if self.cuda_host_compiler_env.from_user:
+            return  # We won't override user setting
+
+        def is_root(dir):
+            return all(os.path.isdir(os.path.join(dir, name)) for name in ('bin', 'include', 'lib'))
+
+        def get_root():
+            path, old_path = os.path.normpath(self.cuda_host_compiler.value), None
+            while path != old_path:
+                if is_root(path):
+                    return path
+                path, old_path = os.path.dirname(path), path
+
+        vc_root = get_root()
+        if vc_root:
+            self.cuda_host_compiler_env.value = format_env({'Y_VC_Root': vc_root})
 
     def auto_cuda_arcadia_includes(self):
         return self.cuda_version_list >= [9, 0]

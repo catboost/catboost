@@ -4275,7 +4275,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     THashSet<TString> usedDescriptions;
 
     if (evalMetricOptions->EvalMetric.IsSet()) {
-        if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
+        if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
             errors.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
         } else {
             TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetricOptions->EvalMetric, approxDimension);
@@ -4289,7 +4289,7 @@ TVector<THolder<IMetric>> CreateMetrics(
         usedDescriptions.insert(errors.back()->GetDescription());
     }
 
-    if (lossFunctionOption->GetLossFunction() != ELossFunction::Custom) {
+    if (lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
         for (auto& metric : createdMetrics) {
             if (!usedDescriptions.contains(metric->GetDescription())) {
@@ -4545,7 +4545,7 @@ void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*)
 }
 
 inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
-    if (metric == ELossFunction::Custom || modelLoss == ELossFunction::Custom) {
+    if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
         return;
     }
 
@@ -4584,7 +4584,7 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
         try {
             metric = ParseLossType(metrics[i]->GetDescription());
         } catch (...) {
-            metric = ELossFunction::Custom;
+            metric = ELossFunction::PythonUserDefinedPerObject;
         }
         CheckMetric(metric, modelLoss);
     }

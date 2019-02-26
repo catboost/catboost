@@ -217,7 +217,7 @@ struct TCalcScoreFold {
 
     void Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
-    void Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
+    void Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor, bool isCoinFlipping = true);
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     int GetDocCount() const;
     int GetBodyTailCount() const;
@@ -240,6 +240,7 @@ private:
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     void SetSampledControl(int docCount, ESamplingUnit samplingUnit, const TVector<TQueryInfo>& queriesInfo, TRestorableFastRng64* rand);
+    void SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit);
 
     void CreateBlocksAndUpdateQueriesInfoByControl(
         NPar::TLocalExecutor* localExecutor,

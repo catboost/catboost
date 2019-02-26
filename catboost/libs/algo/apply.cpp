@@ -131,7 +131,7 @@ static void ApplyOnQuantizedFeatures(
                 Y_ASSERT("Quantized datasets with categorical features are not currently supported");
                 return 0;
             },
-            repackedFeatures[0].size(),
+            blockSize,
             begin,
             end,
             MakeArrayRef(

@@ -248,33 +248,6 @@ get(const array<_Tp, _Size>&&) _NOEXCEPT;
 
 template <class ..._Tp> struct __tuple_types {};
 
-#ifdef _LIBCPP_COMPILER_MSVC
-// MSVC can't compile typename decltype(...)::type.
-// So use the old way to implement __type_pack_element
-template<size_t _Ip, class ..._Tp> struct __tuple_element;
-
-template <size_t _Ip>
-struct __tuple_element<_Ip> {
-public:
-    static_assert(_Ip == 0, "tuple_element index out of range");
-    static_assert(_Ip != 0, "tuple_element index out of range");
-};
-
-template <class _Hp, class ..._Tp>
-struct __tuple_element<0, _Hp, _Tp...> {
-    using type = _Hp;
-};
-
-template <size_t _Ip, class _Hp, class ..._Tp>
-struct __tuple_element<_Ip, _Hp, _Tp...> {
-    using type = typename __tuple_element<_Ip - 1, _Tp...>::type;
-};
-
-template<size_t _Idx, class ..._Types>
-using __type_pack_element = typename __tuple_element<_Idx, _Types...>::type;
-
-#else
-
 #if !__has_builtin(__type_pack_element)
 
 namespace __indexer_detail {
@@ -294,6 +267,7 @@ __indexed<_Idx, _Tp> __at_index(__indexed<_Idx, _Tp> const&);
 
 } // namespace __indexer_detail
 
+#if !defined(__CUDACC__) || !defined(_MSC_VER)
 template <size_t _Idx, class ..._Types>
 using __type_pack_element = typename decltype(
     __indexer_detail::__at_index<_Idx>(
@@ -303,8 +277,21 @@ using __type_pack_element = typename decltype(
         >{})
   )::type;
 
+#else // !defined(__CUDACC__) || !defined(_MSC_VER)
+template <size_t _Idx, class ..._Types>
+struct __y_type_pack_element {
+    using __t1 = typename __make_tuple_indices<sizeof...(_Types)>::type;
+    using __t2 = __indexer_detail::__indexer<__tuple_types<_Types...>, __t1>;
+    using __t3 = decltype(__indexer_detail::__at_index<_Idx>(__t2{}));
+    using __t4 = typename __t3::type;
+};
+
+template <size_t _Idx, class ..._Types>
+using __type_pack_element = typename __y_type_pack_element<_Idx, _Types...>::__t4;
+
+#endif // !defined(__CUDACC__) || !defined(_MSC_VER)
+
 #endif // __has_builtin(__type_pack_element)
-#endif // _LIBCPP_COMPILER_MSVC
 
 template <size_t _Ip, class ..._Types>
 class _LIBCPP_TEMPLATE_VIS tuple_element<_Ip, __tuple_types<_Types...>>
@@ -404,7 +391,7 @@ template<class _Tp, size_t _Np, class _Apply, size_t _Ep>
 struct __make_tuple_types_flat<array<_Tp, _Np>, _Apply, _Ep, 0, enable_if_t<(_Ep > 0)>> {
     using type = typename __make_tuple_types_append_front<
         typename __make_tuple_types_flat<array<_Tp, _Np>, _Apply, _Ep - 1, 0>::type,
-        typename _Apply::template __apply<_Tp>>::type;  
+        typename _Apply::template __apply<_Tp>>::type;
 };
 
 template<class _Tp, size_t _Np, class _Apply, size_t _Ep, size_t _Sp>

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "kmp.h"
-#include "cast.h"
-#include "util.h"
-#include "builder.h"
+#include <util/string/kmp.h>
+#include <util/string/cast.h>
+#include <util/string/util.h>
+#include <util/string/builder.h>
 
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>

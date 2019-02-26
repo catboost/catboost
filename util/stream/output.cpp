@@ -16,6 +16,7 @@
 
 #include <cerrno>
 #include <string>
+#include <string_view>
 #include <cstdio>
 
 #if defined(_win_)
@@ -75,6 +76,11 @@ void Out<TString>(IOutputStream& o, const TString& p) {
 
 template <>
 void Out<std::string>(IOutputStream& o, const std::string& p) {
+    o.Write(p.data(), p.length());
+}
+
+template <>
+void Out<std::string_view>(IOutputStream& o, const std::string_view& p) {
     o.Write(p.data(), p.length());
 }
 

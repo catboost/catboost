@@ -1,3 +1,5 @@
+
+
 RECURSE(
     accurate_accumulate
     accurate_accumulate/benchmark
@@ -21,6 +23,7 @@ RECURSE(
     cppparser
     dbg_output
     dbg_output/ut
+    deprecated
     diff
     diff/ut
     digest
@@ -117,7 +120,6 @@ CHECK_DEPENDENT_DIRS(
     library
     contrib
     util
-    yandex #TO REMOVE
     yweb/config
 )
 

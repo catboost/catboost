@@ -43,7 +43,7 @@ static bool IsIntersect(const T& a, const U& b) noexcept {
  * Uses two separate implementations (inplace for shrink and append for grow case)
  * See IGNIETFERRO-394
  **/
-template <class TStringType, typename TStringViewType = TStringBufImpl<typename TStringType::value_type>>
+template <class TStringType, typename TStringViewType = TBasicStringBuf<typename TStringType::value_type>>
 static inline size_t SubstGlobalImpl(TStringType& s, const TStringViewType from, const TStringViewType to, size_t fromPos = 0) {
     if (from.empty()) {
         return 0;

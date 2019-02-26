@@ -203,6 +203,7 @@ public:
         return s ? TTraits::GetLength(s) : 0;
     }
 
+    // TODO: DROP! this one provides an implicit TStringBuf -> std::string conversion!
     template <class T, class A>
     inline operator std::basic_string<TCharType, T, A>() const {
         return std::basic_string<TCharType, T, A>(Ptr(), Len());
@@ -739,15 +740,15 @@ const size_t TStringBase<TDerived, TCharType, TTraitsType>::npos;
 template <typename TDerived, typename TCharType, typename TTraits>
 class TBasicString: public TStringBase<TDerived, TCharType, TTraits> {
 public:
+    // TODO: Move to private section
     using TSelf = TBasicString;
     using TBase = TStringBase<TDerived, TCharType, TTraits>;
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
     using TFixedString = typename TBase::TFixedString;
 
-    using TdChar = TCharType;
-    using TCharRef = TBasicCharRef<TDerived>;
-    using char_type = TCharType;
+    using TCharRef = TBasicCharRef<TDerived>; // TODO: reference
+    using char_type = TCharType; // TODO: DROP
     using value_type = TCharType;
     using traits_type = TTraits;
 
@@ -1033,6 +1034,12 @@ public:
         if (0 != s.Length) {
             TTraits::Copy(Data_, s.Start, s.Length);
         }
+    }
+
+    template <typename Traits>
+    explicit inline TBasicString(const std::basic_string_view<TCharType, Traits>& s) {
+        Data_ = Allocate(s.size());
+        TTraits::Copy(Data_, s.data(), s.size());
     }
 
     static TDerived Uninitialized(size_t n) {
@@ -1646,7 +1653,7 @@ public:
         return assign(s);
     }
 
-    TString& operator=(const TdChar* s) {
+    TString& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1773,7 +1780,7 @@ public:
         return assign(s);
     }
 
-    TUtf16String& operator=(const TdChar* s) {
+    TUtf16String& operator=(const value_type* s) {
         return assign(s);
     }
 
@@ -1878,7 +1885,7 @@ public:
         return assign(s);
     }
 
-    TUtf32String& operator=(const TdChar* s) {
+    TUtf32String& operator=(const value_type* s) {
         return assign(s);
     }
 

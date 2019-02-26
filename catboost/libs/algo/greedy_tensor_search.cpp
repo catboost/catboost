@@ -435,7 +435,6 @@ static void CalcBestScore(const TTrainingForCPUDataProviders& data,
         TCandidateList* candidateList,
         TFold* fold,
         TLearnContext* ctx) {
-    CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor->GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
     const TFlatPairsInfo pairs = UnpackPairsFromQueries(fold->LearnQueriesInfo);
     TCandidateList& candList = *candidateList;
     ctx->LocalExecutor->ExecRange([&](int id) {

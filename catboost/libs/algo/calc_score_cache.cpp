@@ -369,8 +369,13 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
     SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
 }
 
-void TCalcScoreFold::Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
-    SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
+void TCalcScoreFold::Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor, bool isCoinFlipping) {
+    if (isCoinFlipping) {
+        SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
+    } else {
+        BernoulliSampleRate = 0.0f;
+        SetControlNoZeroWeighted(indices.ysize(), fold.SampleWeights.data(), samplingUnit);
+    }
 
     TVectorSlicing srcBlocks;
     TVectorSlicing dstBlocks;
@@ -503,6 +508,13 @@ void TCalcScoreFold::SetSampledControl(int docCount, ESamplingUnit samplingUnit,
     }
 }
 
+void TCalcScoreFold::SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit) {
+    CB_ENSURE(samplingUnit != ESamplingUnit::Group, "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)");
+    constexpr float EPS = std::numeric_limits<float>::epsilon();
+    for (int docIdx = 0; docIdx < docCount; ++docIdx) {
+        Control[docIdx] = sampleWeights[docIdx] > EPS;
+    }
+}
 
 void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
     NPar::TLocalExecutor* localExecutor,

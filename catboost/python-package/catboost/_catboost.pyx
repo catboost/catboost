@@ -509,6 +509,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+    cdef TVector[TString] GetModelClassNames(const TFullModel& model) except +ProcessException
 
 ctypedef const TFullModel* TFullModel_const_ptr
 
@@ -892,6 +893,37 @@ cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) e
     cdef metricObject = <object>customData
     return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
+
+cdef _vector_of_double_to_np_array(TVector[double]& vec):
+    result = np.empty(vec.size(), dtype=_npfloat64)
+    for i in xrange(vec.size()):
+        result[i] = vec[i]
+    return result
+
+
+cdef _2d_vector_of_double_to_np_array(TVector[TVector[double]]& vectors):
+    cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
+    result = np.empty([vectors.size(), subvec_size], dtype=_npfloat64)
+    for i in xrange(vectors.size()):
+        assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
+        for j in xrange(subvec_size):
+            result[i][j] = vectors[i][j]
+    return result
+
+
+cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors):
+    cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
+    cdef size_t sub_subvec_size = vectors[0][0].size() if subvec_size != 0 else 0
+    result = np.empty([vectors.size(), subvec_size, sub_subvec_size], dtype=_npfloat64)
+    for i in xrange(vectors.size()):
+        assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
+        for j in xrange(subvec_size):
+            assert vectors[i][j].size() == sub_subvec_size, "All subvectors should have the same length"
+            for k in xrange(sub_subvec_size):
+                result[i][j][k] = vectors[i][j][k]
+    return result
+
+
 cdef class _FloatArrayWrapper:
     cdef const float* _arr
     cdef int _count
@@ -911,6 +943,7 @@ cdef class _FloatArrayWrapper:
 
     def __len__(self):
         return self._count
+
 
 # Cython does not have generics so using small copy-paste here and below
 cdef class _DoubleArrayWrapper:
@@ -1074,13 +1107,13 @@ cdef class _PreprocessParams:
                 params_to_json[k] = deepcopy(v)
 
             for k in keys_to_replace:
-                params_to_json[k] = "Custom"
+                params_to_json[k] = "PythonUserDefinedPerObject"
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
-        if params_to_json.get("loss_function") == "Custom":
+        if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-        if params_to_json.get("eval_metric") == "Custom":
+        if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
 
         self.tree = ReadTJsonValue(to_arcadia_string(dumps_params))
@@ -2384,7 +2417,7 @@ cdef class _CatBoost:
         return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.CatFeatures]
 
     cpdef _get_float_feature_indices(self):
-            return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.FloatFeatures]
+        return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.FloatFeatures]
 
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
         cdef TVector[double] pred
@@ -2401,7 +2434,8 @@ cdef class _CatBoost:
                 ntree_end,
                 thread_count
             )
-        return [value for value in pred]
+        return _vector_of_double_to_np_array(pred)
+
 
     cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end,
                               int thread_count, bool_t verbose):
@@ -2471,11 +2505,7 @@ cdef class _CatBoost:
                     thread_count,
                     verbose
                 )
-            return [
-                       [
-                           [value for value in fstr_multi[i][j]] for j in range(fstr_multi[i].size())
-                       ] for i in range(fstr_multi.size())
-                   ], native_feature_ids
+            return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         else:
             with nogil:
                 fstr = GetFeatureImportances(
@@ -2485,7 +2515,7 @@ cdef class _CatBoost:
                     thread_count,
                     verbose
                 )
-            return [[value for value in fstr[i]] for i in range(fstr.size())], native_feature_ids
+            return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
 
     cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count, int verbose):
         thread_count = UpdateThreadCount(thread_count);
@@ -2501,7 +2531,7 @@ cdef class _CatBoost:
             verbose
         )
         indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
-        scores = [[value for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]
+        scores = _2d_vector_of_double_to_np_array(ostr.Scores)
         if to_arcadia_string(ostr_type) == to_arcadia_string('Average'):
             indices = indices[0]
             scores = scores[0]
@@ -2591,6 +2621,9 @@ cdef class _CatBoost:
 
     def _get_feature_names(self):
         return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
+
+    def _get_class_names(self):
+        return [to_native_str(s) for s in GetModelClassNames(dereference(self.__model))]
 
     cpdef _sum_models(self, models, weights, ctr_merge_policy):
         cdef TVector[TFullModel_const_ptr] models_vector
@@ -2695,10 +2728,11 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
         if metric_name in used_metric_names:
             continue
         used_metric_names.add(metric_name)
+
         fill_iterations_column = 'iterations' not in result
         if fill_iterations_column:
             result['iterations'] = list()
-        for it in xrange(results[metric_idx].AverageTrain.size()):
+        for it in xrange(results[metric_idx].Iterations.size()):
             iteration = results[metric_idx].Iterations[it]
             if fill_iterations_column:
                 result['iterations'].append(iteration)
@@ -2707,8 +2741,10 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
                 assert(result['iterations'][it] == iteration)
             result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
             result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
-            result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
-            result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
+
+            if results[metric_idx].AverageTrain.size() != 0:
+                result["train-" + metric_name + "-mean"].append(results[metric_idx].AverageTrain[it])
+                result["train-" + metric_name + "-std"].append(results[metric_idx].StdDevTrain[it])
 
     if as_pandas:
         return pd.DataFrame.from_dict(result)
@@ -2727,11 +2763,10 @@ cdef _FloatOrStringFromString(char* s):
 
 
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
-     if predictionType == PyPredictionType('Class').predictionType:
+    if predictionType == PyPredictionType('Class').predictionType:
         return [[_FloatOrStringFromString(value) for value \
             in ConvertTargetToExternalName([value for value in raws[0]], dereference(model))]]
-
-     return [[value for value in vec] for vec in raws]
+    return _2d_vector_of_double_to_np_array(raws)
 
 
 cdef class _StagedPredictIterator:

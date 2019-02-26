@@ -266,6 +266,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOptionWithNewKey(plainOptions, "bootstrap_type", "type", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "bagging_temperature", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
+    CopyOption(plainOptions, "mvs_head_fraction", &bootstrapOptions, &seenKeys);
 
     //cat-features
     auto& ctrOptions = trainOptions["cat_feature_params"];

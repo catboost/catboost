@@ -37,6 +37,17 @@ def get_java_version(exe):
     return None
 
 
+def get_classpath(cmd):
+    for i, part in enumerate(cmd):
+        if part == '-classpath':
+            i += 1
+            if i < len(cmd):
+                return cmd[i]
+            else:
+                return None
+    return None
+
+
 def just_do_it(argv):
     java, javac, error_prone_tool, javac_cmd = argv[0], argv[1], argv[2], argv[3:]
     ver = get_java_version(java)
@@ -49,6 +60,10 @@ def just_do_it(argv):
         for f in ERROR_PRONE_FLAGS:
             if f in javac_cmd:
                 javac_cmd.remove(f)
+        if '-processor' in javac_cmd:
+            classpath = get_classpath(javac_cmd)
+            if classpath:
+                error_prone_tool = error_prone_tool + os.pathsep + classpath
         os.execv(javac, [javac] + JAVA10_EXPORTS + ['-processorpath', error_prone_tool, '-XDcompilePolicy=byfile'] + [(' '.join(['-Xplugin:ErrorProne'] + ERROR_PRONE_FLAGS))] + javac_cmd)
     else:
         os.execv(java, [java, '-Xbootclasspath/p:' + error_prone_tool, 'com.google.errorprone.ErrorProneCompiler'] + ERROR_PRONE_FLAGS + javac_cmd)
