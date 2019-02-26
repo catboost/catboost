@@ -25,6 +25,8 @@ import os.path
 from pandas import read_table, DataFrame, Series, Categorical
 from six import PY3
 from six.moves import xrange
+
+
 from catboost_pytest_lib import (
     DelayedTee,
     binary_path,
@@ -3779,6 +3781,35 @@ def test_eval_set_with_no_target_with_eval_metric(task_type):
     )
     with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=eval_set_pool)
+
+
+def test_eval_period_size():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10)
+    model.fit(train_pool, eval_set=test_pool)
+
+    eval_metrics_all_trees_path = test_output_path('eval_metrics_all_trees.txt')
+    with open(eval_metrics_all_trees_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.eval_metrics(test_pool, ['AUC', 'Recall'], eval_period=20)
+        )
+
+    eval_metrics_begin_end_path = test_output_path('eval_metrics_begin_end.txt')
+    with open(eval_metrics_begin_end_path, 'w') as f:
+        pprint.PrettyPrinter(stream=f).pprint(
+            model.eval_metrics(
+                test_pool,
+                metrics=['AUC', 'Recall'],
+                ntree_start=3,
+                ntree_end=5,
+                eval_period=20)
+        )
+
+    return [
+        local_canonical_file(eval_metrics_all_trees_path),
+        local_canonical_file(eval_metrics_begin_end_path)
+    ]
 
 
 def test_output_border_file(task_type):

@@ -402,6 +402,10 @@ TMetricsPlotCalcer CreateMetricCalcer(
         end = Min<int>(end, model.GetTreeCount());
     }
 
+    if (evalPeriod > (end - begin)) {
+        evalPeriod = end - begin;
+    }
+
     TMetricsPlotCalcer plotCalcer(model, metrics, executor, tmpDir, begin, end, evalPeriod, processedIterationsStep);
 
     return plotCalcer;

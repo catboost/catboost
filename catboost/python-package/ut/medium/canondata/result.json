@@ -113,6 +113,16 @@
             "uri": "file://test.test_early_stopping_rounds_CPU_/json_log_train.json"
         }
     ],
+    "test.test_eval_period_size": [
+        {
+            "checksum": "b94e016e4648990b8c2b57421c503361",
+            "uri": "file://test.test_eval_period_size/eval_metrics_all_trees.txt"
+        },
+        {
+            "checksum": "c1ec77b34665946d7e5442f631fe5010",
+            "uri": "file://test.test_eval_period_size/eval_metrics_begin_end.txt"
+        }
+    ],
     "test.test_eval_set[CPU]": {
         "checksum": "bdaa286c1a43a8892e1e5ac50092ad24",
         "uri": "file://test.test_eval_set_CPU_/catboost_training.json"
