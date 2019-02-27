@@ -1,4 +1,4 @@
-Copyright (c) 2003-2009 Stuart Bishop <stuart@stuartbishop.net>
+Copyright (c) 2003-2018 Stuart Bishop <stuart@stuartbishop.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

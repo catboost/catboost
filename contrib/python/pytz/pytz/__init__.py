@@ -12,11 +12,6 @@ import sys
 import datetime
 import os.path
 
-try:
-    from pkg_resources import resource_stream
-except ImportError:
-    resource_stream = None
-
 from pytz.exceptions import AmbiguousTimeError
 from pytz.exceptions import InvalidTimeError
 from pytz.exceptions import NonExistentTimeError
@@ -25,9 +20,10 @@ from pytz.lazy import LazyDict, LazyList, LazySet
 from pytz.tzinfo import unpickler, BaseTzInfo
 from pytz.tzfile import build_tzinfo
 
+
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2018e'
-VERSION = '2018.5'  # pip compatible version number.
+OLSON_VERSION = '2018i'
+VERSION = '2018.9'  # pip compatible version number.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION  # Old releases had this misspelling
@@ -38,6 +34,7 @@ __all__ = [
     'NonExistentTimeError', 'UnknownTimeZoneError',
     'all_timezones', 'all_timezones_set',
     'common_timezones', 'common_timezones_set',
+    'BaseTzInfo',
 ]
 
 
@@ -808,6 +805,7 @@ all_timezones = \
  'Asia/Pontianak',
  'Asia/Pyongyang',
  'Asia/Qatar',
+ 'Asia/Qostanay',
  'Asia/Qyzylorda',
  'Asia/Rangoon',
  'Asia/Riyadh',
@@ -1100,7 +1098,7 @@ all_timezones = \
  'Zulu']
 all_timezones = LazyList(
         tz for tz in all_timezones if resource_exists(tz))
-
+        
 all_timezones_set = LazySet(all_timezones)
 common_timezones = \
 ['Africa/Abidjan',
@@ -1372,6 +1370,7 @@ common_timezones = \
  'Asia/Pontianak',
  'Asia/Pyongyang',
  'Asia/Qatar',
+ 'Asia/Qostanay',
  'Asia/Qyzylorda',
  'Asia/Riyadh',
  'Asia/Sakhalin',
@@ -1544,5 +1543,5 @@ common_timezones = \
  'UTC']
 common_timezones = LazyList(
             tz for tz in common_timezones if tz in all_timezones)
-
+        
 common_timezones_set = LazySet(common_timezones)

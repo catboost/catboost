@@ -2,9 +2,9 @@
 
 PY23_LIBRARY()
 
-LICENSE(
-    MIT
-)
+VERSION(2018.9)
+
+LICENSE(MIT)
 
 PY_SRCS(
     TOP_LEVEL
@@ -319,6 +319,7 @@ RESOURCE(
     pytz/zoneinfo/Asia/Pontianak /pytz_data/zoneinfo/Asia/Pontianak
     pytz/zoneinfo/Asia/Pyongyang /pytz_data/zoneinfo/Asia/Pyongyang
     pytz/zoneinfo/Asia/Qatar /pytz_data/zoneinfo/Asia/Qatar
+    pytz/zoneinfo/Asia/Qostanay /pytz_data/zoneinfo/Asia/Qostanay
     pytz/zoneinfo/Asia/Qyzylorda /pytz_data/zoneinfo/Asia/Qyzylorda
     pytz/zoneinfo/Asia/Rangoon /pytz_data/zoneinfo/Asia/Rangoon
     pytz/zoneinfo/Asia/Riyadh /pytz_data/zoneinfo/Asia/Riyadh
@@ -624,3 +625,7 @@ RESOURCE(
 NO_LINT()
 
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)

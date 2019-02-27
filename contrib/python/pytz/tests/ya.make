@@ -1,9 +1,22 @@
-PYTEST()
+PY23_LIBRARY()
 
 
 
-TEST_SRCS(test_run.py)
+PEERDIR(
+    contrib/python/pytz
+)
 
-DEPENDS(contrib/python/pytz/tests/runner)
+TEST_SRCS(
+    test_docs.py
+    test_lazy.py
+    test_tzinfo.py
+)
+
+NO_LINT()
 
 END()
+
+RECURSE_FOR_TESTS(
+    py2
+    py3
+)
