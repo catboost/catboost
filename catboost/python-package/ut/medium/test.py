@@ -3874,3 +3874,48 @@ def test_model_comparison():
     # Check equality to other model.
     assert not (model1 == model2)
     assert (model1 != model2)
+
+
+def test_param_synonyms(task_type):
+    # list of  ([synonyms list], value)
+    synonym_params = [
+        (['loss_function', 'objective'], 'CrossEntropy'),
+        (['iterations', 'num_boost_round', 'n_estimators', 'num_trees'], 5),
+        (['learning_rate', 'eta'], 0.04),
+        (['random_seed', 'random_state'], 1),
+        (['l2_leaf_reg', 'reg_lambda'], 4),
+        (['depth', 'max_depth'], 7),
+        (['rsm', 'colsample_bylevel'], 0.5),
+        (['border_count', 'max_bin'], 32),
+        # (['verbose', 'verbose_eval'], True), # TODO(akhropov): support 'verbose_eval' in CatBoostClassifier ?
+    ]
+
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    """
+      don't test every possible synonym name combination - it's too computationally expensive
+      process iteratively and just update all synonyms for which synonym names lists are non exhausted yet
+    """
+    variants_count = max((len(synonym_names) for synonym_names, value in synonym_params))
+
+    canonical_predictions = None
+
+    for variant_idx in range(variants_count):
+        params = {'task_type': task_type, 'devices': '0'}
+        for synonym_names, value in synonym_params:
+            synonym_name = synonym_names[variant_idx] if variant_idx < len(synonym_names) else synonym_names[0]
+            params[synonym_name] = value
+
+        for model in [CatBoost(params), CatBoostClassifier(**params)]:
+            with tempfile.TemporaryFile('w+') as stdout_part:
+                with DelayedTee(sys.stdout, stdout_part):
+                    model.fit(train_pool)
+                training_stdout_len = sum(1 for line in stdout_part)
+
+            predictions = model.predict(train_pool, prediction_type='RawFormulaVal')
+            if canonical_predictions is None:
+                canonical_predictions = predictions
+                canonical_training_stdout_len = training_stdout_len
+            else:
+                assert all(predictions == canonical_predictions)
+                assert training_stdout_len == canonical_training_stdout_len

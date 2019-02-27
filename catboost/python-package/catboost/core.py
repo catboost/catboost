@@ -776,6 +776,18 @@ def _process_synonyms(params):
         params['used_ram_limit'] = str(params['used_ram_limit'])
 
 
+def _get_loss_function(params):
+    if params is None:
+        return None
+
+    # check 'objective' first because it can be overridden as a CatBoost* param with default 'loss_function'
+    objective_param = params.get('objective')
+    if objective_param is not None:
+        return objective_param
+
+    return params.get('loss_function')
+
+
 class _CatBoostBase(object):
     def __init__(self, params):
         self._init_params = params.copy() if params is not None else {}
@@ -1297,9 +1309,9 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
         if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
             raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
-        loss_function_type = self.get_param('loss_function')
-        if loss_function_type is None:
-            loss_function_type = self.get_param('objective')
+
+        loss_function_type = _get_loss_function(self._get_params())
+
         # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
         if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
             return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
@@ -1363,9 +1375,7 @@ class CatBoost(_CatBoostBase):
         if ntree_end == 0:
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-        loss_function = self.get_param('loss_function')
-        if loss_function is None:
-            loss_function = self.get_param('objective')
+        loss_function = _get_loss_function(self._get_params())
         while True:
             predictions = staged_predict_iterator.next()
             if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
