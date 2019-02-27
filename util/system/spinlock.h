@@ -10,7 +10,7 @@ protected:
     }
 
 public:
-    inline bool IsLocked() noexcept {
+    inline bool IsLocked() const noexcept {
         return AtomicGet(Val_);
     }
 
