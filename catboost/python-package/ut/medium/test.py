@@ -7,7 +7,6 @@ import re
 import subprocess
 import sys
 import tempfile
-import pandas as pd
 from catboost import (
     CatBoost,
     CatBoostClassifier,
@@ -1312,7 +1311,7 @@ def test_yes_copied_unnecessarily():
                                                                                                        np.float32(60)]]
     label = [1, 1, -1]
     with pytest.raises(CatboostError):
-        Pool(pd.DataFrame(data), label, cat_features, sure_no_features_copy)
+        Pool(DataFrame(data), label, cat_features, sure_no_features_copy)
 
 
 def test_not_copied_unnecessarily():
