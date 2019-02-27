@@ -148,6 +148,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "subvertpy.ra_svn",  # can only be imported after subvertpy.ra
         "superfcgi.*",
 
+        "tenacity.tornadoweb",
         "thrift.TSCons",
         "thrift.TTornado",
         "thrift.transport.*",
