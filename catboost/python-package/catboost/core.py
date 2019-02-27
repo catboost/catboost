@@ -168,10 +168,12 @@ class EFstrType(Enum):
     PredictionValuesChange = 0
     """Calculate score for every feature by loss change"""
     LossFunctionChange = 1
+    """Use LossFunctionChange for ranking models and PredictionValuesChange otherwise"""
+    FeatureImportance = 2
     """Calculate pairwise score between every feature."""
-    Interaction = 2
+    Interaction = 3
     """Calculate SHAP Values for every object."""
-    ShapValues = 3
+    ShapValues = 4
 
 
 class Pool(_PoolBase):
@@ -1163,7 +1165,7 @@ class CatBoost(_CatBoostBase):
         setattr(
             self,
             "_feature_importance",
-            self.get_feature_importance(train_pool, EFstrType.PredictionValuesChange)
+            self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
         )
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
@@ -1566,20 +1568,24 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
-    def get_feature_importance(self, data=None, type=EFstrType.PredictionValuesChange, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
         """
         Parameters
         ----------
         data : catboost.Pool or None
             Data to get feature importance.
-            If type == Shap data is a dataset. For every object in this dataset feature importances will be calculated.
-            If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+            If type in ('Shap', 'PredictionValuesChange) data is a dataset. For every object in this dataset feature importances will be calculated.
+            If type == PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
         type : EFstrType or string (converted to EFstrType), optional
-                    (default=EFstrType.PredictionValuesChange)
+                    (default=EFstrType.FeatureImportance)
             Possible values:
                 - PredictionValuesChange
                     Calculate score for every feature.
+                - LossFunctionChange
+                    Calculate score for every feature by loss.
+                - FeatureImportance
+                    PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics
                 - ShapValues
                     Calculate SHAP Values for every object.
                 - Interaction
@@ -1603,9 +1609,9 @@ class CatBoost(_CatBoostBase):
         Returns
         -------
         depends on type:
-            - PredictionValuesChange with prettified=False (default)
+            - PredictionValuesChange, LossFunctionChange with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
-            - PredictionValuesChange with prettified=True
+            - PredictionValuesChange, LossFunctionChange with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
                 np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
@@ -1637,7 +1643,7 @@ class CatBoost(_CatBoostBase):
 
         with log_fixup():
             fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose)
-        if type == EFstrType.PredictionValuesChange or type == EFstrType.LossFunctionChange:
+        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.FeatureImportance):
             feature_importances = [value[0] for value in fstr]
             if prettified:
                 return sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)

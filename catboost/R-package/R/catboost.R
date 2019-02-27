@@ -1508,6 +1508,14 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #'     Calculate score for every feature.
 #'
+#'   \item 'LossFunctionChange'
+#'
+#'     Calculate score for every feature for groupwise model.
+#'
+#'   \item 'FeatureImportance'
+#'
+#'     'LossFunctionChange' in case of groupwise model and 'PredictionValuesChange' otherwise.
+#'
 #'   \item 'Interaction'
 #'
 #'     Calculate pairwise score between every feature.
@@ -1518,7 +1526,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #' }
 #'
-#' Default value: 'PredictionValuesChange'
+#' Default value: 'FeatureImportance'
 #' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
@@ -1526,7 +1534,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Default value: -1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
-catboost.get_feature_importance <- function(model, pool = NULL, type = 'PredictionValuesChange', thread_count = -1, fstr_type = NULL) {
+catboost.get_feature_importance <- function(model, pool = NULL, type = 'FeatureImportance', thread_count = -1, fstr_type = NULL) {
     if (fstr_type != '')
         type = fstr_type
         warning("fstr_type option is deprecated, use type instead")
@@ -1536,7 +1544,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = 'Predicti
         stop("Expected catboost.Pool, got: ", class(pool))
     if ((type == 'ShapValues' || type == 'LossFunctionChange') && length(pool) == 0)
         stop("For `", type, ` type of feature importance, the pool is required")
-    if (type == 'PredictionValuesChange' && is.null(pool) && !is.null(model$feature_importances))
+    if ((type == 'PredictionValuesChange' || type == 'FeatureImportance') && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
     if (is.null.handle(model$handle))
@@ -1547,7 +1555,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = 'Predicti
         colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
     } else if (type == 'ShapValues') {
         colnames(importances) <- c(colnames(pool), "<base>")
-    } else if (type == 'PredictionValuesChange') {
+    } else if (type == 'PredictionValuesChange' || type == 'FeatureImportance' || type == 'LossFunctionChange') {
         if (dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }

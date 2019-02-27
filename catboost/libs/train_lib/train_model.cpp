@@ -801,6 +801,11 @@ void TrainModel(
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
     const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
+    if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {
+        NCatboostOptions::TLossDescription modelLossDescription;
+        modelLossDescription.Load(updatedTrainJson["loss_function"]);
+        needPoolAfterTrain |= IsGroupwiseMetric(modelLossDescription.LossFunction.Get());
+    }
     TrainModel(
         updatedTrainJson,
         outputOptions,
@@ -865,7 +870,7 @@ void TrainModel(
         TFullModel model = ReadModel(fullModelPath, modelFormat);
         CalcAndOutputFstr(
             model,
-            outputOptions.GetFstrType() == EFstrType::LossFunctionChange ? pools.Learn : nullptr,
+            needPoolAfterTrain ? pools.Learn : nullptr,
             &executor,
             &fstrRegularFileName,
             &fstrInternalFileName,

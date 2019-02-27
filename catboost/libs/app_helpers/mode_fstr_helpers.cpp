@@ -97,8 +97,8 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     localExecutor->RunAdditionalThreads(params.ThreadCount - 1);
 
     TLazyPoolLoader poolLoader(params, model, localExecutor);
-
-    switch (params.FstrType) {
+    auto fstrType = GetFeatureImportanceType(model, /*haveDataset*/true, params.FstrType);
+    switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? poolLoader() : nullptr,

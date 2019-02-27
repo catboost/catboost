@@ -5,7 +5,7 @@
 \title{Calculate the feature importances}
 \usage{
 catboost.get_feature_importance(model, pool = NULL,
-  type = "PredictionValuesChange", thread_count = -1)
+  type = "FeatureImportance", thread_count = -1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -28,7 +28,15 @@ Possible values:
 
   \item 'LossFunctionChange'
 
+    Calculate score for every feature by values change.
+
+  \item
+
     Calculate score for every feature bu loss change. Use it for ranking methods.
+
+  \item 'Feature importance'
+
+    Equal to 'LossFunctionChange' in case of ranking model 'PredictionValuesChange' otherwise.
 
   \item 'Interaction'
 
@@ -40,7 +48,7 @@ Possible values:
 
 }
 
-Default value: 'PredictionValuesChange'}
+Default value: 'FeatureImportance'}
 
 \item{thread_count}{The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
 

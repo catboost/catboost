@@ -1896,6 +1896,58 @@ def test_loss_change_fstr(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('ranking_parameters', [
+    {'loss-function': 'PairLogit', 'fstr-type': 'LossFunctionChange'},
+    {'loss-function': 'Logloss', 'fstr-type': 'PredictionValuesChange'}
+])
+def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters):
+    model_path = yatest.common.test_output_path('model.bin')
+    fstr_path_0 = yatest.common.test_output_path('fstr_0.tsv')
+    fstr_path_1 = yatest.common.test_output_path('fstr_1.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--learn-set', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '-i', '10',
+        '-T', '4',
+        '--one-hot-max-size', '10',
+        '--model-file', model_path,
+        '--loss-function', ranking_parameters['loss-function']
+    )
+    yatest.common.execute(
+        cmd + ('--fstr-file', fstr_path_0,
+               '--fstr-type', 'FeatureImportance')
+        )
+    yatest.common.execute(
+        cmd + ('--fstr-file', fstr_path_1,
+               '--fstr-type', ranking_parameters['fstr-type'])
+    )
+
+    fstr_otuput_0 = np.loadtxt(fstr_path_0, dtype='float', delimiter='\t')
+    fstr_output_1 = np.loadtxt(fstr_path_1, dtype='float', delimiter='\t')
+    assert(np.allclose(fstr_otuput_0, fstr_output_1, rtol=1e-6))
+
+    fstr_cmd = (
+        CATBOOST_PATH,
+        'fstr',
+        '--input-path', data_file('querywise', 'train'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--input-pairs', data_file('querywise', 'train.pairs'),
+        '--model-file', model_path,
+        '--output-path', fstr_path_1,
+        '--fstr-type', 'FeatureImportance',
+    )
+    yatest.common.execute(fstr_cmd)
+
+    fstr_output_1 = np.loadtxt(fstr_path_1, dtype='float', delimiter='\t')
+    assert(np.allclose(fstr_otuput_0, fstr_output_1, rtol=1e-6))
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_loss_change_fstr_without_pairs(boosting_type):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')

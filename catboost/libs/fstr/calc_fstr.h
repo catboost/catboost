@@ -4,6 +4,8 @@
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/enum_helpers.h>
+#include <catboost/libs/options/loss_description.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -151,3 +153,26 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
 TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset); // can be nullptr
+
+bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription);
+inline static EFstrType GetFeatureImportanceType(
+    const TFullModel& model,
+    bool haveDataset,
+    EFstrType type)
+{
+    if (type == EFstrType::FeatureImportance) {
+        NCatboostOptions::TLossDescription lossDescription;
+        CB_ENSURE(TryGetLossDescription(model, lossDescription));
+        if (IsGroupwiseMetric(lossDescription.LossFunction)) {
+            if (haveDataset) {
+                return EFstrType::LossFunctionChange;
+            } else {
+                CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric,"
+                                        "will use PredictionValuesChange feature importance" << Endl;
+            }
+        };
+        return EFstrType::PredictionValuesChange;
+    } else {
+        return type;
+    }
+}

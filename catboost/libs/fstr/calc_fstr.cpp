@@ -218,7 +218,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     return result;
 }
 
-static bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
+bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
     if (!(model.ModelInfo.contains("loss_function") ||  model.ModelInfo.contains("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function"))) {
         return false;
     }
@@ -235,6 +235,12 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         const TDataProvider& dataProvider,
         NPar::TLocalExecutor* localExecutor)
 {
+    NCatboostOptions::TLossDescription lossDescription;
+    CB_ENSURE(TryGetLossDescription(model, lossDescription));
+    int approxDimension = model.ObliviousTrees.ApproxDimension;
+    THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
+    CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
+
     auto combinationClassFeatures = GetCombinationClassFeatures(model.ObliviousTrees);
     int featuresCount = combinationClassFeatures.size();
     if (featuresCount == 0) {
@@ -242,8 +248,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         return result;
     }
 
-    NCatboostOptions::TLossDescription lossDescription;
-    CB_ENSURE(TryGetLossDescription(model, lossDescription));
     ui32 totalDocumentCount = dataProvider.ObjectsData->GetObjectCount();
     ui32 maxDocuments = Min(totalDocumentCount, Max(ui32(2e5), ui32(2e9 / dataProvider.ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())));
 
@@ -263,13 +267,11 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     TConstArrayRef<TQueryInfo> queriesInfo = GetGroupInfo(targetData);
     TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, documentCount,
                                                       localExecutor);
-    THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, documentCount)[0]);
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
     scores.back().Add(
             metric->Eval(approx, GetTarget(targetData), GetWeights(targetData), queriesInfo, 0, blockCount, *localExecutor)
     );
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
-    int approDimension = model.ObliviousTrees.ApproxDimension;
 
     TProfileInfo profile(documentCount);
     TImportanceLogger importanceLogger(documentCount, "Process documents", "Started LossFunctionChange calculation", 1);
@@ -300,7 +302,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
             blockParams.SetBlockCountToThreadCount();
             localExecutor->ExecRange([&](ui32 docIdx) {
-                for (int dimensionIdx = 0; dimensionIdx < approDimension; ++dimensionIdx) {
+                for (int dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
                     approx[dimensionIdx][docIdx] -= shapValues[docIdx - begin][featureIdx][dimensionIdx];
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -309,7 +311,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                                  *localExecutor)
             );
             localExecutor->ExecRange([&](ui32 docIdx) {
-                for (int dimensionIdx = 0; dimensionIdx < approDimension; ++dimensionIdx) {
+                for (int dimensionIdx = 0; dimensionIdx < approxDimension; ++dimensionIdx) {
                     approx[dimensionIdx][docIdx] += shapValues[docIdx - begin][featureIdx][dimensionIdx];
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -340,11 +342,9 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
+    type = GetFeatureImportanceType(model, bool(dataset), type);
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
-        NCatboostOptions::TLossDescription lossDescription;
-        CB_ENSURE(TryGetLossDescription(model, lossDescription));
-        CB_ENSURE(IsGroupwiseMetric(lossDescription.LossFunction), "Use loss change fstr only for groupwise metric");
         return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
     } else {
         return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
@@ -620,9 +620,10 @@ TVector<TVector<double>> GetFeatureImportances(
     TSetLoggingVerbose inThisScope;
 
     EFstrType fstrType = FromString<EFstrType>(type);
-
     switch (fstrType) {
-        case EFstrType::PredictionValuesChange: {
+        case EFstrType::PredictionValuesChange:
+        case EFstrType::LossFunctionChange:
+        case EFstrType::FeatureImportance: {
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
