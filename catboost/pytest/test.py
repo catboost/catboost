@@ -926,8 +926,8 @@ LOSS_FUNCTIONS_SHORT = ['Logloss', 'MultiClass']
 
 @pytest.mark.parametrize(
     'loss_function',
-     LOSS_FUNCTIONS_SHORT,
-    ids = ['loss_function=%s' % loss_function for loss_function in LOSS_FUNCTIONS_SHORT]
+    LOSS_FUNCTIONS_SHORT,
+    ids=['loss_function=%s' % loss_function for loss_function in LOSS_FUNCTIONS_SHORT]
 )
 @pytest.mark.parametrize(
     'column_name',
