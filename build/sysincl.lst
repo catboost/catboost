@@ -407,6 +407,7 @@ unwind.h
 quadmath.h
 omp.h
 cxxabi.h
+gnu/libc-version.h
 #endif
 #if defined (__linux__)
 _G_config.h
