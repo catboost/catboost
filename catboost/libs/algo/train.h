@@ -7,4 +7,4 @@
 
 void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx);
 
-TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, TLearnContext* ctx);
+TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, const TLearnContext& ctx);

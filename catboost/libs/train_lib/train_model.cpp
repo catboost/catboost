@@ -119,30 +119,38 @@ static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues
     return false;
 }
 
-static void Train(
-    bool forceCalcEvalMetricOnEveryIteration,
-    const TTrainingForCPUDataProviders& data,
-    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
-    TLearnContext* ctx,
-    TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
-) {
-    TProfileInfo& profile = ctx->Profile;
+namespace {
+struct TMetricsData {
+    TVector<THolder<IMetric>> Metrics;
+    bool CalcEvalMetricOnEveryIteration;
+    TMaybe<TErrorTracker> ErrorTracker;
+    TMaybe<TErrorTracker> BestModelMinTreesTracker;
+    size_t ErrorTrackerMetricIdx;
+};
+}
 
-    const int approxDimension = ctx->LearnProgress.ApproxDimension;
-    const bool hasTest = data.GetTestSampleCount() > 0;
-    TVector<THolder<IMetric>> metrics = CreateMetrics(
-        ctx->Params.LossFunctionDescription,
-        ctx->Params.MetricOptions,
-        ctx->EvalMetricDescriptor,
+static void InitializeAndCheckMetricData(
+    const TTrainingForCPUDataProviders& data,
+    bool forceCalcEvalMetricOnEveryIteration,
+    const TLearnContext& ctx,
+    TMetricsData* metricsData) {
+
+    const int approxDimension = ctx.LearnProgress.ApproxDimension;
+    auto& metrics = metricsData->Metrics;
+    metrics = CreateMetrics(
+        ctx.Params.LossFunctionDescription,
+        ctx.Params.MetricOptions,
+        ctx.EvalMetricDescriptor,
         approxDimension
     );
-    CheckMetrics(metrics, ctx->Params.LossFunctionDescription.Get().GetLossFunction());
-    if (!ctx->Params.SystemOptions->IsSingleHost()) {
+    CheckMetrics(metrics, ctx.Params.LossFunctionDescription.Get().GetLossFunction());
+    if (!ctx.Params.SystemOptions->IsSingleHost()) {
         if (!AllOf(metrics, [](const auto& metric) { return metric->IsAdditiveMetric(); })) {
             CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
         }
     }
-    if (!hasTest && !ctx->Params.MetricOptions->CustomMetrics->empty()) {
+    const bool hasTest = data.GetTestSampleCount() > 0;
+    if (!hasTest && !ctx.Params.MetricOptions->CustomMetrics->empty()) {
         CATBOOST_WARNING_LOG << "Warning: Custom metrics will not be evaluated because there are no test datasets" << Endl;
     }
 
@@ -157,131 +165,192 @@ static void Train(
 
     const bool canCalcEvalMetric = hasTest && (!metrics[0]->NeedTarget() || lastTestDatasetHasTargetData);
 
-    TMaybe<TErrorTracker> errorTracker;
-    TMaybe<TErrorTracker> bestModelMinTreesTracker;
-
     if (canCalcEvalMetric) {
         EMetricBestValue bestValueType;
         float bestPossibleValue;
 
         metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
-        errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
-        bestModelMinTreesTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+        metricsData->ErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+        metricsData->BestModelMinTreesTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
     }
 
-    const bool calcEvalMetricOnEveryIteration
+    auto& errorTracker = metricsData->ErrorTracker;
+    metricsData->CalcEvalMetricOnEveryIteration
         = canCalcEvalMetric && (forceCalcEvalMetricOnEveryIteration || errorTracker->IsActive());
 
-    const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
+    if (ctx.OutputOptions.GetMetricPeriod() > 1 && errorTracker && errorTracker->IsActive() && hasTest) {
+        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
+            "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
+    }
+
+    // Use only (last_test, first_metric) for best iteration and overfitting detection
+    // In case of changing the order it should be changed in GPU mode also.
+    metricsData->ErrorTrackerMetricIdx = 0;
+}
+
+namespace {
+struct TLoggingData {
+    TString LearnToken;
+    TVector<const TString> TestTokens;
+    TLogger Logger;
+};
+}
+
+static bool ShouldCalcAllMetrics(int iter, const TLearnContext& ctx) {
+    return DivisibleOrLastIteration(
+        iter,
+        ctx.Params.BoostingOptions->IterationCount,
+        ctx.OutputOptions.GetMetricPeriod()
+    );
+}
+
+static bool ShouldCalcErrorTrackerMetric(int iter, const TMetricsData& metricsData, const TLearnContext& ctx) {
+    return ShouldCalcAllMetrics(iter, ctx) || metricsData.CalcEvalMetricOnEveryIteration;
+}
+
+// Write history metrics to loggers, error trackers and get info from per iteration metric based callback.
+static void ProcessHistoryMetrics(
+    const TTrainingForCPUDataProviders& data,
+    const TLearnContext& ctx,
+    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+    TMetricsData* metricsData,
+    TLoggingData* loggingData,
+    bool* continueTraining) {
+
+    loggingData->LearnToken = GetTrainModelLearnToken();
+    loggingData->TestTokens = GetTrainModelTestTokens(data.Test.ysize());
+
+    if (ctx.OutputOptions.AllowWriteFiles()) {
+        InitializeFileLoggers(
+            ctx.Params,
+            ctx.Files,
+            GetConstPointers(metricsData->Metrics),
+            loggingData->LearnToken,
+            loggingData->TestTokens,
+            ctx.OutputOptions.GetMetricPeriod(),
+            &loggingData->Logger);
+    }
+
+    const TVector<TTimeInfo>& timeHistory = ctx.LearnProgress.MetricsAndTimeHistory.TimeHistory;
+    const TVector<TVector<THashMap<TString, double>>>& testMetricsHistory =
+        ctx.LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
+
+    const bool useBestModel = ctx.OutputOptions.ShrinkModelToBestIteration();
+    *continueTraining = true;
+    for (int iter : xrange(ctx.LearnProgress.TreeStruct.ysize())) {
+        if (iter < testMetricsHistory.ysize() && ShouldCalcErrorTrackerMetric(iter, *metricsData, ctx) && metricsData->ErrorTracker) {
+            const TString& errorTrackerMetricDescription = metricsData->Metrics[metricsData->ErrorTrackerMetricIdx]->GetDescription();
+            const double error = testMetricsHistory[iter].back().at(errorTrackerMetricDescription);
+            metricsData->ErrorTracker->AddError(error, iter);
+            if (useBestModel && iter + 1 >= ctx.OutputOptions.BestModelMinTrees) {
+                metricsData->BestModelMinTreesTracker->AddError(error, iter);
+            }
+        }
+
+        Log(iter,
+            GetMetricsDescription(metricsData->Metrics),
+            ctx.LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
+            testMetricsHistory,
+            metricsData->ErrorTracker ? TMaybe<double>(metricsData->ErrorTracker->GetBestError()) : Nothing(),
+            metricsData->ErrorTracker ? TMaybe<int>(metricsData->ErrorTracker->GetBestIteration()) : Nothing(),
+            TProfileResults(timeHistory[iter].PassedTime, timeHistory[iter].RemainingTime),
+            loggingData->LearnToken,
+            loggingData->TestTokens,
+            ShouldCalcAllMetrics(iter, ctx),
+            &loggingData->Logger
+        );
+
+        if (onEndIterationCallback) {
+            *continueTraining = (*onEndIterationCallback)(ctx.LearnProgress.MetricsAndTimeHistory);
+        }
+    }
+
+    AddConsoleLogger(
+        loggingData->LearnToken,
+        loggingData->TestTokens,
+        /*hasTrain=*/true,
+        ctx.OutputOptions.GetVerbosePeriod(),
+        ctx.Params.BoostingOptions->IterationCount,
+        &loggingData->Logger
+    );
+}
+
+static void InitializeSamplingStructures(
+    const TTrainingForCPUDataProviders& data,
+    TLearnContext* ctx) {
+
+    const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
+    const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
+
+    if (ctx->UseTreeLevelCaching()) {
+        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
+        ctx->PrevTreeLevelStats.Create(
+            ctx->LearnProgress.Folds,
+            CountNonCtrBuckets(
+                *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
+                ctx->Params.CatFeatureParams->OneHotMaxSize),
+            static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
+        );
+    }
+    ctx->SampledDocs.Create(
+        ctx->LearnProgress.Folds,
+        isPairwiseScoring,
+        defaultCalcStatsObjBlockSize,
+        GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
+    ); // TODO(espetrov): create only if sample rate < 1
+}
+
+static void LogThatStoppingOccured(const TErrorTracker& errorTracker) {
+    CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
+        << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
+}
+
+static void CalcErrors(
+    const TTrainingForCPUDataProviders& data,
+    const TMetricsData& metricsData,
+    int iter,
+    TLearnContext* ctx) {
+
+    CalcErrors(data, metricsData.Metrics, ShouldCalcAllMetrics(iter, *ctx), ShouldCalcErrorTrackerMetric(iter, metricsData, *ctx), ctx);
+}
+
+static void Train(
+    bool forceCalcEvalMetricOnEveryIteration,
+    const TTrainingForCPUDataProviders& data,
+    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+    TLearnContext* ctx,
+    TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
+) {
+    TProfileInfo& profile = ctx->Profile;
+
+    TMetricsData metricsData;
+    InitializeAndCheckMetricData(data, forceCalcEvalMetricOnEveryIteration, *ctx, &metricsData);
 
     if (ctx->TryLoadProgress() && ctx->Params.SystemOptions->IsMaster()) {
         MapRestoreApproxFromTreeStruct(ctx);
     }
 
-    if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker && errorTracker->IsActive() && hasTest) {
-        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is " <<
-            "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
-    }
-
-    auto learnToken = GetTrainModelLearnToken();
-    auto testTokens = GetTrainModelTestTokens(data.Test.ysize());
-    TLogger logger;
-
-    if (ctx->OutputOptions.AllowWriteFiles()) {
-        InitializeFileLoggers(
-            ctx->Params,
-            ctx->Files,
-            GetConstPointers(metrics),
-            learnToken,
-            testTokens,
-            ctx->OutputOptions.GetMetricPeriod(),
-            &logger);
-    }
-
-    // Use only (last_test, first_metric) for best iteration and overfitting detection
-    // In case of changing the order it should be changed in GPU mode also.
-    const size_t errorTrackerMetricIdx = 0;
-
-    const TVector<TVector<THashMap<TString, double>>>& testMetricsHistory =
-        ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
-    const TVector<TTimeInfo>& timeHistory = ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory;
-
-    bool continueTraining = true;
-    for (int iter : xrange(ctx->LearnProgress.TreeStruct.ysize())) {
-        bool calcAllMetrics = DivisibleOrLastIteration(
-            iter,
-            ctx->Params.BoostingOptions->IterationCount,
-            ctx->OutputOptions.GetMetricPeriod()
-        );
-        const bool calcErrorTrackerMetric = calcAllMetrics || calcEvalMetricOnEveryIteration;
-        if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric && errorTracker) {
-            const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
-            const double error = testMetricsHistory[iter].back().at(errorTrackerMetricDescription);
-            errorTracker->AddError(error, iter);
-            if (useBestModel && iter + 1 >= ctx->OutputOptions.BestModelMinTrees) {
-                bestModelMinTreesTracker->AddError(error, iter);
-            }
-        }
-
-        Log(
-            iter,
-            GetMetricsDescription(metrics),
-            ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
-            testMetricsHistory,
-            errorTracker ? TMaybe<double>(errorTracker->GetBestError()) : Nothing(),
-            errorTracker ? TMaybe<int>(errorTracker->GetBestIteration()) : Nothing(),
-            TProfileResults(timeHistory[iter].PassedTime, timeHistory[iter].RemainingTime),
-            learnToken,
-            testTokens,
-            calcAllMetrics,
-            &logger
-        );
-
-        if (onEndIterationCallback) {
-            continueTraining = (*onEndIterationCallback)(ctx->LearnProgress.MetricsAndTimeHistory);
-        }
-    }
-
-    AddConsoleLogger(
-        learnToken,
-        testTokens,
-        /*hasTrain=*/true,
-        ctx->OutputOptions.GetVerbosePeriod(),
-        ctx->Params.BoostingOptions->IterationCount,
-        &logger
-    );
-
-    const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
-    const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
+    TLoggingData loggingData;
+    bool continueTraining;
+    ProcessHistoryMetrics(data, *ctx, onEndIterationCallback, &metricsData, &loggingData, &continueTraining);
 
     if (continueTraining) {
-        if (ctx->UseTreeLevelCaching()) {
-            ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
-            ctx->PrevTreeLevelStats.Create(
-                ctx->LearnProgress.Folds,
-                CountNonCtrBuckets(
-                    *data.Learn->ObjectsData->GetQuantizedFeaturesInfo(),
-                    ctx->Params.CatFeatureParams->OneHotMaxSize),
-                static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
-            );
-        }
-        ctx->SampledDocs.Create(
-            ctx->LearnProgress.Folds,
-            isPairwiseScoring,
-            defaultCalcStatsObjBlockSize,
-            GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
-        ); // TODO(espetrov): create only if sample rate < 1
+        InitializeSamplingStructures(data, ctx);
     }
 
     THPTimer timer;
+
+    const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
+    const bool hasTest = data.GetTestSampleCount() > 0;
+    const auto& metrics = metricsData.Metrics;
+    auto& errorTracker = metricsData.ErrorTracker;
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize();
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
          ++iter)
 
     {
         if (errorTracker && errorTracker->GetIsNeedStop()) {
-            CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
-                << " (" << errorTracker->GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
+            LogThatStoppingOccured(*errorTracker);
             break;
         }
 
@@ -295,19 +364,13 @@ static void Train(
 
         TrainOneIteration(data, ctx);
 
-        bool calcAllMetrics = DivisibleOrLastIteration(
-            iter,
-            ctx->Params.BoostingOptions->IterationCount,
-            ctx->OutputOptions.GetMetricPeriod()
-        );
-        const bool calcErrorTrackerMetric = calcAllMetrics || calcEvalMetricOnEveryIteration;
-
-        CalcErrors(data, metrics, calcAllMetrics, calcErrorTrackerMetric, ctx);
+        CalcErrors(data, metricsData, iter, ctx);
 
         profile.AddOperation("Calc errors");
-        if (hasTest && calcErrorTrackerMetric && errorTracker) {
+
+        if (hasTest && ShouldCalcErrorTrackerMetric(iter, metricsData, *ctx) && errorTracker) {
             const auto testErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
-            const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
+            const TString& errorTrackerMetricDescription = metrics[metricsData.ErrorTrackerMetricIdx]->GetDescription();
 
             // it is possible that metric has not been calculated because it requires target data
             // that is absent
@@ -319,7 +382,7 @@ static void Train(
                         ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
                     }
                     if (useBestModel && static_cast<int>(iter + 1) >= ctx->OutputOptions.BestModelMinTrees) {
-                        bestModelMinTreesTracker->AddError(*error, iter);
+                        metricsData.BestModelMinTreesTracker->AddError(*error, iter);
                     }
                 }
             }
@@ -338,10 +401,10 @@ static void Train(
             errorTracker ? TMaybe<double>(errorTracker->GetBestError()) : Nothing(),
             errorTracker ? TMaybe<int>(errorTracker->GetBestIteration()) : Nothing(),
             profileResults,
-            learnToken,
-            testTokens,
-            calcAllMetrics,
-            &logger
+            loggingData.LearnToken,
+            loggingData.TestTokens,
+            ShouldCalcAllMetrics(iter, *ctx),
+            &loggingData.Logger
         );
 
         if (HasInvalidValues(ctx->LearnProgress.LeafValues)) {
@@ -375,8 +438,8 @@ static void Train(
         CATBOOST_NOTICE_LOG << "\n";
     }
 
-    if (useBestModel && bestModelMinTreesTracker && ctx->Params.BoostingOptions->IterationCount > 0) {
-        const int bestModelIterations = bestModelMinTreesTracker->GetBestIteration() + 1;
+    if (useBestModel && metricsData.BestModelMinTreesTracker && ctx->Params.BoostingOptions->IterationCount > 0) {
+        const int bestModelIterations = metricsData.BestModelMinTreesTracker->GetBestIteration() + 1;
         if (0 < bestModelIterations && bestModelIterations < static_cast<int>(ctx->Params.BoostingOptions->IterationCount)) {
             CATBOOST_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
             if (errorTracker->GetBestIteration() + 1 < ctx->OutputOptions.BestModelMinTrees) {
@@ -472,7 +535,7 @@ namespace {
             if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
                 InitializeMaster(&ctx);
                 CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
-                CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Distributed training requires all numeric data");
+                CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Distributed training doesn't support categorical features");
                 MapBuildPlainFold(trainingDataForCpu.Learn, &ctx);
             }
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);

@@ -14,8 +14,8 @@
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/logging/profile_info.h>
 
-TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, TLearnContext* ctx) {
-    const auto& odOptions = ctx->Params.BoostingOptions->OverfittingDetector;
+TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, const TLearnContext& ctx) {
+    const auto& odOptions = ctx.Params.BoostingOptions->OverfittingDetector;
     return CreateErrorTracker(odOptions, bestPossibleValue, bestValueType, hasTest);
 }
 
