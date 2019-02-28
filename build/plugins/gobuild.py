@@ -17,6 +17,14 @@ def get_appended_values(unit, key):
     return value[1:] if len(value) > 0 else value
 
 
+def compare_versions(version1, version2):
+    v1 = tuple(str(int(x)).zfill(8) for x in version1.split('.'))
+    v2 = tuple(str(int(x)).zfill(8) for x in version2.split('.'))
+    if v1 == v2:
+        return 0
+    return 1 if v1 < v2 else -1
+
+
 def on_go_process_srcs(unit):
     """
         _GO_PROCESS_SRCS() macro processes only 'CGO' files. All remaining *.go files
@@ -45,6 +53,11 @@ def on_go_process_srcs(unit):
     if len(in_files) > 0:
         for f in in_files:
             unit.onsrc(f)
+
+    if compare_versions('1.12', unit.get('GOSTD_VERSION')) >= 0:
+        asm_files = filter(lambda x: x.endswith('.s'), go_files)
+        if len(asm_files) > 0:
+            unit.ongo_compile_symabis(asm_files)
 
     s_files = filter(lambda x: x.endswith('.S'), go_files)
     c_files = filter(lambda x: x.endswith('.c'), go_files)

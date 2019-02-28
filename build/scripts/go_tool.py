@@ -12,6 +12,14 @@ std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
 
 
+def compare_versions(version1, version2):
+    v1 = tuple(str(int(x)).zfill(8) for x in version1.split('.'))
+    v2 = tuple(str(int(x)).zfill(8) for x in version2.split('.'))
+    if v1 == v2:
+        return 0
+    return 1 if v1 < v2 else -1
+
+
 def get_symlink_or_copyfile():
     os_symlink = getattr(os, 'symlink', None)
     if os_symlink is None:
@@ -57,6 +65,7 @@ def classify_srcs(srcs, args):
     args.go_srcs = list(filter(lambda x: x.endswith('.go'), srcs))
     args.asm_srcs = list(filter(lambda x: x.endswith('.s'), srcs))
     args.objects = list(filter(lambda x: x.endswith('.o') or x.endswith('.obj'), srcs))
+    args.symabis = list(filter(lambda x: x.endswith('.symabis'), srcs))
 
 
 def create_import_config(peers, import_map={}, module_map={}):
@@ -83,6 +92,7 @@ def create_import_config(peers, import_map={}, module_map={}):
 def do_compile_go(args):
     import_path, is_std_module = get_import_path(args.module_path)
     cmd = [args.go_compile, '-o', args.output, '-trimpath', args.build_root, '-p', import_path, '-D', '""']
+    cmd += ['-goversion', 'go' + args.goversion]
     if is_std_module:
         cmd.append('-std')
         if import_path == 'runtime':
@@ -97,6 +107,11 @@ def do_compile_go(args):
             cmd.append('-complete')
     if args.asmhdr:
         cmd += ['-asmhdr', args.asmhdr]
+    if compare_versions('1.12', args.goversion) >= 0:
+        if args.symabis:
+            cmd += ['-symabis'] + args.symabis
+        if import_path in ('runtime', 'runtime/internal/atomic'):
+            cmd.append('-allabis')
     cmd += ['-pack', '-c=4'] + args.go_srcs
     call(cmd, args.build_root)
 
@@ -309,6 +324,7 @@ if __name__ == '__main__':
     parser.add_argument('++std-lib-prefix', nargs='?', default=std_lib_prefix)
     parser.add_argument('++extld', nargs='?', default=None)
     parser.add_argument('++extldflags', nargs='+', default=None)
+    parser.add_argument('++goversion', required=True)
     args = parser.parse_args()
 
     args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
