@@ -12,6 +12,7 @@ NO_CHECK_IMPORTS(widget.ipythonwidget)
 PEERDIR(
     contrib/python/pandas
     contrib/python/numpy
+    contrib/python/six
     library/python/pytest
     catboost/python-package/lib
     catboost/pytest/lib

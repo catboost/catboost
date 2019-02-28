@@ -1,3 +1,5 @@
+import six
+
 from catboost import CatBoostClassifier, cv
 from catboost.datasets import titanic, adult
 import catboost
@@ -25,7 +27,7 @@ def test_adult():
     # oh, and don't forget to replace missing values with string "nan" when you are going to apply
     # the model!
     for dataset in (train, test, ):
-        for name in (name for name, dtype in dict(dataset.dtypes).iteritems() if dtype == np.object):
+        for name in (name for name, dtype in six.iteritems(dict(dataset.dtypes)) if dtype == np.object):
             dataset[name].fillna('nan', inplace=True)
 
     X_train, y_train = train.drop('income', axis=1), train.income
