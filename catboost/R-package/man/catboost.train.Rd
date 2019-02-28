@@ -98,6 +98,7 @@ Supported loss functions:
         \item 'LogLinQuantile'
         \item 'MAPE'
         \item 'Poisson'
+        \item 'Lq'
         \item 'QueryRMSE'
         \item 'MultiClass'
         \item 'MultiClassOneVsAll'
@@ -136,6 +137,7 @@ Supported loss functions:
         \item 'LogLinQuantile'
         \item 'MAPE'
         \item 'Poisson'
+        \item 'Lq'
         \item 'QueryRMSE'
         \item 'MultiClass'
         \item 'MultiClassOneVsAll'
@@ -181,6 +183,7 @@ Supported loss functions:
         \item 'LogLinQuantile'
         \item 'MAPE'
         \item 'Poisson'
+        \item 'Lq'
         \item 'QueryRMSE'
         \item 'MultiClass'
         \item 'MultiClassOneVsAll'
@@ -655,6 +658,15 @@ Possible values:
           \item \code{'Two slash-delimited numbers (for GPU only) - Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
         }
       }
+
+\item ctr_target_border_count
+
+Maximum number of borders used in target binarization for categorical features that need it.
+      If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it overrides this value.
+
+Default value:
+
+1
 
 \item counter_calc_method
 

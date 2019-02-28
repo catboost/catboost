@@ -5,7 +5,7 @@
 \title{Calculate the feature importances}
 \usage{
 catboost.get_feature_importance(model, pool = NULL,
-  type = "FeatureImportance", thread_count = -1)
+  type = "FeatureImportance", thread_count = -1, fstr_type = NULL)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -18,25 +18,21 @@ The feature importance for the training dataset is calculated if this argument i
 
 Default value: NULL}
 
-\item{fstr_type}{The fstr type.
+\item{type}{The feature importance type.
 
 Possible values:
 \itemize{
   \item 'PredictionValuesChange'
 
-    Calculate score for every feature by values change.
+    Calculate score for every feature.
 
   \item 'LossFunctionChange'
 
-    Calculate score for every feature by values change.
+    Calculate score for every feature for groupwise model.
 
-  \item
+  \item 'FeatureImportance'
 
-    Calculate score for every feature bu loss change. Use it for ranking methods.
-
-  \item 'Feature importance'
-
-    Equal to 'LossFunctionChange' in case of ranking model 'PredictionValuesChange' otherwise.
+    'LossFunctionChange' in case of groupwise model and 'PredictionValuesChange' otherwise.
 
   \item 'Interaction'
 
@@ -55,6 +51,8 @@ Default value: 'FeatureImportance'}
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
 Default value: -1}
+
+\item{fstr_type}{Deprecated parameter, use 'type' instead.}
 }
 \description{
 Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})

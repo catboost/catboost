@@ -199,7 +199,7 @@ public:
         const TLabelConverter& labelConverter,
         TConstArrayRef<THolder<IMetric>> metrics,
         TConstArrayRef<bool> skipMetricOnTrain,
-        double maxTimeSpentOnFixedCostRatio,    
+        double maxTimeSpentOnFixedCostRatio,
         ui32 maxIterationsBatchSize,
         size_t globalMaxIteration,
         bool isErrorTrackerActive,

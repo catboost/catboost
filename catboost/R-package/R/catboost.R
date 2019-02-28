@@ -1282,7 +1282,6 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 #' @param shuffle Shuffle the dataset objects before splitting into folds.
 #' @param stratified Perform stratified sampling.
 #' @param early_stopping_rounds Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
-#' @param pool The dataset used for cross-validation.
 #' @export
 catboost.cv <- function(pool, params = list(),
                         fold_count = 3,
@@ -1532,18 +1531,20 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: -1
+#' @param fstr_type Deprecated parameter, use 'type' instead.
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
 catboost.get_feature_importance <- function(model, pool = NULL, type = 'FeatureImportance', thread_count = -1, fstr_type = NULL) {
-    if (fstr_type != '')
-        type = fstr_type
+    if (!is.null(fstr_type)) {
+        type <- fstr_type
         warning("fstr_type option is deprecated, use type instead")
+    }
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
     if ((type == 'ShapValues' || type == 'LossFunctionChange') && length(pool) == 0)
-        stop("For `", type, ` type of feature importance, the pool is required")
+        stop("For `", type, "` type of feature importance, the pool is required")
     if ((type == 'PredictionValuesChange' || type == 'FeatureImportance') && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
@@ -1560,7 +1561,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = 'FeatureI
             rownames(importances) <- colnames(pool)
         }
     } else {
-        stop("Unknown type: ", fst_type);
+        stop("Unknown type: ", type);
     }
     return(importances)
 }
@@ -1673,6 +1674,8 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
 #' Drop unused features information from model
 #'
 #' @param model The model obtained as the result of training.
+#' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0
 #' @export

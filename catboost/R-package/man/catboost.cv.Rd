@@ -24,8 +24,6 @@ catboost.cv(pool, params = list(), fold_count = 3, inverted = FALSE,
 \item{stratified}{Perform stratified sampling.}
 
 \item{early_stopping_rounds}{Activates Iter overfitting detector with od_wait set to early_stopping_rounds.}
-
-\item{pool}{The dataset used for cross-validation.}
 }
 \description{
 Cross-validate model.

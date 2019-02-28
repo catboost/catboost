@@ -415,7 +415,7 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     return result;
 }
 
-SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam, 
+SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
                   SEXP poolParam,
                   SEXP foldCountParam,
                   SEXP invertedParam,
@@ -427,7 +427,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     size_t metricCount;
 
     R_API_BEGIN();
-    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TPoolPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
 
     TCrossValidationParams cvParams;
@@ -446,6 +446,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         pool,
         cvParams,
         &cvResults);
+    Y_UNUSED(pool.Release());
 
     metricCount = cvResults.size();
     result = PROTECT(allocVector(VECSXP, metricCount * 4));
@@ -480,7 +481,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
     }
 
     setAttrib(result, R_NamesSymbol, columnNames);
-    
+
     R_API_END();
     UNPROTECT(metricCount * 4 + 2);
     return result;
