@@ -13,6 +13,8 @@ import time
 import sys
 import os
 import bisect
+import weakref
+from collections import OrderedDict
 
 import six
 from six import string_types
@@ -27,6 +29,9 @@ try:
     from .win import tzwin, tzwinlocal
 except ImportError:
     tzwin = tzwinlocal = None
+
+# For warning about rounding tzinfo
+from warnings import warn
 
 ZERO = datetime.timedelta(0)
 EPOCH = datetime.datetime.utcfromtimestamp(0)
@@ -137,7 +142,8 @@ class tzoffset(datetime.tzinfo):
             offset = offset.total_seconds()
         except (TypeError, AttributeError):
             pass
-        self._offset = datetime.timedelta(seconds=offset)
+
+        self._offset = datetime.timedelta(seconds=_get_supported_offset(offset))
 
     def utcoffset(self, dt):
         return self._offset
@@ -460,7 +466,7 @@ class tzfile(_tzinfo):
 
         if fileobj is not None:
             if not file_opened_here:
-                fileobj = _ContextWrapper(fileobj)
+                fileobj = _nullcontext(fileobj)
 
             with fileobj as file_stream:
                 tzobj = self._read_tzfile(file_stream)
@@ -600,10 +606,7 @@ class tzfile(_tzinfo):
         out.ttinfo_list = []
         for i in range(typecnt):
             gmtoff, isdst, abbrind = ttinfo[i]
-            # Round to full-minutes if that's not the case. Python's
-            # datetime doesn't accept sub-minute timezones. Check
-            # http://python.org/sf/1447945 for some information.
-            gmtoff = 60 * ((gmtoff + 30) // 60)
+            gmtoff = _get_supported_offset(gmtoff)
             tti = _ttinfo()
             tti.offset = gmtoff
             tti.dstoffset = datetime.timedelta(0)
@@ -655,37 +658,44 @@ class tzfile(_tzinfo):
         # isgmt are off, so it should be in wall time. OTOH, it's
         # always in gmt time. Let me know if you have comments
         # about this.
-        laststdoffset = None
+        lastdst = None
+        lastoffset = None
+        lastdstoffset = None
+        lastbaseoffset = None
         out.trans_list = []
+
         for i, tti in enumerate(out.trans_idx):
-            if not tti.isdst:
-                offset = tti.offset
-                laststdoffset = offset
-            else:
-                if laststdoffset is not None:
-                    # Store the DST offset as well and update it in the list
-                    tti.dstoffset = tti.offset - laststdoffset
-                    out.trans_idx[i] = tti
+            offset = tti.offset
+            dstoffset = 0
 
-                offset = laststdoffset or 0
+            if lastdst is not None:
+                if tti.isdst:
+                    if not lastdst:
+                        dstoffset = offset - lastoffset
 
-            out.trans_list.append(out.trans_list_utc[i] + offset)
+                    if not dstoffset and lastdstoffset:
+                        dstoffset = lastdstoffset
 
-        # In case we missed any DST offsets on the way in for some reason, make
-        # a second pass over the list, looking for the /next/ DST offset.
-        laststdoffset = None
-        for i in reversed(range(len(out.trans_idx))):
-            tti = out.trans_idx[i]
-            if tti.isdst:
-                if not (tti.dstoffset or laststdoffset is None):
-                    tti.dstoffset = tti.offset - laststdoffset
-            else:
-                laststdoffset = tti.offset
+                    tti.dstoffset = datetime.timedelta(seconds=dstoffset)
+                    lastdstoffset = dstoffset
 
-            if not isinstance(tti.dstoffset, datetime.timedelta):
-                tti.dstoffset = datetime.timedelta(seconds=tti.dstoffset)
+            # If a time zone changes its base offset during a DST transition,
+            # then you need to adjust by the previous base offset to get the
+            # transition time in local time. Otherwise you use the current
+            # base offset. Ideally, I would have some mathematical proof of
+            # why this is true, but I haven't really thought about it enough.
+            baseoffset = offset - dstoffset
+            adjustment = baseoffset
+            if (lastbaseoffset is not None and baseoffset != lastbaseoffset
+                    and tti.isdst != lastdst):
+                # The base DST has changed
+                adjustment = lastbaseoffset
 
-            out.trans_idx[i] = tti
+            lastdst = tti.isdst
+            lastoffset = offset
+            lastbaseoffset = baseoffset
+
+            out.trans_list.append(out.trans_list_utc[i] + adjustment)
 
         out.trans_idx = tuple(out.trans_idx)
         out.trans_list = tuple(out.trans_list)
@@ -1255,7 +1265,7 @@ class tzical(object):
             fileobj = open(fileobj, 'r')
         else:
             self._s = getattr(fileobj, 'name', repr(fileobj))
-            fileobj = _ContextWrapper(fileobj)
+            fileobj = _nullcontext(fileobj)
 
         self._vtz = {}
 
@@ -1528,7 +1538,9 @@ def __get_gettz():
         """
         def __init__(self):
 
-            self.__instances = {}
+            self.__instances = weakref.WeakValueDictionary()
+            self.__strong_cache_size = 8
+            self.__strong_cache = OrderedDict()
             self._cache_lock = _thread.allocate_lock()
 
         def __call__(self, name=None):
@@ -1537,17 +1549,37 @@ def __get_gettz():
 
                 if rv is None:
                     rv = self.nocache(name=name)
-                    if not (name is None or isinstance(rv, tzlocal_classes)):
+                    if not (name is None
+                            or isinstance(rv, tzlocal_classes)
+                            or rv is None):
                         # tzlocal is slightly more complicated than the other
                         # time zone providers because it depends on environment
                         # at construction time, so don't cache that.
+                        #
+                        # We also cannot store weak references to None, so we
+                        # will also not store that.
                         self.__instances[name] = rv
+                    else:
+                        # No need for strong caching, return immediately
+                        return rv
+
+                self.__strong_cache[name] = self.__strong_cache.pop(name, rv)
+
+                if len(self.__strong_cache) > self.__strong_cache_size:
+                    self.__strong_cache.popitem(last=False)
 
             return rv
 
+        def set_cache_size(self, size):
+            with self._cache_lock:
+                self.__strong_cache_size = size
+                while len(self.__strong_cache) > size:
+                    self.__strong_cache.popitem(last=False)
+
         def cache_clear(self):
             with self._cache_lock:
-                self.__instances = {}
+                self.__instances = weakref.WeakValueDictionary()
+                self.__strong_cache.clear()
 
         @staticmethod
         def nocache(name=None):
@@ -1601,7 +1633,8 @@ def __get_gettz():
                         if tzwin is not None:
                             try:
                                 tz = tzwin(name)
-                            except WindowsError:
+                            except (WindowsError, UnicodeEncodeError):
+                                # UnicodeEncodeError is for Python 2.7 compat
                                 tz = None
 
                         if not tz:
@@ -1768,18 +1801,36 @@ def _datetime_to_timestamp(dt):
     return (dt.replace(tzinfo=None) - EPOCH).total_seconds()
 
 
-class _ContextWrapper(object):
-    """
-    Class for wrapping contexts so that they are passed through in a
-    with statement.
-    """
-    def __init__(self, context):
-        self.context = context
+if sys.version_info >= (3, 6):
+    def _get_supported_offset(second_offset):
+        return second_offset
+else:
+    def _get_supported_offset(second_offset):
+        # For python pre-3.6, round to full-minutes if that's not the case.
+        # Python's datetime doesn't accept sub-minute timezones. Check
+        # http://python.org/sf/1447945 or https://bugs.python.org/issue5288
+        # for some information.
+        old_offset = second_offset
+        calculated_offset = 60 * ((second_offset + 30) // 60)
+        return calculated_offset
 
-    def __enter__(self):
-        return self.context
 
-    def __exit__(*args, **kwargs):
-        pass
+try:
+    # Python 3.7 feature
+    from contextmanager import nullcontext as _nullcontext
+except ImportError:
+    class _nullcontext(object):
+        """
+        Class for wrapping contexts so that they are passed through in a
+        with statement.
+        """
+        def __init__(self, context):
+            self.context = context
+
+        def __enter__(self):
+            return self.context
+
+        def __exit__(*args, **kwargs):
+            pass
 
 # vim:ts=4:sw=4:et

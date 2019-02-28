@@ -1,6 +1,5 @@
 import sys
 import unittest
-import pytest
 
 class ImportVersionTest(unittest.TestCase):
     """ Test that dateutil.__version__ can be imported"""
@@ -130,8 +129,7 @@ class ImportTZTest(unittest.TestCase):
         for var in tz_all:
             self.assertIsNot(lvars[var], None)
 
-
-@pytest.mark.skipif(not sys.platform.startswith('win'), reason="Requires Windows")
+@unittest.skipUnless(sys.platform.startswith('win'), "Requires Windows")
 class ImportTZWinTest(unittest.TestCase):
     """ Test that dateutil.tzwin related imports work properly """
     def testTzwinDirect(self):

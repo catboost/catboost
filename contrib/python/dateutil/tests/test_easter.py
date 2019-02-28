@@ -2,7 +2,7 @@ from dateutil.easter import easter
 from dateutil.easter import EASTER_WESTERN, EASTER_ORTHODOX, EASTER_JULIAN
 
 from datetime import date
-import unittest
+import pytest
 
 # List of easters between 1990 and 2050
 western_easter_dates = [
@@ -73,23 +73,21 @@ julian_easter_dates = [
 ]
 
 
-class EasterTest(unittest.TestCase):
-    def testEasterWestern(self):
-        for easter_date in western_easter_dates:
-            self.assertEqual(easter_date,
-                             easter(easter_date.year, EASTER_WESTERN))
+@pytest.mark.parametrize("easter_date", western_easter_dates)
+def test_easter_western(easter_date):
+    assert easter_date == easter(easter_date.year, EASTER_WESTERN)
 
-    def testEasterOrthodox(self):
-        for easter_date in orthodox_easter_dates:
-            self.assertEqual(easter_date,
-                             easter(easter_date.year, EASTER_ORTHODOX))
 
-    def testEasterJulian(self):
-        for easter_date in julian_easter_dates:
-            self.assertEqual(easter_date,
-                             easter(easter_date.year, EASTER_JULIAN))
+@pytest.mark.parametrize("easter_date", orthodox_easter_dates)
+def test_easter_orthodox(easter_date):
+    assert easter_date == easter(easter_date.year, EASTER_ORTHODOX)
 
-    def testEasterBadMethod(self):
-        # Invalid methods raise ValueError
-        with self.assertRaises(ValueError):
-            easter(1975, 4)
+
+@pytest.mark.parametrize("easter_date", julian_easter_dates)
+def test_easter_julian(easter_date):
+    assert easter_date == easter(easter_date.year, EASTER_JULIAN)
+
+
+def test_easter_bad_method():
+    with pytest.raises(ValueError):
+        easter(1975, 4)

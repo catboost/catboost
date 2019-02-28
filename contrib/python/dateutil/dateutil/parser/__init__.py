@@ -51,7 +51,8 @@ def __deprecate_private_class(c):
     return private_class
 
 
-from ._parser import _timelex, _resultbase, _ymd, _tzparser, _parsetz
+from ._parser import _timelex, _resultbase, _ymd
+from ._parser import _tzparser, _parsetz
 
 _timelex = __deprecate_private_class(_timelex)
 _tzparser = __deprecate_private_class(_tzparser)

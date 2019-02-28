@@ -1,4 +1,4 @@
-from six import PY3
+from six import PY2
 
 from functools import wraps
 
@@ -16,14 +16,18 @@ def tzname_in_python2(namefunc):
     tzname() API changed in Python 3. It used to return bytes, but was changed
     to unicode strings
     """
-    def adjust_encoding(*args, **kwargs):
-        name = namefunc(*args, **kwargs)
-        if name is not None and not PY3:
-            name = name.encode()
+    if PY2:
+        @wraps(namefunc)
+        def adjust_encoding(*args, **kwargs):
+            name = namefunc(*args, **kwargs)
+            if name is not None:
+                name = name.encode()
 
-        return name
+            return name
 
-    return adjust_encoding
+        return adjust_encoding
+    else:
+        return namefunc
 
 
 # The following is adapted from Alexander Belopolsky's tz library

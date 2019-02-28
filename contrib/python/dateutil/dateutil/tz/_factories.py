@@ -1,4 +1,6 @@
 from datetime import timedelta
+import weakref
+from collections import OrderedDict
 
 
 class _TzSingleton(type):
@@ -11,6 +13,7 @@ class _TzSingleton(type):
             cls.__instance = super(_TzSingleton, cls).__call__()
         return cls.__instance
 
+
 class _TzFactory(type):
     def instance(cls, *args, **kwargs):
         """Alternate constructor that returns a fresh instance"""
@@ -19,7 +22,9 @@ class _TzFactory(type):
 
 class _TzOffsetFactory(_TzFactory):
     def __init__(cls, *args, **kwargs):
-        cls.__instances = {}
+        cls.__instances = weakref.WeakValueDictionary()
+        cls.__strong_cache = OrderedDict()
+        cls.__strong_cache_size = 8
 
     def __call__(cls, name, offset):
         if isinstance(offset, timedelta):
@@ -31,12 +36,22 @@ class _TzOffsetFactory(_TzFactory):
         if instance is None:
             instance = cls.__instances.setdefault(key,
                                                   cls.instance(name, offset))
+
+        cls.__strong_cache[key] = cls.__strong_cache.pop(key, instance)
+
+        # Remove an item if the strong cache is overpopulated
+        # TODO: Maybe this should be under a lock?
+        if len(cls.__strong_cache) > cls.__strong_cache_size:
+            cls.__strong_cache.popitem(last=False)
+
         return instance
 
 
 class _TzStrFactory(_TzFactory):
     def __init__(cls, *args, **kwargs):
-        cls.__instances = {}
+        cls.__instances = weakref.WeakValueDictionary()
+        cls.__strong_cache = OrderedDict()
+        cls.__strong_cache_size = 8
 
     def __call__(cls, s, posix_offset=False):
         key = (s, posix_offset)
@@ -45,5 +60,14 @@ class _TzStrFactory(_TzFactory):
         if instance is None:
             instance = cls.__instances.setdefault(key,
                 cls.instance(s, posix_offset))
+
+        cls.__strong_cache[key] = cls.__strong_cache.pop(key, instance)
+
+
+        # Remove an item if the strong cache is overpopulated
+        # TODO: Maybe this should be under a lock?
+        if len(cls.__strong_cache) > cls.__strong_cache_size:
+            cls.__strong_cache.popitem(last=False)
+
         return instance
 

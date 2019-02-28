@@ -125,6 +125,14 @@ class RelativeDeltaTest(WarningTestMixin, unittest.TestCase):
         self.assertEqual(self.today+relativedelta(days=+1, weekday=WE),
                          date(2003, 9, 24))
 
+    def testAddMoreThan12Months(self):
+        self.assertEqual(date(2003, 12, 1) + relativedelta(months=+13),
+                         date(2005, 1, 1))
+
+    def testAddNegativeMonths(self):
+        self.assertEqual(date(2003, 1, 1) + relativedelta(months=-2),
+                         date(2002, 11, 1))
+
     def test15thISOYearWeek(self):
         self.assertEqual(date(2003, 1, 1) +
                          relativedelta(day=4, weeks=+14, weekday=MO(-1)),
@@ -349,6 +357,16 @@ class RelativeDeltaTest(WarningTestMixin, unittest.TestCase):
     def testRelativeDeltaFractionalMonth(self):
         with self.assertRaises(ValueError):
             relativedelta(months=1.5)
+
+    def testRelativeDeltaInvalidDatetimeObject(self):
+        with self.assertRaises(TypeError):
+            relativedelta(dt1='2018-01-01', dt2='2018-01-02')
+
+        with self.assertRaises(TypeError):
+            relativedelta(dt1=datetime(2018, 1, 1), dt2='2018-01-02')
+
+        with self.assertRaises(TypeError):
+            relativedelta(dt1='2018-01-01', dt2=datetime(2018, 1, 2))
 
     def testRelativeDeltaFractionalAbsolutes(self):
         # Fractional absolute values will soon be unsupported,

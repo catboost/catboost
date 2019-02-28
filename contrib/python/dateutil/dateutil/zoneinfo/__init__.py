@@ -3,6 +3,7 @@ import warnings
 import json
 
 from tarfile import TarFile
+from pkgutil import get_data
 from io import BytesIO
 
 from dateutil.tz import tzfile as _tzfile

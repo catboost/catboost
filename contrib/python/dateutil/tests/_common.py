@@ -5,10 +5,8 @@ import subprocess
 import warnings
 import tempfile
 import pickle
-import logging
 
-logger = logging.getLogger(__name__)
-
+import pytest
 
 class WarningTestMixin(object):
     # Based on https://stackoverflow.com/a/12935176/467366
@@ -118,16 +116,12 @@ class TZContextBase(object):
         Class method used to query whether or not this class allows time zone
         changes.
         """
-        guard = bool(os.environ.get(cls._guard_var_name, False))  # noqa
+        guard = bool(os.environ.get(cls._guard_var_name, False))
 
         # _guard_allows_change gives the "default" behavior - if True, the
         # guard is overcoming a block. If false, the guard is causing a block.
         # Whether tz_change is allowed is therefore the XNOR of the two.
-        result = (guard == cls._guard_allows_change)  # noqa
-        logger.debug('Is tz change allowed: %s', result)
-        # return result
-        # TODO: FIXME: XXX: should be supported in CI
-        return False  # because we cannot change TZ in arcadia CI
+        return guard == cls._guard_allows_change
 
     @classmethod
     def tz_change_disallowed_message(cls):
@@ -140,7 +134,7 @@ class TZContextBase(object):
 
     def __enter__(self):
         if not self.tz_change_allowed():
-            raise ValueError(self.tz_change_disallowed_message())
+            pytest.skip(self.tz_change_disallowed_message())
 
         self._old_tz = self.get_current_tz()
         self.set_current_tz(self.tzval)
@@ -175,15 +169,11 @@ class TZEnvContext(TZContextBase):
 
     def set_current_tz(self, tzval):
         if tzval is UnsetTz and 'TZ' in os.environ:
-            logger.debug('Unset tz')
             del os.environ['TZ']
         else:
-            logger.debug('Set tz to: %s', tzval)
             os.environ['TZ'] = tzval
 
-        logger.debug('Tz before set: %s', time.tzname)
         time.tzset()
-        logger.debug('Tz after set: %s', time.tzname)
 
 
 class TZWinContext(TZContextBase):

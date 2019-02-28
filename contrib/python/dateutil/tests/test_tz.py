@@ -8,12 +8,15 @@ from ._common import ComparesEqual
 from datetime import datetime, timedelta
 from datetime import time as dt_time
 from datetime import tzinfo
-from six import BytesIO, StringIO
+from six import PY2
+from io import BytesIO, StringIO
 import unittest
 
 import sys
 import base64
 import copy
+import gc
+import weakref
 
 from functools import partial
 
@@ -153,6 +156,8 @@ END:VTIMEZONE
 
 EST_TUPLE = ('EST', timedelta(hours=-5), timedelta(hours=0))
 EDT_TUPLE = ('EDT', timedelta(hours=-4), timedelta(hours=1))
+
+SUPPORTS_SUB_MINUTE_OFFSETS = sys.version_info >= (3, 6)
 
 
 ###
@@ -731,6 +736,28 @@ class TzOffsetTest(unittest.TestCase):
 
         assert tz1 is tz2
 
+
+@pytest.mark.smoke
+@pytest.mark.tzoffset
+def test_tzoffset_weakref():
+    UTC1 = tz.tzoffset('UTC', 0)
+    UTC_ref = weakref.ref(tz.tzoffset('UTC', 0))
+    UTC1 is UTC_ref()
+    del UTC1
+    gc.collect()
+
+    assert UTC_ref() is not None    # Should be in the strong cache
+    assert UTC_ref() is tz.tzoffset('UTC', 0)
+
+    # Fill the strong cache with other items
+    for offset in range(5,15):
+        tz.tzoffset('RandomZone', offset)
+
+    gc.collect()
+    assert UTC_ref() is  None
+    assert UTC_ref() is not tz.tzoffset('UTC', 0)
+
+
 @pytest.mark.tzoffset
 @pytest.mark.parametrize('args', [
     ('UTC', 0),
@@ -743,6 +770,25 @@ def test_tzoffset_singleton(args):
     tz2 = tz.tzoffset(*args)
 
     assert tz1 is tz2
+
+
+@pytest.mark.tzoffset
+@pytest.mark.skipif(not SUPPORTS_SUB_MINUTE_OFFSETS,
+                    reason='Sub-minute offsets not supported')
+def test_tzoffset_sub_minute():
+    delta = timedelta(hours=12, seconds=30)
+    test_datetime = datetime(2000, 1, 1, tzinfo=tz.tzoffset(None, delta))
+    assert test_datetime.utcoffset() == delta
+
+
+@pytest.mark.tzoffset
+@pytest.mark.skipif(SUPPORTS_SUB_MINUTE_OFFSETS,
+                    reason='Sub-minute offsets supported')
+def test_tzoffset_sub_minute_rounding():
+    delta = timedelta(hours=12, seconds=30)
+    test_date = datetime(2000, 1, 1, tzinfo=tz.tzoffset(None, delta))
+    assert test_date.utcoffset() == timedelta(hours=12, minutes=1)
+
 
 @pytest.mark.tzlocal
 class TzLocalTest(unittest.TestCase):
@@ -806,10 +852,8 @@ def test_tzoffset_is_not():
 
 @pytest.mark.tzlocal
 @unittest.skipIf(IS_WIN, "requires Unix")
-@pytest.mark.skipif(
-    not TZEnvContext.tz_change_allowed(),
-    reason=TZEnvContext.tz_change_disallowed_message()
-)
+@unittest.skipUnless(TZEnvContext.tz_change_allowed(),
+                     TZEnvContext.tz_change_disallowed_message())
 class TzLocalNixTest(unittest.TestCase, TzFoldMixin):
     # This is a set of tests for `tzlocal()` on *nix systems
 
@@ -1039,6 +1083,25 @@ class GettzTest(unittest.TestCase, TzFoldMixin):
 
         assert local1 is not local2
 
+
+@pytest.mark.gettz
+@pytest.mark.parametrize('badzone', [
+    'Fake.Region/Abcdefghijklmnop',  # Violates several tz project name rules
+])
+def test_gettz_badzone(badzone):
+    # Make sure passing a bad TZ string to gettz returns None (GH #800)
+    tzi = tz.gettz(badzone)
+    assert tzi is None
+
+
+@pytest.mark.gettz
+def test_gettz_badzone_unicode():
+    # Make sure a unicode string can be passed to TZ (GH #802)
+    # When fixed, combine this with test_gettz_badzone
+    tzi = tz.gettz('🐼')
+    assert tzi is None
+
+
 @pytest.mark.gettz
 @pytest.mark.xfail(IS_WIN, reason='zoneinfo separately cached')
 def test_gettz_cache_clear():
@@ -1049,6 +1112,52 @@ def test_gettz_cache_clear():
 
     assert NYC1 is not NYC2
 
+@pytest.mark.gettz
+@pytest.mark.xfail(IS_WIN, reason='zoneinfo separately cached')
+def test_gettz_set_cache_size():
+    tz.gettz.cache_clear()
+    tz.gettz.set_cache_size(3)
+
+    MONACO_ref = weakref.ref(tz.gettz('Europe/Monaco'))
+    EASTER_ref = weakref.ref(tz.gettz('Pacific/Easter'))
+    CURRIE_ref = weakref.ref(tz.gettz('Australia/Currie'))
+
+    gc.collect()
+
+    assert MONACO_ref() is not None
+    assert EASTER_ref() is not None
+    assert CURRIE_ref() is not None
+
+    tz.gettz.set_cache_size(2)
+    gc.collect()
+
+    assert MONACO_ref() is None
+
+@pytest.mark.xfail(IS_WIN, reason="Windows does not use system zoneinfo")
+@pytest.mark.smoke
+@pytest.mark.gettz
+def test_gettz_weakref():
+    tz.gettz.cache_clear()
+    tz.gettz.set_cache_size(2)
+    NYC1 = tz.gettz('America/New_York')
+    NYC_ref = weakref.ref(tz.gettz('America/New_York'))
+
+    assert NYC1 is NYC_ref()
+
+    del NYC1
+    gc.collect()
+
+    assert NYC_ref() is not None        # Should still be in the strong cache
+    assert tz.gettz('America/New_York') is NYC_ref()
+
+    # Populate strong cache with other timezones
+    tz.gettz('Europe/Monaco')
+    tz.gettz('Pacific/Easter')
+    tz.gettz('Australia/Currie')
+
+    gc.collect()
+    assert NYC_ref() is None    # Should have been pushed out
+    assert tz.gettz('America/New_York') is not NYC_ref()
 
 class ZoneInfoGettzTest(GettzTest, WarningTestMixin):
     def gettz(self, name):
@@ -1376,6 +1485,28 @@ class TZStrTest(unittest.TestCase, TzFoldMixin):
 
         # Ensure that these still are all the same zone
         assert tz1 == tz2 == tz3
+
+
+@pytest.mark.smoke
+@pytest.mark.tzstr
+def test_tzstr_weakref():
+    tz_t1 = tz.tzstr('EST5EDT')
+    tz_t2_ref = weakref.ref(tz.tzstr('EST5EDT'))
+    assert tz_t1 is tz_t2_ref()
+
+    del tz_t1
+    gc.collect()
+
+    assert tz_t2_ref() is not None
+    assert tz.tzstr('EST5EDT') is tz_t2_ref()
+
+    for offset in range(5,15):
+        tz.tzstr('GMT+{}'.format(offset))
+    gc.collect()
+
+    assert tz_t2_ref() is None
+    assert tz.tzstr('EST5EDT') is not tz_t2_ref()
+
 
 @pytest.mark.tzstr
 @pytest.mark.parametrize('tz_str,expected', [
@@ -1861,12 +1992,6 @@ class TZTest(unittest.TestCase):
         tzc = tz.tzfile(fileobj)
         self.assertEqual(repr(tzc), 'tzfile(' + repr('foo') + ')')
 
-    def testRoundNonFullMinutes(self):
-        # This timezone has an offset of 5992 seconds in 1900-01-01.
-        tzc = tz.tzfile(BytesIO(base64.b64decode(EUROPE_HELSINKI)))
-        self.assertEqual(str(datetime(1900, 1, 1, 0, 0, tzinfo=tzc)),
-                             "1900-01-01 00:00:00+01:40")
-
     def testLeapCountDecodesProperly(self):
         # This timezone has leapcnt, and failed to decode until
         # Eugene Oden notified about the issue.
@@ -1915,11 +2040,9 @@ class TZTest(unittest.TestCase):
         self.assertEqual(dt.astimezone(tz=tz.gettz("UTC-2")),
                           datetime(2007, 8, 6, 2, 10, tzinfo=tz.tzstr("UTC-2")))
 
-    @pytest.mark.skipif(IS_WIN, reason="requires Unix")
-    @pytest.mark.skipif(
-        not TZEnvContext.tz_change_allowed(),
-        reason=TZEnvContext.tz_change_disallowed_message()
-    )
+    @unittest.skipIf(IS_WIN, "requires Unix")
+    @unittest.skipUnless(TZEnvContext.tz_change_allowed(),
+                         TZEnvContext.tz_change_disallowed_message())
     def testTZSetDoesntCorrupt(self):
         # if we start in non-UTC then tzset UTC make sure parse doesn't get
         # confused
@@ -1929,7 +2052,41 @@ class TZTest(unittest.TestCase):
             self.assertEqual(str(dt), '2014-07-20 12:34:56+00:00')
 
 
-@pytest.mark.skipif(not IS_WIN, reason="Requires Windows")
+@pytest.mark.tzfile
+@pytest.mark.skipif(not SUPPORTS_SUB_MINUTE_OFFSETS,
+                    reason='Sub-minute offsets not supported')
+def test_tzfile_sub_minute_offset():
+    # If user running python 3.6 or newer, exact offset is used
+    tzc = tz.tzfile(BytesIO(base64.b64decode(EUROPE_HELSINKI)))
+    offset = timedelta(hours=1, minutes=39, seconds=52)
+    assert datetime(1900, 1, 1, 0, 0, tzinfo=tzc).utcoffset() == offset
+
+
+@pytest.mark.tzfile
+@pytest.mark.skipif(SUPPORTS_SUB_MINUTE_OFFSETS,
+                    reason='Sub-minute offsets supported.')
+def test_sub_minute_rounding_tzfile():
+    # This timezone has an offset of 5992 seconds in 1900-01-01.
+    # For python version pre-3.6, this will be rounded
+    tzc = tz.tzfile(BytesIO(base64.b64decode(EUROPE_HELSINKI)))
+    offset = timedelta(hours=1, minutes=40)
+    assert datetime(1900, 1, 1, 0, 0, tzinfo=tzc).utcoffset() == offset
+
+
+@pytest.mark.tzfile
+def test_samoa_transition():
+    # utcoffset() was erroneously returning +14:00 an hour early (GH #812)
+    APIA = tz.gettz('Pacific/Apia')
+    dt = datetime(2011, 12, 29, 23, 59, tzinfo=APIA)
+    assert dt.utcoffset() == timedelta(hours=-10)
+
+    # Make sure the transition actually works, too
+    dt_after = (dt.astimezone(tz.UTC) + timedelta(minutes=1)).astimezone(APIA)
+    assert dt_after == datetime(2011, 12, 31, tzinfo=APIA)
+    assert dt_after.utcoffset() == timedelta(hours=14)
+
+
+@unittest.skipUnless(IS_WIN, "Requires Windows")
 class TzWinTest(unittest.TestCase, TzWinFoldMixin):
     def setUp(self):
         self.tzclass = tzwin.tzwin
@@ -2067,11 +2224,9 @@ class TzWinTest(unittest.TestCase, TzWinFoldMixin):
                          'South Africa Standard Time')
 
 
-@pytest.mark.skipif(not IS_WIN, reason="Requires Windows")
-@pytest.mark.skipif(
-    not TZEnvContext.tz_change_allowed(),
-    reason=TZEnvContext.tz_change_disallowed_message()
-)
+@unittest.skipUnless(IS_WIN, "Requires Windows")
+@unittest.skipUnless(TZWinContext.tz_change_allowed(),
+                     TZWinContext.tz_change_disallowed_message())
 class TzWinLocalTest(unittest.TestCase, TzWinFoldMixin):
 
     def setUp(self):
@@ -2478,22 +2633,44 @@ class DatetimeExistsTest(unittest.TestCase):
         self.assertFalse(tz.datetime_exists(dt, tz=AEST))
 
 
-class EnfoldTest(unittest.TestCase):
-    def testEnterFoldDefault(self):
+class TestEnfold:
+    def test_enter_fold_default(self):
         dt = tz.enfold(datetime(2020, 1, 19, 3, 32))
 
-        self.assertEqual(dt.fold, 1)
+        assert dt.fold == 1
 
-    def testEnterFold(self):
+    def test_enter_fold(self):
         dt = tz.enfold(datetime(2020, 1, 19, 3, 32), fold=1)
 
-        self.assertEqual(dt.fold, 1)
+        assert dt.fold == 1
 
-    def testExitFold(self):
+    def test_exit_fold(self):
         dt = tz.enfold(datetime(2020, 1, 19, 3, 32), fold=0)
 
         # Before Python 3.6, dt.fold won't exist if fold is 0.
-        self.assertEqual(getattr(dt, 'fold', 0), 0)
+        assert getattr(dt, 'fold', 0) == 0
+
+    def test_defold(self):
+        dt = tz.enfold(datetime(2020, 1, 19, 3, 32), fold=1)
+
+        dt2 = tz.enfold(dt, fold=0)
+
+        assert getattr(dt2, 'fold', 0) == 0
+
+    def test_fold_replace_args(self):
+        # This test can be dropped when Python < 3.6 is dropped, since it
+        # is mainly to cover the `replace` method on _DatetimeWithFold
+        dt = tz.enfold(datetime(1950, 1, 2, 12, 30, 15, 8), fold=1)
+
+        dt2 = dt.replace(1952, 2, 3, 13, 31, 16, 9)
+        assert dt2 == tz.enfold(datetime(1952, 2, 3, 13, 31, 16, 9), fold=1)
+        assert dt2.fold == 1
+
+    def test_fold_replace_exception_duplicate_args(self):
+        dt = tz.enfold(datetime(1999, 1, 3), fold=1)
+
+        with pytest.raises(TypeError):
+            dt.replace(1950, year=2000)
 
 
 @pytest.mark.tz_resolve_imaginary
@@ -2575,8 +2752,7 @@ def __get_kiritimati_resolve_imaginary_test():
     return (tzi, ) + dates
 
 
-@pytest.mark.tz_resolve_imaginary
-@pytest.mark.parametrize('tzi, dt, dt_exp', [
+resolve_imaginary_tests = [
     (tz.gettz('Europe/London'),
      datetime(2018, 3, 25, 1, 30), datetime(2018, 3, 25, 2, 30)),
     (tz.gettz('America/New_York'),
@@ -2584,24 +2760,20 @@ def __get_kiritimati_resolve_imaginary_test():
     (tz.gettz('Australia/Sydney'),
      datetime(2014, 10, 5, 2, 0), datetime(2014, 10, 5, 3, 0)),
     __get_kiritimati_resolve_imaginary_test(),
-])
+]
+
+
+if SUPPORTS_SUB_MINUTE_OFFSETS:
+    resolve_imaginary_tests.append(
+        (tz.gettz('Africa/Monrovia'),
+         datetime(1972, 1, 7, 0, 30), datetime(1972, 1, 7, 1, 14, 30)))
+
+
+@pytest.mark.tz_resolve_imaginary
+@pytest.mark.parametrize('tzi, dt, dt_exp', resolve_imaginary_tests)
 def test_resolve_imaginary(tzi, dt, dt_exp):
     dt = dt.replace(tzinfo=tzi)
     dt_exp = dt_exp.replace(tzinfo=tzi)
-
-    dt_r = tz.resolve_imaginary(dt)
-    assert dt_r == dt_exp
-    assert dt_r.tzname() == dt_exp.tzname()
-    assert dt_r.utcoffset() == dt_exp.utcoffset()
-
-
-@pytest.mark.xfail
-@pytest.mark.tz_resolve_imaginary
-def test_resolve_imaginary_monrovia():
-    # See GH #582 - When that is resolved, move this into test_resolve_imaginary
-    tzi = tz.gettz('Africa/Monrovia')
-    dt = datetime(1972, 1, 7, hour=0, minute=30, second=0, tzinfo=tzi)
-    dt_exp = datetime(1972, 1, 7, hour=1, minute=14, second=30, tzinfo=tzi)
 
     dt_r = tz.resolve_imaginary(dt)
     assert dt_r == dt_exp

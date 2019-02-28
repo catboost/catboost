@@ -40,7 +40,7 @@ from calendar import monthrange
 from io import StringIO
 
 import six
-from six import binary_type, integer_types, text_type
+from six import integer_types, text_type
 
 from decimal import Decimal
 
@@ -63,7 +63,7 @@ class _timelex(object):
         if six.PY2:
             # In Python 2, we can't duck type properly because unicode has
             # a 'decode' function, and we'd be double-decoding
-            if isinstance(instream, (binary_type, bytearray)):
+            if isinstance(instream, (bytes, bytearray)):
                 instream = instream.decode()
         else:
             if getattr(instream, 'decode', None) is not None:
@@ -291,7 +291,7 @@ class parserinfo(object):
            ("s", "second", "seconds")]
     AMPM = [("am", "a"),
             ("pm", "p")]
-    UTCZONE = ["UTC", "GMT", "Z"]
+    UTCZONE = ["UTC", "GMT", "Z", "z"]
     PERTAIN = ["of"]
     TZOFFSET = {}
     # TODO: ERA = ["AD", "BC", "CE", "BCE", "Stardate",
@@ -388,7 +388,8 @@ class parserinfo(object):
         if res.year is not None:
             res.year = self.convertyear(res.year, res.century_specified)
 
-        if res.tzoffset == 0 and not res.tzname or res.tzname == 'Z':
+        if ((res.tzoffset == 0 and not res.tzname) or
+             (res.tzname == 'Z' or res.tzname == 'z')):
             res.tzname = "UTC"
             res.tzoffset = 0
         elif res.tzoffset != 0 and res.tzname and self.utczone(res.tzname):
@@ -1060,7 +1061,8 @@ class parser(object):
                 tzname is None and
                 tzoffset is None and
                 len(token) <= 5 and
-                all(x in string.ascii_uppercase for x in token))
+                (all(x in string.ascii_uppercase for x in token)
+                 or token in self.info.UTCZONE))
 
     def _ampm_valid(self, hour, ampm, fuzzy):
         """
