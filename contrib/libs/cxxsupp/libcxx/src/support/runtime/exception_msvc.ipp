@@ -14,11 +14,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if 1
+#include <__config>
+
+#ifdef _LIBCPP_COMPILER_MSVC
 // We don't want to depend on MSVC headers but
 // we have conflicting definitions otherwise due to
 // some other dependency on eh.h.
-#include <__config>
 #include _LIBCPP_MSVC_INCLUDE(eh.h)
 
 #else
