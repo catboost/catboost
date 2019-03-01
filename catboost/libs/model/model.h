@@ -193,8 +193,9 @@ public:
         if (fbObj->LeafValues()) {
             LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
         }
-        if (fbObj->LeafWeights()) {
+        if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
             LeafWeights.resize(TreeSizes.size());
+            CB_ENSURE(fbObj->LeafWeights()->size() * ApproxDimension == LeafValues.size(), "Bad leaf weights count: " << fbObj->LeafWeights()->size());
             auto leafValIter = fbObj->LeafWeights()->begin();
             for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
                 const auto treeLeafCout = (1 << TreeSizes[treeId]);

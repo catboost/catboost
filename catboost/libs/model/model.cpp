@@ -257,7 +257,7 @@ void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
             LeafValues.begin() + leafOffsets[treeIdx],
             LeafValues.begin() + leafOffsets[treeIdx] + ApproxDimension * (1u << TreeSizes[treeIdx])
         );
-        builder.AddTree(modelSplits, leafValuesRef, LeafWeights[treeIdx]);
+        builder.AddTree(modelSplits, leafValuesRef, LeafWeights.empty() ? TVector<double>() : LeafWeights[treeIdx]);
     }
     *this = builder.Build();
 }

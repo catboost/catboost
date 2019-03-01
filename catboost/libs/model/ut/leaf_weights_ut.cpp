@@ -114,9 +114,12 @@ static void CheckWeights(const TWeights<float>& docWeights, const TVector<TVecto
     }
 }
 
-static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass, EExportFormat exportToCBM) {
+static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass, EExportFormat exportToCBM, bool clearWeightsInModel = false) {
     TDataProviderPtr floatPool = SmallFloatPool(addWeights, multiclass);
     TFullModel trainedModel = TrainModelOnPool(floatPool, multiclass);
+    if (clearWeightsInModel) {
+        trainedModel.ObliviousTrees.LeafWeights.clear();
+    }
     TFullModel deserializedModel;
     if (exportToCBM) {
         deserializedModel = SaveLoadCBM(trainedModel);
@@ -149,5 +152,9 @@ Y_UNIT_TEST_SUITE(TLeafWeights) {
 
         Y_UNIT_TEST(TestEmptyLeafWeightsAfterCoreMLExportWithWeights) {
             RunTestWithParams(EWeightsMode::WITH_WEIGHTS, ETargetDimMode::SCALAR, EExportFormat::COREML);
+        }
+
+        Y_UNIT_TEST(TestEmptyLeafWeightsAfteExportWithoutWeights) {
+            RunTestWithParams(EWeightsMode::WITHOUT_WEIGHTS, ETargetDimMode::SCALAR, EExportFormat::CBM, /*clearWeightsInModel*/ true);
         }
 }
