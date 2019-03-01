@@ -774,8 +774,6 @@ static void TrainModel(
             outputOptions.CreateOutputBordersFullPath(),
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
-    Cout << "Number of samples: " << trainingData.Learn->GetObjectCount() << Endl;
-    Cout << "Number of features: " << trainingData.Learn->MetaInfo.GetFeatureCount() << Endl;
 
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),

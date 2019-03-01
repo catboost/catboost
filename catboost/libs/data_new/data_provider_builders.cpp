@@ -666,6 +666,14 @@ namespace NCB {
         void Finish() override {
             CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
             InProcess = false;
+
+            if (ObjectCount != 0) {
+                CATBOOST_INFO_LOG << "Object info sizes: " << ObjectCount << " "
+                    << Data.MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
+            } else {
+                // should this be an error?
+                CATBOOST_ERROR_LOG << "No objects info loaded" << Endl;
+            }
         }
 
         TDataProviderPtr GetResult() override {
