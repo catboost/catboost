@@ -19,25 +19,25 @@ namespace NLastGetopt {
     };
 
     /**
-* NLastGetopt::TOpt is a storage of data about exactly one program option.
-* The data is: parse politics and help information.
-*
-* The help information consists of following:
-*   hidden or visible in help information
-*   help string
-*   argument name
-*
-* Parse politics is determined by following parameters:
-*   argument parse politics: no/optional/required/
-*   option existence: required or optional
-*   handlers. See detailed documentation: <TODO:link>
-*   default value: if the option has argument, but the option is ommited,
-*                     then the <default value> is used as the value of the argument
-*   optional value: if the option has optional-argument, the option is present in parsed string,
-*                      but the argument is omitted, then <optional value is used>
-*      in case of "not given <optional value>, omited optional argument" the <default value> is used
-*   user value: allows to store arbitary pointer for handlers
-*/
+     * NLastGetopt::TOpt is a storage of data about exactly one program option.
+     * The data is: parse politics and help information.
+     *
+     * The help information consists of following:
+     *   hidden or visible in help information
+     *   help string
+     *   argument name
+     *
+     * Parse politics is determined by following parameters:
+     *   argument parse politics: no/optional/required/
+     *   option existence: required or optional
+     *   handlers. See detailed documentation: <TODO:link>
+     *   default value: if the option has argument, but the option is ommited,
+     *                     then the <default value> is used as the value of the argument
+     *   optional value: if the option has optional-argument, the option is present in parsed string,
+     *                      but the argument is omitted, then <optional value is used>
+     *      in case of "not given <optional value>, omited optional argument" the <default value> is used
+     *   user value: allows to store arbitary pointer for handlers
+     */
     class TOpt {
     public:
         typedef TVector<char> TShortNames;
@@ -68,180 +68,180 @@ namespace NLastGetopt {
 
     public:
         /**
-    *  Checks if given char can be a short name
-    *  @param c               char to check
-    */
+         *  Checks if given char can be a short name
+         *  @param c               char to check
+         */
         static bool IsAllowedShortName(unsigned char c);
 
         /**
-    *  Checks if given string can be a long name
-    *  @param name            string to check
-    *  @param c               if given, the first bad charecter will be saved in c
-    */
+         *  Checks if given string can be a long name
+         *  @param name            string to check
+         *  @param c               if given, the first bad charecter will be saved in c
+         */
         static bool IsAllowedLongName(const TString& name, unsigned char* c = nullptr);
 
         /**
-    *  @return one of the expected representations of the option.
-    *  If the option has short names, will return "-<char>"
-    *  Otherwise will return "--<long name>"
-    */
+         *  @return one of the expected representations of the option.
+         *  If the option has short names, will return "-<char>"
+         *  Otherwise will return "--<long name>"
+         */
         TString ToShortString() const;
 
         /**
-    *  check if given string is one of the long names
-    *
-    *  @param name               string to check
-    */
+         *  check if given string is one of the long names
+         *
+         *  @param name               string to check
+         */
         bool NameIs(const TString& name) const;
 
         /**
-    *  check if given char is one of the short names
-    *
-    *  @param c               char to check
-    */
+         *  check if given char is one of the short names
+         *
+         *  @param c               char to check
+         */
         bool CharIs(char c) const;
 
         /**
-    *  If string has long names - will return one of them
-    *  Otherwise will throw
-    */
+         *  If string has long names - will return one of them
+         *  Otherwise will throw
+         */
         TString GetName() const;
 
         /**
-    *  adds short alias for the option
-    *
-    *  @param c               new short name
-    *
-    *  @return self
-    */
+         *  adds short alias for the option
+         *
+         *  @param c               new short name
+         *
+         *  @return self
+         */
         TOpt& AddShortName(unsigned char c);
 
         /**
-    *  return all short names of the option
-    */
+         *  return all short names of the option
+         */
         const TShortNames& GetShortNames() const {
             return Chars_;
         }
 
         /**
-    *  adds long alias for the option
-    *
-    *  @param name              new long name
-    *
-    *  @return self
-    */
+         *  adds long alias for the option
+         *
+         *  @param name              new long name
+         *
+         *  @return self
+         */
         TOpt& AddLongName(const TString& name);
 
         /**
-    *  return all long names of the option
-    */
+         *  return all long names of the option
+         */
         const TLongNames& GetLongNames() const {
             return LongNames_;
         }
 
         /**
-    *  @return one of short names of the opt. If there is no short names exception is raised.
-    */
+         *  @return one of short names of the opt. If there is no short names exception is raised.
+         */
         char GetChar() const;
 
         /**
-    *  @return one of short names of the opt. If there is no short names '\0' returned.
-    */
+         *  @return one of short names of the opt. If there is no short names '\0' returned.
+         */
         char GetCharOr0() const;
 
         /**
-    *  @returns argument parsing politics
-    */
+         *  @returns argument parsing politics
+         */
         const EHasArg& GetHasArg() const {
             return HasArg_;
         }
 
         /**
-    *  sets argument parsing politics
-    *
-    *  Note: its better use one of RequiredArgument/NoArgument/OptionalArgument methods
-    *
-    *  @param hasArg      new argument parsing mode
-    *  @return self
-    */
+         *  sets argument parsing politics
+         *
+         *  Note: its better use one of RequiredArgument/NoArgument/OptionalArgument methods
+         *
+         *  @param hasArg      new argument parsing mode
+         *  @return self
+         */
         TOpt& HasArg(EHasArg hasArg) {
             HasArg_ = hasArg;
             return *this;
         }
 
         /**
-    *  @returns argument title
-    */
+         *  @returns argument title
+         */
         TString GetArgTitle() const {
             return ArgTitle_;
         }
 
         /**
-    *  sets argument parsing politics into REQUIRED_ARGUMENT
-    *
-    *  @param title      the new name of argument in help output
-    *  @return self
-    */
+         *  sets argument parsing politics into REQUIRED_ARGUMENT
+         *
+         *  @param title      the new name of argument in help output
+         *  @return self
+         */
         TOpt& RequiredArgument(const TString& title = "") {
             ArgTitle_ = title;
             return HasArg(REQUIRED_ARGUMENT);
         }
 
         /**
-    *  sets argument parsing politics into NO_ARGUMENT
-    *
-    *  @return self
-    */
+         *  sets argument parsing politics into NO_ARGUMENT
+         *
+         *  @return self
+         */
         TOpt& NoArgument() {
             return HasArg(NO_ARGUMENT);
         }
 
         /**
-    *  sets argument parsing politics into OPTIONAL_ARGUMENT
-    *  for details see NLastGetopt::TOpt
-    *
-    *  @param title      the new name of argument in help output
-    *  @return self
-    */
+         *  sets argument parsing politics into OPTIONAL_ARGUMENT
+         *  for details see NLastGetopt::TOpt
+         *
+         *  @param title      the new name of argument in help output
+         *  @return self
+         */
         TOpt& OptionalArgument(const TString& title = "") {
             ArgTitle_ = title;
             return HasArg(OPTIONAL_ARGUMENT);
         }
 
         /**
-    *  sets argument parsing politics into OPTIONAL_ARGUMENT
-    *  sets the <optional value> into given
-    *
-    *  for details see NLastGetopt::TOpt
-    *
-    *  @param val        the new <optional value>
-    *  @param title      the new name of argument in help output
-    *  @return self
-    */
+         *  sets argument parsing politics into OPTIONAL_ARGUMENT
+         *  sets the <optional value> into given
+         *
+         *  for details see NLastGetopt::TOpt
+         *
+         *  @param val        the new <optional value>
+         *  @param title      the new name of argument in help output
+         *  @return self
+         */
         TOpt& OptionalValue(const TString& val, const TString& title = "") {
             OptionalValue_ = val;
             return OptionalArgument(title);
         }
 
         /**
-    *  checks if "argument parsing politics" is OPTIONAL_ARGUMENT and the <optional value> is set.
-    */
+         *  checks if "argument parsing politics" is OPTIONAL_ARGUMENT and the <optional value> is set.
+         */
         bool HasOptionalValue() const {
             return OPTIONAL_ARGUMENT == HasArg_ && OptionalValue_;
         }
 
         /**
-    *  @return optional value
-    *  throws exception if optional value wasn't set
-    */
+         *  @return optional value
+         *  throws exception if optional value wasn't set
+         */
         const TString& GetOptionalValue() const {
             return *OptionalValue_;
         }
 
         /**
-    *  sets <default value>
-    *  @return self
-    */
+         *  sets <default value>
+         *  @return self
+         */
         template <typename T>
         TOpt& DefaultValue(const T& val) {
             DefaultValue_ = ToString(val);
@@ -249,99 +249,99 @@ namespace NLastGetopt {
         }
 
         /**
-    *  checks if default value is set.
-    */
+         *  checks if default value is set.
+         */
         bool HasDefaultValue() const {
             return DefaultValue_.Defined();
         }
 
         /**
-    *  @return default value
-    *  throws exception if <default value> wasn't set
-    */
+         *  @return default value
+         *  throws exception if <default value> wasn't set
+         */
         const TString& GetDefaultValue() const {
             return *DefaultValue_;
         }
 
         /**
-    *  sets the option to be required
-    *  @return self
-    */
+         *  sets the option to be required
+         *  @return self
+         */
         TOpt& Required() {
             Required_ = true;
             return *this;
         }
 
         /**
-    *  sets the option to be optional
-    *  @return self
-    */
+         *  sets the option to be optional
+         *  @return self
+         */
         TOpt& Optional() {
             Required_ = false;
             return *this;
         }
 
         /**
-    *  @return true if the option is required
-    */
+         *  @return true if the option is required
+         */
         bool IsRequired() const {
             return Required_;
         }
 
         /**
-    *  sets the option to be hidden (invisible in help)
-    *  @return self
-    */
+         *  sets the option to be hidden (invisible in help)
+         *  @return self
+         */
         TOpt& Hidden() {
             Hidden_ = true;
             return *this;
         }
 
         /**
-    *  @return true if the option is hidden
-    */
+         *  @return true if the option is hidden
+         */
         bool IsHidden() const {
             return Hidden_;
         }
 
         /**
-    *  sets the <user value>
-    *  @return self
-    *  for details see NLastGetopt::TOpt
-    */
+         *  sets the <user value>
+         *  @return self
+         *  for details see NLastGetopt::TOpt
+         */
         TOpt& UserValue(const void* userval) {
             UserValue_ = userval;
             return *this;
         }
 
         /**
-    *  @return user value
-    */
+         *  @return user value
+         */
         const void* UserValue() const {
             return UserValue_;
         }
 
         /**
-    *  sets Help string into given
-    *  @param help      new help string for the option
-    *  @return self
-    */
+         *  sets Help string into given
+         *  @param help      new help string for the option
+         *  @return self
+         */
         TOpt& Help(const TString& help) {
             Help_ = help;
             return *this;
         }
 
         /**
-    *  @return help string
-    */
+         *  @return help string
+         */
         TString GetHelp() const {
             return Help_;
         }
 
         /**
-    *  run all handlers
-    *  @param parser
-    */
+         *  run all handlers
+         *  @param parser
+         */
         void FireHandlers(const TOptsParser* parser) const;
 
         //TODO: handlers information
@@ -482,16 +482,16 @@ namespace NLastGetopt {
     };
 
     /**
-* NLastGetopt::TFreeArgSpec is a storage of data about free argument.
-* The data is help information and (maybe) linked named argument.
-*
-* The help information consists of following:
-*   help string
-*   argument name (title)
-*
-* [unimplemented] TODO: If the argument have a named alias, the fetched value will be parsed as
-*    an argument of that TOpt.
-*/
+     * NLastGetopt::TFreeArgSpec is a storage of data about free argument.
+     * The data is help information and (maybe) linked named argument.
+     *
+     * The help information consists of following:
+     *   help string
+     *   argument name (title)
+     *
+     * [unimplemented] TODO: If the argument have a named alias, the fetched value will be parsed as
+     *    an argument of that TOpt.
+     */
     struct TFreeArgSpec {
         TFreeArgSpec() = default;
         TFreeArgSpec(const TString& title, const TString& help = TString(), const TOpt* namedAlias = nullptr)

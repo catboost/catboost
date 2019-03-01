@@ -4,18 +4,18 @@
 
 namespace NLastGetopt {
     /**
- * Wrapper for TOpts class to make the life a bit easier.
- * Usual usage:
- *   TEasySetup opts;
- *   opts('s', "server",  "MR_SERVER", "MapReduce server name in format server:port", true)
- *       ('u', "user",    "MR_USER",   "MapReduce user name", true)
- *       ('o', "output",  "MR_TABLE",  "Name of MR table which will contain results", true)
- *       ('r', "rules",   "FILE",      "Filename for .rules output file")          //!< This parameter is optional and has a required argument
- *       ('v', "version", &PrintSvnVersionAndExit0, "Print version information")   //!< Parameter with handler can't get any argument
- *       ("verbose", "Be verbose")                                                 //!< You may not specify short param name
- *
- *       NLastGetopt::TOptsParseResult r(&opts, argc, argv);
- */
+     * Wrapper for TOpts class to make the life a bit easier.
+     * Usual usage:
+     *   TEasySetup opts;
+     *   opts('s', "server",  "MR_SERVER", "MapReduce server name in format server:port", true)
+     *       ('u', "user",    "MR_USER",   "MapReduce user name", true)
+     *       ('o', "output",  "MR_TABLE",  "Name of MR table which will contain results", true)
+     *       ('r', "rules",   "FILE",      "Filename for .rules output file")          //!< This parameter is optional and has a required argument
+     *       ('v', "version", &PrintSvnVersionAndExit0, "Print version information")   //!< Parameter with handler can't get any argument
+     *       ("verbose", "Be verbose")                                                 //!< You may not specify short param name
+     *
+     *       NLastGetopt::TOptsParseResult r(&opts, argc, argv);
+     */
     class TEasySetup: public TOpts {
     public:
         TEasySetup(const TStringBuf& optstring = TStringBuf());
