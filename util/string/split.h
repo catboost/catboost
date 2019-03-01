@@ -417,7 +417,6 @@ static inline void Split(char* buf, char ch, T* res) {
 /// Field delimter is any number of symbols specified in delim (no empty strings in res vector)
 /// @return number of elements created
 size_t Split(const char* in, const char* delim, TVector<TString>& res);
-size_t Split(const char* in, const char* delim, TVector<TStringBuf>& res);
 size_t Split(const TString& in, const TString& delim, TVector<TString>& res);
 
 /// Old split reimplemented for TStringBuf using the new code
