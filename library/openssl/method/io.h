@@ -25,8 +25,6 @@ public:
     }
 
 private:
-    static TBioMethod Method;
-
     BIO* Bio;
 };
 

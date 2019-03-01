@@ -1,5 +1,6 @@
 #include "io.h"
 
+#include <util/generic/singleton.h>
 #include <util/generic/yexception.h>
 #include <util/system/compiler.h>
 #include <util/system/yassert.h>
@@ -53,12 +54,27 @@ namespace {
         BIO_set_init(bio, 0);
         return 1;
     }
+
+    NOpenSSL::TBioMethod* Method() {
+        return SingletonWithPriority<NOpenSSL::TBioMethod, 32768>(
+            BIO_get_new_index() | BIO_TYPE_SOURCE_SINK,
+            "AbstractIO",
+            Write,
+            Read,
+            Puts,
+            Gets,
+            Ctrl,
+            Create,
+            Destroy,
+            nullptr
+        );
+    }
 }
 
 namespace NOpenSSL {
 
     TAbstractIO::TAbstractIO()
-        : Bio(BIO_new(Method)) {
+        : Bio(BIO_new(*Method())) {
         if (Y_UNLIKELY(!Bio)) {
             ThrowBadAlloc();
         }
@@ -102,18 +118,5 @@ namespace NOpenSSL {
 
         return 0;
     }
-
-    TBioMethod TAbstractIO::Method(
-        BIO_get_new_index() | BIO_TYPE_SOURCE_SINK,
-        "AbstractIO",
-        ::Write,
-        ::Read,
-        ::Puts,
-        ::Gets,
-        ::Ctrl,
-        ::Create,
-        ::Destroy,
-        nullptr
-    );
 
 } // namespace NOpenSSL
