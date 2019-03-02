@@ -38,4 +38,10 @@ IF (OS_LINUX)
     RECURSE(
     
 )
+
+    IF (NOT OS_SDK STREQUAL "ubuntu-12")
+        RECURSE(
+    
+)
+    ENDIF()
 ENDIF ()
