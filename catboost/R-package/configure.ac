@@ -63,7 +63,7 @@ AC_MSG_RESULT($CATBOOST_DYNLIB)
 if test $CATBOOST_FOUND = 0; then
    AC_MSG_CHECKING([whether we can fetch CatBoost dynlib])
    "${R_PATH}" --vanilla --slave -e " \
-           source(\"../R/install.R\"); \
+           source(\"R/install.R\"); \
            if (identical(FALSE,catboost_download_dynlib(\"src/\"))) \
                stop(\"Stopping on error\")"
    if test $? -ne 0; then

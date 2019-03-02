@@ -1744,9 +1744,9 @@ $as_echo "$CATBOOST_DYNLIB" >&6; }
 if test $CATBOOST_FOUND = 0; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we can fetch CatBoost dynlib" >&5
 $as_echo_n "checking whether we can fetch CatBoost dynlib... " >&6; }
-   "${R_PATH}" --vanilla --slave -e "setwd(\"src/\"); \
-           source(\"../R/install.R\"); \
-           if (identical(FALSE,catboost_download_dynlib())) \
+   "${R_PATH}" --vanilla --slave -e " \
+           source(\"R/install.R\"); \
+           if (identical(FALSE,catboost_download_dynlib(\"src/\"))) \
                stop(\"Stopping on error\")"
    if test $? -ne 0; then
       echo "*** CatBoost dynamic library download failed. stopping."
