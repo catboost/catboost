@@ -5,7 +5,9 @@ HAVE_CUDA := $(or $(HAVE_CUDA),$(if $(CUDA_ROOT),yes,no))
 
 .PHONY : all clean
 
-all:
+all: libcatboostr.dll
+
+libcatboostr.dll:
 	$(CURDIR)/../../../ya.bat make -r -o ../../.. -DHAVE_CUDA=$(HAVE_CUDA) "-DCUDA_ROOT=$(CUDA_ROOT)" -DCUDA_HOST_COMPILER=
 
 clean:

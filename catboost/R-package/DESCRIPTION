@@ -9,3 +9,4 @@ Description: CatBoost - open-source gradient boosting on decision trees with cat
 Author: CatBoost DevTeam
 Maintainer: Nikita Dmitriev <nikitxskv@yandex-team.ru>
 Suggests: caret, testthat, dplyr
+Arch: x64

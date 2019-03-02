@@ -1,0 +1,13 @@
+# `catboost` configure.win
+
+
+"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e '
+  if (file.exists("src/libcatboostr.dll")) {
+      message("libcatboostr.dll exists already")
+      
+  } else {
+      source("R/install.R")
+      if (identical(FALSE,catboost_download_dynlib("src/")))
+          stop("Stopping on error")
+  }
+'

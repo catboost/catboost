@@ -1,4 +1,4 @@
-autoconf/configure script for catboost
+# autoconf/configure script for catboost
 
 ##### INIT ####################################################################
 
@@ -62,9 +62,9 @@ AC_MSG_RESULT($CATBOOST_DYNLIB)
 ###### DOWNLOAD CatBoost (IF NEEDED) ###########################################
 if test $CATBOOST_FOUND = 0; then
    AC_MSG_CHECKING([whether we can fetch CatBoost dynlib])
-   "${R_PATH}" --vanilla --slave -e "setwd(\"src/\"); \
+   "${R_PATH}" --vanilla --slave -e " \
            source(\"../R/install.R\"); \
-           if (identical(FALSE,catboost_download_dynlib())) \
+           if (identical(FALSE,catboost_download_dynlib(\"src/\"))) \
                stop(\"Stopping on error\")"
    if test $? -ne 0; then
       echo "*** CatBoost dynamic library download failed. stopping."
