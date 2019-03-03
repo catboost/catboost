@@ -867,7 +867,6 @@ train_pool <- catboost.load_pool(train_pool_path, column_description = cd_path)
 test_pool <- catboost.load_pool(test_pool_path, column_description = cd_path)
 fit_params <- list(
     iterations = 100,
-    thread_count = 10,
     loss_function = 'Logloss',
     ignored_features = c(4, 9),
     border_count = 32,
