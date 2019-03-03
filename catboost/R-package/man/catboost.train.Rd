@@ -163,7 +163,7 @@ For example, if you need to calculate the value of CrossEntropy and Quantile wit
 c('CrossEntropy') or simply 'CrossEntropy'.
 
 Values of all custom loss functions for learning and test datasets are saved to the Loss function
-      (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_error-functions-docpage/#output-data_error-functions})
+      (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_loss-function-docpage/#output-data_loss-function})
       output files (learn_error.tsv and test_error.tsv respectively). The catalog for these files is specified in the train-dir (train_dir) parameter.
 
 Default value:
@@ -397,7 +397,7 @@ FALSE
 
 \item name
 
-The experiment name to display in visualization tools (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/visualization-docpage/#visualization}).
+The experiment name to display in visualization tools (see \url{https://tech.yandex.com/catboost/doc/dg/features/visualization-docpage/#visualization}).
 
 Default value:
 
@@ -796,7 +796,7 @@ None
 \item snapshot_file
 
 Settings for recovering training after an interruption (see
-      \url{https://tech.yandex.com/catboost/doc/dg/concepts/snapshots-docpage/#snapshots}).
+      \url{https://tech.yandex.com/catboost/doc/dg/features/snapshots-docpage/#snapshots}).
 
 Depending on whether the file specified exists in the file system:
       \itemize{

@@ -108,7 +108,7 @@ catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels 
     # param <- catboost.get_model_params(modelFit)
     pred_type <- if (modelFit$problemType == "Regression") "RawFormulaVal" else "Class"
     prediction <- catboost.predict(modelFit, pool, prediction_type = pred_type)
-    if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
+    if (!is.null(modelFit$lev) && !any(is.na(modelFit$lev))) {
         prediction <- modelFit$lev[prediction + 1]
     }
     if (!is.null(submodels)) {
@@ -116,7 +116,7 @@ catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels 
         tmp[[1]] <- prediction
         for (j in seq(along = submodels$iterations)) {
             tmp_pred <- catboost.predict(modelFit, pool, prediction_type = pred_type, ntree_end = submodels$iterations[j])
-            if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
+            if (!is.null(modelFit$lev) && !any(is.na(modelFit$lev))) {
                 tmp_pred <- modelFit$lev[tmp_pred + 1]
             }
             tmp[[j + 1]]  <- tmp_pred

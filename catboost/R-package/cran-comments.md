@@ -1,7 +1,7 @@
 ## Test environments
 * local Windows install, R 3.3.0
 * local Ubuntu install, R 3.5.0
-* win-builder (devel and release)
+* rhub debian(devel), ubuntu(release), windows(devel)
 
 ## R CMD check results
 There were no ERRORs or WARNINGs.
