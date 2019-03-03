@@ -35,7 +35,7 @@ head(prediction)
 
 ### Tutorials
 
-CatBoost tutorial with base features demonstration and Caret demo. See [notebook](../tutorials/catboost_r_tutorial.ipynb).
+CatBoost tutorial with base features demonstration and Caret demo. See [notebook](../tutorials/r_tutorial.ipynb).
 
 
 ### Maintaining the package
