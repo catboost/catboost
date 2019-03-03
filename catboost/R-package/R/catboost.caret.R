@@ -7,6 +7,7 @@ catboost.caret <- list(label = "Catboost",
 
 
 #' Define tuning parameters
+#' @noRd
 catboost.caret$parameters <- data.frame(parameter = c("depth",
                                                       "learning_rate",
                                                       "iterations",
@@ -32,16 +33,19 @@ catboost.caret$parameters <- data.frame(parameter = c("depth",
 #' @param x, y: the current data used to fit the model
 #' @param len: the value of tuneLength that is potentially passed in through train
 #' @param search: can be either "grid" or "random"
+#'
+#' @noRd
 catboost.caret$grid <- function(x, y, len = 5, search = "grid") {
   if (search == "grid") {
     grid <- expand.grid(depth = c(2, 4, 6),
-                        learning_rate = exp(-(0:len)),
+                        learning_rate = exp(- (0:len)),
                         iterations = 100,
                         l2_leaf_reg = 1e-6,
                         rsm = 0.9,
                         border_count = 255)
   }
-  else {  # search == "random"
+  else {
+    # search == "random"
     grid <- data.frame(depth = sample.int(len, len, replace = TRUE),
                        learning_rate = runif(len, min = 1e-6, max = 1),
                        iterations = rep(100, len),
@@ -62,6 +66,8 @@ catboost.caret$grid <- function(x, y, len = 5, search = "grid") {
 #' @param last: a logical for whether the current fit is the final fit
 #' @param weights: weights
 #' @param classProbs: a logical for whether class probabilities should be computed
+#'
+#' @noRd
 catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs, ...) {
     param <- c(param, list(...))
     if (is.null(param$loss_function)) {
@@ -94,23 +100,26 @@ catboost.caret$fit <- function(x, y, wts, param, lev, last, weights, classProbs,
 #' @param newdata: the predictor values of the instances being predicted (e.g. out-of-bag samples)
 #' @param preProc: preprcess data option
 #' @param submodels: only used with the loop element
+#'
+#' @noRd
 catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels = NULL) {
     pool <- catboost.from_data_frame(newdata)
-    param <- catboost.get_model_params(modelFit)
-    pred_type <- if (modelFit$problemType == 'Regression') 'RawFormulaVal' else 'Class'
+    # WS: unused variable param
+    # param <- catboost.get_model_params(modelFit)
+    pred_type <- if (modelFit$problemType == "Regression") "RawFormulaVal" else "Class"
     prediction <- catboost.predict(modelFit, pool, prediction_type = pred_type)
-    if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
+    if (!is.null(modelFit$lev) && !any(is.na(modelFit$lev))) {
         prediction <- modelFit$lev[prediction + 1]
     }
-    if(!is.null(submodels)) {
+    if (!is.null(submodels)) {
         tmp <- vector(mode = "list", length = nrow(submodels) + 1)
         tmp[[1]] <- prediction
-        for(j in seq(along = submodels$iterations)) {
+        for (j in seq(along = submodels$iterations)) {
             tmp_pred <- catboost.predict(modelFit, pool, prediction_type = pred_type, ntree_end = submodels$iterations[j])
-            if (!is.null(modelFit$lev) && !is.na(modelFit$lev)) {
+            if (!is.null(modelFit$lev) && !any(is.na(modelFit$lev))) {
                 tmp_pred <- modelFit$lev[tmp_pred + 1]
             }
-            tmp[[j+1]]  <- tmp_pred
+            tmp[[j + 1]]  <- tmp_pred
         }
         prediction <- tmp
     }
@@ -125,6 +134,8 @@ catboost.caret$predict <- function(modelFit, newdata, preProc = NULL, submodels 
 #' @param newdata: the predictor values of the instances being predicted (e.g. out-of-bag samples)
 #' @param preProc: preprcess data option
 #' @param submodels: only used with the loop element
+#'
+#' @noRd
 catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = NULL) {
     pool <- catboost.from_data_frame(newdata)
     prediction <- catboost.predict(modelFit, pool, prediction_type = "Probability")
@@ -138,10 +149,10 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
         colnames(prediction) <- modelFit$lev
     }
 
-    if(!is.null(submodels)) {
+    if (!is.null(submodels)) {
         tmp <- vector(mode = "list", length = nrow(submodels) + 1)
         tmp[[1]] <- prediction
-        for(j in seq(along = submodels$iterations)) {
+        for (j in seq(along = submodels$iterations)) {
             tmp_pred <- catboost.predict(modelFit, pool, prediction_type = "Probability", ntree_end = submodels$iterations[j])
             if (is.matrix(tmp_pred)) {
                 colnames(tmp_pred) <- modelFit$lev
@@ -152,7 +163,7 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
                 tmp_pred <- cbind(1 - tmp_pred, tmp_pred)
                 colnames(tmp_pred) <- modelFit$lev
             }
-            tmp[[j+1]]  <- tmp_pred
+            tmp[[j + 1]]  <- tmp_pred
         }
         prediction <- tmp
     }
@@ -164,6 +175,8 @@ catboost.caret$prob <- function(modelFit, newdata, preProc = NULL, submodels = N
 #'
 #' @param modelFit: the model produced by the fit code shown above
 #' @param x, y: the current data used to fit the model
+#'
+#' @noRd
 catboost.caret$varImp <- function(modelFit, x = NULL, y = NULL, ...) {
     pool <- NULL
     if (!is.null(x) && !is.null(y)) {
@@ -179,6 +192,8 @@ catboost.caret$varImp <- function(modelFit, x = NULL, y = NULL, ...) {
 #' Create multiple submodel predictions from the same object.
 #'
 #' @param grid: the grid of parameters to search over.
+#'
+#' @noRd
 catboost.caret$loop <- function(grid) {
     loop <- plyr::ddply(grid, c("depth",
                                 "learning_rate",
@@ -187,7 +202,7 @@ catboost.caret$loop <- function(grid) {
                                 "border_count"),
                         function(x) c(iterations = max(x$iterations)))
     submodels <- vector(mode = "list", length = nrow(loop))
-    for(i in seq(along = loop$iterations)) {
+    for (i in seq(along = loop$iterations)) {
         index <- which(grid$depth == loop$depth[i] &
                        grid$learning_rate == loop$learning_rate[i] &
                        grid$l2_leaf_reg == loop$l2_leaf_reg[i] &
