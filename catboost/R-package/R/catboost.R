@@ -2,6 +2,8 @@ require(jsonlite)
 
 #' @importFrom utils head
 #' @importFrom utils tail
+#' @importFrom utils write.table
+#' @importFrom utils download.file
 #' @useDynLib libcatboostr
 NULL
 
@@ -1502,7 +1504,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
             rownames(importances) <- colnames(pool)
         }
     } else {
-        stop("Unknown fstr_type: ", fst_type);
+        stop("Unknown fstr_type: ", fstr_type);
     }
     return(importances)
 }
@@ -1615,8 +1617,10 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
 #' Drop unused features information from model
 #'
 #' @param model The model obtained as the result of training.
-#'
+#' @param ntree_end Drop unused features in the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_start Drop unused features in the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #' Default value: 0
+#'
 #' @export
 catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
     if (class(model) != "catboost.Model")

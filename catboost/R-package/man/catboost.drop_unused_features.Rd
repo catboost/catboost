@@ -7,8 +7,11 @@
 catboost.drop_unused_features(model, ntree_end, ntree_start = 0)
 }
 \arguments{
-\item{model}{The model obtained as the result of training.
+\item{model}{The model obtained as the result of training.}
 
+\item{ntree_end}{Drop unused features in the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).}
+
+\item{ntree_start}{Drop unused features in the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 Default value: 0}
 }
 \description{
