@@ -1,5 +1,4 @@
-require(jsonlite)
-
+#' @import jsonlite
 #' @importFrom utils head
 #' @importFrom utils tail
 #' @importFrom utils write.table
@@ -190,12 +189,15 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
         feature_names <- as.list(colnames(data))
     }
 
-    factor_columns <- sapply(data, is.factor)
-    num_columns <- sapply(data, is.double) | sapply(data, is.integer) | sapply(data, is.logical)
+    factor_columns <- vapply(data, is.factor, logical(1))
+    num_columns <-
+      vapply(data, is.double, logical(1)) |
+      vapply(data, is.integer, logical(1)) |
+      vapply(data, is.logical, logical(1))
     bad_columns <- !(factor_columns | num_columns)
 
     if (sum(bad_columns) > 0) {
-        stop("Unsupported column type: ", paste(c(unique(sapply(data[, bad_columns], class))), collapse = ", "))
+        stop("Unsupported column type: ", paste(c(unique(vapply(data[, bad_columns], class, character(1)))), collapse = ", "))
     }
 
     preprocessed <- data
@@ -270,7 +272,7 @@ catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NUL
     }
     pool <- cbind(pool, data)
     column_description <- data.frame(index = seq(0, length(column_description) - 1), type = column_description)
-    factors <- which(sapply(data, class) == "factor")
+    factors <- which(vapply(data, class, character(1)) == "factor")
     if (length(factors) != 0) {
         column_description <- rbind(column_description, data.frame(index = nrow(column_description) + factors - 1,
                                                                    type = rep("Categ", length(factors))))
@@ -1512,7 +1514,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = "Fea
             rownames(importances) <- colnames(pool)
         }
     } else {
-        stop("Unknown fstr_type: ", fstr_type);
+        stop("Unknown fstr_type: ", fstr_type)
     }
     return(importances)
 }
