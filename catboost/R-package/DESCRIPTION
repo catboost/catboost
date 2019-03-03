@@ -10,3 +10,4 @@ Author: CatBoost DevTeam
 Maintainer: Nikita Dmitriev <nikitxskv@yandex-team.ru>
 Suggests: caret, testthat, dplyr, e1071
 Arch: x64
+Encoding: UTF-8
