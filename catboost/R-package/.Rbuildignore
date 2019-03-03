@@ -3,3 +3,4 @@ ya.make
 \.so$
 \.dll$
 \.py$
+.lintr
