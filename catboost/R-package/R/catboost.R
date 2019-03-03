@@ -176,26 +176,26 @@ catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs 
 
 
 catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
-                                     subgroup_id = NULL , pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
+                                     subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
     if (!is.data.frame(data)) {
         stop("Unsupported data type, expecting data.frame, got: ", class(data))
     }
     if (is.null(feature_names)) {
-        feature_names = as.list(colnames(data))
+        feature_names <- as.list(colnames(data))
     }
 
-    factor_columns = sapply(data, is.factor)
-    num_columns = sapply(data, is.double) | sapply(data, is.integer) | sapply(data, is.logical)
-    bad_columns = !(factor_columns | num_columns)
+    factor_columns <- sapply(data, is.factor)
+    num_columns <- sapply(data, is.double) | sapply(data, is.integer) | sapply(data, is.logical)
+    bad_columns <- !(factor_columns | num_columns)
 
     if (sum(bad_columns) > 0) {
-        stop("Unsupported column type: ", paste(c(unique(sapply(data[,bad_columns], class))), collapse = ', '))
+        stop("Unsupported column type: ", paste(c(unique(sapply(data[, bad_columns], class))), collapse = ", "))
     }
 
     preprocessed <- data
     cat_features <- c()
     for (column_index in which(factor_columns)) {
-        preprocessed[, column_index] = .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
+        preprocessed[, column_index] <- .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
         cat_features <- c(cat_features, column_index - 1)
     }
     if (!is.null(pairs)) {
@@ -241,7 +241,7 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
 #'
 #' @export
 catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NULL,
-                               pool_path = "data.pool", cd_path = 'cd.pool') {
+                               pool_path = "data.pool", cd_path = "cd.pool") {
     if (missing(pool_path) || missing(cd_path))
         stop("Need to specify pool_path and cd_path.")
     if (!is.character(pool_path) || !is.character(cd_path))
@@ -293,7 +293,7 @@ dim.catboost.Pool <- function(x) {
 #' Default value: Required argument
 #' @export
 dimnames.catboost.Pool <- function(x) {
-    return(attr(x, '.Dimnames'))
+    return(attr(x, ".Dimnames"))
 }
 
 
@@ -1345,7 +1345,7 @@ catboost.save_model <- function(model, model_path) {
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-predict-docpage/}
 catboost.predict <- function(model, pool,
-                             verbose = FALSE, prediction_type = 'RawFormulaVal',
+                             verbose = FALSE, prediction_type = "RawFormulaVal",
                              ntree_start = 0, ntree_end = 0, thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
@@ -1407,25 +1407,27 @@ catboost.predict <- function(model, pool,
 #' Default value: 1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-staged_predict-docpage/}
-catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = 'RawFormulaVal',
+catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = "RawFormulaVal",
                                     ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
     if (ntree_end == 0)
-        ntree_end = model$tree_count
+        ntree_end <- model$tree_count
 
     current_tree_count <- ntree_start
     approx <- 0
     preds <- function() {
         current_tree_count <<- current_tree_count + eval_period
         if (current_tree_count - eval_period >= ntree_end)
-            stop('StopIteration')
+            stop("StopIteration")
         if (is.null.handle(model$handle))
             model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
         current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, pool,
-                                         verbose, 'RawFormulaVal', current_tree_count - eval_period, min(current_tree_count, ntree_end), thread_count))
+                                         verbose, "RawFormulaVal",
+                                         current_tree_count - eval_period,
+                                         min(current_tree_count, ntree_end), thread_count))
         approx <<- approx + current_approx
         prediction_columns <- length(approx) / nrow(pool)
         prediction <- .Call("CatBoostPrepareEval_R", approx, prediction_type, prediction_columns, thread_count)
@@ -1436,7 +1438,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
     }
 
     obj <- list(nextElem = preds)
-    class(obj) <- c('catboost.staged_predict', 'abstractiter', 'iter')
+    class(obj) <- c("catboost.staged_predict", "abstractiter", "iter")
     return(obj)
 }
 
@@ -1480,25 +1482,25 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Default value: -1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
-catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = -1) {
+catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = "FeatureImportance", thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (fstr_type == 'ShapValues' && length(pool) == 0)
+    if (fstr_type == "ShapValues" && length(pool) == 0)
         stop("For `ShapValues` type of feature importance, the pool is required")
-    if (fstr_type == 'FeatureImportance' && is.null(pool) && !is.null(model$feature_importances))
+    if (fstr_type == "FeatureImportance" && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
     importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, fstr_type, thread_count)
 
-    if (fstr_type == 'Interaction') {
-        colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
-    } else if (fstr_type == 'ShapValues') {
+    if (fstr_type == "Interaction") {
+        colnames(importances) <- c("feature1_index", "feature2_index", "score")
+    } else if (fstr_type == "ShapValues") {
         colnames(importances) <- c(colnames(pool), "<base>")
-    } else if (fstr_type == 'FeatureImportance') {
+    } else if (fstr_type == "FeatureImportance") {
         if (dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
@@ -1563,8 +1565,8 @@ catboost.get_object_importance <- function(
     pool,
     train_pool,
     top_size = -1,
-    ostr_type = 'Average',
-    update_method = 'SinglePoint',
+    ostr_type = "Average",
+    update_method = "SinglePoint",
     thread_count = -1
 ) {
     if (class(model) != "catboost.Model")
@@ -1578,14 +1580,14 @@ catboost.get_object_importance <- function(
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
     importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, ostr_type, update_method, thread_count)
-    indices = head(importances, length(importances) / 2)
-    scores = tail(importances, length(importances) / 2)
+    indices <- head(importances, length(importances) / 2)
+    scores <- tail(importances, length(importances) / 2)
     column_count <- nrow(train_pool)
     if (top_size != -1) {
         column_count <- min(column_count, top_size)
     }
-    indices = matrix(as.integer(indices), ncol = column_count, byrow = TRUE)
-    scores = matrix(scores, ncol = column_count, byrow = TRUE)
+    indices <- matrix(as.integer(indices), ncol = column_count, byrow = TRUE)
+    scores <- matrix(scores, ncol = column_count, byrow = TRUE)
 
     return(list(indices = indices, scores = scores))
 }
