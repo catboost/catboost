@@ -1,2 +1,5 @@
-.*.py
 ya.make
+\.o$
+\.so$
+\.dll$
+\.py$
