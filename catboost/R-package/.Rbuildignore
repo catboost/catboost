@@ -5,3 +5,5 @@ ya.make
 \.py$
 .lintr
 cran-comments.md
+catboost-R-package
+
