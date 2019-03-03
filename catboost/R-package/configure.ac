@@ -43,24 +43,39 @@ if test ! -e "${R_PATH}"; then
 fi
 AC_MSG_RESULT($R_PATH)
 
-# checking for CATBOOST_DYNLIB
+
+##### Get CatBoost dyn lib #####################################################
+CATBOOST_FOUND=0
+
+# checking for CATBOOST_DYNLIB variable
 AC_MSG_CHECKING(for local CATBOOST_DYNLIB)
 if test -n "$CATBOOST_DYNLIB"; then
-   if test -f $CATBOOST_DYNLIB; then
+   if test ! -f "$CATBOOST_DYNLIB"; then
+      # check relative path to src/
+      if test -f "src/$CATBOOST_DYNLIB"; then
+         CATBOOST_DYNLIB="src/$CATBOOST_DYNLIB"
+      fi
+   fi
+   if test -f "$CATBOOST_DYNLIB"; then
+      AC_MSG_RESULT($CATBOOST_DYNLIB copying into src/libcatboost.so)
+      cp -f $CATBOOST_DYNLIB src/libcatboostr.so
+      CATBOOST_FOUND=1
+   fi
+fi
+
+if test $CATBOOST_FOUND = 0; then 
+   # check if src/libcatboostr.so exists already
+   if test -f "src/libcatboostr.so"; then
+      CATBOOST_DYNLIB="src/libcatboostr.so"
+      AC_MSG_RESULT($CATBOOST_DYNLIB)
       CATBOOST_FOUND=1
    else
-      CATBOOST_FOUND=0
+      AC_MSG_RESULT(no)
    fi
-elif test -f "src/libcatboostr.so"; then
-   CATBOOST_FOUND=1
-   CATBOOST_DYNLIB="src/libcatboostr.so"
-else
-   CATBOOST_FOUND=0
 fi
-AC_MSG_RESULT($CATBOOST_DYNLIB)
 
-###### DOWNLOAD CatBoost (IF NEEDED) ###########################################
 if test $CATBOOST_FOUND = 0; then
+   # download catboost
    AC_MSG_CHECKING([whether we can fetch CatBoost dynlib])
    "${R_PATH}" --vanilla --slave -e " \
            source(\"R/install.R\"); \

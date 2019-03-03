@@ -1722,26 +1722,43 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $R_PATH" >&5
 $as_echo "$R_PATH" >&6; }
 
-# checking for CATBOOST_DYNLIB
+
+##### Get CatBoost dyn lib #####################################################
+CATBOOST_FOUND=0
+
+# checking for CATBOOST_DYNLIB variable
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for local CATBOOST_DYNLIB" >&5
 $as_echo_n "checking for local CATBOOST_DYNLIB... " >&6; }
 if test -n "$CATBOOST_DYNLIB"; then
-   if test -f $CATBOOST_DYNLIB; then
+   if test ! -f "$CATBOOST_DYNLIB"; then
+      # check relative path to src/
+      if test -f "src/$CATBOOST_DYNLIB"; then
+         CATBOOST_DYNLIB="src/$CATBOOST_DYNLIB"
+      fi
+   fi
+   if test -f "$CATBOOST_DYNLIB"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CATBOOST_DYNLIB copying into src/libcatboost.so" >&5
+$as_echo "$CATBOOST_DYNLIB copying into src/libcatboost.so" >&6; }
+      cp -f $CATBOOST_DYNLIB src/libcatboostr.so
+      CATBOOST_FOUND=1
+   fi
+fi
+
+if test $CATBOOST_FOUND = 0; then
+   # check if src/libcatboostr.so exists already
+   if test -f "src/libcatboostr.so"; then
+      CATBOOST_DYNLIB="src/libcatboostr.so"
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CATBOOST_DYNLIB" >&5
+$as_echo "$CATBOOST_DYNLIB" >&6; }
       CATBOOST_FOUND=1
    else
-      CATBOOST_FOUND=0
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
    fi
-elif test -f "src/libcatboostr.so"; then
-   CATBOOST_FOUND=1
-   CATBOOST_DYNLIB="src/libcatboostr.so"
-else
-   CATBOOST_FOUND=0
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $CATBOOST_DYNLIB" >&5
-$as_echo "$CATBOOST_DYNLIB" >&6; }
 
-###### DOWNLOAD CatBoost (IF NEEDED) ###########################################
 if test $CATBOOST_FOUND = 0; then
+   # download catboost
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we can fetch CatBoost dynlib" >&5
 $as_echo_n "checking whether we can fetch CatBoost dynlib... " >&6; }
    "${R_PATH}" --vanilla --slave -e " \
