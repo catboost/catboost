@@ -4,3 +4,4 @@ ya.make
 \.dll$
 \.py$
 .lintr
+cran-comments.md
