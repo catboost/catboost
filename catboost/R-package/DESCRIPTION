@@ -2,11 +2,11 @@ Package: catboost
 Title: R package for CatBoost
 Version: 0.12.2
 Date: 2019-01-18
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Imports: jsonlite
 License: Apache License (== 2.0)
 Description: CatBoost - open-source gradient boosting on decision trees with categorical features support out of the box.
 Author: CatBoost DevTeam
 Maintainer: Nikita Dmitriev <nikitxskv@yandex-team.ru>
-Suggests: caret, testthat, dplyr
+Suggests: caret, testthat, dplyr, e1071
 Arch: x64
