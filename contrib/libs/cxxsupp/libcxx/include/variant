@@ -526,13 +526,19 @@ private:
     return __make_dispatch<_Fp, _Vs...>(__is);
   }
 
+  // Fix for MSVC not understanding nested variadics expansions.
+  template <size_t _Js, size_t... _Is>
+  static constexpr auto __make_fmatrix_impl_append(index_sequence<_Is...>) {
+    return index_sequence<_Is..., _Js>{};
+  }
+
   template <class _Fp, class... _Vs, size_t... _Is, size_t... _Js, class... _Ls>
   inline _LIBCPP_INLINE_VISIBILITY
-  static constexpr auto __make_fmatrix_impl(index_sequence<_Is...>,
+  static constexpr auto __make_fmatrix_impl(index_sequence<_Is...> __is,
                                             index_sequence<_Js...>,
                                             _Ls... __ls) {
     return __base::__make_farray(__make_fmatrix_impl<_Fp, _Vs...>(
-        index_sequence<_Is..., _Js>{}, __ls...)...);
+        __make_fmatrix_impl_append<_Js>(__is), __ls...)...);
   }
 
   template <class _Fp, class... _Vs>
