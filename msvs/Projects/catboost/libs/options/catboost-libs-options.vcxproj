@@ -94,6 +94,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\load_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\loss_description.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\metric_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\options\model_based_eval_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\multiclass_label_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\oblivious_tree_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\option.cpp"/>
@@ -169,6 +170,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\load_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\loss_description.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\metric_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\options\model_based_eval_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\multiclass_label_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\oblivious_tree_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\option.h"/>
