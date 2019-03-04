@@ -1555,9 +1555,9 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if ((type == "ShapValues" || type == "LossFunctionChange") && length(pool) == 0)
+    if ( (type == "ShapValues" || type == "LossFunctionChange") && length(pool) == 0)
         stop("For `", type, "` type of feature importance, the pool is required")
-    if ((type == "PredictionValuesChange" || type == "FeatureImportance") && is.null(pool) && !is.null(model$feature_importances))
+    if ( (type == "PredictionValuesChange" || type == "FeatureImportance") && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
     if (is.null.handle(model$handle))
@@ -1566,14 +1566,14 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 
     if (type == "Interaction") {
         colnames(importances) <- c("feature1_index", "feature2_index", "score")
-    } else if (type == 'ShapValues') {
+    } else if (type == "ShapValues") {
         colnames(importances) <- c(colnames(pool), "<base>")
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
         if (dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
     } else {
-        stop("Unknown type: ", type);
+        stop("Unknown type: ", type)
     }
     return(importances)
 }
