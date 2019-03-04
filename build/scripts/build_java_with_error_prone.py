@@ -14,8 +14,7 @@ JAVA10_EXPORTS = [
     '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
     '--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
     '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
-    '--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
-    '--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED'
+    '--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED'
 ]
 
 
