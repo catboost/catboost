@@ -11,6 +11,13 @@ void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
                       TString* paramPath,
                       NCatboostOptions::TPoolLoadParams* params);
+void ParseModelBasedEvalCommandLine(
+    int argc,
+    const char* argv[],
+    NJson::TJsonValue* plainJsonPtr,
+    TString* paramPath,
+    NCatboostOptions::TPoolLoadParams* params
+);
 
 void InitOptions(
     const TString& optionsFile,

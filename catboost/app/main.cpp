@@ -53,6 +53,7 @@ int main(int argc, const char* argv[]) {
         modChooser.AddMode("model-sum", mode_model_sum, "sum model files");
         modChooser.AddMode("run-worker", mode_run_worker, "run worker");
         modChooser.AddMode("roc", mode_roc, "evaluate data for roc curve");
+        modChooser.AddMode("model-based-eval", mode_model_based_eval, "model-based eval");
         modChooser.DisableSvnRevisionOption();
         modChooser.SetVersionHandler(PrintProgramSvnVersion);
         return modChooser.Run(argc, argv);

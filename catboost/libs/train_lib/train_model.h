@@ -53,10 +53,23 @@ public:
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) const = 0;
 
+    virtual void ModelBasedEval(
+        const NJson::TJsonValue& params,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        NCB::TTrainingDataProviders trainingData,
+        const TLabelConverter& labelConverter,
+        NPar::TLocalExecutor* localExecutor
+    ) const = 0;
+
     virtual ~IModelTrainer() = default;
 };
 
 void TrainModel(
+    const NCatboostOptions::TPoolLoadParams& poolLoadParams,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    const NJson::TJsonValue& jsonParams);
+
+void ModelBasedEval(
     const NCatboostOptions::TPoolLoadParams& poolLoadParams,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     const NJson::TJsonValue& jsonParams);

@@ -268,6 +268,16 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "subsample", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "mvs_head_fraction", &bootstrapOptions, &seenKeys);
 
+    //feature evaluation options
+    auto& modelBasedEvalOptions = trainOptions["model_based_eval_options"];
+    modelBasedEvalOptions.SetType(NJson::JSON_MAP);
+
+    CopyOption(plainOptions, "features_to_evaluate", &modelBasedEvalOptions, &seenKeys);
+    CopyOption(plainOptions, "offset", &modelBasedEvalOptions, &seenKeys);
+    CopyOption(plainOptions, "experiment_count", &modelBasedEvalOptions, &seenKeys);
+    CopyOption(plainOptions, "experiment_size", &modelBasedEvalOptions, &seenKeys);
+    CopyOption(plainOptions, "baseline_model_snapshot", &modelBasedEvalOptions, &seenKeys);
+
     //cat-features
     auto& ctrOptions = trainOptions["cat_feature_params"];
     ctrOptions.SetType(NJson::JSON_MAP);

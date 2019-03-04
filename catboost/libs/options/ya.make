@@ -18,6 +18,7 @@ SRCS(
     load_options.cpp
     loss_description.cpp
     metric_options.cpp
+    model_based_eval_options.cpp
     multiclass_label_options.cpp
     oblivious_tree_options.cpp
     option.cpp

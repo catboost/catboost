@@ -10,6 +10,51 @@
 
 namespace NCatboostCuda {
     template <class TBoosting>
+    inline TBoosting MakeBoosting(
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        TBinarizedFeaturesManager* featureManager,
+        typename TBoosting::TWeakLearner* weak,
+        TGpuAwareRandom* random,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        const auto& boostingOptions = catBoostOptions.BoostingOptions.Get();
+        TBoosting boosting(*featureManager,
+                           boostingOptions,
+                           catBoostOptions.ModelBasedEvalOptions,
+                           catBoostOptions.LossFunctionDescription,
+                           catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
+                           *random,
+                           *weak,
+                           localExecutor);
+        return boosting;
+    }
+
+    template <class TWeakLearner>
+    inline TWeakLearner MakeWeakLearner(TBinarizedFeaturesManager& featureManager,
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions
+    ) {
+        const bool zeroAverage = catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogit;
+        return TWeakLearner(featureManager, catBoostOptions, zeroAverage);
+    }
+
+    inline TBoostingProgressTracker MakeBoostingProgressTracker(
+        const TTrainModelInternalOptions& internalOptions,
+        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        const NCB::TTrainingDataProvider* test,
+        ui32 approxDimension,
+        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback
+    ) {
+        return TBoostingProgressTracker(catBoostOptions,
+            outputOptions,
+            internalOptions.ForceCalcEvalMetricOnEveryIteration,
+            test != nullptr,
+            /*testHasTarget*/ (test != nullptr) && test->MetaInfo.HasTarget,
+            approxDimension,
+            onEndIterationCallback);
+    }
+
+    template <class TBoosting>
     inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                                          const TTrainModelInternalOptions& internalOptions,
                                                                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
@@ -24,30 +69,13 @@ namespace NCatboostCuda {
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
 
-        const bool zeroAverage = catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogit;
-        TWeakLearner weak(featureManager,
-                          catBoostOptions,
-                          zeroAverage);
+        auto weak = MakeWeakLearner<TWeakLearner>(featureManager, catBoostOptions);
 
-        const auto& boostingOptions = catBoostOptions.BoostingOptions.Get();
-        TBoosting boosting(featureManager,
-                           boostingOptions,
-                           catBoostOptions.LossFunctionDescription,
-                           catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
-                           random,
-                           weak,
-                           localExecutor);
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
 
-        boosting.SetDataProvider(learn,
-                                 test);
+        boosting.SetDataProvider(learn, test);
 
-        TBoostingProgressTracker progressTracker(catBoostOptions,
-                                                 outputOptions,
-                                                 internalOptions.ForceCalcEvalMetricOnEveryIteration,
-                                                 test != nullptr,
-                                                 /*testHasTarget*/ (test != nullptr) && test->MetaInfo.HasTarget,
-                                                 approxDimension,
-                                                 onEndIterationCallback);
+        auto progressTracker = MakeBoostingProgressTracker(internalOptions, catBoostOptions, outputOptions, test, approxDimension, onEndIterationCallback);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
@@ -68,17 +96,7 @@ namespace NCatboostCuda {
                 CATBOOST_INFO_LOG << "Warning: can't use-best-model because eval metric was not calculated "
                                      "due to the absence of target data in test set. Will skip model shrinking";
             } else {
-                const auto& errorTracker = progressTracker.GetErrorTracker();
-                const auto& bestModelTracker = progressTracker.GetBestModelMinTreesTracker();
-                const ui32 bestIter = static_cast<const ui32>(bestModelTracker.GetBestIteration());
-                if (0 < bestIter + 1 && bestIter + 1 < progressTracker.GetCurrentIteration()) {
-                    CATBOOST_NOTICE_LOG << "Shrink model to first " << bestIter + 1 << " iterations.";
-                    if (bestIter > static_cast<const ui32>(errorTracker.GetBestIteration())) {
-                        CATBOOST_NOTICE_LOG << " (min iterations for best model = " << outputOptions.BestModelMinTrees << ")";
-                    }
-                    CATBOOST_NOTICE_LOG << Endl;
-                    model->Shrink(bestIter + 1);
-                }
+                progressTracker.ShrinkToBestIteration(model.Get());
             }
         }
 
@@ -89,4 +107,27 @@ namespace NCatboostCuda {
         return model;
     }
 
+    template <class TBoosting>
+    inline void ModelBasedEval(TBinarizedFeaturesManager& featureManager,
+                               const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                               const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                               const NCB::TTrainingDataProvider& learn,
+                               const NCB::TTrainingDataProvider& test,
+                               TGpuAwareRandom& random,
+                               ui32 approxDimension,
+                               NPar::TLocalExecutor* localExecutor) {
+        using TWeakLearner = typename TBoosting::TWeakLearner;
+
+        auto weak = MakeWeakLearner<TWeakLearner>(featureManager, catBoostOptions);
+
+        auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
+
+        boosting.SetDataProvider(learn, &test);
+
+        auto progressTracker = MakeBoostingProgressTracker(TTrainModelInternalOptions(), catBoostOptions, outputOptions, &test, approxDimension, Nothing());
+
+        boosting.SetBoostingProgressTracker(&progressTracker);
+
+        boosting.RunModelBasedEval();
+    }
 }

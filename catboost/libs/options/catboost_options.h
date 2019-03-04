@@ -3,6 +3,7 @@
 #include "option.h"
 #include "system_options.h"
 #include "boosting_options.h"
+#include "model_based_eval_options.h"
 #include "oblivious_tree_options.h"
 #include "output_file_options.h"
 #include "binarization_options.h"
@@ -51,6 +52,8 @@ namespace NCatboostOptions {
         TOption<bool> IsProfile;
         TOption<TMetricOptions> MetricOptions;
 
+        TGpuOnlyOption<TModelBasedEvalOptions> ModelBasedEvalOptions;
+
     private:
         void ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const;
 
@@ -81,3 +84,4 @@ namespace NCatboostOptions {
 using TCatboostOptions = NCatboostOptions::TCatBoostOptions;
 
 TVector<ui32> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions);
+TVector<ui32> GetOptionFeaturesToEvaluate(const NJson::TJsonValue& catBoostJsonOptions);

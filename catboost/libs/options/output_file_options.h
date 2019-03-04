@@ -93,6 +93,23 @@ namespace NCatboostOptions {
 
         TString GetRocOutputPath() const;
 
+        void SetSaveSnapshotFlag(bool flag) {
+            SaveSnapshotFlag.Set(flag);
+        }
+
+        void SetMetricPeriod(ui32 period) {
+            MetricPeriod.Set(period);
+        }
+
+        void SetTrainDir(const TString& trainDir) {
+            TrainDir.Set(trainDir);
+        }
+
+        void SetSnapshotFilename(const TString& filename) {
+            SnapshotPath.Set(filename);
+        }
+
+
         bool operator==(const TOutputFilesOptions& rhs) const;
         bool operator!=(const TOutputFilesOptions& rhs) const;
 

@@ -23,6 +23,8 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
                                   NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
+        TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
+
         ENanMode GetNanMode(const ui32 featureId) const;
 
         bool HasBorders(ui32 featureId) const;
@@ -253,5 +255,6 @@ namespace NCatboostCuda {
         };
 
         TVector<TUserDefinedCombination> UserCombinations;
+        const TSet<ui32> IgnoredFeatures;
     };
 }

@@ -54,6 +54,28 @@ namespace NCatboostCuda {
         }
     };
 
+    template <template <class TMapping> class TTargetTemplate>
+    void ModelBasedEval(TBinarizedFeaturesManager& featureManager,
+                        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                        const NCB::TTrainingDataProvider& learn,
+                        const NCB::TTrainingDataProvider& test,
+                        TGpuAwareRandom& random,
+                        ui32 approxDimension,
+                        NPar::TLocalExecutor* localExecutor) {
+        CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
+            "Model based evaluation is supported only for DocParallel partition type");
+        using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
+        ModelBasedEval<TDocParallelBoosting>(featureManager,
+            catBoostOptions,
+            outputOptions,
+            learn,
+            test,
+            random,
+            approxDimension,
+            localExecutor);
+    }
+
     template <template <class> class TTargetTemplate>
     class TGpuTrainer: public IGpuTrainer {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
@@ -81,5 +103,23 @@ namespace NCatboostCuda {
                                           testMultiApprox,
                                           metricsAndTimeHistory);
         };
+
+        virtual void ModelBasedEval(TBinarizedFeaturesManager& featuresManager,
+                                    const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                    const NCB::TTrainingDataProvider& learn,
+                                    const NCB::TTrainingDataProvider& test,
+                                    TGpuAwareRandom& random,
+                                    ui32 approxDimension,
+                                    NPar::TLocalExecutor* localExecutor) const {
+            ::NCatboostCuda::ModelBasedEval<TTargetTemplate>(featuresManager,
+                catBoostOptions,
+                outputOptions,
+                learn,
+                test,
+                random,
+                approxDimension,
+                localExecutor);
+        }
     };
 }

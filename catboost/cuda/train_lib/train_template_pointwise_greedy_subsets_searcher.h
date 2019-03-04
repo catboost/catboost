@@ -44,6 +44,27 @@ namespace NCatboostCuda {
                                                         metricsAndTimeHistory);
                 return MakeObliviousModel<TModel>(std::move(resultModel), localExecutor);
             };
+
+            virtual void ModelBasedEval(TBinarizedFeaturesManager& featuresManager,
+                                        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                        const NCB::TTrainingDataProvider& learn,
+                                        const NCB::TTrainingDataProvider& test,
+                                        TGpuAwareRandom& random,
+                                        ui32 approxDimension,
+                                        NPar::TLocalExecutor* localExecutor) const {
+                CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
+                using TWeakLearner = TGreedySubsetsSearcher<TModel>;
+                using TBoostingImpl = TBoosting<TTargetTemplate, TWeakLearner>;
+                ::NCatboostCuda::ModelBasedEval<TBoostingImpl>(featuresManager,
+                                     catBoostOptions,
+                                     outputOptions,
+                                     learn,
+                                     test,
+                                     random,
+                                     approxDimension,
+                                     localExecutor);
+            }
         };
     }
 

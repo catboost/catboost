@@ -45,6 +45,7 @@ namespace NCatboostCuda {
         ui64 BaseIterationSeed;
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
+        const NCatboostOptions::TModelBasedEvalOptions& ModelBasedEvalConfig;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
         NPar::TLocalExecutor* LocalExecutor;
@@ -61,58 +62,80 @@ namespace NCatboostCuda {
             return dataSetsHolderBuilder.BuildDataSet(permutationCount, localExecutor);
         }
 
-        struct TBoostingState {
-            using TEnsemble = TAdditiveModel<TWeakModel>;
+        struct TBoostingCursors {
             using TCursor = TStripeBuffer<float>;
+            TVector<TCursor> Cursors;
+            TVec TestCursor;
+            THolder<TVec> BestTestCursor;
+            void CopyFrom(const TBoostingCursors& other) {
+                Cursors.resize(other.Cursors.size());
+                for (ui32 idx : xrange(other.Cursors.size())) {
+                    Cursors[idx] = TStripeBuffer<float>::CopyMappingAndColumnCount(other.Cursors[idx]);
+                    Cursors[idx].Copy(other.Cursors[idx]);
+                }
+                TestCursor = TStripeBuffer<float>::CopyMappingAndColumnCount(other.TestCursor);
+                TestCursor.Copy(other.TestCursor);
+                if (other.BestTestCursor != nullptr) {
+                    BestTestCursor = MakeHolder<TStripeBuffer<float>>();
+                    *BestTestCursor = TStripeBuffer<float>::CopyMappingAndColumnCount(*other.BestTestCursor);
+                    BestTestCursor->Copy(*other.BestTestCursor);
+                }
+            }
+        };
+
+        struct TBoostingInputData {
             TDocParallelDataSetsHolder DataSets;
 
             TVector<THolder<TObjective>> Targets;
             THolder<TObjective> TestTarget;
-
-            TVector<TCursor> Cursors;
-            TVector<TEnsemble> Models;
-
-            TVec TestCursor;
-            THolder<TVec> BestTestCursor;
 
             ui32 GetEstimationPermutation() const {
                 return DataSets.PermutationsCount() - 1;
             }
         };
 
-        THolder<TBoostingState> CreateState(ui32 permutationCount) {
+        THolder<TBoostingInputData> CreateInputData(ui32 permutationCount, TBinarizedFeaturesManager* featureManager) {
             CB_ENSURE(DataProvider);
             const auto& dataProvider = *DataProvider;
-            THolder<TBoostingState> state(new TBoostingState);
+            THolder<TBoostingInputData> inputData(new TBoostingInputData);
 
-            state->DataSets = CreateDocParallelDataSet(FeaturesManager,
+            inputData->DataSets = CreateDocParallelDataSet(*featureManager,
                                                        dataProvider,
                                                        TestDataProvider,
                                                        permutationCount,
                                                        LocalExecutor);
 
             for (ui32 i = 0; i < permutationCount; ++i) {
-                state->Targets.push_back(CreateTarget(state->DataSets.GetDataSetForPermutation(i)));
+                inputData->Targets.push_back(CreateTarget(inputData->DataSets.GetDataSetForPermutation(i)));
             }
             if (TestDataProvider) {
-                state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
+                inputData->TestTarget = CreateTarget(inputData->DataSets.GetTestDataSet());
             }
 
-            const ui32 approxDim = state->Targets[0]->GetDim();
+            const ui32 approxDim = inputData->Targets[0]->GetDim();
             for (ui32 i = 1; i < permutationCount; ++i) {
-                CB_ENSURE(approxDim == state->Targets[i]->GetDim(), "Approx dim should be consistent. This is a bug: report to catboost team");
+                CB_ENSURE(approxDim == inputData->Targets[i]->GetDim(), "Approx dim should be consistent. This is a bug: report to catboost team");
             }
-            if (state->TestTarget) {
-                CB_ENSURE(approxDim == state->TestTarget->GetDim(),
+            if (inputData->TestTarget) {
+                CB_ENSURE(approxDim == inputData->TestTarget->GetDim(),
                           "Approx dim should be consistent. This is a bug: report to catboost team");
             }
 
-            state->Cursors.resize(state->DataSets.PermutationsCount());
+            return inputData;
+        }
 
+        THolder<TBoostingCursors> CreateCursors(const TBoostingInputData& inputData) {
+            CB_ENSURE(DataProvider);
+            const auto& dataProvider = *DataProvider;
+            THolder<TBoostingCursors> cursors(new TBoostingCursors);
+
+            cursors->Cursors.resize(inputData.DataSets.PermutationsCount());
+            const ui32 permutationCount = inputData.Targets.size();
+            const ui32 approxDim = inputData.Targets[0]->GetDim();
             for (ui32 i = 0; i < permutationCount; ++i) {
-                const auto& loadBalancingPermutation = state->DataSets.GetLoadBalancingPermutation();
-                state->Cursors[i].Reset(state->DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping(), approxDim);
-                CB_ENSURE(state->Cursors[i].GetMapping().GetObjectsSlice().Size());
+                const auto& loadBalancingPermutation = inputData.DataSets.GetLoadBalancingPermutation();
+                cursors->Cursors[i].Reset(inputData.DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping(), approxDim);
+                CB_ENSURE(cursors->Cursors[i].GetMapping().GetObjectsSlice().Size());
 
                 if (dataProvider.MetaInfo.BaselineCount > 0) {
                     auto dataProviderBaseline = GetBaseline(dataProvider.TargetData);
@@ -127,20 +150,20 @@ namespace NCatboostCuda {
                         for (ui32 i = 0; i < baselineBias.size(); ++i) {
                             baseline[i] -= baselineBias[i];
                         }
-                        CB_ENSURE(baseline.size() == state->Cursors[i].GetObjectsSlice().Size());
-                        state->Cursors[i].ColumnView(dim).Write(baseline);
+                        CB_ENSURE(baseline.size() == cursors->Cursors[i].GetObjectsSlice().Size());
+                        cursors->Cursors[i].ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(state->Cursors[i], 0.0f);
+                    FillBuffer(cursors->Cursors[i], 0.0f);
                 }
             }
 
             if (TestDataProvider) {
-                state->TestCursor.Reset(state->DataSets.GetTestDataSet().GetTarget().GetSamplesMapping(), approxDim);
+                cursors->TestCursor.Reset(inputData.DataSets.GetTestDataSet().GetTarget().GetSamplesMapping(), approxDim);
                 if (TestDataProvider->MetaInfo.BaselineCount > 0) {
                     auto testDataProviderBaseline = GetBaseline(TestDataProvider->TargetData);
 
-                    const auto& testPermutation = state->DataSets.GetTestLoadBalancingPermutation();
+                    const auto& testPermutation = inputData.DataSets.GetTestLoadBalancingPermutation();
                     TVector<float> baselineBias;
                     if (TestDataProvider->MetaInfo.BaselineCount > approxDim) {
                         CB_ENSURE(approxDim + 1 == TestDataProvider->MetaInfo.BaselineCount);
@@ -151,53 +174,52 @@ namespace NCatboostCuda {
                         for (ui32 i = 0; i < baselineBias.size(); ++i) {
                             baseline[i] -= baselineBias[i];
                         }
-                        state->TestCursor.ColumnView(dim).Write(baseline);
+                        cursors->TestCursor.ColumnView(dim).Write(baseline);
                     }
                 } else {
-                    FillBuffer(state->TestCursor, 0.0f);
+                    FillBuffer(cursors->TestCursor, 0.0f);
                 }
             }
-
-            state->Models.resize(permutationCount);
 
             if (ProgressTracker->NeedBestTestCursor()) {
                 Y_VERIFY(TestDataProvider);
-                state->BestTestCursor = new TStripeBuffer<float>();
-                (*state->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(state->TestCursor);
+                cursors->BestTestCursor = new TStripeBuffer<float>();
+                (*cursors->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(cursors->TestCursor);
             }
+            return cursors;
+        }
 
-            ProgressTracker->MaybeRestoreFromSnapshot([&](IInputStream* in) {
+        void MaybeRestoreBestTestCursorAndModelsFromSnapshot(
+            const TBoostingInputData& inputData,
+            TBoostingProgressTracker* progressTracker,
+            TVec* bestTestCursor,
+            TVector<TResultModel>* models
+        ) {
+            const ui32 permutationCount = inputData.Targets.size();
+            models->resize(permutationCount);
+            progressTracker->MaybeRestoreFromSnapshot([&](IInputStream* in) {
                 using TProgress = TBoostingProgress<TResultModel>;
                 TProgress progress;
                 ::Load(in, progress);
-                if (state->BestTestCursor) {
-                    LoadCudaBuffer(in, state->BestTestCursor.Get());
+                if (bestTestCursor) {
+                    LoadCudaBuffer(in, bestTestCursor);
                 }
-                state->Models = RestoreFromProgress(FeaturesManager, progress);
-
-                CB_ENSURE(state->Models.size() == permutationCount, "Progress permutation count differs from current learning task: " << state->Models.size() << " / " << permutationCount);
-                {
-                    auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Restore from progress");
-                    AppendEnsembles(state->DataSets,
-                                    state->Models,
-                                    state->GetEstimationPermutation(),
-                                    &state->Cursors,
-                                    TestDataProvider ? &state->TestCursor : nullptr);
-                }
-                CATBOOST_DEBUG_LOG << "Restore #" << state->Models[0].Size() << " trees from progress" << Endl;
+                *models = RestoreFromProgress(FeaturesManager, progress);
             });
-
-            return state;
         }
 
         void AppendEnsembles(const TDocParallelDataSetsHolder& dataSets,
                              const TVector<TResultModel>& ensembles,
                              ui32 estimationPermutation,
+                             ui32 iterStart,
+                             ui32 iterEnd,
                              TVector<TVec>* cursors,
                              TVec* testCursor) {
             TVector<TWeakModel> iterationWeakModels;
             iterationWeakModels.resize(ensembles.size());
-            for (ui32 iter = 0; iter < ensembles[0].Size(); ++iter) {
+            CB_ENSURE(iterEnd <= ensembles[0].Size(),
+                "End iteration " + ToString(iterEnd) + " is outside ensemble " + ToString(ensembles[0].Size()));
+            for (ui32 iter = iterStart; iter < iterEnd; ++iter) {
                 for (ui32 permutation = 0; permutation < ensembles.size(); ++permutation) {
                     iterationWeakModels[permutation] = ensembles[permutation][iter];
                 }
@@ -258,7 +280,6 @@ namespace NCatboostCuda {
             const double step = Config.LearningRate;
 
             auto startTimeBoosting = Now();
-
             TMetricCalcer<TObjective> learnMetricCalcer(*learnTarget[estimationPermutation], LocalExecutor);
             THolder<TMetricCalcer<TObjective>> testMetricCalcer;
             if (testTarget) {
@@ -366,9 +387,12 @@ namespace NCatboostCuda {
             CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
 
+        using TEnsemble = TAdditiveModel<TWeakModel>;
+
     public:
         TBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                   const NCatboostOptions::TBoostingOptions& config,
+                  const NCatboostOptions::TModelBasedEvalOptions& featureEvalConfig,
                   const NCatboostOptions::TLossDescription& targetOptions,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
@@ -379,6 +403,7 @@ namespace NCatboostCuda {
             , BaseIterationSeed(random.NextUniformL())
             , Weak(weak)
             , Config(config)
+            , ModelBasedEvalConfig(featureEvalConfig)
             , TargetOptions(targetOptions)
             , LocalExecutor(localExecutor)
         {
@@ -402,19 +427,154 @@ namespace NCatboostCuda {
             CB_ENSURE(DataProvider, "Error: set dataProvider first");
             CB_ENSURE(ProgressTracker, "Error: set boosting tracker first");
 
-            auto state = CreateState(Config.PermutationCount);
+            const ui32 permutationCount = Config.PermutationCount;
+            auto inputData = CreateInputData(permutationCount, &FeaturesManager);
+            auto cursors = CreateCursors(*inputData);
 
-            Fit(state->DataSets,
-                state->GetEstimationPermutation(),
-                GetConstPointers(state->Targets),
-                state->TestTarget.Get(),
+            TVector<TEnsemble> models;
+            MaybeRestoreBestTestCursorAndModelsFromSnapshot(
+                *inputData,
                 ProgressTracker,
-                &(state->Cursors),
-                TestDataProvider ? &(state->TestCursor) : nullptr,
-                &state->Models,
-                state->BestTestCursor.Get());
+                cursors->BestTestCursor.Get(),
+                &models
+            );
+            CB_ENSURE(
+                models.size() == permutationCount,
+                "Progress permutation count differs from current learning task: " << models.size() << " / " << permutationCount
+            );
+            if (models[0].Size() > 0) {
+                auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Restore from progress");
+                AppendEnsembles(
+                    inputData->DataSets,
+                    models,
+                    inputData->GetEstimationPermutation(),
+                    /*iterStart*/ 0,
+                    /*iterEnd*/ models[0].Size(),
+                    &cursors->Cursors,
+                    TestDataProvider ? &cursors->TestCursor : nullptr
+                );
+                CATBOOST_DEBUG_LOG << "Restore #" << models[0].Size() << " trees from progress" << Endl;
+            }
 
-            return new TResultModel(state->Models[state->GetEstimationPermutation()]);
+            Fit(inputData->DataSets,
+                inputData->GetEstimationPermutation(),
+                GetConstPointers(inputData->Targets),
+                inputData->TestTarget.Get(),
+                ProgressTracker,
+                &(cursors->Cursors),
+                TestDataProvider ? &(cursors->TestCursor) : nullptr,
+                &models,
+                cursors->BestTestCursor.Get()
+            );
+
+            return new TResultModel(models[inputData->GetEstimationPermutation()]);
+        }
+
+        void RunModelBasedEval() {
+            CB_ENSURE(DataProvider && TestDataProvider, "Error: set learn and test data providers first");
+            CB_ENSURE(ProgressTracker, "Error: set boosting tracker first");
+
+            const ui32 permutationCount = Config.PermutationCount;
+            const auto& features = ModelBasedEvalConfig.FeaturesToEvaluate.Get();
+            TSet<ui32> allEvaluatedFeatures;
+            for (const auto& featureSet : features) {
+                allEvaluatedFeatures.insert(featureSet.begin(), featureSet.end());
+            }
+            TBinarizedFeaturesManager baseFeatureManager(FeaturesManager, {allEvaluatedFeatures.begin(), allEvaluatedFeatures.end()});
+            auto baseInputData = CreateInputData(permutationCount, &baseFeatureManager);
+            auto baseCursors = CreateCursors(*baseInputData);
+
+            auto forceBaseSnapshotLoadFunc = [&] (
+                    NCatboostOptions::TCatBoostOptions* catboostOptions,
+                    NCatboostOptions::TOutputFilesOptions* outputOptions
+            ) {
+                outputOptions->SetSaveSnapshotFlag(true); // same call for save and load
+                outputOptions->SetSnapshotFilename(catboostOptions->ModelBasedEvalOptions->BaselineModelSnapshot.Get());
+            };
+            auto baseSnapshotLoader = ProgressTracker->Clone(forceBaseSnapshotLoadFunc);
+            TVector<TEnsemble> baseModels;
+            MaybeRestoreBestTestCursorAndModelsFromSnapshot(
+                *baseInputData,
+                baseSnapshotLoader.Get(),
+                baseCursors->BestTestCursor.Get(),
+                &baseModels
+            );
+            for (auto& model : baseModels) {
+                baseSnapshotLoader->ShrinkToBestIteration(&model);
+            }
+
+            const ui32 baseModelSize = baseModels[0].Size();
+            const ui32 offset = ModelBasedEvalConfig.Offset;
+            CB_ENSURE(baseModelSize >= offset, "Error: offset " << offset << " must be less or equal to best iteration of baseline model " << baseModelSize);
+            const ui32 experimentCount = ModelBasedEvalConfig.ExperimentCount;
+            const auto getExperimentStart = [=] (ui32 experimentIdx) {
+                return baseModelSize - offset + offset / experimentCount * experimentIdx;
+            };
+
+            AppendEnsembles(
+                baseInputData->DataSets,
+                baseModels,
+                baseInputData->GetEstimationPermutation(),
+                /*iterStart*/ 0,
+                /*iterEnd*/ getExperimentStart(/*experimentIdx*/ 0),
+                &baseCursors->Cursors,
+                TestDataProvider ? &baseCursors->TestCursor : nullptr
+            );
+
+            const ui32 experimentSize = ModelBasedEvalConfig.ExperimentSize;
+            const ui64 savedBaseSeed = BaseIterationSeed;
+            size_t featureSetIdx;
+            int experimentIdx;
+            auto forceMetricSaveFunc = [&] (
+                NCatboostOptions::TCatBoostOptions* catboostOptions,
+                NCatboostOptions::TOutputFilesOptions* outputOptions
+            ) {
+                catboostOptions->BoostingOptions->IterationCount.Set(experimentSize);
+                outputOptions->SetSaveSnapshotFlag(false);
+                outputOptions->SetMetricPeriod(1);
+                const auto trainDir = JoinFsPaths(
+                    outputOptions->GetTrainDir(),
+                    ModelBasedEvalConfig.GetExperimentName(featureSetIdx, experimentIdx)
+                );
+                outputOptions->SetTrainDir(trainDir);
+                outputOptions->SetSnapshotFilename(catboostOptions->ModelBasedEvalOptions->BaselineModelSnapshot.Get());
+            };
+            for (featureSetIdx = 0; featureSetIdx < features.size(); ++featureSetIdx) {
+                TSet<ui32> ignoredFeatures = allEvaluatedFeatures;
+                for (ui32 feature : features[featureSetIdx]) {
+                    ignoredFeatures.erase(feature);
+                }
+                TBinarizedFeaturesManager featureManager(FeaturesManager, {ignoredFeatures.begin(), ignoredFeatures.end()});
+                auto inputData = CreateInputData(permutationCount, &featureManager);
+
+                for (experimentIdx = 0; experimentIdx < ModelBasedEvalConfig.ExperimentCount; ++experimentIdx) {
+                    auto metricSaver = ProgressTracker->Clone(forceMetricSaveFunc);
+                    TVector<TEnsemble> ignoredModels(permutationCount);
+                    auto experimentCursors = CreateCursors(*inputData);
+                    experimentCursors->CopyFrom(*baseCursors);
+                    BaseIterationSeed = savedBaseSeed + getExperimentStart(experimentIdx);
+                    Fit(inputData->DataSets,
+                        inputData->GetEstimationPermutation(),
+                        GetConstPointers(inputData->Targets),
+                        inputData->TestTarget.Get(),
+                        metricSaver.Get(),
+                        &(experimentCursors->Cursors),
+                        TestDataProvider ? &(experimentCursors->TestCursor) : nullptr,
+                        &ignoredModels,
+                        experimentCursors->BestTestCursor.Get()
+                    );
+                    AppendEnsembles(
+                        baseInputData->DataSets,
+                        baseModels,
+                        baseInputData->GetEstimationPermutation(),
+                        /*iterStart*/ getExperimentStart(experimentIdx),
+                        /*iterEnd*/ getExperimentStart(experimentIdx + 1),
+                        &baseCursors->Cursors,
+                        TestDataProvider ? &baseCursors->TestCursor : nullptr
+                    );
+                }
+            } // for indexSet
+            BaseIterationSeed = savedBaseSeed;
         }
     };
 }

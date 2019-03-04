@@ -468,6 +468,7 @@ namespace NCatboostCuda {
     public:
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                          const NCatboostOptions::TBoostingOptions& config,
+                         const NCatboostOptions::TModelBasedEvalOptions& /*featureEvalConfig*/,
                          const NCatboostOptions::TLossDescription& targetOptions,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
@@ -609,6 +610,10 @@ namespace NCatboostCuda {
                 state->BestTestCursor.Get(),
                 resultModel.Get());
             return resultModel;
+        }
+
+        void RunModelBasedEval() {
+            CB_ENSURE(false, "Model based eval is not supported for feature-parallel boosting.");
         }
     };
 }

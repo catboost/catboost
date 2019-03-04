@@ -56,15 +56,28 @@ void CopyIgnoredFeaturesToPoolParams(
     poolLoadParams->Validate(taskType);
 }
 
-inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
+inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine, char delimiter) {
     TVector<int> result;
-    for (const auto& t : StringSplitter(indicesLine).Split(':')) {
+    for (const auto& t : StringSplitter(indicesLine).Split(delimiter)) {
         const auto s = t.Token();
         int from = FromString<int>(s.Before('-'));
         int to = FromString<int>(s.After('-')) + 1;
         for (int i = from; i < to; ++i) {
             result.push_back(i);
         }
+    }
+    return result;
+}
+
+inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
+    return ParseIndicesLine(indicesLine, ':');
+}
+
+inline static TVector<TVector<int>> ParseIndexSetsLine(const TStringBuf indicesLine) {
+    TVector<TVector<int>> result;
+    for (const auto& t : StringSplitter(indicesLine).Split(';')) {
+        const auto s = t.Token();
+        result.push_back(ParseIndicesLine(s, ','));
     }
     return result;
 }
@@ -448,6 +461,46 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
         .RequiredArgument("detector-type")
         .Handler1T<EOverfittingDetectorType>([plainJsonPtr](const auto type) {
             (*plainJsonPtr)["od_type"] = ToString(type);
+        });
+}
+
+static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    parser
+        .AddLongOption("features-to-evaluate")
+        .RequiredArgument("INDEXES[;INDEXES...]")
+        .Help("Evaluate impact of each set of features on test error; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
+        .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
+            auto featuresToEvaluate = ParseIndexSetsLine(indicesLine);
+            NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(featuresToEvaluate, &(*plainJsonPtr)["features_to_evaluate"]);
+        });
+    parser
+        .AddLongOption("baseline-model-snapshot")
+        .RequiredArgument("PATH")
+        .Help("Snapshot of base model training.")
+        .Handler1T<TString>([plainJsonPtr](const TString& trainingPath) {
+            (*plainJsonPtr)["baseline_model_snapshot"] = trainingPath;
+        });
+    parser
+        .AddLongOption("offset")
+        .RequiredArgument("INT")
+        .Help("Evaluate using this number of last iterations of the base model training.")
+        .Handler1T<int>([plainJsonPtr](int offset) {
+            (*plainJsonPtr)["offset"] = offset;
+        });
+    parser
+        .AddLongOption("experiment-count")
+        .RequiredArgument("INT")
+        .Help("Number of experiments for model-based evaluation.")
+        .Handler1T<int>([plainJsonPtr](int experimentCount) {
+            (*plainJsonPtr)["experiment_count"] = experimentCount;
+        });
+    parser
+        .AddLongOption("experiment-size")
+        .RequiredArgument("INT")
+        .Help("Number of iterations in one experiment.")
+        .Handler1T<int>([plainJsonPtr](int experimentSize) {
+            (*plainJsonPtr)["experiment_size"] = experimentSize;
         });
 }
 
@@ -983,4 +1036,43 @@ void ParseCommandLine(int argc, const char* argv[],
             metadata[freeArgs[i]] = freeArgs[i + 1];
         }
     }
+}
+
+void ParseModelBasedEvalCommandLine(
+    int argc,
+    const char* argv[],
+    NJson::TJsonValue* plainJsonPtr,
+    TString* paramsPath,
+    NCatboostOptions::TPoolLoadParams* params
+) {
+    auto parser = NLastGetopt::TOpts();
+    parser.AddHelpOption();
+    BindPoolLoadParams(&parser, params);
+
+    parser.AddLongOption("params-file", "Path to JSON file with params.")
+        .RequiredArgument("PATH")
+        .StoreResult(paramsPath)
+        .Help("If param is given in json file and in command line then one from command line will be used.");
+
+    BindMetricParams(&parser, plainJsonPtr);
+
+    BindOutputParams(&parser, plainJsonPtr);
+
+    BindBoostingParams(&parser, plainJsonPtr);
+
+    BindModelBasedEvalParams(&parser, plainJsonPtr);
+
+    BindTreeParams(&parser, plainJsonPtr);
+
+    BindCatFeatureParams(&parser, plainJsonPtr);
+
+    BindDataProcessingParams(&parser, plainJsonPtr);
+
+    BindBinarizationParams(&parser, plainJsonPtr);
+
+    BindSystemParams(&parser, plainJsonPtr);
+
+    BindCatboostParams(&parser, plainJsonPtr);
+
+    NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 }

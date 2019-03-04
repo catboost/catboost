@@ -28,6 +28,25 @@ namespace NCatboostCuda {
         }
     }
 
+    TBinarizedFeaturesManager::TBinarizedFeaturesManager(
+        const TBinarizedFeaturesManager& featureManager,
+        const TVector<ui32>& ignoredFeatureIds)
+        : KnownCtrs(featureManager.KnownCtrs)
+        , InverseCtrs(featureManager.InverseCtrs)
+        , DataProviderFloatFeatureIdToFeatureManagerId(featureManager.DataProviderFloatFeatureIdToFeatureManagerId)
+        , DataProviderCatFeatureIdToFeatureManagerId(featureManager.DataProviderCatFeatureIdToFeatureManagerId)
+        , FeatureManagerIdToDataProviderId(featureManager.FeatureManagerIdToDataProviderId)
+        , Cursor(featureManager.Cursor)
+        , CtrBinarizationOptions(featureManager.CtrBinarizationOptions)
+        , TargetBorders(featureManager.TargetBorders)
+        , CatFeatureOptions(featureManager.CatFeatureOptions)
+        , Borders(featureManager.Borders)
+        , QuantizedFeaturesInfo(featureManager.QuantizedFeaturesInfo)
+        , UserCombinations(featureManager.UserCombinations)
+        , IgnoredFeatures(ignoredFeatureIds.begin(), ignoredFeatureIds.end())
+    {
+    }
+
     ENanMode TBinarizedFeaturesManager::GetNanMode(const ui32 featureId) const {
         ENanMode nanMode = ENanMode::Forbidden;
         if (IsFloat(featureId)) {
@@ -264,11 +283,12 @@ namespace NCatboostCuda {
 
     TVector<ui32> TBinarizedFeaturesManager::GetCatFeatureIds() const {
         const auto& featuresLayout = *QuantizedFeaturesInfo->GetFeaturesLayout();
+        const auto& metaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
         TVector<ui32> featureIds;
 
         for (const auto& feature : DataProviderCatFeatureIdToFeatureManagerId) {
-            if (featuresLayout.GetExternalFeaturesMetaInfo()[feature.first].IsAvailable) {
+            if (metaInfo[feature.first].IsAvailable && !IgnoredFeatures.contains(feature.second)) {
                 featureIds.push_back(feature.second);
             }
         }
@@ -278,11 +298,12 @@ namespace NCatboostCuda {
 
     TVector<ui32> TBinarizedFeaturesManager::GetFloatFeatureIds() const {
         const auto& featuresLayout = *QuantizedFeaturesInfo->GetFeaturesLayout();
+        const auto& metaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
         TVector<ui32> featureIds;
 
         for (const auto& feature : DataProviderFloatFeatureIdToFeatureManagerId) {
-            if (featuresLayout.GetExternalFeaturesMetaInfo()[feature.first].IsAvailable) {
+            if (metaInfo[feature.first].IsAvailable && !IgnoredFeatures.contains(feature.second)) {
                 featureIds.push_back(feature.second);
             }
         }

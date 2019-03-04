@@ -647,6 +647,15 @@ namespace {
                 }
             }
         }
+
+        void ModelBasedEval(
+            const NJson::TJsonValue& /*params*/,
+            const NCatboostOptions::TOutputFilesOptions& /*outputOptions*/,
+            TTrainingDataProviders /*trainingData*/,
+            const TLabelConverter& /*labelConverter*/,
+            NPar::TLocalExecutor* /*localExecutor*/) const override {
+            CB_ENSURE(false, "Model based eval is not implemented for CPU");
+        }
     };
 
 }
@@ -942,6 +951,163 @@ void TrainModel(
     if (!trainingOptionsFileName.empty()) {
         TOFStream trainingOptionsFile(trainingOptionsFileName);
         trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
+    }
+
+    CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
+}
+
+static void ModelBasedEval(
+    const NJson::TJsonValue& trainOptionsJson,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    TDataProviders pools,
+    NPar::TLocalExecutor* const executor)
+{
+    CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
+
+    const ETaskType taskType = NCatboostOptions::GetTaskType(trainOptionsJson);
+
+    CB_ENSURE(taskType == ETaskType::GPU, "Model based eval is not implemented for CPU");
+
+    CB_ENSURE(pools.Test.size() <= 1, "Multiple eval sets not supported for GPU");
+
+    NJson::TJsonValue updatedTrainOptionsJson = trainOptionsJson;
+
+    CB_ENSURE(TTrainerFactory::Has(ETaskType::GPU),
+        "Can't load GPU learning library. Module was not compiled or driver is incompatible with package. Please install latest NVDIA driver and check again.");
+
+    THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
+    if (outputOptions.SaveSnapshot()) {
+        UpdateUndefinedRandomSeed(ETaskType::GPU, outputOptions, &updatedTrainOptionsJson, [&](IInputStream* in, TString& params) {
+            ::Load(in, params);
+        });
+    }
+
+    const auto learnFeaturesLayout = pools.Learn->MetaInfo.FeaturesLayout;
+    NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
+    catBoostOptions.Load(updatedTrainOptionsJson);
+
+    if (!quantizedFeaturesInfo) {
+        quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            *learnFeaturesLayout,
+            catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
+            catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            /*allowNansInTestOnly*/true,
+            outputOptions.AllowWriteFiles()
+        );
+    }
+
+    for (auto testPoolIdx : xrange(pools.Test.size())) {
+        const auto& testPool = *pools.Test[testPoolIdx];
+        if (testPool.GetObjectCount() == 0) {
+            continue;
+        }
+        CheckCompatibleForApply(
+            *learnFeaturesLayout,
+            *testPool.MetaInfo.FeaturesLayout,
+            TStringBuilder() << "test dataset #" << testPoolIdx);
+    }
+
+    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    auto learnDataOrder = pools.Learn->ObjectsData->GetOrder();
+    if (learnDataOrder == EObjectsOrder::Ordered) {
+        catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
+    }
+
+    pools.Learn = ReorderByTimestampLearnDataIfNeeded(catBoostOptions, pools.Learn, executor);
+
+    TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
+
+    pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
+
+    TLabelConverter labelConverter;
+
+    TTrainingDataProviders trainingData = GetTrainingData(
+        std::move(pools),
+        /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
+        /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
+        outputOptions.AllowWriteFiles(),
+        quantizedFeaturesInfo,
+        &catBoostOptions,
+        &labelConverter,
+        executor,
+        &rand);
+
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
+
+    CheckConsistency(trainingData);
+
+    Cout << "Number of samples: " << trainingData.Learn->GetObjectCount() << Endl;
+    Cout << "Number of features: " << trainingData.Learn->MetaInfo.GetFeatureCount() << Endl;
+
+    modelTrainerHolder->ModelBasedEval(
+        updatedTrainOptionsJson,
+        outputOptions,
+        std::move(trainingData),
+        labelConverter,
+        executor);
+}
+
+void ModelBasedEval(
+    const NCatboostOptions::TPoolLoadParams& loadOptions,
+    const NCatboostOptions::TOutputFilesOptions& outputOptions,
+    const NJson::TJsonValue& trainJson
+) {
+    THPTimer runTimer;
+    auto catBoostOptions = NCatboostOptions::LoadOptions(trainJson);
+
+    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+
+    TProfileInfo profile;
+
+    CB_ENSURE(
+        (catBoostOptions.GetTaskType() == ETaskType::CPU) || (loadOptions.TestSetPaths.size() <= 1),
+        "Multiple eval sets not supported for GPU"
+    );
+
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
+
+    TDataProviders pools = LoadPools(
+        loadOptions,
+        catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
+            EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        &executor,
+        &profile);
+
+    // create here to possibly load borders
+    auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+        *pools.Learn->MetaInfo.FeaturesLayout,
+        catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
+        catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        /*allowNansInTestOnly*/true,
+        outputOptions.AllowWriteFiles()
+    );
+    if (loadOptions.BordersFile) {
+        LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+            loadOptions.BordersFile,
+            quantizedFeaturesInfo.Get());
+    }
+
+    NJson::TJsonValue updatedTrainJson = trainJson;
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+
+    ModelBasedEval(
+        updatedTrainJson,
+        outputOptions,
+        quantizedFeaturesInfo,
+        std::move(pools),
+        &executor
+    );
+
+    profile.AddOperation("Model based eval");
+
+    if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
+        TLogger logger;
+        logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
+        TOneInterationLogger oneIterLogger(logger);
+        oneIterLogger.OutputProfile(profile.GetProfileResults());
     }
 
     CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;

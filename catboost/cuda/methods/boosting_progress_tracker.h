@@ -78,6 +78,38 @@ namespace NCatboostCuda {
             return HasTest && !IsSkipOnTestFlags[0];
         }
 
+        using TCloneOptions = std::function<void(NCatboostOptions::TCatBoostOptions*, NCatboostOptions::TOutputFilesOptions*)>;
+
+        THolder<TBoostingProgressTracker> Clone(TCloneOptions cloneOptionsFunc) {
+            NCatboostOptions::TCatBoostOptions cloneCatboostOptions = CatboostOptions;
+            NCatboostOptions::TOutputFilesOptions cloneOutputOptions = OutputOptions;
+            cloneOptionsFunc(&cloneCatboostOptions, &cloneOutputOptions);
+            return MakeHolder<TBoostingProgressTracker>(
+                cloneCatboostOptions,
+                cloneOutputOptions,
+                ForceCalcEvalMetricOnEveryIteration,
+                HasTest,
+                HasTestTarget,
+                CpuApproxDim,
+                /*onEndIterationCallback*/ Nothing()
+            );
+        }
+
+        template <class TModelType>
+        void ShrinkToBestIteration(TModelType* model) const {
+            const auto& errorTracker = GetErrorTracker();
+            const auto& bestModelTracker = GetBestModelMinTreesTracker();
+            const ui32 bestIter = static_cast<const ui32>(bestModelTracker.GetBestIteration());
+            if (0 < bestIter + 1 && bestIter + 1 < GetCurrentIteration()) {
+                CATBOOST_NOTICE_LOG << "Shrink model to first " << bestIter + 1 << " iterations.";
+                if (bestIter > static_cast<const ui32>(errorTracker.GetBestIteration())) {
+                    CATBOOST_NOTICE_LOG << " (min iterations for best model = " << OutputOptions.BestModelMinTrees << ")";
+                }
+                CATBOOST_NOTICE_LOG << Endl;
+                model->Shrink(bestIter + 1);
+            }
+        }
+
     private:
         void OnFirstCall();
 
@@ -110,8 +142,8 @@ namespace NCatboostCuda {
         friend class TOneIterationProgressTracker;
 
     private:
-        const NCatboostOptions::TCatBoostOptions& CatboostOptions;
-        const NCatboostOptions::TOutputFilesOptions& OutputOptions;
+        const NCatboostOptions::TCatBoostOptions CatboostOptions;
+        const NCatboostOptions::TOutputFilesOptions OutputOptions;
 
         TOutputFiles OutputFiles;
 
@@ -123,11 +155,14 @@ namespace NCatboostCuda {
         TErrorTracker ErrorTracker;
         TErrorTracker BestModelMinTreesTracker;
 
-        const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& OnEndIterationCallback;
+        const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>> OnEndIterationCallback;
 
         TString LearnToken;
         TVector<const TString> TestTokens;
+        bool ForceCalcEvalMetricOnEveryIteration = false;
         bool HasTest = false;
+        bool HasTestTarget = false;
+        ui32 CpuApproxDim = 1;
         TProfileInfo ProfileInfo;
 
         TVector<TString> MetricDescriptions;

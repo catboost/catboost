@@ -3,6 +3,8 @@
 
 #include <library/json/json_reader.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/set.h>
 #include <util/string/cast.h>
 
 template <>
@@ -195,7 +197,7 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
     ETaskType currentTaskType = TaskType;
     CheckedLoad(options,
                 &TaskType,
-                &SystemOptions, &BoostingOptions,
+                &SystemOptions, &BoostingOptions, &ModelBasedEvalOptions,
                 &ObliviousTreeOptions,
                 &DataProcessingOptions, &LossFunctionDescription,
                 &RandomSeed, &CatFeatureParams,
@@ -207,7 +209,7 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
 }
 
 void NCatboostOptions::TCatBoostOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, TaskType, SystemOptions, BoostingOptions, ObliviousTreeOptions,
+    SaveFields(options, TaskType, SystemOptions, BoostingOptions, ModelBasedEvalOptions, ObliviousTreeOptions,
                DataProcessingOptions, LossFunctionDescription,
                RandomSeed, CatFeatureParams, FlatParams, Metadata, LoggingLevel, IsProfile, MetricOptions);
 }
@@ -386,6 +388,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             }
             CB_ENSURE(ObliviousTreeOptions->MaxDepth.Get() <= 8, "Error: GPU pairwise learning works with tree depth <= 8 only");
         }
+        ModelBasedEvalOptions.Get().Validate();
 
         if (samplingUnit == ESamplingUnit::Group) {
             CB_ENSURE(lossFunction == ELossFunction::YetiRankPairwise,
@@ -502,16 +505,41 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     }
 }
 
-TVector<ui32> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions) {
-    TVector<ui32> result;
-    auto& dataProcessingOptions = catBoostJsonOptions["data_processing_options"];
-    if (dataProcessingOptions.IsMap()) {
-        auto& ignoredFeatures = dataProcessingOptions["ignored_features"];
-        if (ignoredFeatures.IsArray()) {
-            NCatboostOptions::TJsonFieldHelper<TVector<ui32>>::Read(ignoredFeatures, &result);
+static TVector<ui32> GetIndices(const NJson::TJsonValue& catBoostJsonOptions, const TString& key, const TString& subKey) {
+    CB_ENSURE(catBoostJsonOptions.Has(key), "Invalid option section '" << key << "'");
+    auto& group = catBoostJsonOptions[key];
+    if (group.IsMap() && group.Has(subKey)) {
+        auto& value = group[subKey];
+        if (value.IsArray()) {
+            try {
+                TVector<ui32> result;
+                NCatboostOptions::TJsonFieldHelper<TVector<ui32>>::Read(value, &result);
+                return result;
+            } catch (NJson::TJsonException) {
+                TVector<TVector<ui32>> indexSets;
+                NCatboostOptions::TJsonFieldHelper<TVector<TVector<ui32>>>::Read(value, &indexSets);
+                TVector<ui32> result;
+                for (const auto& indexSet : indexSets) {
+                    result.insert(result.end(), indexSet.begin(), indexSet.end());
+                }
+                Sort(result.begin(), result.end());
+                return result;
+            }
         }
     }
-    return result;
+    return {};
+}
+
+TVector<ui32> GetOptionIgnoredFeatures(const NJson::TJsonValue& catBoostJsonOptions) {
+    return GetIndices(catBoostJsonOptions, "data_processing_options", "ignored_features");
+}
+
+TVector<ui32> GetOptionFeaturesToEvaluate(const NJson::TJsonValue& catBoostJsonOptions) {
+    if (NCatboostOptions::GetTaskType(catBoostJsonOptions) == ETaskType::CPU) {
+        return {};
+    } else {
+        return GetIndices(catBoostJsonOptions, "model_based_eval_options", "features_to_evaluate");
+    }
 }
 
 ETaskType NCatboostOptions::GetTaskType(const NJson::TJsonValue& source) {
@@ -522,11 +550,18 @@ ETaskType NCatboostOptions::GetTaskType(const NJson::TJsonValue& source) {
 
 NCatboostOptions::TCatBoostOptions NCatboostOptions::LoadOptions(const NJson::TJsonValue& source) {
     //little hack. JSON parsing needs to known device_type
-    TOption<ETaskType> taskType("task_type", ETaskType::CPU);
-    TJsonFieldHelper<decltype(taskType)>::Read(source, &taskType);
-    TCatBoostOptions options(taskType.Get());
+    TCatBoostOptions options(GetTaskType(source));
     options.Load(source);
     return options;
+}
+
+static TSet<ui32> GetMaybeIgnoredFeatures(const NJson::TJsonValue& params) {
+    const auto ignoredFeatures = GetOptionIgnoredFeatures(params);
+    const auto featuresToEvaluate = GetOptionFeaturesToEvaluate(params);
+    TSet<ui32> result;
+    result.insert(ignoredFeatures.begin(), ignoredFeatures.end());
+    result.insert(featuresToEvaluate.begin(), featuresToEvaluate.end());
+    return result;
 }
 
 bool NCatboostOptions::IsParamsCompatible(
@@ -537,7 +572,11 @@ bool NCatboostOptions::IsParamsCompatible(
     const TStringBuf paramsToIgnore[] = {
         "system_options",
         "flat_params",
-        "metadata"
+        "metadata",
+        "model_based_eval_options"
+    };
+    const TStringBuf dataProcessingParamsToIgnore[] = {
+        "ignored_features"
     };
     const TStringBuf boostingParamsToIgnore[] = {
         "iterations",
@@ -547,15 +586,22 @@ bool NCatboostOptions::IsParamsCompatible(
     ReadJsonTree(firstSerializedParams, &firstParams);
     ReadJsonTree(secondSerializedParams, &secondParams);
 
+    // Check ignored and MBE features
+    const bool isSameMaybeIgnoredFeatures = GetMaybeIgnoredFeatures(firstParams) == GetMaybeIgnoredFeatures(secondParams);
+
     for (const auto& paramName : paramsToIgnore) {
         firstParams.EraseValue(paramName);
         secondParams.EraseValue(paramName);
+    }
+    for (const auto& paramName : dataProcessingParamsToIgnore) {
+        firstParams["data_processing_options"].EraseValue(paramName);
+        secondParams["data_processing_options"].EraseValue(paramName);
     }
     for (const auto& paramName : boostingParamsToIgnore) {
         firstParams["boosting_options"].EraseValue(paramName);
         secondParams["boosting_options"].EraseValue(paramName);
     }
-    return firstParams == secondParams;
+    return isSameMaybeIgnoredFeatures && firstParams == secondParams;
 }
 
 NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
@@ -571,14 +617,15 @@ NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
     , LoggingLevel("logging_level", ELoggingLevel::Verbose)
     , IsProfile("detailed_profile", false)
     , MetricOptions("metrics", TMetricOptions())
+    , ModelBasedEvalOptions("model_based_eval_options", TModelBasedEvalOptions(taskType), taskType)
     , TaskType("task_type", taskType) {
 }
 
 bool NCatboostOptions::TCatBoostOptions::operator==(const TCatBoostOptions& rhs) const {
-    return std::tie(SystemOptions, BoostingOptions, ObliviousTreeOptions,  DataProcessingOptions,
+    return std::tie(SystemOptions, BoostingOptions, ModelBasedEvalOptions, ObliviousTreeOptions,  DataProcessingOptions,
             LossFunctionDescription, CatFeatureParams, RandomSeed, LoggingLevel,
             IsProfile, MetricOptions, FlatParams, Metadata) ==
-        std::tie(rhs.SystemOptions, rhs.BoostingOptions, rhs.ObliviousTreeOptions,
+        std::tie(rhs.SystemOptions, rhs.BoostingOptions, rhs.ModelBasedEvalOptions, rhs.ObliviousTreeOptions,
                 rhs.DataProcessingOptions, rhs.LossFunctionDescription, rhs.CatFeatureParams,
                 rhs.RandomSeed, rhs.LoggingLevel,
                 rhs.IsProfile, rhs.MetricOptions, rhs.FlatParams, rhs.Metadata);

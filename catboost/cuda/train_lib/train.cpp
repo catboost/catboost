@@ -227,6 +227,27 @@ namespace NCatboostCuda {
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
     }
 
+    static void WarnIfUseToSymmetricTrees(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions) {
+        if (trainCatBoostOptions.ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
+            if (trainCatBoostOptions.ObliviousTreeOptions->MaxLeavesCount > 64) {
+                CATBOOST_WARNING_LOG << "Warning: CatBoost will need to convert non symmetric tree to symmetric one currently. With big number of leaves model conversion could fail or model size could be very big" << Endl;
+            }
+        }
+        if (trainCatBoostOptions.ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Levelwise) {
+            if (trainCatBoostOptions.ObliviousTreeOptions->MaxDepth > 10) {
+                CATBOOST_WARNING_LOG << "Warning: CatBoost will need to convert non symmetric tree to symmetric one currently. With deep trees model conversion could fail or model size could be very big" << Endl;
+            }
+        }
+    }
+
+    static void ConfigureCudaProfiler(bool isProfile, NCudaLib::TCudaProfiler* profiler) {
+        if (isProfile) {
+            profiler->SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
+        } else {
+            profiler->SetDefaultProfileMode(NCudaLib::EProfileMode::NoProfile);
+        }
+    }
+
     THolder<TAdditiveModel<TObliviousTreeModel>> TrainModelImpl(const TTrainModelInternalOptions& internalOptions,
                                                                 const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                                                 const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -239,30 +260,16 @@ namespace NCatboostCuda {
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
+        ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
 
-        if (trainCatBoostOptions.IsProfile) {
-            profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
-        } else {
-            profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::NoProfile);
-        }
         TGpuAwareRandom random(trainCatBoostOptions.RandomSeed);
 
         THolder<TAdditiveModel<TObliviousTreeModel>> model;
 
         const auto optimizationImplementation = GetTrainerFactoryKey(trainCatBoostOptions);
 
-        {
-            if (trainCatBoostOptions.ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
-                if (trainCatBoostOptions.ObliviousTreeOptions->MaxLeavesCount > 64) {
-                    CATBOOST_WARNING_LOG << "Warning: CatBoost will need to convert non symmetric tree to symmetric one currently. With big number of leaves model conversion could fail or model size could be very big" << Endl;
-                }
-            }
-            if (trainCatBoostOptions.ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Levelwise) {
-                if (trainCatBoostOptions.ObliviousTreeOptions->MaxDepth > 10) {
-                    CATBOOST_WARNING_LOG << "Warning: CatBoost will need to convert non symmetric tree to symmetric one currently. With deep trees model conversion could fail or model size could be very big" << Endl;
-                }
-            }
-        }
+        WarnIfUseToSymmetricTrees(trainCatBoostOptions);
+
         if (TGpuTrainerFactory::Has(optimizationImplementation)) {
             THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(optimizationImplementation);
             model = trainer->TrainModel(featuresManager,
@@ -281,6 +288,34 @@ namespace NCatboostCuda {
             ythrow TCatBoostException() << "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation;
         }
         return model;
+    }
+
+    void ModelBasedEvalImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
+                            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                            const TTrainingDataProvider& dataProvider,
+                            const TTrainingDataProvider& testProvider,
+                            TBinarizedFeaturesManager& featuresManager,
+                            ui32 approxDimension,
+                            NPar::TLocalExecutor* localExecutor) {
+        auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
+
+        ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
+
+        WarnIfUseToSymmetricTrees(trainCatBoostOptions);
+
+        const auto optimizationImplementation = GetTrainerFactoryKey(trainCatBoostOptions);
+        CB_ENSURE(TGpuTrainerFactory::Has(optimizationImplementation),
+            "Error: optimization scheme is not supported for GPU learning " << optimizationImplementation);
+        THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(optimizationImplementation);
+        TGpuAwareRandom random(trainCatBoostOptions.RandomSeed);
+        trainer->ModelBasedEval(featuresManager,
+            trainCatBoostOptions,
+            outputOptions,
+            dataProvider,
+            testProvider,
+            random,
+            approxDimension,
+            localExecutor);
     }
 
     inline void CreateDirIfNotExist(const TString& path) {
@@ -435,6 +470,56 @@ namespace NCatboostCuda {
                     updatedOutputOptions.GetModelFormats(),
                     updatedOutputOptions.AddFileFormatExtension());
             }
+        }
+
+        void ModelBasedEval(
+            const NJson::TJsonValue& params,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+            TTrainingDataProviders trainingData,
+            const TLabelConverter& labelConverter,
+            NPar::TLocalExecutor* localExecutor) const override {
+            CB_ENSURE(trainingData.Test.size() == 1, "Model based evaluation requires exactly one eval set on GPU");
+
+            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
+            catBoostOptions.Load(params);
+
+            auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
+
+            TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
+                                                      quantizedFeaturesInfo);
+
+            NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+
+            SetDataDependentDefaultsForGpu(
+                *trainingData.Learn,
+                trainingData.Test[0].Get(),
+                catBoostOptions,
+                updatedOutputOptions,
+                featuresManager,
+                localExecutor);
+
+            NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+            featuresManager.SetTargetBorders(
+                NCB::TBordersBuilder(
+                    gridBuilderFactory,
+                    GetTarget(trainingData.Learn->TargetData))(featuresManager.GetTargetBinarizationDescription()));
+
+            TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+            CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
+            auto deviceRequestConfig = CreateDeviceRequestConfig(catBoostOptions);
+            auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
+                                                         catBoostOptions.LoggingLevel);
+
+            ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter);
+
+            ModelBasedEvalImpl(
+                catBoostOptions,
+                updatedOutputOptions,
+                *trainingData.Learn,
+                *trainingData.Test[0].Get(),
+                featuresManager,
+                approxDimension,
+                localExecutor);
         }
     };
 

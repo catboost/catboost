@@ -34,6 +34,16 @@ namespace NCatboostCuda {
             TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 
+        virtual void ModelBasedEval(
+            TBinarizedFeaturesManager& featureManager,
+            const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+            const NCB::TTrainingDataProvider& learn,
+            const NCB::TTrainingDataProvider& test,
+            TGpuAwareRandom& random,
+            ui32 approxDimension,
+            NPar::TLocalExecutor* localExecutor) const = 0;
+
         virtual ~IGpuTrainer() = default;
     };
 

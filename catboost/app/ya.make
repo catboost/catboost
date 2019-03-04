@@ -12,6 +12,7 @@ SRCS(
     mode_fit.cpp
     mode_fstr.cpp
     mode_metadata.cpp
+    mode_model_based_eval.cpp
     mode_model_sum.cpp
     mode_ostr.cpp
     mode_roc.cpp
