@@ -178,6 +178,7 @@ def onpy_srcs(unit, *args):
 
     pyxs_c = []
     pyxs_c_h = []
+    pyxs_c_api_h = []
     pyxs_cpp = []
     pyxs = pyxs_cpp
     pys = []
@@ -206,6 +207,8 @@ def onpy_srcs(unit, *args):
             pyxs = pyxs_c
         elif arg == 'CYTHON_C_H':
             pyxs = pyxs_c_h
+        elif arg == 'CYTHON_C_API_H':
+            pyxs = pyxs_c_api_h
         elif arg == 'CYTHON_CPP':
             pyxs = pyxs_cpp
         elif arg == 'CYTHON_DIRECTIVE':
@@ -294,6 +297,7 @@ def onpy_srcs(unit, *args):
         for pyxs, cython, out_suffix in [
             (pyxs_c, unit.onbuildwith_cython_c, ".c"),
             (pyxs_c_h, unit.onbuildwith_cython_c_h, ".c"),
+            (pyxs_c_api_h, unit.onbuildwith_cython_c_api_h, ".c"),
             (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
         ]:
             for path, mod in pyxs:
