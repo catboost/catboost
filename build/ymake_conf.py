@@ -1086,7 +1086,7 @@ class MSVCToolchainOptions(ToolchainOptions):
             self.lib = which('lib.exe')
 
             sdk_dir = os.environ.get('WindowsSdkDir')
-            self.sdk_version = os.environ.get('WindowsSDKVersion')
+            self.sdk_version = os.environ.get('WindowsSDKVersion').replace('\\', '')
             vc_install_dir = os.environ.get('VCToolsInstallDir')
 
             if any([x is None for x in (sdk_dir, self.sdk_version, vc_install_dir)]):
