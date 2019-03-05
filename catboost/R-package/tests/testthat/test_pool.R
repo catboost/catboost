@@ -39,8 +39,8 @@ test_that("pool: load_pool from matrix", {
 
   cat_features <- c(1)
 
-  pool_train <- catboost.load_pool(as.matrix(features[split,]), target[split], cat_features = cat_features)
-  pool_test <- catboost.load_pool(as.matrix(features[-split,]), target[-split], cat_features = cat_features)
+  pool_train <- catboost.load_pool(as.matrix(features[split, ]), target[split], cat_features = cat_features)
+  pool_test <- catboost.load_pool(as.matrix(features[-split, ]), target[-split], cat_features = cat_features)
 
   expect_equal(ncol(pool_train), ncol(features))
   expect_equal(nrow(pool_train), length(split))
@@ -64,8 +64,8 @@ test_that("pool: load_pool from data.frame", {
                          f_factor = as.factor(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))),
                          f_character = as.character(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))))
 
-  features$f_logical = as.factor(features$f_logical)
-  features$f_character = as.factor(features$f_character)
+  features$f_logical <- as.factor(features$f_logical)
+  features$f_character <- as.factor(features$f_character)
 
   pool <- catboost.load_pool(features, target)
 
@@ -137,29 +137,29 @@ test_that("pool: data.frame weights", {
 })
 
 test_that("pool: nan", {
-  train_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+  train_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  cd_path <- system.file("extdata", "adult.cd", package = "catboost")
 
   first_pool <- catboost.load_pool(train_path, column_description = cd_path)
 
-  column_description_vector = rep('numeric', 15)
-  cd = read.table(cd_path)
-  cat_features = cd[cd[, 2] == 'Categ',1] + 1
+  column_description_vector <- rep("numeric", 15)
+  cd <- read.table(cd_path)
+  cat_features <- cd[cd[, 2] == "Categ", 1] + 1
 
   for (i in cat_features)
-      column_description_vector[i] <- 'factor'
+      column_description_vector[i] <- "factor"
 
-  train <- read.table(train_path, head = F, sep = "\t", colClasses = column_description_vector, na.strings = 'NAN')
+  train <- read.table(train_path, head = FALSE, sep = "\t", colClasses = column_description_vector, na.strings = "NAN")
   target <- c(1)
-  second_pool <- catboost.load_pool(data=train[,-target], label = train[,target])
+  second_pool <- catboost.load_pool(data = train[, -target], label = train[, target])
 
   expect_true(identical(matrix(unlist(head(first_pool, nrow(first_pool))), nrow = nrow(first_pool), byrow = TRUE),
                         matrix(unlist(head(second_pool, nrow(second_pool))), nrow = nrow(second_pool), byrow = TRUE)))
 })
 
 test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
-  pool_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  column_description_path <- system.file("extdata", "adult.cd", package="catboost")
+  pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  column_description_path <- system.file("extdata", "adult.cd", package = "catboost")
 
   data_frame <- load_data_frame(pool_path, column_description_path)
   data_frame_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")],
@@ -198,8 +198,8 @@ test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
 })
 
 test_that("bad params handled correctly", {
-  pool_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+  pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  cd_path <- system.file("extdata", "adult.cd", package = "catboost")
   label <- list(1, 2, 3)
   expect_error(catboost.load_pool(pool_path, column_description = cd_path, label = label), ".*should be NULL.*")
 })

@@ -7,8 +7,8 @@ test_that("model: catboost.train", {
 
   split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
 
-  pool_train <- catboost.load_pool(features[split,], target[split])
-  pool_test <- catboost.load_pool(features[-split,], target[-split])
+  pool_train <- catboost.load_pool(features[split, ], target[split])
+  pool_test <- catboost.load_pool(features[-split, ], target[-split])
 
   iterations <- 10
   params <- list(iterations = iterations,
@@ -64,7 +64,7 @@ test_that("model: catboost.train & catboost.predict multiclass", {
   prediction_first <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 4)
   prediction_second <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 5)
 
-  staged_preds = catboost.staged_predict(model, pool, ntree_start = 2, ntree_end = 5, eval_period = 2)
+  staged_preds <- catboost.staged_predict(model, pool, ntree_start = 2, ntree_end = 5, eval_period = 2)
 
   expect_equal(prediction_first, staged_preds$nextElem())
   expect_equal(prediction_second, staged_preds$nextElem())
@@ -101,8 +101,8 @@ test_that("model: loss_function = multiclass", {
                      f_factor = as.factor(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))),
                      f_character = as.character(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))))
 
-  data$f_logical = as.factor(data$f_logical)
-  data$f_character = as.factor(data$f_character)
+  data$f_logical <- as.factor(data$f_logical)
+  data$f_character <- as.factor(data$f_character)
 
   pool <- catboost.load_pool(data, target)
 
@@ -113,8 +113,8 @@ test_that("model: loss_function = multiclass", {
   model <- catboost.train(pool, NULL, params)
   prediction <- catboost.predict(model, pool, prediction_type = "Class")
 
-  unique_prediction = unique(prediction)
-  unique_target = unique(target)
+  unique_prediction <- unique(prediction)
+  unique_target <- unique(target)
 
   expect_equal(unique_target[order(unique_target)],
                unique_prediction[order(unique_prediction)])
@@ -127,10 +127,10 @@ test_that("model: baseline", {
                      f_factor = as.factor(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))),
                      f_character = as.character(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))))
 
-  unique_target = unique(target)
+  unique_target <- unique(target)
 
-  data$f_logical = as.factor(data$f_logical)
-  data$f_character = as.factor(data$f_character)
+  data$f_logical <- as.factor(data$f_logical)
+  data$f_character <- as.factor(data$f_character)
 
   pool <- catboost.load_pool(data, target)
 
@@ -154,7 +154,7 @@ test_that("model: baseline", {
 
   prediction <- catboost.predict(model, pool_with_baseline, prediction_type = "Class")
 
-  unique_prediction = unique(prediction)
+  unique_prediction <- unique(prediction)
 
   expect_equal(unique_target[order(unique_target)],
                unique_prediction[order(unique_prediction)])
@@ -167,10 +167,10 @@ test_that("model: full_history", {
                      f_factor = as.factor(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))),
                      f_character = as.character(round(10 * (target + rnorm(length(target), mean = 0, sd = 1)))))
 
-  unique_target = unique(target)
+  unique_target <- unique(target)
 
-  data$f_logical = as.factor(data$f_logical)
-  data$f_character = as.factor(data$f_character)
+  data$f_logical <- as.factor(data$f_logical)
+  data$f_character <- as.factor(data$f_character)
 
   pool <- catboost.load_pool(data, target)
 
@@ -185,8 +185,8 @@ test_that("model: full_history", {
 })
 
 test_that("model: catboost.predict vs catboost.staged_predict", {
-  pool_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  column_description_path <- system.file("extdata", "adult.cd", package="catboost")
+  pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  column_description_path <- system.file("extdata", "adult.cd", package = "catboost")
 
   pool <- catboost.load_pool(pool_path, column_description = column_description_path)
 
@@ -197,44 +197,44 @@ test_that("model: catboost.predict vs catboost.staged_predict", {
   prediction_first <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 4)
   prediction_second <- catboost.predict(model, pool, ntree_start = 2, ntree_end = 5)
 
-  staged_preds = catboost.staged_predict(model, pool, ntree_start = 2, ntree_end = 5, eval_period = 2)
+  staged_preds <- catboost.staged_predict(model, pool, ntree_start = 2, ntree_end = 5, eval_period = 2)
 
   expect_equal(prediction_first, staged_preds$nextElem())
   expect_equal(prediction_second, staged_preds$nextElem())
 })
 
 test_that("model: save/load by R", {
-  train_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  test_path <- system.file("extdata", "adult_test.1000", package="catboost")
-  cd_path <- system.file("extdata", "adult.cd", package="catboost")
-  train_pool <- catboost.load_pool(train_path, column_description=cd_path)
-  test_pool <- catboost.load_pool(test_path, column_description=cd_path)
-  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss')
+  train_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  test_path <- system.file("extdata", "adult_test.1000", package = "catboost")
+  cd_path <- system.file("extdata", "adult.cd", package = "catboost")
+  train_pool <- catboost.load_pool(train_path, column_description = cd_path)
+  test_pool <- catboost.load_pool(test_path, column_description = cd_path)
+  fit_params <- list(iterations = 4, thread_count = 1, loss_function = "Logloss")
 
   model <- catboost.train(train_pool, params = fit_params)
   prediction <- catboost.predict(model, test_pool)
 
-  save(model, file = 'tmp.rda')
+  save(model, file = "tmp.rda")
   model <- NULL
-  load('tmp.rda')
+  load("tmp.rda")
 
   prediction_after_save_load <- catboost.predict(model, test_pool)
   expect_equal(prediction, prediction_after_save_load)
 })
 
 test_that("model: saveRDS/readRDS by R", {
-  train_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  test_path <- system.file("extdata", "adult_test.1000", package="catboost")
-  cd_path <- system.file("extdata", "adult.cd", package="catboost")
-  train_pool <- catboost.load_pool(train_path, column_description=cd_path)
-  test_pool <- catboost.load_pool(test_path, column_description=cd_path)
-  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss')
+  train_path <- system.file("extdata", "adult_train.1000", package = "catboost")
+  test_path <- system.file("extdata", "adult_test.1000", package = "catboost")
+  cd_path <- system.file("extdata", "adult.cd", package = "catboost")
+  train_pool <- catboost.load_pool(train_path, column_description = cd_path)
+  test_pool <- catboost.load_pool(test_path, column_description = cd_path)
+  fit_params <- list(iterations = 4, thread_count = 1, loss_function = "Logloss")
 
   model <- catboost.train(train_pool, params = fit_params)
   prediction <- catboost.predict(model, test_pool)
 
-  saveRDS(model, 'tmp.rds')
-  model <- readRDS('tmp.rds')
+  saveRDS(model, "tmp.rds")
+  model <- readRDS("tmp.rds")
 
   prediction_after_save_load <- catboost.predict(model, test_pool)
   expect_equal(prediction, prediction_after_save_load)
@@ -263,4 +263,3 @@ test_that("model: catboost.cv", {
   expect_true(all(cv_result$train.Logloss.mean >= 0))
   expect_true(all(cv_result$test.Logloss.mean >= 0))
 })
-
