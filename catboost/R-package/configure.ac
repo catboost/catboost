@@ -2,7 +2,9 @@
 
 ##### INIT ####################################################################
 
-AC_INIT(catboost, 0.12, nikitxskv@yandex-team.ru)
+AC_INIT(catboost,
+        m4_esyscmd([cat DESCRIPTION | grep Version: | sed -e 's/^Version: \([0-9]*[.][0-9]*\).*$/\1/' | tr -d '\n']),
+        [https://github.com/catboost/catboost/issues])
 
 ##### OPTIONS #################################################################
 
