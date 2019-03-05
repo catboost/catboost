@@ -1038,9 +1038,6 @@ static void ModelBasedEval(
 
     CheckConsistency(trainingData);
 
-    Cout << "Number of samples: " << trainingData.Learn->GetObjectCount() << Endl;
-    Cout << "Number of features: " << trainingData.Learn->MetaInfo.GetFeatureCount() << Endl;
-
     modelTrainerHolder->ModelBasedEval(
         updatedTrainOptionsJson,
         outputOptions,
