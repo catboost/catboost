@@ -1,0 +1,144 @@
+ALLOW vendor/ -> .*
+
+# AWS client libraries
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go          
+
+# helpers for data sizes (kilobytes, petabytes), human readable sizes, parsing
+ALLOW .* -> vendor/github.com/c2h5oh/datasize         
+
+# pretty printer for GO
+ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
+
+# implementation of JSON Web Tokens (JWT)
+ALLOW .* -> vendor/github.com/dgrijalva/jwt-go        
+
+# cross-platform file system notifications
+ALLOW .* -> vendor/github.com/fsnotify/fsnotify       
+
+# lightweight, idiomatic and composable router
+ALLOW .* -> vendor/github.com/go-chi/chi              
+
+# a pure Go implementation of Universally Unique Identifiers
+ALLOW .* -> vendor/github.com/gofrs/uuid              
+
+# websocket protocol
+ALLOW .* -> vendor/github.com/gorilla/websocket       
+
+# Protocol buffers
+ALLOW .* -> vendor/github.com/golang/protobuf
+
+# snappy compression
+ALLOW .* -> vendor/github.com/golang/snappy           
+
+# API for sentry
+ALLOW .* -> vendor/github.com/getsentry/raven-go      
+
+# PostgreSQL driver and toolkit for Go
+ALLOW .* -> vendor/github.com/jackc/pgx               
+
+# database/sql wrapper with a lot of helper functions
+ALLOW .* -> vendor/github.com/jmoiron/sqlx
+
+# clock mock for tests
+ALLOW .* -> vendor/github.com/jonboulle/clockwork
+
+# LRU Cache with TTL
+ALLOW .* -> vendor/github.com/karlseguin/ccache       
+
+# driver for ClickHouse column-oriented database management system
+ALLOW .* -> vendor/github.com/kshvakov/clickhouse     
+
+# High performance, minimalist web framework
+ALLOW .* -> vendor/github.com/labstack/echo           
+
+# fluent SQL builder
+ALLOW .* -> vendor/github.com/Masterminds/squirrel    
+
+# isatty for golang
+ALLOW .* -> vendor/github.com/mattn/go-isatty         
+
+# complete and usable DNS library
+ALLOW .* -> vendor/github.com/miekg/dns               
+
+# deep copying values
+ALLOW .* -> vendor/github.com/mitchellh/copystructure 
+
+# decoding generic map values to structures and vice versa
+ALLOW .* -> vendor/github.com/mitchellh/mapstructure  
+
+# runtime dependencies of go-swagger
+ALLOW .* -> vendor/github.com/go-openapi              
+
+# redis client
+ALLOW .* -> vendor/github.com/go-redis/redis          
+
+# lz4 compression codec
+ALLOW .* -> vendor/github.com/pierrec/lz4             
+
+# simple error handling primitives
+ALLOW .* -> vendor/github.com/pkg/errors              
+
+# library for HTML DOM manipulations and searching nodes by CSS selectors
+ALLOW .* -> vendor/github.com/PuerkitoBio/goquery     
+
+# text diffing and patching
+ALLOW .* -> vendor/github.com/sergi/go-diff
+
+# statsd client library
+ALLOW .* -> vendor/github.com/smira/go-statsd         
+
+# safe and easy casting from one type to another
+ALLOW .* -> vendor/github.com/spf13/cast              
+
+# library for creating CLI applications
+ALLOW .* -> vendor/github.com/spf13/cobra             
+
+# drop-in replacement for stdlib flag module
+ALLOW .* -> vendor/github.com/spf13/pflag             
+
+# a toolkit with common test assertions and mocks
+ALLOW .* -> vendor/github.com/stretchr/testify        
+
+# xxhash32 and xxhash64 hash functions
+ALLOW .* -> vendor/github.com/OneOfOne/xxhash
+
+# default logging library. See also: library/go/core/log.
+ALLOW .* -> vendor/go.uber.org/zap                    
+
+# golang.org/x/net
+ALLOW .* -> vendor/golang.org/x/net
+
+# golang.org/x/oauth2
+ALLOW .* -> vendor/golang.org/x/oauth2
+
+# golang.org/x/crypto
+ALLOW .* -> vendor/golang.org/x/crypto
+
+# golang.org/x/tools
+ALLOW .* -> vendor/golang.org/x/tools
+
+# golang.org/x/sync
+ALLOW .* -> vendor/golang.org/x/sync
+
+# experimental implementation of Go error inspection. Use x/xerrors instead.
+ALLOW .* -> vendor/golang.org/x/exp/errors            
+
+# less experimental implementation of Go error inspection
+ALLOW .* -> vendor/golang.org/x/xerrors               
+
+# basic LDAP v3 functionality for the GO programming language
+ALLOW .* -> vendor/gopkg.in/ldap.v3                   
+
+# simple HTTP and REST client library
+ALLOW .* -> vendor/gopkg.in/resty.v1                  
+
+# YAML support for Go
+ALLOW .* -> vendor/gopkg.in/yaml.v2
+
+# Google RPC
+ALLOW .* -> vendor/google.golang.org/grpc
+
+# Job Scheduling Package
+ALLOW .* -> vendor/github.com/jasonlvhit/gocron       
+
+DENY .* -> vendor/
