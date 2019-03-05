@@ -156,7 +156,7 @@ int TCont::SelectD(SOCKET fds[], int what[], size_t nfds, SOCKET* outfd, TInstan
         return 0;
     }
 
-    TTempBuf memoryBuf(nfds * sizeof(TContPollEvent));
+    TTempBuf memoryBuf(nfds * sizeof(TFdEvent));
     void* memory = memoryBuf.Data();
     TContPollEventHolder holder(memory, this, fds, what, nfds, deadline);
     holder.ScheduleIoWait(Executor());
