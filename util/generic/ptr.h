@@ -466,6 +466,7 @@ public:
 
 template <class T, class Ops>
 class TIntrusivePtr: public TPointerBase<TIntrusivePtr<T, Ops>, T> {
+    friend class TIntrusiveConstPtr<T, Ops>;
 public:
     inline TIntrusivePtr(T* t = nullptr) noexcept
         : T_(t)
@@ -600,10 +601,10 @@ public:
         Swap(p);
     }
 
-    inline TIntrusiveConstPtr(const TIntrusivePtr<T, Ops>& p) noexcept
-        : T_(p.Get())
+    inline TIntrusiveConstPtr(TIntrusivePtr<T, Ops> p) noexcept
+        : T_(nullptr)
     {
-        Ref();
+        DoSwap(T_, p.T_);
     }
 
     template <class U>
