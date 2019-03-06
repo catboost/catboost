@@ -124,7 +124,7 @@ def validate_test(kw):
             has_fatal_error = True
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("mail", "devtools")):
+        if not project_path.startswith(("contrib", "devtools", "mail")):
             errors.append("GTEST is not allowed here")
             has_fatal_error = True
 
