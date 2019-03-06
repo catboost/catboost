@@ -190,6 +190,36 @@ class TLockFreeQueue: public TNonCopyable {
         }
     }
 
+    template <typename TCollection>
+    static void FillCollection(TListNode* lst, TCollection* res) {
+        while (lst) {
+            res->emplace_back(std::move(lst->Data));
+            lst = lst->Next;
+        }
+    }
+
+    /** Traverses a given list simultaneously creating its inversed version.
+     *  After that, fills a collection with a reversed version and returns the last visited lst's node.
+     */
+    template <typename TCollection>
+    static TListNode* FillCollectionReverse(TListNode* lst, TCollection* res) {
+        if (!lst) {
+            return nullptr;
+        }
+
+        TListNode* newCopy = nullptr;
+        do {
+            TListNode* newElem = new TListNode(std::move(lst->Data), newCopy);
+            newCopy = newElem;
+            lst = lst->Next;
+        } while (lst);
+
+        FillCollection(newCopy, res);
+        EraseList(newCopy);
+
+        return lst;
+    }
+
 public:
     TLockFreeQueue()
         : JobQueue(new TRootNode)
@@ -283,6 +313,31 @@ public:
                 AtomicSet(newRoot->PopQueue, nullptr);
             }
         }
+    }
+    template <typename TCollection>
+    void DequeueAll(TCollection* res) {
+        AsyncRef();
+
+        TRootNode* newRoot = new TRootNode;
+        TRootNode* curRoot;
+        do {
+            curRoot = AtomicGet(JobQueue);
+        } while (!AtomicCas(&JobQueue, newRoot, curRoot));
+
+        FillCollection(curRoot->PopQueue, res);
+
+        TListNode* toDeleteHead = curRoot->PushQueue;
+        TListNode* toDeleteTail = FillCollectionReverse(curRoot->PushQueue, res);
+        AtomicSet(curRoot->PushQueue, nullptr);
+
+        if (toDeleteTail) {
+            toDeleteTail->Next = curRoot->PopQueue;
+        } else {
+            toDeleteTail = curRoot->PopQueue;
+        }
+        AtomicSet(curRoot->PopQueue, nullptr);
+
+        AsyncUnref(curRoot, toDeleteHead);
     }
     bool IsEmpty() {
         AsyncRef();
