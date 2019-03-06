@@ -59,7 +59,7 @@ class TLockFreeQueue: public TNonCopyable {
 
     static void EraseList(TListNode* n) {
         while (n) {
-            TListNode* keepNext = AtomicGet(n->Next);
+            TListNode* keepNext = n->Next;
             delete n;
             n = keepNext;
         }
@@ -146,7 +146,7 @@ class TLockFreeQueue: public TNonCopyable {
             while (ptr) {
                 if (ptr == PrevFirst) {
                     // short cut, we have copied this part already
-                    AtomicSet(Tail->Next, newCopy);
+                    Tail->Next = newCopy;
                     newCopy = Copy;
                     Copy = nullptr; // do not destroy prev try
                     if (!newTail)
@@ -155,7 +155,7 @@ class TLockFreeQueue: public TNonCopyable {
                 }
                 TListNode* newElem = new TListNode(ptr->Data, newCopy);
                 newCopy = newElem;
-                ptr = AtomicGet(ptr->Next);
+                ptr = ptr->Next;
                 if (!newTail)
                     newTail = newElem;
             }
@@ -173,11 +173,11 @@ class TLockFreeQueue: public TNonCopyable {
         for (;;) {
             TRootNode* curRoot = AtomicGet(JobQueue);
             AtomicSet(newRoot->PushQueue, head);
-            AtomicSet(tail->Next, AtomicGet(curRoot->PushQueue));
+            tail->Next = AtomicGet(curRoot->PushQueue);
             AtomicSet(newRoot->PopQueue, AtomicGet(curRoot->PopQueue));
             newRoot->CopyCounter(curRoot);
 
-            for (TListNode* node = head;; node = AtomicGet(node->Next)) {
+            for (TListNode* node = head;; node = node->Next) {
                 newRoot->IncCount(node->Data);
                 if (node == tail)
                     break;
@@ -250,13 +250,13 @@ public:
                     newRoot = new TRootNode;
 
                 AtomicSet(newRoot->PushQueue, AtomicGet(curRoot->PushQueue));
-                AtomicSet(newRoot->PopQueue, AtomicGet(tail->Next));
+                AtomicSet(newRoot->PopQueue, tail->Next);
                 newRoot->CopyCounter(curRoot);
                 newRoot->DecCount(tail->Data);
                 Y_ASSERT(AtomicGet(curRoot->PopQueue) == tail);
                 if (AtomicCas(&JobQueue, newRoot, curRoot)) {
                     *data = std::move(tail->Data);
-                    AtomicSet(tail->Next, nullptr);
+                    tail->Next = nullptr;
                     AsyncUnref(curRoot, tail);
                     return true;
                 }
