@@ -873,6 +873,20 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       0.66
 #'
+#'     \item sampling_unit
+#'
+#'       The parameter allows to specify the sampling scheme: sample weights for each object individually or for an entire group of objects together.
+#'
+#'       Possible values:
+#'       \itemize{
+#'         \item 'Object'
+#'         \item 'Group'
+#'       }
+#'
+#'       Default value:
+#'
+#'       \code{'Object'}
+#'
 #'     \item sampling_frequency
 #'
 #'       Frequency to sample weights and objects when building trees.
