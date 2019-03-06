@@ -2591,7 +2591,8 @@ class CatBoostRegressor(CatBoost):
         cat_features=None,
         growing_policy=None,
         min_samples_in_leaf=None,
-        max_leaves_count=None
+        max_leaves_count=None,
+        leaf_estimation_backtracking=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]

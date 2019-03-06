@@ -1228,6 +1228,18 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       5000000
 #'
+#'    \item leaf_estimation_backtracking
+#'
+#'        Type of backtracking during gradient descent.
+#'        Possible values:
+#'            - 'No' - never backtrack; supported on CPU and GPU
+#'            - 'AnyImprovement' - reduce the descent step until the value of loss function is less than before the step; supported on CPU and GPU
+#'            - 'Armijo' - reduce the descent step until Armijo condition is satisfied; supported on GPU only
+#'
+#'        Default value:
+#'
+#'        'AnyImprovement'
+#'
 #'   }
 #' }
 #'
