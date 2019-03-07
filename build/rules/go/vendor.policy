@@ -72,6 +72,9 @@ ALLOW .* -> vendor/github.com/go-openapi
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis          
 
+# fast JSON serializer for golang
+ALLOW .* -> vendor/github.com/mailru/easyjson
+
 # lz4 compression codec
 ALLOW .* -> vendor/github.com/pierrec/lz4             
 
@@ -134,6 +137,9 @@ ALLOW .* -> vendor/gopkg.in/resty.v1
 
 # YAML support for Go
 ALLOW .* -> vendor/gopkg.in/yaml.v2
+
+# Go generated proto packages
+ALLOW .* -> vendor/google.golang.org/genproto
 
 # Google RPC
 ALLOW .* -> vendor/google.golang.org/grpc
