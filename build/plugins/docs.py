@@ -18,7 +18,7 @@ def onprocess_docs(unit, *args):
     else:
         docs_dir = module_dir
 
-    docs_config = os.path.normpath(unit.get('DOCSCONFIG') or os.path.join(docs_dir, 'mkdocs.yml'))
+    docs_config = os.path.normpath(unit.get('DOCSCONFIG') or 'mkdocs.yml')
     if os.path.sep not in docs_config:
         docs_config = os.path.join(module_dir, docs_config)
     elif not docs_config.startswith(docs_dir + os.path.sep):
