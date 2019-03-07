@@ -156,4 +156,11 @@ ALLOW .* -> vendor/google.golang.org/grpc
 # Job Scheduling Package
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron       
 
+# 
+# Temporary exceptions.
+#
+
+# MIGRATION-289. responsible: nekto0n@. deadline: 30.06.2019
+ALLOW infra/nanny2 -> vendor/github.com/golang/glog
+
 DENY .* -> vendor/
