@@ -7,7 +7,7 @@ ALLOW .* -> vendor/github.com/aws/aws-sdk-go
 ALLOW .* -> vendor/github.com/c2h5oh/datasize         
 
 # etcd client
-ALLOW .* -> vendor/github.com/coreos/etcd/clientv3
+ALLOW .* -> vendor/github.com/coreos/etcd
 
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
