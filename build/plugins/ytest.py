@@ -445,6 +445,7 @@ def onadd_check(unit, *args):
         allowed_levels = {
             'base': '/yandex_checks.xml',
             'strict': '/yandex_checks_strict.xml',
+            'extended': '/yandex_checks_extended.xml',
         }
         if check_level not in allowed_levels:
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
