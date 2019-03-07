@@ -12,6 +12,8 @@ PEERDIR(
     contrib/libs/zlib
     contrib/libs/zstd06
     contrib/libs/zstd
+    contrib/libs/brotli/enc
+    contrib/libs/brotli/dec
 )
 
 SRCS(
