@@ -5,6 +5,24 @@ import os
 DELIM = '================================'
 
 
+def extract_macro_calls(unit, macro_value_name):
+    if not unit.get(macro_value_name):
+        return []
+
+    def split_args(arg):
+        if arg is None:
+            return None
+
+        kv = filter(None, arg.split('='))
+        if len(kv) != 2:
+            unit.message(['error', 'Invalid variables specification "{}": value expected to be in form %name%=%value% (with no spaces)'.format(arg)])
+            return None
+
+        return kv
+
+    return dict(filter(None, map(split_args, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())))
+
+
 def onprocess_docs(unit, *args):
     smart_mode = unit.get('DOCS_SMART')
     if not smart_mode:
@@ -33,6 +51,7 @@ def onprocess_docs(unit, *args):
         'PATH': module_dir,
         'DOCSDIR': docs_dir,
         'DOCSCONFIG': docs_config,
+        'DOCSVARS': extract_macro_calls(unit, 'DOCSVARS'),
     }
 
     for k, v in data.items():
