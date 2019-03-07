@@ -366,3 +366,6 @@ void ShellQuoteArg(TString& dst, TStringBuf arg);
 
 /// Appends to dst: space, quoted arg
 void ShellQuoteArgSp(TString& dst, TStringBuf arg);
+
+/// Returns true if arg should be quoted
+bool ArgNeedsQuotes(const TString& arg);

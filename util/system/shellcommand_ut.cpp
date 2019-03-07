@@ -80,6 +80,18 @@ Y_UNIT_TEST_SUITE(TShellCommandTest) {
         UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
     }
 
+    Y_UNIT_TEST(TestOnlyNecessaryQuotes) {
+        TShellCommandOptions options;
+        options.SetQuoteArguments(true);
+        TShellCommand cmd("echo");
+        cmd << "hey" << "hello&world";
+        cmd.Run();
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetError(), "");
+        UNIT_ASSERT_VALUES_EQUAL(cmd.GetOutput(), "hey hello&world" NL);
+        UNIT_ASSERT(TShellCommand::SHELL_FINISHED == cmd.GetStatus());
+        UNIT_ASSERT(cmd.GetExitCode().Defined() && 0 == cmd.GetExitCode());
+    }
+
     Y_UNIT_TEST(TestRun) {
         TShellCommand cmd("echo");
         cmd << "hello";

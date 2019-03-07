@@ -565,10 +565,17 @@ void ShellQuoteArgSp(TString& dst, TStringBuf argument) {
     ShellQuoteArg(dst, argument);
 }
 
+bool ArgNeedsQuotes(const TString& arg) {
+    if (arg.Empty())
+        return true;
+    return arg.find_first_of(" \"\'\t&()*<>\\`^|") != TString::npos;
+}
+
 TString TShellCommand::TImpl::GetQuotedCommand() const {
     TString quoted = Command; /// @todo command itself should be quoted too
     for (const auto& argument : Arguments) {
-        if (QuoteArguments) {
+        // Don't add unnecessary quotes. It's especially important for the windows with a 32k command line length limit.
+        if (QuoteArguments && ArgNeedsQuotes(argument)) {
             ::ShellQuoteArgSp(quoted, argument);
         } else {
             quoted.append(" ").append(argument);
