@@ -6,6 +6,9 @@ ALLOW .* -> vendor/github.com/aws/aws-sdk-go
 # helpers for data sizes (kilobytes, petabytes), human readable sizes, parsing
 ALLOW .* -> vendor/github.com/c2h5oh/datasize         
 
+# etcd client
+ALLOW .* -> vendor/github.com/coreos/etcd/clientv3
+
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
 
@@ -84,6 +87,9 @@ ALLOW .* -> vendor/github.com/pkg/errors
 # library for HTML DOM manipulations and searching nodes by CSS selectors
 ALLOW .* -> vendor/github.com/PuerkitoBio/goquery     
 
+# prometheus client
+ALLOW .* -> vendor/github.com/prometheus/client_golang
+
 # text diffing and patching
 ALLOW .* -> vendor/github.com/sergi/go-diff
 
@@ -92,6 +98,9 @@ ALLOW .* -> vendor/github.com/smira/go-statsd
 
 # safe and easy casting from one type to another
 ALLOW .* -> vendor/github.com/spf13/cast              
+
+# efficient json implementation
+ALLOW .* -> vendor/github.com/mailru/easyjson
 
 # library for creating CLI applications
 ALLOW .* -> vendor/github.com/spf13/cobra             
