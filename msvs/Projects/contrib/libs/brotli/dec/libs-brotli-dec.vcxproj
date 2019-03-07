@@ -90,12 +90,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\bit_reader.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\context.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\huffman.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\port.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\prefix.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\state.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\dec\transform.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

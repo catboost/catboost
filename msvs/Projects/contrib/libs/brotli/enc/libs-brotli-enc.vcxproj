@@ -107,6 +107,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\brotli\enc\encode.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\brotli\enc\encoder_dict.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\brotli\enc\entropy_encode.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -142,17 +145,19 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\command.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\compress_fragment.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\compress_fragment_two_pass.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\context.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\dictionary_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\encoder_dict.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\entropy_encode.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\entropy_encode_static.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\fast_log.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\find_match_length.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_composite_inc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_forgetful_chain_inc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_longest_match64_inc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_longest_match_inc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_longest_match_quickly_inc.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_rolling_inc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\hash_to_binary_tree_inc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\histogram.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\histogram_inc.h"/>
@@ -160,7 +165,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\memory.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\metablock.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\metablock_inc.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\port.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\params.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\prefix.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\quality.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\enc\ringbuffer.h"/>

@@ -80,8 +80,14 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\brotli\common\dictionary.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\brotli\common\transform.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\common\constants.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\common\context.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\common\dictionary.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\common\platform.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\common\transform.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\brotli\common\version.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
