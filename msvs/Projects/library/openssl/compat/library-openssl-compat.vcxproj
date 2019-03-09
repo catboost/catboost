@@ -98,6 +98,9 @@
     <ClCompile Include="$(SolutionDir)..\library\openssl\compat\evp.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\library\openssl\compat\hmac.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\library\openssl\compat\rsa.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -117,6 +120,7 @@
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\dsa.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\ecdsa.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\evp.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\openssl\compat\hmac.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\rsa.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\ssl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\openssl\compat\x509.h"/>
