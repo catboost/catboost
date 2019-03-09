@@ -5,11 +5,15 @@ LIBRARY()
 SRCS(
     apply.cpp
     approx_calcer.cpp
+    approx_calcer_helpers.cpp
     approx_calcer_multi.cpp
     approx_calcer_querywise.cpp
     approx_updater_helpers.cpp
+    bin_tracker.cpp
     calc_score_cache.cpp
     ctr_helper.cpp
+    custom_objective_descriptor.cpp
+    ders_holder.cpp
     error_functions.cpp
     features_data_helpers.cpp
     fold.cpp
@@ -24,6 +28,9 @@ SRCS(
     online_ctr.cpp
     online_predictor.cpp
     plot.cpp
+    projection.cpp
+    rand_score.cpp
+    score_bin.cpp
     score_calcer.cpp
     split.cpp
     target_classifier.cpp
