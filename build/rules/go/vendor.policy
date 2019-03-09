@@ -157,7 +157,7 @@ ALLOW .* -> vendor/google.golang.org/grpc
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron
 
 # The MongoDB supported driver for Go
-ALLOW .* -> vendor/go.mongodb.org/mongo-driver/mongo
+ALLOW .* -> vendor/go.mongodb.org/mongo-driver
 
 # 
 # Temporary exceptions.
