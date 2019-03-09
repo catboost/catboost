@@ -14,6 +14,7 @@ SRCS(
     dsa.c
     ecdsa.c
     evp.c
+    hmac.c
     rsa.c
     ssl.c
     x509.c
