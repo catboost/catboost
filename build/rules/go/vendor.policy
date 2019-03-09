@@ -154,7 +154,10 @@ ALLOW .* -> vendor/google.golang.org/genproto
 ALLOW .* -> vendor/google.golang.org/grpc
 
 # Job Scheduling Package
-ALLOW .* -> vendor/github.com/jasonlvhit/gocron       
+ALLOW .* -> vendor/github.com/jasonlvhit/gocron
+
+# The MongoDB supported driver for Go
+ALLOW .* -> vendor/go.mongodb.org/mongo-driver/mongo
 
 # 
 # Temporary exceptions.
