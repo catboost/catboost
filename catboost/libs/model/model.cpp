@@ -237,7 +237,7 @@ TFullModel DeserializeModel(TMemoryInput serializedModel) {
 }
 
 TFullModel DeserializeModel(const TString& serializedModel) {
-    return DeserializeModel(TMemoryInput{serializedModel.Data(), serializedModel.Size()});
+    return DeserializeModel(TMemoryInput{serializedModel.data(), serializedModel.size()});
 }
 
 void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {

@@ -334,7 +334,7 @@ TString TMetricsPlotCalcer::GetApproxFileName(ui32 plotLineIndex) {
     if (NonAdditiveMetricsData.ApproxFiles.size() < plotSize) {
         NonAdditiveMetricsData.ApproxFiles.resize(plotSize);
     }
-    if (NonAdditiveMetricsData.ApproxFiles[plotLineIndex].Empty()) {
+    if (NonAdditiveMetricsData.ApproxFiles[plotLineIndex].empty()) {
         if (!NFs::Exists(TmpDir)) {
             NFs::MakeDirectory(TmpDir);
             DeleteTmpDirOnExitFlag = true;

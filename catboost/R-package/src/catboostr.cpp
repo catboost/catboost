@@ -513,8 +513,8 @@ SEXP CatBoostSerializeModel_R(SEXP handleParam) {
     R_API_BEGIN();
     TFullModelHandle modelHandle = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(handleParam));
     const TString& raw = SerializeModel(*modelHandle);
-    result = PROTECT(allocVector(RAWSXP, raw.Size()));
-    MemCopy(RAW(result), (const unsigned char*)(raw.Data()), raw.Size());
+    result = PROTECT(allocVector(RAWSXP, raw.size()));
+    MemCopy(RAW(result), (const unsigned char*)(raw.data()), raw.size());
     R_API_END();
     UNPROTECT(1);
     return result;

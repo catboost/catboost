@@ -57,7 +57,7 @@ int set_key(int argc, const char* argv[]) {
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     params.LoadModel();
     params.Model.ModelInfo[key] = value;
-    if (outputModelPath.Empty()) {
+    if (outputModelPath.empty()) {
         ExportModel(params.Model, params.ModelPath, outputModelFormat);
     } else {
         ExportModel(params.Model, outputModelPath, outputModelFormat);
