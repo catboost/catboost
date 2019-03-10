@@ -573,7 +573,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
                     ythrow yexception() << "should not read after EOF";
                 }
 
-                const size_t toWrite = Min(len, Data_.Size() - Pos_);
+                const size_t toWrite = Min(len, Data_.size() - Pos_);
                 if (toWrite == 0) {
                     Eof_ = true;
                     return 0;

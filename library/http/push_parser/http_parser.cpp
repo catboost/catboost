@@ -107,11 +107,11 @@ bool THttpParser::HeadersParser() {
 bool THttpParser::ContentParser() {
     DBGOUT("Content parsing()");
     if (HasContentLength_) {
-        size_t rd = Min<size_t>(DataEnd_ - Data_, ContentLength_ - Content_.Size());
+        size_t rd = Min<size_t>(DataEnd_ - Data_, ContentLength_ - Content_.size());
         Content_.append(Data_, rd);
         Data_ += rd;
         DBGOUT("Content parsing: " << Content_.Size() << " from " << ContentLength_);
-        if (Content_.Size() == ContentLength_) {
+        if (Content_.size() == ContentLength_) {
             return OnEndParsing();
         }
     } else {
@@ -198,9 +198,9 @@ bool THttpParser::ReadLine() {
     }
 
     CurrentLine_.append(in.data(), endl);
-    if (Y_LIKELY(CurrentLine_.Size())) {
+    if (Y_LIKELY(CurrentLine_.size())) {
         //remove '\r' from tail
-        size_t withoutCR = CurrentLine_.Size() - 1;
+        size_t withoutCR = CurrentLine_.size() - 1;
         if (CurrentLine_[withoutCR] == '\r') {
             CurrentLine_.remove(withoutCR);
         }
@@ -273,7 +273,7 @@ bool THttpParser::DecodeContent() {
 
         //https://tools.ietf.org/html/rfc1950
         bool definitelyNoZlibHeader;
-        if (Content_.Size() < 2) {
+        if (Content_.size() < 2) {
             definitelyNoZlibHeader = true;
         } else {
             const ui16 cmf = static_cast<ui8>(Content_[0]);

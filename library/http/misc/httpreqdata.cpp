@@ -178,8 +178,8 @@ bool TBaseServerRequestData::Parse(const char* origReq) {
 void TBaseServerRequestData::AddHeader(const TString& name, const TString& value) {
     HeadersIn_[name] = value;
 
-    if (stricmp(name.Data(), "Host") == 0) {
-        size_t hostLen = strcspn(value.Data(), ":");
+    if (stricmp(name.data(), "Host") == 0) {
+        size_t hostLen = strcspn(value.data(), ":");
         if (value[hostLen] == ':')
             Port = value.substr(hostLen + 1);
         Host = value.substr(0, hostLen);

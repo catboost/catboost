@@ -79,7 +79,7 @@ inline TStringBuf HttpCodeStr(int code) noexcept {
 }
 
 inline bool IsHttpCode(int code) noexcept {
-    return HttpCodeStrEx(code).Data() != HttpCodeStrEx(0).Data();
+    return HttpCodeStrEx(code).data() != HttpCodeStrEx(0).data();
 }
 
 inline bool IsUserError(int code) noexcept {

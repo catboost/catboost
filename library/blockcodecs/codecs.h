@@ -3,17 +3,26 @@
 #include <util/generic/buffer.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 
 namespace NBlockCodecs {
     struct TData: public TStringBuf {
-        inline TData() {
+        inline TData() = default;
+
+        Y_HAS_MEMBER(Data);
+        Y_HAS_MEMBER(Size);
+
+        template <class T, std::enable_if_t<!THasSize<T>::value || !THasData<T>::value, int> = 0>
+        inline TData(const T& t)
+            : TStringBuf((const char*)t.data(), t.size())
+        {
         }
 
-        template <class T>
+        template <class T, std::enable_if_t<THasSize<T>::value && THasData<T>::value, int> = 0>
         inline TData(const T& t)
-            : TStringBuf((const char*)t.Data(), t.Size())
+            : TStringBuf((const char*)t.data(), t.size())
         {
         }
     };

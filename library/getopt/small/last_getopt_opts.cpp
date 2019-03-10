@@ -223,7 +223,7 @@ namespace NLastGetopt {
     const TString& TOpts::GetFreeArgTitle(size_t pos) const {
         if (FreeArgSpecs_.contains(pos)) {
             const TString& title = FreeArgSpecs_.at(pos).Title;
-            if (!title.Empty())
+            if (!title.empty())
                 return title;
         }
         return DefaultFreeArgSpec.Title;
@@ -232,7 +232,7 @@ namespace NLastGetopt {
     const TString& TOpts::GetFreeArgHelp(size_t pos) const {
         if (FreeArgSpecs_.contains(pos)) {
             const TString& help = FreeArgSpecs_.at(pos).Help;
-            if (!help.Empty())
+            if (!help.empty())
                 return help;
         }
         return DefaultFreeArgSpec.Help;
@@ -271,7 +271,7 @@ namespace NLastGetopt {
 
         static const TString metavarDef("VAL");
         const TString& title = option->GetArgTitle();
-        const TString& metavar = title.Empty() ? metavarDef : title;
+        const TString& metavar = title.empty() ? metavarDef : title;
 
         if (option->GetHasArg() == OPTIONAL_ARGUMENT) {
             result << " [" << metavar;
@@ -445,7 +445,7 @@ namespace NLastGetopt {
             const TString& help = GetFreeArgHelp(i);
             os << "  " << colors.GreenColor() << RightPad(GetFreeArgTitle(i), leftFreeWidth, ' ') << colors.OldColor();
 
-            if (!help.Empty())
+            if (!help.empty())
                 os << "  " << help;
 
             os << Endl;
