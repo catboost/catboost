@@ -27,10 +27,10 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
 
     Y_UNIT_TEST(TestConstExpr) {
         static constexpr TStringBuf str1("qwe\0rty", 7);
-        static constexpr TStringBuf str2(str1.Data(), str1.size());
+        static constexpr TStringBuf str2(str1.data(), str1.size());
         static constexpr TStringBuf str3 = AsStringBuf("qwe\0rty");
 
-        UNIT_ASSERT_VALUES_EQUAL(str1.Size(), 7);
+        UNIT_ASSERT_VALUES_EQUAL(str1.size(), 7);
 
         UNIT_ASSERT_VALUES_EQUAL(str1, str2);
         UNIT_ASSERT_VALUES_EQUAL(str2, str3);
@@ -124,8 +124,8 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
     }
 
     Y_UNIT_TEST(TestEmpty) {
-        UNIT_ASSERT(TStringBuf().Empty());
-        UNIT_ASSERT(!AsStringBuf("q").Empty());
+        UNIT_ASSERT(TStringBuf().empty());
+        UNIT_ASSERT(!AsStringBuf("q").empty());
     }
 
     Y_UNIT_TEST(TestShift) {
@@ -134,7 +134,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
 
         str = qw;
         str.Chop(10);
-        UNIT_ASSERT(str.Empty());
+        UNIT_ASSERT(str.empty());
 
         str = qw;
         UNIT_ASSERT_EQUAL(str.SubStr(2), AsStringBuf("erty"));
@@ -160,7 +160,7 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         rt = qw;
         lt = rt.NextTok('r');
         TStringBuf ty = rt.NextTok('r'); // no 'r' in "ty"
-        UNIT_ASSERT_EQUAL(rt.Size(), 0);
+        UNIT_ASSERT_EQUAL(rt.size(), 0);
         UNIT_ASSERT_EQUAL(ty, AsStringBuf("ty"));
     }
 
