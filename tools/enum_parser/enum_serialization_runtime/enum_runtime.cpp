@@ -67,7 +67,7 @@ namespace NEnumSerializationRuntime {
 
         AllValues.reserve(Names.size());
         for (const auto& it : Names) {
-            if (!AllNames.Empty()) {
+            if (!AllNames.empty()) {
                 AllNames += ", ";
             }
             AllNames += TString::Join('\'', it.second, '\'');

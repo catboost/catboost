@@ -22,7 +22,7 @@ namespace NBlockCodecs {
 
         template <class T, std::enable_if_t<THasSize<T>::value && THasData<T>::value, int> = 0>
         inline TData(const T& t)
-            : TStringBuf((const char*)t.data(), t.size())
+            : TStringBuf((const char*)t.Data(), t.Size())
         {
         }
     };
