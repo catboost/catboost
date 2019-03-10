@@ -316,7 +316,7 @@ static inline int Unescape(char* str) {
 }
 
 size_t NormalizeUrlName(char* dest, const TStringBuf source, size_t dest_size) {
-    if (source.Empty() || source[0] == '?')
+    if (source.empty() || source[0] == '?')
         return strlcpy(dest, "/", dest_size);
     size_t len = Min(dest_size - 1, source.length());
     memcpy(dest, source.data(), len);

@@ -497,7 +497,7 @@ public:
     }
 
     inline TCharType operator[](size_t pos) const noexcept {
-        Y_ASSERT(pos < this->Size());
+        Y_ASSERT(pos < this->size());
 
         return Ptr()[pos];
     }

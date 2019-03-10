@@ -566,7 +566,7 @@ void ShellQuoteArgSp(TString& dst, TStringBuf argument) {
 }
 
 bool ArgNeedsQuotes(const TString& arg) {
-    if (arg.Empty())
+    if (arg.empty())
         return true;
     return arg.find_first_of(" \"\'\t&()*<>\\`^|") != TString::npos;
 }
