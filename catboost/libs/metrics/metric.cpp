@@ -202,14 +202,14 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
                     expApprox *= approxDelta[i];
                     nonExpApprox += FastLogf(approxDelta[i]);
                 }
-                holder.Stats[0] += w * ((1 - prob) * nonExpApprox + FastLogf(1 + 1 / expApprox));
+                holder.Stats[0] += w * (IsFinite(expApprox) ? FastLogf(1 + expApprox) - prob * nonExpApprox : (1 - prob) * nonExpApprox);
             } else {
                 double nonExpApprox = approx[i];
                 if (hasDelta) {
                     nonExpApprox += approxDelta[i];
                 }
                 const double expApprox = exp(nonExpApprox);
-                holder.Stats[0] += w * ((1 - prob) * nonExpApprox + log(1 + 1 / expApprox));
+                holder.Stats[0] += w * (IsFinite(expApprox) ? log(1 + expApprox) - prob * nonExpApprox : (1 - prob) * nonExpApprox);
             }
             holder.Stats[1] += w;
         }
