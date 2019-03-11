@@ -772,6 +772,12 @@ static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValu
             (*plainJsonPtr).InsertValue("ctr_leaf_count_limit", maxLeafCount);
         });
 
+    parser.AddLongOption("ctr-history-unit", counterCalcMethodHelp)
+        .RequiredArgument("Policy")
+        .Handler1T<ECtrHistoryUnit>([plainJsonPtr](const auto unit) {
+            (*plainJsonPtr).InsertValue("ctr_history_unit", ToString(unit));
+        });
+
     parser.AddLongOption("store-all-simple-ctr",
                          "Do not limit simple ctr leaves count to topN, store all values from learn set")
         .NoArgument()

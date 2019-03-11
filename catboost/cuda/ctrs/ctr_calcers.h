@@ -17,6 +17,9 @@
 #include <catboost/libs/ctr_description/ctr_config.h>
 
 namespace NCatboostCuda {
+
+
+
     template <class T>
     inline TVector<T> SingletonVector(const T& value) {
         return {value};
@@ -33,6 +36,7 @@ namespace NCatboostCuda {
         template <class TFloat, class TUint32>
         THistoryBasedCtrCalcer(const TCudaBuffer<TFloat, TMapping>& weights,
                                const TCudaBuffer<TUint32, TMapping>& indices,
+                               const TCudaBuffer<const ui32, TMapping>* groupIds,
                                ui32 mask = TCtrBinBuilder<TMapping>::GetMask(),
                                ui32 stream = 0)
             : TGuidHolder()
@@ -40,12 +44,14 @@ namespace NCatboostCuda {
             , Mask(mask)
             , Stream(stream)
         {
-            Reset(weights, indices);
+
+            Reset(weights, indices, groupIds);
         }
 
         template <class TUint32>
         THistoryBasedCtrCalcer(const TCudaBuffer<TUint32, TMapping>& indices,
                                ui32 firstTestIndex,
+                               const TCudaBuffer<const ui32, TMapping>* groupIds,
                                ui32 mask = TCtrBinBuilder<TMapping>::GetMask(),
                                ui32 stream = 0)
             : TGuidHolder()
@@ -53,18 +59,25 @@ namespace NCatboostCuda {
             , Mask(mask)
             , Stream(stream)
         {
-            Reset(indices, firstTestIndex);
+            Reset(indices, firstTestIndex, groupIds);
         }
 
         template <class TFloat, class TUint32>
         THistoryBasedCtrCalcer& Reset(const TCudaBuffer<TFloat, TMapping>& weights,
-                                      const TCudaBuffer<TUint32, TMapping>& indices) {
-            ReserveMemoryAndUpdateIndices(indices);
+                                      const TCudaBuffer<TUint32, TMapping>& indices,
+                                      const TCudaBuffer<const ui32, TMapping>* groupIds
+                                      ) {
+            ReserveMemoryUpdateIndicesAndMaybeCreateGroupIdsFix(indices, groupIds);
+
 
             GatherWithMask(GatheredWeightsWithMask, weights, Indices, Mask, Stream);
             WriteFloatMask(Indices, GatheredWeightsWithMask, Stream);
             SegmentedScanAndScatterNonNegativeVector(GatheredWeightsWithMask, Indices, ScannedScatteredWeights, false,
                                                      Stream);
+
+            if (NeedFixForGroupwiseCtr()) {
+                FixGroupwiseCtr(ScannedScatteredWeights);
+            }
 
             IsBinarizedSampleWasGathered = false;
             return *this;
@@ -72,13 +85,16 @@ namespace NCatboostCuda {
 
         template <class TUint32>
         THistoryBasedCtrCalcer& Reset(const TCudaBuffer<TUint32, TMapping>& indices,
-                                      const ui32 firstZeroIndex) {
-            ReserveMemoryAndUpdateIndices(indices);
+                                      const ui32 firstZeroIndex,
+                                      const TCudaBuffer<const ui32, TMapping>* groupIds) {
+            ReserveMemoryUpdateIndicesAndMaybeCreateGroupIdsFix(indices, groupIds);
 
             GatherTrivialWeights(GatheredWeightsWithMask, Indices, firstZeroIndex, true, Stream);
             SegmentedScanAndScatterNonNegativeVector(GatheredWeightsWithMask, Indices, ScannedScatteredWeights, false,
                                                      Stream);
-
+            if (NeedFixForGroupwiseCtr()) {
+                FixGroupwiseCtr(ScannedScatteredWeights);
+            }
             IsBinarizedSampleWasGathered = false;
             return *this;
         }
@@ -112,6 +128,7 @@ namespace NCatboostCuda {
 
             Dst.Reset(ScannedScatteredWeights.GetMapping());
             Tmp.Reset(Dst.GetMapping());
+
             {
                 auto profileGuard = NCudaLib::GetCudaManager().GetProfiler().Profile("compute ctr stats");
 
@@ -119,12 +136,16 @@ namespace NCatboostCuda {
                                           referenceCtrConfig.Type, Stream);
                 SegmentedScanAndScatterNonNegativeVector(Dst, Indices, Tmp, false, Stream);
             }
+            if (NeedFixForGroupwiseCtr()) {
+                FixGroupwiseCtr(Tmp);
+            }
 
             for (auto& ctrConfig : ctrConfigs) {
                 CB_ENSURE(IsEqualUpToPriorAndBinarization(ctrConfig, referenceCtrConfig));
                 const float firstClassPriorCount = GetNumeratorShift(ctrConfig);
                 const float totalPriorCount = GetDenumeratorShift(ctrConfig);
                 DivideWithPriors(Tmp, ScannedScatteredWeights, firstClassPriorCount, totalPriorCount, Dst, Stream);
+
                 const auto& constDst = Dst;
                 visitor(ctrConfig, constDst, Stream);
             }
@@ -160,7 +181,9 @@ namespace NCatboostCuda {
             GatherWithMask(Tmp, WeightedSample, Indices, Mask, Stream);
             SegmentedScanVector(Tmp, Indices, Dst, false, 1u << 31, Stream);
             ScatterWithMask(Tmp, Dst, Indices, Mask, Stream);
-
+            if (NeedFixForGroupwiseCtr()) {
+                FixGroupwiseCtr(Tmp);
+            }
             for (auto& ctrConfig : ctrConfigs) {
                 CB_ENSURE(ctrConfig.Prior.size() == 2, "Error: float mean ctr need 2 priors");
                 CB_ENSURE(IsEqualUpToPriorAndBinarization(ctrConfig, ctrConfigs[0]));
@@ -168,6 +191,7 @@ namespace NCatboostCuda {
                 const float priorSum = GetNumeratorShift(ctrConfig);
                 const float priorWeight = GetDenumeratorShift(ctrConfig);
                 DivideWithPriors(Tmp, ScannedScatteredWeights, priorSum, priorWeight, Dst, Stream);
+
                 const auto& constDst = Dst;
                 visitor(ctrConfig, constDst, Stream);
             }
@@ -194,12 +218,59 @@ namespace NCatboostCuda {
         }
 
     private:
+
+        bool NeedFixForGroupwiseCtr() const {
+            return static_cast<bool>(FixForGroupwiseCtrs.GetObjectsSlice().Size());
+        }
+
+        void FixGroupwiseCtr(TCudaBuffer<float, TMapping>& ctr) const {
+            ApplyFixForGroupwiseCtr(FixForGroupwiseCtrs, ctr);
+        }
+
+        inline void InitFixForGroupwiseCtr(const TCudaBuffer<const ui32, TMapping>& indices,
+                                           const TCudaBuffer<const ui32, TMapping>& groupIds,
+                                           ui32 mask,
+                                           TCudaBuffer<ui32, TMapping>* fixedIndices,
+                                           ui32 stream = 0) {
+            fixedIndices->Reset(indices.GetMapping());
+            auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+            auto bins = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+            auto binIndices = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
+            FillBuffer(bins, 0, stream);
+            //mark start of group for each bin
+            MakeGroupStartFlags(indices, groupIds, &tmp, mask, stream);
+            //compute unique bin
+            ScanVector(tmp, bins, false, stream);
+            //save start of group run index in binIndices
+            FillBinIndices(mask, indices, bins, &binIndices, stream);
+            CreateFixedIndices(bins, binIndices, indices, mask, fixedIndices, stream);
+        }
+
         template <class TUi32>
-        void ReserveMemoryAndUpdateIndices(const TCudaBuffer<TUi32, TMapping>& indices) {
+        void ReserveMemoryUpdateIndicesAndMaybeCreateGroupIdsFix(const TCudaBuffer<TUi32, TMapping>& indices_,
+                                                                 const TCudaBuffer<const ui32, TMapping>* groupIds
+            ) {
+
+            auto indices = indices_.ConstCopyView();
             ScannedScatteredWeights.Reset(indices.GetMapping());
             Tmp.Reset(indices.GetMapping());
             GatheredWeightsWithMask.Reset(indices.GetMapping());
             Indices = indices.ConstCopyView();
+            if (groupIds) {
+                FixForGroupwiseCtrs.Reset(indices.GetMapping());
+                //hacks to compute groupwise ctrs without implicit GPU sync
+                auto tmp = Tmp.template ReinterpretCast<ui32>();
+                auto bins = GatheredWeightsWithMask.template ReinterpretCast<ui32>();
+                auto binIndices = ScannedScatteredWeights.template ReinterpretCast<ui32>();
+                FillBuffer(bins, 0, Stream);
+                //mark start of group for each bin
+                MakeGroupStartFlags(indices, *groupIds, &tmp, Mask, Stream);
+                //compute unique bin
+                ScanVector(tmp, bins, false, Stream);
+                //save start of group run index in binIndices
+                FillBinIndices(Mask, indices, bins, &binIndices, Stream);
+                CreateFixedIndices(bins, binIndices, indices, Mask, &FixForGroupwiseCtrs, Stream);
+            }
         }
 
         const TCudaBuffer<ui8, TMapping>& GetGatheredBinSample() {
@@ -214,10 +285,12 @@ namespace NCatboostCuda {
     private:
         TCudaBuffer<const ui32, TMapping> Indices;
 
+
         TCudaBuffer<float, TMapping> Dst;
         TCudaBuffer<float, TMapping> ScannedScatteredWeights;
         TCudaBuffer<float, TMapping> Tmp;
         TCudaBuffer<float, TMapping> GatheredWeightsWithMask;
+        TCudaBuffer<ui32, TMapping> FixForGroupwiseCtrs;
 
         TCudaBuffer<ui8, TMapping> GatheredBinarizedSample;
         bool IsBinarizedSampleWasGathered = false;

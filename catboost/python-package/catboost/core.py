@@ -2226,7 +2226,8 @@ class CatBoostClassifier(CatBoost):
         growing_policy=None,
         min_samples_in_leaf=None,
         max_leaves_count=None,
-        leaf_estimation_backtracking=None
+        leaf_estimation_backtracking=None,
+        ctr_history_unit=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -2601,7 +2602,8 @@ class CatBoostRegressor(CatBoost):
         growing_policy=None,
         min_samples_in_leaf=None,
         max_leaves_count=None,
-        leaf_estimation_backtracking=None
+        leaf_estimation_backtracking=None,
+        ctr_history_unit=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]

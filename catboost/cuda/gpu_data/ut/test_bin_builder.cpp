@@ -141,7 +141,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                     auto freqCtr = calcer.ComputeFreqCtr();
                     featureBins = NCB::BinarizeLine<ui32>(freqCtr, ENanMode::Forbidden, borders);
                 } else if (ctr.Configuration.Type == ECtrType::Buckets) {
-                    auto floatCtr = calcer.Calc(Indices, BinarizedTarget, NumClasses);
+                    auto floatCtr = calcer.Calc(Indices, TConstArrayRef<ui32>(Indices), BinarizedTarget, NumClasses);
                     TVector<float> values;
                     for (ui32 i = 0; i < treeSplit.Bins.size(); ++i) {
                         values.push_back(floatCtr[i][ctr.Configuration.ParamId]);

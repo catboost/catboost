@@ -92,6 +92,8 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<bool> StoreAllSimpleCtrs;
         TCpuOnlyOption<ui64> CtrLeafCountLimit;
+
+        TGpuOnlyOption<ECtrHistoryUnit> CtrHistoryUnit;
     };
 
     bool CtrsNeedTargetData(const TCatFeatureParams& catFeatureParams);

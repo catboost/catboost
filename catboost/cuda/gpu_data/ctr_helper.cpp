@@ -9,6 +9,9 @@ namespace NCatboostCuda {
         view.WeightedTarget = mirrorTargets.WeightedTarget.DeviceView(devId);
         view.BinarizedTarget = mirrorTargets.BinarizedTarget.DeviceView(devId);
         view.Weights = mirrorTargets.Weights.DeviceView(devId);
+        if (mirrorTargets.HasGroupIds()) {
+            view.GroupIds = mirrorTargets.GroupIds.DeviceView(devId);
+        }
 
         view.TotalWeight = mirrorTargets.TotalWeight;
         view.LearnSlice = mirrorTargets.LearnSlice;

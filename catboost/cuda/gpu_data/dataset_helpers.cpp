@@ -42,6 +42,32 @@ THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::Bui
     ctrsTarget.Weights.Write(ctrWeights);
 
     CB_ENSURE(ctrsTarget.IsTrivialWeights());
+
+    if (!dataProvider.ObjectsGrouping->IsTrivial() && featuresManager.GetCatFeatureOptions().CtrHistoryUnit == ECtrHistoryUnit::Group) {
+        const ui64 groupCountLearn = dataProvider.ObjectsGrouping->GetGroupCount();
+        TVector<ui32> groupIds;
+        groupIds.reserve(joinedTarget.size());
+
+        for (ui32 groupId = 0; groupId < groupCountLearn; ++groupId) {
+            ui32 groupSize = dataProvider.ObjectsGrouping->GetGroup(groupId).GetSize();
+            for (ui32 j  = 0; j < groupSize; ++j) {
+                groupIds.push_back(groupId);
+            }
+        }
+        const ui64 groupCountTest = test ? test->ObjectsGrouping->GetGroupCount() : 0;
+
+        for (ui32 groupId = 0; groupId < groupCountTest; ++groupId) {
+            ui32 groupSize = test->ObjectsGrouping->GetGroup(groupId).GetSize();
+            for (ui32 j = 0; j < groupSize; ++j) {
+                groupIds.push_back(groupId + groupCountLearn);
+            }
+        }
+
+
+        auto tmp = TMirrorBuffer<ui32>::Create(NCudaLib::TMirrorMapping(groupIds.size()));
+        tmp.Write(groupIds);
+        ctrsTarget.GroupIds = tmp.ConstCopyView();
+    }
     return ctrsTargetPtr;
 }
 

@@ -229,29 +229,28 @@ NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
     , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
     , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
     , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
-
-{
+    , CtrHistoryUnit("ctr_history_unit", ECtrHistoryUnit::Sample, taskType) {
     TargetBinarization.Get().DisableNanModeOption();
 }
 
 void NCatboostOptions::TCatFeatureParams::Load(const NJson::TJsonValue& options) {
     CheckedLoad(options,
             &SimpleCtrs, &CombinationCtrs, &PerFeatureCtrs, &TargetBinarization, &MaxTensorComplexity, &OneHotMaxSize, &CounterCalcMethod,
-            &StoreAllSimpleCtrs, &CtrLeafCountLimit);
+            &StoreAllSimpleCtrs, &CtrLeafCountLimit, &CtrHistoryUnit);
     Validate();
 }
 
 void NCatboostOptions::TCatFeatureParams::Save(NJson::TJsonValue* options) const {
     SaveFields(options,
             SimpleCtrs, CombinationCtrs, PerFeatureCtrs, TargetBinarization, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
-            StoreAllSimpleCtrs, CtrLeafCountLimit);
+            StoreAllSimpleCtrs, CtrLeafCountLimit, CtrHistoryUnit);
 }
 
 bool NCatboostOptions::TCatFeatureParams::operator==(const TCatFeatureParams& rhs) const {
     return std::tie(SimpleCtrs, CombinationCtrs, PerFeatureCtrs, TargetBinarization, MaxTensorComplexity, OneHotMaxSize, CounterCalcMethod,
-            StoreAllSimpleCtrs, CtrLeafCountLimit) ==
+            StoreAllSimpleCtrs, CtrLeafCountLimit, CtrHistoryUnit) ==
         std::tie(rhs.SimpleCtrs, rhs.CombinationCtrs, rhs.PerFeatureCtrs, rhs.TargetBinarization, rhs.MaxTensorComplexity, rhs.OneHotMaxSize,
-                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit);
+                rhs.CounterCalcMethod, rhs.StoreAllSimpleCtrs, rhs.CtrLeafCountLimit, rhs.CtrHistoryUnit);
 }
 
 bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rhs) const {

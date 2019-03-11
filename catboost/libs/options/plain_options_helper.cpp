@@ -303,6 +303,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "store_all_simple_ctr", &ctrOptions, &seenKeys);
     CopyOption(plainOptions, "one_hot_max_size", &ctrOptions, &seenKeys);
     CopyOption(plainOptions, "ctr_leaf_count_limit", &ctrOptions, &seenKeys);
+    CopyOption(plainOptions, "ctr_history_unit", &ctrOptions, &seenKeys);
 
     //data processing
     auto& dataProcessingOptions = trainOptions["data_processing_options"];

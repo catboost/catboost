@@ -295,4 +295,133 @@ namespace NKernel {
             MakeMeansAndScatterImpl <<<numBlocks, blockSize, 0, stream>>> (sums, weights, size, sumPrior, weightPrior, map, mask, dst);
         }
     }
+
+
+
+    __global__ void ApplyGroupwiseCtrFixImpl(ui32 size,
+                                             const ui32* fixIndices,
+                                             float* ctr) {
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < size) {
+            ui32 idx = __ldg(fixIndices + i);
+            const float fixedValue = __ldg(ctr + idx);
+
+            if (i != idx) {
+                ctr[i] = fixedValue;
+            }
+        }
+    }
+
+    void ApplyGroupwiseCtrFix(ui32 size,
+                              const ui32* fixIndices,
+                              float* ctr,
+                              TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide(size, blockSize);
+        if (numBlocks) {
+            ApplyGroupwiseCtrFixImpl <<<numBlocks, blockSize, 0, stream>>> (size, fixIndices, ctr);
+        }
+    }
+
+
+
+    __global__ void MakeGroupStartsImpl(ui32 mask,
+                                        const ui32* indices,
+                                        const ui32* groupIds,
+                                        ui32 size,
+                                        ui32* flags) {
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < size) {
+            const ui32 idx = __ldg(indices + i);
+            const ui32 groupId = __ldg(groupIds + (idx & mask));
+            const ui32 nextIdx = (i + 1 < size) ? __ldg(indices + i + 1) : -1;
+            const ui32 nextGroupId = (i + 1 < size) ? __ldg(groupIds + (nextIdx & mask)) : groupId + 1;
+
+            const bool isStartOfNewCategory = (nextIdx & (~mask));
+            const bool isStartOfGroup = (groupId != nextGroupId);
+
+            flags[i] = (isStartOfNewCategory || isStartOfGroup) ? 1 : 0;
+        }
+    }
+
+
+
+    void MakeGroupStarts(ui32 mask,
+                         const ui32* indices,
+                         const ui32* groupIds,
+                         ui32 size,
+                         ui32* flags,
+                         TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide(size, blockSize);
+        if (numBlocks) {
+            MakeGroupStartsImpl<<<numBlocks, blockSize, 0, stream>>> (mask, indices, groupIds, size, flags);
+        }
+    }
+
+
+
+    __global__ void FillBinIndicesImpl(ui32 mask, const ui32* indices,
+                                       const ui32* bins,
+                                       ui32 size,
+                                       ui32* binIndices) {
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < size) {
+            const ui32 bin = __ldg(bins + i);
+            const bool isStartOfBin = i == 0 || (bin != __ldg(bins + i - 1));
+            if (isStartOfBin) {
+                binIndices[bin] = indices[i] & mask;
+            }
+        }
+    }
+
+
+    void FillBinIndices(ui32 mask, const ui32* indices,
+                        const ui32* bins,
+                        ui32 size,
+                        ui32* binIndices,
+                        TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide(size, blockSize);
+        if (numBlocks) {
+            FillBinIndicesImpl<<<numBlocks, blockSize, 0, stream>>> (mask, indices, bins, size, binIndices);
+        }
+    }
+
+    __global__ void CreateFixedIndicesImpl(const ui32* bins,
+                                          const ui32* binIndices,
+                                          ui32 mask, const ui32* indicesWithMask,
+                                          ui32 size,
+                                          ui32* fixedIndices) {
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < size) {
+            const ui32 bin = __ldg(bins + i);
+            const ui32 idx = __ldg(indicesWithMask + i) & mask;
+            fixedIndices[idx] = __ldg(binIndices + bin);
+        }
+    }
+
+
+    void CreateFixedIndices(const ui32* bins,
+                            const ui32* binIndices,
+                            ui32 mask, const ui32* indicesWithMask,
+                            ui32 size,
+                            ui32* fixedIndices,
+                            TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide(size, blockSize);
+        if (numBlocks) {
+            CreateFixedIndicesImpl<<<numBlocks, blockSize, 0, stream>>> (bins, binIndices, mask, indicesWithMask, size, fixedIndices);
+        }
+    }
+
+
 }

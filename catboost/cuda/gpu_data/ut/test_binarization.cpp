@@ -116,6 +116,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                         if (!ctrsCache.contains(featureId)) {
                             ctrsCache[featureId] = calcer.Calc(ctrsEstimationPermutation,
+                                                               TConstArrayRef<ui32>(ctrsEstimationPermutation),
                                                                binarizedTarget,
                                                                numClasses);
                         }

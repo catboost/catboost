@@ -1,10 +1,12 @@
-#include <util/random/shuffle.h>
 #include "calc_ctr_cpu.h"
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/ctrs/ctr_calcers.h>
+#include <catboost/cuda/data/data_utils.h>
+#include <util/generic/hash.h>
+#include <util/random/shuffle.h>
 #include <library/unittest/registar.h>
 #include <library/threading/local_executor/local_executor.h>
 #include <iostream>
@@ -23,11 +25,12 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
         return bins;
     }
 
-    Y_UNIT_TEST(TestSimpleCatTargetCtr) {
+    void TestSimpleCtr(bool useGroups) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
             ui64 tries = 5;
+            ui64 meanGroupSize = useGroups ? 7 : 1;
             const ui32 uniqueValues = 15542;
 
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
@@ -35,10 +38,30 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
 
             TRandom rand(0);
             for (ui32 run = 0; run < tries; ++run) {
-                const ui64 size = 500000 + rand.NextUniformL() % 1000;
+                const ui64 groupCount = (500000 + rand.NextUniformL() % 1000) / meanGroupSize;
+                TVector<ui64> groupIds;
+
+                ui64 learnSize = 0;
+                if (useGroups) {
+                    for (ui64 group = 0; group < groupCount; ++group) {
+                        ui64 groupSize = 1 + (rand.NextUniformL() % meanGroupSize);
+                        for (ui64 i = 0 ; i < groupSize; ++i) {
+                            groupIds.push_back(group);
+                        }
+
+                        if (group ==  (groupCount - 300)) {
+                            learnSize = groupIds.size();
+                        }
+                    }
+                } else {
+                    groupIds.resize(groupCount);
+                    Iota(groupIds.begin(), groupIds.end(), 0);
+                    learnSize = groupCount - 10000;
+                }
+
+                const ui64 size = groupIds.size();
 
                 auto weights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(size));
-                const auto learnSize = size - 10000;
                 auto learnSlice = TSlice(0, learnSize);
 
                 TVector<float> cpuWeights;
@@ -53,15 +76,33 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                 weights.Write(cpuWeights);
 
                 auto indices = TMirrorBuffer<ui32>::CopyMapping(weights);
-                TVector<ui32> cpuIndices;
+                auto groupIndices = [&]() {
+                    TVector<ui32> groupIdsForGpu;
+                    for (auto val : groupIds) {
+                        groupIdsForGpu.push_back(val);
+                    }
+                    auto tmp = TMirrorBuffer<ui32>::CopyMapping(weights);
+                    tmp.Write(groupIdsForGpu);
+                    return tmp.ConstCopyView();
+                }();
 
+
+                TVector<ui32> cpuIndices;
                 {
                     cpuIndices.resize(size);
                     std::iota(cpuIndices.begin(), cpuIndices.end(), 0);
                     indices.Write(cpuIndices);
 
-                    Shuffle(cpuIndices.begin(), cpuIndices.begin() + learnSize, rand);
-                    indices.SliceView(learnSlice).Write(cpuIndices);
+//
+                    TVector<ui32> shuffled;
+                    TConstArrayRef<TGroupId> groupIdsArrayRef = groupIds;
+                    QueryConsistentShuffle(rand.NextUniformL(), 1, groupIdsArrayRef.Slice(0, learnSize), &shuffled);
+                    indices.SliceView(learnSlice).Write(shuffled);
+
+                    for (ui64 i = 0; i < shuffled.size(); ++i) {
+                        cpuIndices[i] = shuffled[i];
+                    }
+
                 }
 
                 auto bins = BuildRandomBins<ui32>(rand, uniqueValues, size);
@@ -82,7 +123,8 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                         .MoveIndices();
                 }();
 
-                THistoryBasedCtrCalcer<NCudaLib::TMirrorMapping> builder(weights, binIndices);
+//                auto groupIds
+                THistoryBasedCtrCalcer<NCudaLib::TMirrorMapping> builder(weights, binIndices, useGroups ? &groupIndices : nullptr);
 
                 for (ui32 numClasses : {2, 3, 4, 8, 16, 32, 55, 255}) {
                     auto targets = BuildRandomBins<ui8>(rand, numClasses, size);
@@ -92,7 +134,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                     const float prior = 0.5;
                     const float priorDenum = 1.0;
                     TCpuTargetClassCtrCalcer ctrCalcer(uniqueValues, bins, cpuWeights, prior, priorDenum);
-                    auto ctrs = ctrCalcer.Calc(cpuIndices, targets, numClasses);
+                    auto ctrs = ctrCalcer.Calc(cpuIndices, TConstArrayRef<ui64>(groupIds), targets, numClasses);
 
                     TMirrorBuffer<float> cudaCtr;
 
@@ -121,6 +163,14 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                 }
             }
         }
+    }
+
+    Y_UNIT_TEST(TestSimpleCatTargetCtr) {
+        TestSimpleCtr(false);
+    }
+
+    Y_UNIT_TEST(TestGroupwiseSimpleCatTargetCtr) {
+        TestSimpleCtr(true);
     }
 
     Y_UNIT_TEST(TestSimpleCatTargetCtrBenchmark) {
@@ -182,7 +232,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                         .MoveIndices();
                 }();
 
-                THistoryBasedCtrCalcer<NCudaLib::TMirrorMapping> builder(weights, binIndices);
+                THistoryBasedCtrCalcer<NCudaLib::TMirrorMapping> builder(weights, binIndices, nullptr);
 
                 for (ui32 numClasses : {2, 3, 4, 8, 16, 32, 55, 255}) {
                     auto targets = BuildRandomBins<ui8>(rand, numClasses, size);

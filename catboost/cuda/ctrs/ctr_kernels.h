@@ -35,6 +35,138 @@ namespace NKernelHost {
         }
     };
 
+
+    class TFixGroupwiseCtrKernel : public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui32> FixIndices;
+        TCudaBufferPtr<float> Ctr;
+
+    public:
+        TFixGroupwiseCtrKernel() = default;
+
+        TFixGroupwiseCtrKernel(TCudaBufferPtr<const ui32> fixIndices,
+                             TCudaBufferPtr<float> ctr)
+            : FixIndices(fixIndices)
+            , Ctr(ctr)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(FixIndices, Ctr);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::ApplyGroupwiseCtrFix(FixIndices.Size(),
+                FixIndices.Get(),
+                Ctr.Get(),
+                stream.GetStream());
+        }
+    };
+
+    class TMakeGroupStartFlagsKernel : public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<const ui32> GroupIds;
+        TCudaBufferPtr<ui32> Flags;
+        ui32 Mask;
+
+    public:
+        TMakeGroupStartFlagsKernel() = default;
+
+        TMakeGroupStartFlagsKernel(TCudaBufferPtr<const ui32> indices,
+                               TCudaBufferPtr<const ui32> groupIds,
+                               TCudaBufferPtr<ui32> flags,
+                               ui32 mask)
+            : Indices(indices)
+            , GroupIds(groupIds)
+            , Flags(flags)
+            , Mask(mask)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Indices, GroupIds, Flags, Mask);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::MakeGroupStarts(Mask,
+                Indices.Get(),
+                GroupIds.Get(),
+                Indices.Size(),
+                Flags.Get(),
+                stream.GetStream());
+        }
+    };
+
+
+
+    class TFillBinIndicesKernel : public TStatelessKernel {
+    private:
+        ui32 Mask;
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<const ui32> Bins;
+        TCudaBufferPtr<ui32> BinIndices;
+
+    public:
+        TFillBinIndicesKernel() = default;
+
+        TFillBinIndicesKernel(ui32 mask,
+                              TCudaBufferPtr<const ui32> indices,
+                              TCudaBufferPtr<const ui32> bins,
+                              TCudaBufferPtr<ui32> binIndices)
+            : Mask(mask)
+            , Indices(indices)
+            , Bins(bins)
+            , BinIndices(binIndices)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Mask, Indices,  Bins, BinIndices);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::FillBinIndices(Mask,
+                                    Indices.Get(),
+                                    Bins.Get(),
+                                    Indices.Size(),
+                                    BinIndices.Get(),
+                                    stream.GetStream());
+        }
+    };
+
+
+    class TCreateFixedIndicesKernel : public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui32> Bins;
+        TCudaBufferPtr<const ui32> BinIndices;
+        TCudaBufferPtr<const ui32> Indices;
+        TCudaBufferPtr<ui32> FixedIndices;
+        ui32 Mask;
+
+    public:
+        TCreateFixedIndicesKernel () = default;
+
+        TCreateFixedIndicesKernel (TCudaBufferPtr<const ui32> bins,
+                                   TCudaBufferPtr<const ui32> binIndices,
+                                   TCudaBufferPtr<const ui32> indices,
+                                   TCudaBufferPtr<ui32> fixedIndices,
+                                   ui32 mask)
+            : Bins(bins)
+            , BinIndices(binIndices)
+            , Indices(indices)
+            , FixedIndices(fixedIndices)
+            , Mask(mask)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Bins, BinIndices, Indices, FixedIndices, Mask);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::CreateFixedIndices(Bins.Get(),
+                                        BinIndices.Get(),
+                                        Mask,
+                                        Indices.Get(),
+                                        Indices.Size(),
+                                        FixedIndices.Get(),
+                                        stream.GetStream());
+        }
+    };
+
     class TMergeBitsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<ui32> Bins;
@@ -465,4 +597,47 @@ inline void ComputeBinFreqCtr(const TCudaBuffer<ui32, TMapping>& bins,
     using TKernel = NKernelHost::TComputeWeightedBinFreqCtrKernel;
     LaunchKernels<TKernel>(dst.NonEmptyDevices(), stream, bins, binWeights, totalWeight, prior, priorObservations,
                            dst);
+}
+
+
+template <class TMapping>
+inline void ApplyFixForGroupwiseCtr(const TCudaBuffer<ui32, TMapping>& fixIndices,
+                                    TCudaBuffer<float, TMapping>& ctr,
+                                    ui32 stream = 0) {
+    using TKernel = NKernelHost::TFixGroupwiseCtrKernel;
+    LaunchKernels<TKernel>(fixIndices.NonEmptyDevices(), stream, fixIndices, ctr);
+}
+
+
+template <class TMapping>
+inline void MakeGroupStartFlags(const TCudaBuffer<const ui32, TMapping>& indices,
+                                const TCudaBuffer<const ui32, TMapping>& groupIds,
+                                TCudaBuffer<ui32, TMapping>* flags,
+                                ui32 mask,
+                                ui32 stream = 0) {
+    using TKernel = NKernelHost::TMakeGroupStartFlagsKernel;
+    LaunchKernels<TKernel>(flags->NonEmptyDevices(), stream, indices, groupIds, *flags, mask);
+}
+
+
+
+template <class TMapping>
+inline void FillBinIndices(ui32 mask, const TCudaBuffer<const ui32, TMapping>& indices,
+                           const TCudaBuffer<ui32, TMapping>& bins,
+                           TCudaBuffer<ui32, TMapping>* binIndices,
+                           ui32 stream = 0) {
+    using TKernel = NKernelHost::TFillBinIndicesKernel;
+    LaunchKernels<TKernel>(binIndices->NonEmptyDevices(), stream, mask, indices, bins, *binIndices);
+}
+
+
+template <class TMapping>
+inline void CreateFixedIndices(const TCudaBuffer<ui32, TMapping>& bins,
+                               const TCudaBuffer<ui32, TMapping>& binIndices,
+                               const TCudaBuffer<const ui32, TMapping>& indices,
+                               ui32 mask,
+                               TCudaBuffer<ui32, TMapping>* fixedIndices,
+                               ui32 stream = 0) {
+    using TKernel = NKernelHost::TCreateFixedIndicesKernel;
+    LaunchKernels<TKernel>(fixedIndices->NonEmptyDevices(), stream, bins, binIndices, indices, *fixedIndices, mask);
 }
