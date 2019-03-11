@@ -2032,6 +2032,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 
         if self.tc.use_clang:
             emit('CLANG_CL', 'yes')
+        if self.tc.ide_msvs:
+            emit('IDE_MSVS', 'yes')
 
         emit('CXX_COMPILER', self.tc.cxx_compiler)
         emit('C_COMPILER', self.tc.c_compiler)
