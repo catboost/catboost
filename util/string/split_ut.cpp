@@ -147,7 +147,7 @@ Y_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConvertingConsumer>(good, data.data(), data.end(), delim);
     }
 
-    Y_UNIT_TEST(TestCharSkipEmty) {
+    Y_UNIT_TEST(TestCharSkipEmpty) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab", "qwabcab"};
         TVector<TString> good(canonic, canonic + 3);
