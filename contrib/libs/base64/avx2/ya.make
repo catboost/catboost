@@ -14,7 +14,7 @@ SRCS(
 )
 
 IF (ARCH_X86_64 OR ARCH_I386)
-    IF (MSVC)
+    IF (MSVC AND NOT CLANG_CL)
         CONLYFLAGS(/D__AVX2__=1)
     ELSE()
         CONLYFLAGS(-mavx2 -std=c11)
