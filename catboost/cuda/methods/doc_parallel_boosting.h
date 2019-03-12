@@ -520,6 +520,8 @@ namespace NCatboostCuda {
                 &baseCursors->Cursors,
                 TestDataProvider ? &baseCursors->TestCursor : nullptr
             );
+            auto startingBaseCursors = CreateCursors(*baseInputData);
+            startingBaseCursors->CopyFrom(*baseCursors);
 
             const ui32 experimentSize = ModelBasedEvalConfig.ExperimentSize;
             const ui64 savedBaseSeed = BaseIterationSeed;
@@ -547,6 +549,7 @@ namespace NCatboostCuda {
                 TBinarizedFeaturesManager featureManager(FeaturesManager, {ignoredFeatures.begin(), ignoredFeatures.end()});
                 auto inputData = CreateInputData(permutationCount, &featureManager);
 
+                baseCursors->CopyFrom(*startingBaseCursors);
                 for (experimentIdx = 0; experimentIdx < ModelBasedEvalConfig.ExperimentCount; ++experimentIdx) {
                     auto metricSaver = ProgressTracker->Clone(forceMetricSaveFunc);
                     TVector<TEnsemble> ignoredModels(permutationCount);
