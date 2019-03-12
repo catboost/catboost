@@ -12,7 +12,6 @@ using namespace CoreML::Specification;
 
 void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsembleParameters* ensemble) {
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
-    CB_ENSURE(!model.HasCategoricalFeatures(), "model with only float features supported");
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     size_t currentSplitIndex = 0;
     auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();
@@ -48,8 +47,22 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
         for (int layer = treeDepth - 1; layer >= 0; --layer) {
             const auto& binFeature = binFeatures[model.ObliviousTrees.TreeSplits.at(currentSplitIndex)];
             ++currentSplitIndex;
-            auto featureId = binFeature.FloatFeature.FloatFeature;
-            auto branchValue = binFeature.FloatFeature.Split;
+            auto featureType = binFeature.Type;
+            CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
+                      "model with only float features or one hot encoded features supported");
+
+            int featureId;
+            int branchValueCat;
+            float branchValueFloat;
+            auto branchParameter = TreeEnsembleParameters::TreeNode::BranchOnValueGreaterThan;
+            if (featureType == ESplitType::FloatFeature) {
+                featureId = binFeature.FloatFeature.FloatFeature;
+                branchValueFloat = binFeature.FloatFeature.Split;
+            } else {
+                featureId = binFeature.OneHotFeature.CatFeatureIdx;
+                branchValueCat = binFeature.OneHotFeature.Value;
+                branchParameter = TreeEnsembleParameters::TreeNode::BranchOnValueEqual;
+            }
 
             auto nodesInLayerCount = std::pow(2, layer);
             TVector<TreeEnsembleParameters::TreeNode*> currentLayer(nodesInLayerCount);
@@ -61,9 +74,12 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
                 branchNode->set_nodeid(lastNodeId);
                 ++lastNodeId;
 
-                branchNode->set_nodebehavior(TreeEnsembleParameters::TreeNode::BranchOnValueGreaterThan);
+                branchNode->set_nodebehavior(branchParameter);
                 branchNode->set_branchfeatureindex(featureId);
-                branchNode->set_branchfeaturevalue(branchValue);
+                if (featureType == ESplitType::FloatFeature)
+                    branchNode->set_branchfeaturevalue(branchValueFloat);
+                else
+                    branchNode->set_branchfeaturevalue(branchValueCat);
 
                 branchNode->set_falsechildnodeid(
                     previousLayer[2 * nodeIdx]->nodeid());
@@ -91,6 +107,19 @@ void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJson
         featureType->set_isoptional(false);
         featureType->set_allocated_doubletype(new DoubleFeatureType());
         feature->set_allocated_type(featureType);
+    }
+
+    for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
+        for (const auto& oneHotValue : oneHotFeature.StringValues) {
+            auto feature = description->add_input();
+            feature->set_name(oneHotValue);
+
+            auto featureType = new FeatureType();
+            featureType->set_isoptional(false);
+            featureType->set_allocated_int64type(new Int64FeatureType());
+            feature->set_allocated_type(featureType);
+
+        }
     }
 
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
