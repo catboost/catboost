@@ -6034,6 +6034,25 @@ def test_quantized_adult_pool(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_quantized_with_one_thread(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    quantized_train_file = 'quantized://' + data_file('querywise', 'train.quantized')
+    cmd = (
+        CATBOOST_PATH, 'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', quantized_train_file,
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '1',
+        '-m', output_model_path,
+    )
+    print(cmd)
+    yatest.common.execute(cmd)
+
+
 def test_eval_result_on_different_pool_type():
     output_eval_path = yatest.common.test_output_path('test.eval')
     output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')
