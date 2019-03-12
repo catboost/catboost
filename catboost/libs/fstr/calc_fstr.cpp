@@ -237,6 +237,10 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 {
     NCatboostOptions::TLossDescription lossDescription;
     CB_ENSURE(TryGetLossDescription(model, lossDescription));
+    if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
+        lossDescription = NCatboostOptions::ParseLossDescription("NDCG");
+    }
+    CATBOOST_INFO_LOG << "Used " << lossDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ObliviousTrees.ApproxDimension;
     THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
     CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
@@ -321,8 +325,24 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     }
 
     TVector<std::pair<double, int>> featureScore(featuresCount);
+
+    EMetricBestValue valueType;
+    float bestValue;
+    metric->GetBestValue(&valueType, &bestValue);
     for (int idx = 0; idx < featuresCount; ++idx) {
-        featureScore[idx].first = metric->GetFinalError(scores[idx]) - metric->GetFinalError(scores.back());
+        double score = metric->GetFinalError(scores[idx]) - metric->GetFinalError(scores.back());
+        switch(valueType) {
+            case EMetricBestValue::Min:
+                break;
+            case EMetricBestValue::Max:
+                score = -score;
+                break;
+            case EMetricBestValue::FixedValue:
+                score = abs(score - bestValue);
+            default:
+                ythrow TCatBoostException() << "unsupported bestValue metric type";
+        }
+        featureScore[idx].first = score;
         featureScore[idx].second = idx;
     }
     Sort(featureScore.begin(), featureScore.end(), std::greater<std::pair<double, int>>());

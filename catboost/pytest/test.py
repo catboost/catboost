@@ -1850,8 +1850,8 @@ def test_fstr(fstr_type, boosting_type):
     return local_canonical_file(output_fstr_path)
 
 
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_loss_change_fstr(boosting_type):
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
+def test_loss_change_fstr(loss_function):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
     train_fstr_path = yatest.common.test_output_path('t_fstr.tsv')
@@ -1860,11 +1860,11 @@ def test_loss_change_fstr(boosting_type):
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--loss-function', 'PairLogit',
+        '--loss-function', loss_function,
         '--learn-set', data_file('querywise', 'train'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--learn-pairs', data_file('querywise', 'train.pairs'),
-        '--boosting-type', boosting_type,
+        '--boosting-type', 'Plain',
         '-i', '10',
         '-w', '0.03',
         '-T', '4',

@@ -2325,16 +2325,34 @@
             "uri": "file://test.test_logloss_with_not_binarized_target_calc_block=60-Plain_/test.eval"
         }
     ],
-    "test.test_loss_change_fstr[Ordered]": [
+    "test.test_loss_change_fstr[PairLogitPairwise]": [
         {
-            "checksum": "a8516b51ed3be146b6a126c8616aeeb0",
-            "uri": "file://test.test_loss_change_fstr_Ordered_/fstr.tsv"
+            "checksum": "11ef00bc53e9712a9baba442a79b4c9b",
+            "uri": "file://test.test_loss_change_fstr_PairLogitPairwise_/fstr.tsv"
         }
     ],
-    "test.test_loss_change_fstr[Plain]": [
+    "test.test_loss_change_fstr[PairLogit]": [
         {
             "checksum": "1e5cf74bbbf118c5366569b734446889",
-            "uri": "file://test.test_loss_change_fstr_Plain_/fstr.tsv"
+            "uri": "file://test.test_loss_change_fstr_PairLogit_/fstr.tsv"
+        }
+    ],
+    "test.test_loss_change_fstr[QueryRMSE]": [
+        {
+            "checksum": "eef5e308bca3452a8ddf91cf4e38fda0",
+            "uri": "file://test.test_loss_change_fstr_QueryRMSE_/fstr.tsv"
+        }
+    ],
+    "test.test_loss_change_fstr[YetiRankPairwise]": [
+        {
+            "checksum": "b3d44bbacc05642a60fb40a1bf0d9924",
+            "uri": "file://test.test_loss_change_fstr_YetiRankPairwise_/fstr.tsv"
+        }
+    ],
+    "test.test_loss_change_fstr[YetiRank]": [
+        {
+            "checksum": "024f447f345b078fed9f3c89d8bdfac7",
+            "uri": "file://test.test_loss_change_fstr_YetiRank_/fstr.tsv"
         }
     ],
     "test.test_loss_change_fstr_without_pairs[Ordered]": [
