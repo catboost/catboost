@@ -332,22 +332,16 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(checkStr.size(), str.size());
     }
 
-    Y_UNIT_TEST(TestRebuildStreamOnPost) {
+    TString MakeHttpOutputBody(const char* body, bool encodingEnabled) {
         TString str;
-        TString bodyStr;
         TStringOutput strOut(str);
-        TStringOutput bodyOut(bodyStr);
-
         {
             TBufferedOutput bufOut(&strOut, 8192);
-
-            TChunkedOutput chunkOut(&bodyOut);
-            TZLibCompress comprOut(&chunkOut, ZLib::GZip);
-
             THttpOutput httpOut(&bufOut);
 
             httpOut.EnableKeepAlive(true);
             httpOut.EnableCompression(true);
+            httpOut.EnableBodyEncoding(encodingEnabled);
 
             httpOut << "POST / HTTP/1.1\r\n";
             httpOut << "Host: yandex.ru\r\n";
@@ -355,18 +349,28 @@ Y_UNIT_TEST_SUITE(THttpTest) {
             httpOut << "\r\n";
 
             UNIT_ASSERT_VALUES_EQUAL(str.size(), 0u);
-
-            const char* body = "<html>Hello</html>";
             httpOut << body;
-            comprOut << body;
-
             httpOut.Flush();
         }
-
         const char* bodyDelimiter = "\r\n\r\n";
         size_t bodyPos = str.find(bodyDelimiter);
         UNIT_ASSERT(bodyPos != TString::npos);
-        UNIT_ASSERT(bodyStr == str.substr(bodyPos + strlen(bodyDelimiter)));
+        return str.substr(bodyPos + strlen(bodyDelimiter));
+    };
+
+    TString SimulateBodyEncoding(const char* body) {
+        TString bodyStr;
+        TStringOutput bodyOut(bodyStr);
+        TChunkedOutput chunkOut(&bodyOut);
+        TZLibCompress comprOut(&chunkOut, ZLib::GZip);
+        comprOut << body;
+        return bodyStr;
+    };
+
+    Y_UNIT_TEST(TestRebuildStreamOnPost) {
+        const char* body = "<html>Hello</html>";
+        UNIT_ASSERT(MakeHttpOutputBody(body, false) == body);
+        UNIT_ASSERT(MakeHttpOutputBody(body, true) == SimulateBodyEncoding(body));
     }
 
     Y_UNIT_TEST(TestOutputFinish) {
