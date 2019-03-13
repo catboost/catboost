@@ -159,6 +159,9 @@ ALLOW .* -> vendor/github.com/jasonlvhit/gocron
 # The MongoDB supported driver for Go
 ALLOW .* -> vendor/go.mongodb.org/mongo-driver
 
+# Package for comparing Go values in tests
+ALLOW .* -> vendor/github.com/google/go-cmp
+
 # 
 # Temporary exceptions.
 #
