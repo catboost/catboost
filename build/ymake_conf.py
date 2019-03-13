@@ -1061,6 +1061,7 @@ class MSVCToolchainOptions(ToolchainOptions):
         self.system_msvc = 'system_msvc' in self.params
         self.ide_msvs = 'ide_msvs' in self.params
         self.use_clang = self.params.get('use_clang', False)
+        self.use_arcadia_toolchain = self.params.get('use_arcadia_toolchain', False)
 
         self.sdk_version = None
 
@@ -2037,6 +2038,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             emit('CLANG_CL', 'yes')
         if self.tc.ide_msvs:
             emit('IDE_MSVS', 'yes')
+        if self.tc.use_arcadia_toolchain:
+            emit('USE_ARCADIA_TOOLCHAIN', 'yes')
 
         emit('CXX_COMPILER', self.tc.cxx_compiler)
         emit('C_COMPILER', self.tc.c_compiler)
