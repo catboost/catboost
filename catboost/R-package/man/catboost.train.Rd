@@ -515,6 +515,20 @@ Default value:
 
 0.66
 
+\item sampling_unit
+
+The parameter allows to specify the sampling scheme: sample weights for each object individually or for an entire group of objects together.
+
+Possible values:
+      \itemize{
+        \item 'Object'
+        \item 'Group'
+      }
+
+Default value:
+
+\code{'Object'}
+
 \item sampling_frequency
 
 Frequency to sample weights and objects when building trees.
@@ -864,6 +878,18 @@ CPU only. Size of block of samples in score calculation. Should be > 0
 Default value:
 
 5000000
+
+\item leaf_estimation_backtracking
+
+Type of backtracking during gradient descent.
+       Possible values:
+           - 'No' - never backtrack; supported on CPU and GPU
+           - 'AnyImprovement' - reduce the descent step until the value of loss function is less than before the step; supported on CPU and GPU
+           - 'Armijo' - reduce the descent step until Armijo condition is satisfied; supported on GPU only
+
+Default value:
+
+'AnyImprovement'
 
 }
 }
