@@ -3,9 +3,9 @@ import argparse
 
 TEMPLATE = '''
 {includes}
-#include <glycine/gen/runtime/lib/cpp_wrapper.h>
-#include <glycine/gen/runtime/lib/python_wrapper.h>
-#include <glycine/gen/runtime/lib/registry.h>
+#include <tasklet/runtime/lib/cpp_wrapper.h>
+#include <tasklet/runtime/lib/python_wrapper.h>
+#include <tasklet/runtime/lib/registry.h>
 
 static const NGlycine::TRegHelper REG(
     "{name}",
