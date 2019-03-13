@@ -7,14 +7,14 @@ TEMPLATE = '''
 #include <tasklet/runtime/lib/python_wrapper.h>
 #include <tasklet/runtime/lib/registry.h>
 
-static const NGlycine::TRegHelper REG(
+static const NTasklet::TRegHelper REG(
     "{name}",
     {wrapper}
 );
 '''
 
-PY_WRAPPER = 'new NGlycine::TPythonWrapper("{impl}")'
-CPP_WRAPPER = 'new NGlycine::TCppWrapper<{impl}>()'
+PY_WRAPPER = 'new NTasklet::TPythonWrapper("{impl}")'
+CPP_WRAPPER = 'new NTasklet::TCppWrapper<{impl}>()'
 
 
 def parse_args():
