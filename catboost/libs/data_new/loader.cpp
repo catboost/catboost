@@ -167,6 +167,7 @@ namespace NCB {
 
     bool IsMissingValue(const TStringBuf& s) {
         return
+            s == AsStringBuf("") ||
             s == AsStringBuf("nan") ||
             s == AsStringBuf("NaN") ||
             s == AsStringBuf("NAN") ||
@@ -195,8 +196,6 @@ namespace NCB {
     bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value) {
         if (!TryFromString<float>(stringValue, *value)) {
             if (IsMissingValue(stringValue)) {
-                *value = std::numeric_limits<float>::quiet_NaN();
-            } else if (stringValue.length() == 0) {
                 *value = std::numeric_limits<float>::quiet_NaN();
             } else {
                 return false;
