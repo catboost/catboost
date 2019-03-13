@@ -158,7 +158,10 @@ def do_link_exe(args):
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
         peer_libs = ' '.join(os.path.join(args.build_root, x) for x in args.cgo_peers)
         extldflags += ' ' if len(extldflags) > 0 else ''
-        extldflags += '-Wl,--start-group {} -Wl,--end-group'.format(peer_libs)
+        if args.targ_os == 'linux':
+            extldflags += '-Wl,--start-group {} -Wl,--end-group'.format(peer_libs)
+        else:
+            extldflags += peer_libs
     if extldflags:
         cmd.append('-extldflags=' + extldflags)
     cmd.append(compile_args.output)
