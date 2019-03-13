@@ -1,13 +1,13 @@
 Package: catboost
 Title: Gradient Boosting on Decision Trees
-Version: 0.12.2
+Version: 0.13
 RoxygenNote: 6.1.1
 Imports: jsonlite
 License: Apache License (== 2.0)
 Description: Open-source gradient boosting on decision trees with categorical
   features support out of the box.
 Authors@R: c(
-    person("Nikita", "Dmitriev", email = "nikitxskv@yandex-team.ru", role = c("aut", "cre")),
+    person("Nikita", "Dmitriev", email = "nikitxskv@yandex-team.ru", role = "aut"),
     person("Andrey", "Gulin", email = "gulin@yandex-team.ru", role = "aut",
       comment = "Chief researcher, author of the algorithm and of the first implementation"),
     person("Anna Veronika", "Dorogush", email = "annaveronika@yandex-team.ru", role = "aut"),
@@ -42,9 +42,10 @@ Authors@R: c(
     person("Alexander", "Baranov", role = "aut", comment = "CoreML support"),
     person("CatBoost DevTeam", role = "cph"),
     person("WLOG Solutions", role = "ctb",
-      comment = "R package preparation for CRAN submission")
+      comment = "R package preparation for CRAN submission"),
+    person("Dmitry", "Baksheev", email = "dbakshee@yandex-team.ru", role = c("aut", "cre"))
     )
-Maintainer: Nikita Dmitriev <nikitxskv@yandex-team.ru>
+Maintainer: Dmitry Baksheev <dbakshee@yandex-team.ru>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
 Suggests: caret, testthat, dplyr, e1071
