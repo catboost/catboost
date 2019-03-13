@@ -247,9 +247,9 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
     return tmp_file_name
 
 
-def ensure_outputs_not_directories(outputs, directory):
+def ensure_outputs_not_directories(outputs):
     for output in outputs:
-        full_path = os.path.join(directory, output)
+        full_path = os.path.abspath(output)
         if not os.path.exists(full_path):
             raise OutputNotExistError('Output does not exist: %s' % full_path)
         if not os.path.isfile(full_path):
@@ -260,11 +260,20 @@ def process(fetched_file, file_name, opts, outputs, remove=True):
     if not os.path.isfile(fetched_file):
         raise ResourceIsDirectoryError('Resource must be a file, not a directory: %s' % fetched_file)
 
+    if opts.untar_to and not os.path.exists(opts.untar_to):
+        os.makedirs(opts.untar_to)
+
+    if opts.copy_to_dir and not os.path.exists(opts.copy_to_dir):
+        os.makedirs(opts.copy_to_dir)
+
+    if opts.copy_to and os.path.dirname(opts.copy_to) and not os.path.exists(os.path.dirname(opts.copy_to)):
+        os.makedirs(os.path.dirname(opts.copy_to))
+
     if opts.untar_to:
         try:
             with tarfile.open(fetched_file, mode='r:*') as tar:
                 tar.extractall(opts.untar_to)
-            ensure_outputs_not_directories(outputs, opts.untar_to)
+            ensure_outputs_not_directories(outputs)
         except tarfile.ReadError as e:
             logging.exception(e)
             raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
@@ -277,11 +286,11 @@ def process(fetched_file, file_name, opts, outputs, remove=True):
 
     if opts.copy_to:
         hardlink_or_copy(fetched_file, opts.copy_to)
-        ensure_outputs_not_directories(outputs, opts.copy_to)
+        ensure_outputs_not_directories(outputs)
 
     if opts.copy_to_dir:
         hardlink_or_copy(fetched_file, os.path.join(opts.copy_to_dir, file_name))
-        ensure_outputs_not_directories(outputs, opts.copy_to_dir)
+        ensure_outputs_not_directories(outputs)
 
     if getattr(opts, 'rename_to', False):
         rename_or_copy_and_remove(fetched_file, opts.rename_to)
