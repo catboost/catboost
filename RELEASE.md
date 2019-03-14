@@ -1,3 +1,41 @@
+# Release 0.13
+
+## Speedups:
+- Impressive speedup of CPU training for datasets with predominantly binary features (up to 5-6x).
+- Speedup prediction and shap values array casting on large pools (issue [#684](https://github.com/catboost/catboost/issues/684)).
+
+## New features:
+- We've introduced a new type of feature importances - `LossFunctionChange`.
+  This type of feature importances works well in all the modes, but is especially good for ranking. It is more expensive to calculate, thus we have not made it default. But you can look at it by selecting the type of feature importance.
+- Now we support online statistics for categorical features in `QuerySoftMax` mode on GPU.
+- We now support feature names in `cat_features`, PR [#679](https://github.com/catboost/catboost/pull/679) by [@infected-mushroom](https://github.com/infected-mushroom) - thanks a lot [@infected-mushroom](https://github.com/infected-mushroom)!
+- We've intoduced new sampling_type `MVS`, which speeds up CPU training if you use it.
+- Added `classes_` attribute in python.
+- Added support for input/output borders files in python package. Thank you [@necnec](https://github.com/necnec) for your PR [#656](https://github.com/catboost/catboost/pull/656)!
+- One more new option for working with categorical features is `ctr_target_border_count`.
+  This option can be used if your initial target values are not binary and you do regression or ranking. It is equal to 1 by default, but you can try increasing it.
+- Added new option `sampling_unit` that allows to switch sampling from individual objects to entire groups.
+- More strings are interpreted as missing values for numerical features (mostly similar to pandas' [read_csv](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_csv.html)).
+- Allow `skip_train` property for loss functions in cv method. Contributed by GitHub user [@RakitinDen](https://github.com/RakitinDen), PR [#662](https://github.com/catboost/catboost/pull/662), many thanks.
+- We've improved classification mode on CPU, there will be less cases when the training diverges.
+  You can also try to experiment with new `leaf_estimation_backtracking` parameter.
+- Added new compare method for visualization, PR [#652](https://github.com/catboost/catboost/pull/652). Thanks [@Drakon5999](https://github.com/Drakon5999) for your contribution!
+- Implemented `__eq__` method for `CatBoost*` python classes (PR [#654](https://github.com/catboost/catboost/pull/654)). Thanks [@daskol](https://github.com/daskol) for your contribution!
+
+## Changes:
+- Changed defaults for `one_hot_max_size` training parameter for groupwise loss function training.
+- `SampleId` is the new main name for former `DocId` column in input data format (`DocId` is still supported for compatibility). Contributed by GitHub user [@daskol](https://github.com/daskol), PR [#655](https://github.com/catboost/catboost/pull/655), many thanks.
+- Improved CLI interface for cross-validation: replaced `-X/-Y` options with `--cv`, PR [#644](https://github.com/catboost/catboost/pull/644). Thanks [@tswr](https://github.com/tswr) for your pr!
+
+## R package:
+- Thanks to [@ws171913](https://github.com/ws171913) we made necessary changes to prepare catboost for CRAN integration, PR [#715](https://github.com/catboost/catboost/pull/715). This is in progress now.
+- R interface for cross-validation contributed by GitHub user [@brsoyanvn](https://github.com/brsoyanvn), PR [#561](https://github.com/catboost/catboost/pull/561) -- many thanks [@brsoyanvn](https://github.com/brsoyanvn)!
+
+## Educational materials:
+- We've added new tutorial for [GPU training on Google Colaboratory](https://github.com/catboost/tutorials/blob/master/tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb).
+
+We have also done a list of fixes and data check improvements.
+
 # Release 0.12.2
 ## Changes:
 * Fixed loading of `epsilon` dataset into memory
