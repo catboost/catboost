@@ -144,7 +144,7 @@ namespace NCatboostCuda {
 
         const auto& featuresLayout = *dataProvider.MetaInfo.FeaturesLayout;
 
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(GetTarget(dataProvider.TargetData), ENanMode::Forbidden, borders);
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(), ENanMode::Forbidden, borders);
 
         TAdaptiveLock lock;
 
@@ -206,8 +206,11 @@ namespace NCatboostCuda {
         bool hasTestPairs = false;
         ui32 testPoolSize = 0;
         if (testProvider) {
-            hasTestConstTarget = IsConst(GetTarget(testProvider->TargetData));
-            hasTestPairs = testProvider->TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking));
+            auto maybeTestTarget = testProvider->TargetData->GetTarget();
+            if (maybeTestTarget) {
+                hasTestConstTarget = IsConst(*maybeTestTarget);
+            }
+            hasTestPairs = testProvider->MetaInfo.HasPairs;
             testPoolSize = testProvider->GetObjectCount();
         }
 
@@ -386,7 +389,7 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    GetTarget(trainingData.Learn->TargetData))(featuresManager.GetTargetBinarizationDescription()));
+                    *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(catBoostOptions.LoggingLevel);
             CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
@@ -502,7 +505,7 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    GetTarget(trainingData.Learn->TargetData))(featuresManager.GetTargetBinarizationDescription()));
+                    *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(catBoostOptions.LoggingLevel);
             CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());

@@ -268,12 +268,12 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
-    TConstArrayRef<TQueryInfo> queriesInfo = GetGroupInfo(targetData);
+    TConstArrayRef<TQueryInfo> queriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, documentCount,
                                                       localExecutor);
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
     scores.back().Add(
-            metric->Eval(approx, GetTarget(targetData), GetWeights(targetData), queriesInfo, 0, blockCount, *localExecutor)
+            metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, 0, blockCount, *localExecutor)
     );
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
 
@@ -311,7 +311,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
                 }
             }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
             scores[featureIdx].Add(
-                    metric->Eval(approx, GetTarget(targetData), GetWeights(targetData), queriesInfo, queryBegin, queryEnd,
+                    metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, queryBegin, queryEnd,
                                  *localExecutor)
             );
             localExecutor->ExecRange([&](ui32 docIdx) {

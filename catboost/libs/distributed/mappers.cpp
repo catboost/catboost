@@ -45,9 +45,9 @@ namespace NCatboostDistributed {
             &NPar::LocalExecutor());
         Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
 
-        auto baseline = GetBaseline(trainData->TrainData->TargetData);
-        if (!baseline.empty()) {
-            AssignRank2<float>(baseline, &localData.Progress.AvrgApprox);
+        auto maybeBaseline = trainData->TrainData->TargetData->GetBaseline();
+        if (maybeBaseline) {
+            AssignRank2<float>(*maybeBaseline, &localData.Progress.AvrgApprox);
         } else {
             localData.Progress.AvrgApprox.resize(
                 trainData->ApproxDimension,
@@ -102,9 +102,9 @@ namespace NCatboostDistributed {
         const auto& leafValues = valuedForest->Data.second;
         Y_ASSERT(forest.size() == leafValues.size());
 
-        auto baseline = GetBaseline(trainData->TrainData->TargetData);
-        if (!baseline.empty()) {
-            AssignRank2<float>(baseline, &localData.Progress.AvrgApprox);
+        auto maybeBaseline = trainData->TrainData->TargetData->GetBaseline();
+        if (maybeBaseline) {
+            AssignRank2<float>(*maybeBaseline, &localData.Progress.AvrgApprox);
         }
 
         const ui32 learnSampleCount = trainData->TrainData->GetObjectCount();
@@ -636,9 +636,9 @@ namespace NCatboostDistributed {
                 const TString metricDescription = errors[errorIdx]->GetDescription();
                 (*additiveStats)[metricDescription] = EvalErrors(
                     localData.Progress.AvrgApprox,
-                    GetTarget(trainData->TrainData->TargetData),
-                    GetWeights(trainData->TrainData->TargetData),
-                    GetGroupInfo(trainData->TrainData->TargetData),
+                    *trainData->TrainData->TargetData->GetTarget(),
+                    GetWeights(*trainData->TrainData->TargetData),
+                    trainData->TrainData->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
                     errors[errorIdx],
                     &NPar::LocalExecutor());
             }
@@ -658,7 +658,7 @@ namespace NCatboostDistributed {
             leafCount,
             localData.Indices,
             localData.Progress.AveragingFold.GetLearnPermutationArray(),
-            GetWeights(trainData->TrainData->TargetData));
+            GetWeights(*trainData->TrainData->TargetData));
     }
 
 } // NCatboostDistributed

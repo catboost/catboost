@@ -138,7 +138,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(cursors->Cursors[i].GetMapping().GetObjectsSlice().Size());
 
                 if (dataProvider.MetaInfo.BaselineCount > 0) {
-                    auto dataProviderBaseline = GetBaseline(dataProvider.TargetData);
+                    auto dataProviderBaseline = *dataProvider.TargetData->GetBaseline();
 
                     TVector<float> baselineBias;
                     if (dataProvider.MetaInfo.BaselineCount > approxDim) {
@@ -161,7 +161,7 @@ namespace NCatboostCuda {
             if (TestDataProvider) {
                 cursors->TestCursor.Reset(inputData.DataSets.GetTestDataSet().GetTarget().GetSamplesMapping(), approxDim);
                 if (TestDataProvider->MetaInfo.BaselineCount > 0) {
-                    auto testDataProviderBaseline = GetBaseline(TestDataProvider->TargetData);
+                    auto testDataProviderBaseline = *TestDataProvider->TargetData->GetBaseline();
 
                     const auto& testPermutation = inputData.DataSets.GetTestLoadBalancingPermutation();
                     TVector<float> baselineBias;

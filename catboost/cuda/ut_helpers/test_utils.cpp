@@ -181,5 +181,5 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-    (*featuresManager)->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory, NCB::GetTarget((*trainingData)->TargetData))((*featuresManager)->GetTargetBinarizationDescription()));
+    (*featuresManager)->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory, *(*trainingData)->TargetData->GetTarget())((*featuresManager)->GetTargetBinarizationDescription()));
 }

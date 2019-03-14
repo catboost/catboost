@@ -92,9 +92,9 @@ void CalcErrors(
             if (ctx->Params.SystemOptions->IsSingleHost()) {
                 const auto& targetData = trainingDataProviders.Learn->TargetData;
 
-                auto target = GetMaybeTarget(targetData).GetOrElse(TConstArrayRef<float>());
-                auto weights = GetWeights(targetData);
-                auto queryInfo = GetGroupInfo(targetData);
+                auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<float>());
+                auto weights = GetWeights(*targetData);
+                auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
                 TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
                 for (int i = 0; i < errors.ysize(); ++i) {
@@ -132,10 +132,10 @@ void CalcErrors(
             }
             const auto& targetData = testDataPtr->TargetData;
 
-            auto maybeTarget = GetMaybeTarget(targetData);
+            auto maybeTarget = targetData->GetTarget();
             auto target = maybeTarget.GetOrElse(TConstArrayRef<float>());
-            auto weights = GetWeights(targetData);
-            auto queryInfo = GetGroupInfo(targetData);
+            auto weights = GetWeights(*targetData);
+            auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());;
 
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {

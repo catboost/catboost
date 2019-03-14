@@ -163,7 +163,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             TConstArrayRef<ui32> learnPermutationRef = ctx->LearnProgress.AveragingFold.GetLearnPermutationArray();
 
             const size_t leafCount = treeValues[0].size();
-            sumLeafWeights = SumLeafWeights(leafCount, indices, learnPermutationRef, GetWeights(data.Learn->TargetData));
+            sumLeafWeights = SumLeafWeights(leafCount, indices, learnPermutationRef, GetWeights(*data.Learn->TargetData));
             NormalizeLeafValues(
                 UsesPairsForCalculation(ctx->Params.LossFunctionDescription->GetLossFunction()),
                 ctx->Params.BoostingOptions->LearningRate,

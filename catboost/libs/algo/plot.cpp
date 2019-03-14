@@ -109,10 +109,10 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(cons
         NonAdditiveMetricsData.Target.reserve(newPoolSize);
         NonAdditiveMetricsData.Weights.reserve(newPoolSize);
 
-        const auto target = GetTarget(processedData.TargetData);
+        const auto target = *processedData.TargetData->GetTarget();
         NonAdditiveMetricsData.Target.insert(NonAdditiveMetricsData.Target.end(), target.begin(), target.end());
 
-        const auto weights = GetWeights(processedData.TargetData);
+        const auto weights = GetWeights(*processedData.TargetData);
         NonAdditiveMetricsData.Weights.insert(NonAdditiveMetricsData.Weights.end(), weights.begin(), weights.end());
     }
     ui32 begin = ProcessedIterationsCount;
@@ -164,10 +164,10 @@ static void InitApproxBuffer(
 
     bool hasBaseline = false;
     if (initBaselineIfAvailable) {
-        hasBaseline = !GetBaseline(datasetParts[0].TargetData).empty();
+        hasBaseline = datasetParts[0].TargetData->GetBaseline().Defined();
         for (auto datasetPartIdx : xrange<size_t>(1, datasetParts.size())) {
             CB_ENSURE(
-                !GetBaseline(datasetParts[datasetPartIdx].TargetData).empty() == hasBaseline,
+                datasetParts[datasetPartIdx].TargetData->GetBaseline().Defined() == hasBaseline,
                 "Inconsistent baseline specification between dataset parts: part 0 has "
                 << (hasBaseline ? "" : "no ") << " baseline, but part " << datasetPartIdx << " has"
                 << (hasBaseline ? " not" : "")
@@ -182,7 +182,7 @@ static void InitApproxBuffer(
         if (hasBaseline) {
             approx.reserve(docCount);
             for (const auto& datasetPart : datasetParts) {
-                auto baselinePart = GetBaseline(datasetPart.TargetData)[approxIdx];
+                auto baselinePart = (*datasetPart.TargetData->GetBaseline())[approxIdx];
                 approx.insert(approx.end(), baselinePart.begin(), baselinePart.end());
             }
             Y_ASSERT(approx.size() == (size_t)docCount);
@@ -222,9 +222,9 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
         Load(docCount, LastApproxes.Get(), &CurApproxBuffer);
     }
 
-    const auto target = GetTarget(processedData.TargetData);
-    const auto weights = GetWeights(processedData.TargetData);
-    const auto groupInfos = GetGroupInfo(processedData.TargetData);
+    const auto target = *processedData.TargetData->GetTarget();
+    const auto weights = GetWeights(*processedData.TargetData);
+    const auto groupInfos = processedData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
     for (ui32 iterationIndex = beginIterationIndex; iterationIndex < endIterationIndex; ++iterationIndex) {
         end = Iterations[iterationIndex] + 1;
@@ -267,7 +267,7 @@ static TVector<float> BuildTargets(const TVector<TProcessedDataProvider>& datase
     TVector<float> result;
     result.reserve(GetDocCount(datasetParts));
     for (const auto& datasetPart : datasetParts) {
-        const auto target = GetTarget(datasetPart.TargetData);
+        const auto target = *datasetPart.TargetData->GetTarget();
         result.insert(result.end(), target.begin(), target.end());
     }
     return result;
@@ -277,7 +277,7 @@ static TVector<float> BuildWeights(const TVector<TProcessedDataProvider>& datase
     TVector<float> result;
     result.reserve(GetDocCount(datasetParts));
     for (const auto& datasetPart : datasetParts) {
-        const auto weights = GetWeights(datasetPart.TargetData);
+        const auto weights = GetWeights(*datasetPart.TargetData);
         result.insert(result.end(), weights.begin(), weights.end());
     }
     return result;

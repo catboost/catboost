@@ -144,7 +144,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
     TVector<TConstArrayRef<float>> labels(datasets.size());
 
     // need to save owners of labels data
-    TVector<TTargetDataProviders> targetDataParts(datasets.size());
+    TVector<TTargetDataProviderPtr> targetDataParts(datasets.size());
 
     NCatboostOptions::TLossDescription logLoss;
     logLoss.LossFunction.Set(ELossFunction::Logloss);
@@ -175,7 +175,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
 
             targetDataParts[i] = std::move(processedData.TargetData);
 
-            labels[i] = GetTarget(targetDataParts[i]);
+            labels[i] = *(targetDataParts[i]->GetTarget());
         },
         0,
         SafeIntegerCast<int>(datasets.size()),

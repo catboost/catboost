@@ -500,9 +500,9 @@ namespace {
                 /*testPoolSize*/ trainingDataForCpu.GetTestSampleCount(),
                 /*hasTestLabels*/ trainingDataForCpu.Test.size() > 0 &&
                     trainingDataForCpu.Test[0]->MetaInfo.HasTarget &&
-                    IsConst(GetTarget(trainingDataForCpu.Test[0]->TargetData)),
+                    IsConst(*trainingDataForCpu.Test[0]->TargetData->GetTarget()),
                 /*hasTestPairs*/ trainingDataForCpu.Test.size() > 0 &&
-                    trainingDataForCpu.Test[0]->TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking)),
+                    trainingDataForCpu.Test[0]->MetaInfo.HasPairs,
                 &updatedOutputOptions.UseBestModel,
                 &updatedParams
             );

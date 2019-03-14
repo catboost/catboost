@@ -78,7 +78,7 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
 
     CtrsHelper.InitCtrHelper(Params.CatFeatureParams,
                              *Layout,
-                             GetMaybeTarget(data.Learn->TargetData),
+                             data.Learn->TargetData->GetTarget(),
                              lossFunction,
                              ObjectiveDescriptor,
                              Params.DataProcessingOptions->AllowConstLabel);
@@ -145,9 +145,9 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
     );
 
     LearnProgress.AvrgApprox.resize(LearnProgress.ApproxDimension, TVector<double>(learnSampleCount));
-    const TVector<TConstArrayRef<float>> learnBaseline = GetBaseline(data.Learn->TargetData);
-    if (!learnBaseline.empty()) {
-        AssignRank2<float>(learnBaseline, &LearnProgress.AvrgApprox);
+    TMaybeData<TConstArrayRef<TConstArrayRef<float>>> learnBaseline = data.Learn->TargetData->GetBaseline();
+    if (learnBaseline) {
+        AssignRank2<float>(*learnBaseline, &LearnProgress.AvrgApprox);
     }
     ResizeRank2(data.Test.size(), LearnProgress.ApproxDimension, LearnProgress.TestApprox);
     for (size_t testIdx = 0; testIdx < data.Test.size(); ++testIdx) {
@@ -155,13 +155,13 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
         if (testData == nullptr || testData->GetObjectCount() == 0) {
             continue;
         }
-        const TVector<TConstArrayRef<float>> testBaseline = GetBaseline(testData->TargetData);
-        if (testBaseline.empty()) {
+        TMaybeData<TConstArrayRef<TConstArrayRef<float>>> testBaseline = testData->TargetData->GetBaseline();
+        if (!testBaseline) {
             for (auto& approxDim : LearnProgress.TestApprox[testIdx]) {
                 approxDim.resize(testData->GetObjectCount());
             }
         } else {
-            AssignRank2<float>(testBaseline, &LearnProgress.TestApprox[testIdx]);
+            AssignRank2<float>(*testBaseline, &LearnProgress.TestApprox[testIdx]);
         }
     }
 

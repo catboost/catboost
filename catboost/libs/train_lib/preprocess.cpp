@@ -16,32 +16,30 @@
 using namespace NCB;
 
 
-static void CheckTestBaseline(const TVector<TConstArrayRef<float>>& trainBaseline,
-                              const TVector<TConstArrayRef<float>>& testBaseline,
+static void CheckTestBaseline(TMaybeData<TConstArrayRef<TConstArrayRef<float>>> trainBaseline,
+                              TMaybeData<TConstArrayRef<TConstArrayRef<float>>> testBaseline,
                               size_t testIdx) {
-    size_t testDocs = testBaseline.size() ? testBaseline[0].size() : 0;
-    bool trainHasBaseline = trainBaseline.ysize() != 0;
-    bool testHasBaseline = testDocs == 0 ? trainHasBaseline : testBaseline.ysize() != 0;
-    if (trainHasBaseline) {
-        CB_ENSURE(testHasBaseline, "Baseline for test is not provided");
+    size_t testDocs = testBaseline ? (*testBaseline)[0].size() : 0;
+    if (trainBaseline) {
+        CB_ENSURE(testBaseline, "Baseline for test is not provided");
     }
-    if (testHasBaseline) {
-        CB_ENSURE(trainHasBaseline, "Baseline for train is not provided");
+    if (testBaseline) {
+        CB_ENSURE(trainBaseline, "Baseline for train is not provided");
     }
     if (testDocs != 0) {
         CB_ENSURE(
-            trainBaseline.ysize() == testBaseline.ysize(),
-            "Baseline dimension differ: train: " << trainBaseline.ysize() << " vs test["
-             << testIdx << "]: " << testBaseline.ysize()
+            trainBaseline->size() == testBaseline->size(),
+            "Baseline dimension differ: train: " << trainBaseline->size() << " vs test["
+             << testIdx << "]: " << testBaseline->size()
         );
     }
 }
 
 
 void CheckConsistency(const TTrainingDataProviders& data) {
-    auto learnBaseline = GetBaseline(data.Learn->TargetData);
+    auto learnBaseline = data.Learn->TargetData->GetBaseline();
     for (auto testIdx : xrange(data.Test.size())) {
-        CheckTestBaseline(learnBaseline, GetBaseline(data.Test[testIdx]->TargetData), testIdx);
+        CheckTestBaseline(learnBaseline, data.Test[testIdx]->TargetData->GetBaseline(), testIdx);
     }
 }
 

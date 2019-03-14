@@ -52,14 +52,14 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
         TVector<TVector<double>> formulaNumeratorMultiplier(leavesEstimationIterations);
         TVector<double> localApproxes(approxes);
 
-        TConstArrayRef<float> weights = GetWeights(processedData.TargetData);
+        TConstArrayRef<float> weights = GetWeights(*processedData.TargetData);
 
         for (ui32 it = 0; it < leavesEstimationIterations; ++it) {
             EvaluateDerivatives(
                 lossFunction,
                 leafEstimationMethod,
                 localApproxes,
-                GetTarget(processedData.TargetData),
+                *processedData.TargetData->GetTarget(),
                 &FirstDerivatives,
                 &SecondDerivatives,
                 &ThirdDerivatives

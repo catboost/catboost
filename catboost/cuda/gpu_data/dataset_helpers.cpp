@@ -7,8 +7,8 @@
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
                                                                                             const NCB::TTrainingDataProvider& dataProvider,
                                                                                             const NCB::TTrainingDataProvider* test) {
-    TVector<float> joinedTarget = Join(GetTarget(dataProvider.TargetData),
-                                       test ? MakeMaybe(GetTarget(test->TargetData)) : Nothing());
+    TVector<float> joinedTarget = Join(*dataProvider.TargetData->GetTarget(),
+                                       test ? MakeMaybe(*test->TargetData->GetTarget()) : Nothing());
 
     THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr;
     ctrsTargetPtr = new TCtrTargets<NCudaLib::TMirrorMapping>;

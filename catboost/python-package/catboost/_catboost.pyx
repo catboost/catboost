@@ -290,7 +290,6 @@ cdef extern from "catboost/libs/data_new/target.h" namespace "NCB":
         pass
 
 ctypedef TIntrusivePtr[TTargetDataProvider] TTargetDataProviderPtr
-ctypedef THashMap[TTargetDataSpecification, TTargetDataProviderPtr] TTargetDataProviders
 
 
 cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
@@ -329,7 +328,7 @@ cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
         TDataMetaInfo MetaInfo
         TObjectsGroupingPtr ObjectsGrouping
         TIntrusivePtr[TTObjectsDataProvider] ObjectsData
-        TTargetDataProviders TargetData
+        TTargetDataProviderPtr TargetData
 
 
     ctypedef TProcessedDataProviderTemplate[TObjectsDataProvider] TProcessedDataProvider

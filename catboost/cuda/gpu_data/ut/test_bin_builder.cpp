@@ -35,7 +35,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
         {
-            BinarizedTarget = NCB::BinarizeLine<ui8>(GetTarget(dataProvider.TargetData), ENanMode::Forbidden, featuresManager.GetTargetBorders());
+            BinarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
             NumClasses = 0;
             {
                 std::array<bool, 255> seen;
@@ -133,7 +133,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
                 TCpuTargetClassCtrCalcer calcer(treeSplit.UniqueCount,
                                                 treeSplit.Bins,
-                                                GetWeights(DataProvider.TargetData),
+                                                GetWeights(*DataProvider.TargetData),
                                                 ctr.Configuration.Prior[0], ctr.Configuration.Prior[1]);
 
                 TVector<ui32> featureBins;

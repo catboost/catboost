@@ -4,8 +4,10 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/mapfindptr.h>
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/string.h>
 
 #include <util/system/types.h>
 
@@ -86,6 +88,5 @@ namespace NCB {
             dataRef = Nothing();
         }
     }
-
 
 }

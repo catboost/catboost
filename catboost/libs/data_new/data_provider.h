@@ -287,7 +287,7 @@ namespace NCB {
         TDataMetaInfo MetaInfo;
         TObjectsGroupingPtr ObjectsGrouping;
         TIntrusivePtr<TTObjectsDataProvider> ObjectsData;
-        TTargetDataProviders TargetData;
+        TTargetDataProviderPtr TargetData;
 
     public:
         TProcessedDataProviderTemplate() = default;
@@ -296,7 +296,7 @@ namespace NCB {
             TDataMetaInfo&& metaInfo,
             TObjectsGroupingPtr objectsGrouping,
             TIntrusivePtr<TTObjectsDataProvider> objectsData,
-            TTargetDataProviders&& targetData
+            TTargetDataProviderPtr targetData
         )
             : MetaInfo(std::move(metaInfo))
             , ObjectsGrouping(objectsGrouping)
@@ -340,11 +340,11 @@ namespace NCB {
                 }
             );
 
-            TTargetDataProviders targetDataSubset;
+            TTargetDataProviderPtr targetDataSubset;
 
             tasks.emplace_back(
                 [&, this]() {
-                    targetDataSubset = NCB::GetSubsets(TargetData, objectsGroupingSubset, localExecutor);
+                    targetDataSubset = TargetData->GetSubset(objectsGroupingSubset, localExecutor);
                 }
             );
 
@@ -387,7 +387,7 @@ namespace NCB {
             TTargetSerialization::Load(ObjectsGrouping, &binSaver, &TargetData);
         } else {
             TObjectsSerialization::SaveNonSharedPart<TTObjectsDataProvider>(*ObjectsData, &binSaver);
-            TTargetSerialization::SaveNonSharedPart(TargetData, &binSaver);
+            TTargetSerialization::SaveNonSharedPart(*TargetData, &binSaver);
         }
         return 0;
     }

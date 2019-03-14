@@ -38,7 +38,7 @@ namespace NCatboostCuda {
 
         dataSetsHolder.PermutationDataSets.resize(permutationCount);
 
-        const auto learnWeights = NCB::GetWeights(DataProvider.TargetData);
+        const auto learnWeights = NCB::GetWeights(*DataProvider.TargetData);
 
         const bool isTrivialLearnWeights = AreEqualTo(learnWeights, 1.0f);
         {
@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                 dataSetsHolder.DirectTarget = ctrsTarget.WeightedTarget.SliceView(ctrsTarget.LearnSlice);
             } else {
                 dataSetsHolder.DirectTarget.Reset(learnMapping);
-                dataSetsHolder.DirectTarget.Write(GetTarget(DataProvider.TargetData));
+                dataSetsHolder.DirectTarget.Write(*DataProvider.TargetData->GetTarget());
             }
         }
 
@@ -248,9 +248,9 @@ namespace NCatboostCuda {
         TMirrorBuffer<ui32> inverseIndices = indices.CopyView();
 
         auto targets = TMirrorBuffer<float>::CopyMapping(indices);
-        targets.Write(GetTarget(LinkedTest->TargetData));
+        targets.Write(*LinkedTest->TargetData->GetTarget());
         auto weights = TMirrorBuffer<float>::CopyMapping(indices);
-        weights.Write(GetWeights(LinkedTest->TargetData));
+        weights.Write(GetWeights(*LinkedTest->TargetData));
 
         dataSetsHolder.TestDataSet.Reset(new TFeatureParallelDataSet(*LinkedTest,
                                                                      dataSetsHolder.CompressedIndex,

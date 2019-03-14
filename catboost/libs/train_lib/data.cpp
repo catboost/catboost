@@ -161,7 +161,7 @@ namespace NCB {
 
         bool needTargetDataForCtrs = calcCtrs && CtrsNeedTargetData(params->CatFeatureParams) && isLearnData;
 
-        trainingData->TargetData = CreateTargetDataProviders(
+        trainingData->TargetData = CreateTargetDataProvider(
             srcData->RawTargetData,
             trainingData->ObjectsData->GetSubgroupIds(),
             /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
@@ -178,12 +178,8 @@ namespace NCB {
             &dataProcessingOptions.ClassNames.Get(),
             labelConverter,
             rand,
-            localExecutor);
-
-        // in case pairs were generated
-        if (trainingData->TargetData.contains(TTargetDataSpecification(ETargetType::GroupPairwiseRanking))) {
-            trainingData->MetaInfo.HasPairs = true;
-        }
+            localExecutor,
+            &trainingData->MetaInfo.HasPairs);
 
         return trainingData;
     }

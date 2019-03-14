@@ -31,7 +31,7 @@ TVector<TVector<double>> CollectLeavesStatistics(
                 &rand,
                 localExecutor);
 
-            weights = GetWeights(processedData.TargetData);
+            weights = GetWeights(*processedData.TargetData);
         }
     }
 

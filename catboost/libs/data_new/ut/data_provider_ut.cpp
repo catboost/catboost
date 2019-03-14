@@ -226,7 +226,28 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
         UNIT_ASSERT_EQUAL(lhs.MetaInfo, rhs.MetaInfo);
         UNIT_ASSERT_EQUAL(*lhs.ObjectsGrouping, *rhs.ObjectsGrouping);
         NCB::NDataNewUT::Compare(*lhs.ObjectsData, *rhs.ObjectsData);
-        CompareTargetDataProviders(lhs.TargetData, rhs.TargetData);
+        UNIT_ASSERT_EQUAL(*lhs.TargetData, *rhs.TargetData);
+    }
+
+    template <class TTObjectsDataProvider>
+    void TestSerializationCase(
+        TProcessedDataProviderTemplate<TTObjectsDataProvider>& trainingDataProvider
+    ) {
+        TBuffer buffer;
+
+        {
+            TBufferOutput out(buffer);
+            SerializeToStream(out, trainingDataProvider);
+        }
+
+        TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;
+
+        {
+            TBufferInput in(buffer);
+            SerializeFromStream(in, trainingDataProvider2);
+        }
+
+        Compare(trainingDataProvider, trainingDataProvider2);
     }
 
 
@@ -246,9 +267,14 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
         );
 
         TSharedVector<float> targets = ShareVector<float>({0.0f, 0.2f, 0.1f, 0.3f, 0.12f, 0.0f});
+
+        // 3 classes
+        TSharedVector<float> multiClassTargets = ShareVector<float>({1.f, 0.0f, 1.0f, 2.0f, 2.0f, 0.0f});
+
         TVector<TSharedVector<float>> baselines = {
             ShareVector<float>({0.1f, 0.2f, 0.4f, 1.0f, 2.1f, 3.3f}),
-            ShareVector<float>({0.0f, 0.11f, 0.04f, 0.12f, 0.6f, 0.82f})
+            ShareVector<float>({0.0f, 0.11f, 0.04f, 0.12f, 0.6f, 0.82f}),
+            ShareVector<float>({0.22f, 0.71f, 0.0f, 0.05f, 0.0f, 0.0f}),
         };
 
 
@@ -277,78 +303,67 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
         TSharedVector<TQueryInfo> sharedGroupInfo = ShareVector(std::move(groupInfo));
 
 
-        trainingDataProvider.TargetData.emplace(
-            TTargetDataSpecification(ETargetType::BinClass),
-            MakeIntrusive<TBinClassTarget>(
-                "",
-                trainingDataProvider.ObjectsGrouping,
-                targets,
-                weights,
-                baselines[0]
-            )
-        );
-
-        trainingDataProvider.TargetData.emplace(
-            TTargetDataSpecification(ETargetType::MultiClass),
-            MakeIntrusive<TMultiClassTarget>(
-                "",
-                trainingDataProvider.ObjectsGrouping,
-                /*classCount*/ ui32(2),
-                targets,
-                weights,
-                TVector<TSharedVector<float>>(baselines),
-                /*isForGpu*/ false
-            )
-        );
-        trainingDataProvider.TargetData.emplace(
-            TTargetDataSpecification(ETargetType::Regression),
-            MakeIntrusive<TRegressionTarget>(
-                "",
-                trainingDataProvider.ObjectsGrouping,
-                targets,
-                weights,
-                baselines[0]
-            )
-        );
-
-        trainingDataProvider.TargetData.emplace(
-            TTargetDataSpecification(ETargetType::GroupwiseRanking),
-            MakeIntrusive<TGroupwiseRankingTarget>(
-                "",
-                trainingDataProvider.ObjectsGrouping,
-                targets,
-                weights,
-                baselines[1], // take 2nd baseline just for diversity with BinClassTarget
-                sharedGroupInfo
-            )
-        );
-
-        trainingDataProvider.TargetData.emplace(
-            TTargetDataSpecification(ETargetType::GroupPairwiseRanking),
-            MakeIntrusive<TGroupPairwiseRankingTarget>(
-                "",
-                trainingDataProvider.ObjectsGrouping,
-                baselines[0],
-                sharedGroupInfo
-            )
-        );
-
-
-        TBuffer buffer;
-
+        // BinClass
         {
-            TBufferOutput out(buffer);
-            SerializeToStream(out, trainingDataProvider);
+            TProcessedTargetData processedTargetData;
+            processedTargetData.TargetsClassCount.emplace("", 2);
+            processedTargetData.Targets.emplace("", targets);
+            processedTargetData.Weights.emplace("", weights);
+            processedTargetData.Baselines.emplace("", TVector<TSharedVector<float>>(1, baselines[0]));
+
+            trainingDataProvider.TargetData = MakeIntrusive<TTargetDataProvider>(
+                trainingDataProvider.ObjectsGrouping,
+                std::move(processedTargetData)
+            );
+
+            TestSerializationCase(trainingDataProvider);
         }
 
-        TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;
-
+        // MultiClass
         {
-            TBufferInput in(buffer);
-            SerializeFromStream(in, trainingDataProvider2);
+            TProcessedTargetData processedTargetData;
+            processedTargetData.TargetsClassCount.emplace("", 3);
+            processedTargetData.Targets.emplace("", targets);
+            processedTargetData.Weights.emplace("", weights);
+            processedTargetData.Baselines.emplace("", baselines);
+
+            trainingDataProvider.TargetData = MakeIntrusive<TTargetDataProvider>(
+                trainingDataProvider.ObjectsGrouping,
+                std::move(processedTargetData)
+            );
+
+            TestSerializationCase(trainingDataProvider);
         }
 
-        Compare(trainingDataProvider, trainingDataProvider2);
+        // GroupwiseRanking
+        {
+            TProcessedTargetData processedTargetData;
+            processedTargetData.Targets.emplace("", targets);
+            processedTargetData.Weights.emplace("", weights);
+            processedTargetData.Baselines.emplace("", TVector<TSharedVector<float>>(1, baselines[1]));
+            processedTargetData.GroupInfos.emplace("", sharedGroupInfo);
+
+            trainingDataProvider.TargetData = MakeIntrusive<TTargetDataProvider>(
+                trainingDataProvider.ObjectsGrouping,
+                std::move(processedTargetData)
+            );
+
+            TestSerializationCase(trainingDataProvider);
+        }
+
+        // GroupPairwiseRanking
+        {
+            TProcessedTargetData processedTargetData;
+            processedTargetData.Baselines.emplace("", TVector<TSharedVector<float>>(1, baselines[0]));
+            processedTargetData.GroupInfos.emplace("", sharedGroupInfo);
+
+            trainingDataProvider.TargetData = MakeIntrusive<TTargetDataProvider>(
+                trainingDataProvider.ObjectsGrouping,
+                std::move(processedTargetData)
+            );
+
+            TestSerializationCase(trainingDataProvider);
+        }
     }
 
     Y_UNIT_TEST(Serialization) {

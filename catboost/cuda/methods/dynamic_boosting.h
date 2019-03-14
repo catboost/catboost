@@ -524,7 +524,7 @@ namespace NCatboostCuda {
                 state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
                 state->TestCursor = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetTestDataSet().GetTarget().GetTargets());
                 if (TestDataProvider->MetaInfo.BaselineCount > 0) {
-                    state->TestCursor.Write(GetBaseline(TestDataProvider->TargetData)[0]);
+                    state->TestCursor.Write((*TestDataProvider->TargetData->GetBaseline())[0]);
                 } else {
                     FillBuffer(state->TestCursor, 0.0f);
                 }
@@ -542,7 +542,7 @@ namespace NCatboostCuda {
                 const auto& permutation = state->DataSets.GetPermutation(i);
                 TVector<float> baseline;
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
-                    baseline = permutation.Gather(GetBaseline(DataProvider->TargetData)[0]);
+                    baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
                     baseline.resize(DataProvider->GetObjectCount(), 0.0f);
                 }
@@ -564,7 +564,7 @@ namespace NCatboostCuda {
                 const auto& permutation = state->DataSets.GetPermutation(estimationPermutation);
                 TVector<float> baseline;
                 if (DataProvider->MetaInfo.BaselineCount > 0) {
-                    baseline = permutation.Gather(GetBaseline(DataProvider->TargetData)[0]);
+                    baseline = permutation.Gather((*DataProvider->TargetData->GetBaseline())[0]);
                 } else {
                     baseline.resize(DataProvider->GetObjectCount(), 0.0f);
                 }
