@@ -128,7 +128,6 @@ JOIN_SRCS(
     generic/utility.cpp
     generic/va_args.cpp
     generic/vector.cpp
-    generic/vector_ops.cpp
     generic/xrange.cpp
     generic/yexception.cpp
     generic/ylimits.cpp
