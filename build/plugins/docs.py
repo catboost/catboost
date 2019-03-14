@@ -24,9 +24,6 @@ def extract_macro_calls(unit, macro_value_name):
 
 
 def onprocess_docs(unit, *args):
-    smart_mode = unit.get('DOCS_SMART')
-    if not smart_mode:
-        return
 
     module_dir = os.path.normpath(unit.path()[3:])
     docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
