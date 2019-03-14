@@ -6,12 +6,12 @@
 #include "tree_print.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/utility.h>
-#include <util/stream/format.h>
 #include <util/system/mem_info.h>
 #include <util/thread/singleton.h>
 
@@ -714,12 +714,7 @@ void CalcFinalCtrsAndSaveToModel(
 
 
     ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
-
-    if (cpuRamUsage > cpuRamLimit) {
-        CATBOOST_WARNING_LOG << "CatBoost is using more CPU RAM ("
-            << HumanReadableSize(cpuRamUsage, SF_BYTES)
-            << ") than the limit (" << HumanReadableSize(cpuRamLimit, SF_BYTES) << ")\n";
-    }
+    OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, cpuRamLimit);
 
     {
         NCB::TResourceConstrainedExecutor finalCtrExecutor(

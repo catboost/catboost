@@ -7,6 +7,7 @@
 
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/quantization/utils.h>
@@ -21,7 +22,6 @@
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/random/shuffle.h>
-#include <util/stream/format.h>
 #include <util/system/compiler.h>
 #include <util/system/mem_info.h>
 
@@ -659,13 +659,7 @@ namespace NCB {
 
             {
                 ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
-
-                if (cpuRamUsage > options.CpuRamLimit) {
-                    CATBOOST_WARNING_LOG << "CatBoost is using more CPU RAM ("
-                        << HumanReadableSize(cpuRamUsage, SF_BYTES)
-                        << ") than the limit (" << HumanReadableSize(options.CpuRamLimit, SF_BYTES)
-                        << ")\n";
-                }
+                OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, options.CpuRamLimit);
 
                 TResourceConstrainedExecutor resourceConstrainedExecutor(
                     *localExecutor,
