@@ -565,7 +565,7 @@ void ShellQuoteArgSp(TString& dst, TStringBuf argument) {
     ShellQuoteArg(dst, argument);
 }
 
-bool ArgNeedsQuotes(const TString& arg) {
+bool ArgNeedsQuotes(TStringBuf arg) noexcept {
     if (arg.empty())
         return true;
     return arg.find_first_of(" \"\'\t&()*<>\\`^|") != TString::npos;
