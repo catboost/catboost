@@ -87,6 +87,12 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "psutil._psutil_sunos",
         "psutil._psutil_windows",
 
+        "trollius.py33_winapi",
+        "trollius.windows_events",
+        "trollius.windows_utils",
+        "trollius.test_utils",
+        "trollius.test_support",
+
         "PIL.ImageCms",
         "PIL.ImageGL",
         "PIL.ImageGrab",
