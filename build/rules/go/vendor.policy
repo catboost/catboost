@@ -1,5 +1,8 @@
 ALLOW vendor/ -> .*
 
+# in-process redis server for tests
+ALLOW .* -> vendor/github.com/alicebob/miniredis
+
 # AWS client libraries
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go          
 
