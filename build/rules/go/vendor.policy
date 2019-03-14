@@ -30,6 +30,9 @@ ALLOW .* -> vendor/github.com/go-chi/chi
 # a pure Go MySQL driver
 ALLOW .* -> vendor/github.com/go-sql-driver/mysql
 
+# thread-safe file locking library
+ALLOW .* -> vendor/github.com/gofrs/flock
+
 # a pure Go implementation of Universally Unique Identifiers
 ALLOW .* -> vendor/github.com/gofrs/uuid              
 
