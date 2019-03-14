@@ -262,7 +262,7 @@ void NCatboostOptions::TCatFeatureParams::Validate() const {
             "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
     const ui32 ctrComplexityLimit = GetMaxTreeDepth();
     CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
-            "Error: max ctr complexity should be less then " << ctrComplexityLimit);
+            "Error: max ctr complexity should be less than " << ctrComplexityLimit);
     if (!CtrLeafCountLimit.IsUnimplementedForCurrentTask()) {
         CB_ENSURE(CtrLeafCountLimit.Get() > 0,
                 "Error: ctr_leaf_count_limit must be positive");
