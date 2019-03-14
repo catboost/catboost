@@ -227,25 +227,6 @@ namespace NCatboostCuda {
             ApplyFixForGroupwiseCtr(FixForGroupwiseCtrs, ctr);
         }
 
-        inline void InitFixForGroupwiseCtr(const TCudaBuffer<const ui32, TMapping>& indices,
-                                           const TCudaBuffer<const ui32, TMapping>& groupIds,
-                                           ui32 mask,
-                                           TCudaBuffer<ui32, TMapping>* fixedIndices,
-                                           ui32 stream = 0) {
-            fixedIndices->Reset(indices.GetMapping());
-            auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
-            auto bins = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
-            auto binIndices = TCudaBuffer<ui32, TMapping>::CopyMapping(indices);
-            FillBuffer(bins, 0, stream);
-            //mark start of group for each bin
-            MakeGroupStartFlags(indices, groupIds, &tmp, mask, stream);
-            //compute unique bin
-            ScanVector(tmp, bins, false, stream);
-            //save start of group run index in binIndices
-            FillBinIndices(mask, indices, bins, &binIndices, stream);
-            CreateFixedIndices(bins, binIndices, indices, mask, fixedIndices, stream);
-        }
-
         template <class TUi32>
         void ReserveMemoryUpdateIndicesAndMaybeCreateGroupIdsFix(const TCudaBuffer<TUi32, TMapping>& indices_,
                                                                  const TCudaBuffer<const ui32, TMapping>* groupIds
