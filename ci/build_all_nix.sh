@@ -28,7 +28,7 @@ cp -r inst catboost
 cp -r man catboost
 cp -r tests catboost
 
-python ../../ya make -r -T src -DOS_SDK=local $CUDA_ARG
+python ../../ya make -r -DNO_DEBUGINFO -T src -DOS_SDK=local $CUDA_ARG
 
 mkdir -p catboost/inst/libs
 cp $(readlink src/libcatboostr.so) catboost/inst/libs
