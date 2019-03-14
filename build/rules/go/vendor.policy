@@ -42,6 +42,9 @@ ALLOW .* -> vendor/github.com/golang/snappy
 # API for sentry
 ALLOW .* -> vendor/github.com/getsentry/raven-go      
 
+# configuration library
+ALLOW .* -> vendor/github.com/heetch/confita
+
 # PostgreSQL driver and toolkit for Go
 ALLOW .* -> vendor/github.com/jackc/pgx               
 
