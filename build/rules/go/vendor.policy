@@ -9,6 +9,9 @@ ALLOW .* -> vendor/github.com/c2h5oh/datasize
 # etcd client
 ALLOW .* -> vendor/github.com/coreos/etcd
 
+# mocking for database/sql
+ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock    
+
 # pretty printer for GO
 ALLOW .* -> vendor/github.com/davecgh/go-spew/spew    
 
