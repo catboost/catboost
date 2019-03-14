@@ -171,6 +171,9 @@ ALLOW .* -> vendor/go.mongodb.org/mongo-driver
 # Package for comparing Go values in tests
 ALLOW .* -> vendor/github.com/google/go-cmp
 
+# generation tool and serialization library for MessagePack
+ALLOW .* -> vendor/github.com/tinylib/msgp
+
 # 
 # Temporary exceptions.
 #
