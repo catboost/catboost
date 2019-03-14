@@ -24,6 +24,9 @@ ALLOW .* -> vendor/github.com/fsnotify/fsnotify
 # lightweight, idiomatic and composable router
 ALLOW .* -> vendor/github.com/go-chi/chi              
 
+# a pure Go MySQL driver
+ALLOW .* -> vendor/github.com/go-sql-driver/mysql
+
 # a pure Go implementation of Universally Unique Identifiers
 ALLOW .* -> vendor/github.com/gofrs/uuid              
 
