@@ -112,16 +112,22 @@ void OutputModelCoreML(
     const TString& modelFile,
     const NJson::TJsonValue& userParameters) {
 
-    CoreML::Specification::Model outModel;
+    CoreML::Specification::Model outModel, treeModel;
     outModel.set_specificationversion(1);
+    treeModel.set_specificationversion(1);
 
-    auto regressor = outModel.mutable_treeensembleregressor();
+    auto* container = outModel.mutable_pipeline()->mutable_models();
+    auto* contained = container->Add();
+
+    auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
     auto description = outModel.mutable_description();
 
     NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
     NCatboost::NCoreML::ConfigureTrees(model, ensemble);
     NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
+
+    *contained = treeModel;
 
     TString data;
     outModel.SerializeToString(&data);

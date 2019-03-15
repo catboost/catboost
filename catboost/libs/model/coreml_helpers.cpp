@@ -51,17 +51,29 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
             CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
                       "model with only float features or one hot encoded features supported");
 
-            int featureId;
+            int featureId = -1;
             int branchValueCat;
             float branchValueFloat;
             auto branchParameter = TreeEnsembleParameters::TreeNode::BranchOnValueGreaterThan;
             if (featureType == ESplitType::FloatFeature) {
-                featureId = binFeature.FloatFeature.FloatFeature;
+                int floatFeatureId = binFeature.FloatFeature.FloatFeature;
                 branchValueFloat = binFeature.FloatFeature.Split;
+                for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+                    if (floatFeature.FeatureIndex == floatFeatureId) {
+                        featureId = floatFeature.FlatFeatureIndex;
+                        break;
+                    }
+                }
             } else {
-                featureId = binFeature.OneHotFeature.CatFeatureIdx;
+                int catFeatureId = binFeature.OneHotFeature.CatFeatureIdx;
                 branchValueCat = binFeature.OneHotFeature.Value;
                 branchParameter = TreeEnsembleParameters::TreeNode::BranchOnValueEqual;
+                for (const auto& catFeature : model.ObliviousTrees.CatFeatures) {
+                    if (catFeature.FeatureIndex == catFeatureId) {
+                        featureId = catFeature.FlatFeatureIndex;
+                        break;
+                    }
+                }
             }
 
             auto nodesInLayerCount = std::pow(2, layer);
@@ -100,26 +112,13 @@ void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJson
         if (!floatFeature.FeatureId.empty()) {
             feature->set_name(floatFeature.FeatureId);
         } else {
-            feature->set_name(("feature_" + std::to_string(floatFeature.FeatureIndex)).c_str());
+            feature->set_name(("feature_" + std::to_string(floatFeature.FlatFeatureIndex)).c_str());
         }
 
         auto featureType = new FeatureType();
         featureType->set_isoptional(false);
         featureType->set_allocated_doubletype(new DoubleFeatureType());
         feature->set_allocated_type(featureType);
-    }
-
-    for (const auto& oneHotFeature : model.ObliviousTrees.OneHotFeatures) {
-        for (const auto& oneHotValue : oneHotFeature.StringValues) {
-            auto feature = description->add_input();
-            feature->set_name(oneHotValue);
-
-            auto featureType = new FeatureType();
-            featureType->set_isoptional(false);
-            featureType->set_allocated_int64type(new Int64FeatureType());
-            feature->set_allocated_type(featureType);
-
-        }
     }
 
     const auto classesCount = static_cast<size_t>(model.ObliviousTrees.ApproxDimension);
@@ -217,8 +216,10 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 
 void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
     CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
-    CB_ENSURE(coreMLModel.has_treeensembleregressor(), "expected treeensembleregressor model");
-    auto& regressor = coreMLModel.treeensembleregressor();
+    CB_ENSURE(coreMLModel.has_pipeline(), "no pipeline in model");
+    auto& pipelineModel = coreMLModel.pipeline().models().Get(0);
+    CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
+    auto& regressor = pipelineModel.treeensembleregressor();
     CB_ENSURE(regressor.has_treeensemble(), "no treeensemble in tree regressor");
     auto& ensemble = regressor.treeensemble();
     CB_ENSURE(coreMLModel.has_description(), "expected description in model");
@@ -235,6 +236,7 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
         }
         treeNodes[node.treeid()].push_back(&node);
     }
+
     for (const auto& tree : treeNodes) {
         CB_ENSURE(!tree.empty(), "incorrect coreml model: empty tree");
         auto& treeSplits = trees.emplace_back();
