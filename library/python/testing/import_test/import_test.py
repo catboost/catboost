@@ -162,6 +162,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "uwsgidecorators",
 
+        "vcr.stubs.*",
+
         "watchdog.*",
         "werkzeug.*",
         "ws4py.*",
