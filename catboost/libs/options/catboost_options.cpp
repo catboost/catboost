@@ -131,6 +131,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultL2Reg = 1;
             break;
         }
+        case ELossFunction::StochasticFilter: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultGradientIterations = 100;
+            // doesn't have Newton
+            break;
+        }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::PythonUserDefinedPerObject: {
@@ -190,6 +196,10 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::QueryCrossEntropy) {
         CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Gradient, "Gradient leaf estimation is not supported for QueryCrossEntropy");
+    }
+
+    if (lossFunctionConfig.GetLossFunction() == ELossFunction::StochasticFilter) {
+        CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Newton, "Newton leaf estimation is not supported for StochasticFilter");
     }
 }
 

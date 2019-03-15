@@ -273,7 +273,8 @@ void CalcLeafDersSimple(
             /*queryStartIndex=*/0,
             queryCount,
             *scratchDers,
-            localExecutor
+            localExecutor,
+            randomSeed
         );
         AddLeafDersForQueries(
             *scratchDers,
@@ -409,7 +410,7 @@ static void UpdateApproxDeltasHistorically(
         CalcApproxDers(bt.Approx[0], *approxDeltas, fold.LearnTarget, weights, error, bt.BodyFinish, bt.TailFinish, approxDers, ctx);
     } else {
         Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
-        CalculateDersForQueries(bt.Approx[0], *approxDeltas, fold.LearnTarget, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, approxDers, localExecutor);
+        CalculateDersForQueries(bt.Approx[0], *approxDeltas, fold.LearnTarget, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, approxDers, localExecutor, randomSeed);
     }
     const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;
     const auto start = bt.BodyFinish;

@@ -89,6 +89,11 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TPairLogitError>(isStoreExpApprox);
         case ELossFunction::Lq:
             return MakeHolder<TLqError>(NCatboostOptions::GetLqParam(params.LossFunctionDescription), isStoreExpApprox);
+        case ELossFunction::StochasticFilter: {
+            double sigma = NCatboostOptions::GetStochasticFilterSigma(params.LossFunctionDescription);
+            int numEstimations = NCatboostOptions::GetStochasticFilterNumEstimations(params.LossFunctionDescription);
+            return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
+        }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
@@ -321,7 +326,7 @@ void CalcWeightedDerivatives(
 
         const int tailQueryFinish = bt.TailQueryFinish;
         TVector<TDers> ders((*weightedDerivatives)[0].ysize());
-        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, ders, localExecutor);
+        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, ders, localExecutor, randomSeed);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*weightedDerivatives)[0][docId] = ders[docId].Der1;
         }

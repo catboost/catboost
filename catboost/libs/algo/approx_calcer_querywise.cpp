@@ -15,7 +15,8 @@ void CalculateDersForQueries(
     int queryStartIndex,
     int queryEndIndex,
     TArrayRef<TDers> approxDers,
-    NPar::TLocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor,
+    ui64 randomSeed
 ) {
     if (!approxesDelta.empty()) {
         TVector<double> fullApproxes;
@@ -29,9 +30,9 @@ void CalculateDersForQueries(
                 fullApproxes[docId] = UpdateApprox</*StoreExpApprox*/false>(approxes[docId], approxesDelta[docId]);
             });
         }
-        error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, approxDers, localExecutor);
+        error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, approxDers, localExecutor, randomSeed);
     } else {
-        error.CalcDersForQueries(queryStartIndex, queryEndIndex, approxes, targets, weights, queriesInfo, approxDers, localExecutor);
+        error.CalcDersForQueries(queryStartIndex, queryEndIndex, approxes, targets, weights, queriesInfo, approxDers, localExecutor, randomSeed);
     }
 }
 

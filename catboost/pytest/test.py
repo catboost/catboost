@@ -206,6 +206,68 @@ def test_queryaverage(boosting_type):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('sigma', ['sigma=' + str(sigma) for sigma in [0.01, 1, 10]])
+@pytest.mark.parametrize('num_estimations', ['num_estimations=' + str(n_estim) for n_estim in [1, 100]])
+def test_stochastic_filter(sigma, num_estimations):
+    model_path = yatest.common.test_output_path('model.bin')
+    cd_path = yatest.common.test_output_path('pool.cd')
+    train_path = yatest.common.test_output_path('train.txt')
+    test_path = yatest.common.test_output_path('test.txt')
+
+    prng = np.random.RandomState(seed=0)
+
+    n_samples_by_query = 20
+    n_features = 10
+    n_queries = 50
+
+    n_samples = n_samples_by_query * n_queries
+
+    features = prng.uniform(0, 1, size=(n_samples, n_features))
+    weights = prng.uniform(0, 1, size=n_features)
+
+    labels = np.dot(features, weights)
+    query_ids = np.arange(0, n_samples) // n_queries
+    money = (n_queries - np.arange(0, n_samples) % n_queries) * 10
+
+    labels = labels.reshape((n_samples, 1))
+    query_ids = query_ids.reshape((n_samples, 1))
+    money = money.reshape((n_samples, 1))
+
+    features = np.hstack((labels, query_ids, money, features))
+
+    n_learn = int(0.7 * n_samples)
+    learn = features[:n_learn, :]
+    test = features[n_learn:, :]
+    np.savetxt(train_path, learn, fmt='%.5f', delimiter='\t')
+    np.savetxt(test_path, test, fmt='%.5f', delimiter='\t')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'GroupId']], fmt='%s', delimiter='\t')
+
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    loss_description = 'StochasticFilter:' + sigma + ';' + num_estimations
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_description,
+        '--leaf-estimation-backtracking', 'No',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false'
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('top', [2, 100])
 def test_averagegain_with_query_weights(boosting_type, top):

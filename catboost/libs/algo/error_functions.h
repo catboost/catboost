@@ -14,6 +14,7 @@
 #include <library/fast_exp/fast_exp.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/system/yassert.h>
@@ -96,7 +97,8 @@ public:
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
         TArrayRef<TDers> /*ders*/,
-        NPar::TLocalExecutor* /*localExecutor*/
+        NPar::TLocalExecutor* /*localExecutor*/,
+        ui64 /*randomSeed*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -461,7 +463,8 @@ public:
         const TVector<float>& /*weights*/,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        ui64 /*randomSeed*/
     ) const override {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         const int start = queriesInfo[queryStartIndex].Begin;
@@ -503,7 +506,8 @@ public:
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        ui64 /*randomSeed*/
     ) const override {
         const int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
@@ -566,7 +570,8 @@ public:
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor,
+        ui64 /*randomSeed*/
     ) const override {
         int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
@@ -683,6 +688,87 @@ public:
     }
 };
 
+/* TStochasticFilterError */
+class TStochasticFilterError final : public IDerCalcer {
+public:
+    const double Sigma;
+    const int NumEstimations;
+
+    TStochasticFilterError(double sigma, int numEstimations, bool isExpApprox)
+            : IDerCalcer(false, 1, EErrorType::QuerywiseError)
+            , Sigma(sigma)
+            , NumEstimations(numEstimations) {
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+        CB_ENSURE(Sigma > 0, "Scale parameter 'sigma' for DCG-RR loss must be positive");
+        CB_ENSURE(NumEstimations > 0, "Number of estimations must be positive integer");
+    }
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weights*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        NPar::TLocalExecutor* localExecutor,
+        ui64 randomSeed
+    ) const override {
+        NPar::TLocalExecutor::TExecRangeParams blockParams(queryStartIndex, queryEndIndex);
+        blockParams.SetBlockCount(CB_THREAD_LIMIT);
+        const int blockSize = blockParams.GetBlockSize();
+        const int blockCount = blockParams.GetBlockCount();
+        const TVector<ui64> randomSeeds = GenRandUI64Vector(blockCount, randomSeed);
+        const int start = queriesInfo[queryStartIndex].Begin;
+
+        NPar::ParallelFor(*localExecutor, 0, static_cast<ui32>(blockCount), [&](int blockId) {
+            TRestorableFastRng64 rand(randomSeeds[blockId]);
+            rand.Advance(10);
+            const int from = blockId * blockSize;
+            const int to = Min<int>((blockId + 1) * blockSize, queryEndIndex);
+            for (int queryIndex = from; queryIndex < to; ++queryIndex) {
+                int begin = queriesInfo[queryIndex].Begin;
+                int end = queriesInfo[queryIndex].End;
+                CalcQueryDers(begin, begin - start, end - begin, approx, target, ders, rand);
+            }
+        });
+    }
+
+private:
+    void CalcQueryDers(int offset, int offset_der, int querySize, const TVector<double> &approx,
+                       const TVector<float> &target, TArrayRef<TDers> ders, TRestorableFastRng64& Rand) const {
+        Fill(ders.Begin() + offset_der, ders.Begin() + offset_der + querySize, TDers{0.f, 0.f, 0.f});
+        const double baselineLoss = CalcBaseline(offset, querySize, approx, target);
+        TVector<double> probs(querySize, 0.);
+
+        for (int i = 0; i < NumEstimations; ++i) {
+            int pos = 0;
+            double loss = 0.0;
+
+            for (int j = 0; j < querySize; ++j) {
+                const double prob = Sigmoid(approx[offset + j] * Sigma);
+                const bool isFiltered = prob >= Rand.GenRandReal1();
+                loss += isFiltered ? target[offset + j] / (pos + 1) : 0.;
+                pos += isFiltered;
+                probs[j] = isFiltered ? (1 - prob) : - prob;
+            }
+            for (int j = 0; j < querySize; ++j) {
+                ders[offset_der + j].Der1 += probs[j] * (loss - baselineLoss) / NumEstimations;
+            }
+        }
+    }
+
+    double CalcBaseline(int offset, int count, const TVector<double>& approx, const TVector<float>& target) const {
+        double baselineValue = 0.0;
+        int pos = 0;
+        for (int i = 0; i < count; ++i) {
+            if (approx[offset + i] >= 0) {
+                baselineValue += target[offset + i] / (++pos);
+            }
+        }
+        return baselineValue;
+    }
+};
 
 void CheckDerivativeOrderForTrain(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
 void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
