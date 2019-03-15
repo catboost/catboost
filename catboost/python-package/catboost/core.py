@@ -1638,7 +1638,7 @@ class CatBoost(_CatBoostBase):
         if verbose < 0:
             raise CatBoostError('verbose should be non-negative.')
 
-        if fstr_type is not None and type is None:
+        if fstr_type is not None:
             type = fstr_type
             warnings.warn("fstr_type soon be deprecated, use type instead")
 
@@ -1647,7 +1647,7 @@ class CatBoost(_CatBoostBase):
                             or (type == EFstrType.Interaction))
         if not empty_data_is_ok:
             if not isinstance(data, Pool):
-                raise CatBoostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
+                raise CatBoostError("Invalid metric type={}, must be catboost.Pool.".format(__builtins__.type(data)))
             if data.is_empty_:
                 raise CatBoostError("data is empty.")
 
