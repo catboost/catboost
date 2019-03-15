@@ -121,7 +121,7 @@ void OutputModelCoreML(
 
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
-    auto description = outModel.mutable_description();
+    auto description = treeModel.mutable_description();
 
     NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
     NCatboost::NCoreML::ConfigureTrees(model, ensemble);
@@ -129,11 +129,18 @@ void OutputModelCoreML(
 
     *contained = treeModel;
 
-    TString data;
+    TString data, data2;
     outModel.SerializeToString(&data);
 
+    CoreML::Specification::Model newModel;
+    newModel.ParseFromString(data);
+
+    auto& pipeModel = newModel.pipeline().models().Get(0);
+
+    pipeModel.SerializeToString(&data2);
+
     TOFStream out(modelFile);
-    out.Write(data);
+    out.Write(data2);
 }
 
 void OutputModelOnnx(

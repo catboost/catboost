@@ -215,11 +215,12 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 }
 
 void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
-    CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
-    CB_ENSURE(coreMLModel.has_pipeline(), "no pipeline in model");
-    auto& pipelineModel = coreMLModel.pipeline().models().Get(0);
-    CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
-    auto& regressor = pipelineModel.treeensembleregressor();
+//    CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
+//    CB_ENSURE(coreMLModel.has_pipeline(), "no pipeline in model");
+//    auto& pipelineModel = coreMLModel.pipeline().models().Get(0);
+//    CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
+//    auto& regressor = pipelineModel.treeensembleregressor();
+    auto& regressor = coreMLModel.treeensembleregressor();
     CB_ENSURE(regressor.has_treeensemble(), "no treeensemble in tree regressor");
     auto& ensemble = regressor.treeensemble();
     CB_ENSURE(coreMLModel.has_description(), "expected description in model");
