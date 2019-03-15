@@ -90,6 +90,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\msle_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\precision_recall_at_k_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\smape_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\stochastic_filter_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\zero_one_loss_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
