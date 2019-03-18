@@ -15,9 +15,9 @@ Y_UNIT_TEST_SUITE(TestStackArray) {
     Y_UNIT_TEST(Test1) {
         TStackArray<ui32> s(ALLOC(ui32, 10));
 
-        UNIT_ASSERT_VALUES_EQUAL(s.Size(), 10);
+        UNIT_ASSERT_VALUES_EQUAL(s.size(), 10);
 
-        for (size_t i = 0; i < s.Size(); ++i) {
+        for (size_t i = 0; i < s.size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(s[i], 0xCCCCCCCC);
         }
 

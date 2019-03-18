@@ -112,7 +112,7 @@ static void ApplyOnQuantizedFeatures(
                 featureIdx);
         } else {
             return (**quantizedObjectsData.GetBinaryFeaturesPack(
-                (*packedIdx)[featureIdx]->PackIdx).GetSrc()).Data();
+                (*packedIdx)[featureIdx]->PackIdx).GetSrc()).data();
         }
     };
 

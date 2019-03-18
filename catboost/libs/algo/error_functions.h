@@ -813,7 +813,7 @@ private:
         TArrayRef<TDers> ders,
         TRestorableFastRng64& Rand
     ) const {
-        Fill(ders.Begin() + offset_der, ders.Begin() + offset_der + querySize, TDers { 0.f, 0.f, 0.f });
+        Fill(ders.begin() + offset_der, ders.begin() + offset_der + querySize, TDers { 0.f, 0.f, 0.f });
         const double baselineLoss = CalcBaseline(offset, querySize, approx, target);
         TVector<double> probs(querySize, 0.);
 

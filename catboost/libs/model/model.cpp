@@ -528,7 +528,7 @@ void TFullModel::CalcFlatTransposed(
         [&transposedFeatures](const TCatFeature& catFeature, size_t index) -> int {
             return ConvertFloatCatFeatureToIntHash(transposedFeatures[catFeature.FlatFeatureIndex][index]);
         },
-        transposedFeatures[0].Size(),
+        transposedFeatures[0].size(),
         treeStart,
         treeEnd,
         results
@@ -547,11 +547,11 @@ void TFullModel::Calc(
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     CB_ENSURE(
-        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
         "Model has float features but no float features provided"
     );
     CB_ENSURE(
-        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
         "Model has categorical features but no categorical features provided"
     );
     for (const auto& floatFeaturesVec : floatFeatures) {
@@ -594,11 +594,11 @@ void TFullModel::Calc(
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     CB_ENSURE(
-        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
         "Model has float features but no float features provided"
     );
     CB_ENSURE(
-        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
         "Model has categorical features but no categorical features provided"
     );
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
@@ -641,11 +641,11 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     CB_ENSURE(
-        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
         "Model has float features but no float features provided"
     );
     CB_ENSURE(
-        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
         "Model has categorical features but no categorial features provided"
     );
     for (const auto& floatFeaturesVec : floatFeatures) {

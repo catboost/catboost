@@ -26,11 +26,6 @@
 template <class T>
 class TArrayRef {
 public:
-    using TIterator = T*;
-    using TReference = T&;
-    using TConstIterator = const T*;
-    using TConstReference = const T&;
-
     using iterator = T*;
     using const_iterator = const T*;
     using reference = T&;
@@ -77,99 +72,87 @@ public:
 
     template <class TT, typename = std::enable_if_t<std::is_same<std::remove_const_t<T>, std::remove_const_t<TT>>::value>>
     bool operator==(const TArrayRef<TT>& other) const noexcept {
-        return Size() == other.Size() && std::equal(Begin(), End(), other.Begin());
+        return (S_ == other.size()) && std::equal(begin(), end(), other.begin());
     }
 
-    inline ~TArrayRef() = default;
-
-    // TODO: drop
     //FIXME: this method should return const T*,
     //but there are client that rely on current behaviour
-    constexpr inline T* Data() const noexcept {
+    constexpr inline T* data() const noexcept {
         return T_;
     }
 
-    constexpr inline T* Data() noexcept {
+    constexpr inline T* data() noexcept {
         return T_;
     }
 
-    // TODO: drop
-    constexpr inline size_t Size() const noexcept {
+    constexpr inline size_t size() const noexcept {
         return S_;
     }
 
-    // TODO: drop
-    inline bool Empty() const noexcept {
-        return (Size() == 0);
+    inline bool empty() const noexcept {
+        return (S_ == 0);
     }
 
-    inline TIterator Begin() noexcept {
-        return Data();
+    inline iterator begin() noexcept {
+        return T_;
     }
 
-    inline TConstIterator Begin() const noexcept {
-        return Data();
+    inline const_iterator begin() const noexcept {
+        return T_;
     }
 
-    inline TIterator End() noexcept {
-        return Data() + Size();
+    inline iterator end() noexcept {
+        return (T_ + S_);
     }
 
-    inline TConstIterator End() const noexcept {
-        return Data() + Size();
+    inline const_iterator end() const noexcept {
+        return (T_ + S_);
     }
 
-    inline TReference Front() noexcept {
-        return (*this)[0];
+    inline reference front() noexcept {
+        return *T_;
     }
 
-    inline TConstReference Front() const noexcept {
-        return (*this)[0];
+    inline const_reference front() const noexcept {
+        return *T_;
     }
 
-    inline TReference Back() noexcept {
-        Y_ASSERT(!Empty());
+    inline reference back() noexcept {
+        Y_ASSERT(S_ > 0);
 
-        return *(End() - 1);
+        return *(end() - 1);
     }
 
-    inline TConstReference Back() const noexcept {
-        Y_ASSERT(!Empty());
+    inline const_reference back() const noexcept {
+        Y_ASSERT(S_ > 0);
 
-        return *(End() - 1);
+        return *(end() - 1);
     }
 
-    //FIXME: this method should return const T&,
-    //but there is unit test which fixes current behaviour
     inline T& operator[](size_t n) const noexcept {
-        Y_ASSERT(n < Size());
+        Y_ASSERT(n < S_);
 
         return *(T_ + n);
     }
 
-    inline TReference At(size_t n) {
-        if (n >= Size()) {
+    inline reference at(size_t n) {
+        if (n >= S_) {
             ThrowRangeError("array ref range error");
         }
 
         return (*this)[n];
     }
 
-    inline TConstReference At(size_t n) const {
-        if (n >= Size()) {
+    inline const_reference at(size_t n) const {
+        if (n >= S_) {
             ThrowRangeError("array ref range error");
         }
 
         return (*this)[n];
-    }
-
-    inline void Swap(TArrayRef& a) noexcept {
-        ::DoSwap(T_, a.T_);
-        ::DoSwap(S_, a.S_);
     }
 
     inline explicit operator bool() const noexcept {
-        return !Empty();
+        return (S_ > 0);
     }
 
     TArrayRef<T> Slice(size_t offset) const {
@@ -178,72 +161,9 @@ public:
     }
 
     TArrayRef<T> Slice(size_t offset, size_t size) const {
-        Y_ASSERT(offset + size <= Size());
+        Y_ASSERT(offset + size <= S_);
 
         return TArrayRef<T>(data() + offset, data() + offset + size);
-    }
-
-/* STL compatibility. */
-    constexpr inline T* data() noexcept {
-        return Data();
-    }
-
-    //FIXME: this method should return const T*,
-    //but at least Slice() method relies on current behaviour
-    constexpr inline T* data() const noexcept {
-        return Data();
-    }
-
-    constexpr inline size_t size() const noexcept {
-        return Size();
-    }
-
-    inline bool empty() const noexcept {
-        return Empty();
-    }
-
-    inline void swap(TArrayRef& a) noexcept {
-        Swap(a);
-    }
-
-    inline iterator begin() noexcept {
-        return Begin();
-    }
-
-    inline const_iterator begin() const noexcept {
-        return Begin();
-    }
-
-    inline iterator end() noexcept {
-        return End();
-    }
-
-    inline const_iterator end() const noexcept {
-        return End();
-    }
-
-    inline reference front() noexcept {
-        return Front();
-    }
-
-    inline const_reference front() const noexcept {
-        return Front();
-    }
-
-    inline reference back() noexcept {
-        return Back();
-    }
-
-    inline const_reference back() const noexcept {
-        return Back();
-    }
-
-    inline reference at(size_t n) {
-        return At(n);
-    }
-
-    inline const_reference at(size_t n) const {
-        return At(n);
     }
 
 private:

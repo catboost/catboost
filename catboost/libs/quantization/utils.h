@@ -116,9 +116,9 @@ namespace NCB {
         static_assert(std::is_unsigned<TBinType>::value, "TBinType must be an unsigned integer");
 
         TVector<TBinType> result;
-        result.yresize(values.Size());
+        result.yresize(values.size());
 
-        NPar::TLocalExecutor::TExecRangeParams params(0, (int)values.Size());
+        NPar::TLocalExecutor::TExecRangeParams params(0, (int)values.size());
         params.SetBlockSize(BINARIZATION_BLOCK_SIZE);
 
         NPar::LocalExecutor().ExecRange([&](int blockIdx) {

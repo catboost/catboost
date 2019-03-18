@@ -47,7 +47,7 @@ namespace NEnumSerializationRuntime {
 
         TMap<TRepresentationType, TString> mapValueToName;
         TMap<TString, TRepresentationType> mapNameToValue;
-        const bool bijectiveHint = (namesInitializer.Data() == valuesInitializer.Data() && namesInitializer.Size() == valuesInitializer.Size());
+        const bool bijectiveHint = (namesInitializer.data() == valuesInitializer.data() && namesInitializer.size() == valuesInitializer.size());
         if (bijectiveHint) {
             for (const TEnumStringPair& it : namesInitializer) {
                 TString name{it.Name};
