@@ -534,11 +534,11 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         });
 
 
-    parser.AddLongOption("growing-policy", "Tree growing policy. One of " + GetEnumAllNames<EGrowingPolicy>())
-            .RequiredArgument("type")
-            .Handler1T<TString>([plainJsonPtr](const TString& policy) {
-                (*plainJsonPtr)["growing_policy"] = policy;
-            });
+    parser.AddLongOption("growing-policy", "Tree growing policy. Must be one of: " + GetEnumAllNames<EGrowingPolicy>())
+        .RequiredArgument("type")
+        .Handler1T<TString>([plainJsonPtr](const TString& policy) {
+            (*plainJsonPtr)["growing_policy"] = policy;
+        });
 
     parser.AddLongOption("max-leaves-count", "Max leaves count")
         .RequiredArgument("INT")
