@@ -175,5 +175,3 @@ private:
     void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
 };
 
-class TDataset;
-
