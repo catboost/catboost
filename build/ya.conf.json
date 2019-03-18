@@ -1097,6 +1097,17 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "idea_style_config": {
+            "tools": {
+                "idea_style_config": { "bottle": "idea_style_config" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "error_prone": {
             "tools": {
                 "error_prone": { "bottle": "error_prone" }
@@ -1579,6 +1590,12 @@
             "formula": {
                 "sandbox_id": [98817148],
                 "match": "ya runner idea plugin"
+            }
+        },
+        "idea_style_config": {
+            "formula": {
+                "sandbox_id": [395733790],
+                "match": "idea codestyle config"
             }
         },
         "error_prone": {
