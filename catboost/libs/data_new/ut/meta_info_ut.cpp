@@ -52,6 +52,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                 NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo),
                 true,
                 false,
+                Nothing(),
                 &featureNames
             );
 
@@ -62,6 +63,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo),
                     false,
                     false,
+                    Nothing(),
                     &featureNames
                 );
 
@@ -86,6 +88,7 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo3),
                     true,
                     false,
+                    Nothing(),
                     &featureNames3
                 );
 

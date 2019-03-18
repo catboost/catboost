@@ -43,4 +43,13 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
         CB_ENSURE(CheckExists(TestGroupWeightsFilePath),
                 "Error: test group weights file doesn't exist");
     }
+
+    if (BaselineFilePath.Inited()) {
+        CB_ENSURE(CheckExists(BaselineFilePath), "Error: baseline file doesn't exist");
+    }
+
+    if (TestBaselineFilePath.Inited()) {
+        CB_ENSURE(CheckExists(TestBaselineFilePath),
+                  "Error: test baseline file doesn't exist");
+    }
 }

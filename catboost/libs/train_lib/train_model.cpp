@@ -66,6 +66,7 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
 static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
     EObjectsOrder objectsOrder,
+    TVector<TString>* classNames,
     NPar::TLocalExecutor* const executor,
     TProfileInfo* profile
 ) {
@@ -76,7 +77,7 @@ static TDataProviders LoadPools(
         "Test files are not supported in cross-validation mode"
     );
 
-    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, executor, profile);
+    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, classNames, executor, profile);
 
     if (cvMode) {
         if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
@@ -768,7 +769,7 @@ static void TrainModel(
         executor,
         &rand);
 
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
 
     CheckConsistency(trainingData);
 
@@ -821,10 +822,12 @@ void TrainModel(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
+    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        &classNames,
         &executor,
         &profile);
 
@@ -851,7 +854,7 @@ void TrainModel(
     TVector<TEvalResult> evalResults(pools.Test.ysize());
 
     NJson::TJsonValue updatedTrainJson = trainJson;
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+    UpdateUndefinedClassNames(classNames, &updatedTrainJson);
 
     // create here to possibly load borders
     auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -1034,7 +1037,7 @@ static void ModelBasedEval(
         executor,
         &rand);
 
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
 
     CheckConsistency(trainingData);
 
@@ -1066,10 +1069,13 @@ void ModelBasedEval(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
+    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
+
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+        &classNames,
         &executor,
         &profile);
 
@@ -1088,7 +1094,7 @@ void ModelBasedEval(
     }
 
     NJson::TJsonValue updatedTrainJson = trainJson;
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+    UpdateUndefinedClassNames(classNames, &updatedTrainJson);
 
     ModelBasedEval(
         updatedTrainJson,

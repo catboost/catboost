@@ -3742,6 +3742,153 @@ def test_baseline_output():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_baseline_from_file_output():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    eval_0_path = yatest.common.test_output_path('test_0.eval')
+    eval_1_path = yatest.common.test_output_path('test_1.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '--learn-set', data_file('higgs', 'train_small'),
+        '--test-set', data_file('higgs', 'test_small'),
+        '--column-description', data_file('higgs', 'train_baseline.cd'),
+        '-i', '10',
+        '--learning-rate', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', eval_0_path,
+        '--output-columns', 'DocId,RawFormulaVal',
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '--learn-set', data_file('higgs', 'train_small'),
+        '--test-set', data_file('higgs', 'test_small'),
+        '--column-description', data_file('higgs', 'train_weight.cd'),
+        '--learn-baseline', data_file('higgs', 'train_baseline'),
+        '--test-baseline', data_file('higgs', 'test_baseline'),
+        '-i', '10',
+        '--ignore-features', '0',  # baseline column
+        '--learning-rate', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', eval_1_path,
+        '--output-columns', 'DocId,RawFormulaVal',
+    )
+    yatest.common.execute(cmd)
+
+    compare_evals(eval_0_path, eval_1_path)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_multiclass_baseline_from_file(boosting_type, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path_0 = yatest.common.test_output_path('test_0.eval')
+    output_eval_path_1 = yatest.common.test_output_path('test_1.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', data_file('precipitation_small', 'train_small'),
+        '-t', data_file('precipitation_small', 'train_small'),
+        '--column-description', data_file('precipitation_small', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--prediction-type', 'RawFormulaVal,Class',
+        '--eval-file', output_eval_path_0,
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', data_file('precipitation_small', 'train_small'),
+        '-t', data_file('precipitation_small', 'train_small'),
+        '--column-description', data_file('precipitation_small', 'train.cd'),
+        '--learn-baseline', output_eval_path_0,
+        '--test-baseline', output_eval_path_0,
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--prediction-type', 'RawFormulaVal,Class',
+        '--class-names', '0.,0.25,0.5,0.75',
+        '--eval-file', output_eval_path_1,
+    )
+    yatest.common.execute(cmd)
+
+    try:
+        cmd = (
+            CATBOOST_PATH,
+            'fit',
+            '--use-best-model', 'false',
+            '--loss-function', loss_function,
+            '-f', data_file('precipitation_small', 'train_small'),
+            '-t', data_file('precipitation_small', 'train_small'),
+            '--column-description', data_file('precipitation_small', 'train.cd'),
+            '--learn-baseline', output_eval_path_0,
+            '--test-baseline', output_eval_path_0,
+            '--boosting-type', boosting_type,
+            '-i', '10',
+            '-T', '4',
+            '-m', output_model_path,
+            '--prediction-type', 'RawFormulaVal,Class',
+            '--class-names', '0.5,0.25,0.75.,0.',
+            '--eval-file', output_eval_path_1,
+        )
+        yatest.common.execute(cmd)
+    except:
+        return [local_canonical_file(output_eval_path_0), local_canonical_file(output_eval_path_1)]
+
+    assert False
+
+
+def test_baseline_from_file_output_on_quantized_pool():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    eval_0_path = yatest.common.test_output_path('test_0.eval')
+    eval_1_path = yatest.common.test_output_path('test_1.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '--learn-set', 'quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
+        '--test-set', 'quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
+        '--column-description', data_file('higgs', 'train_baseline.cd'),
+        '--learning-rate', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', eval_0_path,
+    )
+    yatest.common.execute(cmd + ('-i', '10'))
+    yatest.common.execute(cmd + (
+        '-i', '10',
+        '--learn-baseline', eval_0_path,
+        '--test-baseline', eval_0_path,
+        '--eval-file', eval_0_path))
+
+    yatest.common.execute(cmd + (
+        '-i', '20',
+        '--eval-file', eval_1_path))
+
+    compare_evals(eval_0_path, eval_1_path)
+
+
 def test_query_output():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')

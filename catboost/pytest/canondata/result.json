@@ -2655,6 +2655,46 @@
             "uri": "file://test.test_multiclass_baseline_MultiClassOneVsAll-Plain_/eval.txt"
         }
     ],
+    "test.test_multiclass_baseline_from_file[MultiClass-Ordered]": [
+        {
+            "checksum": "d816f7d14eb5c6a594d7ada8122e49fd",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Ordered_/test_0.eval"
+        },
+        {
+            "checksum": "0a82dfade8fe32f52d2225172b06152a",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Ordered_/test_1.eval"
+        }
+    ],
+    "test.test_multiclass_baseline_from_file[MultiClass-Plain]": [
+        {
+            "checksum": "a350003659e16a9cc8553d7b80b4f352",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Plain_/test_0.eval"
+        },
+        {
+            "checksum": "ab31bf6d5005f98c3865c57e293ee720",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Plain_/test_1.eval"
+        }
+    ],
+    "test.test_multiclass_baseline_from_file[MultiClassOneVsAll-Ordered]": [
+        {
+            "checksum": "83fd56024f67bc9f478b4bb60630f03d",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClassOneVsAll-Ordered_/test_0.eval"
+        },
+        {
+            "checksum": "c0780bb7a1f26f919ad64c548c9aef1f",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClassOneVsAll-Ordered_/test_1.eval"
+        }
+    ],
+    "test.test_multiclass_baseline_from_file[MultiClassOneVsAll-Plain]": [
+        {
+            "checksum": "e588ed0fed13d4bbde94a739d82f5bc3",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClassOneVsAll-Plain_/test_0.eval"
+        },
+        {
+            "checksum": "f45d101b3a76b7ec284c7a94e8944970",
+            "uri": "file://test.test_multiclass_baseline_from_file_MultiClassOneVsAll-Plain_/test_1.eval"
+        }
+    ],
     "test.test_multiclass_model_backward_compatibility[Class]": [
         {
             "checksum": "b82fe98570383b7de76a2912884aa9e0",

@@ -215,6 +215,11 @@ namespace NCB {
             GroupWeightsBuffer = std::move(groupWeights);
         }
 
+        // separate method because they can be loaded from a separate data source
+        void SetBaseline(TVector<TVector<float>>&& baseline) override {
+            Data.TargetData.Baseline = std::move(baseline);
+        }
+
         void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
@@ -654,6 +659,11 @@ namespace NCB {
             Data.TargetData.GroupWeights = TWeights<float>(std::move(groupWeights), "GroupWeights");
         }
 
+        // separate method because they can be loaded from a separate data source
+        void SetBaseline(TVector<TVector<float>>&& baseline) override {
+            Data.TargetData.Baseline = std::move(baseline);
+        }
+
         void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
@@ -918,6 +928,11 @@ namespace NCB {
         void SetGroupWeights(TVector<float>&& groupWeights) override {
             CheckDataSize(groupWeights.size(), (size_t)ObjectCount, "groupWeights");
             GroupWeightsBuffer = std::move(groupWeights);
+        }
+
+        // separate method because they can be loaded from a separate data source
+        void SetBaseline(TVector<TVector<float>>&& baseline) override {
+            Data.TargetData.Baseline = std::move(baseline);
         }
 
         void SetPairs(TVector<TPair>&& pairs) override {

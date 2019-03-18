@@ -41,9 +41,11 @@ namespace {
                 Dataset = NCB::ReadDataset(Params.InputPath,
                                            Params.PairsFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                           /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            Params.DsvPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
+                                           /*classNames*/ Nothing(),
                                            LocalExecutor.Get());
             }
             return Dataset;

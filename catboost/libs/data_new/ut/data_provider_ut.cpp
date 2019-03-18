@@ -39,6 +39,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         std::move(dataColumnsMetaInfo),
         /*hasAdditionalGroupWeight*/ false,
         hasPairs,
+        /*additionalBaselineCount*/ Nothing(),
         &featureId
     );
 

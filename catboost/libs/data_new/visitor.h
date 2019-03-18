@@ -39,6 +39,9 @@ namespace NCB {
         // separate method because they can be loaded from a separate data source
         virtual void SetGroupWeights(TVector<float>&& groupWeights) = 0;
 
+        // separate method because they can be loaded from a separate data source
+        virtual void SetBaseline(TVector<TVector<float>>&& baseline) = 0;
+
         virtual void SetPairs(TVector<TPair>&& pairs) = 0;
 
         // less effective version for Cython
@@ -55,7 +58,6 @@ namespace NCB {
          * processing, so this should be fixed: TODO(akhropov): MLTOOLS-2358.
          */
         virtual TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const = 0;
-
     };
 
 

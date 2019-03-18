@@ -103,16 +103,19 @@ TDataProviderPtr GetAdultPool() {
 
     TVector<THolder<TTempFile>> srcDataFiles;
     SaveSrcData(srcData, &readDatasetMainParams, &srcDataFiles);
+    TVector<TString> classNames;
 
     return ReadDataset(
         readDatasetMainParams.PoolPath,
+        TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
         readDatasetMainParams.DsvPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
-        /*verbose*/true
+        /*verbose*/true,
+        &classNames
     );
 }
 

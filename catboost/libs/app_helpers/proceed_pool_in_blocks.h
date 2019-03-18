@@ -24,6 +24,8 @@ inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& p
             NCB::TDatasetLoaderCommonArgs {
                 params.PairsFilePath,
                 /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
+                /*BaselineFilePath=*/NCB::TPathWithScheme(),
+                params.ClassNames,
                 params.DsvPoolFormatParams.Format,
                 MakeCdProviderFromFile(params.DsvPoolFormatParams.CdFilePath),
                 /*ignoredFeatures*/ {},

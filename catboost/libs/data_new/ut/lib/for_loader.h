@@ -29,6 +29,7 @@ namespace NCB {
         bool DsvFileHasHeader = false;
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
+        TStringBuf BaselineFileData;
         TVector<ui32> IgnoredFeatures;
         EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
     };
@@ -37,6 +38,7 @@ namespace NCB {
         TPathWithScheme PoolPath;
         TPathWithScheme PairsFilePath; // can be uninited
         TPathWithScheme GroupWeightsFilePath; // can be uninited
+        TPathWithScheme BaselineFilePath; // can be uninited
         NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
     };
 

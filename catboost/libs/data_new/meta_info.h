@@ -50,6 +50,9 @@ namespace NCB {
         bool HasTimestamp = false;
         bool HasPairs = false;
 
+        // can be set if baseline file header contains such information
+        TVector<TString> ClassNames = {};
+
         // set only for dsv format pools
         // TODO(akhropov): temporary, serialization details shouldn't be here
         TMaybe<TDataColumnsMetaInfo> ColumnsInfo;
@@ -61,9 +64,11 @@ namespace NCB {
             TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
             bool hasAdditionalGroupWeight,
             bool hasPairs,
+            TMaybe<ui32> additionalBaselineCount = Nothing(),
 
             // if specified - prefer these to Id in columnsInfo.Columns, otherwise take names
-            TMaybe<const TVector<TString>*> featureNames = Nothing()
+            TMaybe<const TVector<TString>*> featureNames = Nothing(),
+            const TVector<TString>& classNames = {}
         );
 
         bool operator==(const TDataMetaInfo& rhs) const;

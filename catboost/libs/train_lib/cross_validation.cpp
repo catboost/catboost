@@ -397,7 +397,7 @@ void CrossValidate(
     );
 
     NJson::TJsonValue updatedTrainOptionsJson = jsonParams;
-    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainOptionsJson);
+    UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions.Get().ClassNames, &updatedTrainOptionsJson);
 
     // disable overfitting detector on folds training, it will work on average values
     updatedTrainOptionsJson["boosting_options"]["od_config"]["type"]

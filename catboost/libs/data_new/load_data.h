@@ -23,9 +23,11 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -34,11 +36,13 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,
-        bool verbose
+        bool verbose,
+        TMaybe<TVector<TString>*> classNames = Nothing()
     );
 
     // version with explicitly specified lineReader. Only supports CatBoost dsv format
@@ -46,10 +50,12 @@ namespace NCB {
         THolder<ILineDataReader> lineReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& baselineFilePath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
+        TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -57,6 +63,7 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
+        TMaybe<TVector<TString>*> classNames,
         NPar::TLocalExecutor* executor,
         TProfileInfo* profile
     );

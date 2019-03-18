@@ -129,7 +129,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 featureId.push_back("f" + ToString(featureIdx));
             }
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -297,7 +297,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "f1"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -402,7 +402,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "f1"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -524,7 +524,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 featureId.push_back("c" + ToString(featureIdx));
             }
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -745,7 +745,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 "f13", // 21
             };
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -1005,7 +1005,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "c0", "f1", "c1", "c2"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 

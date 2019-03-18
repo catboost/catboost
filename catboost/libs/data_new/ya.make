@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     GLOBAL cb_dsv_loader.cpp
     async_row_processor.cpp
+    baseline.cpp
     borders_io.cpp
     cat_feature_perfect_hash.cpp
     cat_feature_perfect_hash_helper.cpp
@@ -50,6 +51,7 @@ PEERDIR(
     catboost/libs/quantization_schema
 )
 
+GENERATE_ENUM_SERIALIZATION(baseline.h)
 GENERATE_ENUM_SERIALIZATION(dsv_parser.h)
 GENERATE_ENUM_SERIALIZATION(order.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
