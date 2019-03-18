@@ -79,6 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\async_row_processor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\baseline.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\baseline.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.cpp"/>
@@ -109,6 +111,33 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\visitor.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\visitor.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\weights.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\baseline.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/baseline.h" "--include-path" "catboost/libs/data_new/baseline.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/baseline.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/baseline.h" "--include-path" "catboost/libs/data_new/baseline.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/baseline.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/data_new/baseline.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data_new\baseline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\baseline.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\dsv_parser.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
