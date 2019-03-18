@@ -104,6 +104,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\crypto\openssl-1.0.2-crypto.vcxproj">
+      <Project>{A1E003AE-3635-24E8-DA15-CEABED502888}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\libs-openssl-1.0.2.vcxproj">
       <Project>{56BB62E6-6261-E370-0D95-9200EBF1F153}</Project>
     </ProjectReference>

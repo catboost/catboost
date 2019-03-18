@@ -262,6 +262,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
       <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\crypto\openssl-1.0.2-crypto.vcxproj">
+      <Project>{A1E003AE-3635-24E8-DA15-CEABED502888}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\libs-openssl-1.0.2.vcxproj">
       <Project>{56BB62E6-6261-E370-0D95-9200EBF1F153}</Project>
     </ProjectReference>

@@ -139,6 +139,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\crypto\openssl-1.0.2-crypto.vcxproj">
+      <Project>{A1E003AE-3635-24E8-DA15-CEABED502888}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\libs-openssl-1.0.2.vcxproj">
       <Project>{56BB62E6-6261-E370-0D95-9200EBF1F153}</Project>
     </ProjectReference>
