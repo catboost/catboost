@@ -81,9 +81,8 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         TVector<TString> tokens;
         auto f = [](char a) { return a == ' ' || a == '\t' || a == '\n'; };
         for (auto v : StringSplitter(s).SplitByFunc(f)) {
-            if (v.Empty() == false) {
-                tokens.emplace_back(v.TokenStart(), v.TokenDelim());
-            }
+            if (v)
+                tokens.emplace_back(v);
         }
 
         UNIT_ASSERT(tokens == pattern);
@@ -131,10 +130,10 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, StringSplitter("  1 2 3  ").Split(' ').Take(4).SkipEmpty().Take(1).ToList<TString>());
     }
 
-    Y_UNIT_TEST(TestCompileAbility) {
-        (void)StringSplitter(TString());
-        (void)StringSplitter(TStringBuf());
-        (void)StringSplitter("", 0);
+    Y_UNIT_TEST(TestCompile) {
+        (void) StringSplitter(TString());
+        (void) StringSplitter(TStringBuf());
+        (void) StringSplitter("", 0);
     }
 
     Y_UNIT_TEST(TestStringSplitterCountEmpty) {
@@ -391,4 +390,88 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected1, actual2);
         UNIT_ASSERT_VALUES_EQUAL(expected1, actual3);
     }
+
+    Y_UNIT_TEST(TestConstCString) {
+        const char* b = "a;b";
+        const char* e = b + 3;
+
+        std::vector<TStringBuf> v;
+        StringSplitter(b, e).Split(';').AddTo(&v);
+
+        std::vector<TStringBuf> expected = { "a", "b" };
+        UNIT_ASSERT_VALUES_EQUAL(v, expected);
+    }
+
+    Y_UNIT_TEST(TestCStringRef) {
+        TString s = "lol";
+        char* str = s.Detach();
+
+        std::vector<TStringBuf> v = StringSplitter(str).Split('o');
+        std::vector<TStringBuf> expected = { "l", "l" };
+        UNIT_ASSERT_VALUES_EQUAL(v, expected);
+    }
+
+    Y_UNIT_TEST(TestSplitVector) {
+        std::vector<char> buffer = { 'a', ';', 'b' };
+
+        std::vector<TStringBuf> v = StringSplitter(buffer).Split(';');
+
+        std::vector<TStringBuf> expected = { "a", "b" };
+        UNIT_ASSERT_VALUES_EQUAL(v, expected);
+    }
+
+    class TDoubleIterator {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = int;
+        using pointer = void;
+        using reference = int;
+        using const_reference = int;
+        using difference_type = ptrdiff_t;
+
+        TDoubleIterator() = default;
+
+        TDoubleIterator(const char* ptr) : Ptr_(ptr) {}
+
+        TDoubleIterator operator++() {
+            Ptr_ += 2;
+            return *this;
+        }
+
+        TDoubleIterator operator++(int) {
+            TDoubleIterator tmp = *this;
+            ++*this;
+            return tmp;
+        }
+
+        friend bool operator==(TDoubleIterator l, TDoubleIterator r) {
+            return l.Ptr_ == r.Ptr_;
+        }
+
+        friend bool operator!=(TDoubleIterator l, TDoubleIterator r) {
+            return l.Ptr_ != r.Ptr_;
+        }
+
+        int operator*() const {
+            return (*Ptr_ - '0') * 10 + *(Ptr_ + 1) - '0';
+        }
+
+    private:
+        const char* Ptr_ = nullptr;
+    };
+
+    Y_UNIT_TEST(TestInputIterator) {
+        const char* beg = "1213002233000011";
+        const char* end = beg + strlen(beg);
+
+        std::vector<std::vector<int>> expected = { {12, 13}, {22, 33}, {}, {11} };
+        int i = 0;
+
+        for (TIteratorRange<TDoubleIterator> part : StringSplitter(TDoubleIterator(beg), TDoubleIterator(end)).SplitByFunc([](int value) { return value == 0; })) {
+            UNIT_ASSERT(std::equal(part.begin(), part.end(), expected[i].begin(), expected[i].end()));
+            i++;
+        }
+        UNIT_ASSERT_VALUES_EQUAL(i, expected.size());
+    }
+
 }
