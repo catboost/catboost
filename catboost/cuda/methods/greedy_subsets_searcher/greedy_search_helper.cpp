@@ -380,6 +380,9 @@ namespace NCatboostCuda {
 
         TVector<ui32> leavesToVisit;
         SelectLeavesToVisit(*subsets, &leavesToVisit);
+        if (leavesToVisit.empty()) {
+            return;
+        }
         ui32 numScoreBlocks = 1;
         switch (Options.Policy) {
             case EGrowingPolicy::ObliviousTree: {
