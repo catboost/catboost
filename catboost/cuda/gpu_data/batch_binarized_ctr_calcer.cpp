@@ -71,8 +71,7 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                     sortedFeature.Copy(floatCtr, stream);
                     RadixSort(sortedFeature, false, stream);
                     TVector<float> sortedFeatureCpu;
-                    sortedFeature.Read(sortedFeatureCpu,
-                                       stream);
+                    sortedFeature.SliceView(CtrTargets.LearnSlice).Read(sortedFeatureCpu, stream);
 
                     borders = gridBuilderFactory
                                   .Create(binarizationDescription.BorderSelectionType)
