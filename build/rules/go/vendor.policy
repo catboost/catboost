@@ -104,6 +104,8 @@ ALLOW .* -> vendor/github.com/PuerkitoBio/goquery
 
 # prometheus client
 ALLOW .* -> vendor/github.com/prometheus/client_golang
+ALLOW .* -> vendor/github.com/prometheus/client_model
+ALLOW .* -> vendor/github.com/prometheus/common
 
 # text diffing and patching
 ALLOW .* -> vendor/github.com/sergi/go-diff
