@@ -588,12 +588,8 @@ const ui8* GetFeatureDataBeginPtr(
             consecutiveSubsetBegin,
             featureIdx);
     } else {
-<<<<<<< catboost/libs/algo/index_calcer.cpp
-        return (**quantizedObjectsData.GetBinaryFeaturesPack((*packedIdx)[featureIdx]->PackIdx).GetSrc()).data();
-=======
         return (**quantizedObjectsData.GetBinaryFeaturesPack(
             (*packedIdx)[featureIdx]->PackIdx
-        ).GetSrc()).Data();
->>>>>>> catboost/libs/algo/index_calcer.cpp
+        ).GetSrc()).data();
     }
 }
