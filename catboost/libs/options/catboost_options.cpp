@@ -265,6 +265,12 @@ void NCatboostOptions::TCatBoostOptions::SetCtrDefaults() {
     TCatFeatureParams& catFeatureParams = CatFeatureParams.Get();
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
 
+     if (IsGroupwiseMetric(lossFunction)) {
+        if (TaskType == ETaskType::GPU) {
+            catFeatureParams.CtrHistoryUnit.SetDefault(ECtrHistoryUnit::Group);
+        }
+    }
+
     TVector<TCtrDescription> defaultSimpleCtrs;
     TVector<TCtrDescription> defaultTreeCtrs;
 
