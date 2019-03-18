@@ -185,6 +185,14 @@ namespace NCatboostCuda {
             });
         }
 
+        template <class TVisitor>
+        void VisitLeavesAndWeights(TVisitor&& visitor) const {
+            Y_ASSERT(Dim);
+            ModelStructure.VisitBins([&](const TLeafPath& path, ui32 bin) {
+                auto values = TConstArrayRef<float>(LeafValues.data() + bin * Dim, Dim);
+                visitor(path, values, LeafWeights[bin]);
+            });
+        }
     private:
         TNonSymmetricTreeStructure ModelStructure;
         TVector<float> LeafValues;

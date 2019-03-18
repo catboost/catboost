@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/models/additive_model.h>
+#include <catboost/cuda/models/non_symmetric_tree.h>
 #include <catboost/cuda/models/oblivious_model.h>
 
 #include <catboost/libs/data_new/data_provider.h>
@@ -18,9 +19,14 @@
 #include <util/generic/ptr.h>
 
 namespace NCatboostCuda {
+    using TGpuTrainResult = TVariant<
+        THolder<TAdditiveModel<TObliviousTreeModel>>,
+        THolder<TAdditiveModel<TNonSymmetricTree>>
+    >;
+
     class IGpuTrainer {
     public:
-        virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(
+        virtual TGpuTrainResult TrainModel(
             TBinarizedFeaturesManager& featureManager,
             const TTrainModelInternalOptions& internalOptions,
             const NCatboostOptions::TCatBoostOptions& catBoostOptions,

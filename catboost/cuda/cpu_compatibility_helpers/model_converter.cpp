@@ -85,10 +85,65 @@ namespace NCatboostCuda {
             }
 
             const auto& structure = model.GetStructure();
-            auto treeStructure = ConvertStructure(structure, featureCombinationToProjection);
+            auto treeStructure = ConvertSplits(structure.Splits, featureCombinationToProjection);
             obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
         }
         coreModel.ObliviousTrees = obliviousTreeBuilder.Build();
+        return coreModel;
+    }
+
+    TFullModel TModelConverter::Convert(const TAdditiveModel<TNonSymmetricTree>& src,
+                                        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
+        TFullModel coreModel;
+        coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
+
+        ui32 cpuApproxDim = 1;
+
+        if (TargetHelper.IsMultiClass()) {
+            coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
+            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
+        }
+
+        TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(*QuantizedFeaturesInfo);
+        TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
+
+        TNonSymmetricTreeModelBuilder treeBuilder(
+            floatFeatures,
+            catFeatures,
+            cpuApproxDim);
+
+        for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {
+            const TNonSymmetricTree& tree = src.GetWeakModel(treeId);
+            THolder<TNonSymmetricTreeNode> treeHeadHolder = MakeHolder<TNonSymmetricTreeNode>();
+            tree.VisitLeavesAndWeights([&](const TLeafPath& leafPath, TConstArrayRef<float> pathValues, double weight) {
+                auto pathStructure = ConvertSplits(leafPath.Splits, featureCombinationToProjection);
+                TNonSymmetricTreeNode* currentNode = treeHeadHolder.Get();
+                for (size_t i = 0; i < pathStructure.size(); ++i) {
+                    if (!currentNode->SplitCondition) {
+                        currentNode->SplitCondition = pathStructure[i];
+                    } else {
+                        Y_VERIFY(currentNode->SplitCondition == pathStructure[i]);
+                    }
+                    if (leafPath.Directions[i] == ESplitValue::Zero) {
+                        if (!currentNode->Left) {
+                            currentNode->Left = MakeHolder<TNonSymmetricTreeNode>();
+                        }
+                        currentNode = currentNode->Left.Get();
+                    } else {
+                        if (!currentNode->Right) {
+                            currentNode->Right = MakeHolder<TNonSymmetricTreeNode>();
+                        }
+                        currentNode = currentNode->Right.Get();
+                    }
+                }
+                currentNode->Value = TVector<double>(pathValues.begin(), pathValues.end());
+                currentNode->NodeWeight = weight;
+            });
+
+            treeBuilder.AddTree(std::move(treeHeadHolder));
+
+        }
+        coreModel.ObliviousTrees = treeBuilder.Build();
         return coreModel;
     }
 
@@ -196,10 +251,11 @@ namespace NCatboostCuda {
         return modelSplit;
     }
 
-    TVector<TModelSplit> TModelConverter::ConvertStructure(const TObliviousTreeStructure& structure,
-                                                           THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
+    TVector<TModelSplit> TModelConverter::ConvertSplits(const TVector<TBinarySplit>& splits,
+                                                        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection
+    ) const {
         TVector<TModelSplit> structure3;
-        for (auto split : structure.Splits) {
+        for (auto split : splits) {
             TModelSplit modelSplit;
             if (FeaturesManager.IsFloat(split.FeatureId)) {
                 modelSplit = CreateFloatSplit(split);

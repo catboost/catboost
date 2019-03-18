@@ -57,6 +57,37 @@ struct TRepackedBin {
     ui8 SplitIdx = 0;
 };
 
+
+// If selected diff is 0 we are in the last node in path
+struct TNonSymmetricTreeStepNode {
+    static constexpr ui16 InvalidDiff = Max<ui16>();
+    static constexpr ui16 TerminalMarker = 0;
+
+    ui16 LeftSubtreeDiff = InvalidDiff;
+    ui16 RightSubtreeDiff = InvalidDiff;
+
+    static TNonSymmetricTreeStepNode TerminalNodeSteps() {
+        return TNonSymmetricTreeStepNode{0, 0};
+    }
+
+    inline bool IsTerminalNode() const {
+        static_assert(sizeof(TNonSymmetricTreeStepNode) == 4, "TNonSymmetricTreeStepNode should be 4 bytes");
+        return LeftSubtreeDiff == TerminalMarker && RightSubtreeDiff == TerminalMarker;
+    }
+
+    TNonSymmetricTreeStepNode& operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode) {
+        LeftSubtreeDiff = stepNode->LeftSubtreeDiff();
+        RightSubtreeDiff = stepNode->RightSubtreeDiff();
+        return *this;
+    }
+
+    bool operator==(const TNonSymmetricTreeStepNode& other) const {
+        return std::tie(LeftSubtreeDiff, RightSubtreeDiff)
+            == std::tie(other.LeftSubtreeDiff, other.RightSubtreeDiff);
+    }
+};
+
+// TODO(kirillovs): rename to TModelTrees after adding non symmetric trees support
 struct TObliviousTrees {
 public:
     /**
@@ -77,16 +108,13 @@ public:
         TVector<TModelSplit> BinFeatures;
 
         /**
-        * This vector containes ui32 that contains such information:
+        * This vector contains ui32 that contains such information:
         * |     ui16     |   ui8   |   ui8  |
         * | featureIndex | xorMask |splitIdx| (e.g. featureIndex << 16 + xorMask << 8 + splitIdx )
         *
         * We use this layout to speed up model apply - we only need to store one byte for each float, ctr or
         *  one hot feature.
-        * TODO(kirillovs): Currently we don't support models with more than 255 splits for a feature, but this
-        *  will be fixed soon.
         */
-
 
         static_assert(sizeof(TRepackedBin) == 4, "");
 
@@ -110,6 +138,15 @@ public:
 
     //! Offset of first split in TreeSplits array
     TVector<int> TreeStartOffsets;
+
+    //! Steps in non-symmetric tree.
+    //! If both steps are zero, it's terminal value node in tree, and corresponding split condition node may be invalid
+    //! If only one of steps are zero it's semi-terminal node (left or right self-loop node)
+    TVector<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
+
+    //! Holds value index for each non terminal and non semi-terminal symmetric tree node.
+    //! For multiclass model holds indexes for 0-class.
+    TVector<ui32> NonSymmetricNodeIdToLeafId;
 
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
     TVector<double> LeafValues;
@@ -145,6 +182,8 @@ public:
             TreeSplits,
             TreeSizes,
             TreeStartOffsets,
+            NonSymmetricStepNodes,
+            NonSymmetricNodeIdToLeafId,
             LeafValues,
             CatFeatures,
             FloatFeatures,
@@ -155,6 +194,8 @@ public:
             other.TreeSplits,
             other.TreeSizes,
             other.TreeStartOffsets,
+            other.NonSymmetricStepNodes,
+            other.NonSymmetricNodeIdToLeafId,
             other.LeafValues,
             other.CatFeatures,
             other.FloatFeatures,
@@ -165,6 +206,12 @@ public:
     bool operator!=(const TObliviousTrees& other) const {
         return !(*this == other);
     }
+
+    bool IsOblivious() const {
+        return NonSymmetricStepNodes.empty() && NonSymmetricNodeIdToLeafId.empty();
+    }
+
+    void ConvertObliviousToAsymmetric();
 
     /**
      * Method for oblivious trees serialization with repeated parts caching
@@ -193,29 +240,48 @@ public:
         if (fbObj->LeafValues()) {
             LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
         }
-        if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            LeafWeights.resize(TreeSizes.size());
-            CB_ENSURE(fbObj->LeafWeights()->size() * ApproxDimension == LeafValues.size(), "Bad leaf weights count: " << fbObj->LeafWeights()->size());
-            auto leafValIter = fbObj->LeafWeights()->begin();
-            for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
-                const auto treeLeafCout = (1 << TreeSizes[treeId]);
-                LeafWeights[treeId].assign(leafValIter, leafValIter + treeLeafCout);
-                leafValIter += treeLeafCout;
-            }
+        if (fbObj->NonSymmetricStepNodes()) {
+            NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
+            std::copy(
+                fbObj->NonSymmetricStepNodes()->begin(),
+                fbObj->NonSymmetricStepNodes()->end(),
+                NonSymmetricStepNodes.begin()
+            );
+        }
+        if (fbObj->NonSymmetricNodeIdToLeafId()) {
+            NonSymmetricNodeIdToLeafId.assign(
+                fbObj->NonSymmetricNodeIdToLeafId()->begin(), fbObj->NonSymmetricNodeIdToLeafId()->end()
+            );
         }
 
-#define FEATURES_ARRAY_DESERIALIZER(var) \
+#define FBS_ARRAY_DESERIALIZER(var) \
         if (fbObj->var()) {\
             var.resize(fbObj->var()->size());\
             for (size_t i = 0; i < fbObj->var()->size(); ++i) {\
                 var[i].FBDeserialize(fbObj->var()->Get(i));\
             }\
         }
-        FEATURES_ARRAY_DESERIALIZER(CatFeatures)
-        FEATURES_ARRAY_DESERIALIZER(FloatFeatures)
-        FEATURES_ARRAY_DESERIALIZER(OneHotFeatures)
-        FEATURES_ARRAY_DESERIALIZER(CtrFeatures)
-#undef FEATURES_ARRAY_DESERIALIZER
+        FBS_ARRAY_DESERIALIZER(CatFeatures)
+        FBS_ARRAY_DESERIALIZER(FloatFeatures)
+        FBS_ARRAY_DESERIALIZER(OneHotFeatures)
+        FBS_ARRAY_DESERIALIZER(CtrFeatures)
+#undef FBS_ARRAY_DESERIALIZER
+        if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
+            if (IsOblivious()) {
+                LeafWeights.resize(TreeSizes.size());
+                CB_ENSURE(fbObj->LeafWeights()->size() * ApproxDimension == LeafValues.size(),
+                          "Bad leaf weights count: " << fbObj->LeafWeights()->size());
+                auto leafValIter = fbObj->LeafWeights()->begin();
+                for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
+                    const auto treeLeafCout = (1 << TreeSizes[treeId]);
+                    LeafWeights[treeId].assign(leafValIter, leafValIter + treeLeafCout);
+                    leafValIter += treeLeafCout;
+                }
+            } else {
+                LeafWeights.resize(1);
+                LeafWeights[0].assign(fbObj->LeafWeights()->begin(), fbObj->LeafWeights()->end());
+            }
+        }
     }
 
     /**

@@ -534,8 +534,8 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         });
 
 
-    parser.AddLongOption("growing-policy", "Tree growing policy")
-            .RequiredArgument("Type (ObliviousTree, Region,…)")
+    parser.AddLongOption("growing-policy", "Tree growing policy. One of " + GetEnumAllNames<EGrowingPolicy>())
+            .RequiredArgument("type")
             .Handler1T<TString>([plainJsonPtr](const TString& policy) {
                 (*plainJsonPtr)["growing_policy"] = policy;
             });

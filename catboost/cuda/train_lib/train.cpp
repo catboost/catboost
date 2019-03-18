@@ -230,19 +230,6 @@ namespace NCatboostCuda {
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
     }
 
-    static void WarnIfUseToSymmetricTrees(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions) {
-        if (trainCatBoostOptions.ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Lossguide) {
-            if (trainCatBoostOptions.ObliviousTreeOptions->MaxLeavesCount > 64) {
-                CATBOOST_WARNING_LOG << "Warning: CatBoost will need to convert non symmetric tree to symmetric one currently. With big number of leaves model conversion could fail or model size could be very big" << Endl;
-            }
-        }
-        if (trainCatBoostOptions.ObliviousTreeOptions->GrowingPolicy == EGrowingPolicy::Levelwise) {
-            if (trainCatBoostOptions.ObliviousTreeOptions->MaxDepth > 10) {
-                CATBOOST_WARNING_LOG << "Warning: CatBoost will need to convert non symmetric tree to symmetric one currently. With deep trees model conversion could fail or model size could be very big" << Endl;
-            }
-        }
-    }
-
     static void ConfigureCudaProfiler(bool isProfile, NCudaLib::TCudaProfiler* profiler) {
         if (isProfile) {
             profiler->SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
@@ -251,7 +238,7 @@ namespace NCatboostCuda {
         }
     }
 
-    THolder<TAdditiveModel<TObliviousTreeModel>> TrainModelImpl(const TTrainModelInternalOptions& internalOptions,
+    TGpuTrainResult TrainModelImpl(const TTrainModelInternalOptions& internalOptions,
                                                                 const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                                                 const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                 const TTrainingDataProvider& dataProvider,
@@ -267,11 +254,9 @@ namespace NCatboostCuda {
 
         TGpuAwareRandom random(trainCatBoostOptions.RandomSeed);
 
-        THolder<TAdditiveModel<TObliviousTreeModel>> model;
+        TGpuTrainResult model;
 
         const auto optimizationImplementation = GetTrainerFactoryKey(trainCatBoostOptions);
-
-        WarnIfUseToSymmetricTrees(trainCatBoostOptions);
 
         if (TGpuTrainerFactory::Has(optimizationImplementation)) {
             THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(optimizationImplementation);
@@ -303,8 +288,6 @@ namespace NCatboostCuda {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         ConfigureCudaProfiler(trainCatBoostOptions.IsProfile, &profiler);
-
-        WarnIfUseToSymmetricTrees(trainCatBoostOptions);
 
         const auto optimizationImplementation = GetTrainerFactoryKey(trainCatBoostOptions);
         CB_ENSURE(TGpuTrainerFactory::Has(optimizationImplementation),
@@ -401,7 +384,7 @@ namespace NCatboostCuda {
 
             TVector<TVector<double>> rawValues(approxDimension);
 
-            THolder<TAdditiveModel<TObliviousTreeModel>> gpuFormatModel = TrainModelImpl(
+            TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
                 catBoostOptions,
                 updatedOutputOptions,
@@ -437,14 +420,27 @@ namespace NCatboostCuda {
             }
 
             THashMap<TFeatureCombination, TProjection> featureCombinationToProjection;
-            *modelPtr = ConvertToCoreModel(featuresManager,
-                                           quantizedFeaturesInfo,
-                                           perfectHashedToHashedCatValuesMap,
-                                           classificationTargetHelper,
-                                           *gpuFormatModel,
-                                           &featureCombinationToProjection);
+            if (HoldsAlternative<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel)) {
+                auto& modelHolderRef = Get<THolder<TAdditiveModel<TObliviousTreeModel>>>(gpuFormatModel);
+                *modelPtr = ConvertToCoreModel(featuresManager,
+                                               quantizedFeaturesInfo,
+                                               perfectHashedToHashedCatValuesMap,
+                                               classificationTargetHelper,
+                                               *modelHolderRef,
+                                               &featureCombinationToProjection);
 
-            gpuFormatModel.Destroy();
+                modelHolderRef.Destroy();
+            } else {
+                auto& modelHolderRef = Get<THolder<TAdditiveModel<TNonSymmetricTree>>>(gpuFormatModel);
+                *modelPtr = ConvertToCoreModel(featuresManager,
+                                               quantizedFeaturesInfo,
+                                               perfectHashedToHashedCatValuesMap,
+                                               classificationTargetHelper,
+                                               *modelHolderRef,
+                                               &featureCombinationToProjection);
+
+                modelHolderRef.Destroy();
+            }
 
             auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 

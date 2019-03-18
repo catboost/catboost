@@ -6,3 +6,13 @@
 TFullModel TrainFloatCatboostModel(int iterations = 5, int seed = 123);
 
 NCB::TDataProviderPtr GetAdultPool();
+
+TFullModel SimpleFloatModel();
+
+TFullModel SimpleAsymmetricModel();
+
+TFullModel MultiValueFloatModel();
+
+// Deterministically train model that has only 3 categoric features.
+TFullModel TrainCatOnlyModel();
+

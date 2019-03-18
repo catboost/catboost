@@ -464,34 +464,167 @@ inline void CalcTreesSingleDocImpl(
     }
 }
 
-TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock) {
-    const bool hasOneHots = !model.ObliviousTrees.OneHotFeatures.empty();
-    if (model.ObliviousTrees.ApproxDimension == 1) {
-        if (docCountInBlock == 1) {
-            if (hasOneHots) {
-                return CalcTreesSingleDocImpl<true, true>;
-            } else {
-                return CalcTreesSingleDocImpl<true, false>;
+template <bool IsSingleClassModel, bool NeedXorMask>
+inline void CalcNonSymmetricTreesSimple(
+    const TFullModel& model,
+    const ui8* __restrict binFeatures,
+    size_t docCountInBlock,
+    TCalcerIndexType* __restrict indexesVec,
+    size_t treeStart,
+    size_t treeEnd,
+    double* __restrict resultsPtr) {
+
+    const TRepackedBin* treeSplitsPtr = model.ObliviousTrees.GetRepackedBins().data();
+    const TNonSymmetricTreeStepNode* treeStepNodes = model.ObliviousTrees.NonSymmetricStepNodes.data();
+
+    for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
+        std::fill(indexesVec, indexesVec + docCountInBlock, model.ObliviousTrees.TreeStartOffsets[treeId]);
+        size_t countStopped = 0;
+        while (countStopped != docCountInBlock) {
+            countStopped = 0;
+            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                const auto* stepNode = treeStepNodes + indexesVec[docId];
+                if (stepNode->IsTerminalNode()) {
+                    ++countStopped;
+                    continue;
+                }
+                const TRepackedBin split = treeSplitsPtr[indexesVec[docId]];
+                const ui8 featureValue = binFeatures[split.FeatureIndex * docCountInBlock + docId];
+                if constexpr (NeedXorMask) {
+                    const auto diff = ((featureValue ^ split.XorMask) >= split.SplitIdx) ? stepNode->RightSubtreeDiff : stepNode->LeftSubtreeDiff;
+                    countStopped += (diff == 0);
+                    indexesVec[docId] += diff;
+                } else {
+                    const auto diff = (featureValue >= split.SplitIdx) ? stepNode->RightSubtreeDiff : stepNode->LeftSubtreeDiff;
+                    countStopped += (diff == 0);
+                    indexesVec[docId] += diff;
+                }
+            }
+        }
+        if constexpr (IsSingleClassModel) {
+            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                resultsPtr[docId] += model.ObliviousTrees.LeafValues[model.ObliviousTrees.NonSymmetricNodeIdToLeafId[indexesVec[docId]]];
             }
         } else {
-            if (hasOneHots) {
-                return CalcTreesBlocked<true, true>;
+            auto resultWritePtr = resultsPtr;
+            for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                const ui32 firstValueIdx = model.ObliviousTrees.NonSymmetricNodeIdToLeafId[indexesVec[docId]];
+                for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId, ++resultWritePtr) {
+                    *resultWritePtr += model.ObliviousTrees.LeafValues[firstValueIdx + classId];
+                }
+            }
+        }
+    }
+}
+
+template <bool IsSingleClassModel, bool NeedXorMask>
+inline void CalcNonSymmetricTreesSingle(
+    const TFullModel& model,
+    const ui8* __restrict binFeatures,
+    size_t ,
+    TCalcerIndexType* __restrict ,
+    size_t treeStart,
+    size_t treeEnd,
+    double* __restrict resultsPtr) {
+    TCalcerIndexType index;
+    const TRepackedBin* treeSplitsPtr = model.ObliviousTrees.GetRepackedBins().data();
+    const TNonSymmetricTreeStepNode* treeStepNodes = model.ObliviousTrees.NonSymmetricStepNodes.data();
+    for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
+        index = model.ObliviousTrees.TreeStartOffsets[treeId];
+        while (true) {
+            const auto* stepNode = treeStepNodes + index;
+            if (stepNode->IsTerminalNode()) {
+                break;
+            }
+            const TRepackedBin split = treeSplitsPtr[index];
+            const ui8 featureValue = binFeatures[split.FeatureIndex];
+            if constexpr (NeedXorMask) {
+                const auto diff = ((featureValue ^ split.XorMask) >= split.SplitIdx) ? stepNode->RightSubtreeDiff
+                                                                                     : stepNode->LeftSubtreeDiff;
+                index += diff;
+                if (diff == 0) {
+                    break;
+                }
             } else {
-                return CalcTreesBlocked<true, false>;
+                const auto diff = (featureValue >= split.SplitIdx) ? stepNode->RightSubtreeDiff
+                                                                   : stepNode->LeftSubtreeDiff;
+                index += diff;
+                if (diff == 0) {
+                    break;
+                }
+            }
+        }
+        if constexpr (IsSingleClassModel) {
+            *resultsPtr += model.ObliviousTrees.LeafValues[model.ObliviousTrees.NonSymmetricNodeIdToLeafId[index]];
+        } else {
+            ui32 firstValueIdx = model.ObliviousTrees.NonSymmetricNodeIdToLeafId[index];
+            for (int classId = 0; classId < model.ObliviousTrees.ApproxDimension; ++classId) {
+                resultsPtr[classId] += model.ObliviousTrees.LeafValues[firstValueIdx + classId];
+            }
+        }
+    }
+}
+
+TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock) {
+    const bool hasOneHots = !model.ObliviousTrees.OneHotFeatures.empty();
+    if (model.ObliviousTrees.IsOblivious()) {
+        if (model.ObliviousTrees.ApproxDimension == 1) {
+            if (docCountInBlock == 1) {
+                if (hasOneHots) {
+                    return CalcTreesSingleDocImpl<true, true>;
+                } else {
+                    return CalcTreesSingleDocImpl<true, false>;
+                }
+            } else {
+                if (hasOneHots) {
+                    return CalcTreesBlocked<true, true>;
+                } else {
+                    return CalcTreesBlocked<true, false>;
+                }
+            }
+        } else {
+            if (docCountInBlock == 1) {
+                if (hasOneHots) {
+                    return CalcTreesSingleDocImpl<false, true>;
+                } else {
+                    return CalcTreesSingleDocImpl<false, false>;
+                }
+            } else {
+                if (hasOneHots) {
+                    return CalcTreesBlocked<false, true>;
+                } else {
+                    return CalcTreesBlocked<false, false>;
+                }
             }
         }
     } else {
         if (docCountInBlock == 1) {
-            if (hasOneHots) {
-                return CalcTreesSingleDocImpl<false, true>;
+            if (model.ObliviousTrees.ApproxDimension == 1) {
+                if (hasOneHots) {
+                    return CalcNonSymmetricTreesSingle<true, true>;
+                } else {
+                    return CalcNonSymmetricTreesSingle<true, false>;
+                }
             } else {
-                return CalcTreesSingleDocImpl<false, false>;
+                if (hasOneHots) {
+                    return CalcNonSymmetricTreesSingle<false, true>;
+                } else {
+                    return CalcNonSymmetricTreesSingle<false, false>;
+                }
             }
         } else {
-            if (hasOneHots) {
-                return CalcTreesBlocked<false, true>;
+            if (model.ObliviousTrees.ApproxDimension == 1) {
+                if (hasOneHots) {
+                    return CalcNonSymmetricTreesSimple<true, true>;
+                } else {
+                    return CalcNonSymmetricTreesSimple<true, false>;
+                }
             } else {
-                return CalcTreesBlocked<false, false>;
+                if (hasOneHots) {
+                    return CalcNonSymmetricTreesSimple<false, true>;
+                } else {
+                    return CalcNonSymmetricTreesSimple<false, false>;
+                }
             }
         }
     }
