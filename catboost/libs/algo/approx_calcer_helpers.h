@@ -22,11 +22,21 @@ template <ELeavesEstimation LeafEstimationType>
 inline double CalcMethodDelta(const TSum& ss, float l2Regularizer, double sumAllWeights, int allDocCount);
 
 template <>
-inline double CalcMethodDelta<ELeavesEstimation::Gradient>(const TSum& ss, float l2Regularizer, double sumAllWeights, int allDocCount) {
+inline double CalcMethodDelta<ELeavesEstimation::Gradient>(
+    const TSum& ss,
+    float l2Regularizer,
+    double sumAllWeights,
+    int allDocCount)
+{
     return CalcDeltaGradient(ss, l2Regularizer, sumAllWeights, allDocCount);
 }
 
 template <>
-inline double CalcMethodDelta<ELeavesEstimation::Newton>(const TSum& ss, float l2Regularizer, double sumAllWeights, int allDocCount) {
+inline double CalcMethodDelta<ELeavesEstimation::Newton>(
+    const TSum& ss,
+    float l2Regularizer,
+    double sumAllWeights,
+    int allDocCount)
+{
     return CalcDeltaNewton(ss, l2Regularizer, sumAllWeights, allDocCount);
 }

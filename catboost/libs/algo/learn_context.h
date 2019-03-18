@@ -53,17 +53,20 @@ struct TLearnProgress {
 
     ui32 PoolCheckSum = 0;
 
+public:
     void Save(IOutputStream* s) const;
     void Load(IInputStream* s);
 };
 
 class TCommonContext : public TNonCopyable {
 public:
-    TCommonContext(const NCatboostOptions::TCatBoostOptions& params,
-                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                   NCB::TFeaturesLayoutPtr layout,
-                   NPar::TLocalExecutor* localExecutor)
+    TCommonContext(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        NCB::TFeaturesLayoutPtr layout,
+        NPar::TLocalExecutor* localExecutor
+    )
         : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
         , EvalMetricDescriptor(evalMetricDescriptor)
@@ -89,14 +92,16 @@ public:
 /************************************************************************/
 class TLearnContext : public TCommonContext {
 public:
-    TLearnContext(const NCatboostOptions::TCatBoostOptions& params,
-                  const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                  const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                  const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                  NCB::TFeaturesLayoutPtr layout,
-                  TMaybe<const TRestorableFastRng64*> initRand,
-                  NPar::TLocalExecutor* localExecutor,
-                  const TString& fileNamesPrefix = "")
+    TLearnContext(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+        NCB::TFeaturesLayoutPtr layout,
+        TMaybe<const TRestorableFastRng64*> initRand,
+        NPar::TLocalExecutor* localExecutor,
+        const TString& fileNamesPrefix = ""
+    )
         : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, std::move(layout), localExecutor)
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
@@ -105,6 +110,7 @@ public:
         , SharedTrainData(nullptr)
         , Profile((int)Params.BoostingOptions->IterationCount)
         , UseTreeLevelCachingFlag(false) {
+
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
         CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);

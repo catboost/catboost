@@ -70,18 +70,28 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
     const bool hasTime = Params.DataProcessingOptions->HasTimeFlag
         || (data.Learn->ObjectsData->GetOrder() == EObjectsOrder::Ordered);
     const bool isOrderedBoosting = !IsPlainMode(Params.BoostingOptions->BoostingType);
-    const bool isLearnFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ false);
-    const int learningFoldCount = CountLearningFolds(Params.BoostingOptions->PermutationCount, isLearnFoldPermuted);
+    const bool isLearnFoldPermuted = IsPermutationNeeded(
+        hasTime,
+        hasCtrs,
+        isOrderedBoosting, /*isAveragingFold*/
+        false
+    );
+    const int learningFoldCount = CountLearningFolds(
+        Params.BoostingOptions->PermutationCount,
+        isLearnFoldPermuted
+    );
 
     LearnProgress.Folds.reserve(learningFoldCount);
     UpdateCtrsTargetBordersOption(lossFunction, LearnProgress.ApproxDimension, &Params.CatFeatureParams.Get());
 
-    CtrsHelper.InitCtrHelper(Params.CatFeatureParams,
-                             *Layout,
-                             data.Learn->TargetData->GetTarget(),
-                             lossFunction,
-                             ObjectiveDescriptor,
-                             Params.DataProcessingOptions->AllowConstLabel);
+    CtrsHelper.InitCtrHelper(
+        Params.CatFeatureParams,
+        *Layout,
+        data.Learn->TargetData->GetTarget(),
+        lossFunction,
+        ObjectiveDescriptor,
+        Params.DataProcessingOptions->AllowConstLabel
+    );
 
     //Todo(noxoomo): check and init
     const auto& boostingOptions = Params.BoostingOptions.Get();
@@ -131,7 +141,12 @@ void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
         }
     }
 
-    const bool isAverageFoldPermuted = IsPermutationNeeded(hasTime, hasCtrs, isOrderedBoosting, /*isAveragingFold*/ true);
+    const bool isAverageFoldPermuted = IsPermutationNeeded(
+        hasTime,
+        hasCtrs,
+        isOrderedBoosting, /*isAveragingFold*/
+        true
+    );
     LearnProgress.AveragingFold = TFold::BuildPlainFold(
         *data.Learn,
         CtrsHelper.GetTargetClassifiers(),
@@ -209,14 +224,15 @@ bool TLearnContext::TryLoadProgress() {
             LearnProgress = std::move(learnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
-            CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size() << " trees" << Endl;
+            CATBOOST_INFO_LOG << "Loaded progress file containing " << LearnProgress.TreeStruct.size()
+                << " trees" << Endl;
         });
         return true;
     } catch(const TCatBoostException&) {
         throw;
     } catch (...) {
-        CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "
-                            << CurrentExceptionMessage() << Endl;
+        CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile
+            << " exception: " << CurrentExceptionMessage() << Endl;
         return false;
     }
 }
@@ -233,7 +249,8 @@ void TLearnProgress::Save(IOutputStream* s) const {
         AveragingFold.SaveApproxes(s);
         ::SaveMany(s, AvrgApprox);
     }
-    ::SaveMany(s,
+    ::SaveMany(
+        s,
         TestApprox,
         BestTestApprox,
         CatFeatures,
@@ -244,7 +261,8 @@ void TLearnProgress::Save(IOutputStream* s) const {
         LeafValues,
         MetricsAndTimeHistory,
         UsedCtrSplits,
-        PoolCheckSum);
+        PoolCheckSum
+    );
 }
 
 void TLearnProgress::Load(IInputStream* s) {
@@ -262,18 +280,20 @@ void TLearnProgress::Load(IInputStream* s) {
         AveragingFold.LoadApproxes(s);
         ::Load(s, AvrgApprox);
     }
-    ::LoadMany(s,
-               TestApprox,
-               BestTestApprox,
-               CatFeatures,
-               FloatFeatures,
-               ApproxDimension,
-               TreeStruct,
-               TreeStats,
-               LeafValues,
-               MetricsAndTimeHistory,
-               UsedCtrSplits,
-               PoolCheckSum);
+    ::LoadMany(
+        s,
+        TestApprox,
+        BestTestApprox,
+        CatFeatures,
+        FloatFeatures,
+        ApproxDimension,
+        TreeStruct,
+        TreeStats,
+        LeafValues,
+        MetricsAndTimeHistory,
+        UsedCtrSplits,
+        PoolCheckSum
+    );
 }
 
 bool TLearnContext::UseTreeLevelCaching() const {

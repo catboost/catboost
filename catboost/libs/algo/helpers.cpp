@@ -107,7 +107,10 @@ void CalcErrors(
                             errors[i],
                             ctx->LocalExecutor
                         );
-                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*errors[i].Get(), errors[i]->GetFinalError(additiveStats));
+                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(
+                            *errors[i].Get(),
+                            errors[i]->GetFinalError(additiveStats)
+                        );
                     }
                 }
             } else {
@@ -155,10 +158,12 @@ void CalcErrors(
                     ctx->LocalExecutor
                 );
                 bool updateBestIteration = (i == 0) && (testIdx == trainingDataProviders.Test.size() - 1);
-                ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(testIdx,
-                                                                      *errors[i].Get(),
-                                                                      errors[i]->GetFinalError(additiveStats),
-                                                                      updateBestIteration);
+                ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(
+                    testIdx,
+                    *errors[i].Get(),
+                    errors[i]->GetFinalError(additiveStats),
+                    updateBestIteration
+                );
             }
         }
     }

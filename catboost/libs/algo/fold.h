@@ -25,7 +25,8 @@
 
 struct TRestorableFastRng64;
 
-struct TFold {
+class TFold {
+public:
     struct TBodyTail {
         TBodyTail(int bodyQueryFinish,
                   int tailQueryFinish,
@@ -39,14 +40,15 @@ struct TFold {
             , BodySumWeight(bodySumWeight) {
         }
 
+        int GetBodyDocCount() const { return BodyFinish; }
+
+    public:
         TVector<TVector<double>> Approx;  // [dim][]
         TVector<TVector<double>> WeightedDerivatives;  // [dim][]
         // TODO(annaveronika): make a single vector<vector> for all BodyTail
         TVector<TVector<double>> SampleWeightedDerivatives;  // [dim][]
         TVector<float> PairwiseWeights;  // [dim][]
         TVector<float> SamplePairwiseWeights;  // [dim][]
-
-        int GetBodyDocCount() const { return BodyFinish; }
 
         const int BodyQueryFinish;
         const int TailQueryFinish;
@@ -55,32 +57,7 @@ struct TFold {
         const double BodySumWeight;
     };
 
-    TVector<TQueryInfo> LearnQueriesInfo;
-
-    /*
-     * TMaybe is used because of delayed initialization and lack of default constructor in
-     * TObjectsGroupingSubset
-     */
-    TMaybe<NCB::TObjectsGroupingSubset> LearnPermutation; // use for non-features data
-
-    /* indexing in features buckets arrays, always TIndexedSubset
-     * initialized to some default value because TArraySubsetIndexing has no default constructor
-     */
-    NCB::TFeaturesArraySubsetIndexing LearnPermutationFeaturesSubset
-        = NCB::TFeaturesArraySubsetIndexing(NCB::TIndexedSubset<ui32>());
-
-    /* begin of subset of data in features buckets arrays, used only for permutation block index calculation
-     * if (PermutationBlockSize != 1) && (PermutationBlockSize != learnSampleCount))
-     */
-    ui32 FeaturesSubsetBegin;
-
-    TVector<TBodyTail> BodyTailArr;
-    TVector<float> LearnTarget;
-    TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.
-    TVector<TVector<int>> LearnTargetClass;
-    TVector<int> TargetClassesCount;
-    ui32 PermutationBlockSize = FoldPermutationBlockSizeNotSet;
-
+public:
     TOnlineCTRHash& GetCtrs(const TProjection& proj) {
         return proj.HasSingleFeature() ? OnlineSingleCtrs : OnlineCTR;
     }
@@ -163,15 +140,42 @@ struct TFold {
     }
 
 private:
+    void AssignTarget(NCB::TMaybeData<TConstArrayRef<float>> target,
+                      const TVector<TTargetClassifier>& targetClassifiers);
+    void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
+
+public:
+    TVector<TQueryInfo> LearnQueriesInfo;
+
+    /*
+     * TMaybe is used because of delayed initialization and lack of default constructor in
+     * TObjectsGroupingSubset
+     */
+    TMaybe<NCB::TObjectsGroupingSubset> LearnPermutation; // use for non-features data
+
+    /* indexing in features buckets arrays, always TIndexedSubset
+     * initialized to some default value because TArraySubsetIndexing has no default constructor
+     */
+    NCB::TFeaturesArraySubsetIndexing LearnPermutationFeaturesSubset
+        = NCB::TFeaturesArraySubsetIndexing(NCB::TIndexedSubset<ui32>());
+
+    /* begin of subset of data in features buckets arrays, used only for permutation block index calculation
+     * if (PermutationBlockSize != 1) && (PermutationBlockSize != learnSampleCount))
+     */
+    ui32 FeaturesSubsetBegin;
+
+    TVector<TBodyTail> BodyTailArr;
+    TVector<float> LearnTarget;
+    TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.
+    TVector<TVector<int>> LearnTargetClass;
+    TVector<int> TargetClassesCount;
+    ui32 PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+
+private:
     TVector<float> LearnWeights;  // Initial document weights. Empty if no weights present.
     double SumWeight;
 
     TOnlineCTRHash OnlineSingleCtrs;
     TOnlineCTRHash OnlineCTR;
-
-
-    void AssignTarget(NCB::TMaybeData<TConstArrayRef<float>> target,
-                      const TVector<TTargetClassifier>& targetClassifiers);
-    void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
 };
 

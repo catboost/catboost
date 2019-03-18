@@ -14,11 +14,13 @@ struct TBucketPairWeightStatistics {
     double SmallerBorderWeightSum = 0.0; // The weight sum of pair elements with smaller border.
     double GreaterBorderRightWeightSum = 0.0; // The weight sum of pair elements with greater border.
 
+public:
+    SAVELOAD(SmallerBorderWeightSum, GreaterBorderRightWeightSum);
+
     void Add(const TBucketPairWeightStatistics& rhs) {
         SmallerBorderWeightSum += rhs.SmallerBorderWeightSum;
         GreaterBorderRightWeightSum += rhs.GreaterBorderRightWeightSum;
     }
-    SAVELOAD(SmallerBorderWeightSum, GreaterBorderRightWeightSum);
 };
 
 
@@ -33,8 +35,10 @@ struct TPairwiseStats {
 
     TSplitEnsembleSpec SplitEnsembleSpec;
 
-    void Add(const TPairwiseStats& rhs);
+public:
     SAVELOAD(DerSums, PairWeightStatistics, SplitEnsembleSpec);
+
+    void Add(const TPairwiseStats& rhs);
 };
 
 

@@ -18,11 +18,13 @@ struct TBinTracker {
         THashElem() = default;
     };
 
+public:
     int ElemCount = 0;
     TVector<THashElem> Hash;
     ui64 HashMask = 0;
     int CurrentVersion = 0;
 
+public:
     TBinTracker() = default;
     void Alloc(int maxElemCount) {
         CB_ENSURE(maxElemCount < BS_MASK, "fail");

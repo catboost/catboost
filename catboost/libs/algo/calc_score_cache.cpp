@@ -13,7 +13,11 @@ bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fit
     return fitParams.SamplingFrequency.Get() == ESamplingFrequency::PerTree;
 }
 
-TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitEnsemble& splitEnsemble, int splitStatsCount, bool* areStatsDirty) {
+TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(
+    const TSplitEnsemble& splitEnsemble,
+    int splitStatsCount,
+    bool* areStatsDirty
+) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
         if (Stats.contains(splitEnsemble) && Stats[splitEnsemble] != nullptr) {
@@ -61,15 +65,28 @@ void TCalcScoreFold::TVectorSlicing::Create(const NPar::TLocalExecutor::TExecRan
     }
 }
 
-void TCalcScoreFold::TVectorSlicing::CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor) {
+void TCalcScoreFold::TVectorSlicing::CreateByControl(
+    const NPar::TLocalExecutor::TExecRangeParams& docBlockParams,
+    const TUnsizedVector<bool>& control,
+    NPar::TLocalExecutor* localExecutor
+) {
     Slices.yresize(docBlockParams.GetBlockCount());
     const bool* controlData = GetDataPtr(control);
     TSlice* slicesData = GetDataPtr(Slices);
-    localExecutor->ExecRange([=](int sliceIdx) {
-        int sliceSize = 0; // use a local var instead of Slices[sliceIdx].Size so that the compiler can use a register
-        NPar::TLocalExecutor::BlockedLoopBody(docBlockParams, [=, &sliceSize](int doc) { sliceSize += controlData[doc]; })(sliceIdx);
-        slicesData[sliceIdx].Size = sliceSize;
-    }, 0, docBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [=](int sliceIdx) {
+            // use a local var instead of Slices[sliceIdx].Size so that the compiler can use a register
+            int sliceSize = 0;
+            NPar::TLocalExecutor::BlockedLoopBody(
+                docBlockParams,
+                [=, &sliceSize](int doc) {sliceSize += controlData[doc];}
+            )(sliceIdx);
+            slicesData[sliceIdx].Size = sliceSize;
+        },
+        0,
+        docBlockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
     int offset = 0;
     for (auto& slice : Slices) {
         slice.Offset = offset;
@@ -88,7 +105,9 @@ void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfo(
     Slices.yresize(queryBlockParams.GetBlockCount());
     for (int sliceIdx : xrange(queryBlockParams.GetBlockCount())) {
         int firstQueryIdx = queryBlockParams.GetBlockSize() * sliceIdx;
-        int lastQueryIdx = Min(firstQueryIdx + queryBlockParams.GetBlockSize(), srcQueriesInfo.ysize()) - 1; // inclusive
+
+        // inclusive
+        int lastQueryIdx = Min(firstQueryIdx + queryBlockParams.GetBlockSize(), srcQueriesInfo.ysize()) - 1;
         Slices[sliceIdx].Offset = srcQueriesInfo[firstQueryIdx].Begin;
         Slices[sliceIdx].Size = srcQueriesInfo[lastQueryIdx].End - srcQueriesInfo[firstQueryIdx].Begin;
     }
@@ -110,70 +129,77 @@ void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfoAndControl(
     Slices.yresize(queryBlockParams.GetBlockCount());
 
     const bool* controlData = GetDataPtr(control);
-    localExecutor->ExecRange([&](int sliceIdx) {
-        int beginQueryIdx = queryBlockParams.GetBlockSize() * sliceIdx;
-        int endQueryIdx = Min(beginQueryIdx + queryBlockParams.GetBlockSize(), srcQueriesSize);
+    localExecutor->ExecRange(
+        [&](int sliceIdx) {
+            int beginQueryIdx = queryBlockParams.GetBlockSize() * sliceIdx;
+            int endQueryIdx = Min(beginQueryIdx + queryBlockParams.GetBlockSize(), srcQueriesSize);
 
-        TVector<int> perQuerySrcToDstDocIdx; // -1 means no such doc in dst
+            TVector<int> perQuerySrcToDstDocIdx; // -1 means no such doc in dst
 
-        for (int queryIdx : xrange(beginQueryIdx, endQueryIdx)) {
-            const auto& srcQueryInfo = srcQueriesInfo[queryIdx];
-            auto& dstQueryInfo = (*dstQueriesInfo)[queryIdx];
+            for (int queryIdx : xrange(beginQueryIdx, endQueryIdx)) {
+                const auto& srcQueryInfo = srcQueriesInfo[queryIdx];
+                auto& dstQueryInfo = (*dstQueriesInfo)[queryIdx];
 
-            dstQueryInfo.Weight = srcQueryInfo.Weight;
+                dstQueryInfo.Weight = srcQueryInfo.Weight;
 
-            // use a local var instead of (*dstQueriesInfo)[queryIdx].End so that the compiler can use a register
-            ui32 dstQueryDocCount = 0;
+                /* use a local var instead of (*dstQueriesInfo)[queryIdx].End so that the compiler can use a
+                 * register
+                 */
+                ui32 dstQueryDocCount = 0;
 
-            if (isPairwiseScoring) {
-                perQuerySrcToDstDocIdx.yresize(srcQueryInfo.GetSize());
-                for (int srcDocLocalIdx : xrange(srcQueryInfo.GetSize())) {
-                    if (controlData[srcQueryInfo.Begin + srcDocLocalIdx]) {
-                        perQuerySrcToDstDocIdx[srcDocLocalIdx] = dstQueryDocCount;
-                        ++dstQueryDocCount;
-                        if (!srcQueryInfo.SubgroupId.empty()) {
-                            dstQueryInfo.SubgroupId.push_back(srcQueryInfo.SubgroupId[srcDocLocalIdx]);
+                if (isPairwiseScoring) {
+                    perQuerySrcToDstDocIdx.yresize(srcQueryInfo.GetSize());
+                    for (int srcDocLocalIdx : xrange(srcQueryInfo.GetSize())) {
+                        if (controlData[srcQueryInfo.Begin + srcDocLocalIdx]) {
+                            perQuerySrcToDstDocIdx[srcDocLocalIdx] = dstQueryDocCount;
+                            ++dstQueryDocCount;
+                            if (!srcQueryInfo.SubgroupId.empty()) {
+                                dstQueryInfo.SubgroupId.push_back(srcQueryInfo.SubgroupId[srcDocLocalIdx]);
+                            }
+                        } else {
+                            perQuerySrcToDstDocIdx[srcDocLocalIdx] = -1;
                         }
-                    } else {
-                        perQuerySrcToDstDocIdx[srcDocLocalIdx] = -1;
                     }
-                }
-                if (srcQueryInfo.GetSize() == dstQueryDocCount) {
-                    dstQueryInfo.Competitors = srcQueryInfo.Competitors;
-                } else if (dstQueryDocCount > 0) {
-                    dstQueryInfo.Competitors.resize(dstQueryDocCount);
-                    for (int srcIdx1 : xrange(srcQueryInfo.GetSize())) {
-                        if (perQuerySrcToDstDocIdx[srcIdx1] != -1) {
-                            auto& dstCompetitorsPart =
-                                dstQueryInfo.Competitors[perQuerySrcToDstDocIdx[srcIdx1]];
-                            for (const auto& srcCompetitor : srcQueryInfo.Competitors[srcIdx1]) {
-                                if (perQuerySrcToDstDocIdx[srcCompetitor.Id] != -1) {
-                                    dstCompetitorsPart.push_back(
-                                        TCompetitor(
-                                            perQuerySrcToDstDocIdx[srcCompetitor.Id],
-                                            srcCompetitor.Weight
-                                        )
-                                    );
-                                    dstCompetitorsPart.back().SampleWeight = srcCompetitor.SampleWeight;
+                    if (srcQueryInfo.GetSize() == dstQueryDocCount) {
+                        dstQueryInfo.Competitors = srcQueryInfo.Competitors;
+                    } else if (dstQueryDocCount > 0) {
+                        dstQueryInfo.Competitors.resize(dstQueryDocCount);
+                        for (int srcIdx1 : xrange(srcQueryInfo.GetSize())) {
+                            if (perQuerySrcToDstDocIdx[srcIdx1] != -1) {
+                                auto& dstCompetitorsPart =
+                                    dstQueryInfo.Competitors[perQuerySrcToDstDocIdx[srcIdx1]];
+                                for (const auto& srcCompetitor : srcQueryInfo.Competitors[srcIdx1]) {
+                                    if (perQuerySrcToDstDocIdx[srcCompetitor.Id] != -1) {
+                                        dstCompetitorsPart.push_back(
+                                            TCompetitor(
+                                                perQuerySrcToDstDocIdx[srcCompetitor.Id],
+                                                srcCompetitor.Weight
+                                            )
+                                        );
+                                        dstCompetitorsPart.back().SampleWeight = srcCompetitor.SampleWeight;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            } else {
-                for (int srcDocLocalIdx : xrange(srcQueryInfo.GetSize())) {
-                    if (controlData[srcQueryInfo.Begin + srcDocLocalIdx]) {
-                        ++dstQueryDocCount;
-                        if (!srcQueryInfo.SubgroupId.empty()) {
-                            dstQueryInfo.SubgroupId.push_back(srcQueryInfo.SubgroupId[srcDocLocalIdx]);
+                } else {
+                    for (int srcDocLocalIdx : xrange(srcQueryInfo.GetSize())) {
+                        if (controlData[srcQueryInfo.Begin + srcDocLocalIdx]) {
+                            ++dstQueryDocCount;
+                            if (!srcQueryInfo.SubgroupId.empty()) {
+                                dstQueryInfo.SubgroupId.push_back(srcQueryInfo.SubgroupId[srcDocLocalIdx]);
+                            }
                         }
                     }
                 }
+                // temporarily use End as queryDocCount to avoid extra temporary storage
+                (*dstQueriesInfo)[queryIdx].End = dstQueryDocCount;
             }
-            // temporarily use End as queryDocCount to avoid extra temporary storage
-            (*dstQueriesInfo)[queryIdx].End = dstQueryDocCount;
-        }
-    }, 0, queryBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        },
+        0,
+        queryBlockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
     int offset = 0;
     for (int sliceIdx : xrange(queryBlockParams.GetBlockCount())) {
@@ -215,7 +241,12 @@ static int GetMaxTailFinish(const TVector<TFold>& folds, int bodyTailIdx) {
     return maxTailFinish;
 }
 
-void TCalcScoreFold::Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate) {
+void TCalcScoreFold::Create(
+    const TVector<TFold>& folds,
+    bool isPairwiseScoring,
+    int defaultCalcStatsObjBlockSize,
+    float sampleRate
+) {
     BernoulliSampleRate = sampleRate;
     Y_ASSERT(BernoulliSampleRate > 0.0f && BernoulliSampleRate <= 1.0f);
     DocCount = folds[0].GetLearnSampleCount();
@@ -254,7 +285,13 @@ void TCalcScoreFold::Create(const TVector<TFold>& folds, bool isPairwiseScoring,
 }
 
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
-static inline void SetElements(TArrayRef<const bool> srcControlRef, TSrcRef srcRef, TGetElementFunc GetElementFunc, TDstRef dstRef, int* dstCount) {
+static inline void SetElements(
+    TArrayRef<const bool> srcControlRef,
+    TSrcRef srcRef,
+    TGetElementFunc GetElementFunc,
+    TDstRef dstRef,
+    int* dstCount
+) {
     const auto* sourceData = srcRef.data();
     const size_t sourceCount = srcRef.size();
     auto* __restrict destinationData = dstRef.data();
@@ -280,7 +317,12 @@ static inline TData GetElement(const TData* source, size_t j) {
 }
 
 template <typename TData, typename TDstRef>
-static inline void SetElementsToConstant(TArrayRef<const bool> srcControlRef, TData constant, TDstRef dstRef, int* dstCount) {
+static inline void SetElementsToConstant(
+    TArrayRef<const bool> srcControlRef,
+    TData constant,
+    TDstRef dstRef,
+    int* dstCount
+) {
     const bool* controlData = srcControlRef.data();
     const size_t sourceCount = srcControlRef.size();
     auto* __restrict destinationData = dstRef.data();
@@ -311,9 +353,21 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
     if (srcLearnWeights.empty()) {
         SetElementsToConstant(srcControlRef, 1.0f, dstLearnWeights, &ignored);
     } else {
-        SetElements(srcControlRef, srcBlock.GetConstRef(srcLearnWeights), GetElement<float>, dstLearnWeights, &ignored);
+        SetElements(
+            srcControlRef,
+            srcBlock.GetConstRef(srcLearnWeights),
+            GetElement<float>,
+            dstLearnWeights,
+            &ignored
+        );
     }
-    SetElements(srcControlRef, srcBlock.GetConstRef(fold.SampleWeights), GetElement<float>, dstBlock.GetRef(SampleWeights), &ignored);
+    SetElements(
+        srcControlRef,
+        srcBlock.GetConstRef(fold.SampleWeights),
+        GetElement<float>,
+        dstBlock.GetRef(SampleWeights),
+        &ignored
+    );
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
         const auto& srcBodyTail = fold.BodyTailArr[bodyTailIdx];
         auto& dstBodyTail = BodyTailArr[bodyTailIdx];
@@ -322,19 +376,47 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
         int bodyCount = 0;
         int tailCount = 0;
         if (HasPairwiseWeights) {
-            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.PairwiseWeights), GetElement<float>, dstBlock.GetRef(dstBodyTail.PairwiseWeights), &tailCount);
-            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.SamplePairwiseWeights), GetElement<float>, dstBlock.GetRef(dstBodyTail.SamplePairwiseWeights), &tailCount);
+            SetElements(
+                srcControlRef,
+                srcTailBlock.GetConstRef(srcBodyTail.PairwiseWeights),
+                GetElement<float>,
+                dstBlock.GetRef(dstBodyTail.PairwiseWeights),
+                &tailCount
+            );
+            SetElements(
+                srcControlRef,
+                srcTailBlock.GetConstRef(srcBodyTail.SamplePairwiseWeights),
+                GetElement<float>,
+                dstBlock.GetRef(dstBodyTail.SamplePairwiseWeights),
+                &tailCount
+            );
         }
         for (int dim = 0; dim < ApproxDimension; ++dim) {
-            SetElements(srcControlRef, srcBodyBlock.GetConstRef(srcBodyTail.WeightedDerivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.WeightedDerivatives[dim]), &bodyCount);
-            SetElements(srcControlRef, srcTailBlock.GetConstRef(srcBodyTail.SampleWeightedDerivatives[dim]), GetElement<double>, dstBlock.GetRef(dstBodyTail.SampleWeightedDerivatives[dim]), &tailCount);
+            SetElements(
+                srcControlRef,
+                srcBodyBlock.GetConstRef(srcBodyTail.WeightedDerivatives[dim]),
+                GetElement<double>,
+                dstBlock.GetRef(dstBodyTail.WeightedDerivatives[dim]),
+                &bodyCount
+            );
+            SetElements(
+                srcControlRef,
+                srcTailBlock.GetConstRef(srcBodyTail.SampleWeightedDerivatives[dim]),
+                GetElement<double>,
+                dstBlock.GetRef(dstBodyTail.SampleWeightedDerivatives[dim]),
+                &tailCount
+            );
         }
         AtomicAdd(dstBodyTail.BodyFinish, bodyCount); // these atomics may take up to 2-3% of iteration time
         AtomicAdd(dstBodyTail.TailFinish, tailCount);
     }
 }
 
-void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor) {
+void TCalcScoreFold::SelectSmallestSplitSide(
+    int curDepth,
+    const TCalcScoreFold& fold,
+    NPar::TLocalExecutor* localExecutor
+) {
     SetSmallestSideControl(curDepth, fold.DocCount, fold.Indices, localExecutor);
 
     TVectorSlicing srcBlocks;
@@ -348,28 +430,48 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
         &blockCount,
         &srcBlocks,
         &dstBlocks,
-        &LearnQueriesInfo
-    );
+        &LearnQueriesInfo);
 
     DocCount = dstBlocks.Total;
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
     ClearBodyTail();
     BodyTailCount = fold.GetBodyTailCount();
-    localExecutor->ExecRange([&](int blockIdx) {
-        int ignored;
-        const auto srcBlock = srcBlocks.Slices[blockIdx];
-        const auto srcControlRef = srcBlock.GetConstRef(Control);
-        const auto srcIndicesRef = srcBlock.GetConstRef(fold.Indices);
-        const auto dstBlock = dstBlocks.Slices[blockIdx];
-        const TIndexType splitWeight = 1 << (curDepth - 1);
-        SetElements(srcControlRef, srcBlock.GetConstRef(TVector<TIndexType>()), [=](const TIndexType*, size_t i) { return srcIndicesRef[i] | splitWeight; }, dstBlock.GetRef(Indices), &ignored);
-        SetElements(srcControlRef, srcBlock.GetConstRef(fold.IndexInFold), GetElement<ui32>, dstBlock.GetRef(IndexInFold), &ignored);
-        SelectBlockFromFold(fold, srcBlock, dstBlock);
-    }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            int ignored;
+            const auto srcBlock = srcBlocks.Slices[blockIdx];
+            const auto srcControlRef = srcBlock.GetConstRef(Control);
+            const auto srcIndicesRef = srcBlock.GetConstRef(fold.Indices);
+            const auto dstBlock = dstBlocks.Slices[blockIdx];
+            const TIndexType splitWeight = 1 << (curDepth - 1);
+            SetElements(
+                srcControlRef,
+                srcBlock.GetConstRef(TVector<TIndexType>()),
+                [=](const TIndexType*, size_t i) {return srcIndicesRef[i] | splitWeight;},
+                dstBlock.GetRef(Indices),
+                &ignored);
+            SetElements(
+                srcControlRef,
+                srcBlock.GetConstRef(fold.IndexInFold),
+                GetElement<ui32>,
+                dstBlock.GetRef(IndexInFold),
+                &ignored);
+            SelectBlockFromFold(fold, srcBlock, dstBlock);
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE);
     SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
 }
 
-void TCalcScoreFold::Sample(const TFold& fold, ESamplingUnit samplingUnit, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor, bool isCoinFlipping) {
+void TCalcScoreFold::Sample(
+    const TFold& fold,
+    ESamplingUnit samplingUnit,
+    const TVector<TIndexType>& indices,
+    TRestorableFastRng64* rand,
+    NPar::TLocalExecutor* localExecutor,
+    bool isCoinFlipping
+) {
     if (isCoinFlipping) {
         SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
     } else {
@@ -388,26 +490,39 @@ void TCalcScoreFold::Sample(const TFold& fold, ESamplingUnit samplingUnit, const
         &blockCount,
         &srcBlocks,
         &dstBlocks,
-        &LearnQueriesInfo
-    );
+        &LearnQueriesInfo);
 
     DocCount = dstBlocks.Total;
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
     ClearBodyTail();
     BodyTailCount = fold.BodyTailArr.ysize();
-    localExecutor->ExecRange([&](int blockIdx) {
-        const auto srcBlock = srcBlocks.Slices[blockIdx];
-        const auto srcControlRef = srcBlock.GetConstRef(Control);
-        const auto dstBlock = dstBlocks.Slices[blockIdx];
-        int ignored;
-        SetElements(srcControlRef, srcBlock.GetConstRef(indices), GetElement<TIndexType>, dstBlock.GetRef(Indices), &ignored);
-        SetElements(srcControlRef, srcBlock.GetConstRef(TVector<size_t>()), [=](const size_t*, size_t j) { return ui32(srcBlock.Offset + j); }, dstBlock.GetRef(IndexInFold), &ignored);
-        SelectBlockFromFold(fold, srcBlock, dstBlock);
-    }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            const auto srcBlock = srcBlocks.Slices[blockIdx];
+            const auto srcControlRef = srcBlock.GetConstRef(Control);
+            const auto dstBlock = dstBlocks.Slices[blockIdx];
+            int ignored;
+            SetElements(
+                srcControlRef,
+                srcBlock.GetConstRef(indices),
+                GetElement<TIndexType>,
+                dstBlock.GetRef(Indices),
+                &ignored);
+            SetElements(
+                srcControlRef,
+                srcBlock.GetConstRef(TVector<size_t>()),
+                [=](const size_t*, size_t j) {return ui32(srcBlock.Offset + j);},
+                dstBlock.GetRef(IndexInFold),
+                &ignored);
+            SelectBlockFromFold(fold, srcBlock, dstBlock);
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE);
     SetPermutationBlockSizeAndCalcStatsRanges(
-        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet,
-        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? DocCount : FoldPermutationBlockSizeNotSet
-    );
+        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? fold.PermutationBlockSize :
+            FoldPermutationBlockSizeNotSet,
+        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? DocCount : FoldPermutationBlockSizeNotSet);
 }
 
 void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
@@ -425,13 +540,22 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
     }
 
     DocCount = dstBlocks.Total;
-    localExecutor->ExecRange([&](int blockIdx) {
-        const auto srcBlock = srcBlocks.Slices[blockIdx];
-        const auto dstBlock = dstBlocks.Slices[blockIdx];
-        int ignored;
-        const auto srcControlRef = srcBlock.GetConstRef(Control);
-        SetElements(srcControlRef, srcBlock.GetConstRef(indices), GetElement<TIndexType>, dstBlock.GetRef(Indices), &ignored);
-    }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [&](int blockIdx) {
+            const auto srcBlock = srcBlocks.Slices[blockIdx];
+            const auto dstBlock = dstBlocks.Slices[blockIdx];
+            int ignored;
+            const auto srcControlRef = srcBlock.GetConstRef(Control);
+            SetElements(
+                srcControlRef,
+                srcBlock.GetConstRef(indices),
+                GetElement<TIndexType>,
+                dstBlock.GetRef(Indices),
+                &ignored);
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 int TCalcScoreFold::GetApproxDimension() const {
@@ -454,7 +578,12 @@ const NCB::IIndexRangesGenerator<int>& TCalcScoreFold::GetCalcStatsIndexRanges()
     return *CalcStatsIndexRanges;
 }
 
-void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
+void TCalcScoreFold::SetSmallestSideControl(
+    int curDepth,
+    int docCount,
+    const TUnsizedVector<TIndexType>& indices,
+    NPar::TLocalExecutor* localExecutor
+) {
     Y_ASSERT(curDepth > 0);
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
@@ -463,13 +592,17 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TU
 
     TVector<int> blockSize(blockCount, 0);
     const TIndexType* indicesData = GetDataPtr(indices);
-    localExecutor->ExecRange([=, &blockSize](int blockIdx) {
-        int size = 0;
-        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=, &size](int docIdx) {
-            size += indicesData[docIdx] >> (curDepth - 1);
-        })(blockIdx);
-        blockSize[blockIdx] = size;
-    }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    localExecutor->ExecRange(
+        [=, &blockSize](int blockIdx) {
+            int size = 0;
+            NPar::TLocalExecutor::BlockedLoopBody(blockParams, [=, &size](int docIdx) {
+                    size += indicesData[docIdx] >> (curDepth - 1);
+                })(blockIdx);
+            blockSize[blockIdx] = size;
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 
     int trueCount = 0;
     for (int size : blockSize) {
@@ -479,24 +612,35 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TU
     bool* controlData = GetDataPtr(Control);
     if (trueCount * 2 > docCount) {
         SmallestSplitSideValue = false;
-        localExecutor->ExecRange([=](int docIdx) {
-            controlData[docIdx] = indicesData[docIdx] < splitWeight;
-        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+        localExecutor->ExecRange(
+            [=](int docIdx) {
+                controlData[docIdx] = indicesData[docIdx] < splitWeight;
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
         SmallestSplitSideValue = true;
-        localExecutor->ExecRange([=](int docIdx) {
-            controlData[docIdx] = indicesData[docIdx] > splitWeight - 1;
-        }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+        localExecutor->ExecRange(
+            [=](int docIdx) {
+                controlData[docIdx] = indicesData[docIdx] > splitWeight - 1;
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
 
-void TCalcScoreFold::SetSampledControl(int docCount, ESamplingUnit samplingUnit, const TVector<TQueryInfo>& queriesInfo, TRestorableFastRng64* rand) {
+void TCalcScoreFold::SetSampledControl(
+    int docCount,
+    ESamplingUnit samplingUnit,
+    const TVector<TQueryInfo>& queriesInfo,
+    TRestorableFastRng64* rand
+) {
     if (BernoulliSampleRate == 1.0f || IsPairwiseScoring) {
         Fill(Control.begin(), Control.end(), true);
         return;
     }
     if (samplingUnit == ESamplingUnit::Group) {
-        for (auto& queryInfo: queriesInfo) {
+        for (auto& queryInfo : queriesInfo) {
             auto itBegin = GetDataPtr(Control, queryInfo.Begin);
             auto itEnd = GetDataPtr(Control, queryInfo.End);
             Fill(itBegin, itEnd, rand->GenRandReal1() < BernoulliSampleRate);
@@ -508,8 +652,14 @@ void TCalcScoreFold::SetSampledControl(int docCount, ESamplingUnit samplingUnit,
     }
 }
 
-void TCalcScoreFold::SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit) {
-    CB_ENSURE(samplingUnit != ESamplingUnit::Group, "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)");
+void TCalcScoreFold::SetControlNoZeroWeighted(
+    int docCount,
+    const float* sampleWeights,
+    ESamplingUnit samplingUnit
+) {
+    CB_ENSURE(
+        samplingUnit != ESamplingUnit::Group,
+        "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)");
     constexpr float EPS = std::numeric_limits<float>::epsilon();
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
         Control[docIdx] = sampleWeights[docIdx] > EPS;
@@ -590,7 +740,12 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
             } else {
                 rangeEnd = LearnQueriesInfo.ysize();
                 CB_ENSURE(rangeEnd > 0, "non-positive query count");
-                blockSize = Max(int(Min<i64>(DefaultCalcStatsObjBlockSize, i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount)), 1);
+                blockSize = Max(
+                    int(
+                        Min<i64>(
+                            DefaultCalcStatsObjBlockSize,
+                            i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount)),
+                    1);
             }
         } else {
             rangeEnd = docCount;
@@ -610,7 +765,8 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
         int blockStart = 0;
         for (int blockIdx : xrange(permutedBlockCount)) {
             const int permutedBlockIdx = (
-                int(LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>()[blockStart] - FeaturesSubsetBegin)
+                int(LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>()[blockStart]
+                    - FeaturesSubsetBegin)
                 / NonCtrDataPermutationBlockSize
             );
             const int nextBlockStart = blockStart +

@@ -26,11 +26,12 @@ public:
         bool isExpApprox,
         ui32 maxDerivativeOrder = 3,
         EErrorType errorType = EErrorType::PerObjectError,
-        EHessianType hessianType = EHessianType::Symmetric)
-    : IsExpApprox(isExpApprox)
-    , MaxSupportedDerivativeOrder(maxDerivativeOrder)
-    , ErrorType(errorType)
-    , HessianType(hessianType)
+        EHessianType hessianType = EHessianType::Symmetric
+    )
+        : IsExpApprox(isExpApprox)
+        , MaxSupportedDerivativeOrder(maxDerivativeOrder)
+        , ErrorType(errorType)
+        , HessianType(hessianType)
     {
         Y_ASSERT(maxDerivativeOrder >= 1 && maxDerivativeOrder <= 3);
     }
@@ -62,7 +63,16 @@ public:
         const float* weights,
         double* firstDers
     ) const {
-        CalcDersRange(start, count, /*maxDerivativeOrder*/ 1, approxes, approxDeltas, targets, weights, /*ders*/ nullptr, firstDers);
+        CalcDersRange(
+            start,
+            count, /*maxDerivativeOrder*/
+            1,
+            approxes,
+            approxDeltas,
+            targets,
+            weights, /*ders*/
+            nullptr,
+            firstDers);
     }
 
     virtual void CalcDersRange(
@@ -76,7 +86,16 @@ public:
         TDers* ders
     ) const {
         const int maxDerivativeOrder = calcThirdDer ? 3 : Min(MaxSupportedDerivativeOrder, 2u);
-        CalcDersRange(start, count, maxDerivativeOrder, approxes, approxDeltas, targets, weights, ders, /*firstDers*/ nullptr);
+        CalcDersRange(
+            start,
+            count,
+            maxDerivativeOrder,
+            approxes,
+            approxDeltas,
+            targets,
+            weights,
+            ders, /*firstDers*/
+            nullptr);
     }
 
     virtual void CalcDersMulti(
@@ -104,11 +123,6 @@ public:
     }
 
 private:
-    const bool IsExpApprox;
-    const ui32 MaxSupportedDerivativeOrder;
-    const EErrorType ErrorType;
-    const EHessianType HessianType;
-
     virtual double CalcDer(double /*approx*/, float /*target*/) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -144,12 +158,18 @@ private:
         TDers* ders,
         double* firstDers
     ) const;
+
+private:
+    const bool IsExpApprox;
+    const ui32 MaxSupportedDerivativeOrder;
+    const EErrorType ErrorType;
+    const EHessianType HessianType;
 };
 
 class TCrossEntropyError final : public IDerCalcer {
 public:
     explicit TCrossEntropyError(bool isExpApprox)
-    : IDerCalcer(isExpApprox)
+        : IDerCalcer(isExpApprox)
     {
     }
 
@@ -180,8 +200,9 @@ public:
     static constexpr double RMSE_DER2 = -1.0;
     static constexpr double RMSE_DER3 = 0.0;
 
+public:
     explicit TRMSEError(bool isExpApprox)
-    : IDerCalcer(isExpApprox)
+        : IDerCalcer(isExpApprox)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -204,18 +225,20 @@ class TQuantileError final : public IDerCalcer {
 public:
     static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
 
+public:
     const double Alpha;
 
+public:
     explicit TQuantileError(bool isExpApprox)
-    : IDerCalcer(isExpApprox)
-    , Alpha(0.5)
+        : IDerCalcer(isExpApprox)
+        , Alpha(0.5)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
 
     TQuantileError(double alpha, bool isExpApprox)
-    : IDerCalcer(isExpApprox)
-    , Alpha(alpha)
+        : IDerCalcer(isExpApprox)
+        , Alpha(alpha)
     {
         Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
@@ -239,9 +262,10 @@ class TLqError final : public IDerCalcer {
 public:
     const double Q;
 
+public:
     TLqError(double q, bool isExpApprox)
-    : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ q >= 2 ?  3 : 1)
-    , Q(q)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ q >= 2 ?  3 : 1)
+        , Q(q)
     {
         Y_ASSERT(Q >= 1);
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
@@ -269,18 +293,20 @@ class TLogLinQuantileError final : public IDerCalcer {
 public:
     static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
 
+public:
     const double Alpha;
 
+public:
     explicit TLogLinQuantileError(bool isExpApprox)
-    : IDerCalcer(isExpApprox)
-    , Alpha(0.5)
+        : IDerCalcer(isExpApprox)
+        , Alpha(0.5)
     {
         CB_ENSURE(isExpApprox == true, "Approx format does not match");
     }
 
     TLogLinQuantileError(double alpha, bool isExpApprox)
-    : IDerCalcer(isExpApprox)
-    , Alpha(alpha)
+        : IDerCalcer(isExpApprox)
+        , Alpha(alpha)
     {
         Y_ASSERT(Alpha > -1e-6 && Alpha < 1.0 + 1e-6);
         CB_ENSURE(isExpApprox == true, "Approx format does not match");
@@ -304,8 +330,9 @@ class TMAPError final : public IDerCalcer {
 public:
     static constexpr double MAPE_DER2_AND_DER3 = 0.0;
 
+public:
     explicit TMAPError(bool isExpApprox)
-    : IDerCalcer(isExpApprox)
+        : IDerCalcer(isExpApprox)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -327,7 +354,7 @@ private:
 class TPoissonError final : public IDerCalcer {
 public:
     explicit TPoissonError(bool isExpApprox)
-    : IDerCalcer(isExpApprox)
+        : IDerCalcer(isExpApprox)
     {
         CB_ENSURE(isExpApprox == true, "Approx format does not match");
     }
@@ -349,7 +376,7 @@ private:
 class TMultiClassError final : public IDerCalcer {
 public:
     explicit TMultiClassError(bool isExpApprox)
-    : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -403,7 +430,7 @@ public:
 class TMultiClassOneVsAllError final : public IDerCalcer {
 public:
     explicit TMultiClassOneVsAllError(bool isExpApprox)
-    : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::PerObjectError, EHessianType::Diagonal)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::PerObjectError, EHessianType::Diagonal)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -427,8 +454,7 @@ public:
         (*der)[targetClass] += 1;
 
         if (der2 != nullptr) {
-            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
-                     der2->ApproxDimension == approxDimension);
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal && der2->ApproxDimension == approxDimension);
             for (int dim = 0; dim < approxDimension; ++ dim) {
                 der2->Data[dim] = -prob[dim] * (1 - prob[dim]);
             }
@@ -450,7 +476,7 @@ public:
 class TPairLogitError final : public IDerCalcer {
 public:
     explicit TPairLogitError(bool isExpApprox)
-    : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::PairwiseError)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::PairwiseError)
     {
         CB_ENSURE(isExpApprox == true, "Approx format does not match");
     }
@@ -468,32 +494,37 @@ public:
     ) const override {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         const int start = queriesInfo[queryStartIndex].Begin;
-        NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
-            const int begin = queriesInfo[queryIndex].Begin;
-            const int end = queriesInfo[queryIndex].End;
-            TDers* dersData = ders.data() + begin - start;
-            Fill(dersData, dersData + end - begin, TDers{/*1st*/0.0, /*2nd*/0.0, /*3rd*/0.0});
-            for (int docId = begin; docId < end; ++docId) {
-                double winnerDer = 0.0;
-                double winnerSecondDer = 0.0;
-                for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId - begin]) {
-                    const double p = expApproxes[competitor.Id + begin] / (expApproxes[competitor.Id + begin] + expApproxes[docId]);
-                    winnerDer += competitor.Weight * p;
-                    dersData[competitor.Id].Der1 -= competitor.Weight * p;
-                    winnerSecondDer += competitor.Weight * p * (p - 1);
-                    dersData[competitor.Id].Der2 += competitor.Weight * p * (p - 1);
+        NPar::ParallelFor(
+            *localExecutor,
+            queryStartIndex,
+            queryEndIndex,
+            [&] (ui32 queryIndex) {
+                const int begin = queriesInfo[queryIndex].Begin;
+                const int end = queriesInfo[queryIndex].End;
+                TDers* dersData = ders.data() + begin - start;
+                Fill(dersData, dersData + end - begin, TDers{/*1st*/0.0, /*2nd*/0.0, /*3rd*/0.0});
+                for (int docId = begin; docId < end; ++docId) {
+                    double winnerDer = 0.0;
+                    double winnerSecondDer = 0.0;
+                    for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId - begin]) {
+                        const double p = expApproxes[competitor.Id + begin] /
+                            (expApproxes[competitor.Id + begin] + expApproxes[docId]);
+                        winnerDer += competitor.Weight * p;
+                        dersData[competitor.Id].Der1 -= competitor.Weight * p;
+                        winnerSecondDer += competitor.Weight * p * (p - 1);
+                        dersData[competitor.Id].Der2 += competitor.Weight * p * (p - 1);
+                    }
+                    dersData[docId - begin].Der1 += winnerDer;
+                    dersData[docId - begin].Der2 += winnerSecondDer;
                 }
-                dersData[docId - begin].Der1 += winnerDer;
-                dersData[docId - begin].Der2 += winnerSecondDer;
-            }
-        });
+            });
     }
 };
 
 class TQueryRmseError final : public IDerCalcer {
 public:
     explicit TQueryRmseError(bool isExpApprox)
-    : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -510,21 +541,25 @@ public:
         ui64 /*randomSeed*/
     ) const override {
         const int start = queriesInfo[queryStartIndex].Begin;
-        NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
-            const int begin = queriesInfo[queryIndex].Begin;
-            const int end = queriesInfo[queryIndex].End;
-            const int querySize = end - begin;
+        NPar::ParallelFor(
+            *localExecutor,
+            queryStartIndex,
+            queryEndIndex,
+            [&] (ui32 queryIndex) {
+                const int begin = queriesInfo[queryIndex].Begin;
+                const int end = queriesInfo[queryIndex].End;
+                const int querySize = end - begin;
 
-            const double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
-            for (int docId = begin; docId < end; ++docId) {
-                ders[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
-                ders[docId - start].Der2 = -1;
-                if (!weights.empty()) {
-                    ders[docId - start].Der1 *= weights[docId];
-                    ders[docId - start].Der2 *= weights[docId];
+                const double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
+                for (int docId = begin; docId < end; ++docId) {
+                    ders[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
+                    ders[docId - start].Der2 = -1;
+                    if (!weights.empty()) {
+                        ders[docId - start].Der1 *= weights[docId];
+                        ders[docId - start].Der2 *= weights[docId];
+                    }
                 }
-            }
-        });
+            });
     }
 private:
     double CalcQueryAvrg(
@@ -552,12 +587,12 @@ private:
 
 class TQuerySoftMaxError final : public IDerCalcer {
 public:
-
     const double LambdaReg;
 
+public:
     explicit TQuerySoftMaxError(double lambdaReg, bool isExpApprox)
-    : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
-    , LambdaReg(lambdaReg)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
+        , LambdaReg(lambdaReg)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -574,11 +609,15 @@ public:
         ui64 /*randomSeed*/
     ) const override {
         int start = queriesInfo[queryStartIndex].Begin;
-        NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
-            int begin = queriesInfo[queryIndex].Begin;
-            int end = queriesInfo[queryIndex].End;
-            CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, ders);
-        });
+        NPar::ParallelFor(
+            *localExecutor,
+            queryStartIndex,
+            queryEndIndex,
+            [&](int queryIndex) {
+                int begin = queriesInfo[queryIndex].Begin;
+                int end = queriesInfo[queryIndex].End;
+                CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, ders);
+            });
     }
 
 private:
@@ -602,7 +641,9 @@ public:
         : IDerCalcer(/*IsExpApprox*/ false)
         , Descriptor(*descriptor)
     {
-        CB_ENSURE(IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()) == false, "Approx format does not match");
+        CB_ENSURE(
+            IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()) == false,
+            "Approx format does not match");
     }
 
     void CalcDersMulti(
@@ -631,9 +672,21 @@ public:
             for (int i = start; i < start + count; ++i) {
                 updatedApproxes[i - start] = approxes[i] + approxDeltas[i];
             }
-            Descriptor.CalcDersRange(count, updatedApproxes.data(), targets + start, weights ? (weights + start) : nullptr, ders + start, Descriptor.CustomData);
+            Descriptor.CalcDersRange(
+                count,
+                updatedApproxes.data(),
+                targets + start,
+                weights ? (weights + start) : nullptr,
+                ders + start,
+                Descriptor.CustomData);
         } else {
-            Descriptor.CalcDersRange(count, approxes + start, targets + start, weights ? (weights + start) : nullptr, ders + start, Descriptor.CustomData);
+            Descriptor.CalcDersRange(
+                count,
+                approxes + start,
+                targets + start,
+                weights ? (weights + start) : nullptr,
+                ders + start,
+                Descriptor.CustomData);
         }
     }
 
@@ -647,7 +700,15 @@ public:
         double* ders
     ) const override {
         TVector<TDers> derivatives(count, {0.0, 0.0, 0.0});
-        CalcDersRange(start, count, /*calcThirdDer=*/false, approxes, approxDeltas, targets, weights, derivatives.data() - start);
+        CalcDersRange(
+            start,
+            count, /*calcThirdDer=*/
+            false,
+            approxes,
+            approxDeltas,
+            targets,
+            weights,
+            derivatives.data() - start);
         for (int i = start; i < start + count; ++i) {
             ders[i] = derivatives[i - start].Der1;
         }
@@ -668,9 +729,10 @@ class TUserDefinedPerObjectError final : public IDerCalcer {
 public:
     const double Alpha;
 
+public:
     TUserDefinedPerObjectError(const TMap<TString, TString>& params, bool isExpApprox)
-    : IDerCalcer(isExpApprox)
-    , Alpha(GetNumericParameter(params, "alpha"))
+        : IDerCalcer(isExpApprox)
+        , Alpha(GetNumericParameter(params, "alpha"))
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -680,9 +742,10 @@ class TUserDefinedQuerywiseError final : public IDerCalcer {
 public:
     const double Alpha;
 
+public:
     TUserDefinedQuerywiseError(const TMap<TString, TString>& params, bool isExpApprox)
-    : IDerCalcer(isExpApprox, EErrorType::QuerywiseError)
-    , Alpha(GetNumericParameter(params, "alpha"))
+        : IDerCalcer(isExpApprox, EErrorType::QuerywiseError)
+        , Alpha(GetNumericParameter(params, "alpha"))
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -694,10 +757,12 @@ public:
     const double Sigma;
     const int NumEstimations;
 
+public:
     TStochasticFilterError(double sigma, int numEstimations, bool isExpApprox)
-            : IDerCalcer(false, 1, EErrorType::QuerywiseError)
-            , Sigma(sigma)
-            , NumEstimations(numEstimations) {
+        : IDerCalcer(false, 1, EErrorType::QuerywiseError)
+        , Sigma(sigma)
+        , NumEstimations(numEstimations)
+    {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
         CB_ENSURE(Sigma > 0, "Scale parameter 'sigma' for DCG-RR loss must be positive");
         CB_ENSURE(NumEstimations > 0, "Number of estimations must be positive integer");
@@ -721,23 +786,34 @@ public:
         const TVector<ui64> randomSeeds = GenRandUI64Vector(blockCount, randomSeed);
         const int start = queriesInfo[queryStartIndex].Begin;
 
-        NPar::ParallelFor(*localExecutor, 0, static_cast<ui32>(blockCount), [&](int blockId) {
-            TRestorableFastRng64 rand(randomSeeds[blockId]);
-            rand.Advance(10);
-            const int from = blockId * blockSize;
-            const int to = Min<int>((blockId + 1) * blockSize, queryEndIndex);
-            for (int queryIndex = from; queryIndex < to; ++queryIndex) {
-                int begin = queriesInfo[queryIndex].Begin;
-                int end = queriesInfo[queryIndex].End;
-                CalcQueryDers(begin, begin - start, end - begin, approx, target, ders, rand);
-            }
-        });
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            static_cast<ui32>(blockCount),
+            [&](int blockId) {
+                TRestorableFastRng64 rand(randomSeeds[blockId]);
+                rand.Advance(10);
+                const int from = blockId * blockSize;
+                const int to = Min<int>((blockId + 1) * blockSize, queryEndIndex);
+                for (int queryIndex = from; queryIndex < to; ++queryIndex) {
+                    int begin = queriesInfo[queryIndex].Begin;
+                    int end = queriesInfo[queryIndex].End;
+                    CalcQueryDers(begin, begin - start, end - begin, approx, target, ders, rand);
+                }
+            });
     }
 
 private:
-    void CalcQueryDers(int offset, int offset_der, int querySize, const TVector<double> &approx,
-                       const TVector<float> &target, TArrayRef<TDers> ders, TRestorableFastRng64& Rand) const {
-        Fill(ders.Begin() + offset_der, ders.Begin() + offset_der + querySize, TDers{0.f, 0.f, 0.f});
+    void CalcQueryDers(
+        int offset,
+        int offset_der,
+        int querySize,
+        const TVector<double> &approx,
+        const TVector<float> &target,
+        TArrayRef<TDers> ders,
+        TRestorableFastRng64& Rand
+    ) const {
+        Fill(ders.Begin() + offset_der, ders.Begin() + offset_der + querySize, TDers { 0.f, 0.f, 0.f });
         const double baselineLoss = CalcBaseline(offset, querySize, approx, target);
         TVector<double> probs(querySize, 0.);
 
@@ -750,7 +826,7 @@ private:
                 const bool isFiltered = prob >= Rand.GenRandReal1();
                 loss += isFiltered ? target[offset + j] / (pos + 1) : 0.;
                 pos += isFiltered;
-                probs[j] = isFiltered ? (1 - prob) : - prob;
+                probs[j] = isFiltered ? (1 - prob) : -prob;
             }
             for (int j = 0; j < querySize; ++j) {
                 ders[offset_der + j].Der1 += probs[j] * (loss - baselineLoss) / NumEstimations;
@@ -758,7 +834,12 @@ private:
         }
     }
 
-    double CalcBaseline(int offset, int count, const TVector<double>& approx, const TVector<float>& target) const {
+    double CalcBaseline(
+        int offset,
+        int count,
+        const TVector<double>& approx,
+        const TVector<float>& target
+    ) const {
         double baselineValue = 0.0;
         int pos = 0;
         for (int i = 0; i < count; ++i) {

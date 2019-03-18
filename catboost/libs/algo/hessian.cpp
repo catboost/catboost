@@ -4,28 +4,26 @@
 #include <catboost/libs/lapack/linear_system.h>
 
 
-void SolveNewtonEquation(const THessianInfo& hessian,
-                         const TVector<double>& negativeDer,
-                         const float l2Regularizer,
-                         TVector<double>* res) {
+void SolveNewtonEquation(
+    const THessianInfo& hessian,
+    const TVector<double>& negativeDer,
+    const float l2Regularizer,
+    TVector<double>* res)
+{
     if (hessian.HessianType == EHessianType::Symmetric) {
-        TSymmetricHessian::SolveNewtonEquation(hessian,
-                                               negativeDer,
-                                               l2Regularizer,
-                                               res);
+        TSymmetricHessian::SolveNewtonEquation(hessian, negativeDer, l2Regularizer, res);
     } else {
         Y_ASSERT(hessian.HessianType == EHessianType::Diagonal);
-        TDiagonalHessian::SolveNewtonEquation(hessian,
-                                              negativeDer,
-                                              l2Regularizer,
-                                              res);
+        TDiagonalHessian::SolveNewtonEquation(hessian, negativeDer, l2Regularizer, res);
     }
 }
 
-void TSymmetricHessian::SolveNewtonEquation(const THessianInfo& hessian,
-                                            const TVector<double>& negativeDer,
-                                            const float l2Regularizer,
-                                            TVector<double>* res) {
+void TSymmetricHessian::SolveNewtonEquation(
+    const THessianInfo& hessian,
+    const TVector<double>& negativeDer,
+    const float l2Regularizer,
+    TVector<double>* res)
+{
     Y_ASSERT(hessian.ApproxDimension == negativeDer.ysize());
     const int approxDimension = hessian.ApproxDimension;
     TArray2D<double> der2(approxDimension, approxDimension);
@@ -42,10 +40,12 @@ void TSymmetricHessian::SolveNewtonEquation(const THessianInfo& hessian,
 }
 
 
-void TDiagonalHessian::SolveNewtonEquation(const THessianInfo& hessian,
-                                           const TVector<double>& negativeDer,
-                                           const float l2Regularizer,
-                                           TVector<double>* res) {
+void TDiagonalHessian::SolveNewtonEquation(
+    const THessianInfo& hessian,
+    const TVector<double>& negativeDer,
+    const float l2Regularizer,
+    TVector<double>* res)
+{
     Y_ASSERT(res);
     Y_ASSERT(hessian.ApproxDimension == negativeDer.ysize());
     const int approxDimension = hessian.ApproxDimension;
@@ -66,8 +66,7 @@ int TDiagonalHessian::CalcInternalDer2DataSize(int approxDimension) {
 
 
 void THessianInfo::AddDer2(const THessianInfo& hessian) {
-    Y_ASSERT(HessianType == hessian.HessianType
-             && Data.ysize() == hessian.Data.ysize());
+    Y_ASSERT(HessianType == hessian.HessianType && Data.ysize() == hessian.Data.ysize());
     for(int dim = 0; dim < Data.ysize(); ++dim) {
         Data[dim] += hessian.Data[dim];
     }

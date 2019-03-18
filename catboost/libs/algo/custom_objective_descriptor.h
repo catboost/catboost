@@ -21,6 +21,7 @@ struct TCustomObjectiveDescriptor {
         THessianInfo* der2,
         void* customData);
 
+public:
     void* CustomData = nullptr;
     TCalcDersRangePtr CalcDersRange = nullptr;
     TCalcDersMultiPtr CalcDersMulti = nullptr;

@@ -1,10 +1,7 @@
 #include "index_hash_calcer.h"
 
 /// Compute reindexHash and reindex hash values in range [begin,end).
-size_t ComputeReindexHash(ui64 topSize,
-                          TDenseHash<ui64, ui32>* reindexHashPtr,
-                          ui64* begin,
-                          ui64* end) {
+size_t ComputeReindexHash(ui64 topSize, TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end) {
     auto& reindexHash = *reindexHashPtr;
     auto* hashArr = begin;
     size_t learnSize = end - begin;

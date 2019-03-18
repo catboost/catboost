@@ -67,13 +67,15 @@ inline void ProcessFeatureForCalcHashes(
 ///                                       current model format.
 ///                                       So, enabled only during training, disabled for FinalCtr.
 /// @param begin, @param end - Result range
-inline void CalcHashes(const TProjection& proj,
-                       const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-                       const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
-                       const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
-                       bool processBinaryFeaturesInPacks,
-                       ui64* begin,
-                       ui64* end) {
+inline void CalcHashes(
+    const TProjection& proj,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
+    const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
+    bool processBinaryFeaturesInPacks,
+    ui64* begin,
+    ui64* end) {
+
     const size_t sampleCount = end - begin;
     Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);
     if (sampleCount == 0) {
