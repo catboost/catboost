@@ -75,13 +75,7 @@ public:
         return (S_ == other.size()) && std::equal(begin(), end(), other.begin());
     }
 
-    //FIXME: this method should return const T*,
-    //but there are client that rely on current behaviour
     constexpr inline T* data() const noexcept {
-        return T_;
-    }
-
-    constexpr inline T* data() noexcept {
         return T_;
     }
 
@@ -93,57 +87,31 @@ public:
         return (S_ == 0);
     }
 
-    inline iterator begin() noexcept {
+    inline iterator begin() const noexcept {
         return T_;
     }
 
-    inline const_iterator begin() const noexcept {
-        return T_;
-    }
-
-    inline iterator end() noexcept {
+    inline iterator end() const noexcept {
         return (T_ + S_);
     }
 
-    inline const_iterator end() const noexcept {
-        return (T_ + S_);
-    }
-
-    inline reference front() noexcept {
+    inline reference front() const noexcept {
         return *T_;
     }
 
-    inline const_reference front() const noexcept {
-        return *T_;
-    }
-
-    inline reference back() noexcept {
+    inline reference back() const noexcept {
         Y_ASSERT(S_ > 0);
 
         return *(end() - 1);
     }
 
-    inline const_reference back() const noexcept {
-        Y_ASSERT(S_ > 0);
-
-        return *(end() - 1);
-    }
-
-    inline T& operator[](size_t n) const noexcept {
+    inline reference operator[](size_t n) const noexcept {
         Y_ASSERT(n < S_);
 
         return *(T_ + n);
     }
 
-    inline reference at(size_t n) {
-        if (n >= S_) {
-            ThrowRangeError("array ref range error");
-        }
-
-        return (*this)[n];
-    }
-
-    inline const_reference at(size_t n) const {
+    inline reference at(size_t n) const {
         if (n >= S_) {
             ThrowRangeError("array ref range error");
         }
