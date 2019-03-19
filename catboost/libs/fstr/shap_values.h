@@ -31,6 +31,11 @@ public:
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
     TVector<TVector<double>> MeanValuesForAllTrees;
+    TVector<int> BinFeatureCombinationClass;
+    TVector<TVector<int>> CombinationClassFeatures;
+    bool CalcShapValuesByLeafForAllTrees;
+    TVector<TVector<double>> LeafWeightsForAllTrees;
+    TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
 
 public:
     TShapPreparedTrees() = default;
