@@ -12,6 +12,7 @@
 #include <catboost/libs/logging/logging.h>
 
 namespace NCatboostCuda {
+
     inline TString GpuProgressLabel() {
         return ToString<ETaskType>(ETaskType::GPU);
     }
@@ -37,26 +38,45 @@ namespace NCatboostCuda {
         };
 
         struct TFloatFeature {
-            ui32 DataProviderId;
+            ui32 Feature;
             TVector<float> Borders;
 
             TFloatFeature() = default;
 
             TFloatFeature(const ui32& dataProviderId,
                           TVector<float> borders)
-                : DataProviderId(dataProviderId)
+                : Feature(dataProviderId)
                 , Borders(std::move(borders))
             {
             }
 
-            Y_SAVELOAD_DEFINE(DataProviderId, Borders);
+            Y_SAVELOAD_DEFINE(Feature, Borders);
         };
+
+        struct TCalculatedFeature {
+            TEstimatedFeature Feature;
+            TVector<float> Borders;
+
+            TCalculatedFeature() = default;
+
+            TCalculatedFeature(const TEstimatedFeature& id,
+                              TVector<float> borders)
+                : Feature(id)
+                , Borders(std::move(borders))
+            {
+            }
+
+            Y_SAVELOAD_DEFINE(Feature, Borders);
+        };
+
+
 
         TMap<ui32, TCtrFeature> Ctrs;
         TMap<ui32, TFloatFeature> FloatFeatures;
         TMap<ui32, ui32> CatFeaturesMap;
+        TMap<ui32, TCalculatedFeature> CalculatedFeaturesMap;
 
-        Y_SAVELOAD_DEFINE(Ctrs, FloatFeatures, CatFeaturesMap);
+        Y_SAVELOAD_DEFINE(Ctrs, FloatFeatures, CatFeaturesMap, CalculatedFeaturesMap);
     };
 
     TCtr MigrateCtr(TBinarizedFeaturesManager& featuresManager,
@@ -135,6 +155,8 @@ namespace NCatboostCuda {
                 AddFloatFeature(featureId);
             } else if (FeaturesManager.IsCat(featureId)) {
                 AddCatFeature(featureId);
+            } else if (FeaturesManager.IsEstimatedFeature(featureId)) {
+                AddEstimatedFeature(featureId);
             } else {
                 CB_ENSURE(FeaturesManager.IsCtr(featureId), "Unknown feature id #" << featureId);
                 AddCtr(featureId);
@@ -156,6 +178,11 @@ namespace NCatboostCuda {
             FeaturesMap.CatFeaturesMap[featureId] = FeaturesManager.GetDataProviderId(featureId);
         }
 
+        void AddEstimatedFeature(ui32 featureId) {
+            Y_ASSERT(FeaturesManager.IsEstimatedFeature(featureId));
+            FeaturesMap.CalculatedFeaturesMap[featureId] = TModelFeaturesMap::TCalculatedFeature(FeaturesManager.GetEstimatedFeature(featureId),
+                                                                                                 FeaturesManager.GetBorders(featureId));
+        }
         void AddCtr(ui32 featureId) {
             Y_ASSERT(FeaturesManager.IsCtr(featureId));
             if (FeaturesMap.Ctrs.contains(featureId)) {

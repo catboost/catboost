@@ -61,6 +61,7 @@ namespace NCatboostCuda {
                                                                          const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                          const NCB::TTrainingDataProvider& learn,
                                                                          const NCB::TTrainingDataProvider* test,
+                                                                         const NCB::TFeatureEstimators& featureEstimators,
                                                                          TGpuAwareRandom& random,
                                                                          ui32 approxDimension,
                                                                          const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
@@ -73,7 +74,7 @@ namespace NCatboostCuda {
 
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
 
-        boosting.SetDataProvider(learn, test);
+        boosting.SetDataProvider(learn, featureEstimators, test);
 
         auto progressTracker = MakeBoostingProgressTracker(internalOptions, catBoostOptions, outputOptions, test, approxDimension, onEndIterationCallback);
 
@@ -122,7 +123,9 @@ namespace NCatboostCuda {
 
         auto boosting = MakeBoosting<TBoosting>(catBoostOptions, &featureManager, &weak, &random, localExecutor);
 
-        boosting.SetDataProvider(learn, &test);
+        //TODO(noxoomo): support estimators in MBE
+        NCB::TFeatureEstimators estimators;
+        boosting.SetDataProvider(learn, estimators, &test);
 
         auto progressTracker = MakeBoostingProgressTracker(TTrainModelInternalOptions(), catBoostOptions, outputOptions, &test, approxDimension, Nothing());
 

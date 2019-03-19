@@ -33,6 +33,7 @@ namespace NCatboostCuda {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const NCB::TTrainingDataProvider& learn,
             const NCB::TTrainingDataProvider* test,
+            const NCB::TFeatureEstimators& featureEstimators,
             TGpuAwareRandom& random,
             ui32 approxDimension,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,

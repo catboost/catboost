@@ -42,4 +42,5 @@ RECURSE(
     ut_helpers
     ut_helpers/ut
     validate_fb
+    feature_estimator
 )

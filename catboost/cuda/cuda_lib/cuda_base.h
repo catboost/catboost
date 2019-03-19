@@ -13,6 +13,7 @@
 #include <util/ysaveload.h>
 #include <util/system/spinlock.h>
 
+
 static_assert(std::is_pod<cudaDeviceProp>::value, "cudaDeviceProp is not pod type");
 Y_DECLARE_PODTYPE(cudaDeviceProp);
 

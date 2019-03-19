@@ -2,6 +2,7 @@
 
 #include <catboost/libs/ctr_description/ctr_type.h>
 #include <catboost/libs/options/restrictions.h>
+#include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/xrange.h>
@@ -12,6 +13,7 @@ using namespace NCB;
 namespace NCatboostCuda {
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
         const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
+        const TFeatureEstimators& estimators,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
         : CatFeatureOptions(catFeatureOptions)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
@@ -26,6 +28,14 @@ namespace NCatboostCuda {
                 RegisterDataProviderCatFeature(featureIdx);
             }
         }
+
+        for (ui32 estimatorId = 0; estimatorId < estimators.FeatureEstimators.size(); ++estimatorId) {
+            auto meta = estimators.FeatureEstimators[estimatorId]->FeaturesMeta();
+            RegisterFeatureEstimator(estimatorId, meta, false);
+        }
+        for (ui32 estimatorId = 0; estimatorId < estimators.OnlineFeatureEstimators.size(); ++estimatorId) {
+            RegisterFeatureEstimator(estimatorId, estimators.OnlineFeatureEstimators[estimatorId]->FeaturesMeta(),  true);
+        }
     }
 
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
@@ -36,6 +46,9 @@ namespace NCatboostCuda {
         , DataProviderFloatFeatureIdToFeatureManagerId(featureManager.DataProviderFloatFeatureIdToFeatureManagerId)
         , DataProviderCatFeatureIdToFeatureManagerId(featureManager.DataProviderCatFeatureIdToFeatureManagerId)
         , FeatureManagerIdToDataProviderId(featureManager.FeatureManagerIdToDataProviderId)
+        , EstimatedFeatureToFeatureManagerId(featureManager.EstimatedFeatureToFeatureManagerId)
+        , EstimatedFeatureUpperBoundHints(featureManager.EstimatedFeatureUpperBoundHints)
+        , FeatureManagerIdToEstimatedFeatureId(featureManager.FeatureManagerIdToEstimatedFeatureId)
         , Cursor(featureManager.Cursor)
         , CtrBinarizationOptions(featureManager.CtrBinarizationOptions)
         , TargetBorders(featureManager.TargetBorders)
@@ -43,8 +56,7 @@ namespace NCatboostCuda {
         , Borders(featureManager.Borders)
         , QuantizedFeaturesInfo(featureManager.QuantizedFeaturesInfo)
         , UserCombinations(featureManager.UserCombinations)
-        , IgnoredFeatures(ignoredFeatureIds.begin(), ignoredFeatureIds.end())
-    {
+        , IgnoredFeatures(ignoredFeatureIds.begin(), ignoredFeatureIds.end()) {
     }
 
     ENanMode TBinarizedFeaturesManager::GetNanMode(const ui32 featureId) const {
@@ -151,6 +163,8 @@ namespace NCatboostCuda {
             return GetBinarizationDescription(InverseCtrs[localId]).BorderCount + 1;
         } else if (IsFloat(localId)) {
             return 0;
+        } else if (IsEstimatedFeature(localId)) {
+            return EstimatedFeatureUpperBoundHints.at(localId);
         } else {
             ythrow TCatBoostException() << "Error: unknown feature id #" << localId;
         }
@@ -415,5 +429,13 @@ namespace NCatboostCuda {
         return QuantizedFeaturesInfo->GetUniqueValuesCounts(
             QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Categorical>(
                 featureId));
+    }
+    TVector<ui32> TBinarizedFeaturesManager::GetEstimatedFeatureIds() const {
+        TVector<ui32> result;
+        for (const auto& [estimatedFeature, id] : EstimatedFeatureToFeatureManagerId) {
+            Y_UNUSED(estimatedFeature);
+            result.push_back(id);
+        }
+        return result;
     }
 }

@@ -20,46 +20,84 @@ TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboos
 }
 
 namespace NCatboostCuda {
-    TModelConverter::TModelConverter(const TBinarizedFeaturesManager& manager,
-                                     const TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-                                     const TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
-                                     const TClassificationTargetHelper& targetHelper)
-        : FeaturesManager(manager)
-        , QuantizedFeaturesInfo(quantizedFeaturesInfo)
-        , FeaturesLayout(*quantizedFeaturesInfo->GetFeaturesLayout())
-        , CatFeatureBinToHashIndex(perfectHashedToHashedCatValuesMap)
-        , TargetHelper(targetHelper)
-    {
-        Borders.resize(FeaturesLayout.GetFloatFeatureCount());
-        FloatFeaturesNanMode.resize(FeaturesLayout.GetFloatFeatureCount(), ENanMode::Forbidden);
 
-        FeaturesLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
-            [&](const TFloatFeatureIdx floatFeatureIdx) {
-                Borders[*floatFeatureIdx] = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
-                FloatFeaturesNanMode[*floatFeatureIdx] = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
-            });
+TModelConverter::TModelConverter(
+    const TBinarizedFeaturesManager& manager,
+    const TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    const TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
+    const TClassificationTargetHelper& targetHelper)
+    : FeaturesManager(manager)
+      , QuantizedFeaturesInfo(quantizedFeaturesInfo)
+      , FeaturesLayout(*quantizedFeaturesInfo->GetFeaturesLayout())
+      , CatFeatureBinToHashIndex(perfectHashedToHashedCatValuesMap)
+      , TargetHelper(targetHelper) {
+    Borders.resize(FeaturesLayout.GetFloatFeatureCount());
+    FloatFeaturesNanMode.resize(FeaturesLayout.GetFloatFeatureCount(), ENanMode::Forbidden);
+
+    FeaturesLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+        [&](const TFloatFeatureIdx floatFeatureIdx) {
+            Borders[*floatFeatureIdx] = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
+            FloatFeaturesNanMode[*floatFeatureIdx] = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
+        });
+}
+
+inline bool HasEstimatedFeatures(const TBinarizedFeaturesManager& manager, TConstArrayRef<TBinarySplit> splits) {
+    for (const auto& split : splits) {
+        if (manager.IsEstimatedFeature(split.FeatureId)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+inline bool HasEstimatedFeature(const TBinarizedFeaturesManager& manager, const TObliviousTreeModel& ot) {
+    return HasEstimatedFeatures(manager, ot.GetStructure().Splits);
+}
+
+inline bool HasEstimatedFeature(const TBinarizedFeaturesManager& manager, const TNonSymmetricTree& tree) {
+    for (const auto& split : tree.GetStructure().GetNodes()) {
+        if (manager.IsEstimatedFeature(split.FeatureId)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class TModel>
+inline bool HasEstimatedFeature(const TBinarizedFeaturesManager& manager, const TAdditiveModel<TModel>& model) {
+    for (const auto& tree : model.WeakModels) {
+        if (HasEstimatedFeature(manager, tree)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+TFullModel TModelConverter::Convert(
+    const TAdditiveModel<TObliviousTreeModel>& src,
+    THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
+    TFullModel coreModel;
+    coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
+
+    ui32 cpuApproxDim = 1;
+
+    if (TargetHelper.IsMultiClass()) {
+        coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
+        cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
     }
 
-    TFullModel TModelConverter::Convert(const TAdditiveModel<TObliviousTreeModel>& src,
-                                        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
-        TFullModel coreModel;
-        coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
+    TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(*QuantizedFeaturesInfo);
+    TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
 
-        ui32 cpuApproxDim = 1;
+    TObliviousTreeBuilder obliviousTreeBuilder(
+        floatFeatures,
+        catFeatures,
+        cpuApproxDim);
 
-        if (TargetHelper.IsMultiClass()) {
-            coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
-            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
-        }
-
-        TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(*QuantizedFeaturesInfo);
-        TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo);
-
-        TObliviousTreeBuilder obliviousTreeBuilder(
-            floatFeatures,
-            catFeatures,
-            cpuApproxDim);
-
+    if (HasEstimatedFeature(FeaturesManager, src)) {
+        CATBOOST_WARNING_LOG
+            << "Estimated features working during learn only currently. Result model will be empty" << Endl;
+    } else {
         for (ui32 i = 0; i < src.Size(); ++i) {
             const TObliviousTreeModel& model = src.GetWeakModel(i);
             const ui32 outputDim = model.OutputDim();
@@ -88,12 +126,14 @@ namespace NCatboostCuda {
             auto treeStructure = ConvertSplits(structure.Splits, featureCombinationToProjection);
             obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
         }
+    }
         coreModel.ObliviousTrees = obliviousTreeBuilder.Build();
         return coreModel;
     }
 
-    TFullModel TModelConverter::Convert(const TAdditiveModel<TNonSymmetricTree>& src,
-                                        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
+    TFullModel TModelConverter::Convert(
+        const TAdditiveModel<TNonSymmetricTree>& src,
+        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TFullModel coreModel;
         coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
 
@@ -111,37 +151,43 @@ namespace NCatboostCuda {
             floatFeatures,
             catFeatures,
             cpuApproxDim);
-
-        for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {
-            const TNonSymmetricTree& tree = src.GetWeakModel(treeId);
-            THolder<TNonSymmetricTreeNode> treeHeadHolder = MakeHolder<TNonSymmetricTreeNode>();
-            tree.VisitLeavesAndWeights([&](const TLeafPath& leafPath, TConstArrayRef<float> pathValues, double weight) {
-                auto pathStructure = ConvertSplits(leafPath.Splits, featureCombinationToProjection);
-                TNonSymmetricTreeNode* currentNode = treeHeadHolder.Get();
-                for (size_t i = 0; i < pathStructure.size(); ++i) {
-                    if (!currentNode->SplitCondition) {
-                        currentNode->SplitCondition = pathStructure[i];
-                    } else {
-                        Y_VERIFY(currentNode->SplitCondition == pathStructure[i]);
-                    }
-                    if (leafPath.Directions[i] == ESplitValue::Zero) {
-                        if (!currentNode->Left) {
-                            currentNode->Left = MakeHolder<TNonSymmetricTreeNode>();
+        if (HasEstimatedFeature(FeaturesManager, src)) {
+            CATBOOST_WARNING_LOG
+                << "Estimated features working during learn only currently. Result model will be empty" << Endl;
+        } else {
+            for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {
+                const TNonSymmetricTree& tree = src.GetWeakModel(treeId);
+                THolder<TNonSymmetricTreeNode> treeHeadHolder = MakeHolder<TNonSymmetricTreeNode>();
+                tree.VisitLeavesAndWeights([&](
+                    const TLeafPath& leafPath,
+                    TConstArrayRef<float> pathValues,
+                    double weight) {
+                    auto pathStructure = ConvertSplits(leafPath.Splits, featureCombinationToProjection);
+                    TNonSymmetricTreeNode* currentNode = treeHeadHolder.Get();
+                    for (size_t i = 0; i < pathStructure.size(); ++i) {
+                        if (!currentNode->SplitCondition) {
+                            currentNode->SplitCondition = pathStructure[i];
+                        } else {
+                            Y_VERIFY(currentNode->SplitCondition == pathStructure[i]);
                         }
-                        currentNode = currentNode->Left.Get();
-                    } else {
-                        if (!currentNode->Right) {
-                            currentNode->Right = MakeHolder<TNonSymmetricTreeNode>();
+                        if (leafPath.Directions[i] == ESplitValue::Zero) {
+                            if (!currentNode->Left) {
+                                currentNode->Left = MakeHolder<TNonSymmetricTreeNode>();
+                            }
+                            currentNode = currentNode->Left.Get();
+                        } else {
+                            if (!currentNode->Right) {
+                                currentNode->Right = MakeHolder<TNonSymmetricTreeNode>();
+                            }
+                            currentNode = currentNode->Right.Get();
                         }
-                        currentNode = currentNode->Right.Get();
                     }
-                }
-                currentNode->Value = TVector<double>(pathValues.begin(), pathValues.end());
-                currentNode->NodeWeight = weight;
-            });
+                    currentNode->Value = TVector<double>(pathValues.begin(), pathValues.end());
+                    currentNode->NodeWeight = weight;
+                });
 
-            treeBuilder.AddTree(std::move(treeHeadHolder));
-
+                treeBuilder.AddTree(std::move(treeHeadHolder));
+            }
         }
         coreModel.ObliviousTrees = treeBuilder.Build();
         return coreModel;
@@ -156,7 +202,7 @@ namespace NCatboostCuda {
         auto remapId = FeaturesLayout.GetInternalFeatureIdx<EFeatureType::Float>(dataProviderId);
 
         float border = Borders.at(*remapId).at(split.BinIdx);
-        modelSplit.FloatFeature = TFloatSplit{(int)*remapId, border};
+        modelSplit.FloatFeature = TFloatSplit{(int) *remapId, border};
         return modelSplit;
     }
 
@@ -184,9 +230,10 @@ namespace NCatboostCuda {
         return FeaturesLayout.GetInternalFeatureIdx(dataProviderId);
     }
 
-    void TModelConverter::ExtractProjection(const TCtr& ctr,
-                                            TFeatureCombination* dstFeatureCombination,
-                                            TProjection* dstProjection) const {
+    void TModelConverter::ExtractProjection(
+        const TCtr& ctr,
+        TFeatureCombination* dstFeatureCombination,
+        TProjection* dstProjection) const {
         TFeatureCombination featureCombination;
 
         TVector<TBinFeature> binFeatures;
@@ -223,8 +270,9 @@ namespace NCatboostCuda {
         *dstFeatureCombination = std::move(featureCombination);
     }
 
-    TModelSplit TModelConverter::CreateCtrSplit(const TBinarySplit& split,
-                                                THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
+    TModelSplit TModelConverter::CreateCtrSplit(
+        const TBinarySplit& split,
+        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TModelSplit modelSplit;
         CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId));
         const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
@@ -251,8 +299,9 @@ namespace NCatboostCuda {
         return modelSplit;
     }
 
-    TVector<TModelSplit> TModelConverter::ConvertSplits(const TVector<TBinarySplit>& splits,
-                                                        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection
+    TVector<TModelSplit> TModelConverter::ConvertSplits(
+        const TVector<TBinarySplit>& splits,
+        THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection
     ) const {
         TVector<TModelSplit> structure3;
         for (auto split : splits) {
@@ -269,3 +318,4 @@ namespace NCatboostCuda {
         return structure3;
     }
 }
+

@@ -463,6 +463,7 @@ namespace {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor,
@@ -471,6 +472,7 @@ namespace {
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory
         ) const override {
+            CB_ENSURE(featureEstimators.Empty(), "Feature calcers are not supported in CPU training yet");
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
@@ -755,8 +757,12 @@ static void TrainModel(
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
     pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
-
     TLabelConverter labelConverter;
+
+    TFeatureEstimators featureEstimators;
+    //here we could add featureEstimators that will depend on non-quantinized data
+    //and share data with pools, otherwise float feature would be dropped
+
 
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
@@ -792,6 +798,7 @@ static void TrainModel(
         objectiveDescriptor,
         evalMetricDescriptor,
         Nothing(),
+        featureEstimators,
         std::move(trainingData),
         labelConverter,
         executor,

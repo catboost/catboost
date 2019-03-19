@@ -18,6 +18,7 @@ PEERDIR(
     catboost/libs/model
     catboost/libs/helpers
     catboost/libs/options
+    catboost/libs/feature_estimator
 )
 
 GENERATE_ENUM_SERIALIZATION(feature.h)

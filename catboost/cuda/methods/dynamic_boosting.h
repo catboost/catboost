@@ -36,6 +36,7 @@ namespace NCatboostCuda {
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider* DataProvider = nullptr;
+        const NCB::TFeatureEstimators* Estimators;
         const NCB::TTrainingDataProvider* TestDataProvider = nullptr;
         TBoostingProgressTracker* ProgressTracker = nullptr;
 
@@ -120,6 +121,7 @@ namespace NCatboostCuda {
 
             TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(FeaturesManager,
                                                                         *DataProvider,
+                                                                        *Estimators,
                                                                         TestDataProvider,
                                                                         permutationBlockSize,
                                                                         CatFeaturesStorage
@@ -487,8 +489,10 @@ namespace NCatboostCuda {
         virtual ~TDynamicBoosting() = default;
 
         TDynamicBoosting& SetDataProvider(const NCB::TTrainingDataProvider& learnData,
+                                          const NCB::TFeatureEstimators& estimators,
                                           const NCB::TTrainingDataProvider* testData = nullptr) {
             DataProvider = &learnData;
+            Estimators = &estimators;
             TestDataProvider = testData;
             return *this;
         }

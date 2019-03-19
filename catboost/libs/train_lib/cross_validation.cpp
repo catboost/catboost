@@ -220,6 +220,7 @@ public:
         internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
 
         THPTimer trainTimer;
+        NCB::TFeatureEstimators featureEstimators;
 
         modelTrainer->TrainModel(
             internalOptions,
@@ -290,6 +291,7 @@ public:
 
                 return (iteration + 1) < **upToIteration;
             },
+            featureEstimators,
             TrainingData,
             labelConverter,
             localExecutor,
