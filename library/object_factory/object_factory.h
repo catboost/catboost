@@ -113,11 +113,16 @@ namespace NObjectFactory {
             return keysStr;
         }
 
-        static TProduct* Construct(const TKey& key, const TKey& defKey = TKey()) {
+        static TProduct* Construct(const TKey& key, const TKey& defKey) {
             TProduct* result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(key);
             if (!result && !!defKey) {
                 result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(defKey);
             }
+            return result;
+        }
+
+        static TProduct* Construct(const TKey& key) {
+            TProduct* result = Singleton<TObjectFactory<TProduct, TKey>>()->Create(key);
             return result;
         }
 
