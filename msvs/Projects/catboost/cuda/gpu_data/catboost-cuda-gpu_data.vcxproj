@@ -87,9 +87,11 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\dataset_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\doc_parallel_dataset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\doc_parallel_dataset_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\estimated_features_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_parallel_dataset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_parallel_dataset_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\gpu_binarization_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\cuda\gpu_data\grid_policy.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\kernels.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\non_zero_filter.cpp"/>
@@ -180,6 +182,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\dataset_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\doc_parallel_dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\doc_parallel_dataset_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\estimated_features_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_layout_common.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_layout_doc_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_layout_feature_parallel.h"/>
@@ -187,6 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_parallel_dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_parallel_dataset_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\folds_histogram.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\gpu_binarization_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\gpu_structures.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\kernels.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\non_zero_filter.h"/>
@@ -235,6 +239,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
       <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>

@@ -164,6 +164,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
       <Project>{E83B3FB9-9F00-AC47-8D5D-2028D57A073D}</Project>
     </ProjectReference>
