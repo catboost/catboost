@@ -404,7 +404,7 @@ namespace NCB {
             borders = calculatedBorders;
         }
 
-        if (!calcBordersAndNanModeOnly && !borders.Empty()) {
+        if (!calcBordersAndNanModeOnly && !borders.empty()) {
             TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
 
             if (!options.CpuCompatibleFormat && !clearSrcData) {

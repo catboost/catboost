@@ -442,6 +442,7 @@ cdef extern from "catboost/libs/data_new/load_data.h" namespace "NCB":
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
+        const TPathWithScheme& baselineFilePath,
         const TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -1780,6 +1781,7 @@ cdef class _PoolBase:
         self.__pool = ReadDataset(
             pool_file_path,
             pairs_file_path,
+            TPathWithScheme(),
             TPathWithScheme(),
             dsvPoolFormatParams,
             emptyIntVec,

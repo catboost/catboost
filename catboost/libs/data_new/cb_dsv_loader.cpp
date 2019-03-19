@@ -1,3 +1,4 @@
+#include "baseline.h"
 #include "cb_dsv_loader.h"
 #include "dsv_parser.h"
 
@@ -32,11 +33,14 @@ namespace NCB {
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , FieldDelimiter(Args.PoolFormat.Delimiter)
         , LineDataReader(std::move(args.Reader))
+        , BaselineReader(Args.BaselineFilePath, args.CommonArgs.ClassNames)
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataLoader:PairsFilePath does not exist");
         CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
                   "TCBDsvDataLoader:GroupWeightsFilePath does not exist");
+        CB_ENSURE(!Args.BaselineFilePath.Inited() || CheckExists(Args.BaselineFilePath),
+                  "TCBDsvDataLoader:BaselineFilePathFilePath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
@@ -55,7 +59,9 @@ namespace NCB {
             std::move(columnsDescription),
             Args.GroupWeightsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
-            &featureIds
+            BaselineReader.GetBaselineCount(),
+            &featureIds,
+            args.CommonArgs.ClassNames
         );
 
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
@@ -63,6 +69,9 @@ namespace NCB {
         ProcessIgnoredFeaturesList(Args.IgnoredFeatures, &DataMetaInfo, &FeatureIgnored);
 
         AsyncRowProcessor.ReadBlockAsync(GetReadFunc());
+        if (BaselineReader.Inited()) {
+            AsyncBaselineRowProcessor.ReadBlockAsync(GetReadBaselineFunc());
+        }
     }
 
     TVector<TColumn> TCBDsvDataLoader::CreateColumnsDescription(ui32 columnsCount) {
@@ -106,6 +115,20 @@ namespace NCB {
         };
 
         AsyncRowProcessor.ProcessBlock(parseBlock);
+
+        if (BaselineReader.Inited()) {
+            auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {
+
+                auto addBaselineFunc = [&visitor, inBlockIdx](ui32 baselineIdx, float baseline) {
+                    visitor->AddBaseline(inBlockIdx, baselineIdx, baseline);
+                };
+                const auto lineIdx = AsyncBaselineRowProcessor.GetLinesProcessed() + inBlockIdx + 1;
+
+                BaselineReader.Parse(addBaselineFunc, line, lineIdx);
+            };
+
+            AsyncBaselineRowProcessor.ProcessBlock(parseBaselineBlock);
+        }
     }
 
     namespace {

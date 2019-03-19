@@ -6,7 +6,7 @@ def repl():
     py_main = __res.find('PY_MAIN')
 
     if py_main:
-        mod_name, func_name = py_main.split(b':', 1)
+        mod_name, func_name = py_main.split(b':', 1) + [None]
         try:
             import importlib
             mod = importlib.import_module(mod_name.decode('UTF-8'))
@@ -15,17 +15,17 @@ def repl():
             import traceback
             traceback.print_exc()
 
-    if py_main and '__main__' not in user_ns:
-        def run(args):
-            if isinstance(args, basestring):
-                import shlex
-                args = shlex.split(args)
+        if func_name and '__main__' not in user_ns:
+            def run(args):
+                if isinstance(args, basestring):
+                    import shlex
+                    args = shlex.split(args)
 
-            import sys
-            sys.argv = [sys.argv[0]] + args
-            getattr(mod, func_name)()
+                import sys
+                sys.argv = [sys.argv[0]] + args
+                getattr(mod, func_name)()
 
-        user_ns['__main__'] = run
+            user_ns['__main__'] = run
 
     try:
         import IPython

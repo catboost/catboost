@@ -69,6 +69,7 @@ namespace {
         TQuantizedPool QuantizedPool;
         TPathWithScheme PairsPath;
         TPathWithScheme GroupWeightsPath;
+        TPathWithScheme BaselinePath;
         TDataMetaInfo DataMetaInfo;
         EObjectsOrder ObjectsOrder;
     };
@@ -106,6 +107,7 @@ TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
     , PairsPath(args.CommonArgs.PairsFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
+    , BaselinePath(args.CommonArgs.BaselineFilePath)
     , ObjectsOrder(args.CommonArgs.ObjectsOrder)
 {
     CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
@@ -120,6 +122,8 @@ TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
         "TCBQuantizedDataLoader:PairsFilePath does not exist");
     CB_ENSURE(!GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
+    CB_ENSURE(!BaselinePath.Inited() || CheckExists(BaselinePath),
+        "TCBQuantizedDataLoader:BaselineFilePath does not exist");
 
     DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited());
 
@@ -434,6 +438,7 @@ void TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     QuantizedPool = TQuantizedPool(); // release memory
     SetGroupWeights(GroupWeightsPath, ObjectCount, visitor);
     SetPairs(PairsPath, ObjectCount, visitor);
+    SetBaseline(BaselinePath, ObjectCount, DataMetaInfo.ClassNames, visitor);
     visitor->Finish();
 }
 

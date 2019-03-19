@@ -1,0 +1,1264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{56BB62E6-6261-E370-0D95-9200EBF1F153}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>libs-openssl-1.0.2</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>libs-openssl-1.0.2</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\56BB62E6-6261-E370-0D95-9200EBF1F153\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4659992 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -DOPENSSL_THREADS -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DBSAES_ASM -DECP_NISTZ256_ASM -DOPENSSL_BN_ASM_MONT5 -DAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT -DOPENSSL_IA32_SSE2 -DVPAES_ASM -DWHIRLPOOL_ASM -DRC4_ASM -DMK1MF_BUILD -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_JPAKE -DOPENSSL_NO_KRB5 -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_SSL2 -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_SYSNAME_WIN32 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -DMK1MF_PLATFORM_VC_WIN64A -DUNICODE -D_UNICODE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN    /wd4456 /wd4457 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /DFAKEID=4659992 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -DOPENSSL_THREADS -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DBSAES_ASM -DECP_NISTZ256_ASM -DOPENSSL_BN_ASM_MONT5 -DAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT -DOPENSSL_IA32_SSE2 -DVPAES_ASM -DWHIRLPOOL_ASM -DRC4_ASM -DMK1MF_BUILD -DOPENSSL_NO_DYNAMIC_ENGINE -DOPENSSL_NO_JPAKE -DOPENSSL_NO_KRB5 -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_SSL2 -DOPENSSL_NO_WEAK_SSL_CIPHERS -DOPENSSL_SYSNAME_WIN32 -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -DMK1MF_PLATFORM_VC_WIN64A -DUNICODE -D_UNICODE -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN    /wd4456 /wd4457 </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/openssl/1.0.2;$(SolutionDir)../contrib/libs/openssl/1.0.2/crypto;$(SolutionDir)../contrib/libs/openssl/1.0.2/crypto/asn1;$(SolutionDir)../contrib/libs/openssl/1.0.2/crypto/evp;$(SolutionDir)../contrib/libs/openssl/1.0.2/crypto/modes;$(SolutionDir)../contrib/libs/openssl/1.0.2/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\bf\bf_enc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\bn\bn_asm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\bn\rsaz_exp.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\camellia\cmll_misc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\cast\c_enc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\des\des_enc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\des\fcrypt_b.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\crypto\ec\ecp_nistz256.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\e_gost_err.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost2001.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost2001_keyx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost89.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost94_keyx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_ameth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_asn1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_crypt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_ctl.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_eng.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_keywrap.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_md.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_params.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_pmeth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_sign.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gosthash.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_4758cca.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_aep.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_atalla.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_capi.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_chil.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_cswift.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_gmp.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_nuron.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_padlock.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_sureware.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_ubsec.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\bio_ssl.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_both.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_clnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_lib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_meth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_pkt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_srtp.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\d1_srvr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\kssl.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s23_clnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s23_lib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s23_meth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s23_pkt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s23_srvr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s2_clnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s2_enc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s2_lib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s2_meth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s2_pkt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s2_srvr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_both.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_cbc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_clnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_enc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_lib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_meth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_pkt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\s3_srvr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_algs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_asn1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_cert.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_ciph.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_conf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_err.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_err2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_lib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_rsa.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_sess.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_stat.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_txt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_utst.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_clnt.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_enc.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_ext.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_lib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_meth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_reneg.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_srvr.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\t1_trce.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\tls_srp.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aes-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aes-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aes-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/aes-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aes-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\aes-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-gcm-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-gcm-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-gcm-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/aesni-gcm-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-gcm-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\aesni-gcm-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-mb-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-mb-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-mb-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/aesni-mb-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-mb-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\aesni-mb-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-sha1-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-sha1-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-sha1-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/aesni-sha1-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-sha1-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\aesni-sha1-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-sha256-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-sha256-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-sha256-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/aesni-sha256-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-sha256-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\aesni-sha256-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/aesni-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/aesni-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\aesni-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\aesni-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\bsaes-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/bsaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/bsaes-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/bsaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/bsaes-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/bsaes-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\bsaes-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\bsaes-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\cmll-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/cmll-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/cmll-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/cmll-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\cmll-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\cmll-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\ecp_nistz256-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/ecp_nistz256-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/ecp_nistz256-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/ecp_nistz256-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\ecp_nistz256-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\ecp_nistz256-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\ghash-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/ghash-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/ghash-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/ghash-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\ghash-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\ghash-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\md5-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/md5-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/md5-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/md5-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\md5-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\md5-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rc4-md5-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rc4-md5-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rc4-md5-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/rc4-md5-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rc4-md5-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\rc4-md5-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rc4-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rc4-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rc4-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/rc4-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rc4-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\rc4-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rsaz-avx2.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rsaz-avx2.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rsaz-avx2.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/rsaz-avx2.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rsaz-avx2.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\rsaz-avx2.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rsaz-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rsaz-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/rsaz-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/rsaz-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\rsaz-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\rsaz-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha1-mb-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha1-mb-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha1-mb-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/sha1-mb-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha1-mb-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\sha1-mb-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha1-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha1-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha1-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/sha1-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha1-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\sha1-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha256-mb-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha256-mb-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha256-mb-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/sha256-mb-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha256-mb-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\sha256-mb-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha256-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha256-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha256-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/sha256-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha256-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\sha256-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha512-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha512-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/sha512-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/sha512-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\sha512-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\sha512-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\vpaes-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/vpaes-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/vpaes-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/vpaes-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\vpaes-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\vpaes-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\wp-x86_64.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/wp-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/wp-x86_64.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/wp-x86_64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\wp-x86_64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\wp-x86_64.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64-gf2m.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64-gf2m.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64-gf2m.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/x86_64-gf2m.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64-gf2m.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\x86_64-gf2m.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64-mont.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64-mont.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\x86_64-mont.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64-mont5.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont5.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont5.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/x86_64-mont5.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64-mont5.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\x86_64-mont5.masm.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64cpuid.masm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64cpuid.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)"
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/1.0.2/asm/windows/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/1.0.2/asm/windows/x86_64cpuid.masm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/openssl/1.0.2/asm/windows/x86_64cpuid.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\libs\openssl\1.0.2\asm\windows\x86_64cpuid.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\1.0.2\asm\windows\x86_64cpuid.masm.obj;</Outputs>
+    </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\e_os.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\e_gost_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost2001_keyx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost89.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_keywrap.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gost_params.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\ccgost\gosthash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_4758cca_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_aep_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_atalla_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_capi_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_chil_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_cswift_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_gmp_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_nuron_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_sureware_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\e_ubsec_err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\aep.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\atalla.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\cswift.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\hw_4758_cca.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\hw_ubsec.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\hwcryptohook.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\engines\vendor_defns\sureware.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\aes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\asn1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\asn1_mac.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\asn1t.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\bio.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\blowfish.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\bn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\buffer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\camellia.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\cast.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\cmac.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\cms.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\comp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\conf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\conf_api.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\crypto.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\des.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\des_old.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\dh.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\dsa.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\dso.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\dtls1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\e_os2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ebcdic.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ec.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ecdh.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ecdsa.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\evp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\hmac.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\idea.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\krb5_asn.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\kssl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\lhash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\md4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\md5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\mdc2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\modes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\obj_mac.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\objects.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ocsp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslconf-freebsd-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslconf-linux_aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslconf-osx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslconf-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslconf-win32.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslconf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\opensslv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ossl_typ.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\pem.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\pem2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\pkcs12.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\pkcs7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\pqueue.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\rand.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\rc2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\rc4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ripemd.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\rsa.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\safestack.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\seed.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\sha.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\srp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\srtp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ssl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ssl2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ssl23.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ssl3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\stack.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\symhacks.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\tls1.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ts.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\txt_db.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ui.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\ui_compat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\whrlpool.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\x509.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\x509_vfy.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\include\openssl\x509v3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\kssl_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\srtp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\1.0.2\ssl\ssl_locl.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\crypto\openssl-1.0.2-crypto.vcxproj">
+      <Project>{A1E003AE-3635-24E8-DA15-CEABED502888}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

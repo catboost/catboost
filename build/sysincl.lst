@@ -16,6 +16,7 @@ linux/if_tun.h
 linux/ioctl.h
 linux/irda.h
 linux/llc.h
+linux/mman.h
 linux/nbd.h
 linux/netdevice.h
 linux/netfilter/nfnetlink.h

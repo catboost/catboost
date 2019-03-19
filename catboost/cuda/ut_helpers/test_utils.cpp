@@ -145,11 +145,13 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         dataProvider = NCB::ReadDataset(poolPath,
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
+                                        NCB::TPathWithScheme(),
                                         dsvPoolFormatParams,
                                         {},
                                         NCB::EObjectsOrder::Ordered,
                                         16,
-                                        true);
+                                        true,
+                                        /*classNames*/ Nothing());
     }
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);

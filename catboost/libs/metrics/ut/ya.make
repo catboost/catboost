@@ -21,6 +21,7 @@ SRCS(
     smape_ut.cpp
     zero_one_loss_ut.cpp
     huber_loss_ut.cpp
+    stochastic_filter_ut.cpp
 )
 
 END()

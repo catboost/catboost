@@ -11,6 +11,7 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/string.h>
+#include <util/generic/vector.h>
 #include <util/stream/file.h>
 
 #include <functional>
@@ -26,7 +27,7 @@ void UpdateUndefinedRandomSeed(
 );
 
 void UpdateUndefinedClassNames(
-    const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
+    const TVector<TString>& classNames,
     NJson::TJsonValue* updatedJsonParams
 );
 

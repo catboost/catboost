@@ -137,11 +137,13 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            !pairsPathWithScheme.empty() ?
                                                TPathWithScheme(pairsPathWithScheme, "dsv") : TPathWithScheme(),
                                            /*groupWeightsFilePath=*/TPathWithScheme(),
+                                           /*baselineFilePath=*/TPathWithScheme(),
                                            dsvPoolFormatParams,
                                            TVector<ui32>(),
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),
-                                           asLogical(verboseParam));
+                                           asLogical(verboseParam),
+                                           /*classNames=*/Nothing());
     result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
     Y_UNUSED(poolPtr.Release());

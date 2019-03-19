@@ -19,6 +19,7 @@
 #include <contrib/libs/coreml/Model.pb.h>
 
 #include <library/json/json_reader.h>
+#include <library/dbg_output/dump.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/buffer.h>
@@ -288,6 +289,14 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
             oneTreeLeafWeights.end()
         );
     }
+    TVector<NCatBoostFbs::TNonSymmetricTreeStepNode> fbsNonSymmetricTreeStepNode;
+    fbsNonSymmetricTreeStepNode.reserve(NonSymmetricStepNodes.size());
+    for (const auto& nonSymmetricStep: NonSymmetricStepNodes) {
+        fbsNonSymmetricTreeStepNode.emplace_back(NCatBoostFbs::TNonSymmetricTreeStepNode{
+            nonSymmetricStep.LeftSubtreeDiff,
+            nonSymmetricStep.RightSubtreeDiff
+        });
+    }
     return NCatBoostFbs::CreateTObliviousTreesDirect(
         serializer.FlatbufBuilder,
         ApproxDimension,
@@ -299,7 +308,9 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         &oneHotFeaturesOffsets,
         &ctrFeaturesOffsets,
         &LeafValues,
-        &flatLeafWeights
+        &flatLeafWeights,
+        &fbsNonSymmetricTreeStepNode,
+        &NonSymmetricNodeIdToLeafId
     );
 }
 
@@ -312,11 +323,15 @@ void TObliviousTrees::UpdateMetadata() const {
     TVector<TFeatureSplitId> splitIds;
     auto& ref = MetaData.GetRef();
 
-    ref.TreeFirstLeafOffsets.resize(TreeSizes.size());
-    size_t currentOffset = 0;
-    for (size_t i = 0; i < TreeSizes.size(); ++i) {
-        ref.TreeFirstLeafOffsets[i] = currentOffset;
-        currentOffset += (1 << TreeSizes[i]) * ApproxDimension;
+    if (IsOblivious()) {
+        ref.TreeFirstLeafOffsets.resize(TreeSizes.size());
+        size_t currentOffset = 0;
+        for (size_t i = 0; i < TreeSizes.size(); ++i) {
+            ref.TreeFirstLeafOffsets[i] = currentOffset;
+            currentOffset += (1 << TreeSizes[i]) * ApproxDimension;
+        }
+    } else {
+        ref.TreeFirstLeafOffsets.clear();
     }
 
     for (const auto& ctrFeature : CtrFeatures) {
@@ -401,6 +416,46 @@ void TObliviousTrees::DropUnusedFeatures() {
     UpdateMetadata();
 }
 
+void TObliviousTrees::ConvertObliviousToAsymmetric() {
+    if (!IsOblivious()) {
+        return;
+    }
+    TVector<int> treeSplits;
+    TVector<int> treeSizes;
+    TVector<int> treeStartOffsets;
+    TVector<TNonSymmetricTreeStepNode> nonSymmetricStepNodes;
+    TVector<ui32> nonSymmetricNodeIdToLeafId;
+
+    size_t leafStartOffset = 0;
+    for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
+        size_t treeSize = 0;
+        treeStartOffsets.push_back(treeSplits.size());
+        for (int depth = 0; depth < TreeSizes[treeId]; ++depth) {
+            const auto split = TreeSplits[TreeStartOffsets[treeId] + TreeSizes[treeId] - 1 - depth];
+            for (size_t cloneId = 0; cloneId < (1u << depth); ++cloneId) {
+                treeSplits.push_back(split);
+                nonSymmetricNodeIdToLeafId.push_back(Max<ui32>());
+                nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{static_cast<ui16>(treeSize + 1), static_cast<ui16>(treeSize + 2)});
+                ++treeSize;
+            }
+        }
+        for (size_t cloneId = 0; cloneId < (1u << TreeSizes[treeId]); ++cloneId) {
+            treeSplits.push_back(0);
+            nonSymmetricNodeIdToLeafId.push_back((leafStartOffset + cloneId) * ApproxDimension);
+            nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{0, 0});
+            ++treeSize;
+        }
+        leafStartOffset += (1u << TreeSizes[treeId]);
+        treeSizes.push_back(treeSize);
+    }
+    TreeSplits = std::move(treeSplits);
+    TreeSizes = std::move(treeSizes);
+    TreeStartOffsets = std::move(treeStartOffsets);
+    NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
+    NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
+    UpdateMetadata();
+}
+
 void TFullModel::CalcFlat(
     TConstArrayRef<TConstArrayRef<float>> features,
     size_t treeStart,
@@ -473,7 +528,7 @@ void TFullModel::CalcFlatTransposed(
         [&transposedFeatures](const TCatFeature& catFeature, size_t index) -> int {
             return ConvertFloatCatFeatureToIntHash(transposedFeatures[catFeature.FlatFeatureIndex][index]);
         },
-        transposedFeatures[0].Size(),
+        transposedFeatures[0].size(),
         treeStart,
         treeEnd,
         results
@@ -492,11 +547,11 @@ void TFullModel::Calc(
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     CB_ENSURE(
-        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
         "Model has float features but no float features provided"
     );
     CB_ENSURE(
-        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
         "Model has categorical features but no categorical features provided"
     );
     for (const auto& floatFeaturesVec : floatFeatures) {
@@ -539,11 +594,11 @@ void TFullModel::Calc(
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     CB_ENSURE(
-        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
         "Model has float features but no float features provided"
     );
     CB_ENSURE(
-        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
         "Model has categorical features but no categorical features provided"
     );
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
@@ -586,11 +641,11 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     CB_ENSURE(
-        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(),
+        ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
         "Model has float features but no float features provided"
     );
     CB_ENSURE(
-        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(),
+        ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
         "Model has categorical features but no categorial features provided"
     );
     for (const auto& floatFeaturesVec : floatFeatures) {
@@ -954,3 +1009,25 @@ TFullModel SumModels(
     result.UpdateDynamicData();
     return result;
 }
+
+DEFINE_DUMPER(TRepackedBin, FeatureIndex, XorMask, SplitIdx)
+
+DEFINE_DUMPER(TNonSymmetricTreeStepNode, LeftSubtreeDiff, RightSubtreeDiff)
+
+DEFINE_DUMPER(
+    TObliviousTrees::TMetaData,
+    UsedFloatFeaturesCount,
+    UsedCatFeaturesCount,
+    MinimalSufficientFloatFeaturesVectorSize,
+    MinimalSufficientCatFeaturesVectorSize,
+    UsedModelCtrs,
+    BinFeatures,
+    RepackedBins,
+    EffectiveBinFeaturesBucketCount,
+    TreeFirstLeafOffsets
+)
+
+DEFINE_DUMPER(TObliviousTrees,
+    TreeSplits, TreeSizes,
+    TreeStartOffsets, NonSymmetricStepNodes,
+    NonSymmetricNodeIdToLeafId, LeafValues);

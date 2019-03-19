@@ -35,6 +35,8 @@ inline void ReadAndProceedPoolInBlocks(
             TDatasetLoaderCommonArgs {
                 /*PairsFilePath*/TPathWithScheme(),
                 /*GroupWeightsFilePath=*/TPathWithScheme(),
+                /*BaselineFilePath=*/TPathWithScheme(),
+                /* ClassNames */{},
                 dsvFormatOptions,
                 MakeCdProviderFromFile(cdFilePath),
                 /*ignoredFeatures*/ {},
@@ -168,7 +170,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }
@@ -233,7 +235,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }

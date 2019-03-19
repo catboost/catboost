@@ -17,7 +17,7 @@
 
 #include <functional>
 
-struct TFold;
+class TFold;
 
 const int SIMPLE_CLASSES_COUNT = 2;
 
@@ -25,8 +25,11 @@ const int SIMPLE_CLASSES_COUNT = 2;
 struct TOnlineCTR {
     TVector<TArray2D<TVector<ui8>>> Feature; // Feature[ctrIdx][classIdx][priorIdx][docIdx]
     size_t UniqueValuesCount = 0;
-    size_t CounterUniqueValuesCount = 0; // Counter ctrs could have more values than other types when  counter_calc_method == Full
 
+    // Counter ctrs could have more values than other types when counter_calc_method == Full
+    size_t CounterUniqueValuesCount = 0;
+
+public:
     size_t GetMaxUniqueValueCount() const {
         return Max(UniqueValuesCount, CounterUniqueValuesCount);
     }
@@ -50,11 +53,13 @@ void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVec
 
 class TLearnContext;
 
-void ComputeOnlineCTRs(const NCB::TTrainingForCPUDataProviders& data,
-                       const TFold& fold,
-                       const TProjection& proj,
-                       const TLearnContext* ctx,
-                       TOnlineCTR* dst);
+void ComputeOnlineCTRs(
+    const NCB::TTrainingForCPUDataProviders& data,
+    const TFold& fold,
+    const TProjection& proj,
+    const TLearnContext* ctx,
+    TOnlineCTR* dst
+);
 
 class TCtrValueTable;
 

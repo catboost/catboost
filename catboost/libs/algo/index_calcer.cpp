@@ -88,7 +88,12 @@ inline void OfflineCtrBlock(
     constexpr int vectorWidth = 4;
     int doc;
     for (doc = blockStart; doc + vectorWidth <= nextBlockStart; doc += vectorWidth) {
-        BuildIndicesKernel<TCount, TCmpOp, vectorWidth>(permutation + doc, histogram, cmpOp, level, indices + doc);
+        BuildIndicesKernel<TCount, TCmpOp, vectorWidth>(
+            permutation + doc,
+            histogram,
+            cmpOp,
+            level,
+            indices + doc);
     }
     for (; doc < nextBlockStart; ++doc) {
         const int idxOriginal = permutation[doc];
@@ -426,12 +431,13 @@ static void BinarizeRawFeatures(
     const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
     const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
 
-    auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx, TVector<TMaybe<NCB::TPackedBinaryIndex>>*) -> const float* {
-        return GetRawFeatureDataBeginPtr(
-            rawObjectsData,
-            consecutiveSubsetBegin,
-            flatFeatureIdx);
-    };
+    auto getFeatureDataBeginPtr =
+        [&](ui32 flatFeatureIdx, TVector<TMaybe<NCB::TPackedBinaryIndex>>*) -> const float* {
+            return GetRawFeatureDataBeginPtr(
+                rawObjectsData,
+                consecutiveSubsetBegin,
+                flatFeatureIdx);
+        };
 
     TVector<TConstArrayRef<float>> repackedFeatures;
     GetRepackedFeatures(
@@ -468,20 +474,26 @@ static void AssignFeatureBins(
     CheckModelAndDatasetCompatibility(model, quantizedObjectsData, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
+    auto floatBinsRemap = GetFloatFeaturesBordersRemap(
+        model,
+        *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
     const ui32 consecutiveSubsetBegin = NCB::GetConsecutiveSubsetBegin(quantizedObjectsData);
 
-    auto getFeatureDataBeginPtr = [&](ui32 featureIdx, TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIdx) -> const ui8* {
-        (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(TFeatureIdx<EFeatureType::Float>(featureIdx));
-        if (!(*packedIdx)[featureIdx].Defined()) {
-            return GetQuantizedForCpuFloatFeatureDataBeginPtr(
+    auto getFeatureDataBeginPtr =
+        [&](ui32 featureIdx, TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIdx) -> const ui8* {
+            (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
+                TFeatureIdx<EFeatureType::Float>(featureIdx));
+            if (!(*packedIdx)[featureIdx].Defined()) {
+                return GetQuantizedForCpuFloatFeatureDataBeginPtr(
                     quantizedObjectsData,
                     consecutiveSubsetBegin,
                     featureIdx);
-        } else {
-            return (**quantizedObjectsData.GetBinaryFeaturesPack((*packedIdx)[featureIdx]->PackIdx).GetSrc()).Data();
-        }
-    };
+            } else {
+                return (**quantizedObjectsData.GetBinaryFeaturesPack(
+                    (*packedIdx)[featureIdx]->PackIdx
+                ).GetSrc()).data();
+            }
+        };
     TVector<TConstArrayRef<ui8>> repackedBinFeatures;
     TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
     GetRepackedFeatures(
@@ -496,8 +508,15 @@ static void AssignFeatureBins(
 
     AssignFeatureBins(
         model,
-        [&floatBinsRemap, &repackedBinFeatures, &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
-            return QuantizedFeaturesFloatAccessor(floatBinsRemap, repackedBinFeatures, packedIndexes, floatFeature, index);
+        [&floatBinsRemap,
+         &repackedBinFeatures,
+         &packedIndexes] (const TFloatFeature& floatFeature, size_t index) -> ui8 {
+            return QuantizedFeaturesFloatAccessor(
+                floatBinsRemap,
+                repackedBinFeatures,
+                packedIndexes,
+                floatFeature,
+                index);
         },
         nullptr,
         0,
@@ -515,7 +534,8 @@ TVector<ui8> GetModelCompatibleQuantizedFeatures(
     if (const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
         BinarizeRawFeatures(model, *rawObjectsData, start, end, &result);
     } else if (
-        const auto* const quantizedObjectsData = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData))
+        const auto* const quantizedObjectsData
+            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData))
     {
         AssignFeatureBins(model, *quantizedObjectsData, start, end, &result);
     } else {
@@ -524,7 +544,10 @@ TVector<ui8> GetModelCompatibleQuantizedFeatures(
     return result;
 }
 
-TVector<ui8> GetModelCompatibleQuantizedFeatures(const TFullModel& model, const NCB::TObjectsDataProvider& objectsData) {
+TVector<ui8> GetModelCompatibleQuantizedFeatures(
+    const TFullModel& model,
+    const NCB::TObjectsDataProvider& objectsData)
+{
     return GetModelCompatibleQuantizedFeatures(model, objectsData, /*start*/0, objectsData.GetObjectCount());
 }
 
@@ -557,13 +580,16 @@ const ui8* GetFeatureDataBeginPtr(
     int consecutiveSubsetBegin,
     TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIdx)
 {
-    (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(NCB::TFeatureIdx<EFeatureType::Float>(featureIdx));
+    (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
+        NCB::TFeatureIdx<EFeatureType::Float>(featureIdx));
     if (!(*packedIdx)[featureIdx].Defined()) {
         return GetQuantizedForCpuFloatFeatureDataBeginPtr(
             quantizedObjectsData,
             consecutiveSubsetBegin,
             featureIdx);
     } else {
-        return (**quantizedObjectsData.GetBinaryFeaturesPack((*packedIdx)[featureIdx]->PackIdx).GetSrc()).Data();
+        return (**quantizedObjectsData.GetBinaryFeaturesPack(
+            (*packedIdx)[featureIdx]->PackIdx
+        ).GetSrc()).data();
     }
 }

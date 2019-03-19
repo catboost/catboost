@@ -40,7 +40,9 @@ TVector<ui8> GetModelCompatibleQuantizedFeatures(
     size_t start,
     size_t end);
 
-TVector<ui8> GetModelCompatibleQuantizedFeatures(const TFullModel& model, const NCB::TObjectsDataProvider& objectsData);
+TVector<ui8> GetModelCompatibleQuantizedFeatures(
+    const TFullModel& model,
+    const NCB::TObjectsDataProvider& objectsData);
 
 TVector<TIndexType> BuildIndicesForBinTree(
     const TFullModel& model,
@@ -67,14 +69,17 @@ static inline void GetRepackedFeatures(
     if (columnReorderMap.empty()) {
         for (size_t i = 0; i < flatFeatureVectorExpectedSize; ++i) {
             if (featuresLayout.GetExternalFeaturesMetaInfo()[i].IsAvailable) {
-                (*repackedFeatures)[i] = MakeArrayRef(getFeatureDataBeginPtr(i, packedIndexes) + blockFirstIdx, blockSize);
+                (*repackedFeatures)[i] = MakeArrayRef(
+                    getFeatureDataBeginPtr(i, packedIndexes) + blockFirstIdx,
+                    blockSize);
             }
         }
     } else {
         for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
             if (featuresLayout.GetExternalFeaturesMetaInfo()[sourceIdx].IsAvailable) {
-                (*repackedFeatures)[origIdx] = MakeArrayRef(getFeatureDataBeginPtr(sourceIdx, packedIndexes) + blockFirstIdx,
-                                                            blockSize);
+                (*repackedFeatures)[origIdx] = MakeArrayRef(
+                    getFeatureDataBeginPtr(sourceIdx, packedIndexes) + blockFirstIdx,
+                    blockSize);
             }
         }
     }

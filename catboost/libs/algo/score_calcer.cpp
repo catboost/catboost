@@ -56,7 +56,7 @@ namespace {
         }
 
         bool NonInited() const {
-            return Data.Data() == nullptr;
+            return Data.data() == nullptr;
         }
 
         TArrayRef<T> GetData() {
@@ -177,7 +177,7 @@ inline static void BuildSingleIndex(
                 fold,
                 indexer,
                 (**objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPack.PackIdx).GetSrc())
-                    .Data(),
+                    .data(),
                 docInDataProviderIndexing,
                 docInDataProviderBeginOffset,
                 fold.NonCtrDataPermutationBlockSize,
@@ -394,7 +394,7 @@ static void CalcStatsImpl(
             if (splitEnsemble.IsBinarySplitsPack) {
                 const TBinaryFeaturesPack* bucketSrcData =
                     (**objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPack.PackIdx)
-                        .GetSrc()).Data();
+                        .GetSrc()).data();
                 const ui32* bucketIndexing
                     = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
 
@@ -549,7 +549,7 @@ static void CalcStatsImpl(
 
             forEachBodyTailAndApproxDimension(
                 [&](int bodyTailIdx, int dim, int bucketStatsArrayBegin) {
-                    TBucketStats* statsSubset = output->GetData().Data() + bucketStatsArrayBegin;
+                    TBucketStats* statsSubset = output->GetData().data() + bucketStatsArrayBegin;
                     CalcStatsKernel(
                         isCaching && (indexRange.Begin == 0),
                         singleIdx,
@@ -572,11 +572,11 @@ static void CalcStatsImpl(
             forEachBodyTailAndApproxDimension(
                 [&](int /*bodyTailIdx*/, int /*dim*/, int bucketStatsArrayBegin) {
                     TBucketStats* outputStatsSubset =
-                        output->GetData().Data() + bucketStatsArrayBegin;
+                        output->GetData().data() + bucketStatsArrayBegin;
 
                     for (const auto& addItem : addVector) {
                         const TBucketStats* addStatsSubset =
-                            addItem.GetData().Data() + bucketStatsArrayBegin;
+                            addItem.GetData().data() + bucketStatsArrayBegin;
                         for (size_t i : xrange(filledSplitStatsCount)) {
                             (outputStatsSubset + i)->Add(*(addStatsSubset + i));
                         }
@@ -590,7 +590,7 @@ static void CalcStatsImpl(
     if (isCaching) {
         forEachBodyTailAndApproxDimension(
             [&](int /*bodyTailIdx*/, int /*dim*/, int bucketStatsArrayBegin) {
-                TBucketStats* statsSubset = stats->GetData().Data() + bucketStatsArrayBegin;
+                TBucketStats* statsSubset = stats->GetData().data() + bucketStatsArrayBegin;
                 FixUpStats(depth, indexer, fold.SmallestSplitSideValue, statsSubset);
             }
         );
@@ -983,7 +983,7 @@ void CalcStatsAndScores(
                 leafCount,
                 l2Regularizer,
                 indexer,
-                extOrInSplitStats.GetData().Data(),
+                extOrInSplitStats.GetData().data(),
                 splitStatsCount,
                 scoreBins
             );

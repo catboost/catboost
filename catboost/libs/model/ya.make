@@ -32,6 +32,7 @@ PEERDIR(
     contrib/libs/onnx
     library/binsaver
     library/containers/dense_hash
+    library/dbg_output
     library/json
     library/svnversion
 )

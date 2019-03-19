@@ -15,7 +15,7 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
         ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
         ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
         ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
-        ELossFunction::Lq, ELossFunction::Huber};
+        ELossFunction::Lq, ELossFunction::Huber, ELossFunction::StochasticFilter};
     return allObjectives;
 }
 
@@ -78,7 +78,8 @@ bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
             lossFunction == ELossFunction::PFound ||
             lossFunction == ELossFunction::NDCG ||
             lossFunction == ELossFunction::AverageGain ||
-            lossFunction == ELossFunction::QueryAverage);
+            lossFunction == ELossFunction::QueryAverage ||
+            lossFunction == ELossFunction::StochasticFilter);
 }
 
 bool IsForOrderOptimization(ELossFunction lossFunction) {

@@ -71,14 +71,18 @@ void UpdateUndefinedRandomSeed(ETaskType taskType,
     }
 }
 
-void UpdateUndefinedClassNames(const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
+void UpdateUndefinedClassNames(const TVector<TString>& classNames,
                                NJson::TJsonValue* updatedJsonParams) {
-    NJson::TJsonValue dataProcessingParams;
-    dataProcessingOptions.Save(&dataProcessingParams);
     if (!updatedJsonParams->Has("data_processing_options")) {
         updatedJsonParams->InsertValue("data_processing_options", NJson::TJsonValue());
     }
-    (*updatedJsonParams)["data_processing_options"].InsertValue("class_names", dataProcessingParams["class_names"]);
+    if (classNames.empty()) {
+        return;
+    }
+    (*updatedJsonParams)["data_processing_options"] = {};
+    for (const auto& name: classNames) {
+        (*updatedJsonParams)["data_processing_options"]["class_names"].AppendValue(name);
+    }
 }
 
 

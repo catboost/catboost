@@ -9,9 +9,10 @@
 
 void TrimOnlineCTRcache(const TVector<TFold*>& folds);
 
-void GreedyTensorSearch(const NCB::TTrainingForCPUDataProviders& data,
-                        double modelLength,
-                        TProfileInfo& profile,
-                        TFold* fold,
-                        TLearnContext* ctx,
-                        TSplitTree* resSplitTree);
+void GreedyTensorSearch(
+    const NCB::TTrainingForCPUDataProviders& data,
+    double modelLength,
+    TProfileInfo& profile,
+    TFold* fold,
+    TLearnContext* ctx,
+    TSplitTree* resSplitTree);

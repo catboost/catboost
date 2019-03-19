@@ -131,6 +131,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultL2Reg = 1;
             break;
         }
+        case ELossFunction::StochasticFilter: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultGradientIterations = 100;
+            // doesn't have Newton
+            break;
+        }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::PythonUserDefinedPerObject: {
@@ -190,6 +196,10 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (lossFunctionConfig.GetLossFunction() == ELossFunction::QueryCrossEntropy) {
         CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Gradient, "Gradient leaf estimation is not supported for QueryCrossEntropy");
+    }
+
+    if (lossFunctionConfig.GetLossFunction() == ELossFunction::StochasticFilter) {
+        CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Newton, "Newton leaf estimation is not supported for StochasticFilter");
     }
 }
 
@@ -254,6 +264,12 @@ static Y_NO_INLINE void SetDefaultBinarizationsIfNeeded(
 void NCatboostOptions::TCatBoostOptions::SetCtrDefaults() {
     TCatFeatureParams& catFeatureParams = CatFeatureParams.Get();
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
+
+     if (IsGroupwiseMetric(lossFunction)) {
+        if (TaskType == ETaskType::GPU) {
+            catFeatureParams.CtrHistoryUnit.SetDefault(ECtrHistoryUnit::Group);
+        }
+    }
 
     TVector<TCtrDescription> defaultSimpleCtrs;
     TVector<TCtrDescription> defaultTreeCtrs;

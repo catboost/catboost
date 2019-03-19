@@ -20,7 +20,9 @@ using NPar::TLocalExecutor;
 
 TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int begin, int end) {
     const int threadCount = executorThreadCount + 1; // one for current thread
-    const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
+
+    // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
+    const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1));
     const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
     TLocalExecutor::TExecRangeParams blockParams(0, docCount);
@@ -41,7 +43,10 @@ static void ApplyOnRawFeatures(
     const int approxesDimension = model.ObliviousTrees.ApproxDimension;
     int consecutiveSubsetBegin = GetConsecutiveSubsetBegin(*rawObjectsData);
 
-    const auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx, TVector<TMaybe<TPackedBinaryIndex>>*) -> const float* {
+    const auto getFeatureDataBeginPtr = [&](
+        ui32 flatFeatureIdx,
+        TVector<TMaybe<TPackedBinaryIndex>>*
+    ) -> const float* {
         return GetRawFeatureDataBeginPtr(
             *rawObjectsData,
             consecutiveSubsetBegin,
@@ -90,17 +95,24 @@ static void ApplyOnQuantizedFeatures(
     const int approxesDimension = model.ObliviousTrees.ApproxDimension;
     int consecutiveSubsetBegin = GetConsecutiveSubsetBegin(quantizedObjectsData);
 
-    auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
+    auto floatBinsRemap = GetFloatFeaturesBordersRemap(
+        model,
+        *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
 
-    auto getFeatureDataBeginPtr = [&](ui32 featureIdx, TVector<TMaybe<TPackedBinaryIndex>>* packedIdx) -> const ui8* {
-        (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(TFeatureIdx<EFeatureType::Float>(featureIdx));
+    auto getFeatureDataBeginPtr = [&](
+        ui32 featureIdx,
+        TVector<TMaybe<TPackedBinaryIndex>>* packedIdx
+    ) -> const ui8* {
+        (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
+            TFeatureIdx<EFeatureType::Float>(featureIdx));
         if (!(*packedIdx)[featureIdx].Defined()) {
             return GetQuantizedForCpuFloatFeatureDataBeginPtr(
                 quantizedObjectsData,
                 consecutiveSubsetBegin,
                 featureIdx);
         } else {
-            return (**quantizedObjectsData.GetBinaryFeaturesPack((*packedIdx)[featureIdx]->PackIdx).GetSrc()).Data();
+            return (**quantizedObjectsData.GetBinaryFeaturesPack(
+                (*packedIdx)[featureIdx]->PackIdx).GetSrc()).data();
         }
     };
 
@@ -124,8 +136,15 @@ static void ApplyOnQuantizedFeatures(
         constexpr bool isQuantized = true;
         CalcGeneric<isQuantized>(
             model,
-            [&floatBinsRemap, &repackedFeatures, &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
-                return QuantizedFeaturesFloatAccessor(floatBinsRemap, repackedFeatures, packedIndexes, floatFeature, index);
+            [&floatBinsRemap,
+             &repackedFeatures,
+             &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
+                return QuantizedFeaturesFloatAccessor(
+                    floatBinsRemap,
+                    repackedFeatures,
+                    packedIndexes,
+                    floatFeature,
+                    index);
             },
             [](const TCatFeature&, size_t) -> ui32 {
                 Y_ASSERT("Quantized datasets with categorical features are not currently supported");
@@ -175,7 +194,9 @@ TVector<TVector<double>> ApplyModelMulti(
                 blockParams,
                 &approxesFlat,
                 executor);
-        } else if (const auto *const quantizedObjectsData = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
+        } else if (const auto *const quantizedObjectsData
+            = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)
+        ) {
             ApplyOnQuantizedFeatures(
                 model,
                 *quantizedObjectsData,
@@ -210,13 +231,15 @@ TVector<TVector<double>> ApplyModelMulti(
     }
 }
 
-TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const TObjectsDataProvider& objectsData,
-                                         bool verbose,
-                                         const EPredictionType predictionType,
-                                         int begin,
-                                         int end,
-                                         int threadCount) {
+TVector<TVector<double>> ApplyModelMulti(
+    const TFullModel& model,
+    const TObjectsDataProvider& objectsData,
+    bool verbose,
+    const EPredictionType predictionType,
+    int begin,
+    int end,
+    int threadCount)
+{
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
     NPar::TLocalExecutor executor;
@@ -225,24 +248,27 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
     return result;
 }
 
-TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
-                                         const TDataProvider& data,
-                                         bool verbose,
-                                         const EPredictionType predictionType,
-                                         int begin,
-                                         int end,
-                                         int threadCount) {
-
+TVector<TVector<double>> ApplyModelMulti(
+    const TFullModel& model,
+    const TDataProvider& data,
+    bool verbose,
+    const EPredictionType predictionType,
+    int begin,
+    int end,
+    int threadCount)
+{
     return ApplyModelMulti(model, *data.ObjectsData, verbose, predictionType, begin, end, threadCount);
 }
 
-TVector<double> ApplyModel(const TFullModel& model,
-                           const TObjectsDataProvider& objectsData,
-                           bool verbose,
-                           const EPredictionType predictionType,
-                           int begin, /*= 0*/
-                           int end,   /*= 0*/
-                           int threadCount /*= 1*/) {
+TVector<double> ApplyModel(
+    const TFullModel& model,
+    const TObjectsDataProvider& objectsData,
+    bool verbose,
+    const EPredictionType predictionType,
+    int begin, /*= 0*/
+    int end, /*= 0*/
+    int threadCount /*= 1*/)
+{
     return ApplyModelMulti(model, objectsData, verbose, predictionType, begin, end, threadCount)[0];
 }
 
@@ -265,13 +291,19 @@ void TModelCalcerOnPool::ApplyModelMulti(
         end = Min<int>(end, Model->GetTreeCount());
     }
 
-    Executor->ExecRange([&](int blockId) {
-        auto& calcer = *ThreadCalcers[blockId];
-        const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
-        const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
-        TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
-        calcer.Calc(begin, end, resultRef);
-    }, 0, BlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    Executor->ExecRange(
+        [&](int blockId) {
+            auto& calcer = *ThreadCalcers[blockId];
+            const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
+            const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
+            TArrayRef<double> resultRef(
+                approxFlat.data() + blockFirstId * approxDimension,
+                (blockLastId - blockFirstId) * approxDimension);
+            calcer.Calc(begin, end, resultRef);
+        },
+        0,
+        BlockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 
     approx->resize(approxDimension);
 
@@ -308,37 +340,48 @@ void TModelCalcerOnPool::InitForRawFeatures(
     const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(rawObjectsData);
     const auto& featuresLayout = *rawObjectsData.GetFeaturesLayout();
 
-    auto getFeatureDataBeginPtr = [&](ui32 flatFeatureIdx, TVector<TMaybe<TPackedBinaryIndex>>*) -> const float* {
+    auto getFeatureDataBeginPtr = [&](
+        ui32 flatFeatureIdx,
+        TVector<TMaybe<TPackedBinaryIndex>>*
+    ) -> const float* {
         return GetRawFeatureDataBeginPtr(
             rawObjectsData,
             consecutiveSubsetBegin,
             flatFeatureIdx);
     };
 
-    executor->ExecRange([&](int blockId) {
-        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+    executor->ExecRange(
+        [&](int blockId) {
+            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
 
-        TVector<TConstArrayRef<float>> repackedFeatures;
-        GetRepackedFeatures(
-            blockFirstIdx,
-            blockLastIdx,
-            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-            columnReorderMap,
-            getFeatureDataBeginPtr,
-            featuresLayout,
-            &repackedFeatures);
+            TVector<TConstArrayRef<float>> repackedFeatures;
+            GetRepackedFeatures(
+                blockFirstIdx,
+                blockLastIdx,
+                model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+                columnReorderMap,
+                getFeatureDataBeginPtr,
+                featuresLayout,
+                &repackedFeatures);
 
-        auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
-            return repackedFeatures[floatFeature.FlatFeatureIndex][index];
-        };
+            auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
+                return repackedFeatures[floatFeature.FlatFeatureIndex][index];
+            };
 
-        auto catAccessor = [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> ui32 {
-            return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
-        };
-        ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
-        ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(model, floatAccessor, catAccessor, docCount);
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            auto catAccessor = [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> ui32 {
+                return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
+            };
+            ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
+            ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
+                model,
+                floatAccessor,
+                catAccessor,
+                docCount);
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 void TModelCalcerOnPool::InitForQuantizedFeatures(
@@ -351,34 +394,58 @@ void TModelCalcerOnPool::InitForQuantizedFeatures(
     const ui32 consecutiveSubsetBegin = GetConsecutiveSubsetBegin(quantizedObjectsData);
     const auto& featuresLayout = *quantizedObjectsData.GetFeaturesLayout();
 
-    executor->ExecRange([&](int blockId) {
-        const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-        const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+    executor->ExecRange(
+        [&](int blockId) {
+            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
 
-        auto floatBinsRemap = GetFloatFeaturesBordersRemap(model, *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
+            auto floatBinsRemap = GetFloatFeaturesBordersRemap(
+                model,
+                *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
 
-        TVector<TConstArrayRef<ui8>> repackedFeatures;
-        TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
-        GetRepackedFeatures(
-            blockFirstIdx,
-            blockLastIdx,
-            model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
-            columnReorderMap,
-            [&quantizedObjectsData, &consecutiveSubsetBegin](ui32 featureIdx, TVector<TMaybe<TPackedBinaryIndex>>* packedIdx) -> const ui8* {
-                return  GetFeatureDataBeginPtr(quantizedObjectsData, featureIdx, consecutiveSubsetBegin, packedIdx);
-            },
-            featuresLayout,
-            &repackedFeatures,
-            &packedIndexes);
+            TVector<TConstArrayRef<ui8>> repackedFeatures;
+            TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
+            GetRepackedFeatures(
+                blockFirstIdx,
+                blockLastIdx,
+                model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(),
+                columnReorderMap,
+                [&quantizedObjectsData,
+                 &consecutiveSubsetBegin](
+                     ui32 featureIdx,
+                     TVector<TMaybe<TPackedBinaryIndex>>* packedIdx
+                ) -> const ui8* {
+                    return GetFeatureDataBeginPtr(
+                        quantizedObjectsData,
+                        featureIdx,
+                        consecutiveSubsetBegin,
+                        packedIdx);
+                },
+                featuresLayout,
+                &repackedFeatures,
+                &packedIndexes);
 
-        ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
-        ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
-            model,
-            [&floatBinsRemap, &repackedFeatures, &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
-                return QuantizedFeaturesFloatAccessor(floatBinsRemap, repackedFeatures, packedIndexes, floatFeature, index);
-            },
-            docCount);
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+            ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
+            ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
+                model,
+                [&floatBinsRemap,
+                 &repackedFeatures,
+                 &packedIndexes](
+                     const TFloatFeature& floatFeature,
+                     size_t index
+                ) -> ui8 {
+                    return QuantizedFeaturesFloatAccessor(
+                        floatBinsRemap,
+                        repackedFeatures,
+                        packedIndexes,
+                        floatFeature,
+                        index);
+                },
+                docCount);
+        },
+        0,
+        blockParams.GetBlockCount(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 TModelCalcerOnPool::TModelCalcerOnPool(

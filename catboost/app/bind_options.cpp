@@ -1,6 +1,7 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/baseline.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/analytical_mode_params.h>
@@ -124,6 +125,18 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             loadParamsPtr->TestGroupWeightsFilePath = TPathWithScheme(str, "file");
+        });
+
+    parser->AddLongOption("learn-baseline", "path to learn baseline")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->BaselineFilePath = TPathWithScheme(str, "file");
+        });
+
+    parser->AddLongOption("test-baseline", "path to test baseline")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestBaselineFilePath = TPathWithScheme(str, "file");
         });
 
     const auto cvDescription = TString::Join(
@@ -534,11 +547,11 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         });
 
 
-    parser.AddLongOption("growing-policy", "Tree growing policy")
-            .RequiredArgument("Type (ObliviousTree, Region,…)")
-            .Handler1T<TString>([plainJsonPtr](const TString& policy) {
-                (*plainJsonPtr)["growing_policy"] = policy;
-            });
+    parser.AddLongOption("growing-policy", "Tree growing policy. Must be one of: " + GetEnumAllNames<EGrowingPolicy>())
+        .RequiredArgument("type")
+        .Handler1T<TString>([plainJsonPtr](const TString& policy) {
+            (*plainJsonPtr)["growing_policy"] = policy;
+        });
 
     parser.AddLongOption("max-leaves-count", "Max leaves count")
         .RequiredArgument("INT")

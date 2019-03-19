@@ -61,6 +61,7 @@ TTargetClassifier BuildTargetClassifier(TConstArrayRef<float> target,
         case ELossFunction::QuerySoftMax:
         case ELossFunction::YetiRank:
         case ELossFunction::YetiRankPairwise:
+        case ELossFunction::StochasticFilter:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
         case ELossFunction::UserPerObjMetric:

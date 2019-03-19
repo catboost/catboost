@@ -36,12 +36,15 @@ TDataMetaInfo::TDataMetaInfo(
     TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
     bool hasAdditionalGroupWeight,
     bool hasPairs,
-    TMaybe<const TVector<TString>*> featureNames
+    TMaybe<ui32> additionalBaselineCount,
+    TMaybe<const TVector<TString>*> featureNames,
+    const TVector<TString>& classNames
 )
-    : ColumnsInfo(std::move(columnsInfo))
+    : ClassNames(classNames)
+    , ColumnsInfo(std::move(columnsInfo))
 {
     HasTarget = ColumnsInfo->CountColumns(EColumn::Label);
-    BaselineCount = ColumnsInfo->CountColumns(EColumn::Baseline);
+    BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
     HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
@@ -102,6 +105,7 @@ bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
         HasWeights,
         HasTimestamp,
         HasPairs,
+        ClassNames,
         ColumnsInfo
     ) == std::tie(
         rhs.HasTarget,
@@ -112,6 +116,7 @@ bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
+        ClassNames,
         rhs.ColumnsInfo
     );
 }
@@ -120,6 +125,8 @@ void TDataMetaInfo::Validate() const {
     CB_ENSURE(GetFeatureCount() > 0, "Pool should have at least one factor");
     CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
         "You should provide GroupId when providing GroupWeight.");
+    CB_ENSURE(ClassNames.empty() || BaselineCount == 0 || BaselineCount == ClassNames.size(),
+        "Baseline columns count " << BaselineCount << " and class names count "  << ClassNames.size() << " are not equal");
 }
 
 TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const {
@@ -152,6 +159,7 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
+        data->ClassNames,
         data->ColumnsInfo
     );
 }

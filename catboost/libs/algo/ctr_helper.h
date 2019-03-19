@@ -18,6 +18,7 @@ struct TCtrInfo {
     ui32 TargetClassifierIdx = -1;
     TVector<float> Priors;
 
+public:
     Y_SAVELOAD_DEFINE(Type, BorderCount, TargetClassifierIdx, Priors);
 };
 

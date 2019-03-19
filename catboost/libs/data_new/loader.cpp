@@ -1,7 +1,10 @@
+#include "baseline.h"
 #include "loader.h"
+#include "dsv_parser.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/ptr.h>
 #include <util/string/cast.h>
@@ -95,6 +98,27 @@ namespace NCB {
         return pairs;
     }
 
+    static TVector<TVector<float>> ReadBaseline(const TPathWithScheme& filePath, ui64 docCount, const TVector<TString>& classNames) {
+        TBaselineReader reader(filePath, classNames);
+
+        TString line;
+
+        TVector<ui32> tokenIndexes = reader.GetBaselineIndexes();
+
+        TVector<TVector<float>> baseline;
+        ResizeRank2(tokenIndexes.size(), docCount, baseline);
+        ui32 lineNumber = 0;
+        auto addBaselineFunc = [&baseline, &lineNumber](ui32 approxIdx, float value) {
+            baseline[approxIdx][lineNumber] = value;
+        };
+
+        for (; reader.ReadLine(&line); lineNumber++) {
+            reader.Parse(addBaselineFunc, line, lineNumber);
+        }
+        CB_ENSURE(lineNumber == docCount, "Baseline file has " << lineNumber << "lines, need " << docCount);
+        return baseline;
+    }
+
     static TVector<float> ReadGroupWeights(
         const TPathWithScheme& filePath,
         TConstArrayRef<TGroupId> groupIds,
@@ -162,6 +186,18 @@ namespace NCB {
                 objectCount
             );
             visitor->SetGroupWeights(std::move(groupWeights));
+        }
+    }
+
+    void SetBaseline(
+        const TPathWithScheme& baselinePath,
+        ui32 objectCount,
+        const TVector<TString>& classNames,
+        IDatasetVisitor* visitor
+    ) {
+        DumpMemUsage("After data read");
+        if (baselinePath.Inited()) {
+            visitor->SetBaseline(ReadBaseline(baselinePath, objectCount, classNames));
         }
     }
 

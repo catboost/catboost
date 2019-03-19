@@ -15,7 +15,7 @@ namespace NCatboostCuda {
         */
         template <template <class TMapping> class TTargetTemplate, class TModel = TObliviousTreeModel>
         class TGpuTrainer: public IGpuTrainer {
-            virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
+            virtual TGpuTrainResult TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                             const TTrainModelInternalOptions& internalOptions,
                                                                             const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -42,7 +42,11 @@ namespace NCatboostCuda {
                                                         localExecutor,
                                                         testMultiApprox,
                                                         metricsAndTimeHistory);
-                return MakeObliviousModel<TModel>(std::move(resultModel), localExecutor);
+                if constexpr (std::is_same<TModel, TObliviousTreeModel>::value || std::is_same<TModel, TNonSymmetricTree>::value) {
+                    return resultModel;
+                } else {
+                    return MakeObliviousModel<TModel>(std::move(resultModel), localExecutor);
+                }
             };
 
             virtual void ModelBasedEval(TBinarizedFeaturesManager& featuresManager,

@@ -3608,6 +3608,43 @@ THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& pa
     return MakeHolder<TUserDefinedQuerywiseMetric>(params);
 }
 
+TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
+    : Alpha(0.0)
+{
+    if (params.contains("alpha")) {
+        Alpha = FromString<float>(params.at("alpha"));
+    }
+    UseWeights.MakeIgnored();
+}
+
+TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
+        const TVector<TVector<double>>& /*approx*/,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> /*target*/,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int /*queryStartIndex*/,
+        int /*queryEndIndex*/
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+    CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
+    return TMetricHolder(2);
+}
+
+EErrorType TUserDefinedQuerywiseMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+TString TUserDefinedQuerywiseMetric::GetDescription() const {
+    return "TUserDefinedQuerywiseMetric";
+}
+
+void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* Huber loss */
 
 namespace {
@@ -3681,43 +3718,78 @@ void THuberLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+/* StochasticFilter */
 
-TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
-        : Alpha(0.0)
-{
-    if (params.contains("alpha")) {
-        Alpha = FromString<float>(params.at("alpha"));
-    }
+namespace {
+    class TStochasticFilter : public TAdditiveMetric<TStochasticFilter> {
+    public:
+        explicit TStochasticFilter();
+
+        TMetricHolder EvalSingleThread(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end
+        ) const;
+
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    };
+}
+
+THolder<IMetric> MakeStochasticFilterMetric() {
+    return MakeHolder<TStochasticFilter>();
+}
+
+TStochasticFilter::TStochasticFilter() {
     UseWeights.MakeIgnored();
 }
 
-TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<TVector<double>>& approxDelta,
-    bool isExpApprox,
-    TConstArrayRef<float> /*target*/,
-    TConstArrayRef<float> /*weight*/,
-    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-    int /*queryStartIndex*/,
-    int /*queryEndIndex*/
+TMetricHolder TStochasticFilter::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
+        int queryBegin,
+        int queryEnd
 ) const {
-    Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
-    CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
+    Y_ASSERT(weight.empty());
+
     TMetricHolder metric(2);
+    for(int queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
+        const int begin = queriesInfo[queryIndex].Begin;
+        const int end = queriesInfo[queryIndex].End;
+        int pos = 0;
+        for (int i = begin; i < end; ++i) {
+            const double currentApprox = approxDelta.empty() ? approx[0][i] : approx[0][i] + approxDelta[0][i];
+            if (currentApprox >= 0.0) {
+                pos += 1;
+                metric.Stats[0] += target[i] / pos;
+            }
+        }
+    }
+    metric.Stats[1] = queryEnd - queryBegin;
     return metric;
 }
 
-EErrorType TUserDefinedQuerywiseMetric::GetErrorType() const {
+EErrorType TStochasticFilter::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-TString TUserDefinedQuerywiseMetric::GetDescription() const {
-    return "TUserDefinedQuerywiseMetric";
+TString TStochasticFilter::GetDescription() const {
+    return BuildDescription(ELossFunction::StochasticFilter, UseWeights);
 }
 
-void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Min;
+void TStochasticFilter::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
 }
 
 /* AverageGain */
@@ -4191,6 +4263,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams={"delta"};
             result.push_back(MakeHuberLossMetric(FromString<float>(params.at("delta"))));
             break;
+        case ELossFunction::StochasticFilter: {
+            validParams={"sigma", "num_estimations"};
+            result.push_back(MakeStochasticFilterMetric());
+            break;
+        }
         default:
             CB_ENSURE(false, "Unsupported loss_function: " << metric);
             return TVector<THolder<IMetric>>();

@@ -55,6 +55,10 @@ namespace NCatboostOptions {
 
     ui32 GetMaxPairCount(const TLossDescription& lossFunctionConfig);
 
+    double GetStochasticFilterSigma(const TLossDescription& lossDescription);
+
+    int GetStochasticFilterNumEstimations(const TLossDescription& lossDescription);
+
     TLossDescription ParseLossDescription(TStringBuf stringLossDescription);
 }
 

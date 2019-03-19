@@ -64,17 +64,21 @@ int mode_ostr(int argc, const char* argv[]) {
     NCB::TDataProviderPtr trainPool = NCB::ReadDataset(params.LearnSetPath,
                                                        /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                        /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                                       /*baselineFilePath=*/NCB::TPathWithScheme(),
                                                        params.DsvPoolFormatParams,
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
+                                                       /*classNames=*/Nothing(),
                                                        &localExecutor);
 
     NCB::TDataProviderPtr testPool = NCB::ReadDataset(params.TestSetPath,
                                                       /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
+                                                      /*baselineFilePath=*/NCB::TPathWithScheme(),
                                                       params.DsvPoolFormatParams,
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
+                                                      /*classNames=*/Nothing(),
                                                       &localExecutor);
 
 

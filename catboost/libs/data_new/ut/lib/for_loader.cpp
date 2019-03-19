@@ -39,6 +39,11 @@ namespace NCB {
             &(readDatasetMainParams->GroupWeightsFilePath),
             srcDataFiles
         );
+        SaveDataToTempFile(
+            srcData.BaselineFileData,
+            &(readDatasetMainParams->BaselineFilePath),
+            srcDataFiles
+        );
     }
 
     }

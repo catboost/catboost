@@ -59,7 +59,9 @@ namespace NCB {
             ui8 binaryFeatureValue = (repackedFeatures[floatFeature.FlatFeatureIndex][index] >> bitIdx) & 1;
             return floatBinsRemap[floatFeature.FlatFeatureIndex][binaryFeatureValue];
         } else {
-            return floatBinsRemap[floatFeature.FlatFeatureIndex][repackedFeatures[floatFeature.FlatFeatureIndex][index]];
+            return floatBinsRemap[
+                floatFeature.FlatFeatureIndex][repackedFeatures[floatFeature.FlatFeatureIndex][index]
+            ];
         }
     }
 }

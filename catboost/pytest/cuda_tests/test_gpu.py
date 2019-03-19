@@ -2177,6 +2177,7 @@ def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
+        '--ctr-history-unit', 'Sample',
         '--eval-metric', eval_metric,
         '-m', output_model_path,
     ]

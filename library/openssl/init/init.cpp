@@ -44,6 +44,7 @@ namespace {
         };
 
         inline TInitSsl() {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
             SSL_library_init();
             OPENSSL_config(nullptr);
             SSL_load_error_strings();
@@ -51,6 +52,9 @@ namespace {
             ERR_load_BIO_strings();
             CRYPTO_set_id_callback(ThreadIdFunction);
             CRYPTO_set_locking_callback(LockingFunction);
+#else
+            OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG, nullptr);
+#endif 
 
             do {
                 char buf[128];
@@ -60,10 +64,12 @@ namespace {
         }
 
         inline ~TInitSsl() {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
             CRYPTO_set_id_callback(nullptr);
             CRYPTO_set_locking_callback(nullptr);
             ERR_free_strings();
             EVP_cleanup();
+#endif
         }
 
         static void LockingFunction(int mode, int n, const char* /*file*/, int /*line*/) {

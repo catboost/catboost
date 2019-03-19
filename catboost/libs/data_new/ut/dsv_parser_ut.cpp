@@ -58,6 +58,9 @@ namespace {
         void SetGroupWeights(TVector<float>&&) override {
         }
 
+        void SetBaseline(TVector<TVector<float>>&&) override {
+        }
+
         void SetPairs(TVector<TPair>&&) override {
         }
 
