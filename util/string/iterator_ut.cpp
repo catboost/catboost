@@ -166,6 +166,20 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
+    Y_UNIT_TEST(TestStringSplitterConsumeConditional) {
+        TVector<TString> expected = { "1", "2" };
+        TVector<TString> actual;
+        auto func = [&actual](const TBasicStringBuf<char>& token) {
+            if (token == "3")
+                return false;
+            actual.push_back(TString(token));
+            return true;
+        };
+        bool completed = StringSplitter("1 2 3 4 5").Split(' ').Consume(func);
+        UNIT_ASSERT(!completed);
+        UNIT_ASSERT_VALUES_EQUAL(expected, actual);
+    }
+
     Y_UNIT_TEST(TestStringSplitterToList) {
         TVector<TString> expected = {"1", "2", "3"};
         TVector<TString> actual = StringSplitter("1 2 3").Split(' ').ToList<TString>();
