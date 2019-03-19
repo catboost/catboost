@@ -67,11 +67,11 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
 
                 if (!hasBorders) {
                     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
-                    TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr);
-                    sortedFeature.Copy(floatCtr, stream);
+                    TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr.SliceView(CtrTargets.LearnSlice));
+                    sortedFeature.Copy(floatCtr.SliceView(CtrTargets.LearnSlice), stream);
                     RadixSort(sortedFeature, false, stream);
                     TVector<float> sortedFeatureCpu;
-                    sortedFeature.SliceView(CtrTargets.LearnSlice).Read(sortedFeatureCpu, stream);
+                    sortedFeature.Read(sortedFeatureCpu, stream);
 
                     borders = gridBuilderFactory
                                   .Create(binarizationDescription.BorderSelectionType)
