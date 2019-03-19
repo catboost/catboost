@@ -19,6 +19,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         'boto.*',
 
+        'celery.backends.database.*',  # needs optional dependency sqlalchemy
         'click._winconsole',
         'common.*',  # sandbox.common
 
@@ -35,6 +36,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'gensim.similarities.index',
 
         'kernel.*',  # skynet/kernel
+        'kombu.transport.sqlalchemy.*',
         'IPython.*',
         'lxml.cssselect',
         'lxml.html.ElementSoup',
