@@ -1,3 +1,8 @@
+# Release 0.13.1
+
+## Changes:
+- Fixed a bug in shap values that was introduced in v0.13
+
 # Release 0.13
 
 ## Speedups:
