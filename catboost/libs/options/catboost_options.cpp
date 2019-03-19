@@ -380,7 +380,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
     {
         const ui32 classesCount = DataProcessingOptions->ClassesCount;
-        if (classesCount != 0 ) {
+        if (classesCount != 0) {
             CB_ENSURE(IsMultiClassMetric(lossFunction), "classes_count parameter takes effect only with MultiClass/MultiClassOneVsAll loss functions");
             CB_ENSURE(classesCount > 1, "classes-count should be at least 2");
         }
