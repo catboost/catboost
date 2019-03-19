@@ -130,7 +130,7 @@ namespace NObjectFactory {
             return Singleton<TObjectFactory<TProduct, TKey>>()->HasImpl(key);
         }
 
-        static void GetRegisteredKeys(TSet<TString>& keys) {
+        static void GetRegisteredKeys(TSet<TKey>& keys) {
             return Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
         }
 

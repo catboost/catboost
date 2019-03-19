@@ -44,7 +44,11 @@ namespace {
         };
 
         inline TInitSsl() {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10101020L // 1.1.1b
+            OPENSSL_init_crypto(OPENSSL_INIT_NO_ATEXIT, nullptr);
+#elif OPENSSL_VERSION_NUMBER >= 0x10100000L
+            OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG, nullptr);
+#else
             SSL_library_init();
             OPENSSL_config(nullptr);
             SSL_load_error_strings();
@@ -52,8 +56,6 @@ namespace {
             ERR_load_BIO_strings();
             CRYPTO_set_id_callback(ThreadIdFunction);
             CRYPTO_set_locking_callback(LockingFunction);
-#else
-            OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CONFIG, nullptr);
 #endif 
 
             do {
@@ -64,7 +66,9 @@ namespace {
         }
 
         inline ~TInitSsl() {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER >= 0x10101020L // 1.1.1b
+            OPENSSL_cleanup();
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L
             CRYPTO_set_id_callback(nullptr);
             CRYPTO_set_locking_callback(nullptr);
             ERR_free_strings();
@@ -83,5 +87,9 @@ namespace {
 }
 
 void InitOpenSSL() {
+#if OPENSSL_VERSION_NUMBER >= 0x10101020L // 1.1.1b
+    (void)SingletonWithPriority<TInitSsl, 0>();
+#else
     (void)Singleton<TInitSsl>();
+#endif
 }
