@@ -198,11 +198,11 @@ namespace NPrivate {
     using TIteratorOf = typename TIteratorOfImpl<String>::type;
 
     template<class String>
-    struct TIteratorState {
+    struct TIterState {
         using TStringBufType = TStringBufOf<String>;
         using TIterator = TIteratorOf<String>;
 
-        TIteratorState(const String& string) noexcept
+        TIterState(const String& string) noexcept
             : TokS()
             , TokD()
         {
@@ -385,7 +385,7 @@ namespace NPrivate {
         using TStringBufType = TStringBufOf<TStringType>;
         using TChar = typename TStringType::value_type;
         using TIterator = TIteratorOf<TStringType>;
-        using TIteratorState = TIteratorState<TStringType>;
+        using TIteratorState = TIterState<TStringType>;
 
         /**
          * Base class for all split ranges that actually does the splitting.
