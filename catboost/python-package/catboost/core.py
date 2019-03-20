@@ -2532,6 +2532,8 @@ class CatBoostRegressor(CatBoost):
         loss_function='RMSE',
         border_count=None,
         feature_border_type=None,
+        input_borders=None,
+        output_borders=None,
         fold_permutation_block_size=None,
         od_pval=None,
         od_wait=None,

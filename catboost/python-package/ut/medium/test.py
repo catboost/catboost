@@ -3845,6 +3845,39 @@ def test_output_border_file(task_type):
     assert not _check_data(pred1, pred4)
 
 
+def test_output_border_file_regressor(task_type):
+    OUTPUT_BORDERS_FILE = 'output_border_file.dat'
+
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    args = {
+        'iterations': 30,
+        'loss_function': 'RMSE',
+        'use_best_model': False,
+        'learning_rate': 0.3
+    }
+    model1 = CatBoostRegressor(border_count=32,
+                                output_borders=OUTPUT_BORDERS_FILE,
+                                **args)
+    model2 = CatBoostRegressor(input_borders=os.path.join('catboost_info', OUTPUT_BORDERS_FILE),
+                                **args)
+
+    model3 = CatBoostRegressor(**args)
+    model4 = CatBoostRegressor(border_count=2, **args)
+
+    model1.fit(train_pool)
+    model2.fit(train_pool)
+    model3.fit(train_pool)
+    model4.fit(train_pool)
+    pred1 = model1.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+    pred3 = model3.predict(test_pool)
+    pred4 = model4.predict(test_pool)
+    assert _check_data(pred1, pred2)
+    assert not _check_data(pred1, pred3)
+    assert not _check_data(pred1, pred4)
+
+
 def test_model_comparison():
     def fit_model(iterations):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)
