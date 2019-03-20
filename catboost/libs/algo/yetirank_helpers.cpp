@@ -99,18 +99,6 @@ void UpdatePairsForYetiRank(
     });
 }
 
-static void UpdatePairsForYetiRank(
-    TConstArrayRef<double> approxes,
-    TConstArrayRef<float> relevances,
-    int queryInfoSize,
-    const NCatboostOptions::TCatBoostOptions& params,
-    ui64 randomSeed,
-    TVector<TQueryInfo>* queriesInfo,
-    NPar::TLocalExecutor* localExecutor
-) {
-    UpdatePairsForYetiRank(approxes, relevances, queryInfoSize, params.LossFunctionDescription.Get(), randomSeed, queriesInfo, localExecutor);
-}
-
 void YetiRankRecalculation(
     const TFold& ff,
     const TFold::TBodyTail& bt,
@@ -125,7 +113,7 @@ void YetiRankRecalculation(
         bt.Approx[0],
         ff.LearnTarget,
         bt.TailQueryFinish,
-        params,
+        params.LossFunctionDescription.Get(),
         randomSeed,
         recalculatedQueriesInfo,
         localExecutor
