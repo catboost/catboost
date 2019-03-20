@@ -229,13 +229,13 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -248,13 +248,13 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -272,13 +272,13 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/quantization_schema.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/quantization_schema.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -291,13 +291,13 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/quantization_schema.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/quantization_schema.proto"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
+"python" "$(SolutionDir)../build/scripts/gen_py_protos.py" "--suffixes" "_pb2.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/python/Include" "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I=$(SolutionDir)../contrib/libs/brotli/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--python_out=$(SolutionDir)$(Configuration)/" "catboost/idl/pool/proto/quantization_schema.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -90,7 +90,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/event.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/event.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,7 +103,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/event.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/event.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/resource_handle.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/resource_handle.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -134,7 +134,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/resource_handle.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/resource_handle.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -152,7 +152,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/summary.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/summary.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -165,7 +165,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/summary.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/summary.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,7 +183,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -196,7 +196,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -214,7 +214,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor_shape.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor_shape.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -227,7 +227,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor_shape.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/tensor_shape.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -245,7 +245,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/types.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/types.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -258,7 +258,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\tensorboard
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/types.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir).." "-I=$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I=$(SolutionDir)../contrib/libs/double-conversion/include" "-I=$(SolutionDir)../contrib/libs/protobuf" "-I=$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "contrib/libs/tensorboard/types.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
