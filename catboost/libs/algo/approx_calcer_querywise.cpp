@@ -15,8 +15,8 @@ void CalculateDersForQueries(
     int queryStartIndex,
     int queryEndIndex,
     TArrayRef<TDers> approxDers,
-    NPar::TLocalExecutor* localExecutor,
-    ui64 randomSeed
+    ui64 randomSeed,
+    NPar::TLocalExecutor* localExecutor
 ) {
     if (!approxesDelta.empty()) {
         TVector<double> fullApproxes;
@@ -52,8 +52,8 @@ void CalculateDersForQueries(
             weights,
             queriesInfo,
             approxDers,
-            localExecutor,
-            randomSeed
+            randomSeed,
+            localExecutor
         );
     } else {
         error.CalcDersForQueries(
@@ -64,8 +64,8 @@ void CalculateDersForQueries(
             weights,
             queriesInfo,
             approxDers,
-            localExecutor,
-            randomSeed
+            randomSeed,
+            localExecutor
         );
     }
 }

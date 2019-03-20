@@ -326,7 +326,7 @@ void CalcWeightedDerivatives(
 
         const int tailQueryFinish = bt.TailQueryFinish;
         TVector<TDers> ders((*weightedDerivatives)[0].ysize());
-        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, ders, localExecutor, randomSeed);
+        error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, ders, randomSeed, localExecutor);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*weightedDerivatives)[0][docId] = ders[docId].Der1;
         }

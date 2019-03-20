@@ -116,8 +116,8 @@ public:
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
         TArrayRef<TDers> /*ders*/,
-        NPar::TLocalExecutor* /*localExecutor*/,
-        ui64 /*randomSeed*/
+        ui64 /*randomSeed*/,
+        NPar::TLocalExecutor* /*localExecutor*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -489,8 +489,8 @@ public:
         const TVector<float>& /*weights*/,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor,
-        ui64 /*randomSeed*/
+        ui64 /*randomSeed*/,
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         const int start = queriesInfo[queryStartIndex].Begin;
@@ -537,8 +537,8 @@ public:
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor,
-        ui64 /*randomSeed*/
+        ui64 /*randomSeed*/,
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         const int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(
@@ -605,8 +605,8 @@ public:
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor,
-        ui64 /*randomSeed*/
+        ui64 /*randomSeed*/,
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(
@@ -776,8 +776,8 @@ public:
         const TVector<float>& /*weights*/,
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
-        NPar::TLocalExecutor* localExecutor,
-        ui64 randomSeed
+        ui64 randomSeed,
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         NPar::TLocalExecutor::TExecRangeParams blockParams(queryStartIndex, queryEndIndex);
         blockParams.SetBlockCount(CB_THREAD_LIMIT);
@@ -798,7 +798,7 @@ public:
                 for (int queryIndex = from; queryIndex < to; ++queryIndex) {
                     int begin = queriesInfo[queryIndex].Begin;
                     int end = queriesInfo[queryIndex].End;
-                    CalcQueryDers(begin, begin - start, end - begin, approx, target, ders, rand);
+                    CalcQueryDers(begin, begin - start, end - begin, approx, target, ders, &rand);
                 }
             });
     }
@@ -806,14 +806,14 @@ public:
 private:
     void CalcQueryDers(
         int offset,
-        int offset_der,
+        int offsetDer,
         int querySize,
-        const TVector<double> &approx,
-        const TVector<float> &target,
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
         TArrayRef<TDers> ders,
-        TRestorableFastRng64& Rand
+        TRestorableFastRng64* Rand
     ) const {
-        Fill(ders.begin() + offset_der, ders.begin() + offset_der + querySize, TDers { 0.f, 0.f, 0.f });
+        Fill(ders.begin() + offsetDer, ders.begin() + offsetDer + querySize, TDers { 0.f, 0.f, 0.f });
         const double baselineLoss = CalcBaseline(offset, querySize, approx, target);
         TVector<double> probs(querySize, 0.);
 
@@ -823,13 +823,13 @@ private:
 
             for (int j = 0; j < querySize; ++j) {
                 const double prob = Sigmoid(approx[offset + j] * Sigma);
-                const bool isFiltered = prob >= Rand.GenRandReal1();
+                const bool isFiltered = prob >= Rand->GenRandReal1();
                 loss += isFiltered ? target[offset + j] / (pos + 1) : 0.;
                 pos += isFiltered;
                 probs[j] = isFiltered ? (1 - prob) : -prob;
             }
             for (int j = 0; j < querySize; ++j) {
-                ders[offset_der + j].Der1 += probs[j] * (loss - baselineLoss) / NumEstimations;
+                ders[offsetDer + j].Der1 += probs[j] * (loss - baselineLoss) / NumEstimations;
             }
         }
     }
@@ -837,8 +837,8 @@ private:
     double CalcBaseline(
         int offset,
         int count,
-        const TVector<double>& approx,
-        const TVector<float>& target
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target
     ) const {
         double baselineValue = 0.0;
         int pos = 0;

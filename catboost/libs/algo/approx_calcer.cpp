@@ -349,8 +349,8 @@ void CalcLeafDersSimple(
             /*queryStartIndex=*/0,
             queryCount,
             *scratchDers,
-            localExecutor,
-            randomSeed
+            randomSeed,
+            localExecutor
         );
         AddLeafDersForQueries(
             *scratchDers,
@@ -576,8 +576,8 @@ static void UpdateApproxDeltasHistorically(
             bt.BodyQueryFinish,
             bt.TailQueryFinish,
             approxDers,
-            localExecutor,
-            randomSeed
+            randomSeed,
+            localExecutor
         );
     }
     const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;

@@ -244,9 +244,12 @@ def test_stochastic_filter(sigma, num_estimations):
 
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    learn_error_one_thread_path = yatest.common.test_output_path('learn_error_one_thread.tsv')
+    test_error_one_thread_path = yatest.common.test_output_path('test_error_one_thread.tsv')
     loss_description = 'StochasticFilter:' + sigma + ';' + num_estimations
 
-    cmd = (
+    cmd = [
         CATBOOST_PATH,
         'fit',
         '--loss-function', loss_description,
@@ -256,13 +259,26 @@ def test_stochastic_filter(sigma, num_estimations):
         '--column-description', cd_path,
         '--boosting-type', 'Plain',
         '-i', '20',
-        '-T', '4',
         '-m', model_path,
+        '--use-best-model', 'false',
+    ]
+
+    cmd_one_thread = cmd + [
+        '--learn-err-log', learn_error_one_thread_path,
+        '--test-err-log', test_error_one_thread_path,
+        '-T', '1'
+    ]
+
+    cmd_four_thread = cmd + [
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
-        '--use-best-model', 'false'
-    )
-    yatest.common.execute(cmd)
+        '-T', '4'
+    ]
+    yatest.common.execute(cmd_one_thread)
+    yatest.common.execute(cmd_four_thread)
+
+    compare_evals(learn_error_one_thread_path, learn_error_path)
+    compare_evals(test_error_one_thread_path, test_error_path)
 
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path)]
