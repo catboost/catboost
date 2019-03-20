@@ -6,6 +6,7 @@
 
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
+#include <catboost/libs/algo/yetirank_helpers.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/query_info_helper.h>
@@ -237,13 +238,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 {
     NCatboostOptions::TLossDescription lossDescription;
     CB_ENSURE(TryGetLossDescription(model, lossDescription));
-    if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
-        lossDescription = NCatboostOptions::ParseLossDescription("NDCG");
-    }
     CATBOOST_INFO_LOG << "Used " << lossDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ObliviousTrees.ApproxDimension;
-    THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
-    CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
 
     auto combinationClassFeatures = GetCombinationClassFeatures(model.ObliviousTrees);
     int featuresCount = combinationClassFeatures.size();
@@ -268,9 +264,25 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
-    TConstArrayRef<TQueryInfo> queriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
+    TConstArrayRef<TQueryInfo> targetQueriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, documentCount,
                                                       localExecutor);
+    TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
+    if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
+        UpdatePairsForYetiRank(
+            approx[0],
+            *targetData->GetTarget(),
+            queriesInfo.size(),
+            lossDescription,
+            /*randomSeed*/ 0,
+            &queriesInfo,
+            localExecutor
+        );
+        lossDescription = NCatboostOptions::ParseLossDescription("PairLogit");
+    }
+    THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
+    CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
+
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
     scores.back().Add(
             metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, 0, blockCount, *localExecutor)

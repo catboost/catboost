@@ -2345,13 +2345,13 @@
     ],
     "test.test_loss_change_fstr[YetiRankPairwise]": [
         {
-            "checksum": "b3d44bbacc05642a60fb40a1bf0d9924",
+            "checksum": "e5a7963cd4ef868354003f919bd0a78f",
             "uri": "file://test.test_loss_change_fstr_YetiRankPairwise_/fstr.tsv"
         }
     ],
     "test.test_loss_change_fstr[YetiRank]": [
         {
-            "checksum": "024f447f345b078fed9f3c89d8bdfac7",
+            "checksum": "9946cf0216adb3cd806406271a85f5de",
             "uri": "file://test.test_loss_change_fstr_YetiRank_/fstr.tsv"
         }
     ],
