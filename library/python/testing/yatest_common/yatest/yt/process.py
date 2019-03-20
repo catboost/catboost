@@ -53,9 +53,13 @@ def execute(
     :param operation_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
-    :param init_func: Function which will be executed before target program. Use only for debug purposes
-    :param fini_func: Function which will be executed after target program. Use only for debug purposes
+    :param init_func: Function which will be executed before target program. See note below
+    :param fini_func: Function which will be executed after target program. See note below
     :return: Execution object
+    .. note::
+        init_func and fini_func have some limitations:
+        * every used module should be imported inside this functions, because functions will be called in a different environment and required modules may be not imported or available
+        * you can only use built-in python modules (because test_tool uploads itself and runs init/fini func inside itself)
     """
     test_tool_bin = _get_test_tool_bin()
     data_mine_strategy = data_mine_strategy or default_mine_strategy
