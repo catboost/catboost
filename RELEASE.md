@@ -43,6 +43,7 @@
 - We've added new tutorial for [GPU training on Google Colaboratory](https://github.com/catboost/tutorials/blob/master/tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb).
 
 We have also done a list of fixes and data check improvements.
+Thanks [@brazhenko](https://github.com/brazhenko), [@Danyago98](https://github.com/Danyago98), [@infected-mushroom](https://github.com/infected-mushroom) for your contributions.
 
 # Release 0.12.2
 ## Changes:
