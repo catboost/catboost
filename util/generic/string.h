@@ -40,8 +40,12 @@ namespace NDetail {
             MaxSize = (std::numeric_limits<size_t>::max() - Overhead) / sizeof(TCharType)
         };
 
-        static constexpr size_t CalcAllocationSize(const size_t len) noexcept {
-            return len * sizeof(TCharType) + Overhead;
+        static constexpr size_t CalcAllocationSizeAndCapacity(size_t& len) noexcept {
+            // buffer should be multiple to 2^n to fit allocator's memory block size
+            size_t alignedSize = FastClp2(len * sizeof(TCharType) + Overhead);
+            // calc capacity
+            len = (alignedSize - Overhead) / sizeof(TCharType);
+            return alignedSize;
         }
 
         static TData* GetData(TCharType* p) {
