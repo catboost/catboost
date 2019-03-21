@@ -182,7 +182,13 @@ TFullModel TModelConverter::Convert(
                             currentNode = currentNode->Right.Get();
                         }
                     }
-                    currentNode->Value = TVector<double>(pathValues.begin(), pathValues.end());
+                    auto vals = TVector<double>(pathValues.begin(), pathValues.end());
+                    CB_ENSURE(vals.size() <= cpuApproxDim, "Error: this is a bug with dimensions, contact catboost team");
+                    //GPU in multiclass use classCount - 1 dimensions for learning
+                    vals.resize(cpuApproxDim);
+
+                    currentNode->Value = vals;
+
                     currentNode->NodeWeight = weight;
                 });
 
