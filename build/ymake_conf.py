@@ -1480,6 +1480,9 @@ class GnuCompiler(Compiler):
             append('CFLAGS', '-march=pentiumpro')
             append('CFLAGS', '-mtune=pentiumpro')
 
+        append('BC_CFLAGS', '$CFLAGS')
+        append('BC_CXXFLAGS', '$CXXFLAGS')
+
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
@@ -2020,9 +2023,11 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
                 flags.append('/I"{}"'.format(os.path.join(self.tc.kit_includes, name)))
             flags.append('/I"{}"'.format(vc_include))
 
+        flags_msvs_only = []
+
         if self.tc.ide_msvs:
             if not self.tc.use_clang:
-                flags += ['/FD', '/MP']
+                flags_msvs_only += ['/FD', '/MP']
             debug_info_flags = '/Zi /FS'
         else:
             debug_info_flags = '/Z7'
@@ -2057,9 +2062,12 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         if self.build.is_ide:
             emit('CFLAGS_PER_TYPE', '@[debug|$CFLAGS_DEBUG]@[release|$CFLAGS_RELEASE]')
 
-        append('CFLAGS', flags, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
+        append('CFLAGS', flags, flags_msvs_only, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
         append('CXXFLAGS', '$CFLAGS', flags_cxx, '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
+
+        append('BC_CFLAGS', flags, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
+        append('BC_CXXFLAGS', '$BC_CFLAGS', flags_cxx, '$USER_CXXFLAGS')
 
         ucrt_include = os.path.join(self.tc.kit_includes, 'ucrt') if not self.tc.ide_msvs else "$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))"
 
