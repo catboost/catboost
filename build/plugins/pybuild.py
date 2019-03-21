@@ -279,26 +279,29 @@ def onpy_srcs(unit, *args):
         files2res = set()
 
         if cython_coverage:
-            def process_pyx(filename, path, out_suffix):
+            def process_pyx(filename, path, out_suffix, noext):
                 # skip generated files
                 if not is_arc_src(path, unit):
                     return
                 # source file
                 files2res.add((filename, path))
                 # generated
-                files2res.add((filename + out_suffix, path + out_suffix))
+                if noext:
+                    files2res.add((os.path.splitext(filename)[0] + out_suffix, os.path.splitext(path)[0] + out_suffix))
+                else:
+                    files2res.add((filename + out_suffix, path + out_suffix))
                 # used includes
                 for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
                     files2res.add(entry)
         else:
-            def process_pyx(filename, path, out_suffix):
+            def process_pyx(filename, path, out_suffix, noext):
                 pass
 
-        for pyxs, cython, out_suffix in [
-            (pyxs_c, unit.onbuildwith_cython_c, ".c"),
-            (pyxs_c_h, unit.onbuildwith_cython_c_h, ".c"),
-            (pyxs_c_api_h, unit.onbuildwith_cython_c_api_h, ".c"),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
+        for pyxs, cython, out_suffix, noext in [
+            (pyxs_c, unit.onbuildwith_cython_c, ".c", False),
+            (pyxs_c_h, unit.onbuildwith_cython_c_h, ".c", True),
+            (pyxs_c_api_h, unit.onbuildwith_cython_c_api_h, ".c", True),
+            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp", False),
         ]:
             for path, mod in pyxs:
                 filename = rootrel_arc_src(path, unit)
@@ -311,7 +314,7 @@ def onpy_srcs(unit, *args):
                     '-X', 'set_initial_path={}'.format(filename),
                 ] + cython_includes + cython_directives)
                 py_register(unit, mod, py3)
-                process_pyx(filename, path, out_suffix)
+                process_pyx(filename, path, out_suffix, noext)
 
         if files2res:
             # Compile original and generated sources into target for proper cython coverage calculation
