@@ -448,13 +448,13 @@ void CalcShapValuesForDocumentMulti(
             documentCount
         );
         if (preparedTrees.CalcShapValuesByLeafForAllTrees) {
-            for (const TShapValue &shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
+            for (const TShapValue& shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
                 for (int dimension = 0; dimension < approxDimension; ++dimension) {
                     (*shapValues)[dimension][shapValue.Feature] += shapValue.Value[dimension];
                 }
             }
         } else {
-            TVector < TShapValue > shapValuesByLeaf;
+            TVector<TShapValue> shapValuesByLeaf;
 
             CalcShapValuesForLeaf(
                     forest,
@@ -463,11 +463,11 @@ void CalcShapValuesForDocumentMulti(
                     leafIdx,
                     treeIdx,
                     preparedTrees.SubtreeWeightsForAllTrees[treeIdx],//subtreeWeights,
-                    false,
+                    preparedTrees.CalcInternalValues,
                     &shapValuesByLeaf
             );
 
-            for (const TShapValue &shapValue : shapValuesByLeaf) {
+            for (const TShapValue& shapValue : shapValuesByLeaf) {
                 for (int dimension = 0; dimension < approxDimension; ++dimension) {
                     (*shapValues)[dimension][shapValue.Feature] += shapValue.Value[dimension];
                 }
@@ -532,7 +532,7 @@ static void CalcShapValuesByLeafForTreeBlock(
     NPar::TLocalExecutor::TExecRangeParams blockParams(start, end);
     localExecutor->ExecRange([&] (size_t treeIdx) {
         const size_t leafCount = (size_t(1) << forest.TreeSizes[treeIdx]);
-        TVector < TVector < TShapValue >> &shapValuesByLeaf = preparedTrees->ShapValuesByLeafForAllTrees[treeIdx];
+        TVector<TVector<TShapValue>>& shapValuesByLeaf = preparedTrees->ShapValuesByLeafForAllTrees[treeIdx];
         if (preparedTrees->CalcShapValuesByLeafForAllTrees) {
             shapValuesByLeaf.resize(leafCount);
         }
@@ -599,8 +599,8 @@ TShapPreparedTrees PrepareTrees(
         leafWeights = CollectLeavesStatistics(*dataset, model, localExecutor);
     }
 
-    size_t treesAverageLeafCount = 0;
-    const TObliviousTrees &forest = model.ObliviousTrees;
+    double treesAverageLeafCount = 0;
+    const TObliviousTrees& forest = model.ObliviousTrees;
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         treesAverageLeafCount += (size_t(1) << forest.TreeSizes[treeIdx]);
     }
@@ -615,12 +615,10 @@ TShapPreparedTrees PrepareTrees(
             = model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights;
     }
 
-    if (preparedTrees.CalcShapValuesByLeafForAllTrees) {
-        preparedTrees.ShapValuesByLeafForAllTrees.resize(treeCount);
-    } else {
-        preparedTrees.SubtreeWeightsForAllTrees.resize(treeCount);
-    }
+    preparedTrees.ShapValuesByLeafForAllTrees.resize(treeCount);
+    preparedTrees.SubtreeWeightsForAllTrees.resize(treeCount);
     preparedTrees.MeanValuesForAllTrees.resize(treeCount);
+    preparedTrees.CalcInternalValues = calcInternalValues;
 
     MapBinFeaturesToClasses(
             forest,
@@ -634,6 +632,7 @@ TShapPreparedTrees PrepareTrees(
         size_t end = Min(start + treeBlockSize, treeCount);
 
         processTreesProfile.StartIterationBlock();
+
         CalcShapValuesByLeafForTreeBlock(
                 model.ObliviousTrees,
                 model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
@@ -643,8 +642,8 @@ TShapPreparedTrees PrepareTrees(
                 localExecutor,
                 &preparedTrees
         );
-        processTreesProfile.FinishIterationBlock(end - start);
 
+        processTreesProfile.FinishIterationBlock(end - start);
         auto profileResults = processTreesProfile.GetProfileResults();
         treesLogger.Log(profileResults);
     }
