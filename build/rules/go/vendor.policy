@@ -170,6 +170,9 @@ ALLOW .* -> vendor/google.golang.org/genproto
 # Google RPC
 ALLOW .* -> vendor/google.golang.org/grpc
 
+# Usefull GRPC interceptors
+ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-middleware
+
 # Job Scheduling Package
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron
 
