@@ -37,7 +37,7 @@ namespace NDetail {
 
         enum : size_t {
             Overhead = sizeof(TData) + sizeof(TCharType), // + null terminated symbol
-            MaxSize = (std::numeric_limits<size_t>::max() - Overhead) / sizeof(TCharType)
+            MaxSize = (std::numeric_limits<size_t>::max() / 2 + 1 - Overhead) / sizeof(TCharType)
         };
 
         static constexpr size_t CalcAllocationSizeAndCapacity(size_t& len) noexcept {

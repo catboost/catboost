@@ -27,6 +27,19 @@ protected:
     TTestData Data;
 
 public:
+    void TestMaxSize() {
+        size_t l = TStringType::TDataTraits::MaxSize;
+        UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) >= TStringType::TDataTraits::MaxSize * sizeof(char_type));
+        UNIT_ASSERT(l >= TStringType::TDataTraits::MaxSize);
+
+        const size_t badMaxVal = TStringType::TDataTraits::MaxSize + 1;
+        l = badMaxVal;
+        UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) < badMaxVal * sizeof(char_type));
+
+        TStringType s;
+        UNIT_CHECK_GENERATED_EXCEPTION(s.reserve(badMaxVal), std::length_error);
+    }
+
     void TestConstructors() {
         TStringType s0(nullptr);
         UNIT_ASSERT(s0.size() == 0);
@@ -1795,6 +1808,7 @@ size_t TTestData<wchar16>::HashOf_0123456() {
 class TStringTest: public TTestBase, private TStringTestImpl<TString, TTestData<char>> {
 public:
     UNIT_TEST_SUITE(TStringTest);
+    UNIT_TEST(TestMaxSize);
     UNIT_TEST(TestConstructors);
     UNIT_TEST(TestReplace);
     UNIT_TEST(TestRefCount);
