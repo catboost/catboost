@@ -16,7 +16,7 @@ fn main() {
             "make",
             "-d",
             cb_model_interface_root.to_str().unwrap(),
-            "--sanitize=address",
+            // "--sanitize=address",
             "-o",
             out_dir.to_str().unwrap(),
         ])
