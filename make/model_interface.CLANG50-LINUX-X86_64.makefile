@@ -7176,7 +7176,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/ArrayFeatureExtractor.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/ArrayFeatureExtractor.proto
 
 $(BUILD_ROOT)/contrib/tools/protoc/protoc.mf\
         ::\
@@ -8405,7 +8405,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/FeatureTypes.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/FeatureTypes.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/FeatureTypes.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc\
         ::\
@@ -8418,7 +8418,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/DataStructures.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/DataStructures.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/DataStructures.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.cc\
         ::\
@@ -8431,7 +8431,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/CategoricalMapping.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/CategoricalMapping.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/CategoricalMapping.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc.pic.o\
         ::\
@@ -8463,7 +8463,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/DictVectorizer.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/DictVectorizer.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/DictVectorizer.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc.pic.o\
         ::\
@@ -8492,7 +8492,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/FeatureVectorizer.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/FeatureVectorizer.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/FeatureVectorizer.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/FeatureVectorizer.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.cc.pic.o\
         ::\
@@ -8515,7 +8515,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/GLMClassifier.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/GLMClassifier.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/GLMClassifier.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/GLMClassifier.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.cc.pic.o\
         ::\
@@ -8536,7 +8536,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/GLMRegressor.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/GLMRegressor.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/GLMRegressor.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/GLMRegressor.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.cc.pic.o\
         ::\
@@ -8557,7 +8557,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/Identity.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/Identity.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Identity.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Identity.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.cc.pic.o\
         ::\
@@ -8580,7 +8580,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/Imputer.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Imputer.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Imputer.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc.pic.o\
         ::\
@@ -8617,7 +8617,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/NeuralNetwork.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/NeuralNetwork.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/NeuralNetwork.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc\
         ::\
@@ -8630,7 +8630,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/Normalizer.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Normalizer.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Normalizer.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc\
         ::\
@@ -8643,7 +8643,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/OneHotEncoder.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/OneHotEncoder.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/OneHotEncoder.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc\
         ::\
@@ -8656,7 +8656,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/Scaler.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Scaler.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Scaler.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc\
         ::\
@@ -8669,7 +8669,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/SVM.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/SVM.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/SVM.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc\
         ::\
@@ -8682,7 +8682,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/TreeEnsemble.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/TreeEnsemble.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/TreeEnsemble.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc\
         ::\
@@ -8695,7 +8695,7 @@ $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.h\
         $(SOURCE_ROOT)/contrib/libs/coreml/Model.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Model.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/coreml/Model.proto
 
 $(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc.pic.o\
         ::\
@@ -8787,7 +8787,7 @@ $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_ml.pb.h\
         $(SOURCE_ROOT)/contrib/libs/onnx/proto/onnx_ml.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/onnx/proto/onnx_ml.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/onnx/proto/onnx_ml.proto
 
 $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.cc.pic.o\
         ::\
@@ -8809,7 +8809,7 @@ $(BUILD_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.pb.h\
         $(SOURCE_ROOT)/contrib/libs/onnx/proto/onnx_operators_ml.proto\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/onnx/proto'
-	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I=$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I=$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/onnx/proto/onnx_operators_ml.proto
+	cd $(SOURCE_ROOT) && '$(BUILD_ROOT)/contrib/tools/protoc/protoc' -I=./ '-I=$(SOURCE_ROOT)/' '-I=$(BUILD_ROOT)' '-I=$(SOURCE_ROOT)/contrib/libs/protobuf' '--cpp_out=$(BUILD_ROOT)/' '--cpp_styleguide_out=$(BUILD_ROOT)/' '--plugin=protoc-gen-cpp_styleguide=$(BUILD_ROOT)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide' contrib/libs/onnx/proto/onnx_operators_ml.proto
 
 $(BUILD_ROOT)/contrib/libs/onnx/libcontrib-libs-onnx.a.mf\
         ::\
