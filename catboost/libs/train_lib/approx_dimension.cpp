@@ -10,7 +10,7 @@ namespace NCB {
         const TLabelConverter& labelConverter) {
 
         const ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
-        const bool isMulticlass = IsMultiClass(lossFunction, catBoostOptions.MetricOptions);
+        const bool isMulticlass = IsMultiClassOnly(lossFunction, catBoostOptions.MetricOptions);
 
         if (isMulticlass) {
             return (ui32)labelConverter.GetApproxDimension();

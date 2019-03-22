@@ -5864,15 +5864,16 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])
-@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'YetiRank'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE', 'YetiRank'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'PFound'])
 def test_bad_metrics_combination(loss_function, metric):
     BAD_PAIRS = {
         'Logloss': ['RMSE', 'MultiClass'],
         'RMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
-        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'YetiRank'],
+        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'PFound'],
         'QuerySoftMax': ['RMSE', 'MultiClass'],
-        'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax']
+        'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
+        'YetiRank': ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax']
     }
 
     cd_path = yatest.common.test_output_path('cd.txt')
@@ -5894,7 +5895,7 @@ def test_bad_metrics_combination(loss_function, metric):
         '-f', train_path,
         '-t', test_path,
         '--column-description', cd_path,
-        '-i', '10',
+        '-i', '4',
         '-T', '4',
     )
 

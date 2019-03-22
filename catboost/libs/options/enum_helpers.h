@@ -7,9 +7,9 @@
 
 TConstArrayRef<ELossFunction> GetAllObjectives();
 
-bool IsSingleDimensionalError(ELossFunction lossFunction);
+bool IsSingleDimensionalCompatibleError(ELossFunction lossFunction);
 
-bool IsMultiDimensionalError(ELossFunction lossFunction);
+bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction);
 
 bool IsForCrossEntropyOptimization(ELossFunction lossFunction);
 
@@ -19,12 +19,14 @@ bool IsForAbsoluteValueOptimization(ELossFunction lossFunction);
 
 bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction);
 
-bool IsBinaryClassMetric(ELossFunction lossFunction);
+bool IsClassificationOnlyMetric(ELossFunction lossFunction);
+
+bool IsBinaryClassCompatibleMetric(ELossFunction lossFunction);
+bool IsMultiClassCompatibleMetric(ELossFunction lossFunction);
 
 // some metrics are both binclass and multiclass (e.g. HingeLoss)
 bool IsBinaryClassOnlyMetric(ELossFunction lossFunction);
-
-bool IsClassificationMetric(ELossFunction lossFunction);
+bool IsMultiClassOnlyMetric(ELossFunction lossFunction);
 
 bool IsClassificationObjective(ELossFunction lossFunction);
 
@@ -35,8 +37,6 @@ bool IsRegressionObjective(ELossFunction lossFunction);
 bool IsRegressionObjective(TStringBuf lossDescription);
 
 bool IsRegressionMetric(ELossFunction lossFunction);
-
-bool IsMultiClassMetric(ELossFunction lossFunction);
 
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 

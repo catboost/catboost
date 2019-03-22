@@ -4626,14 +4626,14 @@ inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLos
         return;
     }
 
-    if (IsMultiDimensionalError(metric) && !IsSingleDimensionalError(metric)) {
-        CB_ENSURE(IsMultiDimensionalError(modelLoss),
+    if (IsMultiClassOnlyMetric(metric)) {
+        CB_ENSURE(IsMultiClassOnlyMetric(modelLoss),
             "Cannot use strict multiclassification and not multiclassification metrics together: "
             << "If you din't train multiclassification, use binary classification, regression or ranking metrics instead.");
     }
 
-    if (IsMultiDimensionalError(modelLoss) && !IsSingleDimensionalError(modelLoss)) {
-        CB_ENSURE(IsMultiDimensionalError(metric),
+    if (IsMultiClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsMultiDimensionalCompatibleError(metric),
             "Cannot use strict multiclassification and not multiclassification metrics together: "
             << "If you trained multiclassification, use multiclassification metrics.");
     }
@@ -4696,7 +4696,7 @@ void CheckPreprocessedTarget(
         CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
     }
 
-    if (IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction)) {
+    if (IsMultiClassOnlyMetric(lossFunction)) {
         CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }),
                   "metric/loss-function " << lossFunction << " is a Multiclassification metric, "
                   " each target label should be a nonnegative integer");
