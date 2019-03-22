@@ -1,7 +1,6 @@
 #include "colors.h"
 
 #include <util/stream/output.h>
-#include <util/string/builder.h>
 #include <util/generic/singleton.h>
 #include <util/system/env.h>
 
@@ -13,125 +12,142 @@
 
 using namespace NColorizer;
 
-TColors::TColors(FILE* f)
-    : IsTTY_(true)
-{
-    InitNames();
-    SetIsTTY(CalcIsTTY(f));
-}
+namespace {
+    constexpr TStringBuf ToStringBufC(NColorizer::EAnsiCode x) {
+        switch(x) {
+            case INVALID:
+                return AsStringBuf("");
 
-TColors::TColors(bool ontty)
-    : IsTTY_(true)
-{
-    InitNames();
-    SetIsTTY(ontty);
-}
+            case RESET:
+                return AsStringBuf("\033[0m");
 
-TStringBuf TColors::OldColor() const {
-    return Color(39);
-}
+            case ST_LIGHT:
+                return AsStringBuf("\033[1m");
+            case ST_DARK:
+                return AsStringBuf("\033[2m");
+            case ST_NORMAL:
+                return AsStringBuf("\033[22m");
 
-TStringBuf TColors::BoldColor() const {
-    return Color(1);
-}
+            case ITALIC_ON:
+                return AsStringBuf("\033[3m");
+            case ITALIC_OFF:
+                return AsStringBuf("\033[23m");
+            case UNDERLINE_ON:
+                return AsStringBuf("\033[4m");
+            case UNDERLINE_OFF:
+                return AsStringBuf("\033[24m");
 
-TStringBuf TColors::BlackColor() const {
-    return Color(30);
-}
+            case FG_DEFAULT:
+                return AsStringBuf("\033[39m");
+            case FG_BLACK:
+                return AsStringBuf("\033[30m");
+            case FG_RED:
+                return AsStringBuf("\033[31m");
+            case FG_GREEN:
+                return AsStringBuf("\033[32m");
+            case FG_YELLOW:
+                return AsStringBuf("\033[33m");
+            case FG_BLUE:
+                return AsStringBuf("\033[34m");
+            case FG_MAGENTA:
+                return AsStringBuf("\033[35m");
+            case FG_CYAN:
+                return AsStringBuf("\033[36m");
+            case FG_WHITE:
+                return AsStringBuf("\033[37m");
 
-TStringBuf TColors::BlueColor() const {
-    return Color(34);
-}
+            case BG_DEFAULT:
+                return AsStringBuf("\033[49m");
+            case BG_BLACK:
+                return AsStringBuf("\033[40m");
+            case BG_RED:
+                return AsStringBuf("\033[41m");
+            case BG_GREEN:
+                return AsStringBuf("\033[42m");
+            case BG_YELLOW:
+                return AsStringBuf("\033[43m");
+            case BG_BLUE:
+                return AsStringBuf("\033[44m");
+            case BG_MAGENTA:
+                return AsStringBuf("\033[45m");
+            case BG_CYAN:
+                return AsStringBuf("\033[46m");
+            case BG_WHITE:
+                return AsStringBuf("\033[47m");
 
-TStringBuf TColors::GreenColor() const {
-    return Color(32);
-}
+            case DEFAULT:
+                return AsStringBuf("\033[0;39m");
+            case BLACK:
+                return AsStringBuf("\033[0;30m");
+            case RED:
+                return AsStringBuf("\033[0;31m");
+            case GREEN:
+                return AsStringBuf("\033[0;32m");
+            case YELLOW:
+                return AsStringBuf("\033[0;33m");
+            case BLUE:
+                return AsStringBuf("\033[0;34m");
+            case MAGENTA:
+                return AsStringBuf("\033[0;35m");
+            case CYAN:
+                return AsStringBuf("\033[0;36m");
+            case WHITE:
+                return AsStringBuf("\033[0;37m");
 
-TStringBuf TColors::CyanColor() const {
-    return Color(36);
-}
+            case LIGHT_DEFAULT:
+                return AsStringBuf("\033[1;39m");
+            case LIGHT_BLACK:
+                return AsStringBuf("\033[1;30m");
+            case LIGHT_RED:
+                return AsStringBuf("\033[1;31m");
+            case LIGHT_GREEN:
+                return AsStringBuf("\033[1;32m");
+            case LIGHT_YELLOW:
+                return AsStringBuf("\033[1;33m");
+            case LIGHT_BLUE:
+                return AsStringBuf("\033[1;34m");
+            case LIGHT_MAGENTA:
+                return AsStringBuf("\033[1;35m");
+            case LIGHT_CYAN:
+                return AsStringBuf("\033[1;36m");
+            case LIGHT_WHITE:
+                return AsStringBuf("\033[1;37m");
 
-TStringBuf TColors::RedColor() const {
-    return Color(31);
-}
-
-TStringBuf TColors::PurpleColor() const {
-    return Color(35);
-}
-
-TStringBuf TColors::BrownColor() const {
-    return Color(33);
-}
-
-TStringBuf TColors::LightGrayColor() const {
-    return Color(37);
-}
-
-TStringBuf TColors::DarkGrayColor() const {
-    return Color(30, 1);
-}
-
-TStringBuf TColors::LightBlueColor() const {
-    return Color(34, 1);
-}
-
-TStringBuf TColors::LightGreenColor() const {
-    return Color(32, 1);
-}
-
-TStringBuf TColors::LightCyanColor() const {
-    return Color(36, 1);
-}
-
-TStringBuf TColors::LightRedColor() const {
-    return Color(31, 1);
-}
-
-TStringBuf TColors::LightPurpleColor() const {
-    return Color(35, 1);
-}
-
-TStringBuf TColors::YellowColor() const {
-    return Color(33, 1);
-}
-
-TStringBuf TColors::WhiteColor() const {
-    return Color(37, 1);
-}
-
-TStringBuf TColors::Color(const TStringBuf& name) const {
-    if (IsTTY()) {
-        const TStringBuf* ret = ByName.FindPtr(name);
-
-        if (ret) {
-            return *ret;
+            case DARK_DEFAULT:
+                return AsStringBuf("\033[2;39m");
+            case DARK_BLACK:
+                return AsStringBuf("\033[2;30m");
+            case DARK_RED:
+                return AsStringBuf("\033[2;31m");
+            case DARK_GREEN:
+                return AsStringBuf("\033[2;32m");
+            case DARK_YELLOW:
+                return AsStringBuf("\033[2;33m");
+            case DARK_BLUE:
+                return AsStringBuf("\033[2;34m");
+            case DARK_MAGENTA:
+                return AsStringBuf("\033[2;35m");
+            case DARK_CYAN:
+                return AsStringBuf("\033[2;36m");
+            case DARK_WHITE:
+                return AsStringBuf("\033[2;37m");
         }
-
-        ythrow yexception() << "unknown color name " << name << " (see TColors::InitNames for the list of names)";
     }
-
-    return TStringBuf();
 }
 
-TStringBuf TColors::ColorImpl(int val, int bold) const {
-    size_t idx = val * 2 + bold;
-    {
-        TReadGuard guard(Mutex);
-        if (auto pos = ColorBufs.FindPtr(idx))
-            return *pos;
-    }
-    TWriteGuard guard(Mutex);
-    TString& ret = ColorBufs[idx];
+TStringBuf ToStringBuf(NColorizer::EAnsiCode x) {
+    return ToStringBufC(x);
+}
 
-    if (ret.empty()) {
-        if (val == 0 || val == 1) {
-            ret = TStringBuilder() << AsStringBuf("\033[") << val << AsStringBuf("m");
-        } else {
-            ret = TStringBuilder() << AsStringBuf("\033[") << (bold ? 1 : 22) << AsStringBuf(";") << val << AsStringBuf("m");
-        }
-    }
+TString ToString(NColorizer::EAnsiCode x) {
+    return TString(ToStringBufC(x));
+}
 
-    return ret;
+template<>
+void Out<NColorizer::EAnsiCode>(IOutputStream& os, TTypeTraits<NColorizer::EAnsiCode>::TFuncParam x) {
+    if (AutoColors(os).IsTTY()) {
+        os << ToStringBufC(x);
+    }
 }
 
 bool TColors::CalcIsTTY(FILE* file) {
@@ -141,32 +157,272 @@ bool TColors::CalcIsTTY(FILE* file) {
 
 #if defined(_unix_)
     return isatty(fileno(file));
-#endif
+#else
     Y_UNUSED(file);
     return false;
+#endif
 }
 
-void TColors::InitNames() {
-    ByName["black"] = BlackColor();
-    ByName["blue"] = BlueColor();
-    ByName["green"] = GreenColor();
-    ByName["cyan"] = CyanColor();
-    ByName["red"] = RedColor();
-    ByName["purple"] = PurpleColor();
-    ByName["brown"] = BrownColor();
-    ByName["light-gray"] = LightGrayColor();
-    ByName["dark-gray"] = LightGrayColor();
-    ByName["light-blue"] = LightBlueColor();
-    ByName["light-green"] = LightGreenColor();
-    ByName["light-cyan"] = LightCyanColor();
-    ByName["light-red"] = LightRedColor();
-    ByName["light-purple"] = LightPurpleColor();
-    ByName["yellow"] = YellowColor();
-    ByName["white"] = WhiteColor();
+TColors::TColors(FILE* f)
+    : IsTTY_(true)
+{
+    SetIsTTY(CalcIsTTY(f));
 }
+
+TColors::TColors(bool ontty)
+    : IsTTY_(true)
+{
+    SetIsTTY(ontty);
+}
+
+TStringBuf TColors::Reset() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::RESET) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::StyleLight() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::ST_LIGHT) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::StyleDark() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::ST_DARK) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::StyleNormal() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::ST_NORMAL) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::ItalicOn() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::ITALIC_ON) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ItalicOff() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::ITALIC_OFF) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::UnderlineOn() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::UNDERLINE_ON) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::UnderlineOff() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::UNDERLINE_OFF) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::ForeDefault() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_DEFAULT) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeBlack() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_BLACK) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeRed() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_RED) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeGreen() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_GREEN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeYellow() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_YELLOW) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeBlue() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_BLUE) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeMagenta() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_MAGENTA) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeCyan() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_CYAN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::ForeWhite() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::FG_WHITE) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::BackDefault() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_DEFAULT) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackBlack() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_BLACK) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackRed() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_RED) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackGreen() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_GREEN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackYellow() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_YELLOW) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackBlue() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_BLUE) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackMagenta() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_MAGENTA) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackCyan() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_CYAN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::BackWhite() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BG_WHITE) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::Default() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DEFAULT) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Black() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BLACK) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Red() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::RED) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Green() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::GREEN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Yellow() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::YELLOW) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Blue() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::BLUE) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Magenta() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::MAGENTA) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::Cyan() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::CYAN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::White() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::WHITE) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::LightDefault() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_DEFAULT) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightBlack() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_BLACK) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightRed() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_RED) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightGreen() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_GREEN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightYellow() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_YELLOW) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightBlue() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_BLUE) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightMagenta() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_MAGENTA) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightCyan() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_CYAN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::LightWhite() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::LIGHT_WHITE) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::DarkDefault() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_DEFAULT) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkBlack() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_BLACK) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkRed() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_RED) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkGreen() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_GREEN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkYellow() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_YELLOW) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkBlue() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_BLUE) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkMagenta() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_MAGENTA) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkCyan() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_CYAN) : ToStringBufC(EAnsiCode::INVALID);
+}
+TStringBuf TColors::DarkWhite() const noexcept {
+    return IsTTY() ? ToStringBufC(EAnsiCode::DARK_WHITE) : ToStringBufC(EAnsiCode::INVALID);
+}
+
+TStringBuf TColors::OldColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;39m") : AsStringBuf("");
+}
+
+TStringBuf TColors::BoldColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1m") : AsStringBuf("");
+}
+
+TStringBuf TColors::BlackColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;30m") : AsStringBuf("");
+}
+
+TStringBuf TColors::BlueColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;34m") : AsStringBuf("");
+}
+
+TStringBuf TColors::GreenColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;32m") : AsStringBuf("");
+}
+
+TStringBuf TColors::CyanColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;36m") : AsStringBuf("");
+}
+
+TStringBuf TColors::RedColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;31m") : AsStringBuf("");
+}
+
+TStringBuf TColors::PurpleColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;35m") : AsStringBuf("");
+}
+
+TStringBuf TColors::BrownColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;33m") : AsStringBuf("");
+}
+
+TStringBuf TColors::LightGrayColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[22;37m") : AsStringBuf("");
+}
+
+TStringBuf TColors::DarkGrayColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;30m") : AsStringBuf("");
+}
+
+TStringBuf TColors::LightBlueColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;34m") : AsStringBuf("");
+}
+
+TStringBuf TColors::LightGreenColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;32m") : AsStringBuf("");
+}
+
+TStringBuf TColors::LightCyanColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;36m") : AsStringBuf("");
+}
+
+TStringBuf TColors::LightRedColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;31m") : AsStringBuf("");
+}
+
+TStringBuf TColors::LightPurpleColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;35m") : AsStringBuf("");
+}
+
+TStringBuf TColors::YellowColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;33m") : AsStringBuf("");
+}
+
+TStringBuf TColors::WhiteColor() const noexcept {
+    return IsTTY() ? AsStringBuf("\033[1;37m") : AsStringBuf("");
+}
+
 
 namespace {
-    using TStdErrColors = TColors;
+    class TStdErrColors: public TColors {
+    public:
+        TStdErrColors()
+            : TColors(stdout)
+        {
+        }
+    };
 
     class TStdOutColors: public TColors {
     public:
@@ -185,6 +441,14 @@ namespace {
     };
 } // anonymous namespace
 
+TColors& NColorizer::StdErr() {
+    return *Singleton<TStdErrColors>();
+}
+
+TColors& NColorizer::StdOut() {
+    return *Singleton<TStdOutColors>();
+}
+
 TColors& NColorizer::AutoColors(IOutputStream& os) {
     if (&os == &Cerr) {
         return StdErr();
@@ -193,12 +457,4 @@ TColors& NColorizer::AutoColors(IOutputStream& os) {
         return StdOut();
     }
     return *Singleton<TDisabledColors>();
-}
-
-TColors& NColorizer::StdErr() {
-    return *Singleton<TStdErrColors>();
-}
-
-TColors& NColorizer::StdOut() {
-    return *Singleton<TStdOutColors>();
 }
