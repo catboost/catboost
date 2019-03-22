@@ -555,6 +555,36 @@
                 "gcc_version": "7.0"
             }
         },
+        "clang7-windows": {
+            "name": "clang7",
+            "tools": {
+                "c++": { "bottle": "clang7", "executable": "c++" },
+                "c++filt": { "bottle": "clang7", "executable": "c++filt" },
+                "cc": { "bottle": "clang7", "executable": "cc" },
+                "clang-format": { "bottle": "clang7", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang7", "executable": "clang-tidy" },
+                "gcov": { "bottle": "clang7", "executable": "gcov" },
+                "llvm-cov": { "bottle": "clang7", "executable": "llvm-cov" },
+                "llvm-profdata": { "bottle": "clang7", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang7", "executable": "llvm-symbolizer" },
+                "nm": { "bottle": "clang7", "executable": "nm" },
+                "strip": { "bottle": "clang7", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "x86_64"}}
+            ],
+            "params": {
+                "type": "msvc",
+                "use_clang": true,
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang-cl",
+                "cxx_compiler": "$(CLANG)/bin/clang-cl",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "wine": "yes",
+                "version": "2017"
+            }
+        },
         "clang6-android-x86": {
             "name": "clang6",
             "tools": {

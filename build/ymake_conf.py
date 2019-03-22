@@ -1102,12 +1102,12 @@ class MSVCToolchainOptions(ToolchainOptions):
         else:
             if self.version_at_least(2017):
                 self.sdk_version = '10.0.16299.0'
-                sdk_dir = '$(WINDOWS_KITS-sbr:550056489)'
+                sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
             else:
                 self.sdk_version = '10.0.10586.0'
                 sdk_dir = '$(WINDOWS_KITS-sbr:544779014)'
 
-            self.vc_root = self.name_marker
+            self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
             self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
             self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
 
@@ -1851,7 +1851,7 @@ class MSVC(object):
         self.tc = tc
 
 
-class MSVCToolchain(Toolchain, MSVC):
+class MSVCToolchain(MSVC, Toolchain):
     def __init__(self, tc, build):
         """
         :type tc: MSVCToolchainOptions
@@ -1878,7 +1878,7 @@ class MSVCToolchain(Toolchain, MSVC):
         emit('C_FLAGS_PLATFORM')
 
 
-class MSVCCompiler(Compiler, MSVC):
+class MSVCCompiler(MSVC, Compiler):
     def __init__(self, tc, build):
         Compiler.__init__(self, tc, 'MSVC')
         MSVC.__init__(self, tc, build)
@@ -1966,7 +1966,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         flags += self.tc.arch_opt
 
         if self.tc.ide_msvs and self.tc.use_clang:
-            flags += ['-msse4.1', '-msse4.2'] # temporary solution
+            flags += ['-msse4.1', '-msse4.2']  # temporary solution
 
         flags_debug = ['/Ob0', '/Od', '/std:c++17'] + self._gen_defines(defines_debug)
         flags_release = ['/Ox', '/Ob2', '/Oi', '/std:c++17'] + self._gen_defines(defines_release)
