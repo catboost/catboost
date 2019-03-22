@@ -50,7 +50,16 @@ public:
     {
     }
 
-    Y_SAVELOAD_DEFINE(ShapValuesByLeafForAllTrees, MeanValuesForAllTrees);
+    Y_SAVELOAD_DEFINE(
+        ShapValuesByLeafForAllTrees,
+        MeanValuesForAllTrees,
+        BinFeatureCombinationClass,
+        CombinationClassFeatures,
+        CalcShapValuesByLeafForAllTrees,
+        CalcInternalValues,
+        LeafWeightsForAllTrees,
+        SubtreeWeightsForAllTrees
+    );
 };
 
 void CalcShapValuesForDocumentMulti(
