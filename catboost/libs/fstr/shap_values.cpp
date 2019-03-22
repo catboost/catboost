@@ -145,11 +145,11 @@ static void CalcInternalShapValuesForLeafRecursive(
             const TFeaturePathElement& element = featurePath[elementIdx];
             const int approxDimension = forest.ApproxDimension;
             const auto sameFeatureShapValue = FindIf(
-                    shapValuesInternal->begin(),
-                    shapValuesInternal->end(),
-                    [element](const TShapValue& shapValue) {
-                        return shapValue.Feature == element.Feature;
-                    }
+                shapValuesInternal->begin(),
+                shapValuesInternal->end(),
+                [element](const TShapValue& shapValue) {
+                    return shapValue.Feature == element.Feature;
+                }
             );
             double coefficient = weightSum * (element.OnePathsFraction - element.ZeroPathsFraction);
            if (sameFeatureShapValue == shapValuesInternal->end()) {
@@ -245,11 +245,11 @@ static void UnpackInternalShaps(const TVector<TShapValue>& shapValuesInternal, c
 
         for (int flatFeatureIdx : flatFeatures) {
             const auto sameFeatureShapValue = FindIf(
-                    shapValues->begin(),
-                    shapValues->end(),
-                    [flatFeatureIdx](const TShapValue &shapValue) {
-                        return shapValue.Feature == flatFeatureIdx;
-                    }
+                shapValues->begin(),
+                shapValues->end(),
+                [flatFeatureIdx](const TShapValue &shapValue) {
+                    return shapValue.Feature == flatFeatureIdx;
+                }
             );
             double coefficient = flatFeatures.size();
             if (sameFeatureShapValue == shapValues->end()) {
@@ -283,36 +283,36 @@ static inline void CalcShapValuesForLeaf(
     TVector<TFeaturePathElement> initialFeaturePath;
     if (calcInternalValues) {
         CalcInternalShapValuesForLeafRecursive(
-                forest,
-                binFeatureCombinationClass,
-                documentLeafIdx,
-                treeIdx,
-                /*depth*/ 0,
-                subtreeWeights,
-                /*nodeIdx*/ 0,
-                initialFeaturePath,
-                /*zeroPathFraction*/ 1,
-                /*onePathFraction*/ 1,
-                /*feature*/ -1,
-                calcInternalValues,
-                shapValues
+            forest,
+            binFeatureCombinationClass,
+            documentLeafIdx,
+            treeIdx,
+            /*depth*/ 0,
+            subtreeWeights,
+            /*nodeIdx*/ 0,
+            initialFeaturePath,
+            /*zeroPathFraction*/ 1,
+            /*onePathFraction*/ 1,
+            /*feature*/ -1,
+            calcInternalValues,
+            shapValues
         );
     } else {
         TVector<TShapValue> shapValuesInternal;
         CalcInternalShapValuesForLeafRecursive(
-                forest,
-                binFeatureCombinationClass,
-                documentLeafIdx,
-                treeIdx,
-                /*depth*/ 0,
-                subtreeWeights,
-                /*nodeIdx*/ 0,
-                initialFeaturePath,
-                /*zeroPathFraction*/ 1,
-                /*onePathFraction*/ 1,
-                /*feature*/ -1,
-                calcInternalValues,
-                &shapValuesInternal
+            forest,
+            binFeatureCombinationClass,
+            documentLeafIdx,
+            treeIdx,
+            /*depth*/ 0,
+            subtreeWeights,
+            /*nodeIdx*/ 0,
+            initialFeaturePath,
+            /*zeroPathFraction*/ 1,
+            /*onePathFraction*/ 1,
+            /*feature*/ -1,
+            calcInternalValues,
+            &shapValuesInternal
         );
         UnpackInternalShaps(shapValuesInternal, combinationClassFeatures, shapValues);
     }
@@ -457,14 +457,14 @@ void CalcShapValuesForDocumentMulti(
             TVector<TShapValue> shapValuesByLeaf;
 
             CalcShapValuesForLeaf(
-                    forest,
-                    preparedTrees.BinFeatureCombinationClass,
-                    preparedTrees.CombinationClassFeatures,
-                    leafIdx,
-                    treeIdx,
-                    preparedTrees.SubtreeWeightsForAllTrees[treeIdx],//subtreeWeights,
-                    preparedTrees.CalcInternalValues,
-                    &shapValuesByLeaf
+                forest,
+                preparedTrees.BinFeatureCombinationClass,
+                preparedTrees.CombinationClassFeatures,
+                leafIdx,
+                treeIdx,
+                preparedTrees.SubtreeWeightsForAllTrees[treeIdx],//subtreeWeights,
+                preparedTrees.CalcInternalValues,
+                &shapValuesByLeaf
             );
 
             for (const TShapValue& shapValue : shapValuesByLeaf) {
@@ -543,14 +543,14 @@ static void CalcShapValuesByLeafForTreeBlock(
         if (preparedTrees->CalcShapValuesByLeafForAllTrees) {
             for (size_t leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
                 CalcShapValuesForLeaf(
-                        forest,
-                        binFeatureCombinationClass,
-                        combinationClassFeatures,
-                        leafIdx,
-                        treeIdx,
-                        subtreeWeights,
-                        calcInternalValues,
-                        &shapValuesByLeaf[leafIdx]
+                    forest,
+                    binFeatureCombinationClass,
+                    combinationClassFeatures,
+                    leafIdx,
+                    treeIdx,
+                    subtreeWeights,
+                    calcInternalValues,
+                    &shapValuesByLeaf[leafIdx]
                 );
             }
         } else {
@@ -621,9 +621,9 @@ TShapPreparedTrees PrepareTrees(
     preparedTrees.CalcInternalValues = calcInternalValues;
 
     MapBinFeaturesToClasses(
-            forest,
-            &preparedTrees.BinFeatureCombinationClass,
-            &preparedTrees.CombinationClassFeatures
+        forest,
+        &preparedTrees.BinFeatureCombinationClass,
+        &preparedTrees.CombinationClassFeatures
     );
 
     TProfileInfo processTreesProfile(treeCount);
@@ -634,13 +634,13 @@ TShapPreparedTrees PrepareTrees(
         processTreesProfile.StartIterationBlock();
 
         CalcShapValuesByLeafForTreeBlock(
-                model.ObliviousTrees,
-                model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
-                start,
-                end,
-                calcInternalValues,
-                localExecutor,
-                &preparedTrees
+            model.ObliviousTrees,
+            model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+            start,
+            end,
+            calcInternalValues,
+            localExecutor,
+            &preparedTrees
         );
 
         processTreesProfile.FinishIterationBlock(end - start);
@@ -660,15 +660,15 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 }
 
 void CalcShapValuesInternalForFeature(
-        TShapPreparedTrees& preparedTrees,
-        const TFullModel& model,
-        int /*logPeriod*/,
-        ui32 start,
-        ui32 end,
-        ui32 featuresCount,
-        const NCB::TObjectsDataProvider& objectsData,
-        TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
-        NPar::TLocalExecutor* localExecutor
+    TShapPreparedTrees& preparedTrees,
+    const TFullModel& model,
+    int /*logPeriod*/,
+    ui32 start,
+    ui32 end,
+    ui32 featuresCount,
+    const NCB::TObjectsDataProvider& objectsData,
+    TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
+    NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(start <= end && end <= objectsData.GetObjectCount());
     const TObliviousTrees& forest = model.ObliviousTrees;
@@ -684,15 +684,41 @@ void CalcShapValuesInternalForFeature(
             TVector<TVector<double>> &docShapValues = (*shapValues)[documentIdx];
             docShapValues.assign(featuresCount, TVector<double>(forest.ApproxDimension + 1, 0.0));
             for (ui32 treeIdx = 0; treeIdx < forest.GetTreeCount(); ++treeIdx) {
-                ui32 leafIdx = CalcLeafToFallForDocument(forest, treeIdx, binarizedFeaturesForBlock, documentIdx,
-                                                           documentCount);
-                for (const TShapValue &shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
-                    for (int dimension = 0; dimension < forest.ApproxDimension; ++dimension) {
-                        docShapValues[shapValue.Feature][dimension] += shapValue.Value[dimension];
+                ui32 leafIdx = CalcLeafToFallForDocument(
+                    forest,
+                    treeIdx,
+                    binarizedFeaturesForBlock,
+                    documentIdx,
+                    documentCount
+                );
+
+                if (preparedTrees.CalcShapValuesByLeafForAllTrees) {
+                    for (const TShapValue &shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][leafIdx]) {
+                        for (int dimension = 0; dimension < forest.ApproxDimension; ++dimension) {
+                            docShapValues[shapValue.Feature][dimension] += shapValue.Value[dimension];
+                        }
+                    }
+                } else {
+                    TVector<TShapValue> shapValuesByLeaf;
+
+                    CalcShapValuesForLeaf(
+                        forest,
+                        preparedTrees.BinFeatureCombinationClass,
+                        preparedTrees.CombinationClassFeatures,
+                        leafIdx,
+                        treeIdx,
+                        preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                        preparedTrees.CalcInternalValues,
+                        &shapValuesByLeaf
+                    );
+
+                    for (const TShapValue& shapValue : shapValuesByLeaf) {
+                        for (int dimension = 0; dimension < forest.ApproxDimension; ++dimension) {
+                            docShapValues[shapValue.Feature][dimension] += shapValue.Value[dimension];
+                        }
                     }
                 }
             }
-
         }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
@@ -704,10 +730,10 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     NPar::TLocalExecutor* localExecutor
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
-            model,
-            &dataset,
-            logPeriod,
-            localExecutor
+        model,
+        &dataset,
+        logPeriod,
+        localExecutor
     );
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
