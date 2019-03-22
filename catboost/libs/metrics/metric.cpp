@@ -2472,8 +2472,8 @@ double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
 /* WKappa */
 
 namespace {
-    struct TWKappaMatric: public TAdditiveMetric<TWKappaMatric> {
-        explicit TWKappaMatric(int classCount = 2, double border = GetDefaultClassificationBorder())
+    struct TWKappaMetric: public TAdditiveMetric<TWKappaMetric> {
+        explicit TWKappaMetric(int classCount = 2, double border = GetDefaultClassificationBorder())
             : Border(border)
             , ClassCount(classCount) {
             UseWeights.MakeIgnored();
@@ -2501,14 +2501,14 @@ namespace {
 }
 
 THolder<IMetric> MakeBinClassWKappaMetric(double border) {
-    return MakeHolder<TWKappaMatric>(2, border);
+    return MakeHolder<TWKappaMetric>(2, border);
 }
 
 THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
-    return MakeHolder<TWKappaMatric>(classCount);
+    return MakeHolder<TWKappaMetric>(classCount);
 }
 
-TMetricHolder TWKappaMatric::EvalSingleThread(
+TMetricHolder TWKappaMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
@@ -2523,15 +2523,15 @@ TMetricHolder TWKappaMatric::EvalSingleThread(
     return CalcKappaMatrix(approx, target, begin, end, Border);
 }
 
-TString TWKappaMatric::GetDescription() const {
+TString TWKappaMetric::GetDescription() const {
     return BuildDescription(ELossFunction::WKappa, "%.3g", MakeBorderParam(Border));
 }
 
-void TWKappaMatric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
-double TWKappaMatric::GetFinalError(const TMetricHolder& error) const {
+double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
 
