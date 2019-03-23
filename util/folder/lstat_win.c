@@ -22,7 +22,7 @@ int lstat(const char* fileName, stat_struct* fileStat) {
         SetLastError(0);
         findHandle = FindFirstFileW(buf, &findBuf);
         if (findBuf.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT &&
-            (findBuf.dwReserved0 & (IO_REPARSE_TAG_MOUNT_POINT | IO_REPARSE_TAG_SYMLINK)))
+            (findBuf.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT || findBuf.dwReserved0 == IO_REPARSE_TAG_SYMLINK))
         {
             fileStat->st_mode = fileStat->st_mode & ~_S_IFMT | _S_IFLNK;
         }
