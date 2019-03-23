@@ -2019,9 +2019,11 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         vc_include = os.path.join(self.tc.vc_root, 'include') if not self.tc.ide_msvs else "$(VC_VC_IncludePath.Split(';')[0].Replace('\\','/'))"
 
         if not self.tc.ide_msvs:
+            def include_flag(path):
+                return '{flag}"{path}"'.format(path=path, flag='/I' if not self.tc.use_clang else '-imsvc')
             for name in ('shared', 'ucrt', 'um', 'winrt'):
-                flags.append('/I"{}"'.format(os.path.join(self.tc.kit_includes, name)))
-            flags.append('/I"{}"'.format(vc_include))
+                flags.append(include_flag(os.path.join(self.tc.kit_includes, name)))
+            flags.append(include_flag(vc_include))
 
         flags_msvs_only = []
 
