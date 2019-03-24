@@ -7,6 +7,7 @@
 #include <util/generic/set.h>
 #include <util/generic/vector.h>
 
+#include <utility>
 
 using namespace CoreML::Specification;
 
@@ -106,6 +107,43 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     }
 }
 
+void NCatboost::NCoreML::ConfigureCategoricalMapping(const TFullModel& model, CoreML::Specification::CategoricalMapping* mapping) {
+    auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
+    std::unordered_map<TString, long> categoricalMapping;
+
+    size_t currentSplitIndex = 0;
+    for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees.TreeSizes.size(); ++treeIdx) {
+        auto treeDepth = model.ObliviousTrees.TreeSizes[treeIdx];
+        for (int layer = treeDepth - 1; layer >= 0; --layer) {
+            const auto &binFeature = binFeatures[model.ObliviousTrees.TreeSplits.at(currentSplitIndex)];
+            ++currentSplitIndex;
+            auto featureType = binFeature.Type;
+            CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
+                      "model with only float features or one hot encoded features supported");
+
+            int featureId = -1;
+            TString featureName;
+            if (featureType == ESplitType::OneHotFeature) {
+                int catFeatureId = binFeature.OneHotFeature.CatFeatureIdx;
+                for (const auto &catFeature : model.ObliviousTrees.CatFeatures) {
+                    if (catFeature.FeatureIndex == catFeatureId) {
+                        featureId = catFeature.FlatFeatureIndex;
+                        featureName = catFeature.FeatureId;
+                        break;
+                    }
+                }
+                if (featureId != -1) {
+                    categoricalMapping.insert(std::make_pair(featureName, featureId));
+                }
+            }
+        }
+    }
+
+    auto* stringtoint64map = mapping->mutable_stringtoint64map();
+    auto* map = stringtoint64map->mutable_map();
+    map->insert(categoricalMapping.begin(), categoricalMapping.end());
+}
+
 void NCatboost::NCoreML::ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, TreeEnsembleRegressor* regressor, ModelDescription* description) {
     for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
         auto feature = description->add_input();
@@ -163,7 +201,8 @@ void NCatboost::NCoreML::ConfigureMetadata(const TFullModel& model, const NJson:
 
     meta->set_license(
         userParameters["coreml_model_license"].GetStringSafe(""));
-    if (model.ModelInfo.empty()) {
+
+    if (!model.ModelInfo.empty()) {
         auto& userDefinedRef = *meta->mutable_userdefined();
         for (const auto& key_value : model.ModelInfo) {
             userDefinedRef[key_value.first] = key_value.second;
@@ -215,12 +254,17 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
 }
 
 void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullModel* fullModel) {
-//    CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
-//    CB_ENSURE(coreMLModel.has_pipeline(), "no pipeline in model");
-//    auto& pipelineModel = coreMLModel.pipeline().models().Get(0);
-//    CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
-//    auto& regressor = pipelineModel.treeensembleregressor();
-    auto& regressor = coreMLModel.treeensembleregressor();
+    CB_ENSURE(coreMLModel.specificationversion() == 1, "expected specificationVersion == 1");
+    TreeEnsembleRegressor regressor;
+    if (coreMLModel.has_pipeline()) {
+        auto& pipelineModel = coreMLModel.pipeline().models().Get(1);
+        CB_ENSURE(pipelineModel.has_treeensembleregressor(), "expected treeensembleregressor model");
+        regressor = pipelineModel.treeensembleregressor();
+    } else {
+        CB_ENSURE(coreMLModel.has_treeensembleregressor(), "expected treeensembleregressor model");
+        regressor = coreMLModel.treeensembleregressor();
+    }
+
     CB_ENSURE(regressor.has_treeensemble(), "no treeensemble in tree regressor");
     auto& ensemble = regressor.treeensemble();
     CB_ENSURE(coreMLModel.has_description(), "expected description in model");

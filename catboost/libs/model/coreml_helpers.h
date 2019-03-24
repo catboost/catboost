@@ -10,6 +10,7 @@
 namespace NCatboost {
     namespace NCoreML {
         void ConfigureTrees(const TFullModel& model, CoreML::Specification::TreeEnsembleParameters* ensemble);
+        void ConfigureCategoricalMapping(const TFullModel& model, CoreML::Specification::CategoricalMapping* mapping);
         void ConfigureIO(const TFullModel& model, const NJson::TJsonValue& userParameters, CoreML::Specification::TreeEnsembleRegressor* regressor, CoreML::Specification::ModelDescription* description);
         void ConfigureMetadata(const TFullModel& model, const NJson::TJsonValue& userParameters, CoreML::Specification::ModelDescription* description);
 

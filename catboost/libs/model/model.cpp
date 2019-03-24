@@ -112,35 +112,32 @@ void OutputModelCoreML(
     const TString& modelFile,
     const NJson::TJsonValue& userParameters) {
 
-    CoreML::Specification::Model outModel, treeModel;
+    CoreML::Specification::Model outModel, treeModel, mappingModel;
     outModel.set_specificationversion(1);
     treeModel.set_specificationversion(1);
 
     auto* container = outModel.mutable_pipeline()->mutable_models();
-    auto* contained = container->Add();
+    auto* containedMapping = container->Add();
+    auto* containedTree = container->Add();
 
     auto regressor = treeModel.mutable_treeensembleregressor();
     auto ensemble = regressor->mutable_treeensemble();
-    auto description = treeModel.mutable_description();
+    auto description = outModel.mutable_description();
+    auto mapping = mappingModel.mutable_categoricalmapping();
 
     NCatboost::NCoreML::ConfigureMetadata(model, userParameters, description);
     NCatboost::NCoreML::ConfigureTrees(model, ensemble);
+    NCatboost::NCoreML::ConfigureCategoricalMapping(model, mapping);
     NCatboost::NCoreML::ConfigureIO(model, userParameters, regressor, description);
 
-    *contained = treeModel;
+    *containedTree = treeModel;
+    *containedMapping = treeModel;
 
-    TString data, data2;
+    TString data;
     outModel.SerializeToString(&data);
 
-    CoreML::Specification::Model newModel;
-    newModel.ParseFromString(data);
-
-    auto& pipeModel = newModel.pipeline().models().Get(0);
-
-    pipeModel.SerializeToString(&data2);
-
     TOFStream out(modelFile);
-    out.Write(data2);
+    out.Write(data);
 }
 
 void OutputModelOnnx(
