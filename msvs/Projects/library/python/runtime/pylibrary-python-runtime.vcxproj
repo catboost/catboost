@@ -203,11 +203,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/__res.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/__res.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "sitecustomize" "--init-suffix" "sitecustomize" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/sitecustomize.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "sitecustomize" "--init-suffix" "sitecustomize" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/sitecustomize.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -218,11 +218,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/__res.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/__res.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "sitecustomize" "--init-suffix" "sitecustomize" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/sitecustomize.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "sitecustomize" "--init-suffix" "sitecustomize" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime/sitecustomize.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
