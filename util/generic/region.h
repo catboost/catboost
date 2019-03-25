@@ -57,8 +57,8 @@ public:
 
     template <class T2>
     inline TRegion(const TRegion<T2>& t)
-        : DataPtr(t.Data())
-        , Len(t.Size())
+        : DataPtr(t.data())
+        , Len(t.size())
     {
         static_assert(sizeof(T) == sizeof(T2), "expect sizeof(T) == sizeof(T2)");
     }
@@ -91,20 +91,12 @@ public:
         return *crbegin();
     }
 
-    inline const T* Data() const noexcept {
-        return DataPtr;
-    }
-
-    inline T* Data() noexcept {
-        return DataPtr;
-    }
-
     inline const T* data() const noexcept {
-        return Data();
+        return DataPtr;
     }
 
     inline T* data() noexcept {
-        return Data();
+        return DataPtr;
     }
 
     inline size_t Size() const noexcept {
@@ -115,18 +107,12 @@ public:
         return Size();
     }
 
-    Y_PURE_FUNCTION
-    inline bool Empty() const noexcept {
-        return !Len;
+    inline bool empty() const noexcept {
+        return (Len == 0);
     }
 
     inline explicit operator bool() const noexcept {
-        return !Empty();
-    }
-
-    Y_PURE_FUNCTION
-    inline bool empty() const noexcept {
-        return Empty();
+        return (Len > 0);
     }
 
     inline bool operator<(const TRegion& rhs) const {
@@ -137,47 +123,28 @@ public:
         return (DataPtr == rhs.DataPtr) && (Len == rhs.Len);
     }
 
-    /*
-     * iterator-like interface
-     */
-    inline TConstIterator Begin() const noexcept {
-        return DataPtr;
-    }
-
     inline const_iterator begin() const noexcept {
-        return Begin();
-    }
-
-    inline TIterator Begin() noexcept {
         return DataPtr;
     }
 
     inline iterator begin() noexcept {
-        return Begin();
+        return DataPtr;
     }
 
     inline const_iterator cbegin() const noexcept {
-        return Begin();
-    }
-
-    inline TConstIterator End() const noexcept {
-        return DataPtr + Len;
+        return DataPtr;
     }
 
     inline const_iterator end() const noexcept {
-        return End();
-    }
-
-    inline TIterator End() noexcept {
         return DataPtr + Len;
     }
 
     inline iterator end() noexcept {
-        return End();
+        return DataPtr + Len;
     }
 
     inline const_iterator cend() const noexcept {
-        return End();
+        return DataPtr + Len;
     }
 
     inline reverse_iterator rbegin() noexcept {
@@ -206,12 +173,12 @@ public:
 
     inline const T& operator[](size_t idx) const noexcept {
         Y_ASSERT(idx < Len);
-        return Data()[idx];
+        return DataPtr[idx];
     }
 
     inline T& operator[](size_t idx) noexcept {
         Y_ASSERT(idx < Len);
-        return Data()[idx];
+        return DataPtr[idx];
     }
 
     inline yssize_t ysize() const noexcept {
