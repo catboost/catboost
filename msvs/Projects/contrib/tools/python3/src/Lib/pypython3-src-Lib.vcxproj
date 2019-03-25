@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\join_aec3191593ccd6606e539c0e69.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\_osx_support.py.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

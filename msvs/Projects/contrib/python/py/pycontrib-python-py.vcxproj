@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_ffa16c49062046325917fa9f83.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_d15b8e990f92988964399b34c4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_96d31b3fb84e8cd42b19edecf4.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_code\_py2traceback.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
