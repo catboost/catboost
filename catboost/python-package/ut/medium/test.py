@@ -2914,7 +2914,7 @@ def test_compare(test_case):
     try:
         model.compare(**kwargs)
     except ImportError as ie:
-        pytest.xfail(str(ie)) if str(ie) == "No module named 'widget'" \
+        pytest.xfail(str(ie)) if str(ie) == "No module named widget" \
             else pytest.fail(str(ie))
 
 
