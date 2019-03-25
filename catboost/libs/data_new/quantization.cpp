@@ -56,7 +56,7 @@ namespace NCB {
             const ui32 objectCount = srcIndexing.Size();
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
-                quantizedFeaturesInfo.GetFloatFeatureBinarization().BorderSelectionType,
+                quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>()).BorderSelectionType,
                 options.MaxSubsetSizeForSlowBuildBordersAlgorithms
             );
             if (sampleSize < objectCount) {
@@ -97,21 +97,20 @@ namespace NCB {
         ui64 result = 0;
 
         if (NeedToCalcBorders(quantizedFeaturesInfo)) {
-            auto borderSelectionType =
-                quantizedFeaturesInfo.GetFloatFeatureBinarization().BorderSelectionType;
-
+            //TODO(kirillovs): iterate through all per feature binarization settings and select smallest sample size
+            const auto& floatFeatureBinarizationSettings = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
-                borderSelectionType,
+                floatFeatureBinarizationSettings.BorderSelectionType,
                 options.MaxSubsetSizeForSlowBuildBordersAlgorithms
             );
 
             result += sizeof(float) * sampleSize; // for copying to srcFeatureValuesForBuildBorders
 
             result += CalcMemoryForFindBestSplit(
-                SafeIntegerCast<int>(quantizedFeaturesInfo.GetFloatFeatureBinarization().BorderCount.Get()),
+                SafeIntegerCast<int>(floatFeatureBinarizationSettings.BorderCount.Get()),
                 (size_t)sampleSize,
-                borderSelectionType
+                floatFeatureBinarizationSettings.BorderSelectionType
             );
         }
 
@@ -132,7 +131,7 @@ namespace NCB {
         ENanMode* nanMode,
         TVector<float>* borders
     ) {
-        const auto& binarizationOptions = quantizedFeaturesInfo.GetFloatFeatureBinarization();
+        const auto& binarizationOptions = quantizedFeaturesInfo.GetFloatFeatureBinarization(srcFeature.GetId());
 
         Y_VERIFY(binarizationOptions.BorderCount > 0);
 
@@ -197,8 +196,6 @@ namespace NCB {
         } else if (*nanMode == ENanMode::Max) {
             borders->push_back(std::numeric_limits<float>::max());
         }
-
-        Y_VERIFY(borders->size() < 256);
     }
 
 
@@ -248,7 +245,7 @@ namespace NCB {
         const ui32* nonpackedQuantizedValuesArrayBegin
             = *(dynamic_cast<const TQuantizedCatValuesHolder&>(
                     *quantizedObjectsData.CatFeatures[*catFeatureIdx]
-                ).GetArrayData().GetSrc());
+                ).GetArrayData<ui32>().GetSrc());
 
         return [nonpackedQuantizedValuesArrayBegin](ui32 idx, ui32 /*srcIdx*/) -> TBinaryFeaturesPack {
             Y_ASSERT(nonpackedQuantizedValuesArrayBegin[idx] < 2);
@@ -389,9 +386,6 @@ namespace NCB {
             << ": NanMode and borders must be specified or not specified together"
         );
 
-        auto borderSelectionType =
-            quantizedFeaturesInfo->GetFloatFeatureBinarization().BorderSelectionType;
-
         if (calculateNanMode || calculateBorders) {
             CalcBordersAndNanMode(
                 srcFeature,
@@ -419,30 +413,35 @@ namespace NCB {
                 !options.PackBinaryFeaturesForCpu ||
                 (borders.size() > 1)) // binary features are binarized later by packs
             {
-                // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
-                const ui32 bitsPerKey = 8;
+                const ui32 bitsPerKey = CalHistogramWidthForBorders(borders.size());
                 TIndexHelper<ui64> indexHelper(bitsPerKey);
                 TVector<ui64> quantizedDataStorage;
                 quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
 
-                TArrayRef<ui8> quantizedData(
-                    reinterpret_cast<ui8*>(quantizedDataStorage.data()),
-                    srcFeatureData.Size()
-                );
-
                 // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
                 bool allowNans = (nanMode != ENanMode::Forbidden) ||
                     quantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
-
-                Quantize(
-                    srcFeatureData,
-                    allowNans,
-                    nanMode,
-                    srcFeature.GetId(),
-                    borders,
-                    localExecutor,
-                    &quantizedData
-                );
+                if (bitsPerKey == 8) {
+                    Quantize(
+                        srcFeatureData,
+                        allowNans,
+                        nanMode,
+                        srcFeature.GetId(),
+                        borders,
+                        MakeArrayRef(reinterpret_cast<ui8*>(quantizedDataStorage.data()), srcFeatureData.Size()),
+                        localExecutor
+                    );
+                } else {
+                    Quantize(
+                        srcFeatureData,
+                        allowNans,
+                        nanMode,
+                        srcFeature.GetId(),
+                        borders,
+                        MakeArrayRef(reinterpret_cast<ui16*>(quantizedDataStorage.data()), srcFeatureData.Size()),
+                        localExecutor
+                    );
+                }
 
                 *dstQuantizedFeature = MakeHolder<TQuantizedFloatValuesHolder>(
                     srcFeature.GetId(),
@@ -892,6 +891,7 @@ namespace NCB {
     TQuantizedDataProviders Quantize(
         const TQuantizationOptions& options,
         const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+        const TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureBinarization,
         bool floatFeaturesAllowNansInTestOnly,
         TConstArrayRef<ui32> ignoredFeatures,
         TRawDataProviders rawDataProviders,
@@ -903,6 +903,7 @@ namespace NCB {
             *rawDataProviders.Learn->MetaInfo.FeaturesLayout,
             ignoredFeatures,
             floatFeaturesBinarization,
+            perFloatFeatureBinarization,
             floatFeaturesAllowNansInTestOnly,
             options.AllowWriteFiles
         );

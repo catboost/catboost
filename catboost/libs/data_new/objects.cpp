@@ -583,7 +583,8 @@ bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rh
 
 void NCB::TQuantizedObjectsData::PrepareForInitialization(
     const TDataMetaInfo& metaInfo,
-    const NCatboostOptions::TBinarizationOptions& binarizationOptions
+    const NCatboostOptions::TBinarizationOptions& binarizationOptions,
+    const TMap<ui32, NCatboostOptions::TBinarizationOptions>& perFloatFeatureBinarization
 ) {
     // FloatFeatures and CatFeatures members are initialized at the end of building
     FloatFeatures.clear();
@@ -598,6 +599,7 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
             *metaInfo.FeaturesLayout,
             TConstArrayRef<ui32>(),
             binarizationOptions,
+            perFloatFeatureBinarization,
             /*floatFeaturesAllowNansInTestOnly*/true,
 
             // be conservative here, it will be reset using SetAllowWriteFiles later if needed
@@ -696,11 +698,11 @@ static ui32 CalcFeatureValuesCheckSum(
             );
             if (compressedValuesFeatureData) {
                 if (compressedValuesFeatureData->GetBitsPerKey() == CHAR_BIT*sizeof(T)) {
-                    compressedValuesFeatureData->GetArrayData().ForEach([&](ui32 /*idx*/, T element) {
+                    compressedValuesFeatureData->ForEach([&](ui32 /*idx*/, T element) {
                         checkSum = UpdateCheckSum(checkSum, (ui32)element);
                     });
                 } else {
-                    compressedValuesFeatureData->GetCompressedData().ForEach([&](ui32 /*idx*/, ui32 element) {
+                    compressedValuesFeatureData->ForEach([&](ui32 /*idx*/, ui32 element) {
                         checkSum = UpdateCheckSum(checkSum, element);
                     });
                 }
@@ -1089,12 +1091,6 @@ static void MakeConsecutiveArrayFeatures(
     NPar::TLocalExecutor* localExecutor,
     TVector<THolder<IColumnType>>* dst
 ) {
-    constexpr ui32 bytesPerKey = sizeof(typename IColumnType::TValueType);
-    constexpr ui32 bitsPerKey = bytesPerKey * CHAR_BIT;
-
-    TIndexHelper<ui64> indexHelper(bitsPerKey);
-    const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
-
     if (&src != dst) {
         dst->clear();
         dst->resize(featuresLayout.GetFeatureCount(FeatureType));
@@ -1115,20 +1111,44 @@ static void MakeConsecutiveArrayFeatures(
                 );
             } else {
                 tasks.emplace_back(
-                    [&, featureIdx]() {
+                    [&, featureIdx, localExecutor]() {
                         const auto& srcCompressedValuesHolder
                             = dynamic_cast<const TCompressedValuesHolderImpl<IColumnType>&>(srcColumn);
+                        const ui32 bitsPerKey = srcCompressedValuesHolder.GetBitsPerKey();
+                        TIndexHelper<ui64> indexHelper(bitsPerKey);
+                        const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
 
                         TVector<ui64> storage;
                         storage.yresize(dstStorageSize);
-                        auto dstBuffer = (typename IColumnType::TValueType*)(storage.data());
 
-                        srcCompressedValuesHolder.GetArrayData().ParallelForEach(
-                            [&] (ui32 idx, typename IColumnType::TValueType value) {
-                                dstBuffer[idx] = value;
-                            },
-                            localExecutor
-                        );
+                        if (bitsPerKey == 8) {
+                            auto dstBuffer = (ui8*)(storage.data());
+
+                            srcCompressedValuesHolder.template GetArrayData<ui8>().ParallelForEach(
+                                [&](ui32 idx, ui8 value) {
+                                    dstBuffer[idx] = value;
+                                },
+                                localExecutor
+                            );
+                        } else if (bitsPerKey == 16) {
+                            auto dstBuffer = (ui16*)(storage.data());
+
+                            srcCompressedValuesHolder.template GetArrayData<ui16>().ParallelForEach(
+                                [&](ui32 idx, ui16 value) {
+                                    dstBuffer[idx] = value;
+                                },
+                                localExecutor
+                            );
+                        } else {
+                            auto dstBuffer = (ui32*)(storage.data());
+
+                            srcCompressedValuesHolder.template GetArrayData<ui32>().ParallelForEach(
+                                [&](ui32 idx, ui32 value) {
+                                    dstBuffer[idx] = value;
+                                },
+                                localExecutor
+                            );
+                        }
 
                         (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
                             srcColumn.GetId(),
@@ -1282,8 +1302,6 @@ static void CheckFeaturesByType(
                 "Data." << featureType << "Features[" << featureIdx << "] is not of type TQuantized"
                 << featureTypeName << "ValuesHolder"
             );
-            requiredTypePtr->GetCompressedData().GetSrc()
-                ->template CheckIfCanBeInterpretedAsRawArray<typename TBaseFeatureColumn::TValueType>();
         }
     }
 }

@@ -286,7 +286,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 }
             }
 
-            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, nullptr);
+            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
             commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
             NPar::TLocalExecutor localExecutor;
@@ -708,8 +708,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         + (useFeatureTypes.second ? srcCatFeatures.size() : 0)
                     ),
                     catFeatureIndices,
-                    {},
-                    nullptr
+                    {}
                 );
 
                 auto featuresLayoutPtr = MakeIntrusive<TFeaturesLayout>(featuresLayout);
@@ -872,7 +871,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 Equal<ui8>(
                                     subsetFloatFeatures[i],
                                     (*quantizedForCPUObjectsDataProvider.GetNonPackedFloatFeature(i))
-                                        ->GetArrayData()
+                                        ->GetArrayData<ui8>()
                                 )
                             );
                         }
@@ -884,7 +883,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 Equal<ui32>(
                                     subsetCatFeatures[i],
                                     (*quantizedForCPUObjectsDataProvider.GetNonPackedCatFeature(i))
-                                        ->GetArrayData()
+                                        ->GetArrayData<ui32>()
                                 )
                             );
 

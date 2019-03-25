@@ -24,11 +24,12 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             /*discretization*/3
         );
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<TString>{}, nullptr);
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<TString>{});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
             TConstArrayRef<ui32>(),
-            binarizationOptions
+            binarizationOptions,
+            TMap<ui32, NCatboostOptions::TBinarizationOptions>()
         );
 
         const ui32 featureId = 0;
@@ -86,7 +87,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         const NCatboostOptions::TBinarizationOptions binarizationOptions;
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<TString>{}, nullptr);
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<TString>{});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
             TConstArrayRef<ui32>(),

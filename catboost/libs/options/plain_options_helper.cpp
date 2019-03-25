@@ -1,5 +1,6 @@
 #include "cat_feature_options.h"
 #include "loss_description.h"
+#include "binarization_options.h"
 #include "plain_options_helper.h"
 
 #include <catboost/libs/logging/logging.h>
@@ -13,6 +14,7 @@
 #include <util/system/compiler.h>
 
 using NCatboostOptions::ParseCtrDescription;
+using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
 
 static Y_NO_INLINE void CopyCtrDescription(
@@ -62,6 +64,29 @@ static Y_NO_INLINE void CopyPerFeatureCtrDescription(
     }
 
     seenKeys->insert(TString(srcKey));
+}
+
+static Y_NO_INLINE void CopyPerFloatFeatureBinarization(
+    const NJson::TJsonValue& options,
+    const TStringBuf key,
+    NJson::TJsonValue* dst,
+    TSet<TString>* seenKeys)
+{
+    if (!options.Has(key)) {
+        return;
+    }
+
+    NJson::TJsonValue& perFeatureBinarizationMap = (*dst)[key];
+    perFeatureBinarizationMap.SetType(NJson::JSON_MAP);
+    const NJson::TJsonValue& binarizationDescription = options[key];
+    CB_ENSURE(binarizationDescription.IsArray());
+
+    for (const auto& onePerFeatureCtrConfig : binarizationDescription.GetArraySafe()) {
+        auto perFeatureBinarization = ParsePerFeatureBinarization(onePerFeatureCtrConfig.GetStringSafe());
+        perFeatureBinarizationMap[perFeatureBinarization.first] = perFeatureBinarization.second;
+    }
+
+    seenKeys->insert(TString(key));
 }
 
 static Y_NO_INLINE void CopyOption(
@@ -323,6 +348,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "border_count", &floatFeaturesBinarization, &seenKeys);
     CopyOptionWithNewKey(plainOptions, "feature_border_type", "border_type", &floatFeaturesBinarization, &seenKeys);
     CopyOption(plainOptions, "nan_mode", &floatFeaturesBinarization, &seenKeys);
+    CopyPerFloatFeatureBinarization(plainOptions, "per_float_feature_binarization", &dataProcessingOptions, &seenKeys);
 
     //system
     auto& systemOptions = trainOptions["system_options"];

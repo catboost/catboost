@@ -794,6 +794,43 @@ def test_nan_mode(nan_mode, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('border_count', [64, 255, 350, 1000, 2500])
+def test_different_border_count(border_count):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    train_path = data_file('querywise', 'train')
+    test_path = data_file('querywise', 'test')
+    cd_path = data_file('querywise', 'train.cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '-i', '20',
+        '-T', '4',
+        '-x', str(border_count),
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    assert (compare_evals(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_nan_mode_forbidden(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

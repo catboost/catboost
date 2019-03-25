@@ -144,8 +144,7 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
-            const TVector[TString]& featureId,
-            const TPoolQuantizationSchema* quantizationSchema
+            const TVector[TString]& featureId
         )  except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
@@ -1338,8 +1337,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     return new TFeaturesLayout(
         <ui32>feature_count,
         cat_features_vector,
-        feature_names_vector,
-        <TPoolQuantizationSchema*>nullptr)
+        feature_names_vector)
 
 cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
     cdef TVector[bool_t] mask

@@ -15,28 +15,19 @@
 
 using namespace NCB;
 
-TQuantizedFeatureIndexRemapper::TQuantizedFeatureIndexRemapper(
-    const ui32 indexOffset,
-    const ui32 binCount)
-    : IndexOffset_(indexOffset)
-    , BinCount_(binCount)
-{
-}
-
 bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
     return std::tie(Type, Name, IsIgnored, IsAvailable) ==
         std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, {}, {}, nullptr)
+    : TFeaturesLayout(featureCount, {}, {})
 {}
 
 TFeaturesLayout::TFeaturesLayout(
     const ui32 featureCount,
     const TVector<ui32>& catFeatureIndices,
-    const TVector<TString>& featureId,
-    const TPoolQuantizationSchema* const schema)
+    const TVector<TString>& featureId)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
 
@@ -55,24 +46,6 @@ TFeaturesLayout::TFeaturesLayout(
             << featureCount << ')'
         );
         ExternalIdxToMetaInfo[catFeatureExternalIdx].Type = EFeatureType::Categorical;
-    }
-
-    ExternalIdxRemappers.resize(featureCount);
-    if (schema) {
-        for (size_t i = 0, iEnd = schema->FeatureIndices.size(); i < iEnd; ++i) {
-            const auto flatFeatureIdx = schema->FeatureIndices[i];
-            const auto binCount = schema->Borders[i].size() + 1;
-            ExternalIdxRemappers[flatFeatureIdx] = TQuantizedFeatureIndexRemapper(
-                ExternalIdxToMetaInfo.size(),
-                binCount);
-            const auto artificialFeatureCount = ExternalIdxRemappers[flatFeatureIdx].GetArtificialFeatureCount();
-            for (ui32 j = 0; j < artificialFeatureCount; ++j) {
-                const auto& original = ExternalIdxToMetaInfo[flatFeatureIdx];
-                ExternalIdxToMetaInfo.emplace_back(
-                    original.Type,
-                    Join("", original.Name, "_part_", j));
-            }
-        }
     }
 
     for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
@@ -130,24 +103,6 @@ TFeaturesLayout::TFeaturesLayout(
             CatFeatureInternalIdxToExternalIdx.resize((size_t)catFeature.FeatureIndex + 1, internalOrExternalIndexPlaceholder);
         }
         CatFeatureInternalIdxToExternalIdx[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
-    }
-
-    ExternalIdxRemappers.resize(ExternalIdxToMetaInfo.size());
-    for (const auto& floatFeature : floatFeatures) {
-        const auto flatFeatureIdx = floatFeature.FlatFeatureIndex;
-        const auto binCount = floatFeature.Borders.size() + 1;
-        ExternalIdxRemappers[flatFeatureIdx] = TQuantizedFeatureIndexRemapper(
-            ExternalIdxToMetaInfo.size(),
-            binCount);
-        const auto artificialFeatureCount = ExternalIdxRemappers[flatFeatureIdx].GetArtificialFeatureCount();
-        for (ui32 j = 0; j < artificialFeatureCount; ++j) {
-            const auto original = ExternalIdxToMetaInfo[flatFeatureIdx];
-            FloatFeatureInternalIdxToExternalIdx.push_back(
-                ExternalIdxToMetaInfo.size());
-            ExternalIdxToMetaInfo.emplace_back(
-                original.Type,
-                Join("", original.Name, "_part_", j));
-        }
     }
 }
 
@@ -227,26 +182,13 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
 }
 
 void TFeaturesLayout::IgnoreExternalFeature(ui32 externalFeatureIdx) {
-    const auto nonArtificialFeatureCount = ExternalIdxRemappers.size();
-    if (externalFeatureIdx >= nonArtificialFeatureCount) {
+    if (externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
         return;
     }
 
     auto& metaInfo = ExternalIdxToMetaInfo[externalFeatureIdx];
     metaInfo.IsIgnored = true;
     metaInfo.IsAvailable = false;
-
-    const auto& remapper = ExternalIdxRemappers[externalFeatureIdx];
-    const auto artificialFeatureCount = remapper.GetArtificialFeatureCount();
-    if (!artificialFeatureCount) {
-        return;
-    }
-
-    const auto indexOffset = remapper.GetIdxOffset();
-    for (ui32 i = 0; i < artificialFeatureCount; ++i) {
-        ExternalIdxToMetaInfo[indexOffset + i].IsIgnored = true;
-        ExternalIdxToMetaInfo[indexOffset + i].IsAvailable = false;
-    }
 }
 
 void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeatures) {
@@ -299,12 +241,6 @@ bool TFeaturesLayout::HasAvailableAndNotIgnoredFeatures() const {
     }
     return false;
 }
-
-TQuantizedFeatureIndexRemapper
-TFeaturesLayout::GetQuantizedFeatureIndexRemapper(ui32 externalFeatureIdx) const {
-    return ExternalIdxRemappers[externalFeatureIdx];
-}
-
 
 void NCB::CheckCompatibleForApply(
     const TFeaturesLayout& learnFeaturesLayout,

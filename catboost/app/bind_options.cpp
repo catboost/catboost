@@ -944,6 +944,15 @@ static void BindBinarizationParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .Handler1T<int>([plainJsonPtr](int count) {
             (*plainJsonPtr)["border_count"] = count;
         });
+    parser.AddLongOption("per-float-feature-binarization")
+      .RequiredArgument("DESC[;DESC...]")
+      .Help("Semicolon separated list of float binarization descriptions. Float binarization description should be written in format FeatureId[:border_count=BorderCount][:nan_mode=BorderType][:border_type=border_selection_method]")
+      .Handler1T<TString>([plainJsonPtr](const TString& ctrDescriptionLine) {
+          for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';').SkipEmpty()) {
+              (*plainJsonPtr)["per_float_feature_binarization"].AppendValue(oneCtrConfig.Token());
+          }
+          CB_ENSURE(!(*plainJsonPtr)["per_float_feature_binarization"].GetArray().empty(), "Empty perf float feature binarization settings " << ctrDescriptionLine);
+      });
 
     const auto featureBorderTypeHelp = TString::Join(
         "Must be one of: ",

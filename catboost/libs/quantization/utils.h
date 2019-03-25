@@ -56,8 +56,7 @@ namespace NCB {
         }
     }
 
-
-    template <class TArrayLike>
+    template <class TArrayLike, typename TQuantizedBin>
     void Quantize(TArraySubset<TArrayLike, ui32> srcFeatureData,
                   bool allowNans,
                   ENanMode nanMode,
@@ -65,25 +64,24 @@ namespace NCB {
 
                   // if nanMode != ENanMode::Forbidden borders must include -min_float or +max_float
                   TConstArrayRef<float> borders,
-                  NPar::TLocalExecutor* localExecutor,
-                  TArrayRef<ui8>* quantizedData) {
+                  TArrayRef<TQuantizedBin> quantizedData,
+                  NPar::TLocalExecutor* localExecutor) {
 
-        auto quantizedDataValue = *quantizedData;
         srcFeatureData.ParallelForEach(
-            [=, &quantizedDataValue] (ui32 idx, float srcValue) {
+            [=, &quantizedData] (ui32 idx, float srcValue) {
                 if (IsNan(srcValue)) {
                     CB_ENSURE(
                         allowNans,
                         "There are NaNs in test dataset (feature number "
                         << featureIdx << ") but there were no NaNs in learn dataset"
                     );
-                    quantizedDataValue[idx] = (nanMode == ENanMode::Max) ? borders.size() : 0;
+                    quantizedData[idx] = (nanMode == ENanMode::Max) ? borders.size() : 0;
                 } else {
                     size_t i = 0;
                     while (i < borders.size() && srcValue > borders[i]) {
                         ++i;
                     }
-                    quantizedDataValue[idx] = (ui8)i;
+                    quantizedData[idx] = static_cast<TQuantizedBin>(i);
                 }
             },
             localExecutor,
@@ -133,6 +131,14 @@ namespace NCB {
 
     inline ui32 GetBinCount(TConstArrayRef<float> borders, ENanMode nanMode) {
         return (ui32)borders.size() + 1 + (nanMode != ENanMode::Forbidden);
+    }
+
+    inline ui8 CalHistogramWidthForBorders(size_t bordersCount) {
+        Y_ASSERT(bordersCount < 65536);
+        if (bordersCount < 255) {
+            return 8;
+        }
+        return 16;
     }
 
 }

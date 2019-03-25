@@ -303,7 +303,8 @@ namespace NCB {
         // not a constructor to enable reuse of allocated data
         void PrepareForInitialization(
             const TDataMetaInfo& metaInfo,
-            const NCatboostOptions::TBinarizationOptions& binarizationOptions
+            const NCatboostOptions::TBinarizationOptions& binarizationOptions,
+            const TMap<ui32, NCatboostOptions::TBinarizationOptions>& perFloatFeatureBinarization
         );
 
         void Check(
@@ -485,7 +486,7 @@ namespace NCB {
 
         // low-level function, data is without subset indexing, apply external subset indexing!
         const ui8* GetFloatFeatureRawSrcData(ui32 floatFeatureIdx) const {
-            return *((*GetNonPackedFloatFeature(floatFeatureIdx))->GetArrayData().GetSrc());
+            return *((*GetNonPackedFloatFeature(floatFeatureIdx))->GetArrayData<ui8>().GetSrc());
         }
 
         TMaybeData<const TQuantizedCatValuesHolder*> GetNonPackedCatFeature(ui32 catFeatureIdx) const {
@@ -504,7 +505,7 @@ namespace NCB {
 
         // low-level function, data is without subset indexing, apply external subset indexing!
         const ui32* GetCatFeatureRawSrcData(ui32 catFeatureIdx) const {
-            return *((*GetNonPackedCatFeature(catFeatureIdx))->GetArrayData().GetSrc());
+            return *((*GetNonPackedCatFeature(catFeatureIdx))->GetArrayData<ui32>().GetSrc());
         }
 
         TCatFeatureUniqueValuesCounts GetCatFeatureUniqueValuesCounts(ui32 catFeatureIdx) const {
@@ -574,7 +575,7 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
 
-
+/*
     // util function for commonly used functionality
     template <class TBase>
     inline TConstPtrArraySubset<typename TBase::TValueType> SubsetWithAlternativeIndexing(
@@ -586,7 +587,7 @@ namespace NCB {
             alternativeIndexing
         );
     }
-
+*/
 
     // needed to make friends with TObjectsDataProvider s
     class TObjectsSerialization {
@@ -604,6 +605,7 @@ namespace NCB {
                 *featuresLayout,
                 TConstArrayRef<ui32>(),
                 NCatboostOptions::TBinarizationOptions(),
+                TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
                 false
             );
             quantizedFeaturesInfo->LoadNonSharedPart(binSaver);

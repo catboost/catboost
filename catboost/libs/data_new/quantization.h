@@ -53,6 +53,7 @@ namespace NCB {
     TQuantizedDataProviders Quantize(
         const TQuantizationOptions& options,
         const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+        const TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureBinarization,
         bool floatFeaturesAllowNansInTestOnly,
         TConstArrayRef<ui32> ignoredFeatures,
         TRawDataProviders rawDataProviders,

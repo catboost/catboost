@@ -159,20 +159,48 @@ namespace NCB {
             return {&SrcData, SubsetIndexing};
         }
 
-        template <class T = typename TBase::TValueType>
+        template <class T>
         TConstPtrArraySubset<T> GetArrayData() const {
             SrcData.CheckIfCanBeInterpretedAsRawArray<T>();
             return TConstPtrArraySubset<T>((const T**)&SrcDataRawPtr, SubsetIndexing);
         }
 
         // in some cases non-standard T can be useful / more efficient
-        template <class T = typename TBase::TValueType>
+        template <class T>
         TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
             return TMaybeOwningArrayHolder<T>::CreateOwning(
                 ::NCB::GetSubset<T>(SrcData, *SubsetIndexing, localExecutor)
             );
         }
 
+        template<class F>
+        void ForEach(F&& f, const NCB::TFeaturesArraySubsetIndexing* featuresSubsetIndexing = nullptr) const {
+            if (!featuresSubsetIndexing) {
+                featuresSubsetIndexing = SubsetIndexing;
+            }
+            switch (SrcData.GetBitsPerKey()) {
+            case 8:
+                NCB::TConstPtrArraySubset<ui8>(
+                    GetArrayData<ui8>().GetSrc(),
+                    featuresSubsetIndexing
+                ).ForEach(std::move(f));
+                break;
+            case 16:
+                NCB::TConstPtrArraySubset<ui16>(
+                    GetArrayData<ui16>().GetSrc(),
+                    featuresSubsetIndexing
+                ).ForEach(std::move(f));
+                break;
+            case 32:
+                NCB::TConstPtrArraySubset<ui32>(
+                    GetArrayData<ui32>().GetSrc(),
+                    featuresSubsetIndexing
+                ).ForEach(std::move(f));
+                break;
+            default:
+                Y_UNREACHABLE();
+            }
+        }
         TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(
             NPar::TLocalExecutor* localExecutor
         ) const override {

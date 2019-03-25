@@ -27,22 +27,25 @@ static bool GetCtrSplit(const TSplit& split, int idxPermuted, const TOnlineCTR& 
     return ctrValue > split.BinBorder;
 }
 
-static inline ui8 GetFeatureSplitIdx(const TSplit& split) {
+static inline ui16 GetFeatureSplitIdx(const TSplit& split) {
     return split.BinBorder;
 }
 
-static inline const ui8* GetFloatHistogram(
+static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-
-    return *(*objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
+    const auto& featureColumnHolder = *objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx);
+    if (featureColumnHolder->GetBitsPerKey() == 8) {
+        return *featureColumnHolder->GetArrayData<ui8>().GetSrc();
+    } else {
+        return *featureColumnHolder->GetArrayData<ui16>().GetSrc();
+    }
 }
 
 static inline const ui32* GetRemappedCatFeatures(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-
-    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))->GetArrayData().GetSrc();
+    return *(*objectsDataProvider.GetNonPackedCatFeature((ui32)split.FeatureIdx))->GetArrayData<ui32>().GetSrc();
 }
 
 template <typename TCount, typename TCmpOp, int vectorWidth>
@@ -161,7 +164,7 @@ void SetPermutedIndices(
     if (split.Type == ESplitType::FloatFeature) {
         auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
 
-        const ui8* histogram = nullptr;
+        TVariant<const ui8*, const ui16*> histogram;
         auto maybeBinaryIndex = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
         if (!maybeBinaryIndex) {
             histogram = GetFloatHistogram(split, objectsDataProvider);
@@ -169,18 +172,33 @@ void SetPermutedIndices(
 
         localExecutor->ExecRange(
             [&](int blockIdx) {
-                OfflineCtrBlock(
-                    blockParams,
-                    blockIdx,
-                    maybeBinaryIndex,
-                    fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
-                    histogram,
-                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                    [splitIdx = GetFeatureSplitIdx(split)] (ui8 bucket) {
-                        return IsTrueHistogram(bucket, splitIdx);
-                    },
-                    splitWeight,
-                    indicesData);
+                if (HoldsAlternative<const ui8*>(histogram)) {
+                    OfflineCtrBlock(
+                        blockParams,
+                        blockIdx,
+                        maybeBinaryIndex,
+                        fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
+                        Get<const ui8*>(histogram),
+                        [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                        [splitIdx = GetFeatureSplitIdx(split)] (ui8 bucket) {
+                            return IsTrueHistogram<ui8>(bucket, splitIdx);
+                        },
+                        splitWeight,
+                        indicesData);
+                } else {
+                    OfflineCtrBlock(
+                        blockParams,
+                        blockIdx,
+                        maybeBinaryIndex,
+                        fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data(),
+                        Get<const ui16*>(histogram),
+                        [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                        [splitIdx = GetFeatureSplitIdx(split)] (ui16 bucket) {
+                            return IsTrueHistogram<ui16>(bucket, splitIdx);
+                        },
+                        splitWeight,
+                        indicesData);
+                }
             },
             0,
             blockParams.GetBlockCount(),
@@ -294,7 +312,7 @@ static void BuildIndicesForDataset(
     blockParams.SetBlockSize(blockSize);
 
     // precalc to avoid recalculation in each block
-    TStackVec<const ui8*> splitFloatHistograms;
+    TStackVec<TVariant<const ui8*, const ui16*>> splitFloatHistograms;
     splitFloatHistograms.yresize(tree.GetDepth());
 
     TStackVec<const ui32*> splitRemappedCatHistograms;
@@ -320,19 +338,33 @@ static void BuildIndicesForDataset(
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
                 auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
-
-                OfflineCtrBlock(
-                    blockParams,
-                    blockIdx,
-                    objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
-                    permutation,
-                    splitFloatHistograms[splitIdx],
-                    [&] (ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                    [splitIdx = GetFeatureSplitIdx(split)] (ui8 bucket) {
-                        return IsTrueHistogram(bucket, splitIdx);
-                    },
-                    splitWeight,
-                    indices);
+                if (HoldsAlternative<const ui8*>(splitFloatHistograms[splitIdx])) {
+                    OfflineCtrBlock(
+                        blockParams,
+                        blockIdx,
+                        objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
+                        permutation,
+                        Get<const ui8*>(splitFloatHistograms[splitIdx]),
+                        [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                        [splitIdx = GetFeatureSplitIdx(split)](ui8 bucket) {
+                            return IsTrueHistogram<ui8>(bucket, splitIdx);
+                        },
+                        splitWeight,
+                        indices);
+                } else {
+                    OfflineCtrBlock(
+                        blockParams,
+                        blockIdx,
+                        objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
+                        permutation,
+                        Get<const ui16*>(splitFloatHistograms[splitIdx]),
+                        [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                        [splitIdx = GetFeatureSplitIdx(split)](ui16 bucket) {
+                            return IsTrueHistogram<ui16>(bucket, splitIdx);
+                        },
+                        splitWeight,
+                        indices);
+                }
             } else if (split.Type == ESplitType::OnlineCtr) {
                 const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
                 NPar::TLocalExecutor::BlockedLoopBody(

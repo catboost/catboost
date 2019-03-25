@@ -42,7 +42,8 @@ namespace NCB {
         TQuantizedFeaturesInfo(
             const TFeaturesLayout& featuresLayout,
             TConstArrayRef<ui32> ignoredFeatures,
-            NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+            NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
+            TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization=TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
             bool floatFeaturesAllowNansInTestOnly = true,
             bool allowWriteFiles = true);
 
@@ -101,8 +102,11 @@ namespace NCB {
             return Borders.at(*floatFeatureIdx);
         }
 
-        const NCatboostOptions::TBinarizationOptions& GetFloatFeatureBinarization() const {
-            return FloatFeaturesBinarization;
+        const NCatboostOptions::TBinarizationOptions& GetFloatFeatureBinarization(ui32 featureIndex) const {
+            if (auto optsPtr = PerFloatFeatureBinarization.FindPtr(featureIndex)) {
+                return *optsPtr;
+            }
+            return CommonFloatFeaturesBinarization;
         }
 
         bool GetFloatFeaturesAllowNansInTestOnly() const {
@@ -181,8 +185,8 @@ namespace NCB {
 
         TFeaturesLayoutPtr FeaturesLayout;
 
-        // it's common for all float features
-        NCatboostOptions::TBinarizationOptions FloatFeaturesBinarization;
+        NCatboostOptions::TBinarizationOptions CommonFloatFeaturesBinarization;
+        TMap<ui32, NCatboostOptions::TBinarizationOptions> PerFloatFeatureBinarization;
 
         bool FloatFeaturesAllowNansInTestOnly;
 
@@ -204,8 +208,8 @@ struct TDumper<NCB::TQuantizedFeaturesInfo> {
 
         s << "FeaturesLayout:\n" << DbgDump(featuresLayout);
 
-        const auto& floatFeaturesBinarization = quantizedFeaturesInfo.GetFloatFeatureBinarization();
-        s << "\nFloatFeaturesBinarization: {BorderSelectionType="
+        const auto& floatFeaturesBinarization = quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>());
+        s << "\nCommonFloatFeaturesBinarization: {BorderSelectionType="
             << floatFeaturesBinarization.BorderSelectionType
             << ", BorderCount=" << floatFeaturesBinarization.BorderCount
             << ", NanMode=" << floatFeaturesBinarization.NanMode << "}\n";

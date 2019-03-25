@@ -7,6 +7,7 @@
 
 #include <library/grid_creator/binarization.h>
 
+#include <util/generic/map.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 
@@ -29,9 +30,12 @@ namespace NCatboostOptions {
         TOption<bool> HasTimeFlag;
         TOption<bool> AllowConstLabel;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
+        TOption<TMap<ui32, TBinarizationOptions>> PerFloatFeatureBinarization;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;
         TOption<TVector<TString>> ClassNames;
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
+    private:
+        void SetPerFeatureMissingSettingToCommonValues();
     };
 }

@@ -140,7 +140,7 @@ namespace NCatboostCuda {
         }
 
         const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const TEstimatedFeature&) const {
-            return QuantizedFeaturesInfo->GetFloatFeatureBinarization();
+            return QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>());
         }
 
         TSet<ECtrType> GetKnownSimpleCtrTypes() const;
@@ -233,7 +233,7 @@ namespace NCatboostCuda {
             TEstimatorId estimatorId{id, isOnline};
             for (ui32 f = 0; f < meta.FeaturesCount; ++f) {
                 TEstimatedFeature feature{estimatorId, f};
-                const ui32 maxBins = QuantizedFeaturesInfo->GetFloatFeatureBinarization().BorderCount + 1;
+                const ui32 maxBins = QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>()).BorderCount + 1;
                 ui32 maxBinsUpperBoundHint = meta.UniqueValuesUpperBoundHint ? (*meta.UniqueValuesUpperBoundHint)[f] : maxBins;
                 AddEstimatedFeature(feature, maxBinsUpperBoundHint);
             }

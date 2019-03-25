@@ -79,7 +79,7 @@ int GetBucketCount(
             sizeof(TBinaryFeaturesPack) * CHAR_BIT,
             packedBinaryFeaturesCount - startIdx
         );
-        return int(1 << featuresInPackCount);
+        return int(1u << featuresInPackCount);
     }
 
     // TSplitCandidate

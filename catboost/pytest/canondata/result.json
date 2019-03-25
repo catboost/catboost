@@ -1287,6 +1287,36 @@
             "uri": "file://test.test_deep_tree_classification_Plain-8_/test.eval"
         }
     ],
+    "test.test_different_border_count[1000]": [
+        {
+            "checksum": "c5cea2506151b07a25b8fceaf1db88cc",
+            "uri": "file://test.test_different_border_count_1000_/test.eval"
+        }
+    ],
+    "test.test_different_border_count[2500]": [
+        {
+            "checksum": "c5cea2506151b07a25b8fceaf1db88cc",
+            "uri": "file://test.test_different_border_count_2500_/test.eval"
+        }
+    ],
+    "test.test_different_border_count[255]": [
+        {
+            "checksum": "3c861953abc40d320f096ba97c8e3d12",
+            "uri": "file://test.test_different_border_count_255_/test.eval"
+        }
+    ],
+    "test.test_different_border_count[350]": [
+        {
+            "checksum": "ced94255d13eb09f6f88cfcbdd917dec",
+            "uri": "file://test.test_different_border_count_350_/test.eval"
+        }
+    ],
+    "test.test_different_border_count[64]": [
+        {
+            "checksum": "6285d90e89793551fa251274169cc357",
+            "uri": "file://test.test_different_border_count_64_/test.eval"
+        }
+    ],
     "test.test_dist_train[calc_block=5000000]": [
         {
             "checksum": "47c9e52668e63e4d3cfd9abadfacd257",

@@ -188,24 +188,38 @@ inline static void BuildSingleIndex(
             const auto& splitCandidate = splitEnsemble.SplitCandidate;
 
             if (splitCandidate.Type == ESplitType::FloatFeature) {
-                SetSingleIndex(
-                    fold,
-                    indexer,
-                    *((*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx))
-                        ->GetArrayData().GetSrc()),
-                    docInDataProviderIndexing,
-                    docInDataProviderBeginOffset,
-                    fold.NonCtrDataPermutationBlockSize,
-                    docIndexRange,
-                    singleIdx
-                );
+                const auto& featureColumnValuesHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
+                if (featureColumnValuesHolder->GetBitsPerKey() == 8) {
+                    SetSingleIndex(
+                        fold,
+                        indexer,
+                        *featureColumnValuesHolder->GetArrayData<ui8>().GetSrc(),
+                        docInDataProviderIndexing,
+                        docInDataProviderBeginOffset,
+                        fold.NonCtrDataPermutationBlockSize,
+                        docIndexRange,
+                        singleIdx
+                    );
+                } else {
+                    CB_ENSURE_INTERNAL(featureColumnValuesHolder->GetBitsPerKey() == 16, "Only 8 and 16 bit wide float feature quantization expected");
+                    SetSingleIndex(
+                        fold,
+                        indexer,
+                        *featureColumnValuesHolder->GetArrayData<ui16>().GetSrc(),
+                        docInDataProviderIndexing,
+                        docInDataProviderBeginOffset,
+                        fold.NonCtrDataPermutationBlockSize,
+                        docIndexRange,
+                        singleIdx
+                    );
+                }
             } else {
                 Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
                 SetSingleIndex(
                     fold,
                     indexer,
                     *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
-                        ->GetArrayData().GetSrc()),
+                        ->GetArrayData<ui32>().GetSrc()),
                     docInDataProviderIndexing,
                     docInDataProviderBeginOffset,
                     fold.NonCtrDataPermutationBlockSize,
@@ -451,21 +465,30 @@ static void CalcStatsImpl(
                         GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
                     setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
                 } else if (splitCandidate.Type == ESplitType::FloatFeature) {
-                    const ui8* bucketSrcData =
-                        *((*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx))
-                            ->GetArrayData().GetSrc());
+                    const auto& featureColumnHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
                     const ui32* bucketIndexing
                         = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                    setOutput(
-                        [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                            return bucketSrcData[bucketIndexing[docIdx]];
-                        }
-                    );
+                    if (featureColumnHolder->GetBitsPerKey() == 8) {
+                        const ui8* bucketSrcData = *(featureColumnHolder->GetArrayData<ui8>().GetSrc());
+                        setOutput(
+                            [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                return bucketSrcData[bucketIndexing[docIdx]];
+                            }
+                        );
+                    } else {
+                        Y_ASSERT(featureColumnHolder->GetBitsPerKey() == 16);
+                        const ui16* bucketSrcData = *(featureColumnHolder->GetArrayData<ui16>().GetSrc());
+                        setOutput(
+                            [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                return bucketSrcData[bucketIndexing[docIdx]];
+                            }
+                        );
+                    }
                 } else {
                     Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
                     const ui32* bucketSrcData =
                         *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
-                            ->GetArrayData().GetSrc());
+                            ->GetArrayData<ui32>().GetSrc());
                     const ui32* bucketIndexing
                         = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
                     setOutput(

@@ -48,11 +48,7 @@ inline void ProcessFeatureForCalcHashes(
             );
         }
     } else {
-        NCB::TConstPtrArraySubset<typename IFeatureColumn::TValueType>(
-            dynamic_cast<const NCB::TCompressedValuesHolderImpl<IFeatureColumn>*>(getFeatureColumn())
-                ->GetArrayData().GetSrc(),
-            &featuresSubsetIndexing
-        ).ForEach(std::move(f));
+        dynamic_cast<const NCB::TCompressedValuesHolderImpl<IFeatureColumn>*>(getFeatureColumn())->ForEach(std::move(f), &featuresSubsetIndexing);
     }
 }
 
@@ -142,8 +138,8 @@ inline void CalcHashes(
             projBinaryFeatureValues,
             [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
             [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-            [feature, hashArr] (ui32 i, ui8 featureValue) {
-                const bool isTrueFeature = IsTrueHistogram(featureValue, (ui8)feature.SplitIdx);
+            [feature, hashArr] (ui32 i, ui16 featureValue) {
+                const bool isTrueFeature = IsTrueHistogram(featureValue, (ui16)feature.SplitIdx);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
             }
         );
