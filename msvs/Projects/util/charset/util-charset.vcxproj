@@ -79,7 +79,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\charset\all_charset.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\util\charset\wide_sse41.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\util\charset\wide_sse41.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE41__=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE41__=1 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
