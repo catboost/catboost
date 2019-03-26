@@ -10,15 +10,11 @@
 template <typename T>
 class TRegion {
 public:
-    using TValue = T;
-    using TIterator = T*;
-    using TConstIterator = const T*;
-
-    using value_type = TValue;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using iterator = TIterator;
-    using const_iterator = TConstIterator;
+    using value_type = T;
+    using reference = T&;
+    using const_reference = const T&;
+    using iterator = T*;
+    using const_iterator = const T*;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -75,27 +71,15 @@ public:
         return TRegion<T>(DataPtr + offset, size);
     }
 
-    inline reference front() noexcept {
+    inline reference front() const noexcept {
         return *begin();
     }
 
-    inline const_reference front() const noexcept {
-        return *cbegin();
-    }
-
-    inline reference back() noexcept {
+    inline reference back() const noexcept {
         return *rbegin();
     }
 
-    inline const_reference back() const noexcept {
-        return *crbegin();
-    }
-
-    inline const T* data() const noexcept {
-        return DataPtr;
-    }
-
-    inline T* data() noexcept {
+    inline T* data() const noexcept {
         return DataPtr;
     }
 
@@ -123,11 +107,7 @@ public:
         return (DataPtr == rhs.DataPtr) && (Len == rhs.Len);
     }
 
-    inline const_iterator begin() const noexcept {
-        return DataPtr;
-    }
-
-    inline iterator begin() noexcept {
+    inline iterator begin() const noexcept {
         return DataPtr;
     }
 
@@ -135,11 +115,7 @@ public:
         return DataPtr;
     }
 
-    inline const_iterator end() const noexcept {
-        return DataPtr + Len;
-    }
-
-    inline iterator end() noexcept {
+    inline iterator end() const noexcept {
         return DataPtr + Len;
     }
 
@@ -147,36 +123,23 @@ public:
         return DataPtr + Len;
     }
 
-    inline reverse_iterator rbegin() noexcept {
+    inline reverse_iterator rbegin() const noexcept {
         return reverse_iterator{DataPtr + Len};
-    }
-
-    inline const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator{DataPtr + Len};
     }
 
     inline const_reverse_iterator crbegin() const noexcept {
         return const_reverse_iterator{DataPtr + Len};
     }
 
-    inline reverse_iterator rend() noexcept {
+    inline reverse_iterator rend() const noexcept {
         return reverse_iterator{DataPtr};
-    }
-
-    inline const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator{DataPtr};
     }
 
     inline const_reverse_iterator crend() const noexcept {
         return const_reverse_iterator{DataPtr};
     }
 
-    inline const T& operator[](size_t idx) const noexcept {
-        Y_ASSERT(idx < Len);
-        return DataPtr[idx];
-    }
-
-    inline T& operator[](size_t idx) noexcept {
+    inline T& operator[](size_t idx) const noexcept {
         Y_ASSERT(idx < Len);
         return DataPtr[idx];
     }
