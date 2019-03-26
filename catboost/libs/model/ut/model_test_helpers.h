@@ -13,6 +13,6 @@ TFullModel SimpleAsymmetricModel();
 
 TFullModel MultiValueFloatModel();
 
-// Deterministically train model that has only 3 categoric features.
+// Deterministically train model that has only 3 categorical features.
 TFullModel TrainCatOnlyModel();
 

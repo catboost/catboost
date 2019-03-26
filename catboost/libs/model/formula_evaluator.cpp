@@ -232,7 +232,7 @@ Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr
         writePtr += 8;
         indexesPtr += 16;
     }
-#undef LOAD_LEAFS
+#undef GATHER_LEAFS
 #undef ADD_LEAFS
 }
 
@@ -565,67 +565,46 @@ inline void CalcNonSymmetricTreesSingle(
     }
 }
 
-TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock) {
-    const bool hasOneHots = !model.ObliviousTrees.OneHotFeatures.empty();
-    if (model.ObliviousTrees.IsOblivious()) {
-        if (model.ObliviousTrees.ApproxDimension == 1) {
-            if (docCountInBlock == 1) {
-                if (hasOneHots) {
-                    return CalcTreesSingleDocImpl<true, true>;
-                } else {
-                    return CalcTreesSingleDocImpl<true, false>;
-                }
+template <bool areTreesOblivious, bool isSingleDoc, bool IsSingleClassModel, bool NeedXorMask>
+struct CalcTreeFunctionInstantiationGetter {
+    TTreeCalcFunction operator()() {
+        if constexpr (areTreesOblivious) {
+            if constexpr (isSingleDoc) {
+                return CalcTreesSingleDocImpl<IsSingleClassModel, NeedXorMask>;
             } else {
-                if (hasOneHots) {
-                    return CalcTreesBlocked<true, true>;
-                } else {
-                    return CalcTreesBlocked<true, false>;
-                }
+                return CalcTreesBlocked<IsSingleClassModel, NeedXorMask>;
             }
         } else {
-            if (docCountInBlock == 1) {
-                if (hasOneHots) {
-                    return CalcTreesSingleDocImpl<false, true>;
-                } else {
-                    return CalcTreesSingleDocImpl<false, false>;
-                }
+            if constexpr (isSingleDoc) {
+                return CalcNonSymmetricTreesSingle<IsSingleClassModel, NeedXorMask>;
             } else {
-                if (hasOneHots) {
-                    return CalcTreesBlocked<false, true>;
-                } else {
-                    return CalcTreesBlocked<false, false>;
-                }
-            }
-        }
-    } else {
-        if (docCountInBlock == 1) {
-            if (model.ObliviousTrees.ApproxDimension == 1) {
-                if (hasOneHots) {
-                    return CalcNonSymmetricTreesSingle<true, true>;
-                } else {
-                    return CalcNonSymmetricTreesSingle<true, false>;
-                }
-            } else {
-                if (hasOneHots) {
-                    return CalcNonSymmetricTreesSingle<false, true>;
-                } else {
-                    return CalcNonSymmetricTreesSingle<false, false>;
-                }
-            }
-        } else {
-            if (model.ObliviousTrees.ApproxDimension == 1) {
-                if (hasOneHots) {
-                    return CalcNonSymmetricTreesSimple<true, true>;
-                } else {
-                    return CalcNonSymmetricTreesSimple<true, false>;
-                }
-            } else {
-                if (hasOneHots) {
-                    return CalcNonSymmetricTreesSimple<false, true>;
-                } else {
-                    return CalcNonSymmetricTreesSimple<false, false>;
-                }
+                return CalcNonSymmetricTreesSimple<IsSingleClassModel, NeedXorMask>;
             }
         }
     }
+};
+
+template <template <bool...> class TFunctor, bool... params>
+struct FunctorTemplateParamsSubstitutor {
+    static auto Call() {
+        return TFunctor<params...>()();
+    }
+
+    template <typename... Bools>
+    static auto Call(bool nextParam, Bools... lastParams) {
+        if (nextParam) {
+            return FunctorTemplateParamsSubstitutor<TFunctor, params..., true>::Call(lastParams...);
+        } else {
+            return FunctorTemplateParamsSubstitutor<TFunctor, params..., false>::Call(lastParams...);
+        }
+    }
+};
+
+TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock) {
+    const bool areTreesOblivious = model.ObliviousTrees.IsOblivious();
+    const bool isSingleDoc = (docCountInBlock == 1);
+    const bool IsSingleClassModel = (model.ObliviousTrees.ApproxDimension == 1);
+    const bool NeedXorMask = !model.ObliviousTrees.OneHotFeatures.empty();
+    return FunctorTemplateParamsSubstitutor<CalcTreeFunctionInstantiationGetter>::Call(
+            areTreesOblivious, isSingleDoc, IsSingleClassModel, NeedXorMask);
 }
