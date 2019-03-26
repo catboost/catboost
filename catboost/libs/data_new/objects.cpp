@@ -682,7 +682,40 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
     );
 }
 
-template <EFeatureType FeatureType, class T, class IColumn>
+template<class TCompressedColumnData>
+static ui32 CalcCompressedFeatureChecksum(ui32 checkSum, TCompressedColumnData& columnData) {
+    TConstCompressedArraySubset compressedDataSubset = columnData->GetCompressedData();
+
+    auto consecutiveSubsetBegin = compressedDataSubset.GetSubsetIndexing()->GetConsecutiveSubsetBegin();
+    const ui32 columnValuesBitWidth = columnData->GetBitsPerKey();
+    if (consecutiveSubsetBegin.Defined()) {
+        ui8 byteSize = columnValuesBitWidth / 8;
+        return UpdateCheckSum(
+            checkSum,
+            MakeArrayRef(
+                compressedDataSubset.GetSrc()->GetRawPtr() + *consecutiveSubsetBegin * byteSize,
+                compressedDataSubset.Size())
+        );
+    }
+
+    if (columnValuesBitWidth == 8) {
+        columnData->ForEach([&](ui32 /*idx*/, ui8 element) {
+            checkSum = UpdateCheckSum(checkSum, element);
+        });
+    } else if (columnValuesBitWidth == 16) {
+        columnData->ForEach([&](ui32 /*idx*/, ui16 element) {
+            checkSum = UpdateCheckSum(checkSum, element);
+        });
+    } else {
+        Y_ASSERT(columnValuesBitWidth == 32);
+        columnData->ForEach([&](ui32 /*idx*/, ui32 element) {
+            checkSum = UpdateCheckSum(checkSum, element);
+        });
+    }
+    return checkSum;
+}
+
+template <EFeatureType FeatureType, class IColumn>
 static ui32 CalcFeatureValuesCheckSum(
     ui32 init,
     const TFeaturesLayout& featuresLayout,
@@ -690,30 +723,22 @@ static ui32 CalcFeatureValuesCheckSum(
     NPar::TLocalExecutor* localExecutor)
 {
     const ui32 emptyColumnDataForCrc = 0;
-    TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), init);
+    TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
     ParallelFor(*localExecutor, 0, featuresLayout.GetFeatureCount(FeatureType), [&] (ui32 perTypeFeatureIdx) {
         if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
             auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
                 featuresData[perTypeFeatureIdx].Get()
             );
             if (compressedValuesFeatureData) {
-                if (compressedValuesFeatureData->GetBitsPerKey() == CHAR_BIT*sizeof(T)) {
-                    compressedValuesFeatureData->ForEach([&](ui32 /*idx*/, T element) {
-                        checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], (ui32)element);
-                    });
-                } else {
-                    compressedValuesFeatureData->ForEach([&](ui32 /*idx*/, ui32 element) {
-                        checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], element);
-                    });
-                }
+                checkSums[perTypeFeatureIdx] = CalcCompressedFeatureChecksum(0, compressedValuesFeatureData);
             } else {
                 const auto valuesFeatureData = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
                 for (auto element : *valuesFeatureData) {
-                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], element);
+                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, element);
                 }
             }
         } else {
-            checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], emptyColumnDataForCrc);
+            checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
         }
     });
     ui32 checkSum = init;
@@ -727,13 +752,13 @@ ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::TLocalExecut
     ui32 checkSum = 0;
 
     checkSum = Data.QuantizedFeaturesInfo->CalcCheckSum();
-    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Float, ui8>(
+    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Float>(
         checkSum,
         *CommonData.FeaturesLayout,
         Data.FloatFeatures,
         localExecutor
     );
-    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Categorical, ui32>(
+    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Categorical>(
         checkSum,
         *CommonData.FeaturesLayout,
         Data.CatFeatures,
