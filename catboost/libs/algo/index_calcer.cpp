@@ -34,7 +34,7 @@ static inline ui16 GetFeatureSplitIdx(const TSplit& split) {
 static inline const TVariant<const ui8*, const ui16*> GetFloatHistogram(
     const TSplit& split,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider) {
-    const auto& featureColumnHolder = *objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx);
+    const auto* featureColumnHolder = *objectsDataProvider.GetNonPackedFloatFeature((ui32)split.FeatureIdx);
     if (featureColumnHolder->GetBitsPerKey() == 8) {
         return *featureColumnHolder->GetArrayData<ui8>().GetSrc();
     } else {

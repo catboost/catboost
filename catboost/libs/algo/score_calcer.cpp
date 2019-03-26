@@ -465,7 +465,7 @@ static void CalcStatsImpl(
                         GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
                     setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
                 } else if (splitCandidate.Type == ESplitType::FloatFeature) {
-                    const auto& featureColumnHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
+                    const auto* featureColumnHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
                     const ui32* bucketIndexing
                         = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
                     if (featureColumnHolder->GetBitsPerKey() == 8) {
