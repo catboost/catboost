@@ -79,9 +79,14 @@ namespace NCatboostCuda {
         }
     }
 
-    inline bool HasCtrs(const TBinarizedFeaturesManager& featuresManager) {
+    inline bool HasPermutationFeatures(const TBinarizedFeaturesManager& featuresManager) {
         for (auto catFeature : featuresManager.GetCatFeatureIds()) {
             if (featuresManager.UseForCtr(catFeature) || featuresManager.UseForTreeCtr(catFeature)) {
+                return true;
+            }
+        }
+        for (auto estimatedFeatureId : featuresManager.GetEstimatedFeatureIds()) {
+            if (featuresManager.GetEstimatedFeature(estimatedFeatureId).EstimatorId.IsOnline) {
                 return true;
             }
         }
@@ -91,7 +96,7 @@ namespace NCatboostCuda {
     inline void UpdateGpuSpecificDefaults(NCatboostOptions::TCatBoostOptions& options,
                                           TBinarizedFeaturesManager& featuresManager) {
         //don't make several permutations in matrixnet-like mode if we don't have ctrs
-        if (!HasCtrs(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
+        if (!HasPermutationFeatures(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
             if (options.BoostingOptions->PermutationCount > 1) {
                 CATBOOST_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
             }
