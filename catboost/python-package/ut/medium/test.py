@@ -3903,6 +3903,7 @@ def test_model_comparison():
     # Check identity.
     assert model1 == model1
     assert not (model1 != model1)
+    assert model1 == model1.copy()
 
     # Check equality to other model.
     assert not (model1 == model2)

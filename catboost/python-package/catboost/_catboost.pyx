@@ -2288,7 +2288,7 @@ cdef class _CatBoost:
             del self.__test_evals[i]
 
     def __eq__(self, _CatBoost other):
-        return self.__model == other.__model
+        return dereference(self.__model) == dereference(other.__model)
 
     def __neq__(self, _CatBoost other):
         return self.__model != other.__model
