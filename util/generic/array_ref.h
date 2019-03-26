@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 
 /**
  * `TArrayRef` works pretty much like `std::span` with dynamic extent, presenting
@@ -31,6 +32,8 @@ public:
     using reference = T&;
     using const_reference = const T&;
     using value_type = T;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     constexpr inline TArrayRef() noexcept
         : T_(nullptr)
@@ -93,6 +96,30 @@ public:
 
     inline iterator end() const noexcept {
         return (T_ + S_);
+    }
+
+    inline const_iterator cbegin() const noexcept {
+        return T_;
+    }
+
+    inline const_iterator cend() const noexcept {
+        return (T_ + S_);
+    }
+
+    inline reverse_iterator rbegin() const noexcept {
+        return reverse_iterator(T_ + S_);
+    }
+
+    inline reverse_iterator rend() const noexcept {
+        return reverse_iterator(T_);
+    }
+
+    inline const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(T_ + S_);
+    }
+
+    inline const_reverse_iterator crend() const noexcept {
+        return const_reverse_terator(T_);
     }
 
     inline reference front() const noexcept {
