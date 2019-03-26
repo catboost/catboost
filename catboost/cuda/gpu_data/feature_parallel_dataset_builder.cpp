@@ -265,7 +265,7 @@ namespace NCatboostCuda {
                                                                             estimatorsExecutor,
                                                                             ds.PermutationDependentFeatures,
                                                                             testId);
-                    writer.Write(permutationIndependent);
+                    writer.Write(permutationDependent);
                     CATBOOST_DEBUG_LOG << "Feature estimators for permutation #" << permutationId << " is finished" << Endl;
                 }
             }

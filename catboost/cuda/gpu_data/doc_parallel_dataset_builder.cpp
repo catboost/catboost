@@ -196,7 +196,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         }
     }
 
-    if (permutationDependent.size()) {
+    if (!permutationDependent.empty()) {
         for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
             auto& ds = *dataSetsHolder.PermutationDataSets[permutationId];
             const TDataPermutation& ctrsEstimationPermutation = ds.GetCtrsEstimationPermutation();
@@ -237,7 +237,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                     TEstimatedFeaturesWriter<TDocParallelLayout> writer(FeaturesManager,
                                                                         compressedIndexBuilder,
                                                                         estimatorsExecutor,
-                                                                        permutationIndependentCompressedDataSetId,
+                                                                        ds.PermutationDependentFeatures,
                                                                         testId);
                     writer.Write(permutationDependent);
                 }
