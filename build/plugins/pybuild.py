@@ -425,6 +425,11 @@ def ontest_srcs(unit, *args):
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
 
 
+def onpy_doctests(unit, *args):
+    if unit.get('PY3TEST_BIN' if is_py3(unit) else 'PYTEST_BIN') != 'no':
+        unit.onresource(['-', 'PY_DOCTEST_PACKAGES="{}"'.format(' '.join(args))])
+
+
 def py_register(unit, func, py3):
     if py3:
         unit.on_py3_register([func])
