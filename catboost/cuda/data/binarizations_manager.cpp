@@ -24,7 +24,7 @@ namespace NCatboostCuda {
             const auto& featureMetaInfo = featuresMetaInfo[featureIdx];
             if (featureMetaInfo.Type == EFeatureType::Float) {
                 RegisterDataProviderFloatFeature(featureIdx);
-            } else {
+            } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
                 RegisterDataProviderCatFeature(featureIdx);
             }
         }
