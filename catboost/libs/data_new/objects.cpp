@@ -689,9 +689,9 @@ static ui32 CalcFeatureValuesCheckSum(
     const TVector<THolder<IColumn>>& featuresData,
     NPar::TLocalExecutor* localExecutor)
 {
-    ui32 checkSum = init;
     const ui32 emptyColumnDataForCrc = 0;
-    for (auto perTypeFeatureIdx : xrange(featuresLayout.GetFeatureCount(FeatureType))) {
+    TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), init);
+    ParallelFor(*localExecutor, 0, featuresLayout.GetFeatureCount(FeatureType), [&] (ui32 perTypeFeatureIdx) {
         if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
             auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
                 featuresData[perTypeFeatureIdx].Get()
@@ -699,22 +699,26 @@ static ui32 CalcFeatureValuesCheckSum(
             if (compressedValuesFeatureData) {
                 if (compressedValuesFeatureData->GetBitsPerKey() == CHAR_BIT*sizeof(T)) {
                     compressedValuesFeatureData->ForEach([&](ui32 /*idx*/, T element) {
-                        checkSum = UpdateCheckSum(checkSum, (ui32)element);
+                        checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], (ui32)element);
                     });
                 } else {
                     compressedValuesFeatureData->ForEach([&](ui32 /*idx*/, ui32 element) {
-                        checkSum = UpdateCheckSum(checkSum, element);
+                        checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], element);
                     });
                 }
             } else {
                 const auto valuesFeatureData = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
                 for (auto element : *valuesFeatureData) {
-                    checkSum = UpdateCheckSum(checkSum, element);
+                    checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], element);
                 }
             }
         } else {
-            checkSum = UpdateCheckSum(checkSum, emptyColumnDataForCrc);
+            checkSums[perTypeFeatureIdx] = UpdateCheckSum(checkSums[perTypeFeatureIdx], emptyColumnDataForCrc);
         }
+    });
+    ui32 checkSum = init;
+    for (ui32 featureCheckSum : checkSums) {
+        checkSum = UpdateCheckSum(checkSum, featureCheckSum);
     }
     return checkSum;
 }

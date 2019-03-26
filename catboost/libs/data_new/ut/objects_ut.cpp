@@ -939,9 +939,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> catFeatures = {{0x0, 0x02, 0x0F, 0x03}, {0xAB, 0xBF, 0x04, 0x20}};
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 2700874693},
-            {{false, true}, 2949642695},
-            {{true, true}, 1758775252}
+            {{true, false}, 2888281380},
+            {{false, true}, 943732322},
+            {{true, true}, 244536893}
         };
 
         TestFeatures(
@@ -996,9 +996,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> subsetCatFeatures = {{0x0, 0x01, 0x03, 0x02}, {0xAB, 0x78, 0x20, 0xBF}};
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 809224437},
-            {{false, true}, 448492502},
-            {{true, true}, 3297385430}
+            {{true, false}, 2708702742},
+            {{false, true}, 3703581869},
+            {{true, true}, 1880786149}
         };
 
 
@@ -1054,9 +1054,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         expectedCommonData.Order = EObjectsOrder::RandomShuffled;
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 4200673678},
-            {{false, true}, 3029707852},
-            {{true, true}, 656519240}
+            {{true, false}, 2060160121},
+            {{false, true}, 2069080253},
+            {{true, true}, 4103975122}
         };
 
         TestFeatures(
@@ -1127,9 +1127,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         };
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 517671692},
-            {{false, true}, 2005480375},
-            {{true, true}, 2162462396}
+            {{true, false}, 3826303646},
+            {{false, true}, 2879378935},
+            {{true, true}, 3492159461}
         };
 
         TestFeatures(
