@@ -257,7 +257,7 @@ namespace NCatboostCuda {
                     );
 
                     TMaybe<ui32> testId;
-                    if (LinkedTest) {
+                    if (LinkedTest && permutationId == 0) {
                         testId = testDataSetId;
                     }
                     TEstimatedFeaturesWriter<TFeatureParallelLayout> writer(FeaturesManager,
