@@ -1282,6 +1282,7 @@ CoreFoundation/CFLocale.h
 CoreFoundation/CFPreferences.h
 CoreFoundation/CFRunLoop.h
 CoreFoundation/CFString.h
+CoreFoundation/CFBase.h
 CoreFoundation/CoreFoundation.h
 CoreGraphics/CoreGraphics.h
 CoreText/CoreText.h
