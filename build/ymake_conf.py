@@ -1965,9 +1965,6 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         flags += ['/wd{}'.format(code) for code in warns_disabled]
         flags += self.tc.arch_opt
 
-        if self.tc.ide_msvs and self.tc.use_clang:
-            flags += ['-msse4.1', '-msse4.2']  # temporary solution
-
         flags_debug = ['/Ob0', '/Od', '/std:c++17'] + self._gen_defines(defines_debug)
         flags_release = ['/Ox', '/Ob2', '/Oi', '/std:c++17'] + self._gen_defines(defines_release)
 
