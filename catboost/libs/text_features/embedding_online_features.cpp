@@ -22,9 +22,12 @@ static inline void SolveLinearSystemCholesky(TArrayRef<double> matrix,
 inline double LogProbNormal(TConstArrayRef<double> x, TConstArrayRef<double> mu, TConstArrayRef<double> sigma) {
     const ui32 dim = x.size();
 
-    TVector<double> muCopy(mu.begin(), mu.end());
+    TVector<double> target(x.begin(), x.end());
+    for (ui32 i = 0; i < dim; ++i) {
+        target[i] -= mu[i];
+    }
     TVector<double> sigmaCopy(sigma.begin(), sigma.end());
-    SolveLinearSystemCholesky(sigmaCopy, muCopy);
+    SolveLinearSystemCholesky(sigmaCopy, target);
     double logDet = 0;
     for (ui32 i = 0; i < dim; ++i) {
         logDet += log(sigmaCopy[i * dim + i]);
@@ -32,7 +35,7 @@ inline double LogProbNormal(TConstArrayRef<double> x, TConstArrayRef<double> mu,
     Y_ASSERT(std::isfinite(logDet));
     double result = 0;
     for (ui32 i = 0; i < dim; ++i) {
-        result += mu[i] * muCopy[i];
+        result += (x[i] - mu[i]) * target[i];
     }
     result *= 0.5;
 
