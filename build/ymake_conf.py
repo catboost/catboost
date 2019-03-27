@@ -1974,14 +1974,6 @@ class MSVCCompiler(MSVC, Compiler):
         else:
             masm_io = '/nologo /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
 
-        if is_positive('USE_UWP'):
-            flags_cxx += ['/ZW', '/AI{vc_root}/lib/store/references'.format(vc_root=self.tc.vc_root)]
-            if self.tc.kit_includes:
-                flags.append('/I{kit_includes}/winrt'.format(kit_includes=self.tc.kit_includes))
-            win32_winnt = self.WIN32_WINNT.Windows8
-            defines.append('WINAPI_FAMILY=WINAPI_FAMILY_APP')
-            winapi_unicode = True
-
         emit('OBJECT_SUF', '$OBJ_SUF.obj')
         emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
         defines.append('{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
@@ -2131,8 +2123,6 @@ class MSVCLinker(MSVC, Linker):
             if self.tc.kit_libs:
                 libpaths.extend([os.path.join(self.tc.kit_libs, name, arch) for name in ('um', 'ucrt')])
             libpaths.append(os.path.join(self.tc.vc_root, 'lib', arch))
-            if is_positive('USE_UWP'):
-                libpaths.append(os.path.join(self.tc.vc_root, 'lib', 'store', 'references'))
 
         ignored_errors = [
             4221
