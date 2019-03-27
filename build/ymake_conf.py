@@ -1100,33 +1100,20 @@ class MSVCToolchainOptions(ToolchainOptions):
             # TODO(somov): Определять автоматически self.version в этом случае
 
         else:
-            if self.version_at_least(2017):
-                self.sdk_version = '10.0.16299.0'
-                sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
-            else:
-                self.sdk_version = '10.0.10586.0'
-                sdk_dir = '$(WINDOWS_KITS-sbr:544779014)'
+            self.sdk_version = '10.0.16299.0'
+            sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
 
             self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
             self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
             self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
 
-            bindir = os.path.join(self.vc_root, 'bin')
-            if self.version_at_least(2017):
-                bindir = os.path.join(bindir, 'Hostx64')
+            bindir = os.path.join(self.vc_root, 'bin', 'Hostx64')
 
-            if self.version_at_least(2017):
-                tools_name = select(selectors=[
-                    (build.target.is_i686, 'x86'),
-                    (build.target.is_x86_64, 'x64'),
-                    (build.target.is_arm, 'arm'),
-                ])
-            else:
-                tools_name = select(selectors=[
-                    (build.target.is_i686, 'amd64_x86'),
-                    (build.target.is_x86_64, 'amd64'),
-                    (build.target.is_arm, 'amd64_arm'),
-                ])
+            tools_name = select(selectors=[
+                (build.target.is_i686, 'x86'),
+                (build.target.is_x86_64, 'x64'),
+                (build.target.is_arm, 'arm'),
+            ])
 
             asm_name = select(selectors=[
                 (build.target.is_i686, 'ml.exe'),
@@ -2135,26 +2122,17 @@ class MSVCLinker(MSVC, Linker):
         linker = self.tc.link
         linker_lib = self.tc.lib
 
-        def get_arch():
-            if target.is_intel:
-                if target.is_32_bit:
-                    return 'X86', None, 'x86'
-                elif target.is_64_bit:
-                    return 'X64', 'amd64', 'x64'
-            elif target.is_arm and target.is_32_bit:
-                return 'ARM', 'arm', 'arm'
-
-            raise Exception('Unknown target platform {}'.format(str(target)))
-
-        machine, vc_lib_arch, kit_lib_arch = get_arch()
-        if self.tc.version_at_least(2017):
-            vc_lib_arch = kit_lib_arch
+        arch = select(no_default=True, selectors=(
+            (target.is_intel and target.is_32_bit, 'x86'),
+            (target.is_intel and target.is_64_bit, 'x64'),
+            (target.is_arm and target.is_32_bit, 'arm'),
+        ))
 
         libpaths = []
         if not self.tc.ide_msvs:
             if self.tc.kit_libs:
-                libpaths.extend([os.path.join(self.tc.kit_libs, name, kit_lib_arch) for name in ('um', 'ucrt')])
-            libpaths.append(os.path.join(*filter(None, [self.tc.vc_root, 'lib', vc_lib_arch])))
+                libpaths.extend([os.path.join(self.tc.kit_libs, name, arch) for name in ('um', 'ucrt')])
+            libpaths.append(os.path.join(self.tc.vc_root, 'lib', arch))
             if is_positive('USE_UWP'):
                 libpaths.append(os.path.join(self.tc.vc_root, 'lib', 'store', 'references'))
 
@@ -2162,7 +2140,7 @@ class MSVCLinker(MSVC, Linker):
             4221
         ]
 
-        flag_machine = '/MACHINE:{}'.format(machine)
+        flag_machine = '/MACHINE:{}'.format(arch.upper())
 
         flags_ignore = ['/IGNORE:{}'.format(code) for code in ignored_errors]
 

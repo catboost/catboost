@@ -20,7 +20,7 @@ namespace NCB {
     struct TEstimatedFeaturesMeta {
         ui32 FeaturesCount = 0;
         TMaybe<TVector<ui32>> UniqueValuesUpperBoundHint;
-        EFeatureCalculatorType Type;
+        TVector<EFeatureCalculatorType> Type;
     };
 
 

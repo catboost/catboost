@@ -283,5 +283,9 @@ enum class EFeatureCalculatorType {
 //    LinearModel,
 //    TfIdf,
 //    NGrams
-//    NaiveBayes
+    NaiveBayes,
+    BM25,
+    CosDistanceWithClassCenter,
+    GaussianHomoscedasticModel,
+    GaussianHeteroscedasticiModel
 };

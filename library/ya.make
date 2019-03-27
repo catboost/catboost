@@ -91,6 +91,8 @@ RECURSE(
     unittest/main
     unittest/ut
     yson
+    text_processing/dictionary/ut
+    text_processing/dictionary
 )
 
 IF (OS_LINUX)
