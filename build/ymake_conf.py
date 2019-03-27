@@ -1044,93 +1044,6 @@ class GnuToolchainOptions(ToolchainOptions):
             return 'ubuntu-12'
 
 
-class MSVCToolchainOptions(ToolchainOptions):
-    def __init__(self, build, detector):
-        super(MSVCToolchainOptions, self).__init__(build, detector)
-
-        # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.14.26428
-        self.vc_root = None
-
-        # C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0
-        self.kit_includes = None
-
-        # C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0
-        self.kit_libs = None
-
-        self.under_wine = 'wine' in self.params
-        self.system_msvc = 'system_msvc' in self.params
-        self.ide_msvs = 'ide_msvs' in self.params
-        self.use_clang = self.params.get('use_clang', False)
-        self.use_arcadia_toolchain = self.params.get('use_arcadia_toolchain', False)
-
-        self.sdk_version = None
-
-        if self.ide_msvs:
-            bindir = '$(VC_ExecutablePath_x64_x64)\\'
-            self.c_compiler = bindir + 'cl.exe'
-            self.cxx_compiler = self.c_compiler
-
-            self.link = bindir + 'link.exe'
-            self.lib = bindir + 'lib.exe'
-            self.masm_compiler = bindir + 'ml64.exe'
-
-            self.vc_root = None
-
-            sdk_dir = '$(WindowsSdkDir)'
-            self.sdk_version = '$(WindowsTargetPlatformVersion)'
-            self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
-            self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
-
-        elif detector:
-            self.masm_compiler = which('ml64.exe')
-            self.link = which('link.exe')
-            self.lib = which('lib.exe')
-
-            sdk_dir = os.environ.get('WindowsSdkDir')
-            self.sdk_version = os.environ.get('WindowsSDKVersion').replace('\\', '')
-            vc_install_dir = os.environ.get('VCToolsInstallDir')
-
-            if any([x is None for x in (sdk_dir, self.sdk_version, vc_install_dir)]):
-                raise ConfigureError('No %WindowsSdkDir%, %WindowsSDKVersion% or %VCINSTALLDIR% present. Please, run vcvars64.bat to setup preferred environment.')
-
-            self.vc_root = os.path.normpath(vc_install_dir)
-            self.kit_includes = os.path.normpath(os.path.join(sdk_dir, 'Include', self.sdk_version))
-            self.kit_libs = os.path.normpath(os.path.join(sdk_dir, 'Lib', self.sdk_version))
-
-            # TODO(somov): Определять автоматически self.version в этом случае
-
-        else:
-            self.sdk_version = '10.0.16299.0'
-            sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
-
-            self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
-            self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
-            self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
-
-            bindir = os.path.join(self.vc_root, 'bin', 'Hostx64')
-
-            tools_name = select(selectors=[
-                (build.target.is_i686, 'x86'),
-                (build.target.is_x86_64, 'x64'),
-                (build.target.is_arm, 'arm'),
-            ])
-
-            asm_name = select(selectors=[
-                (build.target.is_i686, 'ml.exe'),
-                (build.target.is_x86_64, 'ml64.exe'),
-                (build.target.is_arm, 'armasm.exe'),
-            ])
-
-            def prefix(_type, _path):
-                if not self.under_wine:
-                    return _path
-                return '{wine} {type} ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140', type=_type, path=_path)
-
-            self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
-            self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
-            self.lib = prefix('lib', os.path.join(bindir, tools_name, 'lib.exe'))
-
-
 class Toolchain(object):
     def __init__(self, tc, build):
         self.tc = tc
@@ -1819,6 +1732,93 @@ class LD(Linker):
         emit('PROFFLAG', '-pg')
 
 
+class MSVCToolchainOptions(ToolchainOptions):
+    def __init__(self, build, detector):
+        super(MSVCToolchainOptions, self).__init__(build, detector)
+
+        # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.14.26428
+        self.vc_root = None
+
+        # C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0
+        self.kit_includes = None
+
+        # C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0
+        self.kit_libs = None
+
+        self.under_wine = 'wine' in self.params
+        self.system_msvc = 'system_msvc' in self.params
+        self.ide_msvs = 'ide_msvs' in self.params
+        self.use_clang = self.params.get('use_clang', False)
+        self.use_arcadia_toolchain = self.params.get('use_arcadia_toolchain', False)
+
+        self.sdk_version = None
+
+        if self.ide_msvs:
+            bindir = '$(VC_ExecutablePath_x64_x64)\\'
+            self.c_compiler = bindir + 'cl.exe'
+            self.cxx_compiler = self.c_compiler
+
+            self.link = bindir + 'link.exe'
+            self.lib = bindir + 'lib.exe'
+            self.masm_compiler = bindir + 'ml64.exe'
+
+            self.vc_root = None
+
+            sdk_dir = '$(WindowsSdkDir)'
+            self.sdk_version = '$(WindowsTargetPlatformVersion)'
+            self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
+            self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
+
+        elif detector:
+            self.masm_compiler = which('ml64.exe')
+            self.link = which('link.exe')
+            self.lib = which('lib.exe')
+
+            sdk_dir = os.environ.get('WindowsSdkDir')
+            self.sdk_version = os.environ.get('WindowsSDKVersion').replace('\\', '')
+            vc_install_dir = os.environ.get('VCToolsInstallDir')
+
+            if any([x is None for x in (sdk_dir, self.sdk_version, vc_install_dir)]):
+                raise ConfigureError('No %WindowsSdkDir%, %WindowsSDKVersion% or %VCINSTALLDIR% present. Please, run vcvars64.bat to setup preferred environment.')
+
+            self.vc_root = os.path.normpath(vc_install_dir)
+            self.kit_includes = os.path.normpath(os.path.join(sdk_dir, 'Include', self.sdk_version))
+            self.kit_libs = os.path.normpath(os.path.join(sdk_dir, 'Lib', self.sdk_version))
+
+            # TODO(somov): Определять автоматически self.version в этом случае
+
+        else:
+            self.sdk_version = '10.0.16299.0'
+            sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
+
+            self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
+            self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
+            self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
+
+            bindir = os.path.join(self.vc_root, 'bin', 'Hostx64')
+
+            tools_name = select(selectors=[
+                (build.target.is_i686, 'x86'),
+                (build.target.is_x86_64, 'x64'),
+                (build.target.is_arm, 'arm'),
+            ])
+
+            asm_name = select(selectors=[
+                (build.target.is_i686, 'ml.exe'),
+                (build.target.is_x86_64, 'ml64.exe'),
+                (build.target.is_arm, 'armasm.exe'),
+            ])
+
+            def prefix(_type, _path):
+                if not self.under_wine:
+                    return _path
+                return '{wine} {type} ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140', type=_type, path=_path)
+
+            self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
+            self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
+            self.lib = prefix('lib', os.path.join(bindir, tools_name, 'lib.exe'))
+
+
 class MSVC(object):
     # noinspection PyPep8Naming
     class WIN32_WINNT(object):
@@ -1936,15 +1936,14 @@ class MSVCCompiler(MSVC, Compiler):
         defines_debug = ['_DEBUG']
         defines_release = ['NDEBUG']
 
-        print '''\
-MSVC_INLINE_OPTIMIZED=yes
-when ($MSVC_INLINE_OPTIMIZED == "yes") {
-    MSVC_INLINE_FLAG=/Zc:inline
-}
-when ($MSVC_INLINE_OPTIMIZED == "no") {
-    MSVC_INLINE_FLAG=/Zc:inline-
-}
-'''
+        emit_big('''
+            MSVC_INLINE_OPTIMIZED=yes
+            when ($MSVC_INLINE_OPTIMIZED == "yes") {
+                MSVC_INLINE_FLAG=/Zc:inline
+            }
+            when ($MSVC_INLINE_OPTIMIZED == "no") {
+                MSVC_INLINE_FLAG=/Zc:inline-
+            }''')
 
         flags = ['/nologo', '/Zm500', '/GR', '/bigobj', '/FC', '/EHs', '/errorReport:prompt', '$MSVC_INLINE_FLAG', '/DFAKEID=$CPP_FAKEID']
         flags += ['/we{}'.format(code) for code in warns_as_error]
@@ -2005,6 +2004,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         if not self.tc.ide_msvs:
             def include_flag(path):
                 return '{flag}"{path}"'.format(path=path, flag='/I' if not self.tc.use_clang else '-imsvc')
+
             for name in ('shared', 'ucrt', 'um', 'winrt'):
                 flags.append(include_flag(os.path.join(self.tc.kit_includes, name)))
             flags.append(include_flag(vc_include))
@@ -2060,17 +2060,16 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
         append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
 
-        print '''\
-when ($NO_OPTIMIZE == "yes") {{
-    OPTIMIZE = {no_opt}
-}}
-when ($NO_COMPILER_WARNINGS == "yes") {{
-    CFLAGS += {no_warn}
-}}
-when ($NO_WSHADOW == "yes") {{
-    CFLAGS += {no_shadow}
-}}
-'''.format(no_opt=' '.join(flags_no_optimize), no_warn=' '.join(flags_no_compiler_warnings), no_shadow=' '.join(flags_no_shadow))
+        emit_big('''
+            when ($NO_OPTIMIZE == "yes") {{
+                OPTIMIZE = {no_opt}
+            }}
+            when ($NO_COMPILER_WARNINGS == "yes") {{
+                CFLAGS += {no_warn}
+            }}
+            when ($NO_WSHADOW == "yes") {{
+                CFLAGS += {no_shadow}
+            }}'''.format(no_opt=' '.join(flags_no_optimize), no_warn=' '.join(flags_no_compiler_warnings), no_shadow=' '.join(flags_no_shadow)))
 
         emit('SFDL_FLAG', flags_sfdl)
         emit('WERROR_FLAG', flags_werror)
@@ -2083,26 +2082,25 @@ when ($NO_WSHADOW == "yes") {{
             emit('CL_WRAPPER')
             emit('ML_WRAPPER')
 
-        print '''\
-macro MSVC_FLAGS(Flags...) {
-    CFLAGS($Flags)
-}
+        emit_big('''
+            macro MSVC_FLAGS(Flags...) {
+                CFLAGS($Flags)
+            }
 
-macro _SRC_cpp(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
-}
+            macro _SRC_cpp(SRC, SRCFLAGS...) {
+                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+            }
 
-macro _SRC_c(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
-}
+            macro _SRC_c(SRC, SRCFLAGS...) {
+                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+            }
 
-macro _SRC_m(SRC, SRCFLAGS...) {
-}
+            macro _SRC_m(SRC, SRCFLAGS...) {
+            }
 
-macro _SRC_masm(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
-}
-'''
+            macro _SRC_masm(SRC, SRCFLAGS...) {
+                .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ''' + masm_io + ''' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}
+            }''')
 
     @staticmethod
     def _gen_defines(defines):
@@ -2226,25 +2224,24 @@ class MSVCLinker(MSVC, Linker):
              '-t $MODULE_TYPE $NO_GPL_FLAG -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS}',
              )
 
-        print '''\
-when ($EXPORTS_FILE) {
-    EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
-}
+        emit_big('''
+            when ($EXPORTS_FILE) {
+                EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
+            }
 
-LINK_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
-${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}
+            LINK_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
+            ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}
 
-LINK_EXE=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} \
-${LINK_EXTRA_OUTPUT} ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
-${qe;rootrel:PEERS} ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+            LINK_EXE=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_EXE_CMD} /OUT:${qe;rootrel:TARGET} \
+            ${LINK_EXTRA_OUTPUT} ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
+            ${qe;rootrel:PEERS} ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
-LINK_DYN_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
-/DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
-${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
-$LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
+            LINK_DYN_LIB=${GENERATE_MF} && ${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LINK_WRAPPER} ${LINK_WRAPPER_DYNLIB} ${LINK_EXE_CMD} \
+            /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
+            ${qe;rootrel:SRCS_GLOBAL} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+            $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
-LINK_FAT_OBJECT=${GENERATE_MF} && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}
-'''
+            LINK_FAT_OBJECT=${GENERATE_MF} && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}''')
 
 
 # TODO(somov): Rename!
