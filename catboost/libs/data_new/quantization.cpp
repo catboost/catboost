@@ -1047,6 +1047,9 @@ namespace NCB {
             const bool clearSrcObjectsData = clearSrcData &&
                 (rawDataProvider->ObjectsData->RefCount() <= 1);
 
+            const bool bundleExclusiveFeatures =
+                options.CpuCompatibleFormat && options.BundleExclusiveFeaturesForCpu;
+
             TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
 
             // already composed with rawDataProvider's Subset
@@ -1105,7 +1108,7 @@ namespace NCB {
                 );
 
                 const bool calcBordersAndNanModeOnlyInProcessFloatFeatures =
-                    calcBordersAndNanModeOnly || options.BundleExclusiveFeatures;
+                    calcBordersAndNanModeOnly || bundleExclusiveFeatures;
 
                 featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
                     [&] (TFloatFeatureIdx floatFeatureIdx) {
@@ -1137,7 +1140,7 @@ namespace NCB {
                                     // binary features are binarized later by packs
                                     if (clearSrcObjectsData &&
                                         (calcBordersAndNanModeOnly ||
-                                         (!options.BundleExclusiveFeatures &&
+                                         (!bundleExclusiveFeatures &&
                                           !IsFloatFeatureToBeBinarized(
                                               options,
                                               *quantizedFeaturesInfo,
@@ -1173,8 +1176,8 @@ namespace NCB {
                                             *srcCatFeatureHolder,
                                             options,
                                             clearSrcObjectsData,
-                                            /*updatePerfectHashOnly*/ options.BundleExclusiveFeatures,
-                                            /*mapMostFrequentValueTo0*/ options.BundleExclusiveFeatures,
+                                            /*updatePerfectHashOnly*/ bundleExclusiveFeatures,
+                                            /*mapMostFrequentValueTo0*/ bundleExclusiveFeatures,
                                             subsetIndexing.Get(),
                                             quantizedFeaturesInfo,
                                             &(data->ObjectsData.Data.CatFeatures[*catFeatureIdx])
@@ -1183,7 +1186,7 @@ namespace NCB {
                                         // exclusive features are bundled later by bundle,
                                         // binary features are binarized later by packs
                                         if (clearSrcObjectsData &&
-                                            (!options.BundleExclusiveFeatures &&
+                                            (!bundleExclusiveFeatures &&
                                               !IsCatFeatureToBeBinarized(
                                                   options,
                                                   *quantizedFeaturesInfo,
@@ -1214,7 +1217,7 @@ namespace NCB {
             data->ObjectsData.Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
 
 
-            if (options.BundleExclusiveFeatures) {
+            if (bundleExclusiveFeatures) {
                 data->ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
                     *(data->ObjectsData.Data.QuantizedFeaturesInfo),
                     CreateExclusiveFeatureBundles(
@@ -1245,7 +1248,7 @@ namespace NCB {
                     true
                 );
 
-                if (options.BundleExclusiveFeatures) {
+                if (bundleExclusiveFeatures) {
                     ScheduleBundleFeatures(
                         *(srcObjectsCommonData.SubsetIndexing),
                         clearSrcObjectsData,
@@ -1257,7 +1260,7 @@ namespace NCB {
                     );
 
                     /*
-                     * call it only if options.BundleExclusiveFeatures because otherwise they've already been
+                     * call it only if bundleExclusiveFeatures because otherwise they've already been
                      * created during Process(Float|Cat)Feature calls above
                      */
                     ScheduleNonBundledAndNonBinaryFeatures(

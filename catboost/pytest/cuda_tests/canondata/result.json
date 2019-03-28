@@ -399,43 +399,43 @@
     ],
     "test_gpu.test_cv_for_pairs[Ordered]": [
         {
-            "checksum": "0e8447a8aab48f2a892f3cf8fb6e69eb",
+            "checksum": "c19ddd10d17b93d0493370f33bc46a96",
             "uri": "file://test_gpu.test_cv_for_pairs_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Plain-inverted]": [
         {
-            "checksum": "65384878ff0aba8f7d3a537ecf87cf34",
+            "checksum": "e4af9c2d20419c110763c757f2adf2e2",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Plain]": [
         {
-            "checksum": "b6ff54a169e940da7b321978f789f4ca",
+            "checksum": "ccc621d2293f75cf4cd5997da92fc68f",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered-inverted]": [
         {
-            "checksum": "c125f1185f6d6f746c0fea057b9476d3",
+            "checksum": "e1d3c2cc9ccb04b8109fa4d7ab44b863",
             "uri": "file://test_gpu.test_cv_for_query_Ordered-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered]": [
         {
-            "checksum": "947f5dab6194009e37a8e95e8445d45e",
+            "checksum": "b8734ac58709f81877efe7049d37ba0f",
             "uri": "file://test_gpu.test_cv_for_query_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Plain-inverted]": [
         {
-            "checksum": "86b015acbedb1c22a885dad3ef21ca78",
+            "checksum": "9ca01f7ecb23e35c7899a9064c4a43fd",
             "uri": "file://test_gpu.test_cv_for_query_Plain-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Plain]": [
         {
-            "checksum": "4e57b099838327e3d42837ec28a5c150",
+            "checksum": "c53e5f2ac56385f4aa81b8cb61928f63",
             "uri": "file://test_gpu.test_cv_for_query_Plain_/test.eval"
         }
     ],
@@ -1046,7 +1046,7 @@
         "uri": "file://test_gpu.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
     "test_gpu.test_fstr[Ordered-PredictionValuesChange]": {
-        "checksum": "4ba8c114e8a69ed174c507fe0a28d262",
+        "checksum": "fcce5f47096782981ee416bae88ef486",
         "uri": "file://test_gpu.test_fstr_Ordered-PredictionValuesChange_/fstr.tsv"
     },
     "test_gpu.test_fstr[Ordered-ShapValues]": {
@@ -1054,19 +1054,19 @@
         "uri": "file://test_gpu.test_fstr_Ordered-ShapValues_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-Interaction]": {
-        "checksum": "8c342f2faea217888a9922908807c638",
+        "checksum": "a745d65ef2eda889b2c12cd2b96f5f53",
         "uri": "file://test_gpu.test_fstr_Plain-Interaction_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-InternalFeatureImportance]": {
-        "checksum": "c511164d2f737eb452f88ac88a858187",
+        "checksum": "577824903121c1b214e00d323f7dc49d",
         "uri": "file://test_gpu.test_fstr_Plain-InternalFeatureImportance_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-InternalInteraction]": {
-        "checksum": "3cc889dc36cd00739f4c5501a50851f9",
+        "checksum": "987b04fff4eac2c3136cf86988b34a25",
         "uri": "file://test_gpu.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-PredictionValuesChange]": {
-        "checksum": "073db38ad8d270a9cbfdc6cc11022ae3",
+        "checksum": "eb4aeaca0c34ccb9d7ee9eb57e58c9f6",
         "uri": "file://test_gpu.test_fstr_Plain-PredictionValuesChange_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-ShapValues]": {
@@ -1087,37 +1087,37 @@
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain]": [
         {
-            "checksum": "b6c44e68a9e8dfa73210ea2ca044b13c",
+            "checksum": "f00df0464326e663c1e37aead8bd81b4",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=PairLogit_eval_metric=PairAccuracy_boosting_type=Plain_/test.eval"
         }
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "2009ef528437ff3d24a791d20b3c774b",
+            "checksum": "7a06b4591a9ad365839362ced51ce103",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
         }
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain]": [
         {
-            "checksum": "9697ac20d3438ffcf5ee6f66301cf5fd",
+            "checksum": "5e473cf9ca13bad867f2b9ca009b8aa5",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/test.eval"
         }
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered]": [
         {
-            "checksum": "9dd16dd3b1533339ae9df7166277e52f",
+            "checksum": "05155d02479422f07bfe08f6cae411eb",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Ordered_/test.eval"
         }
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "a995e8a50768f15477735294001bbf21",
+            "checksum": "5eb5b10688ced855a51bf9173c94c501",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=QueryRMSE_eval_metric=NDCG_boosting_type=Plain_/test.eval"
         }
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "25def7ce0ebba4478a60b01b9d0c3e97",
+            "checksum": "1d1584791ffc24470a8b43f795bcfe25",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
         }
     ],
@@ -1443,7 +1443,7 @@
     ],
     "test_gpu.test_pairlogit_no_target[Ordered]": [
         {
-            "checksum": "40dfbd0a4e33c67a617d310909c1b9e2",
+            "checksum": "6191b9bfde08534b3cd8eb9d2936926b",
             "uri": "file://test_gpu.test_pairlogit_no_target_Ordered_/test.eval"
         }
     ],

@@ -51,7 +51,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 quantizationOptions.PackBinaryFeaturesForCpu = packBinaryFeatures;
 
                 for (auto bundleExclusiveFeatures : bundleExclusiveFeaturesVariants) {
-                    quantizationOptions.BundleExclusiveFeatures = bundleExclusiveFeatures;
+                    quantizationOptions.BundleExclusiveFeaturesForCpu = bundleExclusiveFeatures;
 
                     for (auto clearSrcData : {false, true}) {
                         TTestCase testCase = generateTestCase(packBinaryFeatures);

@@ -111,6 +111,14 @@ namespace NCB {
                  */
                 quantizationOptions.CpuCompatibleFormat
                     = srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() != 0;
+                if (quantizationOptions.CpuCompatibleFormat) {
+                    /* don't spend time on bundling preprocessing because it won't be used
+                     *
+                     * TODO(akhropov): maybe there are cases where CPU RAM usage reduction is more important
+                     *    than calculation speed so it should be enabled
+                     */
+                    quantizationOptions.BundleExclusiveFeaturesForCpu = false;
+                }
             }
             quantizationOptions.CpuRamLimit
                 = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
