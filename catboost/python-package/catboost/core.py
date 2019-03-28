@@ -1860,8 +1860,8 @@ class CatBoostClassifier(CatBoost):
     depth : int, [default=6]
         Depth of a tree. All trees are the same depth.
         range: [1,+inf]
-    l2_leaf_reg : int, [default=3]
-        L2 regularization term on weights.
+    l2_leaf_reg : float, [default=3.0]
+        Coefficient at the L2 regularization term of the cost function.
         range: [0,+inf]
     model_size_reg : float, [default=None]
         Model size regularization coefficient.
