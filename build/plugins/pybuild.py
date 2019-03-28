@@ -140,19 +140,18 @@ def onpy_srcs(unit, *args):
     # and "modname" will be used as a module name.
 
     py3 = is_py3(unit)
+    with_py = not unit.get('PYBUILD_NO_PY')
+    with_pyc = not unit.get('PYBUILD_NO_PYC')
 
-    if py3:
-        if '/contrib/tools/python3/src/Lib' not in unit.path():
-            unit.onpeerdir(['contrib/libs/python'])
+    if '/contrib/tools/python' not in unit.path():
+        unit.onpeerdir(['contrib/libs/python'])
 
+        if py3:
             if '/library/python/runtime_py3' not in unit.path():
                 unit.onpeerdir(['library/python/runtime_py3'])
-    else:
-        if '/contrib/tools/python/src/Lib' not in unit.path():
-            unit.onpeerdir(['contrib/libs/python'])
-
-        if '/library/python/runtime' not in unit.path():
-            unit.onpeerdir(['library/python/runtime'])
+        else:
+            if '/library/python/runtime' not in unit.path():
+                unit.onpeerdir(['library/python/runtime'])
 
     is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
     if is_program:
@@ -330,28 +329,30 @@ def onpy_srcs(unit, *args):
 
         if py3:
             for path, mod in pys:
-                root_rel_path = rootrel_arc_src(path, unit)
-                unit.onpy3_compile_bytecode([root_rel_path + '-', path])
                 dest = 'py/' + mod.replace('.', '/') + '.py'
-                res += [
-                    'DEST', dest, path,
-                    'DEST', dest + '.yapyc3', path + '.yapyc3'
-                ]
+                if with_py:
+                    res += ['DEST', dest, path]
+                if with_pyc:
+                    root_rel_path = rootrel_arc_src(path, unit)
+                    unit.onpy3_compile_bytecode([root_rel_path + '-', path])
+                    res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
             #add_python_lint_checks(unit, [path for path, mod in pys])
         else:
             for path, mod in pys:
                 root_rel_path = rootrel_arc_src(path, unit)
-                src = unit.resolve_arc_path(path) or path
-                dst = tobuilddir(src) + '.yapyc'
-                unit.onpy_compile_bytecode([root_rel_path + '-', src])
-                key = '/py_modules/' + mod
-                res += [
-                    path, key,
-                    '-', 'resfs/src/{}={}'.format(key, root_rel_path),
-                    dst, '/py_code/' + mod,
-                ]
+                if with_py:
+                    key = '/py_modules/' + mod
+                    res += [
+                        path, key,
+                        '-', 'resfs/src/{}={}'.format(key, root_rel_path),
+                    ]
+                if with_pyc:
+                    src = unit.resolve_arc_path(path) or path
+                    dst = tobuilddir(src) + '.yapyc'
+                    unit.onpy_compile_bytecode([root_rel_path + '-', src])
+                    res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
             add_python_lint_checks(unit, [path for path, mod in pys])
