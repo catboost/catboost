@@ -11,7 +11,7 @@ PEERDIR(
 
 IF (MUSL)
     PEERDIR(
-        library/python/pythonapi
+        library/python/symbols/python
     )
 ENDIF()
 
