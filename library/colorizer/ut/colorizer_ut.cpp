@@ -26,7 +26,7 @@ Y_UNIT_TEST_SUITE(ColorizerTest) {
     }
 
     Y_UNIT_TEST(PrintAnsi) {
-        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(ToString(NColorizer::BLUE)), "\\x1B[0;34m");
+        UNIT_ASSERT_STRINGS_EQUAL(EscapeC(ToString(NColorizer::BLUE)), "\\x1B[0m\\x1B[0;34m");
         {
             TString str;
             TStringOutput sink{str};
@@ -45,7 +45,7 @@ Y_UNIT_TEST_SUITE(ColorizerTest) {
 
             sink << NColorizer::BLUE << "foo!" << NColorizer::RESET;
 
-            UNIT_ASSERT_STRINGS_EQUAL(EscapeC(str), "\\x1B[0;34mfoo!\\x1B[0m");  // TStringOutput is not tty
+            UNIT_ASSERT_STRINGS_EQUAL(EscapeC(str), "\\x1B[0m\\x1B[0;34mfoo!\\x1B[0m");  // TStringOutput is not tty
         }
     }
 }

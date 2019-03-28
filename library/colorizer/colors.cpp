@@ -75,62 +75,64 @@ namespace {
             case BG_WHITE:
                 return AsStringBuf("\033[47m");
 
+            // Note: the following codes are split into two escabe sequences because of how ya.make handles them.
+
             case DEFAULT:
-                return AsStringBuf("\033[0;39m");
+                return AsStringBuf("\033[0m\033[0;39m");
             case BLACK:
-                return AsStringBuf("\033[0;30m");
+                return AsStringBuf("\033[0m\033[0;30m");
             case RED:
-                return AsStringBuf("\033[0;31m");
+                return AsStringBuf("\033[0m\033[0;31m");
             case GREEN:
-                return AsStringBuf("\033[0;32m");
+                return AsStringBuf("\033[0m\033[0;32m");
             case YELLOW:
-                return AsStringBuf("\033[0;33m");
+                return AsStringBuf("\033[0m\033[0;33m");
             case BLUE:
-                return AsStringBuf("\033[0;34m");
+                return AsStringBuf("\033[0m\033[0;34m");
             case MAGENTA:
-                return AsStringBuf("\033[0;35m");
+                return AsStringBuf("\033[0m\033[0;35m");
             case CYAN:
-                return AsStringBuf("\033[0;36m");
+                return AsStringBuf("\033[0m\033[0;36m");
             case WHITE:
-                return AsStringBuf("\033[0;37m");
+                return AsStringBuf("\033[0m\033[0;37m");
 
             case LIGHT_DEFAULT:
-                return AsStringBuf("\033[1;39m");
+                return AsStringBuf("\033[0m\033[1;39m");
             case LIGHT_BLACK:
-                return AsStringBuf("\033[1;30m");
+                return AsStringBuf("\033[0m\033[1;30m");
             case LIGHT_RED:
-                return AsStringBuf("\033[1;31m");
+                return AsStringBuf("\033[0m\033[1;31m");
             case LIGHT_GREEN:
-                return AsStringBuf("\033[1;32m");
+                return AsStringBuf("\033[0m\033[1;32m");
             case LIGHT_YELLOW:
-                return AsStringBuf("\033[1;33m");
+                return AsStringBuf("\033[0m\033[1;33m");
             case LIGHT_BLUE:
-                return AsStringBuf("\033[1;34m");
+                return AsStringBuf("\033[0m\033[1;34m");
             case LIGHT_MAGENTA:
-                return AsStringBuf("\033[1;35m");
+                return AsStringBuf("\033[0m\033[1;35m");
             case LIGHT_CYAN:
-                return AsStringBuf("\033[1;36m");
+                return AsStringBuf("\033[0m\033[1;36m");
             case LIGHT_WHITE:
-                return AsStringBuf("\033[1;37m");
+                return AsStringBuf("\033[0m\033[1;37m");
 
             case DARK_DEFAULT:
-                return AsStringBuf("\033[2;39m");
+                return AsStringBuf("\033[0m\033[2;39m");
             case DARK_BLACK:
-                return AsStringBuf("\033[2;30m");
+                return AsStringBuf("\033[0m\033[2;30m");
             case DARK_RED:
-                return AsStringBuf("\033[2;31m");
+                return AsStringBuf("\033[0m\033[2;31m");
             case DARK_GREEN:
-                return AsStringBuf("\033[2;32m");
+                return AsStringBuf("\033[0m\033[2;32m");
             case DARK_YELLOW:
-                return AsStringBuf("\033[2;33m");
+                return AsStringBuf("\033[0m\033[2;33m");
             case DARK_BLUE:
-                return AsStringBuf("\033[2;34m");
+                return AsStringBuf("\033[0m\033[2;34m");
             case DARK_MAGENTA:
-                return AsStringBuf("\033[2;35m");
+                return AsStringBuf("\033[0m\033[2;35m");
             case DARK_CYAN:
-                return AsStringBuf("\033[2;36m");
+                return AsStringBuf("\033[0m\033[2;36m");
             case DARK_WHITE:
-                return AsStringBuf("\033[2;37m");
+                return AsStringBuf("\033[0m\033[2;37m");
         }
     }
 }
