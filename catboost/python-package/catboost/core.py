@@ -2100,6 +2100,14 @@ class CatBoostClassifier(CatBoost):
         Used only for learning speed tuning.
         Changing this parameter can affect results due to numerical accuracy differences
 
+    dev_efb_max_buckets : int, [default=1024]
+        CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
+        Used only for learning speed tuning.
+
+    efb_max_conflict_fraction : float, [default=0.0]
+        CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+        Should be a real value in [0, 1) interval.
+
     max_depth : int, Synonym for depth.
 
     n_estimators : int, synonym for iterations.
@@ -2207,6 +2215,8 @@ class CatBoostClassifier(CatBoost):
         subsample=None,
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
+        dev_efb_max_buckets=None,
+        efb_max_conflict_fraction=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -2586,6 +2596,8 @@ class CatBoostRegressor(CatBoost):
         subsample=None,
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
+        dev_efb_max_buckets=None,
+        efb_max_conflict_fraction=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,

@@ -1241,7 +1241,25 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       5000000
+#' 
+#'   \item dev_efb_max_buckets
 #'
+#'       CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536. 
+#'       Used only for learning speed tuning.
+#'       
+#'       Default value:
+#'
+#'       1024
+#' 
+#'   \item efb_max_conflict_fraction
+#' 
+#'      CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+#'      Should be a real value in [0, 1) interval.
+#' 
+#'      Default value:
+#' 
+#'      0.0
+#' 
 #'    \item leaf_estimation_backtracking
 #'
 #'        Type of backtracking during gradient descent.

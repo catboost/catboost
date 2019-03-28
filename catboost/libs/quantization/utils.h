@@ -56,6 +56,30 @@ namespace NCB {
         }
     }
 
+    template <typename TQuantizedBin>
+    inline TQuantizedBin Quantize(ui32 featureIdx,
+                                  bool allowNans,
+                                  ENanMode nanMode,
+                                  TConstArrayRef<float> borders,
+                                  float srcValue) {
+
+        if (IsNan(srcValue)) {
+            CB_ENSURE(
+                allowNans,
+                "There are NaNs in test dataset (feature number "
+                << featureIdx << ") but there were no NaNs in learn dataset"
+            );
+            return (nanMode == ENanMode::Max) ? borders.size() : 0;
+        } else {
+            size_t i = 0;
+            while (i < borders.size() && srcValue > borders[i]) {
+                ++i;
+            }
+            return static_cast<TQuantizedBin>(i);
+        }
+    }
+
+
     template <class TArrayLike, typename TQuantizedBin>
     void Quantize(TArraySubset<TArrayLike, ui32> srcFeatureData,
                   bool allowNans,
@@ -68,21 +92,12 @@ namespace NCB {
                   NPar::TLocalExecutor* localExecutor) {
 
         srcFeatureData.ParallelForEach(
-            [=, &quantizedData] (ui32 idx, float srcValue) {
-                if (IsNan(srcValue)) {
-                    CB_ENSURE(
-                        allowNans,
-                        "There are NaNs in test dataset (feature number "
-                        << featureIdx << ") but there were no NaNs in learn dataset"
-                    );
-                    quantizedData[idx] = (nanMode == ENanMode::Max) ? borders.size() : 0;
-                } else {
-                    size_t i = 0;
-                    while (i < borders.size() && srcValue > borders[i]) {
-                        ++i;
-                    }
-                    quantizedData[idx] = static_cast<TQuantizedBin>(i);
-                }
+            [=] (ui32 idx, float srcValue) {
+                quantizedData[idx] = Quantize<TQuantizedBin>(featureIdx,
+                                                             allowNans,
+                                                             nanMode,
+                                                             borders,
+                                                             srcValue);
             },
             localExecutor,
             BINARIZATION_BLOCK_SIZE

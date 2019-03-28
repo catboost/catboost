@@ -594,6 +594,23 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
                 (*plainJsonPtr)["dev_score_calc_obj_block_size"] = size;
             });
 
+    parser.AddLongOption("dev-efb-max-buckets",
+                         "CPU only. Maximum bucket count in exclusive features bundle. "
+                         "Should be in an integer between 0 and 65536. "
+                         "Used only for learning speed tuning.")
+            .RequiredArgument("INT")
+            .Handler1T<int>([plainJsonPtr](int maxBuckets) {
+                (*plainJsonPtr)["dev_efb_max_buckets"] = maxBuckets;
+            });
+
+    parser.AddLongOption("efb-max-conflict-fraction",
+                         "CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle."
+                         "Should be a real value in [0, 1) interval.")
+            .RequiredArgument("float")
+            .Handler1T<float>([plainJsonPtr](float fraction) {
+                (*plainJsonPtr)["efb_max_conflict_fraction"] = fraction;
+            });
+
     parser.AddLongOption("random-strength")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float randomStrength) {

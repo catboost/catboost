@@ -238,7 +238,7 @@
         "uri": "file://test.test_predict_sklearn_regress_GPU_/model.bin"
     },
     "test.test_priors[GPU]": {
-        "checksum": "1d77ec6223e47c0b5bc20a2537f5db89",
+        "checksum": "313e200682de4b0f9b3ad0da6168d28d",
         "uri": "file://test.test_priors_GPU_/model.bin"
     },
     "test.test_roc[GPU]": [

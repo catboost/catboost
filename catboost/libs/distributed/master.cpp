@@ -107,17 +107,19 @@ template <typename TScoreCalcMapper, typename TGetScore>
 void MapGenericCalcScore(
     TGetScore getScore,
     double scoreStDev,
-    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx) {
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+
+    auto& candidateList = candidatesContext->CandidateList;
+
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
     auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(
         workerCount,
         ctx->SharedTrainData,
-        MakeEnvelope(*candidateList));
-    const int candidateCount = candidateList->ysize();
+        MakeEnvelope(candidateList));
+    const int candidateCount = candidateList.ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
     // set best split for each candidate
     NPar::ParallelFor(
@@ -125,7 +127,7 @@ void MapGenericCalcScore(
         0,
         candidateCount,
         [&] (int candidateIdx) {
-            auto& subCandidates = (*candidateList)[candidateIdx].Candidates;
+            auto& subCandidates = candidateList[candidateIdx].Candidates;
             const int subcandidateCount = subCandidates.ysize();
             TVector<TVector<double>> allScores(subcandidateCount);
             for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
@@ -138,7 +140,7 @@ void MapGenericCalcScore(
                 const auto& splitInfo = subCandidates[subcandidateIdx];
                 allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
             }
-            SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, perPackMasks, &subCandidates);
+            SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, *candidatesContext, &subCandidates);
         });
 }
 
@@ -146,8 +148,7 @@ void MapGenericCalcScore(
 void MapCalcScore(
     double scoreStDev,
     int depth,
-    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx) {
 
     const auto& plainFold = ctx->LearnProgress.Folds[0];
@@ -162,37 +163,39 @@ void MapCalcScore(
                 plainFold.GetLearnSampleCount(),
                 ctx->Params));
     };
-    MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, perPackMasks, candidateList, ctx);
+    MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidatesContext, ctx);
 }
 
 template <typename TBinCalcMapper, typename TScoreCalcMapper>
 void MapGenericRemoteCalcScore(
     double scoreStDev,
-    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx) {
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+
+    auto& candidateList = candidatesContext->CandidateList;
+
     NPar::TJobDescription job;
-    NPar::Map(&job, new TBinCalcMapper(), candidateList);
+    NPar::Map(&job, new TBinCalcMapper(), &candidateList);
     NPar::RemoteMap(&job, new TScoreCalcMapper);
     NPar::TJobExecutor exec(&job, ctx->SharedTrainData);
     TVector<typename TScoreCalcMapper::TOutput> allScores;
     exec.GetRemoteMapResults(&allScores);
     // set best split for each candidate
-    const int candidateCount = candidateList->ysize();
+    const int candidateCount = candidateList.ysize();
     Y_ASSERT(candidateCount == allScores.ysize());
     const ui64 randSeed = ctx->Rand.GenRand();
     ctx->LocalExecutor->ExecRange(
         [&] (int candidateIdx) {
-            auto& candidates = (*candidateList)[candidateIdx].Candidates;
+            auto& candidates = candidateList[candidateIdx].Candidates;
             Y_VERIFY(candidates.size() > 0);
 
             SetBestScore(
                 randSeed + candidateIdx,
                 allScores[candidateIdx],
                 scoreStDev,
-                perPackMasks,
+                *candidatesContext,
                 &candidates);
         },
         0,
@@ -202,27 +205,23 @@ void MapGenericRemoteCalcScore(
 
 void MapRemotePairwiseCalcScore(
     double scoreStDev,
-    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx) {
 
     MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(
         scoreStDev,
-        perPackMasks,
-        candidateList,
+        candidatesContext,
         ctx);
 }
 
 void MapRemoteCalcScore(
     double scoreStDev,
-    TConstArrayRef<TBinaryFeaturesPack> perPackMasks,
-    TCandidateList* candidateList,
+    TCandidatesContext* candidatesContext,
     TLearnContext* ctx) {
 
     MapGenericRemoteCalcScore<TRemoteBinCalcer, TRemoteScoreCalcer>(
         scoreStDev,
-        perPackMasks,
-        candidateList,
+        candidatesContext,
         ctx);
 }
 

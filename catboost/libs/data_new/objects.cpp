@@ -774,6 +774,7 @@ static void LoadFeatures(
     const TFeaturesLayout& featuresLayout,
     const TFeaturesArraySubsetIndexing* subsetIndexing,
     const TMaybe<TPackedBinaryFeaturesData*> packedBinaryFeaturesData,
+    const TMaybe<TExclusiveFeatureBundlesData*> exclusiveFeatureBundlesData,
     IBinSaver* binSaver,
     TVector<THolder<IColumnType>>* dst
 ) {
@@ -787,6 +788,16 @@ static void LoadFeatures(
               &(**packedBinaryFeaturesData).CatFeatureToPackedBinaryIndex );
     } else {
         featureToPackedBinaryIndex = nullptr;
+    }
+
+    TVector<TMaybe<TExclusiveBundleIndex>>* featureToBundlePart;
+    if (exclusiveFeatureBundlesData) {
+        featureToBundlePart =
+          ((FeatureType == EFeatureType::Float) ?
+              &(**exclusiveFeatureBundlesData).FloatFeatureToBundlePart :
+              &(**exclusiveFeatureBundlesData).CatFeatureToBundlePart );
+    } else {
+        featureToBundlePart = nullptr;
     }
 
     dst->clear();
@@ -826,6 +837,19 @@ static void LoadFeatures(
                     packedBinaryIndex.BitIdx,
                     subsetIndexing
                 );
+            } else if (featureToBundlePart && (*featureToBundlePart)[*featureIdx]) {
+                TExclusiveBundleIndex exclusiveBundleIndex = *((*featureToBundlePart)[*featureIdx]);
+
+                const auto& metaData =
+                    (**exclusiveFeatureBundlesData).MetaData[exclusiveBundleIndex.BundleIdx];
+
+                (*dst)[*featureIdx] = MakeHolder<TBundlePartValuesHolderImpl<IColumnType>>(
+                    flatFeatureIdx,
+                    (**exclusiveFeatureBundlesData).SrcData[exclusiveBundleIndex.BundleIdx],
+                    metaData.SizeInBytes,
+                    metaData.Parts[exclusiveBundleIndex.InBundleIdx].Bounds,
+                    subsetIndexing
+                );
             } else {
                 ui32 bitsPerKey;
                 binSaver->Add(0, &bitsPerKey);
@@ -857,6 +881,7 @@ void NCB::TQuantizedObjectsData::Load(
         *QuantizedFeaturesInfo->GetFeaturesLayout(),
         subsetIndexing,
         /*packedBinaryFeaturesData*/ Nothing(),
+        /*exclusiveFeatureBundlesData*/ Nothing(),
         binSaver,
         &FloatFeatures
     );
@@ -864,6 +889,7 @@ void NCB::TQuantizedObjectsData::Load(
         *QuantizedFeaturesInfo->GetFeaturesLayout(),
         subsetIndexing,
         /*packedBinaryFeaturesData*/ Nothing(),
+        /*exclusiveFeatureBundlesData*/ Nothing(),
         binSaver,
         &CatFeatures
     );
@@ -887,6 +913,10 @@ static void SaveFeatures(
                     = dynamic_cast<const TPackedBinaryValuesHolderImpl<IColumnType>*>(column))
             {
                 SaveMulti(binSaver, column->GetId(), column->GetSize(), packedBinaryValues->GetBitIdx());
+            } else if (auto* bundlePartValues
+                           = dynamic_cast<const TBundlePartValuesHolderImpl<IColumnType>*>(column))
+            {
+                SaveMulti(binSaver, column->GetId(), column->GetSize());
             } else {
                 // TODO(akhropov): replace by repacking (possibly in parts) to compressed array in the future
                 const auto values = column->ExtractValues(localExecutor);
@@ -933,8 +963,98 @@ void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
 }
 
 
+NCB::TExclusiveFeatureBundlesData::TExclusiveFeatureBundlesData(
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    TVector<NCB::TExclusiveFeaturesBundle>&& metaData
+)
+    : MetaData(std::move(metaData))
+{
+    const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
+    FloatFeatureToBundlePart.resize(featuresLayout.GetFloatFeatureCount());
+    CatFeatureToBundlePart.resize(featuresLayout.GetCatFeatureCount());
+
+    for (ui32 bundleIdx : xrange(SafeIntegerCast<ui32>(MetaData.size()))) {
+        const auto& bundle = MetaData[bundleIdx];
+        for (ui32 inBundleIdx : xrange(SafeIntegerCast<ui32>(bundle.Parts.size()))) {
+            TExclusiveBundleIndex exclusiveBundleIndex(bundleIdx, inBundleIdx);
+            const auto& bundlePart = bundle.Parts[inBundleIdx];
+            ((bundlePart.FeatureType == EFeatureType::Float) ?
+                FloatFeatureToBundlePart :
+                CatFeatureToBundlePart)[bundlePart.FeatureIdx] = exclusiveBundleIndex;
+        }
+    }
+}
+
+
+void NCB::TExclusiveFeatureBundlesData::Save(
+    const TArraySubsetIndexing<ui32>& subsetIndexing,
+    IBinSaver* binSaver
+) const {
+    Y_ASSERT(!binSaver->IsReading());
+    Y_ASSERT(MetaData.size() == SrcData.size());
+
+    SaveMulti(
+        binSaver,
+        FloatFeatureToBundlePart,
+        CatFeatureToBundlePart,
+        MetaData,
+        subsetIndexing.Size()
+    );
+
+    for (auto bundleIdx : xrange(SrcData.size())) {
+        const auto srcDataElementArray = *(SrcData[bundleIdx]);
+        switch (MetaData[bundleIdx].SizeInBytes) {
+            case 1:
+                subsetIndexing.ForEach(
+                    [&](ui32 /*idx*/, ui32 srcIdx) {
+                        SaveMulti(binSaver, srcDataElementArray[srcIdx]);
+                    }
+                );
+                break;
+            case 2:
+                subsetIndexing.ForEach(
+                    [&](ui32 /*idx*/, ui32 srcIdx) {
+                        SaveMulti(
+                            binSaver,
+                            srcDataElementArray[2 * srcIdx],
+                            srcDataElementArray[2 * srcIdx + 1]
+                        );
+                    }
+                );
+                break;
+            default:
+                ythrow TCatBoostException() << "Wrong features bundle size in bytes : "
+                    << MetaData[bundleIdx].SizeInBytes;
+        }
+    }
+}
+
+void NCB::TExclusiveFeatureBundlesData::Load(IBinSaver* binSaver) {
+    Y_ASSERT(binSaver->IsReading());
+
+    ui32 objectCount = 0;
+    LoadMulti(
+        binSaver,
+        &FloatFeatureToBundlePart,
+        &CatFeatureToBundlePart,
+        &MetaData,
+        &objectCount
+    );
+
+    SrcData.resize(MetaData.size());
+    for (auto bundleIdx : xrange(MetaData.size())) {
+        TVector<ui8> data;
+        const ui32 dataSize = objectCount * MetaData[bundleIdx].SizeInBytes;
+        data.yresize(dataSize);
+        binSaver->AddRawData(0, data.data(), (i64)dataSize);
+        SrcData[bundleIdx] = TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(data));
+    }
+}
+
+
 NCB::TPackedBinaryFeaturesData::TPackedBinaryFeaturesData(
     const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
     bool dontPack
 ) {
     const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
@@ -947,7 +1067,9 @@ NCB::TPackedBinaryFeaturesData::TPackedBinaryFeaturesData(
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
         [&] (TFloatFeatureIdx floatFeatureIdx) {
-            if (quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size() == 1) {
+            if (!exclusiveFeatureBundlesData.FloatFeatureToBundlePart[*floatFeatureIdx] &&
+                (quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size() == 1))
+            {
                 FloatFeatureToPackedBinaryIndex[*floatFeatureIdx]
                     = TPackedBinaryIndex::FromLinearIdx(SafeIntegerCast<ui32>(PackedBinaryToSrcIndex.size()));
                 PackedBinaryToSrcIndex.emplace_back(EFeatureType::Float, *floatFeatureIdx);
@@ -956,7 +1078,9 @@ NCB::TPackedBinaryFeaturesData::TPackedBinaryFeaturesData(
     );
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&] (TCatFeatureIdx catFeatureIdx) {
-            if (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnAll == 2) {
+            if (!exclusiveFeatureBundlesData.CatFeatureToBundlePart[*catFeatureIdx] &&
+                (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnAll == 2))
+            {
                 CatFeatureToPackedBinaryIndex[*catFeatureIdx]
                     = TPackedBinaryIndex::FromLinearIdx(SafeIntegerCast<ui32>(PackedBinaryToSrcIndex.size()));
                 PackedBinaryToSrcIndex.emplace_back(EFeatureType::Categorical, *catFeatureIdx);
@@ -1036,17 +1160,20 @@ TPackedBinaryIndex NCB::TPackedBinaryFeaturesData::AddFeature(
 }
 
 
+
 void NCB::TQuantizedForCPUObjectsData::Load(
     const TArraySubsetIndexing<ui32>* subsetIndexing,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     IBinSaver* binSaver
 ) {
     PackedBinaryFeaturesData.Load(binSaver);
+    ExclusiveFeatureBundlesData.Load(binSaver);
     Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
     LoadFeatures<EFeatureType::Float>(
         *(quantizedFeaturesInfo->GetFeaturesLayout()),
         subsetIndexing,
         &PackedBinaryFeaturesData,
+        &ExclusiveFeatureBundlesData,
         binSaver,
         &Data.FloatFeatures
     );
@@ -1054,6 +1181,7 @@ void NCB::TQuantizedForCPUObjectsData::Load(
         *(quantizedFeaturesInfo->GetFeaturesLayout()),
         subsetIndexing,
         &PackedBinaryFeaturesData,
+        &ExclusiveFeatureBundlesData,
         binSaver,
         &Data.CatFeatures
     );
@@ -1076,9 +1204,10 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
       )
 {
     if (!skipCheck) {
-        Check(data.PackedBinaryFeaturesData);
+        Check(data.PackedBinaryFeaturesData, data.ExclusiveFeatureBundlesData);
     }
     PackedBinaryFeaturesData = std::move(data.PackedBinaryFeaturesData);
+    ExclusiveFeatureBundlesData = std::move(data.ExclusiveFeatureBundlesData);
 
     CatFeatureUniqueValuesCounts.yresize(Data.CatFeatures.size());
     for (auto catFeatureIdx : xrange(Data.CatFeatures.size())) {
@@ -1098,6 +1227,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
     TQuantizedForCPUObjectsData subsetData;
     subsetData.Data = Data.GetSubset(subsetCommonData.SubsetIndexing.Get());
     subsetData.PackedBinaryFeaturesData = PackedBinaryFeaturesData;
+    subsetData.ExclusiveFeatureBundlesData = ExclusiveFeatureBundlesData;
 
     return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
         objectsGroupingSubset.GetSubsetGrouping(),
@@ -1115,6 +1245,8 @@ static void MakeConsecutiveArrayFeatures(
     ui32 objectCount,
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     const TVector<THolder<IColumnType>>& src,
+    const TVector<TMaybe<TExclusiveBundleIndex>>& featureToExclusiveFeaturesBundleIndex,
+    const TExclusiveFeatureBundlesData& newExclusiveFeatureBundlesData,
     const TVector<TMaybe<TPackedBinaryIndex>>& featureToPackedBinaryIndex,
     const TVector<TMaybeOwningArrayHolder<TBinaryFeaturesPack>>& newPackedBinaryFeatures,
     NPar::TLocalExecutor* localExecutor,
@@ -1131,7 +1263,18 @@ static void MakeConsecutiveArrayFeatures(
         [&] (TFeatureIdx<FeatureType> featureIdx) {
             const auto& srcColumn = *(src[*featureIdx]);
 
-            if (auto maybePackedBinaryIndex = featureToPackedBinaryIndex[*featureIdx]) {
+            if (auto maybeExclusiveFeaturesBundleIndex = featureToExclusiveFeaturesBundleIndex[*featureIdx]) {
+                const auto& bundleMetaData
+                    = newExclusiveFeatureBundlesData.MetaData[maybeExclusiveFeaturesBundleIndex->BundleIdx];
+
+                (*dst)[*featureIdx] = MakeHolder<TBundlePartValuesHolderImpl<IColumnType>>(
+                    srcColumn.GetId(),
+                    newExclusiveFeatureBundlesData.SrcData[maybeExclusiveFeaturesBundleIndex->BundleIdx],
+                    bundleMetaData.SizeInBytes,
+                    bundleMetaData.Parts[maybeExclusiveFeaturesBundleIndex->InBundleIdx].Bounds,
+                    newSubsetIndexing
+                );
+            } else if (auto maybePackedBinaryIndex = featureToPackedBinaryIndex[*featureIdx]) {
                 (*dst)[*featureIdx] = MakeHolder<TPackedBinaryValuesHolderImpl<IColumnType>>(
                     srcColumn.GetId(),
                     newPackedBinaryFeatures[maybePackedBinaryIndex->PackIdx],
@@ -1197,6 +1340,61 @@ static void MakeConsecutiveArrayFeatures(
     ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
+
+template <class TBundle>
+static inline TMaybeOwningArrayHolder<ui8> CreateConsecutiveData(
+    const TBundle* srcData,
+    const NCB::TFeaturesArraySubsetIndexing& subsetIndexing,
+    NPar::TLocalExecutor* localExecutor
+) {
+    auto storageHolder = MakeIntrusive<TVectorHolder<TBundle>>(
+        NCB::GetSubset<TBundle>(srcData, subsetIndexing, localExecutor)
+    );
+
+    ui8* dataPtrAsUi8 = (ui8*)storageHolder->Data.data();
+    return TMaybeOwningArrayHolder<ui8>::CreateOwning(
+        TArrayRef<ui8>(dataPtrAsUi8, subsetIndexing.Size() * sizeof(TBundle)),
+        std::move(storageHolder)
+    );
+}
+
+
+static void MakeConsecutiveExclusiveFeatureBundles(
+    const NCB::TFeaturesArraySubsetIndexing& subsetIndexing,
+    NPar::TLocalExecutor* localExecutor,
+    NCB::TExclusiveFeatureBundlesData* exclusiveFeatureBundlesData
+) {
+    TVector<std::function<void()>> tasks;
+
+    for (auto i : xrange(exclusiveFeatureBundlesData->MetaData.size())) {
+        tasks.emplace_back(
+            [&, i] () {
+                auto& bundleData = exclusiveFeatureBundlesData->SrcData[i];
+
+                auto sizeInBytes = exclusiveFeatureBundlesData->MetaData[i].SizeInBytes;
+                switch (sizeInBytes) {
+                    case 1:
+                        bundleData = CreateConsecutiveData((*bundleData).data(), subsetIndexing, localExecutor);
+                        break;
+                    case 2:
+                        bundleData = CreateConsecutiveData(
+                            (const ui16*)(*bundleData).data(),
+                            subsetIndexing,
+                            localExecutor
+                        );
+                        break;
+                    default:
+                        CB_ENSURE_INTERNAL(false, "unsupported Bundle SizeInBytes = " << sizeInBytes);
+                }
+            }
+        );
+    }
+
+    ExecuteTasksInParallel(&tasks, localExecutor);
+}
+
+
+
 static void MakeConsecutivePackedBinaryFeatures(
     const NCB::TFeaturesArraySubsetIndexing& subsetIndexing,
     NPar::TLocalExecutor* localExecutor,
@@ -1235,44 +1433,70 @@ void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveFeaturesData(
         TFullSubset<ui32>(GetObjectCount())
     );
 
-    MakeConsecutivePackedBinaryFeatures(
-        GetFeaturesArraySubsetIndexing(),
-        localExecutor,
-        &PackedBinaryFeaturesData.SrcData
-    );
+    {
+        TVector<std::function<void()>> tasks;
 
-    TVector<std::function<void()>> tasks;
+        tasks.emplace_back(
+            [&] () {
+                MakeConsecutiveExclusiveFeatureBundles(
+                    GetFeaturesArraySubsetIndexing(),
+                    localExecutor,
+                    &ExclusiveFeatureBundlesData
+                );
+            }
+        );
 
-    tasks.emplace_back(
-        [&] () {
-            MakeConsecutiveArrayFeatures<EFeatureType::Float>(
-                *GetFeaturesLayout(),
-                GetObjectCount(),
-                newSubsetIndexing.Get(),
-                Data.FloatFeatures,
-                PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex,
-                PackedBinaryFeaturesData.SrcData,
-                localExecutor,
-                &Data.FloatFeatures
-            );
-        }
-    );
-    tasks.emplace_back(
-        [&] () {
-            MakeConsecutiveArrayFeatures<EFeatureType::Categorical>(
-                *GetFeaturesLayout(),
-                GetObjectCount(),
-                newSubsetIndexing.Get(),
-                Data.CatFeatures,
-                PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex,
-                PackedBinaryFeaturesData.SrcData,
-                localExecutor,
-                &Data.CatFeatures
-            );
-        }
-    );
+        tasks.emplace_back(
+            [&] () {
+                MakeConsecutivePackedBinaryFeatures(
+                    GetFeaturesArraySubsetIndexing(),
+                    localExecutor,
+                    &PackedBinaryFeaturesData.SrcData
+                );
+            }
+        );
 
-    ExecuteTasksInParallel(&tasks, localExecutor);
+        ExecuteTasksInParallel(&tasks, localExecutor);
+    }
+
+    {
+        TVector<std::function<void()>> tasks;
+
+        tasks.emplace_back(
+            [&] () {
+                MakeConsecutiveArrayFeatures<EFeatureType::Float>(
+                    *GetFeaturesLayout(),
+                    GetObjectCount(),
+                    newSubsetIndexing.Get(),
+                    Data.FloatFeatures,
+                    ExclusiveFeatureBundlesData.FloatFeatureToBundlePart,
+                    ExclusiveFeatureBundlesData,
+                    PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex,
+                    PackedBinaryFeaturesData.SrcData,
+                    localExecutor,
+                    &Data.FloatFeatures
+                );
+            }
+        );
+        tasks.emplace_back(
+            [&] () {
+                MakeConsecutiveArrayFeatures<EFeatureType::Categorical>(
+                    *GetFeaturesLayout(),
+                    GetObjectCount(),
+                    newSubsetIndexing.Get(),
+                    Data.CatFeatures,
+                    ExclusiveFeatureBundlesData.CatFeatureToBundlePart,
+                    ExclusiveFeatureBundlesData,
+                    PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex,
+                    PackedBinaryFeaturesData.SrcData,
+                    localExecutor,
+                    &Data.CatFeatures
+                );
+            }
+        );
+
+        ExecuteTasksInParallel(&tasks, localExecutor);
+    }
 
     CommonData.SubsetIndexing = std::move(newSubsetIndexing);
 }
@@ -1285,6 +1509,8 @@ static void CheckFeaturesByType(
     const TVector<THolder<TBaseFeatureColumn>>& data,
     const TVector<TMaybe<TPackedBinaryIndex>>& featureToPackedBinaryIndex,
     const TVector<std::pair<EFeatureType, ui32>>& packedBinaryToSrcIndex,
+    const TVector<TMaybe<TExclusiveBundleIndex>>& featureToBundlePart,
+    const TVector<TExclusiveFeaturesBundle>& bundlesMetaData,
     const TStringBuf featureTypeName
 ) {
     CB_ENSURE_INTERNAL(
@@ -1299,7 +1525,16 @@ static void CheckFeaturesByType(
             continue;
         }
 
-        if (featureToPackedBinaryIndex[featureIdx]) {
+        auto maybePackedBinaryIndex = featureToPackedBinaryIndex[featureIdx];
+        auto maybeBundlePart = featureToBundlePart[featureIdx];
+
+        CB_ENSURE_INTERNAL(
+            !maybePackedBinaryIndex || !maybeBundlePart,
+            "Data." << featureType << "Features[" << featureIdx
+            << "] is both binary packed and in exclusive bundle"
+        );
+
+        if (maybePackedBinaryIndex) {
             auto requiredTypePtr = dynamic_cast<TPackedBinaryValuesHolderImpl<TBaseFeatureColumn>*>(dataPtr);
             CB_ENSURE_INTERNAL(
                 requiredTypePtr,
@@ -1307,7 +1542,7 @@ static void CheckFeaturesByType(
                 << featureTypeName << "PackedBinaryValuesHolder"
             );
 
-            auto linearPackedBinaryFeatureIdx = featureToPackedBinaryIndex[featureIdx]->GetLinearIdx();
+            auto linearPackedBinaryFeatureIdx = maybePackedBinaryIndex->GetLinearIdx();
             CB_ENSURE_INTERNAL(
                 linearPackedBinaryFeatureIdx < packedBinaryToSrcIndex.size(),
                 "linearPackedBinaryFeatureIdx (" << linearPackedBinaryFeatureIdx << ") is greater than "
@@ -1324,6 +1559,33 @@ static void CheckFeaturesByType(
                 "packedBinaryToSrcIndex[" << linearPackedBinaryFeatureIdx << "] feature index is not "
                 << featureIdx
             );
+        } else if (maybeBundlePart) {
+            auto requiredTypePtr = dynamic_cast<TBundlePartValuesHolderImpl<TBaseFeatureColumn>*>(dataPtr);
+            CB_ENSURE_INTERNAL(
+                requiredTypePtr,
+                "Data." << featureType << "Features[" << featureIdx << "] is not of type TQuantized"
+                << featureTypeName << "BundlePartValuesHolder"
+            );
+            CB_ENSURE_INTERNAL(
+                (size_t)maybeBundlePart->BundleIdx < bundlesMetaData.size(),
+                "featureType=" << featureType << ", featureIdx=" << featureIdx << ": bundleIdx ("
+                << maybeBundlePart->BundleIdx << ") is greater than bundles size ("
+                << bundlesMetaData.size() << ')'
+            );
+            const auto& bundleMetaData = bundlesMetaData[maybeBundlePart->BundleIdx];
+            CB_ENSURE_INTERNAL(
+                bundleMetaData.SizeInBytes == requiredTypePtr->GetBundleSizeInBytes(),
+                "Bundled feature: SizeInBytes mismatch between metadata and column data"
+            );
+            const auto& bundlePart = bundleMetaData.Parts[maybeBundlePart->InBundleIdx];
+            CB_ENSURE_INTERNAL(
+                (bundlePart.FeatureType == featureType) && (bundlePart.FeatureIdx == featureIdx),
+                "Bundled feature: Feature type,index mismatch between metadata and column data"
+            );
+            CB_ENSURE_INTERNAL(
+                bundlePart.Bounds == requiredTypePtr->GetBoundsInBundle(),
+                "Bundled feature: Bounds mismatch between metadata and column data"
+            );
         } else {
             auto requiredTypePtr = dynamic_cast<TCompressedValuesHolderImpl<TBaseFeatureColumn>*>(dataPtr);
             CB_ENSURE_INTERNAL(
@@ -1335,13 +1597,27 @@ static void CheckFeaturesByType(
     }
 }
 
+bool NCB::TQuantizedForCPUObjectsDataProvider::IsPackingCompatibleWith(
+    const NCB::TQuantizedForCPUObjectsDataProvider& rhs
+) const {
+    return GetQuantizedFeaturesInfo()->IsSupersetOf(*rhs.GetQuantizedFeaturesInfo()) &&
+        (PackedBinaryFeaturesData.PackedBinaryToSrcIndex
+         == rhs.PackedBinaryFeaturesData.PackedBinaryToSrcIndex) &&
+        (ExclusiveFeatureBundlesData.MetaData == rhs.ExclusiveFeatureBundlesData.MetaData);
+}
 
-void NCB::TQuantizedForCPUObjectsDataProvider::Check(const TPackedBinaryFeaturesData& packedBinaryData) const {
+
+void NCB::TQuantizedForCPUObjectsDataProvider::Check(
+    const TPackedBinaryFeaturesData& packedBinaryData,
+    const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData
+) const {
     CheckFeaturesByType(
         EFeatureType::Float,
         Data.FloatFeatures,
         packedBinaryData.FloatFeatureToPackedBinaryIndex,
         packedBinaryData.PackedBinaryToSrcIndex,
+        exclusiveFeatureBundlesData.FloatFeatureToBundlePart,
+        exclusiveFeatureBundlesData.MetaData,
         "Float"
     );
     CheckFeaturesByType(
@@ -1349,6 +1625,8 @@ void NCB::TQuantizedForCPUObjectsDataProvider::Check(const TPackedBinaryFeatures
         Data.CatFeatures,
         packedBinaryData.CatFeatureToPackedBinaryIndex,
         packedBinaryData.PackedBinaryToSrcIndex,
+        exclusiveFeatureBundlesData.CatFeatureToBundlePart,
+        exclusiveFeatureBundlesData.MetaData,
         "Cat"
     );
 }

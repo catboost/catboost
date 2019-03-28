@@ -25,7 +25,6 @@
 #include <util/system/compiler.h>
 #include <util/system/mem_info.h>
 
-#include <functional>
 #include <limits>
 #include <numeric>
 
@@ -199,21 +198,406 @@ namespace NCB {
     }
 
 
-    template <class TBase>
-    static void SetBinaryFeatureColumn(
-        ui32 featureId,
-        TMaybeOwningArrayHolder<TBinaryFeaturesPack> binaryFeaturesPack,
-        ui8 bitIdx,
-        const TFeaturesArraySubsetIndexing* subsetIndexing,
-        THolder<TBase>* featureColumn
+    TGetBinFunction GetQuantizedFloatFeatureFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TFloatFeatureIdx floatFeatureIdx
     ) {
-        featureColumn->Reset(
-            new TPackedBinaryValuesHolderImpl<TBase>(
-                featureId,
-                std::move(binaryFeaturesPack),
-                bitIdx,
-                subsetIndexing
-            )
+        TConstArrayRef<float> srcRawData
+            = **(rawObjectsData.FloatFeatures[*floatFeatureIdx]->GetArrayData().GetSrc());
+
+        auto flatFeatureIdx = quantizedFeaturesInfo.GetFeaturesLayout()->GetExternalFeatureIdx(
+            *floatFeatureIdx,
+            EFeatureType::Float
+        );
+        const auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
+        const bool allowNans = (nanMode != ENanMode::Forbidden) ||
+            quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
+        TConstArrayRef<float> borders = quantizedFeaturesInfo.GetBorders(floatFeatureIdx);
+
+        return [=](ui32 /*idx*/, ui32 srcIdx) -> ui32 {
+            return Quantize<ui32>(flatFeatureIdx, allowNans, nanMode, borders, srcRawData[srcIdx]);
+        };
+    }
+
+    TGetBinFunction GetQuantizedCatFeatureFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TCatFeatureIdx catFeatureIdx
+    ) {
+        TConstArrayRef<ui32> srcRawData
+            = **(rawObjectsData.CatFeatures[*catFeatureIdx]->GetArrayData().GetSrc());
+
+        const auto* catFeaturePerfectHashPtr
+            = &(quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx));
+
+        return [srcRawData, catFeaturePerfectHashPtr](ui32 /*idx*/, ui32 srcIdx) -> ui32 {
+            return catFeaturePerfectHashPtr->at(srcRawData[srcIdx]).Value;
+        };
+    }
+
+
+    template <class TBundle>
+    void BundleFeatures(
+        const TExclusiveFeaturesBundle& exclusiveFeaturesBundle,
+        ui32 objectCount,
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedForCPUObjectsData& quantizedObjectsData,
+        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+        TMaybeOwningArrayHolder<ui8>* dstStorageHolder
+    ) {
+        TVector<TBundle> dstStorage;
+        dstStorage.yresize(objectCount);
+
+        auto vectorHolder = MakeIntrusive<TVectorHolder<TBundle>>(std::move(dstStorage));
+        TBundle* dstData = vectorHolder->Data.data();
+
+        TConstArrayRef<TExclusiveBundlePart> parts = exclusiveFeaturesBundle.Parts;
+
+        const TBundle defaultValue = parts.back().Bounds.End;
+
+        TVector<TGetBinFunction> getBinFunctions;
+        for (const auto& part : parts) {
+            if (part.FeatureType == EFeatureType::Float) {
+                getBinFunctions.push_back(
+                    GetQuantizedFloatFeatureFunction(
+                        rawObjectsData,
+                        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+                        TFloatFeatureIdx(part.FeatureIdx)
+                    )
+                );
+            } else {
+                getBinFunctions.push_back(
+                    GetQuantizedCatFeatureFunction(
+                        rawObjectsData,
+                        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+                        TCatFeatureIdx(part.FeatureIdx)
+                    )
+                );
+            }
+        }
+
+        rawDataSubsetIndexing.ParallelForEach(
+            [dstData, parts, defaultValue, &getBinFunctions] (ui32 idx, ui32 srcIdx) {
+                for (auto partIdx : xrange(parts.size())) {
+                    const ui32 partBin = getBinFunctions[partIdx](idx, srcIdx);
+                    if (partBin) {
+                        dstData[idx] = (TBundle)(parts[partIdx].Bounds.Begin + partBin - 1);
+                        return;
+                    }
+                }
+                dstData[idx] = defaultValue;
+            },
+            localExecutor
+        );
+
+        (*dstStorageHolder) = TMaybeOwningArrayHolder<ui8>::CreateOwning(
+            TArrayRef<ui8>((ui8*)dstData, objectCount * sizeof(TBundle)),
+            vectorHolder
+        );
+    }
+
+    static void ScheduleBundleFeatures(
+        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        bool clearSrcObjectsData,
+        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+        TResourceConstrainedExecutor* resourceConstrainedExecutor,
+        TRawObjectsData* rawObjectsData,
+        TQuantizedForCPUObjectsData* quantizedObjectsData
+    ) {
+        const auto& metaData = quantizedObjectsData->ExclusiveFeatureBundlesData.MetaData;
+
+        const auto bundleCount = metaData.size();
+        quantizedObjectsData->ExclusiveFeatureBundlesData.SrcData.resize(bundleCount);
+
+        const ui32 objectCount = rawDataSubsetIndexing.Size();
+
+        for (auto bundleIdx : xrange(bundleCount)) {
+            resourceConstrainedExecutor->Add(
+                {
+                    objectCount * metaData[bundleIdx].SizeInBytes,
+
+                    [rawDataSubsetIndexingPtr = &rawDataSubsetIndexing,
+                     clearSrcObjectsData,
+                     quantizedDataSubsetIndexing,
+                     localExecutor,
+                     rawObjectsData,
+                     quantizedObjectsData,
+                     objectCount,
+                     bundleIdx] () {
+
+                        auto& exclusiveFeatureBundlesData = quantizedObjectsData->ExclusiveFeatureBundlesData;
+                        const auto& bundleMetaData = exclusiveFeatureBundlesData.MetaData[bundleIdx];
+                        auto& bundleData = exclusiveFeatureBundlesData.SrcData[bundleIdx];
+
+                        switch (bundleMetaData.SizeInBytes) {
+                            case 1:
+                                BundleFeatures<ui8>(
+                                    bundleMetaData,
+                                    objectCount,
+                                    *rawObjectsData,
+                                    *quantizedObjectsData,
+                                    *rawDataSubsetIndexingPtr,
+                                    localExecutor,
+                                    &bundleData
+                                );
+                                break;
+                            case 2:
+                                BundleFeatures<ui16>(
+                                    bundleMetaData,
+                                    objectCount,
+                                    *rawObjectsData,
+                                    *quantizedObjectsData,
+                                    *rawDataSubsetIndexingPtr,
+                                    localExecutor,
+                                    &bundleData
+                                );
+                                break;
+                            default:
+                                CB_ENSURE_INTERNAL(
+                                    false,
+                                    "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes
+                                );
+                        }
+
+                        for (auto partIdx : xrange(bundleMetaData.Parts.size())) {
+                            const auto& part = bundleMetaData.Parts[partIdx];
+                            if (part.FeatureType == EFeatureType::Float) {
+                                quantizedObjectsData->Data.FloatFeatures[part.FeatureIdx].Reset(
+                                    new TQuantizedFloatBundlePartValuesHolder(
+                                        rawObjectsData->FloatFeatures[part.FeatureIdx]->GetId(),
+                                        bundleData,
+                                        bundleMetaData.SizeInBytes,
+                                        part.Bounds,
+                                        quantizedDataSubsetIndexing
+                                    )
+                                );
+                                if (clearSrcObjectsData) {
+                                    rawObjectsData->FloatFeatures[part.FeatureIdx].Destroy();
+                                }
+                            } else {
+                                quantizedObjectsData->Data.CatFeatures[part.FeatureIdx].Reset(
+                                    new TQuantizedCatBundlePartValuesHolder(
+                                        rawObjectsData->CatFeatures[part.FeatureIdx]->GetId(),
+                                        bundleData,
+                                        bundleMetaData.SizeInBytes,
+                                        part.Bounds,
+                                        quantizedDataSubsetIndexing
+                                    )
+                                );
+                                if (clearSrcObjectsData) {
+                                    rawObjectsData->CatFeatures[part.FeatureIdx].Destroy();
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        }
+    }
+
+
+    static THolder<IQuantizedFloatValuesHolder> MakeQuantizedFloatColumn(
+        const TFloatValuesHolder& srcFeature,
+        ENanMode nanMode,
+        bool allowNans,
+        TConstArrayRef<float> borders,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TMaybeOwningConstArraySubset<float, ui32> srcFeatureData = srcFeature.GetArrayData();
+
+        const ui32 bitsPerKey = CalHistogramWidthForBorders(borders.size());
+        TIndexHelper<ui64> indexHelper(bitsPerKey);
+        TVector<ui64> quantizedDataStorage;
+        quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
+
+        if (bitsPerKey == 8) {
+            Quantize(
+                srcFeatureData,
+                allowNans,
+                nanMode,
+                srcFeature.GetId(),
+                borders,
+                MakeArrayRef(reinterpret_cast<ui8*>(quantizedDataStorage.data()), srcFeatureData.Size()),
+                localExecutor
+            );
+        } else {
+            Quantize(
+                srcFeatureData,
+                allowNans,
+                nanMode,
+                srcFeature.GetId(),
+                borders,
+                MakeArrayRef(reinterpret_cast<ui16*>(quantizedDataStorage.data()), srcFeatureData.Size()),
+                localExecutor
+            );
+        }
+
+        return MakeHolder<TQuantizedFloatValuesHolder>(
+            srcFeature.GetId(),
+            TCompressedArray(
+                srcFeatureData.Size(),
+                indexHelper.GetBitsPerKey(),
+                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
+            ),
+            dstSubsetIndexing
+        );
+    }
+
+
+    static THolder<IQuantizedCatValuesHolder> MakeQuantizedCatColumn(
+        const THashedCatValuesHolder& srcFeature,
+        const TCatFeaturePerfectHash& perfectHash,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TMaybeOwningConstArraySubset<ui32, ui32> srcFeatureData = srcFeature.GetArrayData();
+
+        // TODO(akhropov): support other bitsPerKey. MLTOOLS-2425
+        const ui32 bitsPerKey = 32;
+        TIndexHelper<ui64> indexHelper(bitsPerKey);
+        TVector<ui64> quantizedDataStorage;
+        quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
+
+        TArrayRef<ui32> quantizedData(
+            reinterpret_cast<ui32*>(quantizedDataStorage.data()),
+            srcFeatureData.Size()
+        );
+
+        srcFeatureData.ParallelForEach(
+            [&] (ui32 idx, ui32 srcValue) {
+                auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
+
+                // TODO(akhropov): replace by assert for performance?
+                CB_ENSURE(
+                    it != perfectHash.end(),
+                    "Error: hash for feature #" << srcFeature.GetId() << " was not found " << srcValue
+                );
+
+                quantizedData[idx] = it->second.Value;
+            },
+            localExecutor,
+            BINARIZATION_BLOCK_SIZE
+        );
+
+        return MakeHolder<TQuantizedCatValuesHolder>(
+            srcFeature.GetId(),
+            TCompressedArray(
+                srcFeatureData.Size(),
+                indexHelper.GetBitsPerKey(),
+                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
+            ),
+            dstSubsetIndexing
+        );
+    }
+
+
+    static void ScheduleNonBundledAndNonBinaryFeatures(
+        const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
+        bool clearSrcObjectsData,
+        const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
+        NPar::TLocalExecutor* localExecutor,
+        TResourceConstrainedExecutor* resourceConstrainedExecutor,
+        TRawObjectsData* rawObjectsData,
+        TQuantizedForCPUObjectsData* quantizedObjectsData
+    ) {
+        const ui32 objectCount = rawDataSubsetIndexing.Size();
+
+        const auto& featuresLayout = *quantizedObjectsData->Data.QuantizedFeaturesInfo->GetFeaturesLayout();
+
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
+            [&] (TFloatFeatureIdx floatFeatureIdx) {
+                if (quantizedObjectsData
+                        ->ExclusiveFeatureBundlesData.FloatFeatureToBundlePart[*floatFeatureIdx])
+                {
+                    return;
+                }
+                if (quantizedObjectsData
+                        ->PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex[*floatFeatureIdx])
+                {
+                    return;
+                }
+
+                resourceConstrainedExecutor->Add(
+                    {
+                        objectCount * sizeof(ui8),
+
+                        [clearSrcObjectsData,
+                         quantizedDataSubsetIndexing,
+                         localExecutor,
+                         rawObjectsData,
+                         quantizedObjectsData,
+                         floatFeatureIdx] () {
+                            const auto& quantizedFeaturesInfo
+                                = *quantizedObjectsData->Data.QuantizedFeaturesInfo;
+
+                            const auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
+                            const bool allowNans = (nanMode != ENanMode::Forbidden) ||
+                                quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
+
+                            quantizedObjectsData->Data.FloatFeatures[*floatFeatureIdx]
+                                = MakeQuantizedFloatColumn(
+                                    *(rawObjectsData->FloatFeatures[*floatFeatureIdx]),
+                                    nanMode,
+                                    allowNans,
+                                    quantizedFeaturesInfo.GetBorders(floatFeatureIdx),
+                                    quantizedDataSubsetIndexing,
+                                    localExecutor
+                                );
+
+                            if (clearSrcObjectsData) {
+                                rawObjectsData->FloatFeatures[*floatFeatureIdx].Destroy();
+                            }
+                        }
+                    }
+                );
+            }
+        );
+
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
+            [&] (TCatFeatureIdx catFeatureIdx) {
+                if (quantizedObjectsData
+                        ->ExclusiveFeatureBundlesData.CatFeatureToBundlePart[*catFeatureIdx])
+                {
+                    return;
+                }
+                if (quantizedObjectsData
+                        ->PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex[*catFeatureIdx])
+                {
+                    return;
+                }
+
+                resourceConstrainedExecutor->Add(
+                    {
+                        objectCount * sizeof(ui32),
+
+                        [clearSrcObjectsData,
+                         quantizedDataSubsetIndexing,
+                         localExecutor,
+                         rawObjectsData,
+                         quantizedObjectsData,
+                         catFeatureIdx] () {
+                            const auto& quantizedFeaturesInfo
+                                = *quantizedObjectsData->Data.QuantizedFeaturesInfo;
+
+                            quantizedObjectsData->Data.CatFeatures[*catFeatureIdx]
+                                = MakeQuantizedCatColumn(
+                                    *(rawObjectsData->CatFeatures[*catFeatureIdx]),
+                                    quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx),
+                                    quantizedDataSubsetIndexing,
+                                    localExecutor
+                                );
+
+                            if (clearSrcObjectsData) {
+                                rawObjectsData->CatFeatures[*catFeatureIdx].Destroy();
+                            }
+                        }
+                    }
+                );
+            }
         );
     }
 
@@ -239,113 +623,154 @@ namespace NCB {
     }
 
     static TGetBitFunction GetBinaryCatFeatureFunction(
+        const TRawObjectsData& rawObjectsData,
         const TQuantizedObjectsData& quantizedObjectsData,
         TCatFeatureIdx catFeatureIdx
     ) {
-        const ui32* nonpackedQuantizedValuesArrayBegin
-            = *(dynamic_cast<const TQuantizedCatValuesHolder&>(
-                    *quantizedObjectsData.CatFeatures[*catFeatureIdx]
-                ).GetArrayData<ui32>().GetSrc());
+        TConstArrayRef<ui32> srcRawData
+            = **(rawObjectsData.CatFeatures[*catFeatureIdx]->GetArrayData().GetSrc());
 
-        return [nonpackedQuantizedValuesArrayBegin](ui32 idx, ui32 /*srcIdx*/) -> TBinaryFeaturesPack {
-            Y_ASSERT(nonpackedQuantizedValuesArrayBegin[idx] < 2);
-            return TBinaryFeaturesPack(nonpackedQuantizedValuesArrayBegin[idx]);
+        const auto& catFeaturePerfectHash
+            = quantizedObjectsData.QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+        Y_ASSERT(catFeaturePerfectHash.size() == 2);
+
+        ui32 hashedCatValueFor1;
+        for (const auto& [hashedCatValue, remappedValueAndCount] : catFeaturePerfectHash) {
+            if (remappedValueAndCount.Value == ui32(1)) {
+                hashedCatValueFor1 = hashedCatValue;
+            }
+        }
+
+        return [srcRawData, hashedCatValueFor1](ui32 /*idx*/, ui32 srcIdx) -> TBinaryFeaturesPack {
+            return srcRawData[srcIdx] == hashedCatValueFor1 ?
+                TBinaryFeaturesPack(1) : TBinaryFeaturesPack(0);
         };
     }
 
+    template <class TBase>
+    static void SetBinaryFeatureColumn(
+        ui32 featureId,
+        TMaybeOwningArrayHolder<TBinaryFeaturesPack> binaryFeaturesPack,
+        ui8 bitIdx,
+        const TFeaturesArraySubsetIndexing* subsetIndexing,
+        THolder<TBase>* featureColumn
+    ) {
+        featureColumn->Reset(
+            new TPackedBinaryValuesHolderImpl<TBase>(
+                featureId,
+                std::move(binaryFeaturesPack),
+                bitIdx,
+                subsetIndexing
+            )
+        );
+    }
 
-    static void BinarizeFeatures(
+    static void ScheduleBinarizeFeatures(
         const TFeaturesArraySubsetIndexing& rawDataSubsetIndexing,
         bool clearSrcObjectsData,
         const TFeaturesArraySubsetIndexing* quantizedDataSubsetIndexing,
         NPar::TLocalExecutor* localExecutor,
+        TResourceConstrainedExecutor* resourceConstrainedExecutor,
         TRawObjectsData* rawObjectsData,
         TQuantizedForCPUObjectsData* quantizedObjectsData
     ) {
-        auto& packedBinaryFeaturesData = quantizedObjectsData->PackedBinaryFeaturesData;
-
-        packedBinaryFeaturesData = TPackedBinaryFeaturesData(
-            *quantizedObjectsData->Data.QuantizedFeaturesInfo
-        );
-
-        const auto& packedBinaryToSrcIndex = packedBinaryFeaturesData.PackedBinaryToSrcIndex;
-
         const ui32 objectCount = rawDataSubsetIndexing.Size();
-        const size_t bitsPerPack = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
 
+        for (auto packIdx : xrange(quantizedObjectsData->PackedBinaryFeaturesData.SrcData.size())) {
+            resourceConstrainedExecutor->Add(
+                {
+                    objectCount * sizeof(TBinaryFeaturesPack),
 
-        localExecutor->ExecRangeWithThrow(
-            [&] (int packIdx) {
-                TVector<TBinaryFeaturesPack> dstPackedFeaturesData;
-                dstPackedFeaturesData.yresize(objectCount);
+                    [rawDataSubsetIndexingPtr = &rawDataSubsetIndexing,
+                     clearSrcObjectsData,
+                     quantizedDataSubsetIndexing,
+                     localExecutor,
+                     rawObjectsData,
+                     quantizedObjectsData,
+                     objectCount,
+                     packIdx] () {
+                        const size_t bitsPerPack = sizeof(TBinaryFeaturesPack) * CHAR_BIT;
 
-                TVector<TGetBitFunction> getBitFunctions;
+                        auto& packedBinaryFeaturesData = quantizedObjectsData->PackedBinaryFeaturesData;
 
-                size_t startIdx = size_t(packIdx)*bitsPerPack;
-                size_t endIdx = Min(startIdx + bitsPerPack, packedBinaryToSrcIndex.size());
+                        const auto& packedBinaryToSrcIndex = packedBinaryFeaturesData.PackedBinaryToSrcIndex;
 
-                auto endIt = packedBinaryToSrcIndex.begin() + endIdx;
-                for (auto it = packedBinaryToSrcIndex.begin() + startIdx; it != endIt; ++it) {
-                    if (it->first == EFeatureType::Float) {
-                        getBitFunctions.push_back(
-                            GetBinaryFloatFeatureFunction(
-                                *rawObjectsData,
-                                quantizedObjectsData->Data,
-                                TFloatFeatureIdx(it->second)
-                            )
+                        TVector<TBinaryFeaturesPack> dstPackedFeaturesData;
+                        dstPackedFeaturesData.yresize(objectCount);
+
+                        TVector<TGetBitFunction> getBitFunctions;
+
+                        size_t startIdx = size_t(packIdx)*bitsPerPack;
+                        size_t endIdx = Min(startIdx + bitsPerPack, packedBinaryToSrcIndex.size());
+
+                        auto endIt = packedBinaryToSrcIndex.begin() + endIdx;
+                        for (auto it = packedBinaryToSrcIndex.begin() + startIdx; it != endIt; ++it) {
+                            if (it->first == EFeatureType::Float) {
+                                getBitFunctions.push_back(
+                                    GetBinaryFloatFeatureFunction(
+                                        *rawObjectsData,
+                                        quantizedObjectsData->Data,
+                                        TFloatFeatureIdx(it->second)
+                                    )
+                                );
+                            } else {
+                                getBitFunctions.push_back(
+                                    GetBinaryCatFeatureFunction(
+                                        *rawObjectsData,
+                                        quantizedObjectsData->Data,
+                                        TCatFeatureIdx(it->second)
+                                    )
+                                );
+                            }
+                        }
+
+                        rawDataSubsetIndexingPtr->ParallelForEach(
+                            [&] (ui32 idx, ui32 srcIdx) {
+                                TBinaryFeaturesPack pack = 0;
+                                for (auto bitIdx : xrange(getBitFunctions.size())) {
+                                    pack |= (getBitFunctions[bitIdx](idx, srcIdx) << bitIdx);
+                                }
+                                dstPackedFeaturesData[idx] = pack;
+                            },
+                            localExecutor
                         );
-                    } else {
-                        getBitFunctions.push_back(
-                            GetBinaryCatFeatureFunction(quantizedObjectsData->Data, TCatFeatureIdx(it->second))
-                        );
+
+                        packedBinaryFeaturesData.SrcData[packIdx]
+                            = TMaybeOwningArrayHolder<TBinaryFeaturesPack>::CreateOwning(
+                                    std::move(dstPackedFeaturesData)
+                                );
+
+                        for (ui8 bitIdx = 0; bitIdx < (endIdx - startIdx); ++bitIdx) {
+                            auto it = packedBinaryToSrcIndex.begin() + startIdx + bitIdx;
+
+                            if (it->first == EFeatureType::Float) {
+                                SetBinaryFeatureColumn(
+                                    rawObjectsData->FloatFeatures[it->second]->GetId(),
+                                    packedBinaryFeaturesData.SrcData[packIdx],
+                                    bitIdx,
+                                    quantizedDataSubsetIndexing,
+                                    &(quantizedObjectsData->Data.FloatFeatures[it->second])
+                                );
+                                if (clearSrcObjectsData) {
+                                    rawObjectsData->FloatFeatures[it->second].Destroy();
+                                }
+                            } else {
+                                SetBinaryFeatureColumn(
+                                    rawObjectsData->CatFeatures[it->second]->GetId(),
+                                    packedBinaryFeaturesData.SrcData[packIdx],
+                                    bitIdx,
+                                    quantizedDataSubsetIndexing,
+                                    &(quantizedObjectsData->Data.CatFeatures[it->second])
+                                );
+                                if (clearSrcObjectsData) {
+                                    rawObjectsData->CatFeatures[it->second].Destroy();
+                                }
+                            }
+                        }
                     }
                 }
-
-                rawDataSubsetIndexing.ParallelForEach(
-                    [&] (ui32 idx, ui32 srcIdx) {
-                        TBinaryFeaturesPack pack = 0;
-                        for (auto bitIdx : xrange(getBitFunctions.size())) {
-                            pack |= (getBitFunctions[bitIdx](idx, srcIdx) << bitIdx);
-                        }
-                        dstPackedFeaturesData[idx] = pack;
-                    },
-                    localExecutor
-                );
-
-                packedBinaryFeaturesData.SrcData[packIdx]
-                    = TMaybeOwningArrayHolder<TBinaryFeaturesPack>::CreateOwning(
-                            std::move(dstPackedFeaturesData)
-                        );
-
-                for (ui8 bitIdx = 0; bitIdx < (endIdx - startIdx); ++bitIdx) {
-                    auto it = packedBinaryToSrcIndex.begin() + startIdx + bitIdx;
-
-                    if (it->first == EFeatureType::Float) {
-                        SetBinaryFeatureColumn(
-                            rawObjectsData->FloatFeatures[it->second]->GetId(),
-                            packedBinaryFeaturesData.SrcData[packIdx],
-                            bitIdx,
-                            quantizedDataSubsetIndexing,
-                            &(quantizedObjectsData->Data.FloatFeatures[it->second])
-                        );
-                        if (clearSrcObjectsData) {
-                            rawObjectsData->FloatFeatures[it->second].Destroy();
-                        }
-                    } else {
-                        SetBinaryFeatureColumn(
-                            quantizedObjectsData->Data.CatFeatures[it->second]->GetId(),
-                            packedBinaryFeaturesData.SrcData[packIdx],
-                            bitIdx,
-                            quantizedDataSubsetIndexing,
-                            &(quantizedObjectsData->Data.CatFeatures[it->second])
-                        );
-                    }
-                }
-            },
-            0,
-            SafeIntegerCast<int>(packedBinaryFeaturesData.SrcData.size()),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
+            );
+        }
     }
 
 
@@ -413,44 +838,17 @@ namespace NCB {
                 !options.PackBinaryFeaturesForCpu ||
                 (borders.size() > 1)) // binary features are binarized later by packs
             {
-                const ui32 bitsPerKey = CalHistogramWidthForBorders(borders.size());
-                TIndexHelper<ui64> indexHelper(bitsPerKey);
-                TVector<ui64> quantizedDataStorage;
-                quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
-
                 // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
                 bool allowNans = (nanMode != ENanMode::Forbidden) ||
                     quantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
-                if (bitsPerKey == 8) {
-                    Quantize(
-                        srcFeatureData,
-                        allowNans,
-                        nanMode,
-                        srcFeature.GetId(),
-                        borders,
-                        MakeArrayRef(reinterpret_cast<ui8*>(quantizedDataStorage.data()), srcFeatureData.Size()),
-                        localExecutor
-                    );
-                } else {
-                    Quantize(
-                        srcFeatureData,
-                        allowNans,
-                        nanMode,
-                        srcFeature.GetId(),
-                        borders,
-                        MakeArrayRef(reinterpret_cast<ui16*>(quantizedDataStorage.data()), srcFeatureData.Size()),
-                        localExecutor
-                    );
-                }
 
-                *dstQuantizedFeature = MakeHolder<TQuantizedFloatValuesHolder>(
-                    srcFeature.GetId(),
-                    TCompressedArray(
-                        srcFeatureData.Size(),
-                        indexHelper.GetBitsPerKey(),
-                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-                    ),
-                    dstSubsetIndexing
+                *dstQuantizedFeature = MakeQuantizedFloatColumn(
+                    srcFeature,
+                    nanMode,
+                    allowNans,
+                    borders,
+                    dstSubsetIndexing,
+                    localExecutor
                 );
             }
         }
@@ -501,6 +899,8 @@ namespace NCB {
         const THashedCatValuesHolder& srcFeature,
         const TQuantizationOptions& options,
         bool clearSrcData,
+        bool updatePerfectHashOnly,
+        bool mapMostFrequentValueTo0,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         THolder<IQuantizedCatValuesHolder>* dstQuantizedFeature
@@ -515,8 +915,9 @@ namespace NCB {
 
         // GPU-only external columns
         const bool storeAsExternalValuesHolder = !options.CpuCompatibleFormat && !clearSrcData;
+        const bool quantizeData = !updatePerfectHashOnly && !storeAsExternalValuesHolder;
 
-        if (!storeAsExternalValuesHolder) {
+        if (quantizeData) {
             quantizedDataStorage.yresize(indexHelper.CompressedSize(srcFeatureData.Size()));
             quantizedDataValue = TArrayRef<ui32>(
                 reinterpret_cast<ui32*>(quantizedDataStorage.data()),
@@ -530,34 +931,32 @@ namespace NCB {
             catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
                 catFeatureIdx,
                 srcFeatureData,
-                !storeAsExternalValuesHolder ? TMaybe<TArrayRef<ui32>*>(&quantizedDataValue) : Nothing()
+                mapMostFrequentValueTo0,
+                quantizeData ? TMaybe<TArrayRef<ui32>*>(&quantizedDataValue) : Nothing()
             );
         }
 
         auto uniqueValuesCounts = quantizedFeaturesInfo->GetUniqueValuesCounts(catFeatureIdx);
         if (uniqueValuesCounts.OnLearnOnly > 1) {
-            if (storeAsExternalValuesHolder) {
-                *dstQuantizedFeature = MakeHolder<TExternalCatValuesHolder>(
-                    srcFeature.GetId(),
-                    *srcFeatureData.GetSrc(),
-                    dstSubsetIndexing,
-                    quantizedFeaturesInfo
-                );
-            } else {
-                /* binary features are temporarily stored as TQuantizedCatValuesHolder
-                 * and compressed to packs at the last stage of quantization processing
-                 * then this dstQuantizedFeature will be replaced with TQuantizedCatPackedBinaryValuesHolder
-                 */
-
-                *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
-                    srcFeature.GetId(),
-                    TCompressedArray(
-                        srcFeatureData.Size(),
-                        indexHelper.GetBitsPerKey(),
-                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
-                    ),
-                    dstSubsetIndexing
-                );
+            if (!updatePerfectHashOnly) {
+                if (storeAsExternalValuesHolder) {
+                    *dstQuantizedFeature = MakeHolder<TExternalCatValuesHolder>(
+                        srcFeature.GetId(),
+                        *srcFeatureData.GetSrc(),
+                        dstSubsetIndexing,
+                        quantizedFeaturesInfo
+                    );
+                } else {
+                    *dstQuantizedFeature = MakeHolder<TQuantizedCatValuesHolder>(
+                        srcFeature.GetId(),
+                        TCompressedArray(
+                            srcFeatureData.Size(),
+                            indexHelper.GetBitsPerKey(),
+                            TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(quantizedDataStorage))
+                        ),
+                        dstSubsetIndexing
+                    );
+                }
             }
         } else {
             CATBOOST_DEBUG_LOG << "Categorical Feature #" << srcFeature.GetId() << " is constant" << Endl;
@@ -584,6 +983,30 @@ namespace NCB {
                     EFeatureType::Float
                 ).IsAvailable &&
                 (quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size() == 1))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool IsCatFeatureToBeBinarized(
+        const TQuantizationOptions& options,
+        TQuantizedFeaturesInfo& quantizedFeaturesInfo, // non const because of GetRWMutex
+        TCatFeatureIdx catFeatureIdx
+    ) {
+        if (!options.CpuCompatibleFormat || !options.PackBinaryFeaturesForCpu) {
+            return false;
+        }
+
+        {
+            TReadGuard guard(quantizedFeaturesInfo.GetRWMutex());
+
+            if (quantizedFeaturesInfo.GetFeaturesLayout()->GetInternalFeatureMetaInfo(
+                    *catFeatureIdx,
+                    EFeatureType::Categorical
+                ).IsAvailable &&
+                (quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnAll == 2))
             {
                 return true;
             }
@@ -641,15 +1064,21 @@ namespace NCB {
             if (!calcBordersAndNanModeOnly) {
                 data.ConstructInPlace();
 
-                data->ObjectsData.Data.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
+                auto floatFeatureCount = featuresLayout->GetFloatFeatureCount();
+                data->ObjectsData.Data.FloatFeatures.resize(floatFeatureCount);
                 data->ObjectsData.PackedBinaryFeaturesData.FloatFeatureToPackedBinaryIndex.resize(
-                    featuresLayout->GetFloatFeatureCount()
+                    floatFeatureCount
+                );
+                data->ObjectsData.ExclusiveFeatureBundlesData.FloatFeatureToBundlePart.resize(
+                    floatFeatureCount
                 );
 
-                data->ObjectsData.Data.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
+                auto catFeatureCount = featuresLayout->GetCatFeatureCount();
+                data->ObjectsData.Data.CatFeatures.resize(catFeatureCount);
                 data->ObjectsData.PackedBinaryFeaturesData.CatFeatureToPackedBinaryIndex.resize(
-                    featuresLayout->GetCatFeatureCount()
+                    catFeatureCount
                 );
+                data->ObjectsData.ExclusiveFeatureBundlesData.CatFeatureToBundlePart.resize(catFeatureCount);
 
                 subsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                     TFullSubset<ui32>(objectsGrouping->GetObjectCount())
@@ -675,6 +1104,9 @@ namespace NCB {
                     clearSrcObjectsData
                 );
 
+                const bool calcBordersAndNanModeOnlyInProcessFloatFeatures =
+                    calcBordersAndNanModeOnly || options.BundleExclusiveFeatures;
+
                 featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
                     [&] (TFloatFeatureIdx floatFeatureIdx) {
                         resourceConstrainedExecutor.Add(
@@ -692,23 +1124,25 @@ namespace NCB {
                                             : srcObjectsCommonData.SubsetIndexing.Get(),
                                         options,
                                         clearSrcObjectsData,
-                                        calcBordersAndNanModeOnly,
+                                        calcBordersAndNanModeOnlyInProcessFloatFeatures,
                                         subsetIndexing.Get(),
                                         localExecutor,
                                         quantizedFeaturesInfo,
-                                        calcBordersAndNanModeOnly ?
+                                        calcBordersAndNanModeOnlyInProcessFloatFeatures ?
                                             nullptr
                                             : &(data->ObjectsData.Data.FloatFeatures[*floatFeatureIdx])
                                     );
 
+                                    // exclusive features are bundled later by bundle,
                                     // binary features are binarized later by packs
                                     if (clearSrcObjectsData &&
                                         (calcBordersAndNanModeOnly ||
-                                         !IsFloatFeatureToBeBinarized(
-                                             options,
-                                             *quantizedFeaturesInfo,
-                                             floatFeatureIdx
-                                         )))
+                                         (!options.BundleExclusiveFeatures &&
+                                          !IsFloatFeatureToBeBinarized(
+                                              options,
+                                              *quantizedFeaturesInfo,
+                                              floatFeatureIdx
+                                         ))))
                                     {
                                         srcFloatFeatureHolder.Destroy();
                                     }
@@ -739,17 +1173,23 @@ namespace NCB {
                                             *srcCatFeatureHolder,
                                             options,
                                             clearSrcObjectsData,
+                                            /*updatePerfectHashOnly*/ options.BundleExclusiveFeatures,
+                                            /*mapMostFrequentValueTo0*/ options.BundleExclusiveFeatures,
                                             subsetIndexing.Get(),
                                             quantizedFeaturesInfo,
                                             &(data->ObjectsData.Data.CatFeatures[*catFeatureIdx])
                                         );
 
-                                        /* binary features are binarized later by packs
-                                         * but non-packed quantized data is still saved as an intermediate
-                                         * in data->ObjectsData.Data.CatFeatures
-                                         * so we can clear raw data anyway
-                                         */
-                                        if (clearSrcObjectsData) {
+                                        // exclusive features are bundled later by bundle,
+                                        // binary features are binarized later by packs
+                                        if (clearSrcObjectsData &&
+                                            (!options.BundleExclusiveFeatures &&
+                                              !IsCatFeatureToBeBinarized(
+                                                  options,
+                                                  *quantizedFeaturesInfo,
+                                                  catFeatureIdx
+                                             )))
+                                        {
                                             srcCatFeatureHolder.Destroy();
                                         }
                                     }
@@ -773,15 +1213,77 @@ namespace NCB {
 
             data->ObjectsData.Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
 
-            if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
-                BinarizeFeatures(
-                    *(srcObjectsCommonData.SubsetIndexing),
-                    clearSrcObjectsData,
-                    subsetIndexing.Get(),
-                    localExecutor,
-                    &rawDataProvider->ObjectsData->Data,
-                    &data->ObjectsData
+
+            if (options.BundleExclusiveFeatures) {
+                data->ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                    *(data->ObjectsData.Data.QuantizedFeaturesInfo),
+                    CreateExclusiveFeatureBundles(
+                        rawDataProvider->ObjectsData->Data,
+                        *(srcObjectsCommonData.SubsetIndexing),
+                        *(data->ObjectsData.Data.QuantizedFeaturesInfo),
+                        options.ExclusiveFeaturesBundlingOptions,
+                        localExecutor
+                    )
                 );
+            }
+
+            if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
+                data->ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
+                    *data->ObjectsData.Data.QuantizedFeaturesInfo,
+                    data->ObjectsData.ExclusiveFeatureBundlesData
+                );
+            }
+
+            {
+                ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
+                OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, options.CpuRamLimit);
+
+                TResourceConstrainedExecutor resourceConstrainedExecutor(
+                    *localExecutor,
+                    "CPU RAM",
+                    options.CpuRamLimit - Min(cpuRamUsage, options.CpuRamLimit),
+                    true
+                );
+
+                if (options.BundleExclusiveFeatures) {
+                    ScheduleBundleFeatures(
+                        *(srcObjectsCommonData.SubsetIndexing),
+                        clearSrcObjectsData,
+                        subsetIndexing.Get(),
+                        localExecutor,
+                        &resourceConstrainedExecutor,
+                        &rawDataProvider->ObjectsData->Data,
+                        &data->ObjectsData
+                    );
+
+                    /*
+                     * call it only if options.BundleExclusiveFeatures because otherwise they've already been
+                     * created during Process(Float|Cat)Feature calls above
+                     */
+                    ScheduleNonBundledAndNonBinaryFeatures(
+                        *(srcObjectsCommonData.SubsetIndexing),
+                        clearSrcObjectsData,
+                        subsetIndexing.Get(),
+                        localExecutor,
+                        &resourceConstrainedExecutor,
+                        &rawDataProvider->ObjectsData->Data,
+                        &data->ObjectsData
+                    );
+                }
+
+                if (options.CpuCompatibleFormat && options.PackBinaryFeaturesForCpu) {
+                    ScheduleBinarizeFeatures(
+                        *(srcObjectsCommonData.SubsetIndexing),
+                        clearSrcObjectsData,
+                        subsetIndexing.Get(),
+                        localExecutor,
+                        &resourceConstrainedExecutor,
+                        &rawDataProvider->ObjectsData->Data,
+                        &data->ObjectsData
+                    );
+                }
+
+                resourceConstrainedExecutor.ExecTasks();
             }
 
             if (clearSrcData) {

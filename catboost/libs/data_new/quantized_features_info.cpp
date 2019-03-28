@@ -90,6 +90,53 @@ namespace NCB {
             (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
+    bool TQuantizedFeaturesInfo::IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const {
+        if (this == &rhs) { // shortcut
+            return true;
+        }
+        if (!FeaturesLayout->IsSupersetOf(*rhs.FeaturesLayout)) {
+            return false;
+        }
+        if (CommonFloatFeaturesBinarization != rhs.CommonFloatFeaturesBinarization) {
+            return false;
+        }
+
+        for (const auto& [floatFeatureIdx, binarization] : rhs.PerFloatFeatureBinarization) {
+            const auto it = PerFloatFeatureBinarization.find(floatFeatureIdx);
+            if (it == PerFloatFeatureBinarization.end()) {
+                if (binarization != CommonFloatFeaturesBinarization) {
+                    return false;
+                }
+            } else if (binarization != it->second) {
+                return false;
+            }
+        }
+
+        constexpr auto EPS = 1.e-6f;
+
+        for (const auto& [floatFeatureIdx, borders] : rhs.Borders) {
+            const auto it = Borders.find(floatFeatureIdx);
+            if (it == Borders.end()) {
+                return false;
+            }
+            if (!ApproximatelyEqual<float>(borders, it->second, EPS)) {
+                return false;
+            }
+        }
+
+        for (const auto& [floatFeatureIdx, nanMode] : rhs.NanModes) {
+            const auto it = NanModes.find(floatFeatureIdx);
+            if (it == NanModes.end()) {
+                return false;
+            }
+            if (nanMode != it->second) {
+                return false;
+            }
+        }
+
+        return CatFeaturesPerfectHash.IsSupersetOf(rhs.CatFeaturesPerfectHash);
+    }
+
     ENanMode TQuantizedFeaturesInfo::ComputeNanMode(const TFloatValuesHolder& feature) const {
         auto& floatFeaturesBinarization = GetFloatFeatureBinarization(feature.GetId());
         if (floatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
@@ -159,7 +206,7 @@ namespace NCB {
                 auto& perFeatureResult = result[catFeatureIdx];
                 perFeatureResult.yresize(catFeaturePerfectHash.size());
                 for (const auto [hashedCatValue, perfectHash] : catFeaturePerfectHash) {
-                    perFeatureResult[perfectHash] = hashedCatValue;
+                    perFeatureResult[perfectHash.Value] = hashedCatValue;
                 }
             },
             0,

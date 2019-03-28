@@ -49,6 +49,9 @@ namespace NCB {
 
         bool operator==(const TQuantizedFeaturesInfo& rhs) const;
 
+        // *this contains a superset of quantized features in rhs
+        bool IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const;
+
         TRWMutex& GetRWMutex() {
             return RWMutex;
         }
@@ -126,13 +129,15 @@ namespace NCB {
 
         ui32 CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn() const;
 
-        const TMap<ui32, ui32>& GetCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+        const TCatFeaturePerfectHash& GetCategoricalFeaturesPerfectHash(
+            const TCatFeatureIdx catFeatureIdx
+        ) const {
             CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
             return CatFeaturesPerfectHash.GetFeaturePerfectHash(catFeatureIdx);
         };
 
         void UpdateCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx,
-                                                  TMap<ui32, ui32>&& perfectHash) {
+                                                  TCatFeaturePerfectHash&& perfectHash) {
             CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
             CatFeaturesPerfectHash.UpdateFeaturePerfectHash(catFeatureIdx, std::move(perfectHash));
         };

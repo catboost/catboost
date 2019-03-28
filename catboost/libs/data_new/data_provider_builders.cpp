@@ -814,8 +814,14 @@ namespace NCB {
                 Data.ObjectsData.Data.QuantizedFeaturesInfo.Get()
             );
 
+            Data.ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>() // TODO(akhropov): bundle quantized data
+            );
+
             Data.ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                Data.ObjectsData.ExclusiveFeatureBundlesData,
 
                 // packed binary features are present only in TQuantizedForCPUObjectsDataProvider
                 /*dontPack*/ !Options.CpuCompatibleFormat

@@ -6,29 +6,77 @@
 #include <catboost/libs/helpers/clear_array.h>
 
 #include <library/containers/dense_hash/dense_hash.h>
-#include <library/containers/stack_vector/stack_vec.h>
 
 #include <util/generic/utility.h>
+#include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 
 #include <functional>
 
 
+struct TCalcHashInBundleContext {
+    ui32 InBundleIdx = 0;
+    std::function<void(ui32, ui32)> CalcHashCallback;
+};
+
+
 template <class IFeatureColumn, class F>
 inline void ProcessFeatureForCalcHashes(
+    TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
-    bool processBinaryInPacks,
+    bool processBundledAndBinaryFeaturesInPacks,
     bool isBinaryFeatureEquals1, // used only if processBinary
+    TArrayRef<TVector<TCalcHashInBundleContext>> featuresInBundles,
     TArrayRef<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks,
     TArrayRef<NCB::TBinaryFeaturesPack> projBinaryFeatureValues,
     std::function<const IFeatureColumn*()>&& getFeatureColumn,
+    std::function<NCB::TFeaturesBundleArraySubset(int)>&& getExclusiveFeatureBundle,
     std::function<NCB::TPackedBinaryFeaturesArraySubset(int)>&& getBinaryFeaturesPack,
     F&& f) {
 
-    if (maybeBinaryIndex) {
+    if (maybeExclusiveBundleIndex) {
+        if (processBundledAndBinaryFeaturesInPacks) {
+            TCalcHashInBundleContext calcHashInBundleContext;
+            calcHashInBundleContext.InBundleIdx = maybeExclusiveBundleIndex->InBundleIdx;
+            calcHashInBundleContext.CalcHashCallback = f;
+
+            featuresInBundles[maybeExclusiveBundleIndex->BundleIdx].push_back(
+                std::move(calcHashInBundleContext)
+            );
+        } else {
+            NCB::TFeaturesBundleArraySubset featuresBundleArraySubset = getExclusiveFeatureBundle(
+                maybeExclusiveBundleIndex->BundleIdx
+            );
+            const auto& metaData = *featuresBundleArraySubset.MetaData;
+            auto boundsInBundle = metaData.Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
+
+            auto iterateFunction = [&] (const auto* bundlesSrcData) {
+                featuresSubsetIndexing.ForEach(
+                    [&, bundlesSrcData, boundsInBundle] (ui32 i, ui32 srcIdx) {
+                        auto bundleData = bundlesSrcData[srcIdx];
+                        f(i, NCB::GetBinFromBundle<decltype(bundleData)>(bundleData, boundsInBundle));
+                    }
+                );
+            };
+
+            switch (metaData.SizeInBytes) {
+                case 1:
+                    iterateFunction(featuresBundleArraySubset.SrcData.data());
+                    break;
+                case 2:
+                    iterateFunction((const ui16*)featuresBundleArraySubset.SrcData.data());
+                    break;
+                default:
+                    CB_ENSURE_INTERNAL(
+                        false,
+                        "unsupported Bundle SizeInBytes = " << metaData.SizeInBytes
+                    );
+            }
+        }
+    } else if (maybeBinaryIndex) {
         NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << maybeBinaryIndex->BitIdx;
-        if (processBinaryInPacks) {
+        if (processBundledAndBinaryFeaturesInPacks) {
             binaryFeaturesBitMasks[maybeBinaryIndex->PackIdx] |= bitMask;
 
             if (isBinaryFeatureEquals1) {
@@ -59,8 +107,8 @@ inline void ProcessFeatureForCalcHashes(
 /// @param featuresSubsetIndexing - Use these indices when accessing raw arrays data
 /// @param perfectHashedToHashedCatValuesMap - if not nullptr use it to Hash original hashed cat values
 //                                             if nullptr - used perfectHashed values
-/// @param processBinaryFeaturesInPacks - process binary features in packs. Faster, but not compatible with
-///                                       current model format.
+/// @param processBundledAndBinaryFeaturesInPacks - process bundled and binary features in packs.
+///                                       Faster, but not compatible with current model format.
 ///                                       So, enabled only during training, disabled for FinalCtr.
 /// @param begin, @param end - Result range
 inline void CalcHashes(
@@ -68,7 +116,7 @@ inline void CalcHashes(
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
-    bool processBinaryFeaturesInPacks,
+    bool processBundledAndBinaryFeaturesInPacks,
     ui64* begin,
     ui64* end) {
 
@@ -79,6 +127,22 @@ inline void CalcHashes(
     }
 
     ui64* hashArr = begin;
+
+
+    // [bundleIdx]
+    TVector<TVector<TCalcHashInBundleContext>> featuresInBundles(
+        objectsDataProvider.GetExclusiveFeatureBundlesSize()
+    );
+
+    // TBinaryFeaturesPack here is actually bit mask to what binary feature in pack are used in projection
+    TVector<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks(
+        objectsDataProvider.GetBinaryFeaturesPacksSize(),
+        NCB::TBinaryFeaturesPack(0));
+
+    TVector<NCB::TBinaryFeaturesPack> projBinaryFeatureValues(
+        objectsDataProvider.GetBinaryFeaturesPacksSize(),
+        NCB::TBinaryFeaturesPack(0));
+
     if (perfectHashedToHashedCatValuesMap) {
         for (const int featureIdx : proj.CatFeatures) {
             auto catFeatureIdx = NCB::TCatFeatureIdx((ui32)featureIdx);
@@ -86,13 +150,16 @@ inline void CalcHashes(
             const auto& ohv = (*perfectHashedToHashedCatValuesMap)[featureIdx];
 
             ProcessFeatureForCalcHashes<NCB::IQuantizedCatValuesHolder>(
+                objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 featuresSubsetIndexing,
-                /*processBinaryInPacks*/ false,
+                /*processBundledAndBinaryFeaturesInPacks*/ false,
                 /*isBinaryFeatureEquals1*/ false, // unused
+                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
                 TArrayRef<NCB::TBinaryFeaturesPack>(), // unused
                 TArrayRef<NCB::TBinaryFeaturesPack>(), // unused
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
                 [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr, &ohv] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)(int)ohv[featureValue]);
@@ -103,13 +170,16 @@ inline void CalcHashes(
         for (const int featureIdx : proj.CatFeatures) {
             auto catFeatureIdx = NCB::TCatFeatureIdx((ui32)featureIdx);
             ProcessFeatureForCalcHashes<NCB::IQuantizedCatValuesHolder>(
+                objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 featuresSubsetIndexing,
-                /*processBinaryInPacks*/ false,
-                /*isBinaryFeatureEquals1*/ false, // unused
-                TArrayRef<NCB::TBinaryFeaturesPack>(), // unused
-                TArrayRef<NCB::TBinaryFeaturesPack>(), // unused
+                processBundledAndBinaryFeaturesInPacks,
+                /*isBinaryFeatureEquals1*/ true,
+                featuresInBundles,
+                binaryFeaturesBitMasks,
+                projBinaryFeatureValues,
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
                 [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
                 [hashArr] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
@@ -118,28 +188,23 @@ inline void CalcHashes(
         }
     }
 
-    // TBinaryFeaturesPack here is actually bit mask to what binary feature in pack are used in projection
-    TStackVec<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks(
-        objectsDataProvider.GetBinaryFeaturesPacksSize(),
-        NCB::TBinaryFeaturesPack(0));
-
-    TStackVec<NCB::TBinaryFeaturesPack> projBinaryFeatureValues(
-        objectsDataProvider.GetBinaryFeaturesPacksSize(),
-        NCB::TBinaryFeaturesPack(0));
 
     for (const TBinFeature& feature : proj.BinFeatures) {
         auto floatFeatureIdx = NCB::TFloatFeatureIdx((ui32)feature.FloatFeature);
         ProcessFeatureForCalcHashes<NCB::IQuantizedFloatValuesHolder>(
+            objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
             objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
             featuresSubsetIndexing,
-            /*processBinaryInPacks*/ processBinaryFeaturesInPacks,
+            processBundledAndBinaryFeaturesInPacks,
             /*isBinaryFeatureEquals1*/ 1,
+            featuresInBundles,
             binaryFeaturesBitMasks,
             projBinaryFeatureValues,
             [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
+            [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
             [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-            [feature, hashArr] (ui32 i, ui16 featureValue) {
-                const bool isTrueFeature = IsTrueHistogram(featureValue, (ui16)feature.SplitIdx);
+            [feature, hashArr] (ui32 i, ui32 featureValue) {
+                const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
                 hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
             }
         );
@@ -160,13 +225,16 @@ inline void CalcHashes(
         }
 
         ProcessFeatureForCalcHashes<NCB::IQuantizedCatValuesHolder>(
+            objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
             maybeBinaryIndex,
             featuresSubsetIndexing,
-            /*processBinaryInPacks*/ processBinaryFeaturesInPacks,
+            processBundledAndBinaryFeaturesInPacks,
             /*isBinaryFeatureEquals1*/ feature.Value == 1,
+            featuresInBundles,
             binaryFeaturesBitMasks,
             projBinaryFeatureValues,
             [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
+            [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
             [&](ui32 packIdx) { return objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
             [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
                 const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
@@ -175,7 +243,57 @@ inline void CalcHashes(
         );
     }
 
-    if (processBinaryFeaturesInPacks) {
+    if (processBundledAndBinaryFeaturesInPacks) {
+        for (size_t bundleIdx : xrange(featuresInBundles.size())) {
+            TConstArrayRef<TCalcHashInBundleContext> featuresInBundle = featuresInBundles[bundleIdx];
+            if (featuresInBundle.empty()) {
+                continue;
+            }
+
+            NCB::TFeaturesBundleArraySubset featuresBundleArraySubset
+                = objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx);
+
+            const auto& metaData = *featuresBundleArraySubset.MetaData;
+
+            TVector<NCB::TBoundsInBundle> selectedBounds;
+
+            for (const auto& featureInBundle : featuresInBundle) {
+                selectedBounds.push_back(metaData.Parts[featureInBundle.InBundleIdx].Bounds);
+            }
+
+            auto iterateFunction = [&] (const auto* bundlesSrcData) {
+                featuresSubsetIndexing.ForEach(
+                    [selectedBounds, featuresInBundle, bundlesSrcData] (ui32 i, ui32 srcIdx) {
+                        auto bundleData = bundlesSrcData[srcIdx];
+
+                        for (auto selectedFeatureIdx : xrange(featuresInBundle.size())) {
+                            featuresInBundle[selectedFeatureIdx].CalcHashCallback(
+                                i,
+                                NCB::GetBinFromBundle<decltype(bundleData)>(
+                                    bundleData,
+                                    selectedBounds[selectedFeatureIdx]
+                                )
+                            );
+                        }
+                    }
+                );
+            };
+
+            switch (metaData.SizeInBytes) {
+                case 1:
+                    iterateFunction(featuresBundleArraySubset.SrcData.data());
+                    break;
+                case 2:
+                    iterateFunction((const ui16*)featuresBundleArraySubset.SrcData.data());
+                    break;
+                default:
+                    CB_ENSURE_INTERNAL(
+                        false,
+                        "unsupported Bundle SizeInBytes = " << metaData.SizeInBytes
+                    );
+            }
+        }
+
         for (size_t packIdx : xrange(binaryFeaturesBitMasks.size())) {
             NCB::TBinaryFeaturesPack bitMask = binaryFeaturesBitMasks[packIdx];
             if (!bitMask) {

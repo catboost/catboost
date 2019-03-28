@@ -75,7 +75,7 @@ namespace NCB {
                           "Error: hash for feature #" << GetId() << " was not found "
                           << srcValue);
 
-                result[idx] = it->second;
+                result[idx] = it->second.Value;
             },
             localExecutor,
             BINARIZATION_BLOCK_SIZE

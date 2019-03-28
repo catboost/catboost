@@ -55,6 +55,14 @@ static int CountLearningFolds(int permutationCount, bool isPermutationNeededForL
 }
 
 void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
+    LearnAndTestDataPackingAreCompatible = true;
+    for (const auto& testData : data.Test) {
+        if (!testData->ObjectsData->IsPackingCompatibleWith(*data.Learn->ObjectsData)) {
+            LearnAndTestDataPackingAreCompatible = false;
+            break;
+        }
+    }
+
     THPTimer calcHashTimer;
     LearnProgress.EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
     LearnProgress.PoolCheckSum = data.Learn->ObjectsData->CalcFeaturesCheckSum(LocalExecutor);

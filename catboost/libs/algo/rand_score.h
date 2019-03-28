@@ -5,7 +5,7 @@
 #include <util/random/normal.h>
 #include <util/random/fast.h>
 
-const double MINIMAL_SCORE = -1e38;
+constexpr double MINIMAL_SCORE = -1e38;
 
 struct TRandomScore {
     double Val, StDev;

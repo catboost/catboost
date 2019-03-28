@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data_provider.h"
+#include "exclusive_feature_bundling.h"
 #include "quantized_features_info.h"
 
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -8,6 +9,9 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/ylimits.h>
+#include <util/system/types.h>
+
+#include <functional>
 
 
 namespace NCB {
@@ -17,12 +21,32 @@ namespace NCB {
         bool GpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForSlowBuildBordersAlgorithms = 200000;
+        bool BundleExclusiveFeatures = true;
+        TExclusiveFeaturesBundlingOptions ExclusiveFeaturesBundlingOptions{};
         bool PackBinaryFeaturesForCpu = true;
         bool AllowWriteFiles = true;
 
         // TODO(akhropov): remove after checking global tests consistency
         bool CpuCompatibilityShuffleOverFullData = true;
     };
+
+    /* arguments are idx, srcIdx from rawDataSubsetIndexing
+     * each function returns quantized bin
+     */
+    using TGetBinFunction = std::function<ui32(size_t, size_t)>;
+
+    TGetBinFunction GetQuantizedFloatFeatureFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TFloatFeatureIdx floatFeatureIdx
+    );
+
+    TGetBinFunction GetQuantizedCatFeatureFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TCatFeatureIdx catFeatureIdx
+    );
+
 
     void CalcBordersAndNanMode(
         const TQuantizationOptions& options,

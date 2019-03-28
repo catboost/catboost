@@ -388,13 +388,16 @@ void ComputeOnlineCTRs(
         TArrayRef<ui64> hashArrView = hashArr;
         if (learnSampleCount > 0) {
             ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+                data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 fold.LearnPermutationFeaturesSubset,
-                /*processBinaryInPacks*/ false,
+                /*processBundledAndBinaryFeaturesInPacks*/ false,
                 /*isBinaryFeatureEquals1*/ false, // unused
+                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) { return data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
                 [&](ui32 packIdx) { return data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
                 [hashArrView] (ui32 i, ui32 featureValue) {
                     hashArrView[i] = (ui64)featureValue + 1;
@@ -408,13 +411,18 @@ void ComputeOnlineCTRs(
             const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
 
             ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
+                data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                 data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                 data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
-                /*processBinaryInPacks*/ false,
+                /*processBundledAndBinaryFeaturesInPacks*/ false,
                 /*isBinaryFeatureEquals1*/ false, // unused
+                TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 TArrayRef<TBinaryFeaturesPack>(), // unused
                 [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
+                [&](ui32 bundleIdx) {
+                    return data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
+                },
                 [&](ui32 packIdx) { return data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
                 [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
                     hashArrView[docOffset + i] = (ui64)featureValue + 1;
@@ -433,7 +441,7 @@ void ComputeOnlineCTRs(
             *data.Learn->ObjectsData,
             fold.LearnPermutationFeaturesSubset,
             nullptr,
-            /*processBinaryFeaturesInPacks*/ true,
+            /*processBundledAndBinaryFeaturesInPacks*/ ctx->LearnAndTestDataPackingAreCompatible,
             hashArr.begin(),
             hashArr.begin() + learnSampleCount);
         for (size_t docOffset = learnSampleCount, testIdx = 0;
@@ -446,7 +454,7 @@ void ComputeOnlineCTRs(
                 *data.Test[testIdx]->ObjectsData,
                 data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
                 nullptr,
-                /*processBinaryFeaturesInPacks*/ true,
+                /*processBundledAndBinaryFeaturesInPacks*/ ctx->LearnAndTestDataPackingAreCompatible,
                 hashArr.begin() + docOffset,
                 hashArr.begin() + docOffset + testSampleCount);
             docOffset += testSampleCount;
@@ -655,7 +663,7 @@ static void CalcFinalCtrs(
         *datasetDataForFinalCtrs.Data.Learn->ObjectsData,
         learnFeaturesSubsetIndexing,
         &perfectHashedToHashedCatValuesMap,
-        /*processBinaryFeaturesInPacks*/ false,
+        /*processBundledAndBinaryFeaturesInPacks*/ false,
         hashArr.begin(),
         hashArr.begin() + learnSampleCount
     );
@@ -668,7 +676,7 @@ static void CalcFinalCtrs(
                 *testDataPtr->ObjectsData,
                 testDataPtr->ObjectsData->GetFeaturesArraySubsetIndexing(),
                 &perfectHashedToHashedCatValuesMap,
-                /*processBinaryFeaturesInPacks*/ false,
+                /*processBundledAndBinaryFeaturesInPacks*/ false,
                 testHashBegin,
                 testHashEnd);
             testHashBegin = testHashEnd;

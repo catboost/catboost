@@ -96,6 +96,11 @@ namespace NCB {
             TQuantizationOptions quantizationOptions;
             if (params->GetTaskType() == ETaskType::CPU) {
                 quantizationOptions.GpuCompatibleFormat = false;
+
+                quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
+                    = params->ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
+                quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
+                    = params->ObliviousTreeOptions->ExclusiveFeaturesBundleMaxConflictFraction.Get();
             } else {
                 Y_ASSERT(params->GetTaskType() == ETaskType::GPU);
 

@@ -51,6 +51,7 @@ namespace NCB {
 
         // only for TQuantizedForCPUDataProvider
         TPackedBinaryFeaturesData PackedBinaryFeaturesData;
+        TExclusiveFeatureBundlesData ExclusiveFeatureBundlesData;
         TMaybe<TVector<TCatFeatureUniqueValuesCounts>> CatFeatureUniqueValuesCounts;
     };
 

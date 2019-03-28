@@ -5,25 +5,66 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 
 #include <util/generic/maybe.h>
+#include <util/generic/xrange.h>
 
 
 using namespace NCB;
 
 
-TSplit TCandidateInfo::GetBestSplit(const TQuantizedForCPUObjectsDataProvider& objectsData) const {
-    if (SplitEnsemble.IsBinarySplitsPack) {
-        TPackedBinaryIndex packedBinaryIndex(SplitEnsemble.BinarySplitsPack.PackIdx, BestBinId);
-        auto featureInfo = objectsData.GetPackedBinaryFeatureSrcIndex(packedBinaryIndex);
-        TSplitCandidate splitCandidate;
-        splitCandidate.Type
-            = featureInfo.first == EFeatureType::Float ?
-                ESplitType::FloatFeature :
-                ESplitType::OneHotFeature;
-        splitCandidate.FeatureIdx = featureInfo.second;
+TSplit TCandidateInfo::GetBestSplit(
+    const TQuantizedForCPUObjectsDataProvider& objectsData,
+    ui32 oneHotMaxSize
+) const {
+    switch (SplitEnsemble.Type) {
+        case ESplitEnsembleType::OneFeature:
+            return TSplit(SplitEnsemble.SplitCandidate, BestBinId);
+        case ESplitEnsembleType::BinarySplits:
+            {
+                TPackedBinaryIndex packedBinaryIndex(SplitEnsemble.BinarySplitsPackRef.PackIdx, BestBinId);
+                auto featureInfo = objectsData.GetPackedBinaryFeatureSrcIndex(packedBinaryIndex);
+                TSplitCandidate splitCandidate;
+                splitCandidate.Type
+                    = featureInfo.first == EFeatureType::Float ?
+                        ESplitType::FloatFeature :
+                        ESplitType::OneHotFeature;
+                splitCandidate.FeatureIdx = featureInfo.second;
 
-        return TSplit(std::move(splitCandidate), (featureInfo.first == EFeatureType::Float) ? 0 : 1);
-    } else {
-        return TSplit(SplitEnsemble.SplitCandidate, BestBinId);
+                return TSplit(std::move(splitCandidate), (featureInfo.first == EFeatureType::Float) ? 0 : 1);
+            }
+        case ESplitEnsembleType::ExclusiveBundle:
+            {
+                const auto bundleIdx = SplitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
+                const auto& bundleMetaData = objectsData.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+
+                ui32 binFeatureOffset = 0;
+                for (const auto& bundlePart : bundleMetaData.Parts) {
+                    if (!UseForCalcScores(bundlePart, oneHotMaxSize)) {
+                        continue;
+                    }
+
+                    const auto binFeatureSize = (bundlePart.FeatureType == EFeatureType::Float) ?
+                        bundlePart.Bounds.GetSize() :
+                        bundlePart.Bounds.GetSize() + 1;
+
+                    const auto binInBundlePart = BestBinId - binFeatureOffset;
+
+                    if (binInBundlePart < binFeatureSize) {
+                        TSplitCandidate splitCandidate;
+                        splitCandidate.Type
+                            = bundlePart.FeatureType == EFeatureType::Float ?
+                                ESplitType::FloatFeature :
+                                ESplitType::OneHotFeature;
+                        splitCandidate.FeatureIdx = bundlePart.FeatureIdx;
+
+                        return TSplit(std::move(splitCandidate), binInBundlePart);
+                    }
+
+                    binFeatureOffset += binFeatureSize;
+                }
+                Y_FAIL("This should be unreachable");
+                // keep compiler happy
+                return TSplit();
+            }
     }
 }
 
@@ -374,7 +415,7 @@ void SetBestScore(
     ui64 randSeed,
     const TVector<TVector<double>>& allScores,
     double scoreStDev,
-    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
+    const TCandidatesContext& candidatesContext,
     TVector<TCandidateInfo>* subcandidates
 ) {
     TRestorableFastRng64 rand(randSeed);
@@ -382,21 +423,9 @@ void SetBestScore(
     for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {
         double bestScoreInstance = MINIMAL_SCORE;
         auto& subcandidateInfo = (*subcandidates)[subcandidateIdx];
-        const bool isBinaryFeaturesPackEnsemble = subcandidateInfo.SplitEnsemble.IsBinarySplitsPack;
-
-        NCB::TBinaryFeaturesPack binaryFeaturesBinMask;
-        if (isBinaryFeaturesPackEnsemble) {
-            binaryFeaturesBinMask = perPackMasks[subcandidateInfo.SplitEnsemble.BinarySplitsPack.PackIdx];
-        }
-
         const auto& scores = allScores[subcandidateIdx];
-        for (int binFeatureIdx = 0; binFeatureIdx < scores.ysize(); ++binFeatureIdx) {
-            if (isBinaryFeaturesPackEnsemble &&
-                !(binaryFeaturesBinMask & (NCB::TBinaryFeaturesPack(1) << binFeatureIdx)))
-            {
-                continue;
-            }
 
+        auto scoreUpdateFunction = [&] (auto binFeatureIdx) {
             const double score = scores[binFeatureIdx];
             const double scoreInstance = TRandomScore(score, scoreStDev).GetInstance(rand);
             if (scoreInstance > bestScoreInstance) {
@@ -404,6 +433,58 @@ void SetBestScore(
                 subcandidateInfo.BestScore = TRandomScore(score, scoreStDev);
                 subcandidateInfo.BestBinId = binFeatureIdx;
             }
+        };
+
+        switch (subcandidateInfo.SplitEnsemble.Type) {
+            case ESplitEnsembleType::OneFeature:
+                for (auto binFeatureIdx : xrange(scores.ysize())) {
+                    scoreUpdateFunction(binFeatureIdx);
+                }
+                break;
+            case ESplitEnsembleType::BinarySplits:
+                {
+                    const auto packIdx = subcandidateInfo.SplitEnsemble.BinarySplitsPackRef.PackIdx;
+                    const auto binaryFeaturesBinMask = candidatesContext.PerBinaryPackMasks[packIdx];
+                    for (auto binFeatureIdx : xrange(scores.ysize())) {
+                        if (binaryFeaturesBinMask & (NCB::TBinaryFeaturesPack(1) << binFeatureIdx)) {
+                            scoreUpdateFunction(binFeatureIdx);
+                        }
+                    }
+                }
+                break;
+            case ESplitEnsembleType::ExclusiveBundle:
+                {
+                    const auto bundleIdx = subcandidateInfo.SplitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
+
+                    const THashSet<ui32> selectedFeaturesInBundle(
+                        candidatesContext.SelectedFeaturesInBundles[bundleIdx].begin(),
+                        candidatesContext.SelectedFeaturesInBundles[bundleIdx].end());
+
+                    ui32 binFeatureOffset = 0;
+                    const auto& bundleParts = candidatesContext.BundlesMetaData[bundleIdx].Parts;
+                    for (auto bundlePartIdx : xrange(bundleParts.size())) {
+                        const auto& bundlePart = bundleParts[bundlePartIdx];
+
+                        if (!UseForCalcScores(bundlePart, candidatesContext.OneHotMaxSize)) {
+                            continue;
+                        }
+
+                        const auto binFeatureSize = (bundlePart.FeatureType == EFeatureType::Float) ?
+                            bundlePart.Bounds.GetSize() :
+                            bundlePart.Bounds.GetSize() + 1;
+
+                        if (selectedFeaturesInBundle.contains(bundlePartIdx)) {
+                            for (auto binFeatureIdx :
+                                 xrange(binFeatureOffset, binFeatureOffset + binFeatureSize))
+                            {
+                                scoreUpdateFunction(binFeatureIdx);
+                            }
+                        }
+
+                        binFeatureOffset += binFeatureSize;
+                    }
+                }
+                break;
         }
     }
 }

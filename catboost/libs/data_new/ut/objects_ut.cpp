@@ -722,8 +722,13 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                     NCatboostOptions::TBinarizationOptions()
                 );
 
+                data.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                    *data.Data.QuantizedFeaturesInfo,
+                    TVector<TExclusiveFeaturesBundle>()
+                );
                 data.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                     *data.Data.QuantizedFeaturesInfo,
+                    data.ExclusiveFeatureBundlesData,
                     true
                 );
 
@@ -773,6 +778,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 &hashedCatValues,
                                 &fullSubsetForUpdatingPerfectHash
                             ),
+                            /*mapMostFrequentValueTo0*/ false,
                             Nothing()
                         );
 
@@ -907,7 +913,6 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 UNIT_ASSERT_EQUAL(*objectsDataProvider->GetFeaturesLayout(), featuresLayout);
                 UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider->GetOrder(), expectedCommonData.Order);
 
-
                 UNIT_ASSERT_VALUES_EQUAL(
                     objectsDataProvider->CalcFeaturesCheckSum(&localExecutor),
                     expectedUsedFeatureTypesToCheckSum.at(useFeatureTypes)
@@ -940,8 +945,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 330653220},
-            {{false, true}, 1762405155},
-            {{true, true}, 1333323658}
+            {{false, true}, 2017827640},
+            {{true, true}, 807288048}
         };
 
         TestFeatures(
@@ -997,8 +1002,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 2582600868},
-            {{false, true}, 4647356},
-            {{true, true}, 1337178212}
+            {{false, true}, 286218663},
+            {{true, true}, 3140512489}
         };
 
 
@@ -1055,8 +1060,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 952444266},
-            {{false, true}, 4242619065},
-            {{true, true}, 3803661506}
+            {{false, true}, 3987245730},
+            {{true, true}, 372545103}
         };
 
         TestFeatures(
@@ -1128,8 +1133,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 2838800885},
-            {{false, true}, 3841952316},
-            {{true, true}, 2370446987}
+            {{false, true}, 4122360359},
+            {{true, true}, 2043278342}
         };
 
         TestFeatures(

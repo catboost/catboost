@@ -10,6 +10,7 @@
 #include <util/generic/xrange.h>
 #include <util/string/join.h>
 
+#include <algorithm>
 #include <tuple>
 
 
@@ -105,6 +106,27 @@ TFeaturesLayout::TFeaturesLayout(
         CatFeatureInternalIdxToExternalIdx[catFeature.FeatureIndex] = catFeature.FlatFeatureIndex;
     }
 }
+
+bool TFeaturesLayout::IsSupersetOf(const TFeaturesLayout& rhs) const {
+    if (this == &rhs) { // shortcut
+        return true;
+    }
+
+    const size_t rhsSize = rhs.ExternalIdxToMetaInfo.size();
+    if (ExternalIdxToMetaInfo.size() < rhsSize) {
+        return false;
+    }
+    return std::equal(
+            rhs.ExternalIdxToMetaInfo.begin(),
+            rhs.ExternalIdxToMetaInfo.end(),
+            ExternalIdxToMetaInfo.begin()
+        ) && std::equal(
+            rhs.FeatureExternalIdxToInternalIdx.begin(),
+            rhs.FeatureExternalIdxToInternalIdx.end(),
+            FeatureExternalIdxToInternalIdx.begin()
+        );
+}
+
 
 const TFeatureMetaInfo& TFeaturesLayout::GetInternalFeatureMetaInfo(
     ui32 internalFeatureIdx,

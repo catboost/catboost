@@ -172,61 +172,74 @@ inline static void BuildSingleIndex(
             : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
         const int docInDataProviderBeginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
 
-        if (splitEnsemble.IsBinarySplitsPack) {
+        auto setSingleIndexFunc = [&] (const auto* srcData) {
             SetSingleIndex(
                 fold,
                 indexer,
-                (**objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPack.PackIdx).GetSrc())
-                    .data(),
+                srcData,
                 docInDataProviderIndexing,
                 docInDataProviderBeginOffset,
                 fold.NonCtrDataPermutationBlockSize,
                 docIndexRange,
                 singleIdx
             );
-        } else {
-            const auto& splitCandidate = splitEnsemble.SplitCandidate;
+        };
 
-            if (splitCandidate.Type == ESplitType::FloatFeature) {
-                const auto& featureColumnValuesHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
-                if (featureColumnValuesHolder->GetBitsPerKey() == 8) {
-                    SetSingleIndex(
-                        fold,
-                        indexer,
-                        *featureColumnValuesHolder->GetArrayData<ui8>().GetSrc(),
-                        docInDataProviderIndexing,
-                        docInDataProviderBeginOffset,
-                        fold.NonCtrDataPermutationBlockSize,
-                        docIndexRange,
-                        singleIdx
-                    );
-                } else {
-                    CB_ENSURE_INTERNAL(featureColumnValuesHolder->GetBitsPerKey() == 16, "Only 8 and 16 bit wide float feature quantization expected");
-                    SetSingleIndex(
-                        fold,
-                        indexer,
-                        *featureColumnValuesHolder->GetArrayData<ui16>().GetSrc(),
-                        docInDataProviderIndexing,
-                        docInDataProviderBeginOffset,
-                        fold.NonCtrDataPermutationBlockSize,
-                        docIndexRange,
-                        singleIdx
-                    );
+        switch (splitEnsemble.Type) {
+            case ESplitEnsembleType::OneFeature:
+                {
+                    const auto& splitCandidate = splitEnsemble.SplitCandidate;
+                    if (splitCandidate.Type == ESplitType::FloatFeature) {
+                        const auto* featureColumnValuesHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
+                        if (featureColumnValuesHolder->GetBitsPerKey() == 8) {
+                            setSingleIndexFunc(
+                                *featureColumnValuesHolder->GetArrayData<ui8>().GetSrc()
+                            );
+                        } else {
+                            CB_ENSURE_INTERNAL(featureColumnValuesHolder->GetBitsPerKey() == 16, "Only 8 and 16 bit wide float feature quantization expected");
+                            setSingleIndexFunc(
+                                *featureColumnValuesHolder->GetArrayData<ui16>().GetSrc()
+                            );
+                        }
+                    } else {
+                        Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
+                        setSingleIndexFunc(
+                            *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
+                                ->GetArrayData<ui32>().GetSrc())
+                        );
+                    }
                 }
-            } else {
-                Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
-                SetSingleIndex(
-                    fold,
-                    indexer,
-                    *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
-                        ->GetArrayData<ui32>().GetSrc()),
-                    docInDataProviderIndexing,
-                    docInDataProviderBeginOffset,
-                    fold.NonCtrDataPermutationBlockSize,
-                    docIndexRange,
-                    singleIdx
+                break;
+            case ESplitEnsembleType::BinarySplits:
+                setSingleIndexFunc(
+                    (**objectsDataProvider.GetBinaryFeaturesPack(
+                        splitEnsemble.BinarySplitsPackRef.PackIdx
+                     ).GetSrc()).data()
                 );
-            }
+                break;
+            case ESplitEnsembleType::ExclusiveBundle:
+                {
+                    const auto bundleIdx = splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
+
+                    const auto& bundleMetaData =
+                        objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+                    const ui8* srcData =
+                        objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx).SrcData.data();
+
+                    switch (bundleMetaData.SizeInBytes) {
+                        case 1:
+                            setSingleIndexFunc(srcData);
+                            break;
+                        case 2:
+                            setSingleIndexFunc((const ui16*)srcData);
+                            break;
+                        default:
+                            CB_ENSURE_INTERNAL(
+                                false,
+                                "Wrong features bundle size in bytes : " << bundleMetaData.SizeInBytes
+                            );
+                    }
+                }
         }
     }
 }
@@ -368,6 +381,7 @@ static void CalcStatsImpl(
     const TStatsIndexer& indexer,
     const TIsCaching& /*isCaching*/,
     bool /*isPlainMode*/,
+    ui32 oneHotMaxSize,
     int depth,
     int /*splitStatsCount*/,
     NPar::TLocalExecutor* localExecutor,
@@ -405,98 +419,164 @@ static void CalcStatsImpl(
                 Min(pairCount, pairPart * partIndexRange.End)
             );
 
-            if (splitEnsemble.IsBinarySplitsPack) {
-                const TBinaryFeaturesPack* bucketSrcData =
-                    (**objectsDataProvider.GetBinaryFeaturesPack(splitEnsemble.BinarySplitsPack.PackIdx)
-                        .GetSrc()).data();
-                const ui32* bucketIndexing
-                    = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+            switch (splitEnsemble.Type) {
+                case ESplitEnsembleType::OneFeature:
+                    {
+                        const auto& splitCandidate = splitEnsemble.SplitCandidate;
 
-                output->DerSums = ComputeDerSums(
-                    weightedDerivativesData,
-                    leafCount,
-                    indexer.BucketCount,
-                    fold.Indices,
-                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                        return bucketSrcData[bucketIndexing[docIdx]];
-                    },
-                    docIndexRange
-                );
-                auto pairWeightStatistics = ComputePairWeightStatisticsForBinaryFeaturesPacks(
-                    pairs,
-                    leafCount,
-                    indexer.BucketCount,
-                    fold.Indices,
-                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                        return bucketSrcData[bucketIndexing[docIdx]];
-                    },
-                    pairIndexRange
-                );
-                output->PairWeightStatistics.Swap(pairWeightStatistics);
+                        auto setOutput = [&] (auto&& getBucketFunc) {
+                            output->DerSums = ComputeDerSums(
+                                weightedDerivativesData,
+                                leafCount,
+                                indexer.BucketCount,
+                                fold.Indices,
+                                getBucketFunc,
+                                docIndexRange
+                            );
+                            auto pairWeightStatistics = ComputePairWeightStatistics(
+                                pairs,
+                                leafCount,
+                                indexer.BucketCount,
+                                fold.Indices,
+                                getBucketFunc,
+                                pairIndexRange
+                            );
+                            output->PairWeightStatistics.Swap(pairWeightStatistics);
+                            output->SplitEnsembleSpec = TSplitEnsembleSpec::OneSplit(splitCandidate.Type);
+                        };
 
-                output->SplitEnsembleSpec = TSplitEnsembleSpec::BinarySplitsPack();
-            } else {
-                const auto& splitCandidate = splitEnsemble.SplitCandidate;
+                        if (splitCandidate.Type == ESplitType::OnlineCtr) {
+                            const TCtr& ctr = splitCandidate.Ctr;
+                            TConstArrayRef<ui8> buckets =
+                                GetCtr(allCtrs, ctr.Projection)
+                                    .Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
+                            setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
+                        } else if (splitCandidate.Type == ESplitType::FloatFeature) {
+                            const auto* featureColumnHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
+                            const ui32* bucketIndexing
+                                = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+                            if (featureColumnHolder->GetBitsPerKey() == 8) {
+                                const ui8* bucketSrcData = *(featureColumnHolder->GetArrayData<ui8>().GetSrc());
+                                setOutput(
+                                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                        return bucketSrcData[bucketIndexing[docIdx]];
+                                    }
+                                );
+                            } else {
+                                Y_ASSERT(featureColumnHolder->GetBitsPerKey() == 16);
+                                const ui16* bucketSrcData = *(featureColumnHolder->GetArrayData<ui16>().GetSrc());
+                                setOutput(
+                                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                        return bucketSrcData[bucketIndexing[docIdx]];
+                                    }
+                                );
+                            }
+                        } else {
+                            Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
+                            const ui32* bucketSrcData =
+                                *((*objectsDataProvider.GetNonPackedCatFeature(
+                                    (ui32)splitCandidate.FeatureIdx)
+                                  )->GetArrayData<ui32>().GetSrc());
+                            const ui32* bucketIndexing
+                                = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+                            setOutput(
+                                [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                    return bucketSrcData[bucketIndexing[docIdx]];
+                                }
+                            );
+                        }
+                    }
+                    break;
+                case ESplitEnsembleType::BinarySplits:
+                    {
+                        const TBinaryFeaturesPack* bucketSrcData =
+                            (**objectsDataProvider.GetBinaryFeaturesPack(
+                                splitEnsemble.BinarySplitsPackRef.PackIdx
+                            ).GetSrc()).data();
+                        const ui32* bucketIndexing
+                            = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
 
-                auto setOutput = [&] (auto&& getBucketFunc) {
-                    output->DerSums = ComputeDerSums(
-                        weightedDerivativesData,
-                        leafCount,
-                        indexer.BucketCount,
-                        fold.Indices,
-                        getBucketFunc,
-                        docIndexRange
-                    );
-                    auto pairWeightStatistics = ComputePairWeightStatistics(
-                        pairs,
-                        leafCount,
-                        indexer.BucketCount,
-                        fold.Indices,
-                        getBucketFunc,
-                        pairIndexRange
-                    );
-                    output->PairWeightStatistics.Swap(pairWeightStatistics);
-                    output->SplitEnsembleSpec = TSplitEnsembleSpec::OneSplit(splitCandidate.Type);
-                };
-
-                if (splitCandidate.Type == ESplitType::OnlineCtr) {
-                    const TCtr& ctr = splitCandidate.Ctr;
-                    TConstArrayRef<ui8> buckets =
-                        GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx];
-                    setOutput([buckets](ui32 docIdx) { return buckets[docIdx]; });
-                } else if (splitCandidate.Type == ESplitType::FloatFeature) {
-                    const auto* featureColumnHolder = (*objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx));
-                    const ui32* bucketIndexing
-                        = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                    if (featureColumnHolder->GetBitsPerKey() == 8) {
-                        const ui8* bucketSrcData = *(featureColumnHolder->GetArrayData<ui8>().GetSrc());
-                        setOutput(
+                        output->DerSums = ComputeDerSums(
+                            weightedDerivativesData,
+                            leafCount,
+                            indexer.BucketCount,
+                            fold.Indices,
                             [bucketSrcData, bucketIndexing](ui32 docIdx) {
                                 return bucketSrcData[bucketIndexing[docIdx]];
-                            }
+                            },
+                            docIndexRange
                         );
-                    } else {
-                        Y_ASSERT(featureColumnHolder->GetBitsPerKey() == 16);
-                        const ui16* bucketSrcData = *(featureColumnHolder->GetArrayData<ui16>().GetSrc());
-                        setOutput(
+                        output->PairWeightStatistics = ComputePairWeightStatisticsForBinaryFeaturesPacks(
+                            pairs,
+                            leafCount,
+                            indexer.BucketCount,
+                            fold.Indices,
                             [bucketSrcData, bucketIndexing](ui32 docIdx) {
                                 return bucketSrcData[bucketIndexing[docIdx]];
-                            }
+                            },
+                            pairIndexRange
+                        );
+                        output->SplitEnsembleSpec = TSplitEnsembleSpec::BinarySplitsPack();
+                    }
+                    break;
+                case ESplitEnsembleType::ExclusiveBundle:
+                    {
+                        const auto bundleIdx = splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx;
+
+                        const auto& bundleMetaData =
+                            objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
+                        const ui8* bucketSrcData =
+                            objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx).SrcData.data();
+
+                        const ui32* bucketIndexing
+                            = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+
+                        TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics;
+
+                        auto computeStatsFunc = [&] (const auto* bucketSrcData) {
+                            output->DerSums = ComputeDerSums(
+                                weightedDerivativesData,
+                                leafCount,
+                                indexer.BucketCount,
+                                fold.Indices,
+                                [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                    return bucketSrcData[bucketIndexing[docIdx]];
+                                },
+                                docIndexRange
+                            );
+                            output->PairWeightStatistics =
+                                ComputePairWeightStatisticsForExclusiveFeaturesBundle(
+                                    oneHotMaxSize,
+                                    pairs,
+                                    leafCount,
+                                    fold.Indices,
+                                    bundleMetaData,
+                                    [bucketSrcData, bucketIndexing](ui32 docIdx) {
+                                        return bucketSrcData[bucketIndexing[docIdx]];
+                                    },
+                                    pairIndexRange
+                                );
+                        };
+
+                        switch (bundleMetaData.SizeInBytes) {
+                            case 1:
+                                computeStatsFunc(bucketSrcData);
+                                break;
+                            case 2:
+                                computeStatsFunc((const ui16*)bucketSrcData);
+                                break;
+                            default:
+                                CB_ENSURE_INTERNAL(
+                                    false,
+                                    "Wrong features bundle size in bytes : " << bundleMetaData.SizeInBytes
+                                );
+                        }
+
+                        output->SplitEnsembleSpec = TSplitEnsembleSpec::ExclusiveFeatureBundle(
+                            bundleMetaData
                         );
                     }
-                } else {
-                    Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
-                    const ui32* bucketSrcData =
-                        *((*objectsDataProvider.GetNonPackedCatFeature((ui32)splitCandidate.FeatureIdx))
-                            ->GetArrayData<ui32>().GetSrc());
-                    const ui32* bucketIndexing
-                        = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-                    setOutput(
-                        [bucketSrcData, bucketIndexing](ui32 docIdx) {
-                            return bucketSrcData[bucketIndexing[docIdx]];
-                        }
-                    );
-                }
+                    break;
             }
         },
         /*mergeFunc*/[&](TPairwiseStats* output, TVector<TPairwiseStats>&& addVector) {
@@ -519,6 +599,7 @@ static void CalcStatsImpl(
     const TStatsIndexer& indexer,
     const TIsCaching& isCaching,
     bool isPlainMode,
+    ui32 /*oneHotMaxSize*/,
     int depth,
     int splitStatsCount,
     NPar::TLocalExecutor* localExecutor,
@@ -690,6 +771,7 @@ inline static void UpdateScoreBins(
     const TSplitEnsembleSpec& splitEnsembleSpec,
     float l2Regularizer,
     TIsPlainMode isPlainMode,
+    ui32 oneHotMaxSize,
     double sumAllWeights,
     int allDocCount,
     TVector<TScoreBin>* scoreBins
@@ -709,72 +791,166 @@ inline static void UpdateScoreBins(
             scoreBin);
     };
 
-    for (int leaf = 0; leaf < leafCount; ++leaf) {
-        if (splitEnsembleSpec.IsBinarySplitsPack) {
-            int binaryFeaturesCount = (int)GetValueBitCount(indexer.BucketCount - 1);
-            for (int binFeatureIdx = 0; binFeatureIdx < binaryFeaturesCount; ++binFeatureIdx) {
-                TBucketStats trueStats{0, 0, 0, 0};
-                TBucketStats falseStats{0, 0, 0, 0};
+    // used only if splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle
+    const auto& exclusiveFeaturesBundle = splitEnsembleSpec.ExclusiveFeaturesBundle;
 
-                for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
-                    auto& dstStats = ((bucketIdx >> binFeatureIdx) & 1) ? trueStats : falseStats;
-                    dstStats.Add(stats[indexer.GetIndex(leaf, bucketIdx)]);
-                }
+    // allocate one time for all leaves
+    TVector<TBucketStats> bundlePartsStats;
 
-                updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[binFeatureIdx]));
-            }
-        } else {
-            auto splitType = splitEnsembleSpec.SplitType;
+    // used only if splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle
+    TVector<bool> useBundlePartForCalcScores; // [bundlePartIdx]
 
-            TBucketStats allStats{0, 0, 0, 0};
+    if (splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle) {
+        bundlePartsStats.resize(exclusiveFeaturesBundle.Parts.size());
 
-            for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
-                const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucketIdx)];
-                allStats.Add(leafStats);
-            }
-
-            TBucketStats trueStats{0, 0, 0, 0};
-            TBucketStats falseStats{0, 0, 0, 0};
-            if (splitType == ESplitType::OnlineCtr || splitType == ESplitType::FloatFeature) {
-                trueStats = allStats;
-                for (int splitIdx = 0; splitIdx < indexer.BucketCount - 1; ++splitIdx) {
-                    falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx)]);
-                    trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
-
-                    updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[splitIdx]));
-                }
-            } else {
-                Y_ASSERT(splitType == ESplitType::OneHotFeature);
-                falseStats = allStats;
-                for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
-                    if (bucketIdx > 0) {
-                        falseStats.Add(stats[indexer.GetIndex(leaf, bucketIdx - 1)]);
-                    }
-                    falseStats.Remove(stats[indexer.GetIndex(leaf, bucketIdx)]);
-
-                    updateScoreBinClosure(
-                        /*trueStats*/ stats[indexer.GetIndex(leaf, bucketIdx)],
-                        falseStats,
-                        &((*scoreBins)[bucketIdx]));
-                }
-            }
+        for (const auto& bundlePart : exclusiveFeaturesBundle.Parts) {
+            useBundlePartForCalcScores.push_back(UseForCalcScores(bundlePart, oneHotMaxSize));
         }
     }
-}
 
 
-static inline int CalcScoreBinCount(
-    const TSplitEnsembleSpec& splitEnsembleSpec,
-    int bucketCount
-) {
-    if (splitEnsembleSpec.IsBinarySplitsPack) {
-        return GetValueBitCount(bucketCount - 1);
+    for (int leaf = 0; leaf < leafCount; ++leaf) {
+        switch (splitEnsembleSpec.Type) {
+            case ESplitEnsembleType::OneFeature:
+                {
+                    auto splitType = splitEnsembleSpec.OneSplitType;
+
+                    TBucketStats allStats{0, 0, 0, 0};
+
+                    for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
+                        const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucketIdx)];
+                        allStats.Add(leafStats);
+                    }
+
+                    TBucketStats trueStats{0, 0, 0, 0};
+                    TBucketStats falseStats{0, 0, 0, 0};
+                    if (splitType == ESplitType::OnlineCtr || splitType == ESplitType::FloatFeature) {
+                        trueStats = allStats;
+                        for (int splitIdx = 0; splitIdx < indexer.BucketCount - 1; ++splitIdx) {
+                            falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx)]);
+                            trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
+
+                            updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[splitIdx]));
+                        }
+                    } else {
+                        Y_ASSERT(splitType == ESplitType::OneHotFeature);
+                        falseStats = allStats;
+                        for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
+                            if (bucketIdx > 0) {
+                                falseStats.Add(stats[indexer.GetIndex(leaf, bucketIdx - 1)]);
+                            }
+                            falseStats.Remove(stats[indexer.GetIndex(leaf, bucketIdx)]);
+
+                            updateScoreBinClosure(
+                                /*trueStats*/ stats[indexer.GetIndex(leaf, bucketIdx)],
+                                falseStats,
+                                &((*scoreBins)[bucketIdx]));
+                        }
+                    }
+                }
+                break;
+            case ESplitEnsembleType::BinarySplits:
+                {
+                    int binaryFeaturesCount = (int)GetValueBitCount(indexer.BucketCount - 1);
+                    for (int binFeatureIdx = 0; binFeatureIdx < binaryFeaturesCount; ++binFeatureIdx) {
+                        TBucketStats trueStats{0, 0, 0, 0};
+                        TBucketStats falseStats{0, 0, 0, 0};
+
+                        for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
+                            auto& dstStats = ((bucketIdx >> binFeatureIdx) & 1) ? trueStats : falseStats;
+                            dstStats.Add(stats[indexer.GetIndex(leaf, bucketIdx)]);
+                        }
+
+
+                        updateScoreBinClosure(trueStats, falseStats, &((*scoreBins)[binFeatureIdx]));
+                    }
+                }
+                break;
+            case ESplitEnsembleType::ExclusiveBundle:
+                {
+                    TBucketStats allStats = stats[indexer.GetIndex(leaf, indexer.BucketCount - 1)];
+
+                    for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
+                        auto& bundlePartStats = bundlePartsStats[bundlePartIdx];
+                        bundlePartStats = TBucketStats{0, 0, 0, 0};
+
+                        for (auto bucketIdx : exclusiveFeaturesBundle.Parts[bundlePartIdx].Bounds.Iter()) {
+                            const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucketIdx)];
+                            bundlePartStats.Add(leafStats);
+                        }
+                        allStats.Add(bundlePartStats);
+                    }
+
+                    ui32 binsBegin = 0;
+                    for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
+                        if (!useBundlePartForCalcScores[bundlePartIdx]) {
+                            continue;
+                        }
+
+                        const auto& bundlePart = exclusiveFeaturesBundle.Parts[bundlePartIdx];
+                        auto binBounds = bundlePart.Bounds;
+
+                        if (bundlePart.FeatureType == EFeatureType::Float) {
+                            TBucketStats falseStats = allStats;
+                            TBucketStats trueStats = bundlePartsStats[bundlePartIdx];
+                            falseStats.Remove(bundlePartsStats[bundlePartIdx]);
+
+                            for (ui32 splitIdx = 0; splitIdx < binBounds.GetSize(); ++splitIdx) {
+                                if (splitIdx != 0) {
+                                    const auto& statsPart
+                                        = stats[indexer.GetIndex(leaf, binBounds.Begin + splitIdx - 1)];
+                                    falseStats.Add(statsPart);
+                                    trueStats.Remove(statsPart);
+                                }
+
+                                updateScoreBinClosure(
+                                    trueStats,
+                                    falseStats,
+                                    &((*scoreBins)[binsBegin + splitIdx])
+                                );
+                            }
+                            binsBegin += binBounds.GetSize();
+                        } else {
+                            Y_ASSERT(bundlePart.FeatureType == EFeatureType::Categorical);
+                            Y_ASSERT((binBounds.GetSize() + 1) <= oneHotMaxSize);
+
+                            /* for binary features split on value 0 is the same as split on value 1
+                             * so don't double the calculations,
+                             * it also maintains compatibility with binary packed binary categorical features
+                             * where value 1 is always assumed
+                             */
+                            if (binBounds.GetSize() > 1) {
+                                TBucketStats trueStats = allStats;
+                                trueStats.Remove(bundlePartsStats[bundlePartIdx]);
+
+                                updateScoreBinClosure(
+                                    trueStats,
+                                    /*falseStats*/ bundlePartsStats[bundlePartIdx],
+                                    &((*scoreBins)[binsBegin])
+                                );
+                            }
+
+                            for (ui32 binIdx = 0; binIdx < binBounds.GetSize(); ++binIdx) {
+                                const auto& statsPart
+                                    = stats[indexer.GetIndex(leaf, binBounds.Begin + binIdx)];
+
+                                TBucketStats falseStats = allStats;
+                                falseStats.Remove(statsPart);
+
+                                updateScoreBinClosure(
+                                    /*trueStats*/ statsPart,
+                                    falseStats,
+                                    &((*scoreBins)[binsBegin + binIdx + 1])
+                                );
+                            }
+
+                            binsBegin += binBounds.GetSize() + 1;
+                        }
+                    }
+                }
+                break;
+        }
     }
-    if (splitEnsembleSpec.SplitType == ESplitType::OneHotFeature) {
-        return bucketCount;
-    }
-    // FloatFeature or Ctr
-    return bucketCount - 1;
 }
 
 
@@ -785,6 +961,7 @@ static void CalculateNonPairwiseScore(
     bool isPlainMode,
     const int leafCount,
     const float l2Regularizer,
+    const ui32 oneHotMaxSize,
     const TStatsIndexer& indexer,
     const TBucketStats* splitStats,
     int splitStatsCount,
@@ -792,7 +969,7 @@ static void CalculateNonPairwiseScore(
 ) {
     const int approxDimension = fold.GetApproxDimension();
 
-    scoreBins->assign(CalcScoreBinCount(splitEnsembleSpec, indexer.BucketCount), TScoreBin());
+    scoreBins->assign(CalcScoreBinCount(splitEnsembleSpec, indexer.BucketCount, oneHotMaxSize), TScoreBin());
 
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
         double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
@@ -808,6 +985,7 @@ static void CalculateNonPairwiseScore(
                     splitEnsembleSpec,
                     l2Regularizer,
                     /*isPlainMode=*/std::true_type(),
+                    oneHotMaxSize,
                     sumAllWeights,
                     docCount,
                     scoreBins
@@ -820,6 +998,7 @@ static void CalculateNonPairwiseScore(
                     splitEnsembleSpec,
                     l2Regularizer,
                     /*isPlainMode=*/std::false_type(),
+                    oneHotMaxSize,
                     sumAllWeights,
                     docCount,
                     scoreBins
@@ -855,13 +1034,15 @@ void CalcStatsAndScores(
     const int bucketCount = GetBucketCount(
         splitEnsemble,
         *objectsDataProvider.GetQuantizedFeaturesInfo(),
-        objectsDataProvider.GetPackedBinaryFeaturesSize()
+        objectsDataProvider.GetPackedBinaryFeaturesSize(),
+        objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
     );
     const TStatsIndexer indexer(bucketCount);
     const int fullIndexBitCount = depth + GetValueBitCount(bucketCount - 1);
     const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
 
     const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
+    const ui32 oneHotMaxSize = fitParams.CatFeatureParams.Get().OneHotMaxSize.Get();
 
     decltype(auto) selectCalcStatsImpl = [&] (
         auto isCaching,
@@ -879,6 +1060,7 @@ void CalcStatsAndScores(
                 indexer,
                 isCaching,
                 isPlainMode,
+                oneHotMaxSize,
                 depth,
                 splitStatsCount,
                 localExecutor,
@@ -894,6 +1076,7 @@ void CalcStatsAndScores(
                 indexer,
                 isCaching,
                 isPlainMode,
+                oneHotMaxSize,
                 depth,
                 splitStatsCount,
                 localExecutor,
@@ -909,6 +1092,7 @@ void CalcStatsAndScores(
                 indexer,
                 isCaching,
                 isPlainMode,
+                oneHotMaxSize,
                 depth,
                 splitStatsCount,
                 localExecutor,
@@ -925,6 +1109,11 @@ void CalcStatsAndScores(
         if (pairwiseStats == nullptr) {
             pairwiseStats = &localPairwiseStats;
         }
+        pairwiseStats->SplitEnsembleSpec = TSplitEnsembleSpec(
+            splitEnsemble,
+            objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
+        );
+
         selectCalcStatsImpl(/*isCaching*/ std::false_type(), fold, /*splitStatsCount*/0, pairwiseStats);
 
         if (scoreBins) {
@@ -935,6 +1124,7 @@ void CalcStatsAndScores(
                 bucketCount,
                 l2Regularizer,
                 pairwiseBucketWeightPriorReg,
+                oneHotMaxSize,
                 scoreBins
             );
         }
@@ -954,7 +1144,10 @@ void CalcStatsAndScores(
                 stats3d->Stats.yresize(statsCount);
                 stats3d->BucketCount = bucketCount;
                 stats3d->MaxLeafCount = 1U << depth;
-                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(splitEnsemble);
+                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(
+                    splitEnsemble,
+                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
+                );
 
                 extOrInSplitStats = TBucketStatsRefOptionalHolder(stats3d->Stats);
             }
@@ -993,7 +1186,10 @@ void CalcStatsAndScores(
                 ).swap(stats3d->Stats);
                 stats3d->BucketCount = bucketCount;
                 stats3d->MaxLeafCount = 1U << depth;
-                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(splitEnsemble);
+                stats3d->SplitEnsembleSpec = TSplitEnsembleSpec(
+                    splitEnsemble,
+                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
+                );
             }
         }
         if (scoreBins) {
@@ -1001,10 +1197,11 @@ void CalcStatsAndScores(
             CalculateNonPairwiseScore(
                 fold,
                 *initialFold,
-                TSplitEnsembleSpec(splitEnsemble),
+                TSplitEnsembleSpec(splitEnsemble, objectsDataProvider.GetExclusiveFeatureBundlesMetaData()),
                 isPlainMode,
                 leafCount,
                 l2Regularizer,
+                oneHotMaxSize,
                 indexer,
                 extOrInSplitStats.GetData().data(),
                 splitStatsCount,
@@ -1025,9 +1222,10 @@ TVector<TScoreBin> GetScoreBins(
     const int splitStatsCount = stats3d.BucketCount * stats3d.MaxLeafCount;
     const int bucketCount = stats3d.BucketCount;
     const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
+    const ui32 oneHotMaxSize = fitParams.CatFeatureParams.Get().OneHotMaxSize.Get();
     const int leafCount = 1 << depth;
     const TStatsIndexer indexer(bucketCount);
-    TVector<TScoreBin> scoreBin(bucketCount);
+    TVector<TScoreBin> scoreBin(CalcScoreBinCount(stats3d.SplitEnsembleSpec, bucketCount, oneHotMaxSize));
     for (int statsIdx = 0; statsIdx * splitStatsCount < bucketStats.ysize(); ++statsIdx) {
         const TBucketStats* stats = GetDataPtr(bucketStats) + statsIdx * splitStatsCount;
         UpdateScoreBins(
@@ -1037,6 +1235,7 @@ TVector<TScoreBin> GetScoreBins(
             stats3d.SplitEnsembleSpec,
             l2Regularizer,
             /*isPlainMode=*/std::true_type(),
+            oneHotMaxSize,
             sumAllWeights,
             allDocCount,
             &scoreBin
