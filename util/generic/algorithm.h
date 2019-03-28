@@ -466,8 +466,8 @@ static inline typename TVectorType::value_type Accumulate(const TVectorType& v, 
     return Accumulate(v.begin(), v.end(), val);
 }
 
-template <typename TVectorType, typename BinOp>
-static inline typename TVectorType::value_type Accumulate(const TVectorType& v, typename TVectorType::value_type val, BinOp binOp) {
+template <typename TVectorType, typename Val, typename BinOp>
+static inline Val Accumulate(const TVectorType& v, Val val, BinOp binOp) {
     return Accumulate(v.begin(), v.end(), val, binOp);
 }
 
