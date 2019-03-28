@@ -789,9 +789,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.vcxproj">
       <Project>F7BF95C4-FA90-1985-8730-2F198D6D9964</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\ctypes\pylibrary-python-ctypes.vcxproj">
-      <Project>C3F64012-192C-73A7-70D7-02048E41C6DB</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\filelock\pylibrary-python-filelock.vcxproj">
       <Project>B87311E7-B541-587F-5BB0-D61A03B93A3B</Project>
     </ProjectReference>
