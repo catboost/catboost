@@ -4,14 +4,7 @@ PROGRAM()
 
 LICENSE(Python-2.0)
 
-PEERDIR(
-    contrib/tools/python3/lib
-    library/python/runtime_py3
-)
-
-ADDINCL(
-    contrib/tools/python3/src/Include
-)
+USE_PYTHON3()
 
 SRCS(
     src/Programs/python.c

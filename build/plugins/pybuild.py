@@ -139,19 +139,13 @@ def onpy_srcs(unit, *args):
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
 
+    upath = unit.path()[3:]
     py3 = is_py3(unit)
     with_py = not unit.get('PYBUILD_NO_PY')
     with_pyc = not unit.get('PYBUILD_NO_PYC')
 
-    if '/contrib/tools/python' not in unit.path():
+    if not upath.startswith('contrib/tools/python') and not upath.startswith('library/python/runtime') and unit.get('NO_PYTHON_INCLS') != 'yes':
         unit.onpeerdir(['contrib/libs/python'])
-
-        if py3:
-            if '/library/python/runtime_py3' not in unit.path():
-                unit.onpeerdir(['library/python/runtime_py3'])
-        else:
-            if '/library/python/runtime' not in unit.path():
-                unit.onpeerdir(['library/python/runtime'])
 
     is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
     if is_program:
@@ -161,7 +155,7 @@ def onpy_srcs(unit, *args):
     if py_namespace_value == ".":
         ns = ""
     else:
-        ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
+        ns = (unit.get('PY_NAMESPACE_VALUE') or upath.replace('/', '.')) + '.'
 
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
     cythonize_py = False
@@ -358,7 +352,7 @@ def onpy_srcs(unit, *args):
             add_python_lint_checks(unit, [path for path, mod in pys])
 
     if protos:
-        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
@@ -387,7 +381,7 @@ def onpy_srcs(unit, *args):
                     unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
     if evs:
-        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
             unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
         unit.ongenerate_py_evs_internal([path for path, mod in evs])
@@ -408,7 +402,7 @@ def onpy_srcs(unit, *args):
         prefix = unit.get('MODULE_PREFIX')
         project = unit.get('REALPRJNAME')
         py_register(unit, prefix + project, py3)
-        path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(unit.path()[3:], project)
+        path = '${ARCADIA_BUILD_ROOT}/' + '{}/{}.py'.format(upath, project)
         arg = '{}={}'.format(path, ns + project.replace('/', '.'))
         unit.onpy_srcs([arg])
 

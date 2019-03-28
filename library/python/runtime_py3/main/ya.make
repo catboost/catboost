@@ -3,19 +3,12 @@ LIBRARY()
 
 
 PEERDIR(
-    library/python/runtime_py3
-    library/python/symbols/module
-    library/python/symbols/libc
-    library/python/symbols/uuid
+    contrib/tools/python3/src
 )
 
-IF (MUSL)
-    PEERDIR(
-        library/python/symbols/python
-    )
-ENDIF()
-
-USE_PYTHON3()
+ADDINCL(
+    contrib/tools/python3/src/Include
+)
 
 SRCS(
     main.c
