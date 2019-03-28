@@ -509,6 +509,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
+      <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
       <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
     </ProjectReference>

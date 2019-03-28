@@ -252,6 +252,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
+      <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
       <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
     </ProjectReference>
@@ -356,6 +359,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\strings\pylibrary-python-strings.vcxproj">
       <Project>{AD1AB949-1D5E-AEB5-619A-FC98AA533E72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
+      <Project>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\uuid\python-symbols-uuid.vcxproj">
+      <Project>{EDB0FDCB-BB9D-C1F0-4E99-99941382FCC0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_common\pypython-testing-yatest_common.vcxproj">
       <Project>{1E8708B1-BCBA-6127-8C89-4F03EC0CEDB5}</Project>

@@ -462,6 +462,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj">
       <Project>1529DFE3-5177-2C02-3975-17E5F54C498D</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
+      <Project>979D0A38-9505-F3B3-16F9-58B713DAE389</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
+      <Project>8E24FF07-6DF8-0FC3-F441-862B08F7F40E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
       <Project>5B790388-FDEE-2F70-2F9B-EDB49D07DACF</Project>
     </ProjectReference>
@@ -824,6 +830,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
       <Project>8E374D9B-CDBD-993F-45A3-F459C9A9C508</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\py3python-symbols-module.vcxproj">
+      <Project>D01E799B-0965-1C31-0C5E-2F984B04A0B2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
       <Project>4AA4F15B-35C8-E419-38D7-A3EFCE482215</Project>

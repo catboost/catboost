@@ -367,6 +367,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.vcxproj">
       <Project>{EBFCFEB6-7F53-5434-3E5A-016929A7E62D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
+      <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\py3contrib-libs-python.vcxproj">
       <Project>{5B790388-FDEE-2F70-2F9B-EDB49D07DACF}</Project>
     </ProjectReference>
@@ -414,6 +417,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\py3python-symbols-module.vcxproj">
+      <Project>{D01E799B-0965-1C31-0C5E-2F984B04A0B2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\uuid\python-symbols-uuid.vcxproj">
+      <Project>{EDB0FDCB-BB9D-C1F0-4E99-99941382FCC0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
