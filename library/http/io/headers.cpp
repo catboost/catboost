@@ -65,12 +65,16 @@ THttpHeaders::THttpHeaders(IInputStream* stream) {
 }
 
 bool THttpHeaders::HasHeader(const TString& header) const {
-    for (THeaders::const_iterator h = Headers_.begin(); h != Headers_.end(); ++h) {
-        if (stricmp(h->Name().data(), header.data()) == 0) {
-            return true;
+    return FindHeader(header);
+}
+
+const THttpInputHeader* THttpHeaders::FindHeader(const TString& header) const {
+    for (const auto& hdr : Headers_) {
+        if (stricmp(hdr.Name().data(), header.data()) == 0) {
+            return &hdr;
         }
     }
-    return false;
+    return nullptr;
 }
 
 void THttpHeaders::RemoveHeader(const TString& header) {
