@@ -4028,11 +4028,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"max_pairs"};
             break;
 
-        case ELossFunction::PairLogitPairwise:
-            result.push_back(MakePairLogitMetric());
-            validParams = {"max_pairs"};
-            break;
-
         case ELossFunction::QueryRMSE:
             result.push_back(MakeQueryRMSEMetric());
             break;
@@ -4040,18 +4035,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
             validParams = {"lambda"};
-            break;
-
-        case ELossFunction::YetiRank:
-            result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
-            break;
-
-        case ELossFunction::YetiRankPairwise:
-            result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::PFound: {
@@ -4269,7 +4252,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         default:
-            CB_ENSURE(false, "Unsupported loss_function: " << metric);
+            CB_ENSURE(false, "Unsupported metric: " << metric);
             return TVector<THolder<IMetric>>();
     }
 
@@ -4327,6 +4310,22 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
     return CreateMetric(metric, description.GetLossParams(), approxDimension);
 }
 
+TVector<THolder<IMetric>> CreateDefaultMetricForObjective(
+    const NCatboostOptions::TLossDescription& objective,
+    int approxDimension) {
+
+    auto defaultMetric = objective;
+    const auto lossFunction = objective.GetLossFunction();
+    if (lossFunction == ELossFunction::YetiRank || lossFunction == ELossFunction::YetiRankPairwise) {
+        defaultMetric.LossFunction = ELossFunction::PFound;
+        defaultMetric.LossParams->clear();
+    } else if (lossFunction == ELossFunction::PairLogitPairwise) {
+        defaultMetric.LossFunction = ELossFunction::PairLogit;
+        defaultMetric.LossParams->clear();
+    }
+    return CreateMetricFromDescription(defaultMetric, approxDimension);
+}
+
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
     int approxDim) {
@@ -4367,7 +4366,9 @@ TVector<THolder<IMetric>> CreateMetrics(
     }
 
     if (lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
+        TVector<THolder<IMetric>> createdMetrics = CreateDefaultMetricForObjective(
+            lossFunctionOption,
+            approxDimension);
         for (auto& metric : createdMetrics) {
             if (!usedDescriptions.contains(metric->GetDescription())) {
                 usedDescriptions.insert(metric->GetDescription());

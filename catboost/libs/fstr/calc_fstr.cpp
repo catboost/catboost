@@ -280,7 +280,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         );
         lossDescription = NCatboostOptions::ParseLossDescription("PairLogit");
     }
-    THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
+    THolder<IMetric> metric = std::move(CreateDefaultMetricForObjective(lossDescription, approxDimension)[0]);
     CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
 
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();

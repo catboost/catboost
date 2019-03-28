@@ -3306,10 +3306,7 @@ class Metrics(object):
     def filter_ranking(cases):
         supported_by = {
             'PairLogit',
-            'PairLogitPairwise',
             'PairAccuracy',
-            'YetiRank',
-            'YetiRankPairwise',
             'QueryRMSE',
             'QuerySoftMax',
             'PFound',

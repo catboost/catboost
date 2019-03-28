@@ -100,7 +100,7 @@ namespace NCatboostCuda {
     }
 
     IGpuMetric::IGpuMetric(const NCatboostOptions::TLossDescription& description, ui32 approxDim)
-        : CpuMetric(std::move(CreateMetricFromDescription(description, approxDim)[0]))
+        : CpuMetric(std::move(CreateDefaultMetricForObjective(description, approxDim)[0]))
         , MetricDescription(description)
     {
     }

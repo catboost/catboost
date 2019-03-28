@@ -324,6 +324,10 @@ TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& d
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
 
+TVector<THolder<IMetric>> CreateDefaultMetricForObjective(
+    const NCatboostOptions::TLossDescription& objective,
+    int approxDimension);
+
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
     int approxDim);

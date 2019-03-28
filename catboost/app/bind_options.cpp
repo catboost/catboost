@@ -181,8 +181,9 @@ static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
         .AddLongOption("loss-function", lossFunctionDescription)
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr, allObjectives](const auto& value) {
-            const auto enum_ = FromString<ELossFunction>(TStringBuf(value).Before(':'));
-            CB_ENSURE(IsIn(allObjectives, enum_), "objective is not allowed");
+            const auto& lossFunctionName = ToString(TStringBuf(value).Before(':'));
+            const auto enum_ = FromString<ELossFunction>(lossFunctionName);
+            CB_ENSURE(IsIn(allObjectives, enum_), lossFunctionName + " objective is not known");
             (*plainJsonPtr)["loss_function"] = value;
         });
 

@@ -774,7 +774,7 @@ static void CalcApproxDeltaSimple(
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateMetricFromDescription(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateDefaultMetricForObjective(ctx->Params.LossFunctionDescription, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
@@ -896,7 +896,7 @@ static void CalcLeafValuesSimple(
     TVector<THolder<IMetric>> lossFunction;
     double directionSign = 0;
     if (!isTrivialWalker) {
-        lossFunction = CreateMetricFromDescription(ctx->Params.LossFunctionDescription, dimensionCount);
+        lossFunction = CreateDefaultMetricForObjective(ctx->Params.LossFunctionDescription, dimensionCount);
         directionSign = GetDirectionSign(lossFunction[0]);
     }
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approx) {

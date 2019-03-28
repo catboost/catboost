@@ -5901,7 +5901,7 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE', 'YetiRank'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])
 @pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'PFound'])
 def test_bad_metrics_combination(loss_function, metric):
     BAD_PAIRS = {
