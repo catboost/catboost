@@ -3,7 +3,6 @@ PY23_LIBRARY()
 
 
 PEERDIR(
-    library/python/ctypes
     library/python/symbols/registry
 )
 

@@ -1,4 +1,8 @@
+#include <Python.h>
+
 #include <library/python/symbols/registry/syms.h>
+
+#include <util/generic/string.h>
 
 #define CAP(x) SYM_2(x, x)
 
@@ -18,19 +22,6 @@ END_SYMS()
 #undef CAP
 
 using namespace NPrivate;
-
-#undef BEGIN_SYMS
-#undef END_SYMS
-#undef SYM
-#undef ESYM
-
-#include "Python.h"
-
-#include <util/generic/string.h>
-
-extern "C" {
-#include <library/python/ctypes/syms.h>
-}
 
 namespace {
     template <class T>
@@ -53,14 +44,42 @@ namespace {
     }
 }
 
-extern "C" {
-    BEGIN_SYMS() {
-        auto f = [&] (const char* mod, const char* name, void* sym) {
-            DictSetStringPtr(d, (TString(mod) + "|" + TString(name)).c_str(), sym);
-        };
-
-        auto cb = MakeTCB(f);
-
-        ForEachSymbol(cb);
-    } END_SYMS()
+static void DictSetStringPtr(PyObject* dict, const char* name, void* value) {
+    PyObject* p = PyLong_FromVoidPtr(value);
+    PyDict_SetItemString(dict, name, p);
+    Py_DECREF(p);
 }
+
+static PyObject* InitSyms(PyObject* m) {
+    if (!m)
+        return NULL;
+    PyObject* d = PyDict_New();
+    if (!d)
+        return NULL;
+
+    auto f = [&](const char* mod, const char* name, void* sym) {
+        DictSetStringPtr(d, (TString(mod) + "|" + TString(name)).c_str(), sym);
+    };
+
+    auto cb = MakeTCB(f);
+
+    ForEachSymbol(cb);
+
+    if (PyObject_SetAttrString(m, "syms", d))
+        m = NULL;
+    Py_DECREF(d);
+    return m;
+}
+
+#if PY_MAJOR_VERSION >= 3
+static struct PyModuleDef module = {
+    PyModuleDef_HEAD_INIT, "syms", NULL, -1, NULL, NULL, NULL, NULL, NULL};
+
+extern "C" PyObject* PyInit_syms() {
+    return InitSyms(PyModule_Create(&module));
+}
+#else
+extern "C" void initsyms() {
+    InitSyms(Py_InitModule("syms", NULL));
+}
+#endif
