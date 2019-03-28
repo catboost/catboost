@@ -489,6 +489,7 @@ cdef extern from "catboost/libs/model/model.h":
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
         void Truncate(size_t begin, size_t end) except +ProcessException
+        bool_t IsOblivious() except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -2536,6 +2537,9 @@ cdef class _CatBoost:
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.Truncate(ntree_start, ntree_end)
+
+    cpdef _is_oblivious(self):
+        return self.__model.IsOblivious()
 
     cpdef _base_drop_unused_features(self):
         self.__model.ObliviousTrees.DropUnusedFeatures()

@@ -50,6 +50,7 @@ EPS = 1e-5
 
 BOOSTING_TYPE = ['Ordered', 'Plain']
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
+NONSYMMETRIC = ['Lossguide', 'Levelwise']
 
 TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
@@ -3953,3 +3954,56 @@ def test_param_synonyms(task_type):
             else:
                 assert all(predictions == canonical_predictions)
                 assert training_stdout_len == canonical_training_stdout_len
+
+
+@pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
+def test_growing_policy_fails(task_type, growing_policy):
+    if task_type == 'CPU':
+        return
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    args = {
+        'iterations': 30,
+        'loss_function': 'Logloss',
+        'use_best_model': False,
+        'learning_rate': 0.3,
+        'growing_policy': growing_policy,
+        'boosting_type': 'Plain',
+        'task_type': task_type,
+        'devices': '0'
+    }
+    model = CatBoostClassifier(**args)
+
+    model.fit(train_pool)
+
+    try:
+        model.shrink(9)
+        model.get_object_importance(test_pool, train_pool)
+        model.get_feature_importance()
+        model.get_feature_importance(type=EFstrType.Interaction)
+        model.get_feature_importance(type=EFstrType.ShapValues, data=train_pool)
+
+        model_output = test_output_path('model')
+        for format in ['AppleCoreML', 'json', 'cpp', 'python', 'onnx']:
+            model.save_model(model_output, format=format)
+        sum_models([model, model.copy()])
+    except:
+        pass
+
+
+@pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
+def test_multiclass_growing_policy(task_type, growing_policy):
+    if task_type == 'CPU':
+        return
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    # MultiClass
+    classifier = CatBoostClassifier(iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0', boosting_type='Plain', growing_policy=growing_policy)
+    classifier.fit(pool)
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+    classifier.save_model(output_model_path)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(output_model_path)
+    pred = new_classifier.predict_proba(pool)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)

@@ -302,3 +302,10 @@ bool IsUserDefined(ELossFunction lossFunction) {
             return false;
     }
 }
+
+bool ShouldSkipFstrGrowingPolicy(EGrowingPolicy growingPolicy) {
+    return (
+        growingPolicy == EGrowingPolicy::Levelwise ||
+        growingPolicy == EGrowingPolicy::Lossguide
+    );
+}

@@ -655,6 +655,9 @@ TVector<TIndexType> BuildIndicesForBinTree(
     const TVector<ui8>& binarizedFeatures,
     size_t treeId) {
 
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is supported only for symmetric trees");
+
     if (model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() == 0) {
         return TVector<TIndexType>();
     }

@@ -881,7 +881,12 @@ void TrainModel(
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    EGrowingPolicy growingPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowingPolicy.GetUnchecked();  // GpuOnlyOption
+    bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    if (needFstr && ShouldSkipFstrGrowingPolicy(growingPolicy)) {
+        needFstr = false;
+        CATBOOST_INFO_LOG << "Skip fstr for " << growingPolicy << " growingPolicy" << Endl;
+    }
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
     if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {
         NCatboostOptions::TLossDescription modelLossDescription;

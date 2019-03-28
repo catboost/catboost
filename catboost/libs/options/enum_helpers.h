@@ -64,3 +64,4 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
 
 bool IsUserDefined(ELossFunction lossFunction);
 
+bool ShouldSkipFstrGrowingPolicy(EGrowingPolicy growingPolicy);

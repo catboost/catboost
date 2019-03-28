@@ -171,6 +171,8 @@ void ExportModel(
     const TVector<TString>* featureId,
     const THashMap<ui32, TString>* catFeaturesHashToString) {
 
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary, "Can save non symmetric trees only in cbm format");
     const auto modelFileName = NCatboostOptions::AddExtension(format, modelFile, addFileFormatExtension);
     switch (format) {
         case EModelType::CatboostBinary:
@@ -242,6 +244,8 @@ TFullModel DeserializeModel(const TString& serializedModel) {
 }
 
 void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, ApproxDimension);
@@ -968,6 +972,8 @@ TFullModel SumModels(
     TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
     for (const auto& model : modelVector) {
         Y_ASSERT(model != nullptr);
+        //TODO(eermishkina): support non symmetric trees
+        CB_ENSURE(model->IsOblivious(), "Models summation supported only for symmetric trees");
         CB_ENSURE(
             model->ObliviousTrees.ApproxDimension == approxDimension,
             "Approx dimensions don't match: " << model->ObliviousTrees.ApproxDimension << " != "

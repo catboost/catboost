@@ -23,6 +23,7 @@ from catboost_pytest_lib import (
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
+NONSYMMETRIC = ['Lossguide', 'Levelwise']
 
 
 def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
@@ -2236,3 +2237,35 @@ def test_train_on_quantized_pool_with_large_grid():
         '-i', '10')
 
     yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
+def test_apply_with_growing_policy(growing_policy):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    train_file = data_file('adult', 'train_small')
+    test_file = data_file('adult', 'test_small')
+    cd_file = data_file('adult', 'train.cd')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Logloss',
+        '-f': train_file,
+        '-t': test_file,
+        '--column-description': cd_file,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-w': '0.03',
+        '-T': '4',
+        '-m': output_model_path,
+        '--growing-policy': growing_policy,
+        '--eval-file': test_eval_path,
+        '--output-columns': 'RawFormulaVal'
+    }
+
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    # TODO(noxoomo, kirillovs): fix it
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path))

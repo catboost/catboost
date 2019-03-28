@@ -374,6 +374,8 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious(), "Feature importance is supported only for symmetric trees");
     type = GetFeatureImportanceType(model, bool(dataset), type);
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
@@ -596,6 +598,8 @@ static TVector<TVector<double>> CalcFstr(
     EFstrType type,
     NPar::TLocalExecutor* localExecutor)
 {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious(), "Support feature importance only for symmetric trees");
     CB_ENSURE(
         !model.ObliviousTrees.LeafWeights.empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");

@@ -528,6 +528,13 @@ public:
     }
 
     /**
+     * Check whether model trees are oblivious
+     */
+    bool IsOblivious() const {
+        return ObliviousTrees.IsOblivious();
+    }
+
+    /**
      * Serialize model to stream
      * @param s IOutputStream ptr
      */

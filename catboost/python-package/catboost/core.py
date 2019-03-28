@@ -1174,11 +1174,12 @@ class CatBoost(_CatBoostBase):
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-        setattr(
-            self,
-            "_feature_importance",
-            self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
-        )
+        if self._object._is_oblivious():
+            setattr(
+                self,
+                "_feature_importance",
+                self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
+            )
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1576,6 +1577,8 @@ class CatBoost(_CatBoostBase):
         feature_importances_ = getattr(self, "_feature_importance", None)
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
+        if not self._object._is_oblivious():
+            raise CatBoostError('Feature importance is not supported for non symmetric trees')
         return np.array(feature_importances_)
 
     def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None):
@@ -1631,6 +1634,8 @@ class CatBoost(_CatBoostBase):
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
         """
+        if self.is_fitted() and not self._object._is_oblivious():
+            raise CatBoostError('Feature importance is not supported for non symmetric trees')
 
         if not isinstance(verbose, bool) and not isinstance(verbose, int):
             raise CatBoostError('verbose should be bool or int.')
@@ -1717,6 +1722,9 @@ class CatBoost(_CatBoostBase):
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
+
+        if self.is_fitted() and not self._object._is_oblivious():
+            raise CatBoostError('Object importance is not supported for non symmetric trees')
 
         if not isinstance(verbose, bool) and not isinstance(verbose, int):
             raise CatBoostError('verbose should be bool or int.')
