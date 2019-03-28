@@ -1,4 +1,4 @@
-ENABLE(PYBUILD_NO_PY)
+ENABLE(PYBUILD_NO_PYC)
 
 PY3_LIBRARY()
 
@@ -8,11 +8,9 @@ LICENSE(Python-2.0)
 
 NO_PYTHON_INCLUDES()
 
-PEERDIR(
-    contrib/tools/python3/lib/py
-)
+SRCDIR(contrib/tools/python3/src/Lib)
 
-INCLUDE(../../lib/srcs.cmake)
+INCLUDE(../srcs.cmake)
 
 PY_SRCS(
     TOP_LEVEL
