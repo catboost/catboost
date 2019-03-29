@@ -162,39 +162,16 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\library.python.symbols.module.syms.reg3.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py3_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "library/python/symbols/module/__init__.py-" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "library/python/symbols/module/__init__.py-" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/module/__init__.py.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py3_compile.py;$(SolutionDir)..\library\python\symbols\module\__init__.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\__init__.py.yapyc3;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\symbols\module\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_97a45d2201c8c73d1a01735e13.yasm" "-" "library/python/symbols/module/__init__.py" "_7bc4f28c47432a1d85f97a5229.rodata" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0bae680f68fe4839834b5116cc.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3" "_aafedd81120059c5967f3d6f7e.rodata" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_9ebd5d905a0c16df40cf0df112.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/symbols/module/__init__.py-" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -206,15 +183,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_97a45d2201c8c73d1a01735e13.yasm" "-" "library/python/symbols/module/__init__.py" "_7bc4f28c47432a1d85f97a5229.rodata" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_0bae680f68fe4839834b5116cc.rodata" "-" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3" "_aafedd81120059c5967f3d6f7e.rodata" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_9ebd5d905a0c16df40cf0df112.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "library/python/symbols/module/__init__.py-" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/module/_97a45d2201c8c73d1a01735e13.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\symbols\module\__init__.py;$(SolutionDir)$(Configuration)\library\python\symbols\module\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_97a45d2201c8c73d1a01735e13.yasm;$(SolutionDir)$(Configuration)\library\python\symbols\module\_0bae680f68fe4839834b5116cc.rodata;$(SolutionDir)$(Configuration)\library\python\symbols\module\_9ebd5d905a0c16df40cf0df112.rodata;</Outputs>
+      <Message>$B/library/python/symbols/module/_97a45d2201c8c73d1a01735e13.yasm	$B/library/python/symbols/module/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\symbols\module\__init__.py;$(SolutionDir)$(Configuration)\library\python\symbols\module\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_97a45d2201c8c73d1a01735e13.yasm;$(SolutionDir)$(Configuration)\library\python\symbols\module\_0bae680f68fe4839834b5116cc.rodata;$(SolutionDir)$(Configuration)\library\python\symbols\module\_9ebd5d905a0c16df40cf0df112.rodata;$(SolutionDir)$(Configuration)\library\python\symbols\module\__init__.py.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -285,6 +266,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
       <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>

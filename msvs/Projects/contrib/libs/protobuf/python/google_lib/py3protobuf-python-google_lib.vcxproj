@@ -100,6 +100,10 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_c1ffd69bb2b4528deb72f8dfc4.yasm" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "_83acaf842dac4942f6663bae01.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_d27fe4f4b031351730cc947bec.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3" "_5d9da0677173ac6eed3c80552a.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_b3fe20e277f2d6b02fe1286bec.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -111,6 +115,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_c1ffd69bb2b4528deb72f8dfc4.yasm" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "_83acaf842dac4942f6663bae01.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_d27fe4f4b031351730cc947bec.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3" "_5d9da0677173ac6eed3c80552a.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_b3fe20e277f2d6b02fe1286bec.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -119,9 +127,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/_c1ffd69bb2b4528deb72f8dfc4.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c1ffd69bb2b4528deb72f8dfc4.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_d27fe4f4b031351730cc947bec.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_b3fe20e277f2d6b02fe1286bec.rodata;</Outputs>
+      <Message>$B/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/_c1ffd69bb2b4528deb72f8dfc4.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c1ffd69bb2b4528deb72f8dfc4.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_d27fe4f4b031351730cc947bec.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_b3fe20e277f2d6b02fe1286bec.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c1ffd69bb2b4528deb72f8dfc4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -492,375 +500,16 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\google.protobuf.internal._api_implementation.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\google.protobuf.pyext._message.reg3.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py3_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
-if %errorlevel% neq 0 goto :cmEnd
-"python3" "$(SolutionDir)../build/scripts/py3_compile.py" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.yapyc3	$B/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py3_compile.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\__init__.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\__init__.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\any_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\api_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\__init__.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\plugin_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_database.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_pool.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\duration_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\empty_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\field_mask_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\__init__.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\_parameterized.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\api_implementation.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\containers.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\decoder.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\encoder.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\enum_type_wrapper.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\message_listener.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\python_message.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\type_checkers.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\well_known_types.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\wire_format.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\json_format.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message_factory.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\proto_builder.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\__init__.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\cpp_message.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\reflection.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service_reflection.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\source_context_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\struct_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\symbol_database.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\text_encoding.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\text_format.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\timestamp_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\type_pb2.py;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\wrappers_pb2.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\any_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\api_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\plugin_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor_database.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor_pool.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\duration_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\empty_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\field_mask_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\_parameterized.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\api_implementation.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\containers.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\decoder.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\encoder.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\enum_type_wrapper.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\message_listener.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\python_message.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\type_checkers.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\well_known_types.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\wire_format.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\json_format.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message_factory.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\proto_builder.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\__init__.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\cpp_message.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\reflection.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\service.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\service_reflection.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\source_context_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\struct_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\symbol_database.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\text_encoding.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\text_format.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\timestamp_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\type_pb2.py.yapyc3;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\wrappers_pb2.py.yapyc3;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_6602560b7c21335064c7505bf6.yasm" "-" "contrib/libs/protobuf/python/google/__init__.py" "_c62bd1bc57fe3c46bbd8ba54bb.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ba6a7efa23b9285a298b8e9c5e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3" "_daf1530b4faceab484890e069d.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_fcc2eee64ed826c7d887ecff2f.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/__init__.py" "_027f2a9768f7d3bb913a4fe4bc.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_50ce8d93df8cb25f046352ce83.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3" "_f44692ddfe61ef7ef061e3b696.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_f55edb92d4bd0818b8c74508c3.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "_e8418da19e8fa8034d20e73d1b.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_7c4b75bd0a15a30117483ab6e4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3" "_05d3edeff33a1b48a37152557d.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_67515b1e1999fa43300bc8bccf.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "_9200cc84fd41053b67064e9798.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_7baceb019fd891e5c205baf941.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3" "_7447fcad1a29e5232870e81182.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ca2fe6fb603ea4701e8b663775.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "_6b582e44dcfaaa5a41848e96d8.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_b1f7d6a589ea564db3ece0a022.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3" "_de3e69747c4a50cb7a483a0317.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_57680120f42565f8c067a2addc.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "_9a622aa8fe844c16420a211549.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a9fb120be06f1799e2a5dad806.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3" "_6d604eb4b8833c4f0b4f95d7a3.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_74661bb497681ad8522e4009be.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/descriptor.py" "_6e50f36411d56924f3b28c046c.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_69ab423f8c10c4b280fc208e0d.rodata" "-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py.yapyc3" "_e18cdbc88ad25fcecbde7a0f19.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -872,15 +521,694 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_6602560b7c21335064c7505bf6.yasm" "-" "contrib/libs/protobuf/python/google/__init__.py" "_c62bd1bc57fe3c46bbd8ba54bb.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ba6a7efa23b9285a298b8e9c5e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3" "_daf1530b4faceab484890e069d.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_fcc2eee64ed826c7d887ecff2f.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/__init__.py" "_027f2a9768f7d3bb913a4fe4bc.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_50ce8d93df8cb25f046352ce83.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3" "_f44692ddfe61ef7ef061e3b696.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_f55edb92d4bd0818b8c74508c3.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "_e8418da19e8fa8034d20e73d1b.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_7c4b75bd0a15a30117483ab6e4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3" "_05d3edeff33a1b48a37152557d.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_67515b1e1999fa43300bc8bccf.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "_9200cc84fd41053b67064e9798.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_7baceb019fd891e5c205baf941.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3" "_7447fcad1a29e5232870e81182.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ca2fe6fb603ea4701e8b663775.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "_6b582e44dcfaaa5a41848e96d8.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_b1f7d6a589ea564db3ece0a022.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3" "_de3e69747c4a50cb7a483a0317.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_57680120f42565f8c067a2addc.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "_9a622aa8fe844c16420a211549.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_a9fb120be06f1799e2a5dad806.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3" "_6d604eb4b8833c4f0b4f95d7a3.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_74661bb497681ad8522e4009be.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/descriptor.py" "_6e50f36411d56924f3b28c046c.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_69ab423f8c10c4b280fc208e0d.rodata" "-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py.yapyc3" "_e18cdbc88ad25fcecbde7a0f19.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/_6602560b7c21335064c7505bf6.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\any_pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\any_pb2.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\api_pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\api_pb2.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\plugin_pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\plugin_pb2.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_6602560b7c21335064c7505bf6.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_ba6a7efa23b9285a298b8e9c5e.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_fcc2eee64ed826c7d887ecff2f.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_50ce8d93df8cb25f046352ce83.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_f55edb92d4bd0818b8c74508c3.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_7c4b75bd0a15a30117483ab6e4.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_67515b1e1999fa43300bc8bccf.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_7baceb019fd891e5c205baf941.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_ca2fe6fb603ea4701e8b663775.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_b1f7d6a589ea564db3ece0a022.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_57680120f42565f8c067a2addc.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_a9fb120be06f1799e2a5dad806.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_74661bb497681ad8522e4009be.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_69ab423f8c10c4b280fc208e0d.rodata;</Outputs>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/_6602560b7c21335064c7505bf6.yasm	$B/contrib/libs/protobuf/python/google_lib/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\any_pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\any_pb2.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\api_pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\api_pb2.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\plugin_pb2.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\plugin_pb2.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_6602560b7c21335064c7505bf6.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_ba6a7efa23b9285a298b8e9c5e.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_fcc2eee64ed826c7d887ecff2f.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_50ce8d93df8cb25f046352ce83.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_f55edb92d4bd0818b8c74508c3.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_7c4b75bd0a15a30117483ab6e4.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_67515b1e1999fa43300bc8bccf.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_7baceb019fd891e5c205baf941.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_ca2fe6fb603ea4701e8b663775.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_b1f7d6a589ea564db3ece0a022.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_57680120f42565f8c067a2addc.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_a9fb120be06f1799e2a5dad806.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_74661bb497681ad8522e4009be.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_69ab423f8c10c4b280fc208e0d.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\any_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/any_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/any_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/any_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\any_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\any_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\api_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/api_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/api_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/api_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\api_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\api_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/compiler/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\plugin_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/compiler/plugin_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/compiler/plugin_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\compiler\plugin_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\compiler\plugin_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_database.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_database.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_database.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor_database.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_pool.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/descriptor_pool.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/descriptor_pool.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\descriptor_pool.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\descriptor_pool.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\duration_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/duration_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/duration_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/duration_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\duration_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\duration_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\empty_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/empty_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/empty_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/empty_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\empty_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\empty_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\field_mask_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/field_mask_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/field_mask_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\field_mask_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\field_mask_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\_parameterized.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/_parameterized.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/_parameterized.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\_parameterized.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\_parameterized.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\api_implementation.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/api_implementation.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/api_implementation.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\api_implementation.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\api_implementation.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\containers.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/containers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/containers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/containers.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\containers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\containers.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\decoder.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/decoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/decoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/decoder.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\decoder.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\decoder.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\encoder.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/encoder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/encoder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/encoder.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\encoder.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\encoder.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\enum_type_wrapper.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/enum_type_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/enum_type_wrapper.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\enum_type_wrapper.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\enum_type_wrapper.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\message_listener.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/message_listener.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/message_listener.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\message_listener.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\message_listener.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\python_message.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/python_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/python_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/python_message.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\python_message.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\python_message.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\type_checkers.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/type_checkers.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/type_checkers.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\type_checkers.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\type_checkers.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\well_known_types.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/well_known_types.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/well_known_types.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\well_known_types.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\well_known_types.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\wire_format.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/internal/wire_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/internal/wire_format.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\internal\wire_format.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\internal\wire_format.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\json_format.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/json_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/json_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/json_format.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\json_format.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\json_format.py.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -888,6 +1216,10 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_3d112e6097068817f244ba03c0.yasm" "-" "contrib/libs/protobuf/python/google/protobuf/message.py" "_6efecdc404955a5d7c65c96bf1.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_de07d949e7704922a75bc83760.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3" "_fb572078d32d3914298af6b0d9.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_1738330350d68c7f8ea1e4e3b4.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/message_factory.py" "_ebed214a45f52788bf1efea4aa.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_b4a40db0efa27aeb98b3c03fa8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3" "_2bf6fe5c789d66c2633641e1e4.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_c76af2777fb083273ba7ec7954.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "_aba4664679b7225f0db59169b2.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_645ad83a8889cf47a042aae1c4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3" "_e89a6c87ee8fb406fa5dfe23b1.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_111f1584173f6ca2699edb363d.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "_bd13c862e5349a317a730d23a0.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_32e3dd66cb25254a82d9bdf647.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3" "_600ea9fbfa4ef50f20d482e31c.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_42893b731b8444b2f266cfe14c.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "_82fe120c76a7643786a9131223.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_37ad68068b70da64b86227509b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3" "_31d6eeb50dfea15490de8bbf3e.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_c79514a7167ae5cd2bed027e1f.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/reflection.py" "_2781a9d5c4d16ab6912b140ebf.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_60456a0efafd8669ce1ca005e3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3" "_fb56939b616177acfd83654fcc.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_5e171cd795767719329742d457.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/service.py" "_e1f393f35c6511dd959c4f30c0.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ff9b46e887e0ea707e7eace901.rodata" "-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py.yapyc3" "_8b23b95a59ae2e629d47394ff8.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -899,15 +1231,127 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_3d112e6097068817f244ba03c0.yasm" "-" "contrib/libs/protobuf/python/google/protobuf/message.py" "_6efecdc404955a5d7c65c96bf1.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_de07d949e7704922a75bc83760.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3" "_fb572078d32d3914298af6b0d9.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_1738330350d68c7f8ea1e4e3b4.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/message_factory.py" "_ebed214a45f52788bf1efea4aa.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_b4a40db0efa27aeb98b3c03fa8.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3" "_2bf6fe5c789d66c2633641e1e4.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_c76af2777fb083273ba7ec7954.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "_aba4664679b7225f0db59169b2.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_645ad83a8889cf47a042aae1c4.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3" "_e89a6c87ee8fb406fa5dfe23b1.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_111f1584173f6ca2699edb363d.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "_bd13c862e5349a317a730d23a0.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_32e3dd66cb25254a82d9bdf647.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3" "_600ea9fbfa4ef50f20d482e31c.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_42893b731b8444b2f266cfe14c.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "_82fe120c76a7643786a9131223.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_37ad68068b70da64b86227509b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3" "_31d6eeb50dfea15490de8bbf3e.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_c79514a7167ae5cd2bed027e1f.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/reflection.py" "_2781a9d5c4d16ab6912b140ebf.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_60456a0efafd8669ce1ca005e3.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3" "_fb56939b616177acfd83654fcc.rodata" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_5e171cd795767719329742d457.rodata" "-" "contrib/libs/protobuf/python/google/protobuf/service.py" "_e1f393f35c6511dd959c4f30c0.rodata" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/_ff9b46e887e0ea707e7eace901.rodata" "-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py.yapyc3" "_8b23b95a59ae2e629d47394ff8.rodata"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/protobuf/python/google_lib/_3d112e6097068817f244ba03c0.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message_factory.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message_factory.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\proto_builder.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\proto_builder.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\cpp_message.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\cpp_message.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\reflection.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\reflection.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_3d112e6097068817f244ba03c0.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_de07d949e7704922a75bc83760.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_1738330350d68c7f8ea1e4e3b4.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_b4a40db0efa27aeb98b3c03fa8.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c76af2777fb083273ba7ec7954.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_645ad83a8889cf47a042aae1c4.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_111f1584173f6ca2699edb363d.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_32e3dd66cb25254a82d9bdf647.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_42893b731b8444b2f266cfe14c.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_37ad68068b70da64b86227509b.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c79514a7167ae5cd2bed027e1f.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_60456a0efafd8669ce1ca005e3.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_5e171cd795767719329742d457.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_ff9b46e887e0ea707e7eace901.rodata;</Outputs>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/_3d112e6097068817f244ba03c0.yasm	$B/contrib/libs/protobuf/python/google_lib/protobuf/message.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message_factory.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message_factory.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\proto_builder.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\proto_builder.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\__init__.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\__init__.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\cpp_message.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\cpp_message.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\reflection.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\reflection.py.yapyc3;$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_3d112e6097068817f244ba03c0.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_de07d949e7704922a75bc83760.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_1738330350d68c7f8ea1e4e3b4.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_b4a40db0efa27aeb98b3c03fa8.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c76af2777fb083273ba7ec7954.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_645ad83a8889cf47a042aae1c4.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_111f1584173f6ca2699edb363d.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_32e3dd66cb25254a82d9bdf647.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_42893b731b8444b2f266cfe14c.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_37ad68068b70da64b86227509b.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_c79514a7167ae5cd2bed027e1f.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_60456a0efafd8669ce1ca005e3.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_5e171cd795767719329742d457.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\_ff9b46e887e0ea707e7eace901.rodata;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message_factory.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/message_factory.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/message_factory.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/message_factory.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\message_factory.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\message_factory.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\proto_builder.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/proto_builder.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/proto_builder.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/proto_builder.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\proto_builder.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\proto_builder.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/__init__.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/pyext/__init__.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\__init__.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\cpp_message.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/pyext/cpp_message.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/pyext/cpp_message.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\cpp_message.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\pyext\cpp_message.py.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\python.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -951,6 +1395,303 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/protobuf/python/google/protobuf/pyext/python.pb.h	$B/contrib/libs/protobuf/python/google/protobuf/pyext/python__int___pb2.py	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\pyext\python.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;$(SolutionDir)..\build\scripts\gen_py_protos.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google\protobuf\pyext\python__int___pb2.py;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\reflection.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/reflection.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\reflection.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\reflection.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/service.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\service.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service_reflection.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/service_reflection.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/service_reflection.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/service_reflection.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\service_reflection.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\service_reflection.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\source_context_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/source_context_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/source_context_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\source_context_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\source_context_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\struct_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/struct_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/struct_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/struct_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\struct_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\struct_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\symbol_database.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/symbol_database.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/symbol_database.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/symbol_database.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\symbol_database.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\symbol_database.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\text_encoding.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_encoding.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_encoding.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/text_encoding.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\text_encoding.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\text_encoding.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\text_format.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/text_format.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/text_format.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/text_format.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\text_format.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\text_format.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\timestamp_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/timestamp_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/timestamp_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\timestamp_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\timestamp_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\type_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/type_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/type_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/type_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\type_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\type_pb2.py.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\wrappers_pb2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py-" "$(SolutionDir)../contrib/libs/protobuf/python/google/protobuf/wrappers_pb2.py" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/python/google_lib/protobuf/wrappers_pb2.py.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\protobuf\python\google\protobuf\wrappers_pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\python\google_lib\protobuf\wrappers_pb2.py.yapyc3;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -1042,6 +1783,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
       <Project>{CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
       <Project>{1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB}</Project>

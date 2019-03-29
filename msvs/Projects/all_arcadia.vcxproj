@@ -606,6 +606,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\tools-python3-lib.vcxproj">
       <Project>CD9FC9E1-E55E-F0DF-E06C-5DF7C166141B</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
+      <Project>480F44FB-05D5-35A4-D564-704F9C2920B7</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Lib\pypython3-src-Lib.vcxproj">
       <Project>1F5842EA-E053-C6FC-4F42-BAAFD2F5B0EB</Project>
     </ProjectReference>
@@ -821,6 +824,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>FDE5A173-CB03-B2D7-3278-852097280EF4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\main\python-runtime_py3-main.vcxproj">
+      <Project>0C792E00-F359-C51E-6746-82099FC64CEC</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>1CDAABEA-CAFE-2098-5B65-A951B25498E4</Project>
