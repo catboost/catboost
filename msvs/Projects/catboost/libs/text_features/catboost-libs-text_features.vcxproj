@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\bm25.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\bow.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\embedding.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\embedding_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\embedding_online_features.cpp"/>
@@ -88,6 +89,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\text_dataset_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_features\tokenizer.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_features\bm25.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\text_features\bow.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_features\dictionary.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_features\embedding.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_features\embedding_loader.h"/>
