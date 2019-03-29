@@ -31,7 +31,7 @@ Y_UNIT_TEST_SUITE(TRegion) {
     Y_UNIT_TEST(ConstructorFromValue) {
         int x = 10;
         TRegion<int> r(x);
-        UNIT_ASSERT_VALUES_EQUAL(1u, r.Size());
+        UNIT_ASSERT_VALUES_EQUAL(1u, r.size());
         UNIT_ASSERT_VALUES_EQUAL(10, r[0]);
         r[0] = 11;
         UNIT_ASSERT_VALUES_EQUAL(11, x);

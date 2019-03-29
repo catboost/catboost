@@ -83,12 +83,8 @@ public:
         return DataPtr;
     }
 
-    inline size_t Size() const noexcept {
-        return Len;
-    }
-
     inline size_t size() const noexcept {
-        return Size();
+        return Len;
     }
 
     inline bool empty() const noexcept {
