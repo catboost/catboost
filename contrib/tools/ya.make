@@ -4,6 +4,7 @@ RECURSE(
     python
     python/src/Modules/expat
     python3
+    python3/pycc
     ragel5
     ragel6
     yasm
