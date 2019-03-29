@@ -1587,8 +1587,8 @@ class CatBoost(_CatBoostBase):
         ----------
         data : catboost.Pool or None
             Data to get feature importance.
-            If type in ('Shap', 'PredictionValuesChange) data is a dataset. For every object in this dataset feature importances will be calculated.
-            If type == PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+            If type in ('Shap', 'PredictionValuesChange') data is a dataset. For every object in this dataset feature importances will be calculated.
+            If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
         type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
@@ -1648,11 +1648,23 @@ class CatBoost(_CatBoostBase):
             warnings.warn("fstr_type soon be deprecated, use type instead")
 
         type = enum_from_enum_or_str(EFstrType, type)
-        empty_data_is_ok = (((type == EFstrType.PredictionValuesChange) and self._object._has_leaf_weights_in_model())
-                            or (type == EFstrType.Interaction))
+
+        if data is not None and not isinstance(data, Pool):
+            from __builtin__ import type as typeof
+            raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
+
+        need_meta_info = type in (EFstrType.PredictionValuesChange, EFstrType.FeatureImportance)
+        empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
         if not empty_data_is_ok:
-            if not isinstance(data, Pool):
-                raise CatBoostError("Invalid metric type={}, must be catboost.Pool.".format(__builtins__.type(data)))
+            if data is None:
+                if need_meta_info:
+                    raise CatBoostError(
+                        "Model has no meta information needed to calculate feature importances. \
+                        Pass training dataset to this function.")
+                else:
+                    raise CatBoostError(
+                        "Feature importance type {} requires training dataset \
+                        to be passed to this function.".format(type))
             if data.is_empty_:
                 raise CatBoostError("data is empty.")
 

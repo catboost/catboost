@@ -1796,6 +1796,11 @@ def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0')
     model.fit(pool)
+    assert model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)
+    try:
+        model.get_feature_importance(type=EFstrType.LossFunctionChange)
+    except CatBoostError:
+        pass
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.feature_importances_))
     print(model.feature_importances_)
