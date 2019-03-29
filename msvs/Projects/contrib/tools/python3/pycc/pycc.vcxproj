@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/1.0.2/include;$(SolutionDir)../contrib/libs/brotli/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\29D11B36-E190-930C-F04D-08E664A940A9\join_750bb7d56f30df3cbafc549696.obj;$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\join_9874494c821baab6448a958bb5.obj;$(SolutionDir)$(Configuration)\MSVS\1CDAABEA-CAFE-2098-5B65-A951B25498E4\2b4abc78e6ab1ee2f75363efd0.obj;$(SolutionDir)$(Configuration)\MSVS\1CDAABEA-CAFE-2098-5B65-A951B25498E4\__res.reg3.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\join_901f1383cfab5fcbeabb59c93e.obj;$(SolutionDir)$(Configuration)\MSVS\29D11B36-E190-930C-F04D-08E664A940A9\join_a8e4b495f04361744f0d2380b6.obj;$(SolutionDir)$(Configuration)\MSVS\1CDAABEA-CAFE-2098-5B65-A951B25498E4\2b4abc78e6ab1ee2f75363efd0.obj;$(SolutionDir)$(Configuration)\MSVS\1CDAABEA-CAFE-2098-5B65-A951B25498E4\__res.reg3.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -292,6 +292,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\lib\py\pypython3-lib-py.vcxproj">
       <Project>{29D11B36-E190-930C-F04D-08E664A940A9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
+      <Project>{D9DA0254-41B3-1659-443E-58F351ADA4FA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
       <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>

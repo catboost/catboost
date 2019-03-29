@@ -270,6 +270,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\pycc\pycc.vcxproj">
       <Project>{480F44FB-05D5-35A4-D564-704F9C2920B7}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\Modules\python3-src-Modules.vcxproj">
+      <Project>{D9DA0254-41B3-1659-443E-58F351ADA4FA}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python3\src\tools-python3-src.vcxproj">
       <Project>{3853084F-52D5-B05E-2706-65BD06611610}</Project>
     </ProjectReference>
