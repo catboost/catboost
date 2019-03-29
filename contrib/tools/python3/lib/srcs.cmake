@@ -7,6 +7,7 @@ SET(PYTHON3_LIB_SRCS
     _dummy_thread.py
     _markupbase.py
     _osx_support.py
+    _py_abc.py
     _pydecimal.py
     _pyio.py
     _sitebuiltins.py
@@ -24,22 +25,22 @@ SET(PYTHON3_LIB_SRCS
     asyncio/base_futures.py
     asyncio/base_subprocess.py
     asyncio/base_tasks.py
-    asyncio/compat.py
     asyncio/constants.py
     asyncio/coroutines.py
     asyncio/events.py
+    asyncio/format_helpers.py
     asyncio/futures.py
     asyncio/locks.py
     asyncio/log.py
     asyncio/proactor_events.py
     asyncio/protocols.py
     asyncio/queues.py
+    asyncio/runners.py
     asyncio/selector_events.py
     asyncio/sslproto.py
     asyncio/streams.py
     asyncio/subprocess.py
     asyncio/tasks.py
-    asyncio/test_utils.py
     asyncio/transports.py
     asyncio/unix_events.py
     asyncio/windows_events.py
@@ -70,11 +71,13 @@ SET(PYTHON3_LIB_SRCS
     concurrent/futures/thread.py
     configparser.py
     contextlib.py
+    contextvars.py
     copy.py
     copyreg.py
     crypt.py
     csv.py
     ctypes/__init__.py
+    ctypes/_aix.py
     ctypes/_endian.py
     ctypes/macholib/__init__.py
     ctypes/macholib/dyld.py
@@ -87,6 +90,7 @@ SET(PYTHON3_LIB_SRCS
     curses/has_key.py
     curses/panel.py
     curses/textpad.py
+    dataclasses.py
     datetime.py
     dbm/__init__.py
     dbm/dumb.py
@@ -337,6 +341,7 @@ SET(PYTHON3_LIB_SRCS
     importlib/_bootstrap_external.py
     importlib/abc.py
     importlib/machinery.py
+    importlib/resources.py
     importlib/util.py
     inspect.py
     io.py
@@ -354,7 +359,6 @@ SET(PYTHON3_LIB_SRCS
     logging/handlers.py
     lzma.py
     macpath.py
-    macurl2path.py
     mailbox.py
     mailcap.py
     mimetypes.py

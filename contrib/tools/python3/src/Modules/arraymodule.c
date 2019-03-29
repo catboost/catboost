@@ -31,6 +31,7 @@ struct arraydescr {
     int itemsize;
     PyObject * (*getitem)(struct arrayobject *, Py_ssize_t);
     int (*setitem)(struct arrayobject *, Py_ssize_t, PyObject *);
+    int (*compareitems)(const void *, const void *, Py_ssize_t);
     const char *formats;
     int is_integer_type;
     int is_signed;
@@ -236,7 +237,7 @@ BB_setitem(arrayobject *ap, Py_ssize_t i, PyObject *v)
 static PyObject *
 u_getitem(arrayobject *ap, Py_ssize_t i)
 {
-    return PyUnicode_FromUnicode(&((Py_UNICODE *) ap->ob_item)[i], 1);
+    return PyUnicode_FromOrdinal(((Py_UNICODE *) ap->ob_item)[i]);
 }
 
 static int
@@ -518,6 +519,28 @@ d_setitem(arrayobject *ap, Py_ssize_t i, PyObject *v)
     return 0;
 }
 
+#define DEFINE_COMPAREITEMS(code, type) \
+    static int \
+    code##_compareitems(const void *lhs, const void *rhs, Py_ssize_t length) \
+    { \
+        const type *a = lhs, *b = rhs; \
+        for (Py_ssize_t i = 0; i < length; ++i) \
+            if (a[i] != b[i]) \
+                return a[i] < b[i] ? -1 : 1; \
+        return 0; \
+    }
+
+DEFINE_COMPAREITEMS(b, signed char)
+DEFINE_COMPAREITEMS(BB, unsigned char)
+DEFINE_COMPAREITEMS(u, Py_UNICODE)
+DEFINE_COMPAREITEMS(h, short)
+DEFINE_COMPAREITEMS(HH, unsigned short)
+DEFINE_COMPAREITEMS(i, int)
+DEFINE_COMPAREITEMS(II, unsigned int)
+DEFINE_COMPAREITEMS(l, long)
+DEFINE_COMPAREITEMS(LL, unsigned long)
+DEFINE_COMPAREITEMS(q, long long)
+DEFINE_COMPAREITEMS(QQ, unsigned long long)
 
 /* Description of types.
  *
@@ -525,19 +548,19 @@ d_setitem(arrayobject *ap, Py_ssize_t i, PyObject *v)
  * typecode.
  */
 static const struct arraydescr descriptors[] = {
-    {'b', 1, b_getitem, b_setitem, "b", 1, 1},
-    {'B', 1, BB_getitem, BB_setitem, "B", 1, 0},
-    {'u', sizeof(Py_UNICODE), u_getitem, u_setitem, "u", 0, 0},
-    {'h', sizeof(short), h_getitem, h_setitem, "h", 1, 1},
-    {'H', sizeof(short), HH_getitem, HH_setitem, "H", 1, 0},
-    {'i', sizeof(int), i_getitem, i_setitem, "i", 1, 1},
-    {'I', sizeof(int), II_getitem, II_setitem, "I", 1, 0},
-    {'l', sizeof(long), l_getitem, l_setitem, "l", 1, 1},
-    {'L', sizeof(long), LL_getitem, LL_setitem, "L", 1, 0},
-    {'q', sizeof(long long), q_getitem, q_setitem, "q", 1, 1},
-    {'Q', sizeof(long long), QQ_getitem, QQ_setitem, "Q", 1, 0},
-    {'f', sizeof(float), f_getitem, f_setitem, "f", 0, 0},
-    {'d', sizeof(double), d_getitem, d_setitem, "d", 0, 0},
+    {'b', 1, b_getitem, b_setitem, b_compareitems, "b", 1, 1},
+    {'B', 1, BB_getitem, BB_setitem, BB_compareitems, "B", 1, 0},
+    {'u', sizeof(Py_UNICODE), u_getitem, u_setitem, u_compareitems, "u", 0, 0},
+    {'h', sizeof(short), h_getitem, h_setitem, h_compareitems, "h", 1, 1},
+    {'H', sizeof(short), HH_getitem, HH_setitem, HH_compareitems, "H", 1, 0},
+    {'i', sizeof(int), i_getitem, i_setitem, i_compareitems, "i", 1, 1},
+    {'I', sizeof(int), II_getitem, II_setitem, II_compareitems, "I", 1, 0},
+    {'l', sizeof(long), l_getitem, l_setitem, l_compareitems, "l", 1, 1},
+    {'L', sizeof(long), LL_getitem, LL_setitem, LL_compareitems, "L", 1, 0},
+    {'q', sizeof(long long), q_getitem, q_setitem, q_compareitems, "q", 1, 1},
+    {'Q', sizeof(long long), QQ_getitem, QQ_setitem, QQ_compareitems, "Q", 1, 0},
+    {'f', sizeof(float), f_getitem, f_setitem, NULL, "f", 0, 0},
+    {'d', sizeof(double), d_getitem, d_setitem, NULL, "d", 0, 0},
     {'\0', 0, 0, 0, 0, 0, 0} /* Sentinel */
 };
 
@@ -664,6 +687,31 @@ array_richcompare(PyObject *v, PyObject *w, int op)
         return res;
     }
 
+    if (va->ob_descr == wa->ob_descr && va->ob_descr->compareitems != NULL) {
+        /* Fast path:
+           arrays with same types can have their buffers compared directly */
+        Py_ssize_t common_length = Py_MIN(Py_SIZE(va), Py_SIZE(wa));
+        int result = va->ob_descr->compareitems(va->ob_item, wa->ob_item,
+                                                common_length);
+        if (result == 0)
+            goto compare_sizes;
+
+        int cmp;
+        switch (op) {
+        case Py_LT: cmp = result < 0; break;
+        case Py_LE: cmp = result <= 0; break;
+        case Py_EQ: cmp = result == 0; break;
+        case Py_NE: cmp = result != 0; break;
+        case Py_GT: cmp = result > 0; break;
+        case Py_GE: cmp = result >= 0; break;
+        default: return NULL; /* cannot happen */
+        }
+        PyObject *res = cmp ? Py_True : Py_False;
+        Py_INCREF(res);
+        return res;
+    }
+
+
     /* Search for the first index where items are different */
     k = 1;
     for (i = 0; i < Py_SIZE(va) && i < Py_SIZE(wa); i++) {
@@ -685,14 +733,17 @@ array_richcompare(PyObject *v, PyObject *w, int op)
 
     if (k) {
         /* No more items to compare -- compare sizes */
+        compare_sizes: ;
         Py_ssize_t vs = Py_SIZE(va);
         Py_ssize_t ws = Py_SIZE(wa);
         int cmp;
         switch (op) {
         case Py_LT: cmp = vs <  ws; break;
         case Py_LE: cmp = vs <= ws; break;
-        case Py_EQ: cmp = vs == ws; break;
-        case Py_NE: cmp = vs != ws; break;
+        /* If the lengths were not equal,
+           the earlier fast-path check would have caught that. */
+        case Py_EQ: assert(vs == ws); cmp = 1; break;
+        case Py_NE: assert(vs == ws); cmp = 0; break;
         case Py_GT: cmp = vs >  ws; break;
         case Py_GE: cmp = vs >= ws; break;
         default: return NULL; /* cannot happen */
@@ -1023,8 +1074,7 @@ ins(arrayobject *self, Py_ssize_t where, PyObject *v)
 {
     if (ins1(self, where, v) != 0)
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1091,7 +1141,7 @@ array_array_index(arrayobject *self, PyObject *v)
         else if (cmp < 0)
             return NULL;
     }
-    PyErr_SetString(PyExc_ValueError, "array.index(x): x not in list");
+    PyErr_SetString(PyExc_ValueError, "array.index(x): x not in array");
     return NULL;
 }
 
@@ -1138,13 +1188,12 @@ array_array_remove(arrayobject *self, PyObject *v)
         if (cmp > 0) {
             if (array_del_slice(self, i, i+1) != 0)
                 return NULL;
-            Py_INCREF(Py_None);
-            return Py_None;
+            Py_RETURN_NONE;
         }
         else if (cmp < 0)
             return NULL;
     }
-    PyErr_SetString(PyExc_ValueError, "array.remove(x): x not in list");
+    PyErr_SetString(PyExc_ValueError, "array.remove(x): x not in array");
     return NULL;
 }
 
@@ -1201,8 +1250,7 @@ array_array_extend(arrayobject *self, PyObject *bb)
 {
     if (array_do_extend(self, bb) == -1)
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1331,8 +1379,7 @@ array_array_byteswap_impl(arrayobject *self)
                    "don't know how to byteswap this array type");
         return NULL;
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1365,8 +1412,7 @@ array_array_reverse_impl(arrayobject *self)
         }
     }
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1461,7 +1507,7 @@ array_array_tofile(arrayobject *self, PyObject *f)
         bytes = PyBytes_FromStringAndSize(ptr, size);
         if (bytes == NULL)
             return NULL;
-        res = _PyObject_CallMethodId(f, &PyId_write, "O", bytes);
+        res = _PyObject_CallMethodIdObjArgs(f, &PyId_write, bytes, NULL);
         Py_DECREF(bytes);
         if (res == NULL)
             return NULL;
@@ -1469,8 +1515,7 @@ array_array_tofile(arrayobject *self, PyObject *f)
     }
 
   done:
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1499,16 +1544,21 @@ array_array_fromlist(arrayobject *self, PyObject *list)
         if (array_resize(self, old_size + n) == -1)
             return NULL;
         for (i = 0; i < n; i++) {
-            PyObject *v = PyList_GetItem(list, i);
+            PyObject *v = PyList_GET_ITEM(list, i);
             if ((*self->ob_descr->setitem)(self,
                             Py_SIZE(self) - n + i, v) != 0) {
                 array_resize(self, old_size);
                 return NULL;
             }
+            if (n != PyList_GET_SIZE(list)) {
+                PyErr_SetString(PyExc_RuntimeError,
+                                "list changed size during iteration");
+                array_resize(self, old_size);
+                return NULL;
+            }
         }
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1530,8 +1580,7 @@ array_array_tolist_impl(arrayobject *self)
         PyObject *v = getarrayitem((PyObject *)self, i);
         if (v == NULL)
             goto error;
-        if (PyList_SetItem(list, i, v) < 0)
-            goto error;
+        PyList_SET_ITEM(list, i, v);
     }
     return list;
 
@@ -1573,8 +1622,7 @@ frombytes(arrayobject *self, Py_buffer *buffer)
             buffer->buf, n * itemsize);
     }
     PyBuffer_Release(buffer);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*[clinic input]
@@ -1664,9 +1712,9 @@ some other type.
 [clinic start generated code]*/
 
 static PyObject *
-array_array_fromunicode_impl(arrayobject *self, Py_UNICODE *ustr,
+array_array_fromunicode_impl(arrayobject *self, const Py_UNICODE *ustr,
                              Py_ssize_clean_t ustr_length)
-/*[clinic end generated code: output=ebb72fc16975e06d input=150f00566ffbca6e]*/
+/*[clinic end generated code: output=cf2f662908e2befc input=150f00566ffbca6e]*/
 {
     char typecode;
 
@@ -1709,7 +1757,7 @@ array_array_tounicode_impl(arrayobject *self)
              "tounicode() may only be called on unicode type arrays");
         return NULL;
     }
-    return PyUnicode_FromUnicode((Py_UNICODE *) self->ob_item, Py_SIZE(self));
+    return PyUnicode_FromWideChar((Py_UNICODE *) self->ob_item, Py_SIZE(self));
 }
 
 /*[clinic input]
@@ -1930,7 +1978,7 @@ array__array_reconstructor_impl(PyObject *module, PyTypeObject *arraytype,
 
     if (!PyType_Check(arraytype)) {
         PyErr_Format(PyExc_TypeError,
-            "first argument must a type object, not %.200s",
+            "first argument must be a type object, not %.200s",
             Py_TYPE(arraytype)->tp_name);
         return NULL;
     }
@@ -2153,18 +2201,17 @@ array_array___reduce_ex__(arrayobject *self, PyObject *value)
 
     if (!PyLong_Check(value)) {
         PyErr_SetString(PyExc_TypeError,
-                        "__reduce_ex__ argument should an integer");
+                        "__reduce_ex__ argument should be an integer");
         return NULL;
     }
     protocol = PyLong_AsLong(value);
     if (protocol == -1 && PyErr_Occurred())
         return NULL;
 
-    dict = _PyObject_GetAttrId((PyObject *)self, &PyId___dict__);
+    if (_PyObject_LookupAttrId((PyObject *)self, &PyId___dict__, &dict) < 0) {
+        return NULL;
+    }
     if (dict == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-            return NULL;
-        PyErr_Clear();
         dict = Py_None;
         Py_INCREF(dict);
     }
@@ -2266,7 +2313,8 @@ array_repr(arrayobject *a)
     len = Py_SIZE(a);
     typecode = a->ob_descr->typecode;
     if (len == 0) {
-        return PyUnicode_FromFormat("array('%c')", (int)typecode);
+        return PyUnicode_FromFormat("%s('%c')",
+                                    _PyType_Name(Py_TYPE(a)), (int)typecode);
     }
     if (typecode == 'u') {
         v = array_array_tounicode_impl(a);
@@ -2276,7 +2324,8 @@ array_repr(arrayobject *a)
     if (v == NULL)
         return NULL;
 
-    s = PyUnicode_FromFormat("array('%c', %R)", (int)typecode, v);
+    s = PyUnicode_FromFormat("%s('%c', %R)",
+                             _PyType_Name(Py_TYPE(a)), (int)typecode, v);
     Py_DECREF(v);
     return s;
 }
@@ -2379,7 +2428,7 @@ array_ass_subscr(arrayobject* self, PyObject* item, PyObject* value)
     }
     else {
         PyErr_SetString(PyExc_TypeError,
-                        "array indices must be integer");
+                        "array indices must be integers");
         return -1;
     }
     if (value == NULL) {
@@ -2578,7 +2627,7 @@ array_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     PyObject *initial = NULL, *it = NULL;
     const struct arraydescr *descr;
 
-    if (type == &Arraytype && !_PyArg_NoKeywords("array.array()", kwds))
+    if (type == &Arraytype && !_PyArg_NoKeywords("array.array", kwds))
         return NULL;
 
     if (!PyArg_ParseTuple(args, "C|O:array", &c, &initial))

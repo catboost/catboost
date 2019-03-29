@@ -31,7 +31,7 @@
 #if BUFSIZ < (16*1024)
 #define SMALLCHUNK (2*1024)
 #elif (BUFSIZ >= (2 << 25))
-#error "unreasonable BUFSIZ > 64MB defined"
+#error "unreasonable BUFSIZ > 64 MiB defined"
 #else
 #define SMALLCHUNK BUFSIZ
 #endif
@@ -79,7 +79,7 @@ char _PyIO_get_console_type(PyObject *path_or_fd) {
         PyErr_Clear();
         return '\0';
     }
-    decoded_wstr = _PyUnicode_AsWideCharString(decoded);
+    decoded_wstr = PyUnicode_AsWideCharString(decoded, NULL);
     Py_CLEAR(decoded);
     if (!decoded_wstr) {
         PyErr_Clear();
@@ -139,13 +139,6 @@ module _io
 class _io._WindowsConsoleIO "winconsoleio *" "&PyWindowsConsoleIO_Type"
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=e897fdc1fba4e131]*/
-
-/*[python input]
-class io_ssize_t_converter(CConverter):
-    type = 'Py_ssize_t'
-    converter = '_PyIO_ConvertSsize_t'
-[python start generated code]*/
-/*[python end generated code: output=da39a3ee5e6b4b0d input=d0a811d3cbfd1b33]*/
 
 typedef struct {
     PyObject_HEAD
@@ -210,8 +203,8 @@ _io__WindowsConsoleIO_close_impl(winconsoleio *self)
     PyObject *exc, *val, *tb;
     int rc;
     _Py_IDENTIFIER(close);
-    res = _PyObject_CallMethodId((PyObject*)&PyRawIOBase_Type,
-                                 &PyId_close, "O", self);
+    res = _PyObject_CallMethodIdObjArgs((PyObject*)&PyRawIOBase_Type,
+                                        &PyId_close, self, NULL);
     if (!self->closehandle) {
         self->handle = INVALID_HANDLE_VALUE;
         return res;
@@ -252,7 +245,7 @@ winconsoleio_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 _io._WindowsConsoleIO.__init__
     file as nameobj: object
     mode: str = "r"
-    closefd: int(c_default="1") = True
+    closefd: bool(accept={int}) = True
     opener: object = None
 
 Open a console buffer by file descriptor.
@@ -266,7 +259,7 @@ static int
 _io__WindowsConsoleIO___init___impl(winconsoleio *self, PyObject *nameobj,
                                     const char *mode, int closefd,
                                     PyObject *opener)
-/*[clinic end generated code: output=3fd9cbcdd8d95429 input=61be39633a86f5d7]*/
+/*[clinic end generated code: output=3fd9cbcdd8d95429 input=06ae4b863c63244b]*/
 {
     const char *s;
     wchar_t *name = NULL;
@@ -311,17 +304,11 @@ _io__WindowsConsoleIO___init___impl(winconsoleio *self, PyObject *nameobj,
         if (!d)
             return -1;
 
-        name = _PyUnicode_AsWideCharString(decodedname);
+        name = PyUnicode_AsWideCharString(decodedname, NULL);
         console_type = _PyIO_get_console_type(decodedname);
         Py_CLEAR(decodedname);
         if (name == NULL)
             return -1;
-        if (console_type == '\0') {
-            PyMem_Free(name);
-            PyErr_SetString(PyExc_ValueError,
-                "Cannot open non-console file");
-            return -1;
-        }
     }
 
     s = mode;
@@ -397,11 +384,6 @@ _io__WindowsConsoleIO___init___impl(winconsoleio *self, PyObject *nameobj,
     if (console_type == '\0')
         console_type = _get_console_type(self->handle);
 
-    if (console_type == '\0') {
-        PyErr_SetString(PyExc_ValueError,
-            "Cannot open non-console file");
-        goto error;
-    }
     if (self->writable && console_type != 'w') {
         PyErr_SetString(PyExc_ValueError,
             "Cannot open console input buffer for writing");
@@ -429,7 +411,8 @@ error:
     internal_close(self);
 
 done:
-    PyMem_Free(name);
+    if (name)
+        PyMem_Free(name);
     return ret;
 }
 
@@ -573,12 +556,16 @@ read_console_w(HANDLE handle, DWORD maxlen, DWORD *readlen) {
     Py_BEGIN_ALLOW_THREADS
     DWORD off = 0;
     while (off < maxlen) {
-        DWORD n, len = min(maxlen - off, BUFSIZ);
+        DWORD n = (DWORD)-1; 
+        DWORD len = min(maxlen - off, BUFSIZ);
         SetLastError(0);
         BOOL res = ReadConsoleW(handle, &buf[off], len, &n, NULL);
 
         if (!res) {
             err = GetLastError();
+            break;
+        }
+        if (n == (DWORD)-1 && (err = GetLastError()) == ERROR_OPERATION_ABORTED) {
             break;
         }
         if (n == 0) {
@@ -828,11 +815,13 @@ _io__WindowsConsoleIO_readall_impl(winconsoleio *self)
             }
             bufsize = newsize;
 
-            buf = PyMem_Realloc(buf, (bufsize + 1) * sizeof(wchar_t));
-            if (!buf) {
+            wchar_t *tmp = PyMem_Realloc(buf,
+                                         (bufsize + 1) * sizeof(wchar_t));
+            if (tmp == NULL) {
                 PyMem_Free(buf);
                 return NULL;
             }
+            buf = tmp;
         }
 
         subbuf = read_console_w(self->handle, bufsize - len, &n);
@@ -908,7 +897,7 @@ _io__WindowsConsoleIO_readall_impl(winconsoleio *self)
 
 /*[clinic input]
 _io._WindowsConsoleIO.read
-    size: io_ssize_t = -1
+    size: Py_ssize_t(accept={int, NoneType}) = -1
     /
 
 Read at most size bytes, returned as bytes.
@@ -920,7 +909,7 @@ Return an empty bytes object at EOF.
 
 static PyObject *
 _io__WindowsConsoleIO_read_impl(winconsoleio *self, Py_ssize_t size)
-/*[clinic end generated code: output=57df68af9f4b22d0 input=6c56fceec460f1dd]*/
+/*[clinic end generated code: output=57df68af9f4b22d0 input=8bc73bc15d0fa072]*/
 {
     PyObject *bytes;
     Py_ssize_t bytes_size;
@@ -981,6 +970,9 @@ _io__WindowsConsoleIO_write_impl(winconsoleio *self, Py_buffer *b)
     if (!self->writable)
         return err_mode("writing");
 
+    if (!b->len) {
+        return PyLong_FromLong(0);
+    }
     if (b->len > BUFMAX)
         len = BUFMAX;
     else

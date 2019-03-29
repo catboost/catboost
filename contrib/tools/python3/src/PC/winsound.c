@@ -29,7 +29,7 @@
    # Start playing the first bit of wav file asynchronously
    winsound.PlaySound('c:/windows/media/Chord.wav',
                    winsound.SND_FILENAME|winsound.SND_ASYNC)
-   # But dont let it go for too long...
+   # But don't let it go for too long...
    time.sleep(0.1)
    # ...Before stopping it
    winsound.PlaySound(None, 0)
@@ -101,7 +101,7 @@ winsound_PlaySound_impl(PyObject *module, PyObject *sound, int flags)
                          Py_TYPE(sound)->tp_name);
             return NULL;
         }
-        wsound = _PyUnicode_AsWideCharString(sound);
+        wsound = PyUnicode_AsWideCharString(sound, NULL);
         if (wsound == NULL) {
             return NULL;
         }

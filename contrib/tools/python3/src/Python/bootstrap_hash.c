@@ -20,6 +20,10 @@
 #  endif
 #endif
 
+#ifdef _Py_MEMORY_SANITIZER
+#  include <sanitizer/msan_interface.h>
+#endif
+
 #ifdef Py_DEBUG
 int _Py_HashSecret_Initialized = 0;
 #else
@@ -112,7 +116,7 @@ py_getrandom(void *buffer, Py_ssize_t size, int blocking, int raise)
     flags = blocking ? 0 : GRND_NONBLOCK;
     dest = buffer;
     while (0 < size) {
-#ifdef sun
+#if defined(__sun) && defined(__SVR4)
         /* Issue #26735: On Solaris, getrandom() is limited to returning up
            to 1024 bytes. Call it multiple times if more bytes are
            requested. */
@@ -143,6 +147,11 @@ py_getrandom(void *buffer, Py_ssize_t size, int blocking, int raise)
         else {
             n = syscall(SYS_getrandom, dest, n, flags);
         }
+#  ifdef _Py_MEMORY_SANITIZER
+        if (n > 0) {
+             __msan_unpoison(dest, n);
+        }
+#  endif
 #endif
 
         if (n < 0) {
@@ -257,7 +266,7 @@ py_getentropy(char *buffer, Py_ssize_t size, int raise)
     }
     return 1;
 }
-#endif /* defined(HAVE_GETENTROPY) && !defined(sun) */
+#endif /* defined(HAVE_GETENTROPY) && !(defined(__sun) && defined(__SVR4)) */
 
 
 static struct {
@@ -301,10 +310,15 @@ dev_urandom(char *buffer, Py_ssize_t size, int raise)
 
     if (raise) {
         struct _Py_stat_struct st;
+        int fstat_result;
 
         if (urandom_cache.fd >= 0) {
+            Py_BEGIN_ALLOW_THREADS
+            fstat_result = _Py_fstat_noraise(urandom_cache.fd, &st);
+            Py_END_ALLOW_THREADS
+
             /* Does the fd point to the same thing as before? (issue #21207) */
-            if (_Py_fstat_noraise(urandom_cache.fd, &st)
+            if (fstat_result
                 || st.st_dev != urandom_cache.st_dev
                 || st.st_ino != urandom_cache.st_ino) {
                 /* Something changed: forget the cached fd (but don't close it,
@@ -533,44 +547,59 @@ _PyOS_URandomNonblock(void *buffer, Py_ssize_t size)
     return pyurandom(buffer, size, 0, 1);
 }
 
-void
-_PyRandom_Init(void)
+int
+_Py_ReadHashSeed(const char *seed_text,
+                 int *use_hash_seed,
+                 unsigned long *hash_seed)
 {
-    char *env;
-    unsigned char *secret = (unsigned char *)&_Py_HashSecret.uc;
-    Py_ssize_t secret_size = sizeof(_Py_HashSecret_t);
     Py_BUILD_ASSERT(sizeof(_Py_HashSecret_t) == sizeof(_Py_HashSecret.uc));
-
-    if (_Py_HashSecret_Initialized)
-        return;
-    _Py_HashSecret_Initialized = 1;
-
-    /*
-      Hash randomization is enabled.  Generate a per-process secret,
-      using PYTHONHASHSEED if provided.
-    */
-
-    env = Py_GETENV("PYTHONHASHSEED");
-    if (env && *env != '\0' && strcmp(env, "random") != 0) {
-        char *endptr = env;
+    /* Convert a text seed to a numeric one */
+    if (seed_text && *seed_text != '\0' && strcmp(seed_text, "random") != 0) {
+        const char *endptr = seed_text;
         unsigned long seed;
-        seed = strtoul(env, &endptr, 10);
+        seed = strtoul(seed_text, (char **)&endptr, 10);
         if (*endptr != '\0'
             || seed > 4294967295UL
             || (errno == ERANGE && seed == ULONG_MAX))
         {
-            Py_FatalError("PYTHONHASHSEED must be \"random\" or an integer "
-                          "in range [0; 4294967295]");
+            return -1;
         }
-        if (seed == 0) {
+        /* Use a specific hash */
+        *use_hash_seed = 1;
+        *hash_seed = seed;
+    }
+    else {
+        /* Use a random hash */
+        *use_hash_seed = 0;
+        *hash_seed = 0;
+    }
+    return 0;
+}
+
+
+_PyInitError
+_Py_HashRandomization_Init(const _PyCoreConfig *config)
+{
+    void *secret = &_Py_HashSecret;
+    Py_ssize_t secret_size = sizeof(_Py_HashSecret_t);
+
+    if (_Py_HashSecret_Initialized) {
+        return _Py_INIT_OK();
+    }
+    _Py_HashSecret_Initialized = 1;
+
+    if (config->use_hash_seed) {
+        if (config->hash_seed == 0) {
             /* disable the randomized hash */
             memset(secret, 0, secret_size);
         }
         else {
-            lcg_urandom(seed, secret, secret_size);
+            /* use the specified hash seed */
+            lcg_urandom(config->hash_seed, secret, secret_size);
         }
     }
     else {
+        /* use a random hash seed */
         int res;
 
         /* _PyRandom_Init() is called very early in the Python initialization
@@ -580,13 +609,16 @@ _PyRandom_Init(void)
            pyurandom() is non-blocking mode (blocking=0): see the PEP 524. */
         res = pyurandom(secret, secret_size, 0, 0);
         if (res < 0) {
-            Py_FatalError("failed to get random numbers to initialize Python");
+            return _Py_INIT_USER_ERR("failed to get random numbers "
+                                     "to initialize Python");
         }
     }
+    return _Py_INIT_OK();
 }
 
+
 void
-_PyRandom_Fini(void)
+_Py_HashRandomization_Fini(void)
 {
 #ifdef MS_WINDOWS
     if (hCryptProv) {

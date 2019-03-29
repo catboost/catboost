@@ -108,7 +108,7 @@ call_error_callback(PyObject *errors, PyObject *exc)
 }
 
 static PyObject *
-codecctx_errors_get(MultibyteStatefulCodecContext *self)
+codecctx_errors_get(MultibyteStatefulCodecContext *self, void *Py_UNUSED(ignored))
 {
     const char *errors;
 
@@ -133,6 +133,10 @@ codecctx_errors_set(MultibyteStatefulCodecContext *self, PyObject *value,
     PyObject *cb;
     const char *str;
 
+    if (value == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "cannot delete attribute");
+        return -1;
+    }
     if (!PyUnicode_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "errors must be a string");
         return -1;
@@ -883,14 +887,14 @@ decoder_feed_buffer(MultibyteStatefulDecoderContext *ctx,
 _multibytecodec.MultibyteIncrementalEncoder.encode
 
     input: object
-    final: int(c_default="0") = False
+    final: bool(accept={int}) = False
 [clinic start generated code]*/
 
 static PyObject *
 _multibytecodec_MultibyteIncrementalEncoder_encode_impl(MultibyteIncrementalEncoderObject *self,
                                                         PyObject *input,
                                                         int final)
-/*[clinic end generated code: output=123361b6c505e2c1 input=a345c688fa664f92]*/
+/*[clinic end generated code: output=123361b6c505e2c1 input=093a1ddbb2fc6721]*/
 {
     return encoder_encode_stateful(STATEFUL_ECTX(self), input, final);
 }
@@ -1040,14 +1044,14 @@ static PyTypeObject MultibyteIncrementalEncoder_Type = {
 _multibytecodec.MultibyteIncrementalDecoder.decode
 
     input: Py_buffer
-    final: int(c_default="0") = False
+    final: bool(accept={int}) = False
 [clinic start generated code]*/
 
 static PyObject *
 _multibytecodec_MultibyteIncrementalDecoder_decode_impl(MultibyteIncrementalDecoderObject *self,
                                                         Py_buffer *input,
                                                         int final)
-/*[clinic end generated code: output=b9b9090e8a9ce2ba input=576631c61906d39d]*/
+/*[clinic end generated code: output=b9b9090e8a9ce2ba input=c9132b24d503eb1d]*/
 {
     MultibyteDecodeBuffer buf;
     char *data, *wdata = NULL;
@@ -1611,7 +1615,7 @@ mbstreamwriter_iwrite(MultibyteStreamWriterObject *self,
     if (str == NULL)
         return -1;
 
-    wr = _PyObject_CallMethodId(self->stream, &PyId_write, "O", str);
+    wr = _PyObject_CallMethodIdObjArgs(self->stream, &PyId_write, str, NULL);
     Py_DECREF(str);
     if (wr == NULL)
         return -1;
@@ -1705,7 +1709,7 @@ _multibytecodec_MultibyteStreamWriter_reset_impl(MultibyteStreamWriterObject *se
     if (PyBytes_Size(pwrt) > 0) {
         PyObject *wr;
 
-        wr = _PyObject_CallMethodId(self->stream, &PyId_write, "O", pwrt);
+        wr = _PyObject_CallMethodIdObjArgs(self->stream, &PyId_write, pwrt);
         if (wr == NULL) {
             Py_DECREF(pwrt);
             return NULL;

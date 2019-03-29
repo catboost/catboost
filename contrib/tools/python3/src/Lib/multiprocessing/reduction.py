@@ -7,7 +7,7 @@
 # Licensed to PSF under a Contributor Agreement.
 #
 
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 import copyreg
 import functools
 import io
@@ -150,7 +150,7 @@ else:
         '''Receive an array of fds over an AF_UNIX socket.'''
         a = array.array('i')
         bytes_size = a.itemsize * size
-        msg, ancdata, flags, addr = sock.recvmsg(1, socket.CMSG_LEN(bytes_size))
+        msg, ancdata, flags, addr = sock.recvmsg(1, socket.CMSG_SPACE(bytes_size))
         if not msg and not ancdata:
             raise EOFError
         try:
@@ -165,7 +165,10 @@ else:
                 if len(cmsg_data) % a.itemsize != 0:
                     raise ValueError
                 a.frombytes(cmsg_data)
-                assert len(a) % 256 == msg[0]
+                if len(a) % 256 != msg[0]:
+                    raise AssertionError(
+                        "Len is {0:n} but msg[0] is {1!r}".format(
+                            len(a), msg[0]))
                 return list(a)
         except (ValueError, IndexError):
             pass

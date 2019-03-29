@@ -1,4 +1,4 @@
-# Copyright 2001-2016 by Vinay Sajip. All Rights Reserved.
+# Copyright 2001-2017 by Vinay Sajip. All Rights Reserved.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose and without fee is hereby granted,
@@ -18,12 +18,12 @@
 Logging package for Python. Based on PEP 282 and comments thereto in
 comp.lang.python.
 
-Copyright (C) 2001-2016 Vinay Sajip. All Rights Reserved.
+Copyright (C) 2001-2017 Vinay Sajip. All Rights Reserved.
 
 To use, simply 'import logging' and log away!
 """
 
-import sys, os, time, io, traceback, warnings, weakref, collections
+import sys, os, time, io, traceback, warnings, weakref, collections.abc
 
 from string import Template
 
@@ -37,10 +37,7 @@ __all__ = ['BASIC_FORMAT', 'BufferingFormatter', 'CRITICAL', 'DEBUG', 'ERROR',
            'warn', 'warning', 'getLogRecordFactory', 'setLogRecordFactory',
            'lastResort', 'raiseExceptions']
 
-try:
-    import threading
-except ImportError: #pragma: no cover
-    threading = None
+import threading
 
 __author__  = "Vinay Sajip <vinay_sajip@red-dove.com>"
 __status__  = "production"
@@ -210,11 +207,7 @@ def _checkLevel(level):
 #the lock would already have been acquired - so we need an RLock.
 #The same argument applies to Loggers and Manager.loggerDict.
 #
-if threading:
-    _lock = threading.RLock()
-else: #pragma: no cover
-    _lock = None
-
+_lock = threading.RLock()
 
 def _acquireLock():
     """
@@ -231,6 +224,55 @@ def _releaseLock():
     """
     if _lock:
         _lock.release()
+
+
+# Prevent a held logging lock from blocking a child from logging.
+
+if not hasattr(os, 'register_at_fork'):  # Windows and friends.
+    def _register_at_fork_acquire_release(instance):
+        pass  # no-op when os.register_at_fork does not exist.
+else:  # The os.register_at_fork API exists
+    os.register_at_fork(before=_acquireLock,
+                        after_in_child=_releaseLock,
+                        after_in_parent=_releaseLock)
+
+    # A collection of instances with acquire and release methods (logging.Handler)
+    # to be called before and after fork.  The weakref avoids us keeping discarded
+    # Handler instances alive forever in case an odd program creates and destroys
+    # many over its lifetime.
+    _at_fork_acquire_release_weakset = weakref.WeakSet()
+
+
+    def _register_at_fork_acquire_release(instance):
+        # We put the instance itself in a single WeakSet as we MUST have only
+        # one atomic weak ref. used by both before and after atfork calls to
+        # guarantee matched pairs of acquire and release calls.
+        _at_fork_acquire_release_weakset.add(instance)
+
+
+    def _at_fork_weak_calls(method_name):
+        for instance in _at_fork_acquire_release_weakset:
+            method = getattr(instance, method_name)
+            try:
+                method()
+            except Exception as err:
+                # Similar to what PyErr_WriteUnraisable does.
+                print("Ignoring exception from logging atfork", instance,
+                      method_name, "method:", err, file=sys.stderr)
+
+
+    def _before_at_fork_weak_calls():
+        _at_fork_weak_calls('acquire')
+
+
+    def _after_at_fork_weak_calls():
+        _at_fork_weak_calls('release')
+
+
+    os.register_at_fork(before=_before_at_fork_weak_calls,
+                        after_in_child=_after_at_fork_weak_calls,
+                        after_in_parent=_after_at_fork_weak_calls)
+
 
 #---------------------------------------------------------------------------
 #   The logging record
@@ -273,8 +315,8 @@ class LogRecord(object):
         # to hasattr(args[0], '__getitem__'). However, the docs on string
         # formatting still seem to suggest a mapping object is required.
         # Thus, while not removing the isinstance check, it does now look
-        # for collections.Mapping rather than, as before, dict.
-        if (args and len(args) == 1 and isinstance(args[0], collections.Mapping)
+        # for collections.abc.Mapping rather than, as before, dict.
+        if (args and len(args) == 1 and isinstance(args[0], collections.abc.Mapping)
             and args[0]):
             args = args[0]
         self.args = args
@@ -295,7 +337,7 @@ class LogRecord(object):
         self.created = ct
         self.msecs = (ct - int(ct)) * 1000
         self.relativeCreated = (self.created - _startTime) * 1000
-        if logThreads and threading:
+        if logThreads:
             self.thread = threading.get_ident()
             self.threadName = threading.current_thread().name
         else: # pragma: no cover
@@ -431,7 +473,8 @@ class Formatter(object):
     responsible for converting a LogRecord to (usually) a string which can
     be interpreted by either a human or an external system. The base Formatter
     allows a formatting string to be specified. If none is supplied, the
-    default value of "%s(message)" is used.
+    the style-dependent default value, "%(message)s", "{message}", or
+    "${message}", is used.
 
     The Formatter can be initialized with a format string which makes use of
     knowledge of the LogRecord attributes - e.g. the default value mentioned
@@ -473,7 +516,8 @@ class Formatter(object):
 
         Initialize the formatter either with the specified format string, or a
         default as described above. Allow for specialized date formatting with
-        the optional datefmt argument (if omitted, you get the ISO8601 format).
+        the optional datefmt argument. If datefmt is omitted, you get an
+        ISO8601-like (or RFC 3339-like) format.
 
         Use a style parameter of '%', '{' or '$' to specify that you want to
         use one of %-formatting, :meth:`str.format` (``{}``) formatting or
@@ -501,13 +545,13 @@ class Formatter(object):
         in formatters to provide for any specific requirement, but the
         basic behaviour is as follows: if datefmt (a string) is specified,
         it is used with time.strftime() to format the creation time of the
-        record. Otherwise, the ISO8601 format is used. The resulting
-        string is returned. This function uses a user-configurable function
-        to convert the creation time to a tuple. By default, time.localtime()
-        is used; to change this for a particular formatter instance, set the
-        'converter' attribute to a function with the same signature as
-        time.localtime() or time.gmtime(). To change it for all formatters,
-        for example if you want all logging times to be shown in GMT,
+        record. Otherwise, an ISO8601-like (or RFC 3339-like) format is used.
+        The resulting string is returned. This function uses a user-configurable
+        function to convert the creation time to a tuple. By default,
+        time.localtime() is used; to change this for a particular formatter
+        instance, set the 'converter' attribute to a function with the same
+        signature as time.localtime() or time.gmtime(). To change it for all
+        formatters, for example if you want all logging times to be shown in GMT,
         set the 'converter' attribute in the Formatter class.
         """
         ct = self.converter(record.created)
@@ -799,10 +843,8 @@ class Handler(Filterer):
         """
         Acquire a thread lock for serializing access to the underlying I/O.
         """
-        if threading:
-            self.lock = threading.RLock()
-        else: #pragma: no cover
-            self.lock = None
+        self.lock = threading.RLock()
+        _register_at_fork_acquire_release(self)
 
     def acquire(self):
         """
@@ -991,11 +1033,31 @@ class StreamHandler(Handler):
         try:
             msg = self.format(record)
             stream = self.stream
-            stream.write(msg)
-            stream.write(self.terminator)
+            # issue 35046: merged two stream.writes into one.
+            stream.write(msg + self.terminator)
             self.flush()
         except Exception:
             self.handleError(record)
+
+    def setStream(self, stream):
+        """
+        Sets the StreamHandler's stream to the specified value,
+        if it is different.
+
+        Returns the old stream, if the stream was changed, or None
+        if it wasn't.
+        """
+        if stream is self.stream:
+            result = None
+        else:
+            result = self.stream
+            self.acquire()
+            try:
+                self.flush()
+                self.stream = stream
+            finally:
+                self.release()
+        return result
 
     def __repr__(self):
         level = getLevelName(self.level)
@@ -1244,6 +1306,19 @@ class Manager(object):
                 alogger.parent = c.parent
                 c.parent = alogger
 
+    def _clear_cache(self):
+        """
+        Clear the cache for all loggers in loggerDict
+        Called when level changes are made
+        """
+
+        _acquireLock()
+        for logger in self.loggerDict.values():
+            if isinstance(logger, Logger):
+                logger._cache.clear()
+        self.root._cache.clear()
+        _releaseLock()
+
 #---------------------------------------------------------------------------
 #   Logger classes and functions
 #---------------------------------------------------------------------------
@@ -1274,12 +1349,14 @@ class Logger(Filterer):
         self.propagate = True
         self.handlers = []
         self.disabled = False
+        self._cache = {}
 
     def setLevel(self, level):
         """
         Set the logging level of this logger.  level must be an int or a str.
         """
         self.level = _checkLevel(level)
+        self.manager._clear_cache()
 
     def debug(self, msg, *args, **kwargs):
         """
@@ -1543,9 +1620,17 @@ class Logger(Filterer):
         """
         Is this logger enabled for level 'level'?
         """
-        if self.manager.disable >= level:
-            return False
-        return level >= self.getEffectiveLevel()
+        try:
+            return self._cache[level]
+        except KeyError:
+            _acquireLock()
+            if self.manager.disable >= level:
+                is_enabled = self._cache[level] = False
+            else:
+                is_enabled = self._cache[level] = level >= self.getEffectiveLevel()
+            _releaseLock()
+
+            return is_enabled
 
     def getChild(self, suffix):
         """
@@ -1570,6 +1655,14 @@ class Logger(Filterer):
         level = getLevelName(self.getEffectiveLevel())
         return '<%s %s (%s)>' % (self.__class__.__name__, self.name, level)
 
+    def __reduce__(self):
+        # In general, only the root logger will not be accessible via its name.
+        # However, the root logger's class has its own __reduce__ method.
+        if getLogger(self.name) is not self:
+            import pickle
+            raise pickle.PicklingError('logger cannot be pickled')
+        return getLogger, (self.name,)
+
 
 class RootLogger(Logger):
     """
@@ -1582,6 +1675,9 @@ class RootLogger(Logger):
         Initialize the logger with the name "root".
         """
         Logger.__init__(self, "root", level)
+
+    def __reduce__(self):
+        return getLogger, ()
 
 _loggerClass = Logger
 
@@ -1675,9 +1771,7 @@ class LoggerAdapter(object):
         """
         Is this logger enabled for level 'level'?
         """
-        if self.logger.manager.disable >= level:
-            return False
-        return level >= self.getEffectiveLevel()
+        return self.logger.isEnabledFor(level)
 
     def setLevel(self, level):
         """
@@ -1919,11 +2013,12 @@ def log(level, msg, *args, **kwargs):
         basicConfig()
     root.log(level, msg, *args, **kwargs)
 
-def disable(level):
+def disable(level=CRITICAL):
     """
     Disable all logging calls of severity 'level' and below.
     """
     root.manager.disable = level
+    root.manager._clear_cache()
 
 def shutdown(handlerList=_handlerList):
     """
