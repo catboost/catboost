@@ -283,6 +283,7 @@ enum class EFeatureCalculatorType {
 //    LinearModel,
 //    TfIdf,
 //    NGrams
+    BoW,
     NaiveBayes,
     BM25,
     CosDistanceWithClassCenter,

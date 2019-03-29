@@ -13,6 +13,7 @@ SRCS(
     text_dataset_builder.cpp
     text_dataset.cpp
     tokenizer.cpp
+    bow.cpp
 )
 
 PEERDIR(

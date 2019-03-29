@@ -12,5 +12,11 @@ namespace NCB {
                                                          TTextDataSetPtr learnTexts,
                                                          TVector<TTextDataSetPtr> testText);
 
+    //offline
+    TVector<TFeatureEstimatorPtr> CreateEstimators(TConstArrayRef<EFeatureCalculatorType> types,
+                                                   TEmbeddingPtr embedding,
+                                                   TTextDataSetPtr learnTexts,
+                                                   TVector<TTextDataSetPtr> testText);
+
 
 }

@@ -1,6 +1,7 @@
 #include "estimators.h"
 #include "naive_bayesian.h"
 #include "bm25.h"
+#include "bow.h"
 #include "embedding.h"
 #include "embedding_online_features.h"
 #include "embedding_loader.h"
@@ -259,7 +260,7 @@ TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
         estimators.push_back(new TBM25Estimator(target, learnTexts, testText));
     }
     TSet<EFeatureCalculatorType> embeddingCalculators = { EFeatureCalculatorType::GaussianHomoscedasticModel,
-                                                          EFeatureCalculatorType::GaussianHomoscedasticModel,
+                                                          EFeatureCalculatorType::GaussianHeteroscedasticiModel,
                                                           EFeatureCalculatorType::CosDistanceWithClassCenter};
 
     TSet<EFeatureCalculatorType> enabledEmbeddingCalculators;
@@ -270,6 +271,21 @@ TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
 
     if (!enabledEmbeddingCalculators.empty()) {
         estimators.push_back(new TEmbeddingOnlineFeaturesEstimator(embedding, target, learnTexts, testText, enabledEmbeddingCalculators));
+    }
+    return estimators;
+}
+
+
+TVector<TFeatureEstimatorPtr> NCB::CreateEstimators(
+    TConstArrayRef<EFeatureCalculatorType> types,
+    TEmbeddingPtr embedding,
+    TTextDataSetPtr learnTexts,
+    TVector<TTextDataSetPtr> testText) {
+    Y_UNUSED(embedding);
+    TSet<EFeatureCalculatorType> typesSet(types.begin(), types.end());
+    TVector<TFeatureEstimatorPtr> estimators;
+    if (typesSet.contains(EFeatureCalculatorType::BoW)) {
+        estimators.push_back(new TBagOfWordsEstimator(learnTexts, testText));
     }
     return estimators;
 }

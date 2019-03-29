@@ -24,5 +24,5 @@ void TTextDataSetBuilder::AddText(const TStringBuf text) {
 TIntrusivePtr<TTextDataSet> TTextDataSetBuilder::Build() {
     CB_ENSURE(!WasBuilt, "Build could be done only once");
     WasBuilt = true;
-    return new NCB::TTextDataSet(std::move(Texts));
+    return new NCB::TTextDataSet(std::move(Texts), Dictionary);
 }

@@ -1,11 +1,11 @@
 #pragma once
 
+#include "dictionary.h"
 #include <catboost/libs/helpers/exception.h>
 #include <library/containers/dense_hash/dense_hash.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
-
 
 namespace NCB {
 
@@ -53,8 +53,9 @@ namespace NCB {
 
     class TTextDataSet : public TThrRefBase {
     public:
-        TTextDataSet(TVector<TText> texts)
-        : Text(std::move(texts)) {
+        TTextDataSet(TVector<TText> texts, TDictionaryPtr dictionary)
+        : Text(std::move(texts))
+        , Dictionary(dictionary) {
 
         }
 
@@ -70,8 +71,13 @@ namespace NCB {
         TConstArrayRef<TText> GetTexts() const {
             return MakeConstArrayRef(Text);
         }
+
+        const IDictionary& GetDictionary() const {
+            return *Dictionary;
+        }
     private:
         TVector<TText> Text;
+        TDictionaryPtr Dictionary;
     };
 
 
