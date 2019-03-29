@@ -1684,7 +1684,7 @@
         },
         "kythe_to_proto": {
             "formula": {
-                "sandbox_id": [239255977],
+                "sandbox_id": [403346294],
                 "match": "KYTHETOPROTO"
             }
         },
