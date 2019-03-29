@@ -291,21 +291,31 @@ def onpy_srcs(unit, *args):
                 pass
 
         for pyxs, cython, out_suffix, noext in [
-            (pyxs_c, unit.onbuildwith_cython_c, ".c", False),
+            (pyxs_c, unit.onbuildwith_cython_c_dep, ".c", False),
             (pyxs_c_h, unit.onbuildwith_cython_c_h, ".c", True),
             (pyxs_c_api_h, unit.onbuildwith_cython_c_api_h, ".c", True),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp", False),
+            (pyxs_cpp, unit.onbuildwith_cython_cpp_dep, ".cpp", False),
         ]:
             for path, mod in pyxs:
                 filename = rootrel_arc_src(path, unit)
-                cython([
-                    path,
+                cython_args = [path]
+
+                dep = path
+                if path.endswith('.py'):
+                    pxd = '/'.join(mod.split('.')) + '.pxd'
+                    if unit.resolve_arc_path(pxd):
+                        dep = pxd
+                cython_args.append(dep)
+
+                cython_args += [
                     '--module-name', mod,
                     '--init-suffix', mangle(mod),
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_includes + cython_directives)
+                ] + cython_includes + cython_directives
+
+                cython(cython_args)
                 py_register(unit, mod, py3)
                 process_pyx(filename, path, out_suffix, noext)
 
