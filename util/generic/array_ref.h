@@ -119,7 +119,7 @@ public:
     }
 
     inline const_reverse_iterator crend() const noexcept {
-        return const_reverse_terator(T_);
+        return const_reverse_iterator(T_);
     }
 
     inline reference front() const noexcept {
