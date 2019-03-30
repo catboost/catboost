@@ -677,7 +677,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         }
 
         if (Nice) {
-            Y_VERIFY(::Nice(Nice), "nice() failed(%s)", LastSystemErrorText());
+            ::Nice(Nice);
         }
 
         if (envp == nullptr) {
