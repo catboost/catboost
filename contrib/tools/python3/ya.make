@@ -15,11 +15,3 @@ SRCS(
 )
 
 END()
-
-RECURSE(
-    lib
-    lib/py
-    src
-    src/Lib
-    src/Lib/lib2to3
-)
