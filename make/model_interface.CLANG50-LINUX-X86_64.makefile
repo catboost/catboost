@@ -8436,8 +8436,8 @@ $(BUILD_ROOT)/contrib/libs/coreml/CategoricalMapping.pb.h\
 $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc.pic.o\
         ::\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
-        $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
@@ -8467,8 +8467,8 @@ $(BUILD_ROOT)/contrib/libs/coreml/DictVectorizer.pb.h\
 
 $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc.pic.o\
         ::\
-        $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
@@ -8701,16 +8701,16 @@ $(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc.pic.o\
         ::\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
-        $(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/NeuralNetwork.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc.pic.o\
         ::\
-        $(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/Normalizer.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
@@ -8719,8 +8719,8 @@ $(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc.pic.o\
         ::\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
-        $(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/OneHotEncoder.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
@@ -8729,16 +8729,16 @@ $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc.pic.o\
         ::\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
-        $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/SVM.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc.pic.o\
         ::\
-        $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/Scaler.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
@@ -8747,8 +8747,8 @@ $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.pic.o\
         ::\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.h\
-        $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc\
+        $(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.h\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/coreml'
 	'$(CXX)' --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc.pic.o' '$(BUILD_ROOT)/contrib/libs/coreml/TreeEnsemble.pb.cc' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -pipe -m64 -mssse3 -msse -msse3 -msse2 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=4659992 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DSSSE3_ENABLED=1 -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -DNDEBUG -D__LONG_LONG_SUPPORTED -DCATBOOST_OPENSOURCE=yes -nostdinc++ -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -nostdinc++
