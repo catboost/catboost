@@ -198,6 +198,8 @@ namespace NCB {
     }
 
 
+    using TGetBinFunction = std::function<ui32(size_t, size_t)>;
+
     TGetBinFunction GetQuantizedFloatFeatureFunction(
         const TRawObjectsData& rawObjectsData,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
@@ -233,6 +235,79 @@ namespace NCB {
 
         return [srcRawData, catFeaturePerfectHashPtr](ui32 /*idx*/, ui32 srcIdx) -> ui32 {
             return catFeaturePerfectHashPtr->at(srcRawData[srcIdx]).Value;
+        };
+    }
+
+
+    TGetNonDefaultValuesMask GetQuantizedFloatNonDefaultValuesMaskFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TFloatFeatureIdx floatFeatureIdx
+    ) {
+        TConstArrayRef<float> srcRawData
+            = **(rawObjectsData.FloatFeatures[*floatFeatureIdx]->GetArrayData().GetSrc());
+
+        auto flatFeatureIdx = quantizedFeaturesInfo.GetFeaturesLayout()->GetExternalFeatureIdx(
+            *floatFeatureIdx,
+            EFeatureType::Float
+        );
+        const auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
+        const bool allowNans = (nanMode != ENanMode::Forbidden) ||
+            quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly();
+        float border0 = quantizedFeaturesInfo.GetBorders(floatFeatureIdx)[0];
+
+        return [=](TConstArrayRef<ui32> srcIndices) -> ui64 {
+            Y_ASSERT(srcIndices.size() <= (sizeof(ui64) * CHAR_BIT));
+
+            ui64 result = 0;
+            for (auto i : xrange(srcIndices.size())) {
+                const float srcValue = srcRawData[srcIndices[i]];
+                if (IsNan(srcValue)) {
+                    CB_ENSURE(
+                        allowNans,
+                        "There are NaNs in test dataset (feature number "
+                        << flatFeatureIdx << ") but there were no NaNs in learn dataset"
+                    );
+                    if (nanMode == ENanMode::Max) {
+                        result |= (ui64(1) << i);
+                    }
+                } else if (srcValue > border0) {
+                    result |= (ui64(1) << i);
+                }
+            }
+
+            return result;
+        };
+    }
+
+    TGetNonDefaultValuesMask GetQuantizedCatNonDefaultValuesMaskFunction(
+        const TRawObjectsData& rawObjectsData,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+        TCatFeatureIdx catFeatureIdx
+    ) {
+        TConstArrayRef<ui32> srcRawData
+            = **(rawObjectsData.CatFeatures[*catFeatureIdx]->GetArrayData().GetSrc());
+
+        ui32 hashedCatValueMappedTo0 = 0;
+        for (const auto& [hashedCatValue, valueAndCount]
+             : quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx))
+        {
+            if (valueAndCount.Value == 0) {
+                hashedCatValueMappedTo0 = hashedCatValue;
+                break;
+            }
+        }
+
+        return [srcRawData, hashedCatValueMappedTo0](TConstArrayRef<ui32> srcIndices) -> ui64 {
+            Y_ASSERT(srcIndices.size() <= (sizeof(ui64) * CHAR_BIT));
+
+            ui64 result = 0;
+            for (auto i : xrange(srcIndices.size())) {
+                if (srcRawData[srcIndices[i]] != hashedCatValueMappedTo0) {
+                    result |= (ui64(1) << i);
+                }
+            }
+            return result;
         };
     }
 

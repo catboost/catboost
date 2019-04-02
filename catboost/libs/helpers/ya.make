@@ -32,6 +32,7 @@ SRCS(
     restorable_rng.cpp
     serialization.cpp
     set.cpp
+    vec_list.cpp
     vector_helpers.cpp
     wx_test.cpp
 )

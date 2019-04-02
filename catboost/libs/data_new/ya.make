@@ -37,6 +37,7 @@ SRCS(
 PEERDIR(
     library/dbg_output
     library/object_factory
+    library/pop_count
     library/threading/future
     library/threading/local_executor
 

@@ -73,6 +73,9 @@ RECURSE(
     object_factory/ut
     openssl
     par
+    pop_count
+    pop_count/benchmark
+    pop_count/ut
     python
     resource
     resource/ut

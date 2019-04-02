@@ -8,6 +8,7 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/ylimits.h>
 #include <util/system/types.h>
 
@@ -30,18 +31,20 @@ namespace NCB {
         bool CpuCompatibilityShuffleOverFullData = true;
     };
 
-    /* arguments are idx, srcIdx from rawDataSubsetIndexing
-     * each function returns quantized bin
-     */
-    using TGetBinFunction = std::function<ui32(size_t, size_t)>;
 
-    TGetBinFunction GetQuantizedFloatFeatureFunction(
+    /*
+     * argument is src indices for up to 64 documents
+     * the return value is a bit mask whether the corresponding quantized feature value bins are non-default
+     */
+    using TGetNonDefaultValuesMask = std::function<ui64(TConstArrayRef<ui32>)>;
+
+    TGetNonDefaultValuesMask GetQuantizedFloatNonDefaultValuesMaskFunction(
         const TRawObjectsData& rawObjectsData,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         TFloatFeatureIdx floatFeatureIdx
     );
 
-    TGetBinFunction GetQuantizedCatFeatureFunction(
+    TGetNonDefaultValuesMask GetQuantizedCatNonDefaultValuesMaskFunction(
         const TRawObjectsData& rawObjectsData,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         TCatFeatureIdx catFeatureIdx
