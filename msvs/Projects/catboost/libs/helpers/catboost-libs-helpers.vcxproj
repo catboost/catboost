@@ -107,6 +107,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\serialization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vec_list.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.h"/>
@@ -139,6 +140,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\serialization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\set.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vec_list.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
   </ItemGroup>
