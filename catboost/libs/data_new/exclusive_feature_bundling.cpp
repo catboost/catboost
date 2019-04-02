@@ -548,10 +548,15 @@ next_outer_loop_iter:
                 continue;
             }
 
-            for (auto& featureIntersectionCheckList : featureIntersectionCheckLists) {
-                featureIntersectionCheckList.FeatureIndices2.push_back(flatFeatureIdx);
+            // add previous element. Algorithm works this way to avoid adding the last available feature.
+            if (!featureIndicesToCalcVector.empty()) {
+                featureIntersectionCheckLists.push_back(
+                    TCalcIntersectionCheckList(featureIndicesToCalcVector.back())
+                );
+                for (auto& featureIntersectionCheckList : featureIntersectionCheckLists) {
+                    featureIntersectionCheckList.FeatureIndices2.push_back(flatFeatureIdx);
+                }
             }
-            featureIntersectionCheckLists.push_back(TCalcIntersectionCheckList(flatFeatureIdx));
 
             featureIndicesToCalc.push_back(flatFeatureIdx);
             featureIndicesToCalcVector.push_back(flatFeatureIdx);
