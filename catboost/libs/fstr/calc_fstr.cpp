@@ -197,6 +197,11 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
 
         leavesStatisticsOnPool = CollectLeavesStatistics(*dataset, model, localExecutor);
+    } else {
+        if (dataset) {
+            CATBOOST_WARNING_LOG << "Dataset is provided, but " << EFstrType::PredictionValuesChange <<
+            " feature importance don't use it, since non-empty LeafWeights in model." << Endl;
+        }
     }
 
     TVector<TFeature> features;
@@ -666,6 +671,9 @@ TVector<TVector<double>> GetFeatureImportances(
             return CalcFstr(model, dataset, fstrType, &localExecutor);
         }
         case EFstrType::Interaction:
+            if (dataset) {
+                CATBOOST_WARNING_LOG << "Dataset is provided, but " << fstrType << " feature importance don't use it." << Endl;
+            }
             return CalcInteraction(model);
         case EFstrType::ShapValues: {
             CB_ENSURE(dataset, "dataset is not provided");

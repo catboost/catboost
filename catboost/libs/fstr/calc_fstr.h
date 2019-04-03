@@ -167,7 +167,7 @@ inline static EFstrType GetFeatureImportanceType(
             if (haveDataset) {
                 return EFstrType::LossFunctionChange;
             } else {
-                CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric,"
+                CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric, "
                                         "will use PredictionValuesChange feature importance" << Endl;
             }
         };
