@@ -28,6 +28,8 @@ RECURSE(
     nayuki_md5
     onnx
     openssl
+    openssl/1.0.2
+    openssl/1.0.2/apps
     openssl/apps
     openssl/dynamic
     protobuf
