@@ -204,7 +204,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/six/six.py-" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
