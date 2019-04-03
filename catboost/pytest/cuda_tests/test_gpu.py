@@ -1064,7 +1064,7 @@ def test_quantized_pool(loss_function, boosting_type):
     test_file = data_file('quantized_adult', 'test_small.tsv')
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool(1.e-5))]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
