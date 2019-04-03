@@ -116,9 +116,6 @@ ALLOW .* -> vendor/github.com/smira/go-statsd
 # safe and easy casting from one type to another
 ALLOW .* -> vendor/github.com/spf13/cast              
 
-# efficient json implementation
-ALLOW .* -> vendor/github.com/mailru/easyjson
-
 # library for creating CLI applications
 ALLOW .* -> vendor/github.com/spf13/cobra             
 
