@@ -2229,14 +2229,13 @@ def test_train_on_quantized_pool_with_large_grid():
     # borders
     #
     # There are 20 rows in a dataset.
-    cmd = (
-        CATBOOST_PATH, 'fit',
-        '--task-type', 'GPU',
-        '-f', 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
-        '-t', 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
-        '-i', '10')
 
-    yatest.common.execute(cmd)
+    params = {
+        '-f': 'quantized://' + data_file('quantized_with_large_grid', 'train.qbin'),
+        '-t': 'quantized://' + data_file('quantized_with_large_grid', 'test.qbin'),
+        '-i': '10'
+    }
+    fit_catboost_gpu(params)
 
 
 @pytest.mark.parametrize('growing_policy', NONSYMMETRIC)
