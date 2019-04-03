@@ -791,6 +791,8 @@ def _get_loss_function(params):
 class _CatBoostBase(object):
     def __init__(self, params):
         self._init_params = params.copy() if params is not None else {}
+        if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
+            self._init_params.pop('thread_count')
         self._object = _CatBoost()
 
     def __getstate__(self):
@@ -1952,7 +1954,7 @@ class CatBoostClassifier(CatBoost):
             - 'Gradient'
     thread_count : int, [default=None]
         Number of parallel threads used to run CatBoost.
-        If None, then the number of thread is set to the number of cores.
+        If None or -1, then the number of threads is set to the number of cores.
         range: [1,+inf]
     random_seed : int, [default=None]
         Random number seed.

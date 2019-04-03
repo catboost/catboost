@@ -4009,3 +4009,14 @@ def test_multiclass_growing_policy(task_type, growing_policy):
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
+
+
+def test_use_all_cpus(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE, thread_count=-1)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE, thread_count=-1)
+    model = CatBoostClassifier(iterations=10, task_type=task_type, thread_count=-1, devices='0')
+    model.fit(train_pool)
+    model.predict(test_pool, thread_count=-1)
+    model.predict_proba(test_pool, thread_count=-1)
+    model.staged_predict(test_pool, thread_count=-1)
+    model.staged_predict_proba(test_pool, thread_count=-1)
