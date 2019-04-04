@@ -1283,12 +1283,12 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval)
 
-    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
+    def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
+            raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
         if not isinstance(data, Pool):
             data = Pool(
                 data=data,
@@ -1344,14 +1344,14 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
-    def _staged_predict(self, data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
+    def _staged_predict(self, data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, parent_method_name):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
         if not self.is_fitted() or self.tree_count_ is None:
-            raise CatBoostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
+            raise CatBoostError("There is no trained model to use {}(). Use fit() to train model. Then use this method.".format(parent_method_name))
         if not isinstance(data, Pool):
             data = Pool(
                 data=data,
@@ -1412,7 +1412,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
     def get_cat_feature_indices(self):
         if not self.is_fitted():
@@ -1421,7 +1421,7 @@ class CatBoost(_CatBoostBase):
 
     def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
         if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
+            raise CatBoostError("There is no trained model to evaluate metrics on. Use fit() to train model. Then call this method.")
         if not isinstance(data, Pool):
             raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(type(data)))
         if data.is_empty_:
@@ -1557,7 +1557,7 @@ class CatBoost(_CatBoostBase):
         metrics = batch_calcer.eval_metrics()
         """
         if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
+            raise CatBoostError("There is no trained model to evaluate metrics on. Use fit() to train model. Then call this method.")
         return BatchMetricCalcer(self._object, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
 
     @property
@@ -1778,7 +1778,7 @@ class CatBoost(_CatBoostBase):
             Training pool.
         """
         if not self.is_fitted():
-            raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use save_model().")
+            raise CatBoostError("There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
         if not isinstance(fname, STRING_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str().".format(type(fname)))
         if pool is not None and not isinstance(pool, Pool):
@@ -2393,7 +2393,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
     def predict_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -2423,7 +2423,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba')
 
     def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -2462,7 +2462,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
     def staged_predict_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -2495,7 +2495,7 @@ class CatBoostClassifier(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_proba')
 
     def score(self, X, y=None):
         """
@@ -2522,7 +2522,16 @@ class CatBoostClassifier(CatBoost):
             raise CatBoostError("y should be specified.")
         correct = []
         y = np.array(y, dtype=np.int32)
-        for i, val in enumerate(self.predict(X)):
+        predicted_classes = self._predict(
+            X,
+            prediction_type='Class',
+            ntree_start=0,
+            ntree_end=0,
+            thread_count=-1,
+            verbose=None,
+            parent_method_name='score'
+        )
+        for i, val in enumerate(predicted_classes):
             correct.append(1 * (y[i] == np.int32(val)))
         return np.mean(correct)
 
@@ -2763,7 +2772,7 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : numpy.array
         """
-        return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose)
+        return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose, 'predict')
 
     def staged_predict(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -2796,7 +2805,7 @@ class CatBoostRegressor(CatBoost):
         -------
         prediction : generator numpy.array for each iteration
         """
-        return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose)
+        return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
     def score(self, X, y=None):
         """
@@ -2823,7 +2832,16 @@ class CatBoostRegressor(CatBoost):
             raise CatBoostError("y should be specified.")
         error = []
         y = np.array(y, dtype=np.float64)
-        for i, val in enumerate(self.predict(X)):
+        predictions = self._predict(
+            X,
+            prediction_type='RawFormulaVal',
+            ntree_start=0,
+            ntree_end=0,
+            thread_count=-1,
+            verbose=None,
+            parent_method_name='score'
+        )
+        for i, val in enumerate(predictions):
             error.append(pow(y[i] - val, 2))
         return np.sqrt(np.mean(error))
 
