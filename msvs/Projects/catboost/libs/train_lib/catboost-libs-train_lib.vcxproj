@@ -78,15 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\approx_dimension.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\data.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\preprocess.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\approx_dimension.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\data.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\preprocess.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -83,11 +83,13 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_multi.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_dimension.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.cpp"/>
@@ -105,6 +107,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\preprocess.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\projection.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\rand_score.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.cpp"/>
@@ -121,11 +124,13 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_multi.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_dimension.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\bin_tracker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\custom_objective_descriptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_data_helpers.h"/>
@@ -143,6 +148,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\preprocess.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\projection.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.h"/>
