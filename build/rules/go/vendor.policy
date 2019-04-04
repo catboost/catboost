@@ -185,6 +185,9 @@ ALLOW .* -> vendor/github.com/rs/cors
 # generation tool and serialization library for MessagePack
 ALLOW .* -> vendor/github.com/tinylib/msgp
 
+# Generate fancy REST API from grpc api
+ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
+
 # 
 # Temporary exceptions.
 #
