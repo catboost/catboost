@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\checksum.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\compare.cpp"/>
@@ -111,6 +112,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\checksum.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compare.h"/>
