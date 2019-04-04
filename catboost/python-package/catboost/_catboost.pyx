@@ -2242,13 +2242,13 @@ cdef class _PoolBase:
         cdef TBaselineArrayRef baseline
         if maybe_baseline.Defined():
             baseline = maybe_baseline.GetRef()
-            result = np.array((self.num_row(), baseline.size()), dtype=np.float32)
+            result = np.empty((self.num_row(), baseline.size()), dtype=np.float32)
             for baseline_idx in range(baseline.size()):
                 for object_idx in range(self.num_row()):
                     result[object_idx, baseline_idx] = baseline[baseline_idx][object_idx]
             return result
         else:
-            return np.array((self.num_row(), 0), dtype=np.float32)
+            return np.empty((self.num_row(), 0), dtype=np.float32)
 
     cpdef _take_slice(self, _PoolBase pool, row_indices):
         cdef TVector[ui32] rowIndices

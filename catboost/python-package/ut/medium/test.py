@@ -4065,3 +4065,10 @@ def test_use_all_cpus(task_type):
     model.predict_proba(test_pool, thread_count=-1)
     model.staged_predict(test_pool, thread_count=-1)
     model.staged_predict_proba(test_pool, thread_count=-1)
+
+
+def test_baseline():
+    input_pool = Pool(np.ones((5, 4)))
+    baseline = np.array([[1, 3, 2, 1, 2]], dtype=np.float32).reshape(5, 1)
+    input_pool.set_baseline(baseline)
+    assert (input_pool.get_baseline() == baseline).all()
