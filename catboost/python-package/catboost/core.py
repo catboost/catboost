@@ -986,42 +986,24 @@ class _CatBoostBase(object):
         return self._object._get_metadata_wrapper()
 
     @property
-    def metadata_(self):
-        raise CatBoostError("metadata_ property is not supported anymore, use get_metadata() method instead.")
-
-    @property
-    def is_fitted_(self):
-        raise CatBoostError("is_fitted_ property is not supported anymore, use is_fitted() method instead.")
-
-    @property
     def tree_count_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return getattr(self, '_tree_count')
+        return getattr(self, '_tree_count') if self.is_fitted() else None
 
     @property
     def random_seed_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return getattr(self, '_random_seed')
+        return getattr(self, '_random_seed') if self.is_fitted() else None
 
     @property
     def learning_rate_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return getattr(self, '_learning_rate')
+        return getattr(self, '_learning_rate') if self.is_fitted() else None
 
     @property
     def feature_names_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return self._object._get_feature_names()
+        return self._object._get_feature_names() if self.is_fitted() else None
 
     @property
     def classes_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return self._object._get_class_names()
+        return self._object._get_class_names() if self.is_fitted() else None
 
     @property
     def evals_result_(self):

@@ -2603,12 +2603,7 @@ def test_feature_names_from_model():
         for i in range(len(pools)):
             pool = pools[i]
             model = CatBoost(dict(iterations=10))
-            try:
-                print(model.feature_names_)
-            except CatBoostError:
-                pass
-            else:
-                assert False
+            assert model.feature_names_ is None
             model.fit(pool)
             output.write(str(model.feature_names_) + '\n')
 
@@ -3620,35 +3615,6 @@ def test_set_cat_features_in_init():
     model2.fit(X=data, y=label)
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool, prediction_type='RawFormulaVal')))
     assert(model2.get_cat_feature_indices() == [1, 2])
-
-
-def test_deprecated_behavoir():
-    prng = np.random.RandomState(seed=20181219)
-    data = prng.randint(10, size=(20, 20))
-    label = _generate_nontrivial_binary_target(20, prng=prng)
-    train_pool = Pool(data, label, cat_features=[1, 2])
-
-    params = {
-        'logging_level': 'Silent',
-        'loss_function': 'Logloss',
-        'iterations': 10,
-        'random_seed': 20,
-    }
-
-    model = CatBoost(params)
-    with pytest.raises(CatBoostError):
-        model.metadata_
-
-    with pytest.raises(CatBoostError):
-        model.is_fitted_
-
-    model.fit(train_pool)
-
-    with pytest.raises(CatBoostError):
-        model.metadata_
-
-    with pytest.raises(CatBoostError):
-        model.is_fitted_
 
 
 def test_no_yatest_common():
