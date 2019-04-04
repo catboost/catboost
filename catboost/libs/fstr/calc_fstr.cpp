@@ -199,7 +199,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         leavesStatisticsOnPool = CollectLeavesStatistics(*dataset, model, localExecutor);
     } else {
         if (dataset) {
-            CATBOOST_WARNING_LOG << "Dataset is provided, but " << EFstrType::PredictionValuesChange <<
+            CATBOOST_NOTICE_LOG << "Dataset is provided, but " << EFstrType::PredictionValuesChange <<
             " feature importance don't use it, since non-empty LeafWeights in model." << Endl;
         }
     }
@@ -242,7 +242,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         NPar::TLocalExecutor* localExecutor)
 {
     NCatboostOptions::TLossDescription lossDescription;
-    CB_ENSURE(TryGetLossDescription(model, lossDescription));
+    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
     CATBOOST_INFO_LOG << "Used " << lossDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ObliviousTrees.ApproxDimension;
 
@@ -672,7 +672,7 @@ TVector<TVector<double>> GetFeatureImportances(
         }
         case EFstrType::Interaction:
             if (dataset) {
-                CATBOOST_WARNING_LOG << "Dataset is provided, but " << fstrType << " feature importance don't use it." << Endl;
+                CATBOOST_NOTICE_LOG << "Dataset is provided, but " << fstrType << " feature importance don't use it." << Endl;
             }
             return CalcInteraction(model);
         case EFstrType::ShapValues: {
@@ -739,4 +739,31 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
         }
     }
     return modelFeatureIds;
+}
+
+bool IsGroupwiseLearnedModel(const TFullModel& model) {
+    CB_ENSURE(model.GetTreeCount(), "Model is not trained");
+    NCatboostOptions::TLossDescription lossDescription;
+    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
+    return IsGroupwiseMetric(lossDescription.LossFunction);
+}
+
+EFstrType GetFeatureImportanceType(
+    const TFullModel& model,
+    bool haveDataset,
+    EFstrType type)
+{
+    if (type == EFstrType::FeatureImportance) {
+        if (IsGroupwiseLearnedModel(model)) {
+            if (haveDataset) {
+                return EFstrType::LossFunctionChange;
+            } else {
+                CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric, "
+                                        "will use PredictionValuesChange feature importance" << Endl;
+            }
+        };
+        return EFstrType::PredictionValuesChange;
+    } else {
+        return type;
+    }
 }

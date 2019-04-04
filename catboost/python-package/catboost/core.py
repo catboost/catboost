@@ -1180,11 +1180,11 @@ class CatBoost(_CatBoostBase):
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-        if self._object._is_oblivious():
+        if self._object._is_oblivious() and not self._object._is_groupwise_learned_model():
             setattr(
                 self,
                 "_feature_importance",
-                self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
+                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
             )
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):

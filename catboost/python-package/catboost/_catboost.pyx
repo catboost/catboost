@@ -776,6 +776,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TDataProviderPtr dataset
     ) nogil except +ProcessException
 
+    bool_t IsGroupwiseLearnedModel(const TFullModel& model) nogil except +ProcessException
+
 
 cdef extern from "catboost/libs/documents_importance/docs_importance.h":
     cdef cppclass TDStrResult:
@@ -2480,6 +2482,9 @@ cdef class _CatBoost:
         )
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
+
+    cpdef bool_t _is_groupwise_learned_model(self):
+        return IsGroupwiseLearnedModel(dereference(self.__model))
 
     cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
         thread_count = UpdateThreadCount(thread_count);
