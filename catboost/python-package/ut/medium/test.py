@@ -3906,6 +3906,26 @@ def test_output_border_file_regressor(task_type):
     assert not _check_data(pred1, pred4)
 
 
+def test_save_border_file():
+    output_borders_file = test_output_path('output_borders_file.dat')
+    save_borders_file = test_output_path('save_borders_file.dat')
+
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    args = {
+        'iterations': 30,
+        'loss_function': 'Logloss',
+        'use_best_model': False,
+        'learning_rate': 0.3
+    }
+    model = CatBoostClassifier(border_count=32,
+                                output_borders=output_borders_file,
+                                **args)
+
+    model.fit(train_pool)
+    model.save_borders(save_borders_file)
+    return [local_canonical_file(save_borders_file), local_canonical_file(output_borders_file)]
+
+
 def test_model_comparison():
     def fit_model(iterations):
         pool = Pool(TRAIN_FILE, column_description=CD_FILE)

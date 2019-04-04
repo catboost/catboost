@@ -309,6 +309,16 @@
             "uri": "file://test.test_roc_CPU_/bounds"
         }
     ],
+    "test.test_save_border_file": [
+        {
+            "checksum": "6e938268c2f25ba06d5f6f211c20e151",
+            "uri": "file://test.test_save_border_file/save_borders_file.dat"
+        },
+        {
+            "checksum": "a34ecd1ae94f3379512537a7d3340f7f",
+            "uri": "file://test.test_save_border_file/output_borders_file.dat"
+        }
+    ],
     "test.test_shap[CPU]": {
         "checksum": "3d509fa43ba7cabcd20d4a28a3998cc1",
         "uri": "file://test.test_shap_CPU_/feature_importance.txt"

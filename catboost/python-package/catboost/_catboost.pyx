@@ -510,6 +510,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
     cdef TVector[TString] GetModelClassNames(const TFullModel& model) except +ProcessException
+    cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
 
 ctypedef const TFullModel* TFullModel_const_ptr
 
@@ -2638,6 +2639,9 @@ cdef class _CatBoost:
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, merge_policy)
         self.__model.Swap(tmp_model)
+
+    cpdef _save_borders(self, output_file):
+        SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
 
 cdef class _MetadataHashProxy:

@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     array_subset.cpp
+    borders_io.cpp
     checksum.cpp
     clear_array.cpp
     compare.cpp

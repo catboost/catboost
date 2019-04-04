@@ -818,3 +818,7 @@ TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
+
+void SaveModelBorders(
+    const TString& file,
+    const TFullModel& model);

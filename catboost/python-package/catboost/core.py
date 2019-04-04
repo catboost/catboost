@@ -963,6 +963,11 @@ class _CatBoostBase(object):
         setattr(self, '_learning_rate', 0)
         setattr(self, '_tree_count', self._object._get_tree_count())
 
+    def _save_borders(self, output_file):
+        if not self.is_fitted():
+            raise CatBoostError("There is no trained model to use save_borders(). Use fit() to train model. Then use save_borders().")
+        self._object._save_borders(output_file)
+
     def _get_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
@@ -1848,6 +1853,19 @@ class CatBoost(_CatBoostBase):
             return deepcopy(params)
         else:
             return params
+
+    def save_borders(self, fname):
+        """
+        Save the model borders to a file.
+
+        Parameters
+        ----------
+        fname : string
+            Output file name.
+        """
+        if not isinstance(fname, STRING_TYPES):
+            raise CatBoostError("Invalid fname type={}: must be str().".format(type(fname)))
+        self._save_borders(fname)
 
     def set_params(self, **params):
         """

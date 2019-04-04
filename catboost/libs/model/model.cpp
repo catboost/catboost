@@ -10,6 +10,7 @@
 #include "static_ctr_provider.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
@@ -1014,6 +1015,17 @@ TFullModel SumModels(
     result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
     result.UpdateDynamicData();
     return result;
+}
+
+void SaveModelBorders(
+    const TString& file,
+    const TFullModel& model) {
+
+    TOFStream out(file);
+
+    for (const auto& feature : model.ObliviousTrees.FloatFeatures) {
+        NCB::OutputFeatureBorders(feature.FlatFeatureIndex, feature.Borders, NanValueTreatmentToNanMode(feature.NanValueTreatment), out);
+    }
 }
 
 DEFINE_DUMPER(TRepackedBin, FeatureIndex, XorMask, SplitIdx)
