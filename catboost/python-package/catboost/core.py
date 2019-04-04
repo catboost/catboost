@@ -1911,7 +1911,7 @@ class CatBoostClassifier(CatBoost):
         file with borders
     output_borders : string, [default=None]
         float feature borders output file name
-    fold_permutation_block_size : int, [default=1]
+    fold_permutation_block : int, [default=1]
         To accelerate the learning.
         The recommended value is within [1, 256]. On small samples, must be set to 1.
         range: [1,+inf]
@@ -2181,7 +2181,7 @@ class CatBoostClassifier(CatBoost):
         feature_border_type=None,
         input_borders=None,
         output_borders=None,
-        fold_permutation_block_size=None,
+        fold_permutation_block=None,
         od_pval=None,
         od_wait=None,
         od_type=None,
@@ -2566,7 +2566,7 @@ class CatBoostRegressor(CatBoost):
         feature_border_type=None,
         input_borders=None,
         output_borders=None,
-        fold_permutation_block_size=None,
+        fold_permutation_block=None,
         od_pval=None,
         od_wait=None,
         od_type=None,
