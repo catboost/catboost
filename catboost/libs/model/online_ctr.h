@@ -164,7 +164,7 @@ struct THash<TFeatureCombination> {
 struct TModelCtrBase {
     TFeatureCombination Projection;
     ECtrType CtrType = ECtrType::Borders;
-    int TargetBorderClassifierIdx = 0; // TODO(kirillovs): remove after @annaveronika implement map
+    int TargetBorderClassifierIdx = 0;
 
 public:
     bool operator==(const TModelCtrBase& other) const {

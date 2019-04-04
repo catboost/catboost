@@ -295,7 +295,7 @@ TFullModel TModelConverter::Convert(
         featureCombinationToProjection->insert({modelCtr.Base.Projection, std::move(projection)});
 
         modelCtr.Base.CtrType = ctr.Configuration.Type;
-        modelCtr.Base.TargetBorderClassifierIdx = 0; // TODO(kirillovs): remove me
+        modelCtr.Base.TargetBorderClassifierIdx = ctr.Configuration.CtrBinarizationConfigId;
 
         const auto& config = ctr.Configuration;
         modelCtr.TargetBorderIdx = config.ParamId;
