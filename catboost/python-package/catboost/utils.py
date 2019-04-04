@@ -7,6 +7,8 @@ _eval_metric_util = _catboost._eval_metric_util
 _get_roc_curve = _catboost._get_roc_curve
 _select_threshold = _catboost._select_threshold
 
+compute_wx_test = _catboost.compute_wx_test
+
 
 def create_cd(
     label=None,

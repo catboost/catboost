@@ -4,7 +4,7 @@ from enum import Enum
 
 from catboost import CatBoostError
 from catboost.core import metric_description_or_str_to_str
-from catboost.core import compute_wx_test
+from catboost.utils import compute_wx_test
 
 
 def calc_wilcoxon_test(baseline, test):
