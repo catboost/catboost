@@ -2,7 +2,7 @@
 
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/train_lib/data.h>
+#include <catboost/libs/algo/data.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>

@@ -1,13 +1,13 @@
 #include "train_model.h"
 
-#include "approx_dimension.h"
 #include "cross_validation.h"
-#include "data.h"
-#include "preprocess.h"
 
+#include <catboost/libs/algo/approx_dimension.h>
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/data_new/borders_io.h>

@@ -1,13 +1,13 @@
 #include "cross_validation.h"
 
-#include "approx_dimension.h"
-#include "data.h"
-#include "preprocess.h"
 #include "train_model.h"
 
+#include <catboost/libs/algo/approx_dimension.h>
 #include <catboost/libs/algo/calc_score_cache.h>
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/helpers/exception.h>
