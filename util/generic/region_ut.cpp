@@ -28,21 +28,6 @@ Y_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(23, array[1]);
     }
 
-    Y_UNIT_TEST(ConstructorFromValue) {
-        int x = 10;
-        TRegion<int> r(x);
-        UNIT_ASSERT_VALUES_EQUAL(1u, r.size());
-        UNIT_ASSERT_VALUES_EQUAL(10, r[0]);
-        r[0] = 11;
-        UNIT_ASSERT_VALUES_EQUAL(11, x);
-    }
-
-    Y_UNIT_TEST(ConstructorFromValueConstFromNonConst) {
-        int x = 10;
-        TRegion<const int> r(x);
-        UNIT_ASSERT_VALUES_EQUAL(10, r[0]);
-    }
-
     Y_UNIT_TEST(ConstructorFromArray) {
         int x[] = {10, 20, 30};
         TRegion<int> r(x);

@@ -158,7 +158,30 @@ public:
     TArrayRef<T> Slice(size_t offset, size_t size) const {
         Y_ASSERT(offset + size <= S_);
 
-        return TArrayRef<T>(data() + offset, data() + offset + size);
+        return TArrayRef<T>(T_ + offset, size);
+    }
+
+    /* FIXME:
+     * This method is placed here for backward compatibility only and should be removed.
+     * Keep in mind that it's behavior is different from Slice():
+     *      SubRegion() never throws. It returns empty TArrayRef in case of invalid input.
+     *
+     * DEPRECATED. DO NOT USE.
+     */
+    TArrayRef<T> SubRegion(size_t offset, size_t size) const {
+        if (size == 0 || offset >= S_) {
+            return TArrayRef();
+        }
+
+        if (size > S_ - offset) {
+            size = S_ - offset;
+        }
+
+        return TArrayRef(T_ + offset, size);
+    }
+
+    inline yssize_t ysize() const noexcept {
+        return static_cast<yssize_t>(this->size());
     }
 
 private:
