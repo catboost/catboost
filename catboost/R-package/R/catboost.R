@@ -390,7 +390,7 @@ print.catboost.Pool <- function(x, ...) {
 #' \itemize{
 #'   \item Common parameters
 #'   \itemize{
-#'     \item fold_permutation_block_size
+#'     \item fold_permutation_block
 #'
 #'       Objects in the dataset are grouped in blocks before the random permutations.
 #'       This parameter defines the size of the blocks.
