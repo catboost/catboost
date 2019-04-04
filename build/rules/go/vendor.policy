@@ -84,6 +84,9 @@ ALLOW .* -> vendor/github.com/mitchellh/copystructure
 # decoding generic map values to structures and vice versa
 ALLOW .* -> vendor/github.com/mitchellh/mapstructure  
 
+# A well tested and comprehensive Golang statistics library package with no dependencies
+ALLOW .* -> vendor/github.com/montanaflynn/stats
+
 # runtime dependencies of go-swagger
 ALLOW .* -> vendor/github.com/go-openapi              
 
