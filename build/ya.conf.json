@@ -76,7 +76,8 @@
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
-        "golangci-lint": { "description": "Linters Runner for Go" }
+        "golangci-lint": { "description": "Linters Runner for Go" },
+        "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1381,6 +1382,16 @@
                 "type": "golang",
                 "version": "1.12.1"
             }
+        },
+        "yfm": {
+            "tools": {
+                "yfm": { "bottle": "yfm", "executable": "yfm" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -2238,6 +2249,16 @@
                 "go": ["bin", "go"],
                 "godoc": ["bin", "godoc"],
                 "gofmt": ["bin", "gofmt"]
+            }
+        },
+        "yfm": {
+            "formula": {
+                "sandbox_id": [407397469, 407398241, 407398546],
+                "match": "YFM"
+
+            },
+            "executable": {
+                "yfm": ["yfm-transform"]
             }
         }
     }
