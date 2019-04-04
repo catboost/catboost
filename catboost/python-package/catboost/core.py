@@ -1326,10 +1326,10 @@ class CatBoost(_CatBoostBase):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -1391,14 +1391,14 @@ class CatBoost(_CatBoostBase):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -1451,14 +1451,14 @@ class CatBoost(_CatBoostBase):
             List of eval metrics.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -1494,14 +1494,14 @@ class CatBoost(_CatBoostBase):
             List of eval metrics.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -2375,10 +2375,10 @@ class CatBoostClassifier(CatBoost):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -2405,10 +2405,10 @@ class CatBoostClassifier(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -2441,14 +2441,14 @@ class CatBoostClassifier(CatBoost):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -2474,14 +2474,14 @@ class CatBoostClassifier(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -2745,10 +2745,10 @@ class CatBoostRegressor(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -2775,14 +2775,14 @@ class CatBoostRegressor(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.

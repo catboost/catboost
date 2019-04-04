@@ -1430,10 +1430,10 @@ catboost.save_model <- function(model, model_path) {
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0
-#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
 #' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
@@ -1490,13 +1490,13 @@ catboost.predict <- function(model, pool,
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0
-#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param eval_period Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 1
 #' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
