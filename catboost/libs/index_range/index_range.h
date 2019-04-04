@@ -47,6 +47,10 @@ namespace NCB {
         constexpr auto Iter() const {
             return xrange(Begin, End);
         }
+
+        bool Contains(TSize idx) const {
+            return (idx >= Begin) && (idx < End);
+        }
     };
 
     template <class TSize>

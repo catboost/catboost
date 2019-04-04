@@ -40,6 +40,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
         {
             quantizationOptions.MaxSubsetSizeForSlowBuildBordersAlgorithms = 7;
 
+            TVector<bool> bundleExclusiveFeaturesVariants = {false};
+
             TVector<bool> packBinaryFeaturesVariants = {false};
             if (quantizationOptions.CpuCompatibleFormat) {
                 packBinaryFeaturesVariants.push_back(true);
@@ -48,38 +50,42 @@ Y_UNIT_TEST_SUITE(Quantization) {
             for (auto packBinaryFeatures : packBinaryFeaturesVariants) {
                 quantizationOptions.PackBinaryFeaturesForCpu = packBinaryFeatures;
 
-                for (auto clearSrcData : {false, true}) {
-                    TTestCase testCase = generateTestCase(packBinaryFeatures);
+                for (auto bundleExclusiveFeatures : bundleExclusiveFeaturesVariants) {
+                    quantizationOptions.BundleExclusiveFeaturesForCpu = bundleExclusiveFeatures;
 
-                    TRestorableFastRng64 rand(0);
+                    for (auto clearSrcData : {false, true}) {
+                        TTestCase testCase = generateTestCase(packBinaryFeatures);
 
-                    NPar::TLocalExecutor localExecutor;
-                    localExecutor.RunAdditionalThreads(3);
+                        TRestorableFastRng64 rand(0);
 
-                    TRawDataProviderPtr rawDataProvider = MakeDataProvider<TRawObjectsDataProvider>(
-                        Nothing(),
-                        std::move(testCase.SrcData),
-                        false,
-                        &localExecutor
-                    );
+                        NPar::TLocalExecutor localExecutor;
+                        //localExecutor.RunAdditionalThreads(3);
 
-                    TDataProviderPtr quantizedDataProvider = Quantize(
-                        quantizationOptions,
-                        clearSrcData ? std::move(rawDataProvider) : rawDataProvider,
-                        testCase.QuantizedFeaturesInfo,
-                        &rand,
-                        &localExecutor)->CastMoveTo<TObjectsDataProvider>();
-
-                    if (quantizationOptions.CpuCompatibleFormat) {
-                        Compare<TQuantizedForCPUObjectsDataProvider>(
-                            std::move(quantizedDataProvider),
-                            testCase.ExpectedData
+                        TRawDataProviderPtr rawDataProvider = MakeDataProvider<TRawObjectsDataProvider>(
+                            Nothing(),
+                            std::move(testCase.SrcData),
+                            false,
+                            &localExecutor
                         );
-                    } else {
-                        Compare<TQuantizedObjectsDataProvider>(
-                            std::move(quantizedDataProvider),
-                            testCase.ExpectedData
-                        );
+
+                        TDataProviderPtr quantizedDataProvider = Quantize(
+                            quantizationOptions,
+                            clearSrcData ? std::move(rawDataProvider) : rawDataProvider,
+                            testCase.QuantizedFeaturesInfo,
+                            &rand,
+                            &localExecutor)->CastMoveTo<TObjectsDataProvider>();
+
+                        if (quantizationOptions.CpuCompatibleFormat) {
+                            Compare<TQuantizedForCPUObjectsDataProvider>(
+                                std::move(quantizedDataProvider),
+                                testCase.ExpectedData
+                            );
+                        } else {
+                            Compare<TQuantizedObjectsDataProvider>(
+                                std::move(quantizedDataProvider),
+                                testCase.ExpectedData
+                            );
+                        }
                     }
                 }
             }
@@ -236,10 +242,16 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
+
             if (packBinaryFeatures) {
                 TVector<TVector<TBinaryFeaturesPack>> packs = {
                     TVector<TBinaryFeaturesPack>{
@@ -370,8 +382,13 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
 
@@ -475,8 +492,13 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
 
@@ -594,20 +616,40 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 9;
 
-            TVector<TMap<ui32, ui32>> expectedPerfectHash = {
-                {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {1, 5}, {0, 6}, {112, 7}, {23, 8}}, // 0
-                {{0, 0}, {1, 1}}, // 1, binary
-                {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}, {90, 7}, {0, 8}}, // 2
-                {{78, 0}, {2, 1}}, // 3, binary
-                {{1, 0}, {0, 1}}, // 4, binary
-                {{0, 0}, {1, 1}}, // 5, binary
-                {{78, 0}, {2, 1}}, // 6, binary
-                {{92, 0}, {0, 1}}, // 7, binary
-                {{1, 0}, {0, 1}}, // 8, binary
-                {{0, 0}, {1, 1}}, // 9, binary
-                {{78, 0}, {2, 1}}, // 10, binary
-                {{92, 0}, {0, 1}}, // 11, binary
-                {{1, 0}, {0, 1}} // 12, binary
+            TVector<TCatFeaturePerfectHash> expectedPerfectHash = {
+                {
+                    {12, {0, 3}},
+                    {25, {1, 2}},
+                    {10, {2, 1}},
+                    {8, {3, 2}},
+                    {165, {4, 1}},
+                    {1, {5, 1}},
+                    {0, {6, 1}},
+                    {112, {7, 1}},
+                    {23, {8, 1}}
+                }, // 0
+                {{0, {0, 6}}, {1, {1, 7}}}, // 1, binary
+                {
+                    {256, {0, 2}},
+                    {45, {1, 1}},
+                    {9, {2, 3}},
+                    {110, {3, 2}},
+                    {50, {4, 1}},
+                    {10, {5, 1}},
+                    {257, {6, 1}},
+                    {90, {7, 1}},
+                    {0, {8, 1}}
+                }, // 2
+                {{78, {0, 6}}, {2, {1, 7}}}, // 3, binary
+                {{1, {0, 6}}, {0, {1, 7}}}, // 4, binary
+                {{0, {0, 6}}, {1, {1, 7}}}, // 5, binary
+                {{78, {0, 6}}, {2, {1, 7}}}, // 6, binary
+                {{92, {0, 5}}, {0, {1, 8}}}, // 7, binary
+                {{1, {0, 6}}, {0, {1, 7}}}, // 8, binary
+                {{0, {0, 6}}, {1, {1, 7}}}, // 9, binary
+                {{78, {0, 6}}, {2, {1, 7}}}, // 10, binary
+                {{92, {0, 5}}, {0, {1, 8}}}, // 11, binary
+                {{1, {0, 6}}, {0, {1, 7}}} // 12, binary
             };
 
             for (auto i : xrange(hashedCatFeatures.size())) {
@@ -634,8 +676,13 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 {2,2}  // 12, binary
             };
 
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
             if (packBinaryFeatures) {
@@ -889,15 +936,35 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
-            TVector<TMap<ui32, ui32>> expectedPerfectHash = {
-                {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {1, 5}, {0, 6}, {112, 7}, {23, 8}}, // 0
-                {{0, 0}, {1, 1}}, // 1, binary
-                {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}, {90, 7}, {0, 8}}, // 2
-                {{78, 0}, {2, 1}}, // 3, binary
-                {{1, 0}, {0, 1}}, // 4, binary
-                {{0, 0}, {1, 1}}, // 5, binary
-                {{78, 0}, {2, 1}}, // 6, binary
-                {{92, 0}, {0, 1}} // 7, binary
+            TVector<TCatFeaturePerfectHash> expectedPerfectHash = {
+                {
+                    {12, {0, 3}},
+                    {25, {1, 2}},
+                    {10, {2, 1}},
+                    {8, {3, 2}},
+                    {165, {4, 1}},
+                    {1, {5, 1}},
+                    {0, {6, 1}},
+                    {112, {7, 1}},
+                    {23, {8, 1}}
+                }, // 0
+                {{0, {0, 6}}, {1, {1, 7}}}, // 1, binary
+                {
+                    {256, {0, 2}},
+                    {45, {1, 1}},
+                    {9, {2, 3}},
+                    {110, {3, 2}},
+                    {50, {4, 1}},
+                    {10, {5, 1}},
+                    {257, {6, 1}},
+                    {90, {7, 1}},
+                    {0, {8, 1}}
+                }, // 2
+                {{78, {0, 6}}, {2, {1, 7}}}, // 3, binary
+                {{1, {0, 6}}, {0, {1, 7}}}, // 4, binary
+                {{0, {0, 6}}, {1, {1, 7}}}, // 5, binary
+                {{78, {0, 6}}, {2, {1, 7}}}, // 6, binary
+                {{92, {0, 5}}, {0, {1, 8}}} // 7, binary
             };
 
             for (auto i : xrange(hashedCatFeatures.size())) {
@@ -920,8 +987,13 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 {2,2}  // 7, binary
             };
 
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
             if (packBinaryFeatures) {
@@ -1085,17 +1157,25 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 testCase.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
-            TVector<TMap<ui32, ui32>> srcPerfectHash = {
-                {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {0, 5}},
-                {{0, 0}, {1, 1}},
-                {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}}
+            TVector<TCatFeaturePerfectHash> srcPerfectHash = {
+                {{12, {0, 4}}, {25, {1, 3}}, {10, {2, 1}}, {8, {3, 3}}, {165, {4, 2}}, {0, {5, 1}}},
+                {{0, {0, 6}}, {1, {1, 8}}},
+                {
+                    {256, {0, 2}},
+                    {45, {1, 1}},
+                    {9, {2, 3}},
+                    {110, {3, 4}},
+                    {50, {4, 1}},
+                    {10, {5, 2}},
+                    {257, {6, 1}}
+                }
             };
 
             for (auto i : xrange(3)) {
                 auto catFeatureIdx = TCatFeatureIdx(i);
                 testCase.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
                     catFeatureIdx,
-                    TMap<ui32, ui32>(srcPerfectHash[i])
+                    TCatFeaturePerfectHash(srcPerfectHash[i])
                 );
             }
 
@@ -1127,17 +1207,37 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
             }
 
-            TVector<TMap<ui32, ui32>> expectedPerfectHash = {
-                {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {0, 5}, {1, 6}, {112, 7}, {23, 8}},
-                {{0, 0}, {1, 1}},
-                {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}, {90, 7}, {0, 8}}
+            TVector<TCatFeaturePerfectHash> expectedPerfectHash = {
+                {
+                    {12, {0, 4 + 3}},
+                    {25, {1, 3 + 2}},
+                    {10, {2, 1 + 1}},
+                    {8, {3, 3 + 2}},
+                    {165, {4, 2 + 1}},
+                    {0, {5, 1 + 1}},
+                    {1, {6, 0 + 1}},
+                    {112, {7, 0 + 1}},
+                    {23, {8, 0 + 1}}
+                },
+                {{0, {0, 6 + 6}}, {1, {1, 8 + 7}}},
+                {
+                    {256, {0, 2 + 2}},
+                    {45, {1, 1 + 1}},
+                    {9, {2, 3 + 3}},
+                    {110, {3, 4 + 2}},
+                    {50, {4, 1 + 1}},
+                    {10, {5, 2 + 1}},
+                    {257, {6, 1 + 1}},
+                    {90, {7, 0 + 1}},
+                    {0, {8, 0 + 1}}
+                }
             };
 
             for (auto i : xrange(3)) {
                 auto catFeatureIdx = TCatFeatureIdx(i);
                 expectedData.Objects.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
                     catFeatureIdx,
-                    TMap<ui32, ui32>(srcPerfectHash[i])
+                    TCatFeaturePerfectHash(srcPerfectHash[i])
                 );
                 expectedData.Objects.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
                     catFeatureIdx,
@@ -1148,8 +1248,13 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             expectedData.Objects.CatFeatureUniqueValuesCounts = {{6, 9}, {2, 2}, {7, 9}};
 
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData,
                 !packBinaryFeatures
             );
             if (packBinaryFeatures) {

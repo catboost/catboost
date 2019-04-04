@@ -189,6 +189,8 @@ private:
     bool DetachSession;
     bool CloseStreams;
     TAtomic ShouldCloseInput;
+    bool InheritOutput;
+    bool InheritError;
     TShellCommandOptions::TUserOptions User;
     THashMap<TString, TString> Environment;
     int Nice;
@@ -213,12 +215,20 @@ private:
         TRealPipeHandle InputPipeFd[2];
         // pipes are closed by automatic dtor
         void PrepareParents() {
-            OutputPipeFd[1].Close();
-            ErrorPipeFd[1].Close();
+            if (OutputPipeFd[1].IsOpen()) {
+                OutputPipeFd[1].Close();
+            }
+            if (ErrorPipeFd[1].IsOpen()) {
+                ErrorPipeFd[1].Close();
+            }
 #if defined(_unix_)
             // not really needed, io is done via poll
-            SetNonBlock(OutputPipeFd[0]);
-            SetNonBlock(ErrorPipeFd[0]);
+            if (OutputPipeFd[0].IsOpen()) {
+                SetNonBlock(OutputPipeFd[0]);
+            }
+            if (ErrorPipeFd[0].IsOpen()) {
+                SetNonBlock(ErrorPipeFd[0]);
+            }
             if (InputPipeFd[1].IsOpen())
                 SetNonBlock(InputPipeFd[1]);
 #endif
@@ -269,6 +279,8 @@ public:
         , DetachSession(options.DetachSession)
         , CloseStreams(options.CloseStreams)
         , ShouldCloseInput(options.ShouldCloseInput)
+        , InheritOutput(options.InheritOutput)
+        , InheritError(options.InheritError)
         , User(options.User)
         , Environment(options.Environment)
         , Nice(options.Nice)
@@ -459,15 +471,31 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     startup_info.cb = sizeof(startup_info);
     startup_info.dwFlags = STARTF_USESTDHANDLES;
 
-    if (!SetHandleInformation(pipes.OutputPipeFd[1], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT) || !SetHandleInformation(pipes.ErrorPipeFd[1], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT))
-        ythrow TSystemError() << "cannot set handle info";
+    if (!InheritOutput) {
+        if (!SetHandleInformation(pipes.OutputPipeFd[1], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)) {
+            ythrow TSystemError() << "cannot set handle info";
+        }
+    }
+    if (!InheritError) {
+        if (!SetHandleInformation(pipes.ErrorPipeFd[1], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT)) {
+            ythrow TSystemError() << "cannot set handle info";
+        }
+    }
     if (InputStream)
         if (!SetHandleInformation(pipes.InputPipeFd[0], HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT))
             ythrow TSystemError() << "cannot set handle info";
 
     // A sockets do not work as std streams for some reason
-    startup_info.hStdOutput = pipes.OutputPipeFd[1];
-    startup_info.hStdError = pipes.ErrorPipeFd[1];
+    if (!InheritOutput) {
+        startup_info.hStdOutput = pipes.OutputPipeFd[1];
+    } else {
+        startup_info.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+    if (!InheritError) {
+        startup_info.hStdError = pipes.ErrorPipeFd[1];
+    } else {
+        startup_info.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    }
     if (InputStream)
         startup_info.hStdInput = pipes.InputPipeFd[0];
     else
@@ -607,8 +635,6 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
             ythrow TSystemError() << "Cannot " << (ClearSignalMask ? "clear" : "restore") << " signal mask in child";
         }
 
-        pipes.OutputPipeFd[0].Close();
-        pipes.ErrorPipeFd[0].Close();
         TFileHandle sIn(0);
         TFileHandle sOut(1);
         TFileHandle sErr(2);
@@ -622,14 +648,20 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
             // do not close fd 0 - next open will return it and confuse all readers
             /// @todo in case of real need - reopen /dev/null
         }
-        TFileHandle sOutNew(pipes.OutputPipeFd[1]);
-        sOut.LinkTo(sOutNew);
-        sOut.Release();
-        sOutNew.Release();
-        TFileHandle sErrNew(pipes.ErrorPipeFd[1]);
-        sErr.LinkTo(sErrNew);
-        sErr.Release();
-        sErrNew.Release();
+        if (!InheritOutput) {
+            pipes.OutputPipeFd[0].Close();
+            TFileHandle sOutNew(pipes.OutputPipeFd[1]);
+            sOut.LinkTo(sOutNew);
+            sOut.Release();
+            sOutNew.Release();
+        }
+        if (!InheritError) {
+            pipes.ErrorPipeFd[0].Close();
+            TFileHandle sErrNew(pipes.ErrorPipeFd[1]);
+            sErr.LinkTo(sErrNew);
+            sErr.Release();
+            sErrNew.Release();
+        }
 
         if (WorkDir.size())
             NFs::SetCurrentWorkingDirectory(WorkDir);
@@ -645,7 +677,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
         }
 
         if (Nice) {
-            Y_VERIFY(::Nice(Nice), "nice() failed(%s)", LastSystemErrorText());
+            ::Nice(Nice);
         }
 
         if (envp == nullptr) {
@@ -672,8 +704,12 @@ void TShellCommand::TImpl::Run() {
     CollectedError.clear();
     TPipes pipes;
 
-    TRealPipeHandle::Pipe(pipes.OutputPipeFd[0], pipes.OutputPipeFd[1]);
-    TRealPipeHandle::Pipe(pipes.ErrorPipeFd[0], pipes.ErrorPipeFd[1]);
+    if (!InheritOutput) {
+        TRealPipeHandle::Pipe(pipes.OutputPipeFd[0], pipes.OutputPipeFd[1]);
+    }
+    if (!InheritError) {
+        TRealPipeHandle::Pipe(pipes.ErrorPipeFd[0], pipes.ErrorPipeFd[1]);
+    }
     if (InputStream) {
         TRealPipeHandle::Pipe(pipes.InputPipeFd[0], pipes.InputPipeFd[1]);
     }

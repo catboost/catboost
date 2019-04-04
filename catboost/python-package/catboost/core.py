@@ -60,7 +60,6 @@ _reset_logger = _catboost._reset_logger
 _configure_malloc = _catboost._configure_malloc
 CatBoostError = _catboost.CatBoostError
 _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
-compute_wx_test = _catboost.compute_wx_test
 is_classification_objective = _catboost.is_classification_objective
 is_regression_objective = _catboost.is_regression_objective
 _PreprocessParams = _catboost._PreprocessParams
@@ -791,6 +790,8 @@ def _get_loss_function(params):
 class _CatBoostBase(object):
     def __init__(self, params):
         self._init_params = params.copy() if params is not None else {}
+        if 'thread_count' in self._init_params and self._init_params['thread_count'] == -1:
+            self._init_params.pop('thread_count')
         self._object = _CatBoost()
 
     def __getstate__(self):
@@ -962,6 +963,11 @@ class _CatBoostBase(object):
         setattr(self, '_learning_rate', 0)
         setattr(self, '_tree_count', self._object._get_tree_count())
 
+    def _save_borders(self, output_file):
+        if not self.is_fitted():
+            raise CatBoostError("There is no trained model to use save_borders(). Use fit() to train model. Then use save_borders().")
+        self._object._save_borders(output_file)
+
     def _get_params(self):
         params = self._object._get_params()
         init_params = self._init_params.copy()
@@ -980,42 +986,24 @@ class _CatBoostBase(object):
         return self._object._get_metadata_wrapper()
 
     @property
-    def metadata_(self):
-        raise CatBoostError("metadata_ property is not supported anymore, use get_metadata() method instead.")
-
-    @property
-    def is_fitted_(self):
-        raise CatBoostError("is_fitted_ property is not supported anymore, use is_fitted() method instead.")
-
-    @property
     def tree_count_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return getattr(self, '_tree_count')
+        return getattr(self, '_tree_count') if self.is_fitted() else None
 
     @property
     def random_seed_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return getattr(self, '_random_seed')
+        return getattr(self, '_random_seed') if self.is_fitted() else None
 
     @property
     def learning_rate_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return getattr(self, '_learning_rate')
+        return getattr(self, '_learning_rate') if self.is_fitted() else None
 
     @property
     def feature_names_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return self._object._get_feature_names()
+        return self._object._get_feature_names() if self.is_fitted() else None
 
     @property
     def classes_(self):
-        if not self.is_fitted():
-            raise CatBoostError('Model is not fitted.')
-        return self._object._get_class_names()
+        return self._object._get_class_names() if self.is_fitted() else None
 
     @property
     def evals_result_(self):
@@ -1174,11 +1162,12 @@ class CatBoost(_CatBoostBase):
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
             train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-        setattr(
-            self,
-            "_feature_importance",
-            self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
-        )
+        if self._object._is_oblivious() and not self._object._is_groupwise_learned_model():
+            setattr(
+                self,
+                "_feature_importance",
+                self.get_feature_importance(type=EFstrType.PredictionValuesChange)
+            )
 
         if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1337,10 +1326,10 @@ class CatBoost(_CatBoostBase):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -1402,14 +1391,14 @@ class CatBoost(_CatBoostBase):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -1462,14 +1451,14 @@ class CatBoost(_CatBoostBase):
             List of eval metrics.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -1505,14 +1494,14 @@ class CatBoost(_CatBoostBase):
             List of eval metrics.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -1576,6 +1565,8 @@ class CatBoost(_CatBoostBase):
         feature_importances_ = getattr(self, "_feature_importance", None)
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
+        if not self._object._is_oblivious():
+            raise CatBoostError('Feature importance is not supported for non symmetric trees')
         return np.array(feature_importances_)
 
     def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto"):
@@ -1584,8 +1575,8 @@ class CatBoost(_CatBoostBase):
         ----------
         data : catboost.Pool or None
             Data to get feature importance.
-            If type in ('Shap', 'PredictionValuesChange) data is a dataset. For every object in this dataset feature importances will be calculated.
-            If type == PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+            If type in ('Shap', 'PredictionValuesChange') data is a dataset. For every object in this dataset feature importances will be calculated.
+            If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
         type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
@@ -1640,6 +1631,8 @@ class CatBoost(_CatBoostBase):
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
         """
+        if self.is_fitted() and not self._object._is_oblivious():
+            raise CatBoostError('Feature importance is not supported for non symmetric trees')
 
         if not isinstance(verbose, bool) and not isinstance(verbose, int):
             raise CatBoostError('verbose should be bool or int.')
@@ -1652,11 +1645,23 @@ class CatBoost(_CatBoostBase):
             warnings.warn("fstr_type soon be deprecated, use type instead")
 
         type = enum_from_enum_or_str(EFstrType, type)
-        empty_data_is_ok = (((type == EFstrType.PredictionValuesChange) and self._object._has_leaf_weights_in_model())
-                            or (type == EFstrType.Interaction))
+
+        if data is not None and not isinstance(data, Pool):
+            from __builtin__ import type as typeof
+            raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
+
+        need_meta_info = type in (EFstrType.PredictionValuesChange, EFstrType.FeatureImportance)
+        empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
         if not empty_data_is_ok:
-            if not isinstance(data, Pool):
-                raise CatBoostError("Invalid metric type={}, must be catboost.Pool.".format(__builtins__.type(data)))
+            if data is None:
+                if need_meta_info:
+                    raise CatBoostError(
+                        "Model has no meta information needed to calculate feature importances. \
+                        Pass training dataset to this function.")
+                else:
+                    raise CatBoostError(
+                        "Feature importance type {} requires training dataset \
+                        to be passed to this function.".format(type))
             if data.is_empty_:
                 raise CatBoostError("data is empty.")
 
@@ -1726,6 +1731,9 @@ class CatBoost(_CatBoostBase):
         -------
         object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
+
+        if self.is_fitted() and not self._object._is_oblivious():
+            raise CatBoostError('Object importance is not supported for non symmetric trees')
 
         if not isinstance(verbose, bool) and not isinstance(verbose, int):
             raise CatBoostError('verbose should be bool or int.')
@@ -1837,6 +1845,19 @@ class CatBoost(_CatBoostBase):
         else:
             return params
 
+    def save_borders(self, fname):
+        """
+        Save the model borders to a file.
+
+        Parameters
+        ----------
+        fname : string
+            Output file name.
+        """
+        if not isinstance(fname, STRING_TYPES):
+            raise CatBoostError("Invalid fname type={}: must be str().".format(type(fname)))
+        self._save_borders(fname)
+
     def set_params(self, **params):
         """
         Set parameters into CatBoost model.
@@ -1869,8 +1890,8 @@ class CatBoostClassifier(CatBoost):
     depth : int, [default=6]
         Depth of a tree. All trees are the same depth.
         range: [1,+inf]
-    l2_leaf_reg : int, [default=3]
-        L2 regularization term on weights.
+    l2_leaf_reg : float, [default=3.0]
+        Coefficient at the L2 regularization term of the cost function.
         range: [0,+inf]
     model_size_reg : float, [default=None]
         Model size regularization coefficient.
@@ -1898,7 +1919,7 @@ class CatBoostClassifier(CatBoost):
         file with borders
     output_borders : string, [default=None]
         float feature borders output file name
-    fold_permutation_block_size : int, [default=1]
+    fold_permutation_block : int, [default=1]
         To accelerate the learning.
         The recommended value is within [1, 256]. On small samples, must be set to 1.
         range: [1,+inf]
@@ -1941,7 +1962,7 @@ class CatBoostClassifier(CatBoost):
             - 'Gradient'
     thread_count : int, [default=None]
         Number of parallel threads used to run CatBoost.
-        If None, then the number of thread is set to the number of cores.
+        If None or -1, then the number of threads is set to the number of cores.
         range: [1,+inf]
     random_seed : int, [default=None]
         Random number seed.
@@ -2109,6 +2130,14 @@ class CatBoostClassifier(CatBoost):
         Used only for learning speed tuning.
         Changing this parameter can affect results due to numerical accuracy differences
 
+    dev_efb_max_buckets : int, [default=1024]
+        CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
+        Used only for learning speed tuning.
+
+    efb_max_conflict_fraction : float, [default=0.0]
+        CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+        Should be a real value in [0, 1) interval.
+
     max_depth : int, Synonym for depth.
 
     n_estimators : int, synonym for iterations.
@@ -2160,7 +2189,7 @@ class CatBoostClassifier(CatBoost):
         feature_border_type=None,
         input_borders=None,
         output_borders=None,
-        fold_permutation_block_size=None,
+        fold_permutation_block=None,
         od_pval=None,
         od_wait=None,
         od_type=None,
@@ -2216,6 +2245,8 @@ class CatBoostClassifier(CatBoost):
         subsample=None,
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
+        dev_efb_max_buckets=None,
+        efb_max_conflict_fraction=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -2353,10 +2384,10 @@ class CatBoostClassifier(CatBoost):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -2383,10 +2414,10 @@ class CatBoostClassifier(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -2419,14 +2450,14 @@ class CatBoostClassifier(CatBoost):
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -2452,14 +2483,14 @@ class CatBoostClassifier(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.
@@ -2541,7 +2572,9 @@ class CatBoostRegressor(CatBoost):
         loss_function='RMSE',
         border_count=None,
         feature_border_type=None,
-        fold_permutation_block_size=None,
+        input_borders=None,
+        output_borders=None,
+        fold_permutation_block=None,
         od_pval=None,
         od_wait=None,
         od_type=None,
@@ -2593,6 +2626,8 @@ class CatBoostRegressor(CatBoost):
         subsample=None,
         sampling_unit=None,
         dev_score_calc_obj_block_size=None,
+        dev_efb_max_buckets=None,
+        efb_max_conflict_fraction=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -2719,10 +2754,10 @@ class CatBoostRegressor(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         thread_count : int (default=-1)
@@ -2749,14 +2784,14 @@ class CatBoostRegressor(CatBoost):
             Data to predict.
 
         ntree_start: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         ntree_end: int, optional (default=0)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
             If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
 
         eval_period: int, optional (default=1)
-            Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 
         thread_count : int (default=-1)
             The number of threads to use when applying the model.

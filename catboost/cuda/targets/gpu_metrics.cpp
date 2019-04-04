@@ -100,7 +100,7 @@ namespace NCatboostCuda {
     }
 
     IGpuMetric::IGpuMetric(const NCatboostOptions::TLossDescription& description, ui32 approxDim)
-        : CpuMetric(std::move(CreateMetricFromDescription(description, approxDim)[0]))
+        : CpuMetric(std::move(CreateDefaultMetricForObjective(description, approxDim)[0]))
         , MetricDescription(description)
     {
     }
@@ -473,7 +473,7 @@ namespace NCatboostCuda {
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
         const auto numClasses = approxDim == 1 ? 2 : approxDim;
-        const bool isMulticlass = IsMultiClassMetric(targetObjective);
+        const bool isMulticlass = IsMultiClassOnlyMetric(targetObjective);
         if (isMulticlass) {
             CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
         } else {

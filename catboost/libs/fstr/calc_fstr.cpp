@@ -6,6 +6,7 @@
 
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
+#include <catboost/libs/algo/yetirank_helpers.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/query_info_helper.h>
@@ -196,6 +197,11 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
 
         leavesStatisticsOnPool = CollectLeavesStatistics(*dataset, model, localExecutor);
+    } else {
+        if (dataset) {
+            CATBOOST_NOTICE_LOG << "Dataset is provided, but " << EFstrType::PredictionValuesChange <<
+            " feature importance don't use it, since non-empty LeafWeights in model." << Endl;
+        }
     }
 
     TVector<TFeature> features;
@@ -236,14 +242,9 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         NPar::TLocalExecutor* localExecutor)
 {
     NCatboostOptions::TLossDescription lossDescription;
-    CB_ENSURE(TryGetLossDescription(model, lossDescription));
-    if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
-        lossDescription = NCatboostOptions::ParseLossDescription("NDCG");
-    }
+    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
     CATBOOST_INFO_LOG << "Used " << lossDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ObliviousTrees.ApproxDimension;
-    THolder<IMetric> metric = std::move(CreateMetricFromDescription(lossDescription, approxDimension)[0]);
-    CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
 
     auto combinationClassFeatures = GetCombinationClassFeatures(model.ObliviousTrees);
     int featuresCount = combinationClassFeatures.size();
@@ -268,9 +269,25 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
-    TConstArrayRef<TQueryInfo> queriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
+    TConstArrayRef<TQueryInfo> targetQueriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     TVector<TVector<double>> approx = ApplyModelMulti(model, objectsData, EPredictionType::RawFormulaVal, 0, documentCount,
                                                       localExecutor);
+    TVector<TQueryInfo> queriesInfo(targetQueriesInfo.begin(), targetQueriesInfo.end());
+    if (lossDescription.GetLossFunction() == ELossFunction::YetiRank || lossDescription.GetLossFunction() == ELossFunction::YetiRankPairwise) {
+        UpdatePairsForYetiRank(
+            approx[0],
+            *targetData->GetTarget(),
+            queriesInfo.size(),
+            lossDescription,
+            /*randomSeed*/ 0,
+            &queriesInfo,
+            localExecutor
+        );
+        lossDescription = NCatboostOptions::ParseLossDescription("PairLogit");
+    }
+    THolder<IMetric> metric = std::move(CreateDefaultMetricForObjective(lossDescription, approxDimension)[0]);
+    CB_ENSURE(metric->IsAdditiveMetric(), "LossFunctionChange support only additive metric");
+
     ui32 blockCount = queriesInfo.empty() ? documentCount : queriesInfo.size();
     scores.back().Add(
             metric->Eval(approx, *targetData->GetTarget(), GetWeights(*targetData), queriesInfo, 0, blockCount, *localExecutor)
@@ -362,6 +379,8 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious(), "Feature importance is supported only for symmetric trees");
     type = GetFeatureImportanceType(model, bool(dataset), type);
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
@@ -584,6 +603,8 @@ static TVector<TVector<double>> CalcFstr(
     EFstrType type,
     NPar::TLocalExecutor* localExecutor)
 {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious(), "Support feature importance only for symmetric trees");
     CB_ENSURE(
         !model.ObliviousTrees.LeafWeights.empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
@@ -651,6 +672,9 @@ TVector<TVector<double>> GetFeatureImportances(
             return CalcFstr(model, dataset, fstrType, &localExecutor);
         }
         case EFstrType::Interaction:
+            if (dataset) {
+                CATBOOST_NOTICE_LOG << "Dataset is provided, but " << fstrType << " feature importance don't use it." << Endl;
+            }
             return CalcInteraction(model);
         case EFstrType::ShapValues: {
             CB_ENSURE(dataset, "dataset is not provided");
@@ -717,4 +741,31 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
         }
     }
     return modelFeatureIds;
+}
+
+bool IsGroupwiseLearnedModel(const TFullModel& model) {
+    CB_ENSURE(model.GetTreeCount(), "Model is not trained");
+    NCatboostOptions::TLossDescription lossDescription;
+    Y_VERIFY(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
+    return IsGroupwiseMetric(lossDescription.LossFunction);
+}
+
+EFstrType GetFeatureImportanceType(
+    const TFullModel& model,
+    bool haveDataset,
+    EFstrType type)
+{
+    if (type == EFstrType::FeatureImportance) {
+        if (IsGroupwiseLearnedModel(model)) {
+            if (haveDataset) {
+                return EFstrType::LossFunctionChange;
+            } else {
+                CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric, "
+                                        "will use PredictionValuesChange feature importance" << Endl;
+            }
+        };
+        return EFstrType::PredictionValuesChange;
+    } else {
+        return type;
+    }
 }

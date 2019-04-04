@@ -692,8 +692,7 @@ profiler_enable(ProfilerObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     PyEval_SetProfile(profiler_callback, (PyObject*)self);
     self->flags |= POF_ENABLED;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static void
@@ -726,8 +725,7 @@ profiler_disable(ProfilerObject *self, PyObject* noarg)
     flush_unmatched(self);
     if (pending_exception(self))
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(clear_doc, "\
@@ -740,8 +738,7 @@ static PyObject*
 profiler_clear(ProfilerObject *pObj, PyObject* noarg)
 {
     clearEntries(pObj);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static void
@@ -791,11 +788,11 @@ static PyMethodDef profiler_methods[] = {
 };
 
 PyDoc_STRVAR(profiler_doc, "\
-Profiler(custom_timer=None, time_unit=None, subcalls=True, builtins=True)\n\
+Profiler(timer=None, timeunit=None, subcalls=True, builtins=True)\n\
 \n\
     Builds a profiler object using the specified timer function.\n\
     The default timer is a fast built-in one based on real time.\n\
-    For custom timer functions returning integers, time_unit can\n\
+    For custom timer functions returning integers, timeunit can\n\
     be a float specifying a scale (i.e. how long each integer unit\n\
     is, in seconds).\n\
 ");

@@ -65,11 +65,13 @@ namespace NCB {
     TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
         const TFeaturesLayout& featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
-        NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+        NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
+        TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeaturebinarization,
         bool floatFeaturesAllowNansInTestOnly,
         bool allowWriteFiles)
         : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
-        , FloatFeaturesBinarization(std::move(floatFeaturesBinarization))
+        , CommonFloatFeaturesBinarization(std::move(commonFloatFeaturesBinarization))
+        , PerFloatFeatureBinarization(std::move(perFloatFeaturebinarization))
         , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
         , CatFeaturesPerfectHash(
             featuresLayout.GetCatFeatureCount(),
@@ -82,20 +84,69 @@ namespace NCB {
 
     bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
         return (*FeaturesLayout == *rhs.FeaturesLayout) &&
-            (FloatFeaturesBinarization == rhs.FloatFeaturesBinarization) &&
+            (CommonFloatFeaturesBinarization == rhs.CommonFloatFeaturesBinarization) &&
+            (PerFloatFeatureBinarization == rhs.PerFloatFeatureBinarization) &&
             ApproximatelyEqualBorders(Borders, rhs.Borders) && (NanModes == rhs.NanModes) &&
             (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
+    bool TQuantizedFeaturesInfo::IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const {
+        if (this == &rhs) { // shortcut
+            return true;
+        }
+        if (!FeaturesLayout->IsSupersetOf(*rhs.FeaturesLayout)) {
+            return false;
+        }
+        if (CommonFloatFeaturesBinarization != rhs.CommonFloatFeaturesBinarization) {
+            return false;
+        }
+
+        for (const auto& [floatFeatureIdx, binarization] : rhs.PerFloatFeatureBinarization) {
+            const auto it = PerFloatFeatureBinarization.find(floatFeatureIdx);
+            if (it == PerFloatFeatureBinarization.end()) {
+                if (binarization != CommonFloatFeaturesBinarization) {
+                    return false;
+                }
+            } else if (binarization != it->second) {
+                return false;
+            }
+        }
+
+        constexpr auto EPS = 1.e-6f;
+
+        for (const auto& [floatFeatureIdx, borders] : rhs.Borders) {
+            const auto it = Borders.find(floatFeatureIdx);
+            if (it == Borders.end()) {
+                return false;
+            }
+            if (!ApproximatelyEqual<float>(borders, it->second, EPS)) {
+                return false;
+            }
+        }
+
+        for (const auto& [floatFeatureIdx, nanMode] : rhs.NanModes) {
+            const auto it = NanModes.find(floatFeatureIdx);
+            if (it == NanModes.end()) {
+                return false;
+            }
+            if (nanMode != it->second) {
+                return false;
+            }
+        }
+
+        return CatFeaturesPerfectHash.IsSupersetOf(rhs.CatFeaturesPerfectHash);
+    }
+
     ENanMode TQuantizedFeaturesInfo::ComputeNanMode(const TFloatValuesHolder& feature) const {
-        if (FloatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
+        auto& floatFeaturesBinarization = GetFloatFeatureBinarization(feature.GetId());
+        if (floatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
             return ENanMode::Forbidden;
         }
         TMaybeOwningConstArraySubset<float, ui32> arrayData = feature.GetArrayData();
 
         bool hasNans = arrayData.Find([] (size_t /*idx*/, float value) { return IsNan(value); });
         if (hasNans) {
-            return FloatFeaturesBinarization.NanMode;
+            return floatFeaturesBinarization.NanMode;
         }
         return ENanMode::Forbidden;
     }
@@ -155,7 +206,7 @@ namespace NCB {
                 auto& perFeatureResult = result[catFeatureIdx];
                 perFeatureResult.yresize(catFeaturePerfectHash.size());
                 for (const auto [hashedCatValue, perfectHash] : catFeaturePerfectHash) {
-                    perFeatureResult[perfectHash] = hashedCatValue;
+                    perFeatureResult[perfectHash.Value] = hashedCatValue;
                 }
             },
             0,
@@ -170,9 +221,16 @@ namespace NCB {
 
     ui32 TQuantizedFeaturesInfo::CalcCheckSum() const {
         ui32 checkSum = 0;
-        checkSum = UpdateCheckSum(checkSum, FloatFeaturesBinarization.BorderSelectionType.Get());
-        checkSum = UpdateCheckSum(checkSum, FloatFeaturesBinarization.BorderCount.Get());
-        checkSum = UpdateCheckSum(checkSum, FloatFeaturesBinarization.NanMode.Get());
+        auto updateCheskSum = [&checkSum] (const NCatboostOptions::TBinarizationOptions& binarizationOptions) {
+            checkSum = UpdateCheckSum(checkSum, binarizationOptions.BorderSelectionType.Get());
+            checkSum = UpdateCheckSum(checkSum, binarizationOptions.BorderCount.Get());
+            checkSum = UpdateCheckSum(checkSum, binarizationOptions.NanMode.Get());
+        };
+        updateCheskSum(CommonFloatFeaturesBinarization);
+        for (const auto& [featureId, binarizationOptions] : PerFloatFeatureBinarization) {
+            checkSum = UpdateCheckSum(checkSum, featureId);
+            updateCheskSum(binarizationOptions);
+        }
         checkSum = UpdateCheckSum(checkSum, FloatFeaturesAllowNansInTestOnly);
         checkSum = UpdateCheckSum(checkSum, Borders);
         checkSum = UpdateCheckSum(checkSum, NanModes);
@@ -182,7 +240,8 @@ namespace NCB {
     void TQuantizedFeaturesInfo::LoadNonSharedPart(IBinSaver* binSaver) {
         LoadMulti(
             binSaver,
-            &FloatFeaturesBinarization,
+            &CommonFloatFeaturesBinarization,
+            &PerFloatFeatureBinarization,
             &FloatFeaturesAllowNansInTestOnly,
             &Borders,
             &NanModes,
@@ -193,7 +252,8 @@ namespace NCB {
     void TQuantizedFeaturesInfo::SaveNonSharedPart(IBinSaver* binSaver) const {
         SaveMulti(
             binSaver,
-            FloatFeaturesBinarization,
+            CommonFloatFeaturesBinarization,
+            PerFloatFeatureBinarization,
             FloatFeaturesAllowNansInTestOnly,
             Borders,
             NanModes,

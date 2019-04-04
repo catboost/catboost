@@ -75,33 +75,6 @@ namespace {
     };
 }
 
-static TDataMetaInfo MaybeAddArtificialFeatures(
-    const TDataMetaInfo& src,
-    const NCB::TPoolQuantizationSchema& schema)
-{
-    TDataMetaInfo metaInfo = src;
-    metaInfo.FeaturesLayout = MakeIntrusive<NCB::TFeaturesLayout>(
-        src.FeaturesLayout->GetExternalFeatureCount(),
-        TVector<ui32>(
-            src.FeaturesLayout->GetCatFeatureInternalIdxToExternalIdx().begin(),
-            src.FeaturesLayout->GetCatFeatureInternalIdxToExternalIdx().end()),
-        src.FeaturesLayout->GetExternalFeatureIds(),
-        &schema);
-
-    const auto srcFeaturesMetaInfo = src.FeaturesLayout->GetExternalFeaturesMetaInfo();
-    for (size_t i = 0; i < srcFeaturesMetaInfo.size(); ++i) {
-        if (srcFeaturesMetaInfo[i].IsIgnored) {
-            metaInfo.FeaturesLayout->IgnoreExternalFeature(i);
-        }
-    }
-
-    // TODO(yazevnul): do we need to modify `res.ColumnsInfo`? It has almoust a year old TODO
-    // in it (see r3649186) and technically we are not working with DSV pool we are working
-    // with quantized pool.
-
-    return metaInfo;
-}
-
 TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     : ObjectCount(0) // inited later
     , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
@@ -138,10 +111,6 @@ TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
     );
 
     ProcessIgnoredFeaturesList(allIgnoredFeatures, &DataMetaInfo, &IsFeatureIgnored);
-
-    DataMetaInfo = MaybeAddArtificialFeatures(
-        DataMetaInfo,
-        QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
 }
 
 namespace {
@@ -252,23 +221,6 @@ static void AssignUnaligned(const TConstArrayRef<ui8> unaligned, TVector<U>* dst
     }
 }
 
-template <typename T>
-static void FillArtificialFeatures(
-    const TConstArrayRef<ui8> quants,
-    const NCB::TQuantizedFeatureIndexRemapper remapper,
-    TVector<TVector<ui8>>* const artificialFeatures)
-{
-    TUnalignedMemoryIterator<T> it(quants.data(), quants.size());
-    for (size_t i = 0, iEnd = quants.size() / sizeof(T); i < iEnd; ++i, (void)it.Next()) {
-        const auto originalBinIdx = it.Cur();
-        const size_t artificialFeatureIdx = originalBinIdx / remapper.GetBinsPerArtificialFeature();
-        const auto artificialBinIdx = static_cast<ui8>(originalBinIdx % remapper.GetBinsPerArtificialFeature());
-        for (size_t j = 0, jEnd = artificialFeatures->size(); j < jEnd; ++j) {
-            (*artificialFeatures)[j][i] = i == artificialFeatureIdx ? artificialBinIdx : 255;
-        }
-    }
-}
-
 void TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const size_t flatFeatureIdx,
@@ -278,54 +230,11 @@ void TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
         reinterpret_cast<const ui8*>(chunk.Chunk->Quants()->data()),
         chunk.Chunk->Quants()->size());
 
-    const auto remapper = DataMetaInfo.FeaturesLayout->GetQuantizedFeatureIndexRemapper(flatFeatureIdx);
-    if (!remapper.HasArtificialFeatures()) {
-        visitor->AddFloatFeaturePart(
-            flatFeatureIdx,
-            chunk.DocumentOffset,
-            TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
-        return;
-    }
-
-    const auto documentCount = chunk.Chunk->Quants()->size()
-        / static_cast<size_t>(chunk.Chunk->BitsPerDocument() / CHAR_BIT) ;
-    TVector<TVector<ui8>> artificialFeatures(remapper.GetArtificialFeatureCount() + 1);
-    for (auto& artificialFeature : artificialFeatures) {
-        artificialFeature.yresize(documentCount);
-    }
-
-    switch (const auto bitsPerDocument = chunk.Chunk->BitsPerDocument()) {
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_8:
-            ythrow TCatBoostException() << "should not be here (there must be no artificial features)";
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_16:
-            FillArtificialFeatures<ui16>(quants, remapper, &artificialFeatures);
-            break;
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_32:
-            FillArtificialFeatures<ui32>(quants, remapper, &artificialFeatures);
-            break;
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_64:
-            FillArtificialFeatures<ui64>(quants, remapper, &artificialFeatures);
-            break;
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_1:
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_2:
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_4:
-            ythrow TCatBoostException() << LabeledOutput((int)bitsPerDocument) << " is not supported";
-        case NCB::NIdl::EBitsPerDocumentFeature_BPDF_UKNOWN:
-            ythrow TCatBoostException() << "got invalid value for bits perDocument";
-    }
-
     visitor->AddFloatFeaturePart(
         flatFeatureIdx,
         chunk.DocumentOffset,
-        TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(MakeArrayRef(artificialFeatures[0])));
-
-    for (ui32 i = 0, iEnd = remapper.GetArtificialFeatureCount(); i < iEnd; ++i) {
-        const auto artificialFeatureIdx = remapper.GetIdxOffset() + i;
-        visitor->AddFloatFeaturePart(
-            artificialFeatureIdx,
-            chunk.DocumentOffset,
-            TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(MakeArrayRef(artificialFeatures[i + 1])));
-    }
+        chunk.Chunk->BitsPerDocument(),
+        TMaybeOwningConstArrayHolder<ui8>::CreateNonOwning(quants));
 }
 
 void TCBQuantizedDataLoader::AddChunk(

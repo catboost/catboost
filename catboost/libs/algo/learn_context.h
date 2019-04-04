@@ -109,6 +109,7 @@ public:
         , RootEnvironment(nullptr)
         , SharedTrainData(nullptr)
         , Profile((int)Params.BoostingOptions->IterationCount)
+        , LearnAndTestDataPackingAreCompatible(false)
         , UseTreeLevelCachingFlag(false) {
 
         LearnProgress.SerializedTrainParams = ToString(Params);
@@ -139,6 +140,8 @@ public:
     TObj<NPar::IRootEnvironment> RootEnvironment;
     TObj<NPar::IEnvironment> SharedTrainData;
     TProfileInfo Profile;
+
+    bool LearnAndTestDataPackingAreCompatible;
 
 private:
     bool UseTreeLevelCachingFlag;

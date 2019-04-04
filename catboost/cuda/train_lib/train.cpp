@@ -7,10 +7,12 @@
 #include <catboost/cuda/cuda_lib/devices_provider.h>
 #include <catboost/cuda/gpu_data/pinned_memory_estimation.h>
 
+#include <catboost/libs/algo/approx_dimension.h>
 #include <catboost/libs/algo/custom_objective_descriptor.h>
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/online_ctr.h>
+#include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
@@ -23,8 +25,6 @@
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
-#include <catboost/libs/train_lib/approx_dimension.h>
-#include <catboost/libs/train_lib/preprocess.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/json/json_value.h>
@@ -79,9 +79,14 @@ namespace NCatboostCuda {
         }
     }
 
-    inline bool HasCtrs(const TBinarizedFeaturesManager& featuresManager) {
+    inline bool HasPermutationFeatures(const TBinarizedFeaturesManager& featuresManager) {
         for (auto catFeature : featuresManager.GetCatFeatureIds()) {
             if (featuresManager.UseForCtr(catFeature) || featuresManager.UseForTreeCtr(catFeature)) {
+                return true;
+            }
+        }
+        for (auto estimatedFeatureId : featuresManager.GetEstimatedFeatureIds()) {
+            if (featuresManager.GetEstimatedFeature(estimatedFeatureId).EstimatorId.IsOnline) {
                 return true;
             }
         }
@@ -91,7 +96,7 @@ namespace NCatboostCuda {
     inline void UpdateGpuSpecificDefaults(NCatboostOptions::TCatBoostOptions& options,
                                           TBinarizedFeaturesManager& featuresManager) {
         //don't make several permutations in matrixnet-like mode if we don't have ctrs
-        if (!HasCtrs(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
+        if (!HasPermutationFeatures(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
             if (options.BoostingOptions->PermutationCount > 1) {
                 CATBOOST_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
             }
@@ -243,6 +248,7 @@ namespace NCatboostCuda {
                                                                 const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                 const TTrainingDataProvider& dataProvider,
                                                                 const TTrainingDataProvider* testProvider,
+                                                                const TFeatureEstimators& featureEstimators,
                                                                 TBinarizedFeaturesManager& featuresManager,
                                                                 ui32 approxDimension,
                                                                 const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
@@ -266,6 +272,7 @@ namespace NCatboostCuda {
                                         outputOptions,
                                         dataProvider,
                                         testProvider,
+                                        featureEstimators,
                                         random,
                                         approxDimension,
                                         onEndIterationCallback,
@@ -324,6 +331,7 @@ namespace NCatboostCuda {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor,
@@ -356,6 +364,7 @@ namespace NCatboostCuda {
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
+                                                      featureEstimators,
                                                       quantizedFeaturesInfo);
 
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
@@ -390,6 +399,7 @@ namespace NCatboostCuda {
                 updatedOutputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
+                featureEstimators,
                 featuresManager,
                 approxDimension,
                 onEndIterationCallback,
@@ -484,7 +494,9 @@ namespace NCatboostCuda {
 
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
+            TFeatureEstimators estimators;
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
+                                                      estimators,
                                                       quantizedFeaturesInfo);
 
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;

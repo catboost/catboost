@@ -39,7 +39,7 @@ _io_StringIO_tell(stringio *self, PyObject *Py_UNUSED(ignored))
 }
 
 PyDoc_STRVAR(_io_StringIO_read__doc__,
-"read($self, size=None, /)\n"
+"read($self, size=-1, /)\n"
 "--\n"
 "\n"
 "Read at most size characters, returned as a string.\n"
@@ -48,30 +48,29 @@ PyDoc_STRVAR(_io_StringIO_read__doc__,
 "is reached. Return an empty string at EOF.");
 
 #define _IO_STRINGIO_READ_METHODDEF    \
-    {"read", (PyCFunction)_io_StringIO_read, METH_VARARGS, _io_StringIO_read__doc__},
+    {"read", (PyCFunction)_io_StringIO_read, METH_FASTCALL, _io_StringIO_read__doc__},
 
 static PyObject *
-_io_StringIO_read_impl(stringio *self, PyObject *arg);
+_io_StringIO_read_impl(stringio *self, Py_ssize_t size);
 
 static PyObject *
-_io_StringIO_read(stringio *self, PyObject *args)
+_io_StringIO_read(stringio *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
-    PyObject *arg = Py_None;
+    Py_ssize_t size = -1;
 
-    if (!PyArg_UnpackTuple(args, "read",
-        0, 1,
-        &arg)) {
+    if (!_PyArg_ParseStack(args, nargs, "|O&:read",
+        _Py_convert_optional_to_ssize_t, &size)) {
         goto exit;
     }
-    return_value = _io_StringIO_read_impl(self, arg);
+    return_value = _io_StringIO_read_impl(self, size);
 
 exit:
     return return_value;
 }
 
 PyDoc_STRVAR(_io_StringIO_readline__doc__,
-"readline($self, size=None, /)\n"
+"readline($self, size=-1, /)\n"
 "--\n"
 "\n"
 "Read until newline or EOF.\n"
@@ -79,23 +78,22 @@ PyDoc_STRVAR(_io_StringIO_readline__doc__,
 "Returns an empty string if EOF is hit immediately.");
 
 #define _IO_STRINGIO_READLINE_METHODDEF    \
-    {"readline", (PyCFunction)_io_StringIO_readline, METH_VARARGS, _io_StringIO_readline__doc__},
+    {"readline", (PyCFunction)_io_StringIO_readline, METH_FASTCALL, _io_StringIO_readline__doc__},
 
 static PyObject *
-_io_StringIO_readline_impl(stringio *self, PyObject *arg);
+_io_StringIO_readline_impl(stringio *self, Py_ssize_t size);
 
 static PyObject *
-_io_StringIO_readline(stringio *self, PyObject *args)
+_io_StringIO_readline(stringio *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
-    PyObject *arg = Py_None;
+    Py_ssize_t size = -1;
 
-    if (!PyArg_UnpackTuple(args, "readline",
-        0, 1,
-        &arg)) {
+    if (!_PyArg_ParseStack(args, nargs, "|O&:readline",
+        _Py_convert_optional_to_ssize_t, &size)) {
         goto exit;
     }
-    return_value = _io_StringIO_readline_impl(self, arg);
+    return_value = _io_StringIO_readline_impl(self, size);
 
 exit:
     return return_value;
@@ -112,23 +110,22 @@ PyDoc_STRVAR(_io_StringIO_truncate__doc__,
 "Returns the new absolute position.");
 
 #define _IO_STRINGIO_TRUNCATE_METHODDEF    \
-    {"truncate", (PyCFunction)_io_StringIO_truncate, METH_VARARGS, _io_StringIO_truncate__doc__},
+    {"truncate", (PyCFunction)_io_StringIO_truncate, METH_FASTCALL, _io_StringIO_truncate__doc__},
 
 static PyObject *
-_io_StringIO_truncate_impl(stringio *self, PyObject *arg);
+_io_StringIO_truncate_impl(stringio *self, Py_ssize_t size);
 
 static PyObject *
-_io_StringIO_truncate(stringio *self, PyObject *args)
+_io_StringIO_truncate(stringio *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
-    PyObject *arg = Py_None;
+    Py_ssize_t size = self->pos;
 
-    if (!PyArg_UnpackTuple(args, "truncate",
-        0, 1,
-        &arg)) {
+    if (!_PyArg_ParseStack(args, nargs, "|O&:truncate",
+        _Py_convert_optional_to_ssize_t, &size)) {
         goto exit;
     }
-    return_value = _io_StringIO_truncate_impl(self, arg);
+    return_value = _io_StringIO_truncate_impl(self, size);
 
 exit:
     return return_value;
@@ -147,19 +144,19 @@ PyDoc_STRVAR(_io_StringIO_seek__doc__,
 "Returns the new absolute position.");
 
 #define _IO_STRINGIO_SEEK_METHODDEF    \
-    {"seek", (PyCFunction)_io_StringIO_seek, METH_VARARGS, _io_StringIO_seek__doc__},
+    {"seek", (PyCFunction)_io_StringIO_seek, METH_FASTCALL, _io_StringIO_seek__doc__},
 
 static PyObject *
 _io_StringIO_seek_impl(stringio *self, Py_ssize_t pos, int whence);
 
 static PyObject *
-_io_StringIO_seek(stringio *self, PyObject *args)
+_io_StringIO_seek(stringio *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_ssize_t pos;
     int whence = 0;
 
-    if (!PyArg_ParseTuple(args, "n|i:seek",
+    if (!_PyArg_ParseStack(args, nargs, "n|i:seek",
         &pos, &whence)) {
         goto exit;
     }
@@ -289,4 +286,4 @@ _io_StringIO_seekable(stringio *self, PyObject *Py_UNUSED(ignored))
 {
     return _io_StringIO_seekable_impl(self);
 }
-/*[clinic end generated code: output=5dd5c2a213e75405 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=73c4d6e5cc3b1a58 input=a9049054013a1b77]*/

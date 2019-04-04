@@ -9,6 +9,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <library/json/json_value.h>
 #include <library/object_factory/object_factory.h>
@@ -44,6 +45,7 @@ public:
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+        NCB::TFeatureEstimators featureEstimators,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
         NPar::TLocalExecutor* localExecutor,

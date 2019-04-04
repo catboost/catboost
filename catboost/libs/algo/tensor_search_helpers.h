@@ -9,6 +9,7 @@
 #include "approx_calcer.h"
 #include "custom_objective_descriptor.h"
 
+#include <catboost/libs/data_new/exclusive_feature_bundling.h>
 #include <catboost/libs/data_new/packed_binary_features.h>
 #include <catboost/libs/options/enums.h>
 
@@ -32,7 +33,10 @@ struct TCandidateInfo {
     bool ShouldDropAfterScoreCalc = false;
     SAVELOAD(SplitEnsemble, BestScore, BestBinId, ShouldDropAfterScoreCalc);
 
-    TSplit GetBestSplit(const NCB::TQuantizedForCPUObjectsDataProvider& objectsData) const;
+    TSplit GetBestSplit(
+        const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
+        ui32 oneHotMaxSize
+    ) const;
 };
 
 struct TCandidatesInfoList {
@@ -50,6 +54,16 @@ struct TCandidatesInfoList {
 };
 
 using TCandidateList = TVector<TCandidatesInfoList>;
+
+struct TCandidatesContext {
+    ui32 OneHotMaxSize; // needed to select for which categorical features in bundles to calc stats
+    TConstArrayRef<NCB::TExclusiveFeaturesBundle> BundlesMetaData;
+
+    TCandidateList CandidateList;
+    TVector<TVector<ui32>> SelectedFeaturesInBundles; // [bundleIdx][inBundleIdx]
+    TVector<NCB::TBinaryFeaturesPack> PerBinaryPackMasks;
+};
+
 
 void Bootstrap(const NCatboostOptions::TCatBoostOptions& params,
                const TVector<TIndexType>& indices,
@@ -91,6 +105,6 @@ void SetBestScore(
     ui64 randSeed,
     const TVector<TVector<double>>& allScores,
     double scoreStDev,
-    TConstArrayRef<NCB::TBinaryFeaturesPack> perPackMasks,
+    const TCandidatesContext& candidatesContext, // candidates from it is not used, subcan
     TVector<TCandidateInfo>* subcandidates
 );

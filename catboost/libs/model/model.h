@@ -290,14 +290,14 @@ public:
      * @param binSplits
      */
     void AddBinTree(const TVector<int>& binSplits) {
-        Y_ASSERT(TreeSplits.size() == TreeSizes.size() && TreeSizes.size() == TreeStartOffsets.size());
+        Y_ASSERT(TreeSizes.size() == TreeStartOffsets.size() && (TreeSplits.empty() == TreeSizes.empty()));
         TreeSplits.insert(TreeSplits.end(), binSplits.begin(), binSplits.end());
-        TreeSizes.push_back(binSplits.ysize());
         if (TreeStartOffsets.empty()) {
             TreeStartOffsets.push_back(0);
         } else {
-            TreeStartOffsets.push_back(TreeStartOffsets.back() + binSplits.ysize());
+            TreeStartOffsets.push_back(TreeStartOffsets.back() + TreeSizes.back());
         }
+        TreeSizes.push_back(binSplits.ysize());
     }
 
     size_t GetTreeCount() const {
@@ -525,6 +525,13 @@ public:
      */
     size_t GetNumCatFeatures() const {
         return ObliviousTrees.GetNumCatFeatures();
+    }
+
+    /**
+     * Check whether model trees are oblivious
+     */
+    bool IsOblivious() const {
+        return ObliviousTrees.IsOblivious();
     }
 
     /**
@@ -811,3 +818,7 @@ TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
+
+void SaveModelBorders(
+    const TString& file,
+    const TFullModel& model);

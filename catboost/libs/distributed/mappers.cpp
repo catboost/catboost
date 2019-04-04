@@ -316,6 +316,7 @@ namespace NCatboostDistributed {
                     bucketCount,
                     localData.Params.ObliviousTreeOptions->L2Reg,
                     localData.Params.ObliviousTreeOptions->PairwiseNonDiagReg,
+                    localData.Params.CatFeatureParams->OneHotMaxSize,
                     &scoreBins);
                 *candidateScores = GetScores(scoreBins);
             };

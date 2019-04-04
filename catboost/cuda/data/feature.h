@@ -217,6 +217,74 @@ namespace NCatboostCuda {
         Y_SAVELOAD_DEFINE(FeatureTensor, Configuration);
     };
 
+
+    struct TEstimatorId {
+        ui32 Id = 0;
+        bool IsOnline = false;
+
+        bool operator<(const TEstimatorId& rhs) const {
+            return std::tie(Id, IsOnline) < std::tie(rhs.Id, rhs.IsOnline);
+        }
+        bool operator>(const TEstimatorId& rhs) const {
+            return rhs < *this;
+        }
+        bool operator<=(const TEstimatorId& rhs) const {
+            return !(rhs < *this);
+        }
+        bool operator>=(const TEstimatorId& rhs) const {
+            return !(*this < rhs);
+        }
+
+        bool operator==(const TEstimatorId& rhs) const {
+            return std::tie(Id, IsOnline) == std::tie(rhs.Id, rhs.IsOnline);
+        }
+        bool operator!=(const TEstimatorId& rhs) const {
+            return !(rhs == *this);
+        }
+
+        ui64 GetHash() const {
+            return MultiHash(Id, IsOnline);
+        }
+
+        Y_SAVELOAD_DEFINE(Id, IsOnline);
+
+    };
+
+
+    struct TEstimatedFeature {
+        TEstimatorId EstimatorId;
+        ui32 FeatureId = 0;
+
+        Y_SAVELOAD_DEFINE(EstimatorId, FeatureId);
+
+        bool operator<(const TEstimatedFeature& rhs) const {
+            return std::tie(EstimatorId, FeatureId) < std::tie(rhs.EstimatorId, rhs.FeatureId);
+        }
+        bool operator>(const TEstimatedFeature& rhs) const {
+            return rhs < *this;
+        }
+        bool operator<=(const TEstimatedFeature& rhs) const {
+            return !(rhs < *this);
+        }
+        bool operator>=(const TEstimatedFeature& rhs) const {
+            return !(*this < rhs);
+        }
+        bool operator==(const TEstimatedFeature& rhs) const {
+            return std::tie(EstimatorId, FeatureId) == std::tie(rhs.EstimatorId, rhs.FeatureId);
+        }
+        bool operator!=(const TEstimatedFeature& rhs) const {
+            return !(rhs == *this);
+        }
+
+        ui64 GetHash() const {
+            return MultiHash(EstimatorId, FeatureId);
+        }
+
+
+    };
+
+
+
 }
 
 template <>
@@ -236,6 +304,20 @@ struct THash<NCatboostCuda::TFeatureTensor> {
 template <>
 struct THash<NCatboostCuda::TCtr> {
     inline size_t operator()(const NCatboostCuda::TCtr& value) const {
+        return value.GetHash();
+    }
+};
+
+template <>
+struct THash<NCatboostCuda::TEstimatorId> {
+    inline size_t operator()(const NCatboostCuda::TEstimatorId& value) const {
+        return value.GetHash();
+    }
+};
+
+template <>
+struct THash<NCatboostCuda::TEstimatedFeature> {
+    inline size_t operator()(const NCatboostCuda::TEstimatedFeature& value) const {
         return value.GetHash();
     }
 };

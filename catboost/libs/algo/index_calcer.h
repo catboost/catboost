@@ -58,10 +58,14 @@ static inline void GetRepackedFeatures(
     const TGetFeatureDataBeginPtr& getFeatureDataBeginPtr,
     const NCB::TFeaturesLayout& featuresLayout,
     TVector<TConstArrayRef<TNumType>>* repackedFeatures,
+    TVector<TMaybe<NCB::TExclusiveBundleIndex>>* bundledIndexes = nullptr,
     TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIndexes = nullptr)
 {
 
     repackedFeatures->resize(flatFeatureVectorExpectedSize);
+    if (bundledIndexes != nullptr) {
+        bundledIndexes->resize(flatFeatureVectorExpectedSize);
+    }
     if (packedIndexes != nullptr) {
         packedIndexes->resize(flatFeatureVectorExpectedSize);
     }
@@ -70,7 +74,7 @@ static inline void GetRepackedFeatures(
         for (size_t i = 0; i < flatFeatureVectorExpectedSize; ++i) {
             if (featuresLayout.GetExternalFeaturesMetaInfo()[i].IsAvailable) {
                 (*repackedFeatures)[i] = MakeArrayRef(
-                    getFeatureDataBeginPtr(i, packedIndexes) + blockFirstIdx,
+                    getFeatureDataBeginPtr(i, bundledIndexes, packedIndexes) + blockFirstIdx,
                     blockSize);
             }
         }
@@ -78,7 +82,7 @@ static inline void GetRepackedFeatures(
         for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
             if (featuresLayout.GetExternalFeaturesMetaInfo()[sourceIdx].IsAvailable) {
                 (*repackedFeatures)[origIdx] = MakeArrayRef(
-                    getFeatureDataBeginPtr(sourceIdx, packedIndexes) + blockFirstIdx,
+                    getFeatureDataBeginPtr(sourceIdx, bundledIndexes, packedIndexes) + blockFirstIdx,
                     blockSize);
             }
         }
@@ -89,4 +93,5 @@ const ui8* GetFeatureDataBeginPtr(
     const NCB::TQuantizedForCPUObjectsDataProvider& quantizedObjectsData,
     ui32 featureIdx,
     int consecutiveSubsetBegin,
+    TVector<TMaybe<NCB::TExclusiveBundleIndex>>* bundledIdx,
     TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIdx);

@@ -209,16 +209,19 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
         NCB::TTrainingDataProviderPtr dataProvider;
         THolder<TBinarizedFeaturesManager> featuresManager;
-
+        NCB::TFeatureEstimators estimators;
         LoadTrainingData(NCB::TPathWithScheme("dsv://test-pool.txt"),
                          NCB::TPathWithScheme("dsv://test-pool.txt.cd"),
                          NCatboostOptions::TBinarizationOptions(),
                          NCatboostOptions::TCatFeatureParams(ETaskType::GPU),
+                         estimators,
                          &dataProvider,
                          &featuresManager);
 
         TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(*featuresManager,
-                                                                    *dataProvider);
+                                                                    *dataProvider,
+                                                                    estimators
+                                                                    );
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount, &NPar::LocalExecutor());
 

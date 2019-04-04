@@ -388,12 +388,9 @@ namespace NCB {
             "mainLossFunction is not in metricDescriptions"
         );
 
-        bool hasClassificationMetrics = isAnyOfMetrics(IsClassificationMetric);
-        bool hasBinClassOnlyMetrics = hasClassificationMetrics && isAnyOfMetrics(IsBinaryClassOnlyMetric);
-        bool hasMultiClassOnlyMetrics = hasClassificationMetrics && isAnyOfMetrics(
-            [](ELossFunction lossFunction) {
-                return IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction);
-            });
+        bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
+        bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
+        bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -403,12 +400,8 @@ namespace NCB {
             " specified"
         );
 
-        bool hasMultiClassMetrics = hasClassificationMetrics && isAnyOfMetrics(IsMultiClassMetric);
+        bool multiClassTargetData = false;
 
-
-        bool maybeMultiClassTargetData = false;
-
-        bool knownMultiDimensionalModel = false;
         if (knownModelApproxDimension) {
             if (*knownModelApproxDimension == 1) {
                 CB_ENSURE(
@@ -417,28 +410,33 @@ namespace NCB {
                 );
             } else {
                 for (const auto& metricDescription : metricDescriptions) {
+                    auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassMetric(metricDescription.GetLossFunction()),
-                        "Non-Multiclassification metric (" << metricDescription.GetLossFunction()
+                        IsMultiClassCompatibleMetric(metricLossFunction),
+                        "Non-Multiclassification compatible metric (" << metricLossFunction
                         << ") specified for a multidimensional model"
                     );
                 }
-                knownMultiDimensionalModel = true;
                 if (!knownClassCount) { // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
-                maybeMultiClassTargetData = true;
+                multiClassTargetData = true;
             }
-        } else {
-            maybeMultiClassTargetData = hasMultiClassMetrics && !hasBinClassOnlyMetrics;
+        } else if (hasMultiClassOnlyMetrics ||
+            (knownClassCount > 2) ||
+            (classWeights.size() > 2) ||
+            (classNames->size() > 2))
+        {
+            multiClassTargetData = true;
         }
+
 
         ui32 classCountInData = 0;
 
         auto maybeConvertedTarget = ConvertTarget(
             rawData.GetTarget(),
-            hasClassificationMetrics,
-            maybeMultiClassTargetData,
+            hasClassificationOnlyMetrics || multiClassTargetData,
+            multiClassTargetData,
             knownClassCount == 0,
             classNames,
             localExecutor,
@@ -475,14 +473,13 @@ namespace NCB {
         } else if (hasMultiClassOnlyMetrics) {
             createMultiClassTarget = true;
         } else {
-            if (hasClassificationMetrics) {
-                if (knownMultiDimensionalModel || (classCount > 2)) {
-                    createMultiClassTarget = true;
-                } else {
-                    createBinClassTarget = true;
-                }
+            if (multiClassTargetData || (classCount > 2)) {
+                createMultiClassTarget = true;
+            } else if (classCount == 2) {
+                createBinClassTarget = true;
             }
         }
+        bool createClassTarget = createBinClassTarget || createMultiClassTarget;
 
         TProcessedTargetData processedTargetData;
 
@@ -557,7 +554,7 @@ namespace NCB {
                 CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
             }
 
-            if (hasClassificationMetrics) {
+            if (createClassTarget) {
                 processedTargetData.Weights.emplace(
                     "",
                     MakeClassificationWeights(

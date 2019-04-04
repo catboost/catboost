@@ -83,6 +83,14 @@ namespace NCB {
                     localColumnIndex = columnId;
                     break;
             }
+            CB_ENSURE(localColumnIndex < QuantizedPool.Chunks.size(), "Bad localColumnIndex.");
+            const auto& chunks = QuantizedPool.Chunks[localColumnIndex];
+            auto& chunkIndices = ColumnsInfo[columnType].CorrectChunkOrder;
+            chunkIndices.resize(chunks.size());
+            Iota(chunkIndices.begin(), chunkIndices.end(), 0);
+            Sort(chunkIndices, [&](ui32 lhs, ui32 rhs) {
+                return chunks[lhs].DocumentOffset < chunks[rhs].DocumentOffset;
+            });
             ColumnsInfo[columnType].LocalColumnIndex = localColumnIndex;
         }
     }
@@ -123,7 +131,7 @@ namespace NCB {
 
         CB_ENSURE(columnInfo.CurrentDocId == docId, "Only serial lines possible to output.");
         const auto& chunks = QuantizedPool.Chunks[columnInfo.LocalColumnIndex];
-        const auto& chunk = chunks[columnInfo.CurrentChunkIndex];
+        const auto& chunk = chunks[columnInfo.CorrectChunkOrder[columnInfo.CurrentChunkIndex]];
 
         CB_ENSURE(chunk.Chunk->Quants()->size() > columnInfo.CurrentOffset);
         const ui8* data = chunk.Chunk->Quants()->data();
@@ -153,7 +161,7 @@ namespace NCB {
 
         CB_ENSURE(columnInfo.CurrentDocId == docId, "Only serial lines possible to output.");
         const auto& chunks = QuantizedPool.Chunks[columnInfo.LocalColumnIndex];
-        const auto& chunk = chunks[columnInfo.CurrentChunkIndex];
+        const auto& chunk = chunks[columnInfo.CorrectChunkOrder[columnInfo.CurrentChunkIndex]];
 
         CB_ENSURE(chunk.Chunk->Quants()->size() > columnInfo.CurrentOffset);
         const ui8* data = chunk.Chunk->Quants()->data();

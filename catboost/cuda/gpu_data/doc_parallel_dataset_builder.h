@@ -12,9 +12,11 @@ namespace NCatboostCuda {
 
         TDocParallelDataSetBuilder(TBinarizedFeaturesManager& featuresManager,
                                    const NCB::TTrainingDataProvider& dataProvider,
+                                   const NCB::TFeatureEstimators& estimators,
                                    const NCB::TTrainingDataProvider* linkedTest = nullptr)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
+            , Estimators(estimators)
             , LinkedTest(linkedTest)
         {
         }
@@ -25,6 +27,7 @@ namespace NCatboostCuda {
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider& DataProvider;
+        const NCB::TFeatureEstimators& Estimators;
         const NCB::TTrainingDataProvider* LinkedTest;
     };
 }

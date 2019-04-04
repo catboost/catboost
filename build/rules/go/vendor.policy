@@ -84,6 +84,9 @@ ALLOW .* -> vendor/github.com/mitchellh/copystructure
 # decoding generic map values to structures and vice versa
 ALLOW .* -> vendor/github.com/mitchellh/mapstructure  
 
+# A well tested and comprehensive Golang statistics library package with no dependencies
+ALLOW .* -> vendor/github.com/montanaflynn/stats
+
 # runtime dependencies of go-swagger
 ALLOW .* -> vendor/github.com/go-openapi              
 
@@ -115,9 +118,6 @@ ALLOW .* -> vendor/github.com/smira/go-statsd
 
 # safe and easy casting from one type to another
 ALLOW .* -> vendor/github.com/spf13/cast              
-
-# efficient json implementation
-ALLOW .* -> vendor/github.com/mailru/easyjson
 
 # library for creating CLI applications
 ALLOW .* -> vendor/github.com/spf13/cobra             
@@ -170,6 +170,9 @@ ALLOW .* -> vendor/google.golang.org/genproto
 # Google RPC
 ALLOW .* -> vendor/google.golang.org/grpc
 
+# Usefull GRPC interceptors
+ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-middleware
+
 # Job Scheduling Package
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron
 
@@ -184,6 +187,9 @@ ALLOW .* -> vendor/github.com/rs/cors
 
 # generation tool and serialization library for MessagePack
 ALLOW .* -> vendor/github.com/tinylib/msgp
+
+# Generate fancy REST API from grpc api
+ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
 
 # 
 # Temporary exceptions.

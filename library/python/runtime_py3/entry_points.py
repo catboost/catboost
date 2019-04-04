@@ -6,7 +6,7 @@ def repl():
     py_main = __res.find('PY_MAIN')
 
     if py_main:
-        mod_name, func_name = py_main.split(b':', 1) + [None]
+        mod_name, func_name = (py_main.split(b':', 1) + [None])[:2]
         try:
             import importlib
             mod = importlib.import_module(mod_name.decode('UTF-8'))

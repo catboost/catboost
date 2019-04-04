@@ -15,6 +15,12 @@ DEPENDS(
     catboost/python-package/ut/large/pkg
     catboost/tools/model_comparator
 )
+DATA(
+    arcadia/catboost/pytest/data
+    arcadia/catboost/python-package/ut/medium
+)
+
+FORK_SUBTESTS()
 
 NO_LINT()
 NO_CHECK_IMPORTS()

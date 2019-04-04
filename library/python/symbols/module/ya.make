@@ -2,9 +2,10 @@ PY23_LIBRARY()
 
 
 
+NO_PYTHON_INCLUDES()
+
 PEERDIR(
-    library/python/ctypes
-    library/python/symbols/registry
+    contrib/libs/python/Include
 )
 
 SRCS(

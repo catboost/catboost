@@ -6,8 +6,8 @@
 
 #include <util/system/types.h>
 
-constexpr ui32 GetMaxBinCount() {
-    return 255;
+constexpr ui32 GetMaxBinCount(ETaskType type) {
+    return (ETaskType::GPU == type) ? 255 : (1 << 14);
 }
 
 constexpr ui32 GetMaxTreeDepth() {

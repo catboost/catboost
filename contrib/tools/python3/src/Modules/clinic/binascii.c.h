@@ -34,27 +34,31 @@ exit:
 }
 
 PyDoc_STRVAR(binascii_b2a_uu__doc__,
-"b2a_uu($module, data, /)\n"
+"b2a_uu($module, data, /, *, backtick=False)\n"
 "--\n"
 "\n"
 "Uuencode line of data.");
 
 #define BINASCII_B2A_UU_METHODDEF    \
-    {"b2a_uu", (PyCFunction)binascii_b2a_uu, METH_O, binascii_b2a_uu__doc__},
+    {"b2a_uu", (PyCFunction)binascii_b2a_uu, METH_FASTCALL|METH_KEYWORDS, binascii_b2a_uu__doc__},
 
 static PyObject *
-binascii_b2a_uu_impl(PyObject *module, Py_buffer *data);
+binascii_b2a_uu_impl(PyObject *module, Py_buffer *data, int backtick);
 
 static PyObject *
-binascii_b2a_uu(PyObject *module, PyObject *arg)
+binascii_b2a_uu(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
+    static const char * const _keywords[] = {"", "backtick", NULL};
+    static _PyArg_Parser _parser = {"y*|$i:b2a_uu", _keywords, 0};
     Py_buffer data = {NULL, NULL};
+    int backtick = 0;
 
-    if (!PyArg_Parse(arg, "y*:b2a_uu", &data)) {
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &data, &backtick)) {
         goto exit;
     }
-    return_value = binascii_b2a_uu_impl(module, &data);
+    return_value = binascii_b2a_uu_impl(module, &data, backtick);
 
 exit:
     /* Cleanup for data */
@@ -97,27 +101,27 @@ exit:
 }
 
 PyDoc_STRVAR(binascii_b2a_base64__doc__,
-"b2a_base64($module, /, data, *, newline=True)\n"
+"b2a_base64($module, data, /, *, newline=True)\n"
 "--\n"
 "\n"
 "Base64-code line of data.");
 
 #define BINASCII_B2A_BASE64_METHODDEF    \
-    {"b2a_base64", (PyCFunction)binascii_b2a_base64, METH_FASTCALL, binascii_b2a_base64__doc__},
+    {"b2a_base64", (PyCFunction)binascii_b2a_base64, METH_FASTCALL|METH_KEYWORDS, binascii_b2a_base64__doc__},
 
 static PyObject *
 binascii_b2a_base64_impl(PyObject *module, Py_buffer *data, int newline);
 
 static PyObject *
-binascii_b2a_base64(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+binascii_b2a_base64(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
-    static const char * const _keywords[] = {"data", "newline", NULL};
+    static const char * const _keywords[] = {"", "newline", NULL};
     static _PyArg_Parser _parser = {"y*|$i:b2a_base64", _keywords, 0};
     Py_buffer data = {NULL, NULL};
     int newline = 1;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &data, &newline)) {
         goto exit;
     }
@@ -266,20 +270,20 @@ PyDoc_STRVAR(binascii_crc_hqx__doc__,
 "Compute CRC-CCITT incrementally.");
 
 #define BINASCII_CRC_HQX_METHODDEF    \
-    {"crc_hqx", (PyCFunction)binascii_crc_hqx, METH_VARARGS, binascii_crc_hqx__doc__},
+    {"crc_hqx", (PyCFunction)binascii_crc_hqx, METH_FASTCALL, binascii_crc_hqx__doc__},
 
 static unsigned int
 binascii_crc_hqx_impl(PyObject *module, Py_buffer *data, unsigned int crc);
 
 static PyObject *
-binascii_crc_hqx(PyObject *module, PyObject *args)
+binascii_crc_hqx(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_buffer data = {NULL, NULL};
     unsigned int crc;
     unsigned int _return_value;
 
-    if (!PyArg_ParseTuple(args, "y*I:crc_hqx",
+    if (!_PyArg_ParseStack(args, nargs, "y*I:crc_hqx",
         &data, &crc)) {
         goto exit;
     }
@@ -305,20 +309,20 @@ PyDoc_STRVAR(binascii_crc32__doc__,
 "Compute CRC-32 incrementally.");
 
 #define BINASCII_CRC32_METHODDEF    \
-    {"crc32", (PyCFunction)binascii_crc32, METH_VARARGS, binascii_crc32__doc__},
+    {"crc32", (PyCFunction)binascii_crc32, METH_FASTCALL, binascii_crc32__doc__},
 
 static unsigned int
 binascii_crc32_impl(PyObject *module, Py_buffer *data, unsigned int crc);
 
 static PyObject *
-binascii_crc32(PyObject *module, PyObject *args)
+binascii_crc32(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_buffer data = {NULL, NULL};
     unsigned int crc = 0;
     unsigned int _return_value;
 
-    if (!PyArg_ParseTuple(args, "y*|I:crc32",
+    if (!_PyArg_ParseStack(args, nargs, "y*|I:crc32",
         &data, &crc)) {
         goto exit;
     }
@@ -480,13 +484,13 @@ PyDoc_STRVAR(binascii_a2b_qp__doc__,
 "Decode a string of qp-encoded data.");
 
 #define BINASCII_A2B_QP_METHODDEF    \
-    {"a2b_qp", (PyCFunction)binascii_a2b_qp, METH_FASTCALL, binascii_a2b_qp__doc__},
+    {"a2b_qp", (PyCFunction)binascii_a2b_qp, METH_FASTCALL|METH_KEYWORDS, binascii_a2b_qp__doc__},
 
 static PyObject *
 binascii_a2b_qp_impl(PyObject *module, Py_buffer *data, int header);
 
 static PyObject *
-binascii_a2b_qp(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+binascii_a2b_qp(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", "header", NULL};
@@ -494,7 +498,7 @@ binascii_a2b_qp(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *k
     Py_buffer data = {NULL, NULL};
     int header = 0;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         ascii_buffer_converter, &data, &header)) {
         goto exit;
     }
@@ -519,14 +523,14 @@ PyDoc_STRVAR(binascii_b2a_qp__doc__,
 "are both encoded.  When quotetabs is set, space and tabs are encoded.");
 
 #define BINASCII_B2A_QP_METHODDEF    \
-    {"b2a_qp", (PyCFunction)binascii_b2a_qp, METH_FASTCALL, binascii_b2a_qp__doc__},
+    {"b2a_qp", (PyCFunction)binascii_b2a_qp, METH_FASTCALL|METH_KEYWORDS, binascii_b2a_qp__doc__},
 
 static PyObject *
 binascii_b2a_qp_impl(PyObject *module, Py_buffer *data, int quotetabs,
                      int istext, int header);
 
 static PyObject *
-binascii_b2a_qp(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+binascii_b2a_qp(PyObject *module, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"data", "quotetabs", "istext", "header", NULL};
@@ -536,7 +540,7 @@ binascii_b2a_qp(PyObject *module, PyObject **args, Py_ssize_t nargs, PyObject *k
     int istext = 1;
     int header = 0;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &data, &quotetabs, &istext, &header)) {
         goto exit;
     }
@@ -550,4 +554,4 @@ exit:
 
     return return_value;
 }
-/*[clinic end generated code: output=458eb09731cb7877 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=815f1c453fd6568f input=a9049054013a1b77]*/

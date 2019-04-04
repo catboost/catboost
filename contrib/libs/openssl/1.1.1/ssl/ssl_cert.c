@@ -942,9 +942,14 @@ static int ssl_security_default_callback(const SSL *s, const SSL_CTX *ctx,
             /* No unauthenticated ciphersuites */
             if (c->algorithm_auth & SSL_aNULL)
                 return 0;
+
+            // https://st.yandex-team.ru/DEVTOOLS-5331
+#if !defined(Y_OPENSSL_ENABLE_DEPRECATED)
             /* No MD5 mac ciphersuites */
             if (c->algorithm_mac & SSL_MD5)
                 return 0;
+#endif
+
             /* SHA1 HMAC is 160 bits of security */
             if (minbits > 160 && c->algorithm_mac & SSL_SHA1)
                 return 0;

@@ -45,6 +45,7 @@ static void ApplyOnRawFeatures(
 
     const auto getFeatureDataBeginPtr = [&](
         ui32 flatFeatureIdx,
+        TVector<TMaybe<TExclusiveBundleIndex>>*,
         TVector<TMaybe<TPackedBinaryIndex>>*
     ) -> const float* {
         return GetRawFeatureDataBeginPtr(
@@ -99,22 +100,19 @@ static void ApplyOnQuantizedFeatures(
         model,
         *quantizedObjectsData.GetQuantizedFeaturesInfo().Get());
 
-    auto getFeatureDataBeginPtr = [&](
-        ui32 featureIdx,
-        TVector<TMaybe<TPackedBinaryIndex>>* packedIdx
-    ) -> const ui8* {
-        (*packedIdx)[featureIdx] = quantizedObjectsData.GetFloatFeatureToPackedBinaryIndex(
-            TFeatureIdx<EFeatureType::Float>(featureIdx));
-        if (!(*packedIdx)[featureIdx].Defined()) {
-            return GetQuantizedForCpuFloatFeatureDataBeginPtr(
+    auto getFeatureDataBeginPtr =
+        [&](
+            ui32 featureIdx,
+            TVector<TMaybe<NCB::TExclusiveBundleIndex>>* bundledIndexes,
+            TVector<TMaybe<NCB::TPackedBinaryIndex>>* packedIndexes
+        ) -> const ui8* {
+            return GetFeatureDataBeginPtr(
                 quantizedObjectsData,
+                featureIdx,
                 consecutiveSubsetBegin,
-                featureIdx);
-        } else {
-            return (**quantizedObjectsData.GetBinaryFeaturesPack(
-                (*packedIdx)[featureIdx]->PackIdx).GetSrc()).data();
-        }
-    };
+                bundledIndexes,
+                packedIndexes);
+        };
 
     const auto applyOnBlock = [&](int blockId) {
         const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
@@ -122,6 +120,7 @@ static void ApplyOnQuantizedFeatures(
         const int blockSize = blockLastIdx - blockFirstIdx;
 
         TVector<TConstArrayRef<ui8>> repackedFeatures;
+        TVector<TMaybe<TExclusiveBundleIndex>> bundledIndexes;
         TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
         GetRepackedFeatures(
             blockFirstIdx,
@@ -131,17 +130,22 @@ static void ApplyOnQuantizedFeatures(
             getFeatureDataBeginPtr,
             *quantizedObjectsData.GetFeaturesLayout(),
             &repackedFeatures,
+            &bundledIndexes,
             &packedIndexes);
 
         constexpr bool isQuantized = true;
         CalcGeneric<isQuantized>(
             model,
             [&floatBinsRemap,
+             &quantizedObjectsData,
              &repackedFeatures,
+             &bundledIndexes,
              &packedIndexes](const TFloatFeature& floatFeature, size_t index) -> ui8 {
                 return QuantizedFeaturesFloatAccessor(
                     floatBinsRemap,
+                    quantizedObjectsData.GetExclusiveFeatureBundlesMetaData(),
                     repackedFeatures,
+                    bundledIndexes,
                     packedIndexes,
                     floatFeature,
                     index);
@@ -342,6 +346,7 @@ void TModelCalcerOnPool::InitForRawFeatures(
 
     auto getFeatureDataBeginPtr = [&](
         ui32 flatFeatureIdx,
+        TVector<TMaybe<NCB::TExclusiveBundleIndex>>*,
         TVector<TMaybe<TPackedBinaryIndex>>*
     ) -> const float* {
         return GetRawFeatureDataBeginPtr(
@@ -405,6 +410,7 @@ void TModelCalcerOnPool::InitForQuantizedFeatures(
 
             TVector<TConstArrayRef<ui8>> repackedFeatures;
             TVector<TMaybe<TPackedBinaryIndex>> packedIndexes;
+            TVector<TMaybe<TExclusiveBundleIndex>> bundledIndexes;
             GetRepackedFeatures(
                 blockFirstIdx,
                 blockLastIdx,
@@ -413,30 +419,37 @@ void TModelCalcerOnPool::InitForQuantizedFeatures(
                 [&quantizedObjectsData,
                  &consecutiveSubsetBegin](
                      ui32 featureIdx,
-                     TVector<TMaybe<TPackedBinaryIndex>>* packedIdx
+                     TVector<TMaybe<TExclusiveBundleIndex>>* bundledIndexes,
+                     TVector<TMaybe<TPackedBinaryIndex>>* packedIndexes
                 ) -> const ui8* {
                     return GetFeatureDataBeginPtr(
                         quantizedObjectsData,
                         featureIdx,
                         consecutiveSubsetBegin,
-                        packedIdx);
+                        bundledIndexes,
+                        packedIndexes);
                 },
                 featuresLayout,
                 &repackedFeatures,
+                &bundledIndexes,
                 &packedIndexes);
 
             ui64 docCount = ui64(blockLastIdx - blockFirstIdx);
             ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(
                 model,
                 [&floatBinsRemap,
+                 &quantizedObjectsData,
                  &repackedFeatures,
+                 &bundledIndexes,
                  &packedIndexes](
                      const TFloatFeature& floatFeature,
                      size_t index
                 ) -> ui8 {
                     return QuantizedFeaturesFloatAccessor(
                         floatBinsRemap,
+                        quantizedObjectsData.GetExclusiveFeatureBundlesMetaData(),
                         repackedFeatures,
+                        bundledIndexes,
                         packedIndexes,
                         floatFeature,
                         index);

@@ -152,39 +152,38 @@ static PyObject *
 get_nullchar_as_None(Py_UCS4 c)
 {
     if (c == '\0') {
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
     else
         return PyUnicode_FromOrdinal(c);
 }
 
 static PyObject *
-Dialect_get_lineterminator(DialectObj *self)
+Dialect_get_lineterminator(DialectObj *self, void *Py_UNUSED(ignored))
 {
     return get_string(self->lineterminator);
 }
 
 static PyObject *
-Dialect_get_delimiter(DialectObj *self)
+Dialect_get_delimiter(DialectObj *self, void *Py_UNUSED(ignored))
 {
     return get_nullchar_as_None(self->delimiter);
 }
 
 static PyObject *
-Dialect_get_escapechar(DialectObj *self)
+Dialect_get_escapechar(DialectObj *self, void *Py_UNUSED(ignored))
 {
     return get_nullchar_as_None(self->escapechar);
 }
 
 static PyObject *
-Dialect_get_quotechar(DialectObj *self)
+Dialect_get_quotechar(DialectObj *self, void *Py_UNUSED(ignored))
 {
     return get_nullchar_as_None(self->quotechar);
 }
 
 static PyObject *
-Dialect_get_quoting(DialectObj *self)
+Dialect_get_quoting(DialectObj *self, void *Py_UNUSED(ignored))
 {
     return PyLong_FromLong(self->quoting);
 }
@@ -209,23 +208,17 @@ _set_int(const char *name, int *target, PyObject *src, int dflt)
     if (src == NULL)
         *target = dflt;
     else {
-        long value;
+        int value;
         if (!PyLong_CheckExact(src)) {
             PyErr_Format(PyExc_TypeError,
                          "\"%s\" must be an integer", name);
             return -1;
         }
-        value = PyLong_AsLong(src);
-        if (value == -1 && PyErr_Occurred())
-            return -1;
-#if SIZEOF_LONG > SIZEOF_INT
-        if (value > INT_MAX || value < INT_MIN) {
-            PyErr_Format(PyExc_ValueError,
-                         "integer out of range for \"%s\"", name);
+        value = _PyLong_AsInt(src);
+        if (value == -1 && PyErr_Occurred()) {
             return -1;
         }
-#endif
-        *target = (int)value;
+        *target = value;
     }
     return 0;
 }
@@ -372,14 +365,14 @@ dialect_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
             Py_INCREF(dialect);
         /* Can we reuse this instance? */
         if (PyObject_TypeCheck(dialect, &Dialect_Type) &&
-            delimiter == 0 &&
-            doublequote == 0 &&
-            escapechar == 0 &&
-            lineterminator == 0 &&
-            quotechar == 0 &&
-            quoting == 0 &&
-            skipinitialspace == 0 &&
-            strict == 0)
+            delimiter == NULL &&
+            doublequote == NULL &&
+            escapechar == NULL &&
+            lineterminator == NULL &&
+            quotechar == NULL &&
+            quoting == NULL &&
+            skipinitialspace == NULL &&
+            strict == NULL)
             return dialect;
     }
 
@@ -561,25 +554,17 @@ parse_save_field(ReaderObj *self)
 static int
 parse_grow_buff(ReaderObj *self)
 {
-    if (self->field_size == 0) {
-        self->field_size = 4096;
-        if (self->field != NULL)
-            PyMem_Free(self->field);
-        self->field = PyMem_New(Py_UCS4, self->field_size);
-    }
-    else {
-        Py_UCS4 *field = self->field;
-        if (self->field_size > PY_SSIZE_T_MAX / 2) {
-            PyErr_NoMemory();
-            return 0;
-        }
-        self->field_size *= 2;
-        self->field = PyMem_Resize(field, Py_UCS4, self->field_size);
-    }
-    if (self->field == NULL) {
+    assert((size_t)self->field_size <= PY_SSIZE_T_MAX / sizeof(Py_UCS4));
+
+    Py_ssize_t field_size_new = self->field_size ? 2 * self->field_size : 4096;
+    Py_UCS4 *field_new = self->field;
+    PyMem_Resize(field_new, Py_UCS4, field_size_new);
+    if (field_new == NULL) {
         PyErr_NoMemory();
         return 0;
     }
+    self->field = field_new;
+    self->field_size = field_size_new;
     return 1;
 }
 
@@ -1095,31 +1080,18 @@ join_append_data(WriterObj *self, unsigned int field_kind, void *field_data,
 static int
 join_check_rec_size(WriterObj *self, Py_ssize_t rec_len)
 {
-
-    if (rec_len < 0 || rec_len > PY_SSIZE_T_MAX - MEM_INCR) {
-        PyErr_NoMemory();
-        return 0;
-    }
+    assert(rec_len >= 0);
 
     if (rec_len > self->rec_size) {
-        if (self->rec_size == 0) {
-            self->rec_size = (rec_len / MEM_INCR + 1) * MEM_INCR;
-            if (self->rec != NULL)
-                PyMem_Free(self->rec);
-            self->rec = PyMem_New(Py_UCS4, self->rec_size);
-        }
-        else {
-            Py_UCS4* old_rec = self->rec;
-
-            self->rec_size = (rec_len / MEM_INCR + 1) * MEM_INCR;
-            self->rec = PyMem_Resize(old_rec, Py_UCS4, self->rec_size);
-            if (self->rec == NULL)
-                PyMem_Free(old_rec);
-        }
-        if (self->rec == NULL) {
+        size_t rec_size_new = (size_t)(rec_len / MEM_INCR + 1) * MEM_INCR;
+        Py_UCS4 *rec_new = self->rec;
+        PyMem_Resize(rec_new, Py_UCS4, rec_size_new);
+        if (rec_new == NULL) {
             PyErr_NoMemory();
             return 0;
         }
+        self->rec = rec_new;
+        self->rec_size = (Py_ssize_t)rec_size_new;
     }
     return 1;
 }
@@ -1245,7 +1217,7 @@ csv_writerow(WriterObj *self, PyObject *seq)
     if (PyErr_Occurred())
         return NULL;
 
-    if (self->num_fields > 0 && self->rec_size == 0) {
+    if (self->num_fields > 0 && self->rec_len == 0) {
         if (dialect->quoting == QUOTE_NONE) {
             PyErr_Format(_csvstate_global->error_obj,
                 "single empty field record must be quoted");
@@ -1300,8 +1272,7 @@ csv_writerows(WriterObj *self, PyObject *seqseq)
     Py_DECREF(row_iter);
     if (PyErr_Occurred())
         return NULL;
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static struct PyMethodDef Writer_methods[] = {
@@ -1456,8 +1427,7 @@ csv_register_dialect(PyObject *module, PyObject *args, PyObject *kwargs)
         return NULL;
     }
     Py_DECREF(dialect);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *
@@ -1465,8 +1435,7 @@ csv_unregister_dialect(PyObject *module, PyObject *name_obj)
 {
     if (PyDict_DelItem(_csvstate_global->dialects, name_obj) < 0)
         return PyErr_Format(_csvstate_global->error_obj, "unknown dialect");
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyObject *

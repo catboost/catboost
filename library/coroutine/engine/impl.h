@@ -526,15 +526,15 @@ struct TContRep : public TIntrusiveListItem<TContRep>, public ITrampoLine {
     void Destruct() noexcept;
 
     inline TCont* ContPtr() noexcept {
-        return (TCont*)cont.Data();
+        return (TCont*)cont.data();
     }
 
     inline const TCont* ContPtr() const noexcept {
-        return (const TCont*)cont.Data();
+        return (const TCont*)cont.data();
     }
 
     inline TExceptionSafeContext* MachinePtr() noexcept {
-        return (TExceptionSafeContext*)machine.Data();
+        return (TExceptionSafeContext*)machine.data();
     }
 
     static inline size_t OverHead() noexcept {

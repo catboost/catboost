@@ -58,6 +58,9 @@ int mode_ostr(int argc, const char* argv[]) {
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
 
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE(model.IsOblivious(), "Object importance is supported only for symmetric trees");
+
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(params.ThreadCount - 1);
 

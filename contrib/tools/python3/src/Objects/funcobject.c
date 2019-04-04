@@ -2,6 +2,8 @@
 /* Function object implementation */
 
 #include "Python.h"
+#include "internal/mem.h"
+#include "internal/pystate.h"
 #include "code.h"
 #include "structmember.h"
 
@@ -240,14 +242,14 @@ static PyMemberDef func_memberlist[] = {
 };
 
 static PyObject *
-func_get_code(PyFunctionObject *op)
+func_get_code(PyFunctionObject *op, void *Py_UNUSED(ignored))
 {
     Py_INCREF(op->func_code);
     return op->func_code;
 }
 
 static int
-func_set_code(PyFunctionObject *op, PyObject *value)
+func_set_code(PyFunctionObject *op, PyObject *value, void *Py_UNUSED(ignored))
 {
     Py_ssize_t nfree, nclosure;
 
@@ -275,14 +277,14 @@ func_set_code(PyFunctionObject *op, PyObject *value)
 }
 
 static PyObject *
-func_get_name(PyFunctionObject *op)
+func_get_name(PyFunctionObject *op, void *Py_UNUSED(ignored))
 {
     Py_INCREF(op->func_name);
     return op->func_name;
 }
 
 static int
-func_set_name(PyFunctionObject *op, PyObject *value)
+func_set_name(PyFunctionObject *op, PyObject *value, void *Py_UNUSED(ignored))
 {
     /* Not legal to del f.func_name or to set it to anything
      * other than a string object. */
@@ -297,14 +299,14 @@ func_set_name(PyFunctionObject *op, PyObject *value)
 }
 
 static PyObject *
-func_get_qualname(PyFunctionObject *op)
+func_get_qualname(PyFunctionObject *op, void *Py_UNUSED(ignored))
 {
     Py_INCREF(op->func_qualname);
     return op->func_qualname;
 }
 
 static int
-func_set_qualname(PyFunctionObject *op, PyObject *value)
+func_set_qualname(PyFunctionObject *op, PyObject *value, void *Py_UNUSED(ignored))
 {
     /* Not legal to del f.__qualname__ or to set it to anything
      * other than a string object. */
@@ -319,18 +321,17 @@ func_set_qualname(PyFunctionObject *op, PyObject *value)
 }
 
 static PyObject *
-func_get_defaults(PyFunctionObject *op)
+func_get_defaults(PyFunctionObject *op, void *Py_UNUSED(ignored))
 {
     if (op->func_defaults == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
     Py_INCREF(op->func_defaults);
     return op->func_defaults;
 }
 
 static int
-func_set_defaults(PyFunctionObject *op, PyObject *value)
+func_set_defaults(PyFunctionObject *op, PyObject *value, void *Py_UNUSED(ignored))
 {
     /* Legal to del f.func_defaults.
      * Can only set func_defaults to NULL or a tuple. */
@@ -347,18 +348,17 @@ func_set_defaults(PyFunctionObject *op, PyObject *value)
 }
 
 static PyObject *
-func_get_kwdefaults(PyFunctionObject *op)
+func_get_kwdefaults(PyFunctionObject *op, void *Py_UNUSED(ignored))
 {
     if (op->func_kwdefaults == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
     Py_INCREF(op->func_kwdefaults);
     return op->func_kwdefaults;
 }
 
 static int
-func_set_kwdefaults(PyFunctionObject *op, PyObject *value)
+func_set_kwdefaults(PyFunctionObject *op, PyObject *value, void *Py_UNUSED(ignored))
 {
     if (value == Py_None)
         value = NULL;
@@ -375,7 +375,7 @@ func_set_kwdefaults(PyFunctionObject *op, PyObject *value)
 }
 
 static PyObject *
-func_get_annotations(PyFunctionObject *op)
+func_get_annotations(PyFunctionObject *op, void *Py_UNUSED(ignored))
 {
     if (op->func_annotations == NULL) {
         op->func_annotations = PyDict_New();
@@ -387,7 +387,7 @@ func_get_annotations(PyFunctionObject *op)
 }
 
 static int
-func_set_annotations(PyFunctionObject *op, PyObject *value)
+func_set_annotations(PyFunctionObject *op, PyObject *value, void *Py_UNUSED(ignored))
 {
     if (value == Py_None)
         value = NULL;
@@ -418,16 +418,15 @@ static PyGetSetDef func_getsetlist[] = {
     {NULL} /* Sentinel */
 };
 
-PyDoc_STRVAR(func_doc,
-"function(code, globals[, name[, argdefs[, closure]]])\n\
-\n\
-Create a function object from a code object and a dictionary.\n\
-The optional name string overrides the name from the code object.\n\
-The optional argdefs tuple specifies the default argument values.\n\
-The optional closure tuple supplies the bindings for free variables.");
+/*[clinic input]
+class function "PyFunctionObject *" "&PyFunction_Type"
+[clinic start generated code]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=70af9c90aa2e71b0]*/
 
-/* func_new() maintains the following invariants for closures.  The
-   closure must correspond to the free variables of the code object.
+#include "clinic/funcobject.c.h"
+
+/* function.__new__() maintains the following invariants for closures.
+   The closure must correspond to the free variables of the code object.
 
    if len(code.co_freevars) == 0:
        closure = NULL
@@ -436,25 +435,31 @@ The optional closure tuple supplies the bindings for free variables.");
    for every elt in closure, type(elt) == cell
 */
 
+/*[clinic input]
+@classmethod
+function.__new__ as func_new
+    code: object(type="PyCodeObject *", subclass_of="&PyCode_Type")
+        a code object
+    globals: object(subclass_of="&PyDict_Type")
+        the globals dictionary
+    name: object = None
+        a string that overrides the name from the code object
+    argdefs as defaults: object = None
+        a tuple that specifies the default argument values
+    closure: object = None
+        a tuple that supplies the bindings for free variables
+
+Create a function object.
+[clinic start generated code]*/
+
 static PyObject *
-func_new(PyTypeObject* type, PyObject* args, PyObject* kw)
+func_new_impl(PyTypeObject *type, PyCodeObject *code, PyObject *globals,
+              PyObject *name, PyObject *defaults, PyObject *closure)
+/*[clinic end generated code: output=99c6d9da3a24e3be input=93611752fc2daf11]*/
 {
-    PyCodeObject *code;
-    PyObject *globals;
-    PyObject *name = Py_None;
-    PyObject *defaults = Py_None;
-    PyObject *closure = Py_None;
     PyFunctionObject *newfunc;
     Py_ssize_t nfree, nclosure;
-    static char *kwlist[] = {"code", "globals", "name",
-                             "argdefs", "closure", 0};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "O!O!|OOO:function",
-                          kwlist,
-                          &PyCode_Type, &code,
-                          &PyDict_Type, &globals,
-                          &name, &defaults, &closure))
-        return NULL;
     if (name != Py_None && !PyUnicode_Check(name)) {
         PyErr_SetString(PyExc_TypeError,
                         "arg 3 (name) must be None or string");
@@ -563,55 +568,14 @@ func_traverse(PyFunctionObject *f, visitproc visit, void *arg)
 }
 
 static PyObject *
-function_call(PyObject *func, PyObject *arg, PyObject *kw)
+function_call(PyObject *func, PyObject *args, PyObject *kwargs)
 {
-    PyObject *result;
-    PyObject *argdefs;
-    PyObject *kwtuple = NULL;
-    PyObject **d, **k;
-    Py_ssize_t nk, nd;
+    PyObject **stack;
+    Py_ssize_t nargs;
 
-    argdefs = PyFunction_GET_DEFAULTS(func);
-    if (argdefs != NULL && PyTuple_Check(argdefs)) {
-        d = &PyTuple_GET_ITEM((PyTupleObject *)argdefs, 0);
-        nd = PyTuple_GET_SIZE(argdefs);
-    }
-    else {
-        d = NULL;
-        nd = 0;
-    }
-
-    if (kw != NULL && PyDict_Check(kw)) {
-        Py_ssize_t pos, i;
-        nk = PyDict_Size(kw);
-        kwtuple = PyTuple_New(2*nk);
-        if (kwtuple == NULL)
-            return NULL;
-        k = &PyTuple_GET_ITEM(kwtuple, 0);
-        pos = i = 0;
-        while (PyDict_Next(kw, &pos, &k[i], &k[i+1])) {
-            Py_INCREF(k[i]);
-            Py_INCREF(k[i+1]);
-            i += 2;
-        }
-        nk = i/2;
-    }
-    else {
-        k = NULL;
-        nk = 0;
-    }
-
-    result = PyEval_EvalCodeEx(
-        PyFunction_GET_CODE(func),
-        PyFunction_GET_GLOBALS(func), (PyObject *)NULL,
-        &PyTuple_GET_ITEM(arg, 0), PyTuple_GET_SIZE(arg),
-        k, nk, d, nd,
-        PyFunction_GET_KW_DEFAULTS(func),
-        PyFunction_GET_CLOSURE(func));
-
-    Py_XDECREF(kwtuple);
-
-    return result;
+    stack = &PyTuple_GET_ITEM(args, 0);
+    nargs = PyTuple_GET_SIZE(args);
+    return _PyFunction_FastCallDict(func, stack, nargs, kwargs);
 }
 
 /* Bind a function to an object */
@@ -645,8 +609,8 @@ PyTypeObject PyFunction_Type = {
     0,                                          /* tp_getattro */
     0,                                          /* tp_setattro */
     0,                                          /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,/* tp_flags */
-    func_doc,                                   /* tp_doc */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,    /* tp_flags */
+    func_new__doc__,                            /* tp_doc */
     (traverseproc)func_traverse,                /* tp_traverse */
     0,                                          /* tp_clear */
     0,                                          /* tp_richcompare */
@@ -740,12 +704,12 @@ cm_init(PyObject *self, PyObject *args, PyObject *kwds)
     classmethod *cm = (classmethod *)self;
     PyObject *callable;
 
-    if (!PyArg_UnpackTuple(args, "classmethod", 1, 1, &callable))
-        return -1;
     if (!_PyArg_NoKeywords("classmethod", kwds))
         return -1;
+    if (!PyArg_UnpackTuple(args, "classmethod", 1, 1, &callable))
+        return -1;
     Py_INCREF(callable);
-    cm->cm_callable = callable;
+    Py_XSETREF(cm->cm_callable, callable);
     return 0;
 }
 
@@ -921,12 +885,12 @@ sm_init(PyObject *self, PyObject *args, PyObject *kwds)
     staticmethod *sm = (staticmethod *)self;
     PyObject *callable;
 
-    if (!PyArg_UnpackTuple(args, "staticmethod", 1, 1, &callable))
-        return -1;
     if (!_PyArg_NoKeywords("staticmethod", kwds))
         return -1;
+    if (!PyArg_UnpackTuple(args, "staticmethod", 1, 1, &callable))
+        return -1;
     Py_INCREF(callable);
-    sm->sm_callable = callable;
+    Py_XSETREF(sm->sm_callable, callable);
     return 0;
 }
 

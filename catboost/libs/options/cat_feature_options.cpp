@@ -226,6 +226,7 @@ NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
     , TargetBinarization("target_binarization", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1))
     , MaxTensorComplexity("max_ctr_complexity", 4)
     , OneHotMaxSize("one_hot_max_size", 2)
+    , OneHotMaxSizeLimit(GetMaxBinCount(taskType))
     , CounterCalcMethod("counter_calc_method", ECounterCalc::Full)
     , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
     , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
@@ -258,7 +259,7 @@ bool NCatboostOptions::TCatFeatureParams::operator!=(const TCatFeatureParams& rh
 }
 
 void NCatboostOptions::TCatFeatureParams::Validate() const {
-    CB_ENSURE(OneHotMaxSize.Get() <= GetMaxBinCount(),
+    CB_ENSURE(OneHotMaxSize.Get() <= OneHotMaxSizeLimit,
             "Error in one_hot_max_size: maximum value of one-hot-encoding is 255");
     const ui32 ctrComplexityLimit = GetMaxTreeDepth();
     CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,

@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: {pkg_name}
 Version: {version}
-Summary: Python package for catboost
+Summary: Catboost Python Package
 Home-page: https://catboost.ai
 Author: CatBoost Developers
 License: Apache License, Version 2.0
@@ -18,8 +18,9 @@ Requires-Dist: pandas >=0.19.1
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Project-URL: GitHub, https://github.com/catboost/catboost
 Project-URL: Bug Tracker, https://github.com/catboost/catboost/issues
 Project-URL: Documentation, https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/
 Project-URL: Benchmarks, https://catboost.ai/#benchmark
 
-This is CatBoost Python package. An open-source gradient boosting on decision trees library with categorical features support out of the box.
+CatBoost is a fast, scalable, high performance gradient boosting on decision trees library. Used for ranking, classification, regression and other ML tasks.

@@ -24,11 +24,12 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             /*discretization*/3
         );
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<TString>{}, nullptr);
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{}, TVector<TString>{});
         auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             featuresLayout,
             TConstArrayRef<ui32>(),
-            binarizationOptions
+            binarizationOptions,
+            TMap<ui32, NCatboostOptions::TBinarizationOptions>()
         );
 
         const ui32 featureId = 0;
@@ -86,37 +87,44 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         const NCatboostOptions::TBinarizationOptions binarizationOptions;
 
-        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<TString>{}, nullptr);
-        auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-            featuresLayout,
-            TConstArrayRef<ui32>(),
-            binarizationOptions
-        );
+        TFeaturesLayout featuresLayout(ui32(1), TVector<ui32>{0}, TVector<TString>{});
 
-        const ui32 featureId = 0;
+        for (auto mapMostFrequentValueTo0 : {false, true}) {
 
-        TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(quantizedFeaturesInfo);
+            auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                featuresLayout,
+                TConstArrayRef<ui32>(),
+                binarizationOptions
+            );
 
-        catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
-            TCatFeatureIdx(featureId),
-            arraySubset,
-            Nothing()
-        );
+            const ui32 featureId = 0;
 
-        TExternalCatValuesHolder externalCatValuesHolder(
-            featureId,
-            TMaybeOwningConstArrayHolder<ui32>::CreateOwning(std::move(hashedCatValues)),
-            &vSubsetIndexing,
-            quantizedFeaturesInfo
-        );
+            TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(quantizedFeaturesInfo);
 
-        NPar::TLocalExecutor localExecutor;
-        localExecutor.RunAdditionalThreads(2);
+            catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
+                TCatFeatureIdx(featureId),
+                arraySubset,
+                mapMostFrequentValueTo0,
+                Nothing()
+            );
 
-        TMaybeOwningArrayHolder<ui32> bins = externalCatValuesHolder.ExtractValues(&localExecutor);
+            TExternalCatValuesHolder externalCatValuesHolder(
+                featureId,
+                TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>(hashedCatValues)),
+                &vSubsetIndexing,
+                quantizedFeaturesInfo
+            );
 
-        TVector<ui32> expectedBins = {0, 1, 2, 3, 1, 2, 4};
+            NPar::TLocalExecutor localExecutor;
+            localExecutor.RunAdditionalThreads(2);
 
-        UNIT_ASSERT_EQUAL(*bins, TConstArrayRef<ui32>(expectedBins));
+            TMaybeOwningArrayHolder<ui32> bins = externalCatValuesHolder.ExtractValues(&localExecutor);
+
+            auto expectedBins = mapMostFrequentValueTo0 ?
+                TVector<ui32>{1, 0, 2, 3, 0, 2, 4} :
+                TVector<ui32>{0, 1, 2, 3, 1, 2, 4};
+
+            UNIT_ASSERT_EQUAL(*bins, TConstArrayRef<ui32>(expectedBins));
+        }
     }
 }

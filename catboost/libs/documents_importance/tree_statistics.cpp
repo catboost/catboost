@@ -17,6 +17,8 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const NCB::TProcessedDataProvider& processedData,
     int logPeriod
 ) {
+    //TODO(eermishkina): support non symmetric trees
+    CB_ENSURE_INTERNAL(model.IsOblivious(), "Is supported only for symmetric trees");
 
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
     const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());

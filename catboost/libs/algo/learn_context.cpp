@@ -55,11 +55,21 @@ static int CountLearningFolds(int permutationCount, bool isPermutationNeededForL
 }
 
 void TLearnContext::InitContext(const TTrainingForCPUDataProviders& data) {
+    LearnAndTestDataPackingAreCompatible = true;
+    for (const auto& testData : data.Test) {
+        if (!testData->ObjectsData->IsPackingCompatibleWith(*data.Learn->ObjectsData)) {
+            LearnAndTestDataPackingAreCompatible = false;
+            break;
+        }
+    }
+
+    THPTimer calcHashTimer;
     LearnProgress.EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
     LearnProgress.PoolCheckSum = data.Learn->ObjectsData->CalcFeaturesCheckSum(LocalExecutor);
     for (const auto& testData : data.Test) {
         LearnProgress.PoolCheckSum += testData->ObjectsData->CalcFeaturesCheckSum(LocalExecutor);
     }
+    CATBOOST_DEBUG_LOG << "Features checksum calculation time: " << calcHashTimer.Passed() << Endl;
 
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     const bool hasCtrs =

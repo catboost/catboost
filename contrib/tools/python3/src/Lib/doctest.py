@@ -93,7 +93,6 @@ __all__ = [
 ]
 
 import __future__
-import argparse
 import difflib
 import inspect
 import linecache
@@ -1615,7 +1614,7 @@ class OutputChecker:
                           '', want)
             # If a line in got contains only spaces, then remove the
             # spaces.
-            got = re.sub(r'(?m)^\s*?$', '', got)
+            got = re.sub(r'(?m)^[^\S\n]+$', '', got)
             if got == want:
                 return True
 
@@ -1694,8 +1693,6 @@ class OutputChecker:
                 kind = 'ndiff with -expected +actual'
             else:
                 assert 0, 'Bad diff option'
-            # Remove trailing whitespace on diff output.
-            diff = [line.rstrip() + '\n' for line in diff]
             return 'Differences (%s):\n' % kind + _indent(''.join(diff))
 
         # If we're not using diff, then simply list the expected
@@ -2744,6 +2741,8 @@ __test__ = {"_TestClass": _TestClass,
 
 
 def _test():
+    import argparse
+
     parser = argparse.ArgumentParser(description="doctest runner")
     parser.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='print very verbose output for all tests')

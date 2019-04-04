@@ -19,12 +19,12 @@ TConstArrayRef<ELossFunction> GetAllObjectives() {
     return allObjectives;
 }
 
-bool IsSingleDimensionalError(ELossFunction lossFunction) {
+bool IsSingleDimensionalCompatibleError(ELossFunction lossFunction) {
     return (lossFunction != ELossFunction::MultiClass &&
             lossFunction != ELossFunction::MultiClassOneVsAll);
 }
 
-bool IsMultiDimensionalError(ELossFunction lossFunction) {
+bool IsMultiDimensionalCompatibleError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MultiClass ||
             lossFunction == ELossFunction::MultiClassOneVsAll ||
             lossFunction == ELossFunction::Precision ||
@@ -100,7 +100,6 @@ bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::ZeroOneLoss ||
             lossFunction == ELossFunction::Logloss ||
             lossFunction == ELossFunction::CrossEntropy ||
-            lossFunction == ELossFunction::AUC ||
             lossFunction == ELossFunction::Accuracy ||
             lossFunction == ELossFunction::Precision ||
             lossFunction == ELossFunction::Recall ||
@@ -110,28 +109,41 @@ bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::CtrFactor);
 }
 
-bool IsBinaryClassMetric(ELossFunction lossFunction) {
-    return (IsOnlyForCrossEntropyOptimization(lossFunction) ||
-            lossFunction == ELossFunction::BrierScore ||
-            lossFunction == ELossFunction::HingeLoss);
+bool IsClassificationOnlyMetric(ELossFunction lossFunction) {
+    return (
+        IsOnlyForCrossEntropyOptimization(lossFunction) ||
+        lossFunction == ELossFunction::BrierScore ||
+        lossFunction == ELossFunction::HingeLoss ||
+        lossFunction == ELossFunction::MultiClass ||
+        lossFunction == ELossFunction::MultiClassOneVsAll
+    );
 }
 
-bool IsMultiClassMetric(ELossFunction lossFunction) {
-    return IsMultiDimensionalError(lossFunction);
+bool IsBinaryClassCompatibleMetric(ELossFunction lossFunction) {
+    if (IsClassificationOnlyMetric(lossFunction)) {
+        return !IsMultiClassOnlyMetric(lossFunction);
+    } else {
+       return (lossFunction == ELossFunction::AUC) ||
+           (IsGroupwiseMetric(lossFunction) && (lossFunction != ELossFunction::QueryRMSE));
+    }
+}
+
+bool IsMultiClassCompatibleMetric(ELossFunction lossFunction) {
+    return IsMultiDimensionalCompatibleError(lossFunction);
 }
 
 bool IsBinaryClassOnlyMetric(ELossFunction lossFunction) {
-    return IsBinaryClassMetric(lossFunction) && !IsMultiClassMetric(lossFunction);
+    return IsClassificationOnlyMetric(lossFunction) && !IsMultiDimensionalCompatibleError(lossFunction);
 }
 
-
-bool IsClassificationMetric(ELossFunction lossFunction) {
-    return IsBinaryClassMetric(lossFunction) || IsMultiClassMetric(lossFunction);
+bool IsMultiClassOnlyMetric(ELossFunction lossFunction) {
+    return (IsMultiDimensionalCompatibleError(lossFunction) &&
+        !IsSingleDimensionalCompatibleError(lossFunction));
 }
 
 
 bool IsClassificationObjective(ELossFunction lossFunction) {
-    return IsClassificationMetric(lossFunction) && IsIn(GetAllObjectives(), lossFunction);
+    return IsClassificationOnlyMetric(lossFunction) && IsIn(GetAllObjectives(), lossFunction);
 }
 
 bool IsClassificationObjective(const TStringBuf lossDescription) {
@@ -289,4 +301,11 @@ bool IsUserDefined(ELossFunction lossFunction) {
         default:
             return false;
     }
+}
+
+bool ShouldSkipFstrGrowingPolicy(EGrowingPolicy growingPolicy) {
+    return (
+        growingPolicy == EGrowingPolicy::Levelwise ||
+        growingPolicy == EGrowingPolicy::Lossguide
+    );
 }

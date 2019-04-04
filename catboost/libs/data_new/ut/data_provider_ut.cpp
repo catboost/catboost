@@ -120,9 +120,29 @@ static void CreateQuantizedObjectsDataProviderTestData(
     };
     TVector<ENanMode> nanModes = {ENanMode::Forbidden, ENanMode::Forbidden, ENanMode::Min};
 
-    TVector<TMap<ui32, ui32>> expectedPerfectHash = {
-        {{12, 0}, {25, 1}, {10, 2}, {8, 3}, {165, 4}, {1, 5}, {0, 6}, {112, 7}, {23, 8}},
-        {{256, 0}, {45, 1}, {9, 2}, {110, 3}, {50, 4}, {10, 5}, {257, 6}, {90, 7}, {0, 8}}
+    TVector<TCatFeaturePerfectHash> expectedPerfectHash = {
+        {
+            {12, {0, 3}},
+            {25, {1, 2}},
+            {10, {2, 1}},
+            {8, {3, 2}},
+            {165, {4, 1}},
+            {1, {5, 1}},
+            {0, {6, 1}},
+            {112, {7, 1}},
+            {23, {8, 1}}
+        },
+        {
+            {256, {0, 2}},
+            {45, {1, 1}},
+            {9, {2, 3}},
+            {110, {3, 2}},
+            {50, {4, 1}},
+            {10, {5, 1}},
+            {257, {6, 1}},
+            {90, {7, 1}},
+            {0, {8, 1}}
+        }
     };
 
     for (auto i : xrange(3)) {
@@ -139,8 +159,13 @@ static void CreateQuantizedObjectsDataProviderTestData(
         );
     }
 
+    quantizedObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+        TVector<TExclusiveFeaturesBundle>()
+    );
     quantizedObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
         *quantizedObjectsData.Data.QuantizedFeaturesInfo,
+        quantizedObjectsData.ExclusiveFeatureBundlesData,
         true
     );
 

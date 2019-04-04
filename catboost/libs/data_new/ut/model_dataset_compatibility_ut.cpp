@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         TFullModel model;
         model.ObliviousTrees.FloatFeatures = { TFloatFeature(hasNans, 0, 0, modelBorders) };
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), std::move(poolBorders));
@@ -63,7 +63,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
             TFloatFeature(hasNans, 0, 0, {1e-9, 1.f, 2.f}),
         };
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {-0.1f, 1e-9f, 1.f, 1.5f, 2.f, 3.f});
@@ -78,7 +78,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         bool hasNans = false;
         TFullModel model;
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         quantizedFeaturesInfo.SetBorders(TFloatFeatureIdx(0), {0.f});
@@ -123,7 +123,7 @@ Y_UNIT_TEST_SUITE(GetFloatFeaturesBordersRemap) {
         bool hasNans = false;
         TFullModel model;
 
-        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>(), nullptr);
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<TString>());
         TQuantizedFeaturesInfo quantizedFeaturesInfo(featuresLayout, TConstArrayRef<ui32>(), NCatboostOptions::TBinarizationOptions());
 
         const float a = 0.0000006269f;

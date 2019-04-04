@@ -105,7 +105,7 @@ static size_t _pythread_stacksize = 0;
 #endif
 
 #ifdef SOLARIS_THREADS
-#include "thread_solaris.h"
+#error #include "thread_solaris.h"
 #endif
 
 #ifdef SUN_LWP

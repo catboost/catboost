@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 
 /**
  * `TArrayRef` works pretty much like `std::span` with dynamic extent, presenting
@@ -31,6 +32,8 @@ public:
     using reference = T&;
     using const_reference = const T&;
     using value_type = T;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     constexpr inline TArrayRef() noexcept
         : T_(nullptr)
@@ -75,13 +78,7 @@ public:
         return (S_ == other.size()) && std::equal(begin(), end(), other.begin());
     }
 
-    //FIXME: this method should return const T*,
-    //but there are client that rely on current behaviour
     constexpr inline T* data() const noexcept {
-        return T_;
-    }
-
-    constexpr inline T* data() noexcept {
         return T_;
     }
 
@@ -93,57 +90,55 @@ public:
         return (S_ == 0);
     }
 
-    inline iterator begin() noexcept {
+    inline iterator begin() const noexcept {
         return T_;
     }
 
-    inline const_iterator begin() const noexcept {
+    inline iterator end() const noexcept {
+        return (T_ + S_);
+    }
+
+    inline const_iterator cbegin() const noexcept {
         return T_;
     }
 
-    inline iterator end() noexcept {
+    inline const_iterator cend() const noexcept {
         return (T_ + S_);
     }
 
-    inline const_iterator end() const noexcept {
-        return (T_ + S_);
+    inline reverse_iterator rbegin() const noexcept {
+        return reverse_iterator(T_ + S_);
     }
 
-    inline reference front() noexcept {
+    inline reverse_iterator rend() const noexcept {
+        return reverse_iterator(T_);
+    }
+
+    inline const_reverse_iterator crbegin() const noexcept {
+        return const_reverse_iterator(T_ + S_);
+    }
+
+    inline const_reverse_iterator crend() const noexcept {
+        return const_reverse_iterator(T_);
+    }
+
+    inline reference front() const noexcept {
         return *T_;
     }
 
-    inline const_reference front() const noexcept {
-        return *T_;
-    }
-
-    inline reference back() noexcept {
+    inline reference back() const noexcept {
         Y_ASSERT(S_ > 0);
 
         return *(end() - 1);
     }
 
-    inline const_reference back() const noexcept {
-        Y_ASSERT(S_ > 0);
-
-        return *(end() - 1);
-    }
-
-    inline T& operator[](size_t n) const noexcept {
+    inline reference operator[](size_t n) const noexcept {
         Y_ASSERT(n < S_);
 
         return *(T_ + n);
     }
 
-    inline reference at(size_t n) {
-        if (n >= S_) {
-            ThrowRangeError("array ref range error");
-        }
-
-        return (*this)[n];
-    }
-
-    inline const_reference at(size_t n) const {
+    inline reference at(size_t n) const {
         if (n >= S_) {
             ThrowRangeError("array ref range error");
         }
@@ -163,7 +158,30 @@ public:
     TArrayRef<T> Slice(size_t offset, size_t size) const {
         Y_ASSERT(offset + size <= S_);
 
-        return TArrayRef<T>(data() + offset, data() + offset + size);
+        return TArrayRef<T>(T_ + offset, size);
+    }
+
+    /* FIXME:
+     * This method is placed here for backward compatibility only and should be removed.
+     * Keep in mind that it's behavior is different from Slice():
+     *      SubRegion() never throws. It returns empty TArrayRef in case of invalid input.
+     *
+     * DEPRECATED. DO NOT USE.
+     */
+    TArrayRef<T> SubRegion(size_t offset, size_t size) const {
+        if (size == 0 || offset >= S_) {
+            return TArrayRef();
+        }
+
+        if (size > S_ - offset) {
+            size = S_ - offset;
+        }
+
+        return TArrayRef(T_ + offset, size);
+    }
+
+    inline yssize_t ysize() const noexcept {
+        return static_cast<yssize_t>(this->size());
     }
 
 private:

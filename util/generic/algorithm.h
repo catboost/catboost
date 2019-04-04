@@ -452,23 +452,27 @@ static inline void Rotate(T f, T m, T l) {
 }
 
 template <typename It, typename Val>
-static inline Val Accumulate(It begin, It end, Val val) {
-    return std::accumulate(begin, end, val);
+Val Accumulate(It begin, It end, Val val) {
+    // std::move since C++20
+    return std::accumulate(begin, end, std::move(val));
 }
 
 template <typename It, typename Val, typename BinOp>
-static inline Val Accumulate(It begin, It end, Val val, BinOp binOp) {
-    return std::accumulate(begin, end, val, binOp);
+Val Accumulate(It begin, It end, Val val, BinOp binOp) {
+    // std::move since C++20
+    return std::accumulate(begin, end, std::move(val), binOp);
 }
 
-template <typename TVectorType>
-static inline typename TVectorType::value_type Accumulate(const TVectorType& v, typename TVectorType::value_type val = typename TVectorType::value_type()) {
-    return Accumulate(v.begin(), v.end(), val);
+template <typename C, typename Val>
+Val Accumulate(const C& c, Val val) {
+    // std::move since C++20
+    return Accumulate(std::begin(c), std::end(c), std::move(val));
 }
 
-template <typename TVectorType, typename BinOp>
-static inline typename TVectorType::value_type Accumulate(const TVectorType& v, typename TVectorType::value_type val, BinOp binOp) {
-    return Accumulate(v.begin(), v.end(), val, binOp);
+template <typename C, typename Val, typename BinOp>
+Val Accumulate(const C& c, Val val, BinOp binOp) {
+    // std::move since C++20
+    return Accumulate(std::begin(c), std::end(c), std::move(val), binOp);
 }
 
 template <typename It1, typename It2, typename Val>

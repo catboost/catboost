@@ -942,8 +942,6 @@ namespace NNeh {
                     return -1;
                 }
 
-                Cdbg << '[' << S_ << AsStringBuf("] TContBIO::Write(") << dlen << ')' << Endl;
-
                 while (true) {
                     auto done = Cont_->WriteI(S_, data, dlen);
                     if (done.Status() != EAGAIN) {
@@ -957,8 +955,6 @@ namespace NNeh {
                 if (Y_UNLIKELY(!Cont_)) {
                     return -1;
                 }
-
-                Cdbg << '[' << S_ << AsStringBuf("] TContBIO::Read(") << dlen << ')' << Endl;
 
                 if (!Canceled_) {
                     while (true) {

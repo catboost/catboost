@@ -144,8 +144,7 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
-            const TVector[TString]& featureId,
-            const TPoolQuantizationSchema* quantizationSchema
+            const TVector[TString]& featureId
         )  except +ProcessException
 
         TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
@@ -490,6 +489,7 @@ cdef extern from "catboost/libs/model/model.h":
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
         void Truncate(size_t begin, size_t end) except +ProcessException
+        bool_t IsOblivious() except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -510,6 +510,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
     cdef TVector[TString] GetModelClassNames(const TFullModel& model) except +ProcessException
+    cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
 
 ctypedef const TFullModel* TFullModel_const_ptr
 
@@ -776,6 +777,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TFullModel& model,
         const TDataProviderPtr dataset
     ) nogil except +ProcessException
+
+    bool_t IsGroupwiseLearnedModel(const TFullModel& model) nogil except +ProcessException
 
 
 cdef extern from "catboost/libs/documents_importance/docs_importance.h":
@@ -1340,8 +1343,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names):
     return new TFeaturesLayout(
         <ui32>feature_count,
         cat_features_vector,
-        feature_names_vector,
-        <TPoolQuantizationSchema*>nullptr)
+        feature_names_vector)
 
 cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
     cdef TVector[bool_t] mask
@@ -2242,13 +2244,13 @@ cdef class _PoolBase:
         cdef TBaselineArrayRef baseline
         if maybe_baseline.Defined():
             baseline = maybe_baseline.GetRef()
-            result = np.array((self.num_row(), baseline.size()), dtype=np.float32)
+            result = np.empty((self.num_row(), baseline.size()), dtype=np.float32)
             for baseline_idx in range(baseline.size()):
                 for object_idx in range(self.num_row()):
                     result[object_idx, baseline_idx] = baseline[baseline_idx][object_idx]
             return result
         else:
-            return np.array((self.num_row(), 0), dtype=np.float32)
+            return np.empty((self.num_row(), 0), dtype=np.float32)
 
     cpdef _take_slice(self, _PoolBase pool, row_indices):
         cdef TVector[ui32] rowIndices
@@ -2292,7 +2294,7 @@ cdef class _CatBoost:
             del self.__test_evals[i]
 
     def __eq__(self, _CatBoost other):
-        return self.__model == other.__model
+        return dereference(self.__model) == dereference(other.__model)
 
     def __neq__(self, _CatBoost other):
         return self.__model != other.__model
@@ -2483,6 +2485,9 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
+    cpdef bool_t _is_groupwise_learned_model(self):
+        return IsGroupwiseLearnedModel(dereference(self.__model))
+
     cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode="Auto"):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
@@ -2544,6 +2549,9 @@ cdef class _CatBoost:
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.Truncate(ntree_start, ntree_end)
+
+    cpdef _is_oblivious(self):
+        return self.__model.IsOblivious()
 
     cpdef _base_drop_unused_features(self):
         self.__model.ObliviousTrees.DropUnusedFeatures()
@@ -2642,6 +2650,9 @@ cdef class _CatBoost:
             weights_vector.push_back(weights[model_id])
         cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, merge_policy)
         self.__model.Swap(tmp_model)
+
+    cpdef _save_borders(self, output_file):
+        SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
 
 cdef class _MetadataHashProxy:

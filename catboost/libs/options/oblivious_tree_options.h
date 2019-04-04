@@ -38,6 +38,9 @@ namespace NCatboostOptions {
         // changing this parameter can affect results due to numerical accuracy differences
         TCpuOnlyOption<ui32> DevScoreCalcObjBlockSize;
 
+        TCpuOnlyOption<ui32> DevExclusiveFeaturesBundleMaxBuckets;
+        TCpuOnlyOption<float> ExclusiveFeaturesBundleMaxConflictFraction;
+
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
         TGpuOnlyOption<bool> FoldSizeLossNormalization;
         TGpuOnlyOption<bool> AddRidgeToTargetFunctionFlag;

@@ -657,6 +657,7 @@ enum {
 
 int MAIN(int, char **);
 
+__attribute__((no_sanitize("memory")))
 int MAIN(int argc, char **argv)
 {
     int build_chain = 0;

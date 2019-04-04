@@ -8,6 +8,12 @@
 #define CTRL(c) ((c)&037)
 #endif
 
+#if defined(__sun)
+/* We could do better. Check issue-32660 */
+#include <sys/filio.h>
+#include <sys/sockio.h>
+#endif
+
 #include <termios.h>
 #include <sys/ioctl.h>
 
@@ -113,11 +119,11 @@ termios_tcgetattr(PyObject *self, PyObject *args)
     PyList_SetItem(v, 3, PyLong_FromLong((long)mode.c_lflag));
     PyList_SetItem(v, 4, PyLong_FromLong((long)ispeed));
     PyList_SetItem(v, 5, PyLong_FromLong((long)ospeed));
-    PyList_SetItem(v, 6, cc);
-    if (PyErr_Occurred()){
+    if (PyErr_Occurred()) {
         Py_DECREF(v);
         goto err;
     }
+    PyList_SetItem(v, 6, cc);
     return v;
   err:
     Py_DECREF(cc);
@@ -194,8 +200,7 @@ termios_tcsetattr(PyObject *self, PyObject *args)
     if (tcsetattr(fd, when, &mode) == -1)
         return PyErr_SetFromErrno(TermiosError);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(termios_tcsendbreak__doc__,
@@ -216,8 +221,7 @@ termios_tcsendbreak(PyObject *self, PyObject *args)
     if (tcsendbreak(fd, duration) == -1)
         return PyErr_SetFromErrno(TermiosError);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(termios_tcdrain__doc__,
@@ -236,8 +240,7 @@ termios_tcdrain(PyObject *self, PyObject *args)
     if (tcdrain(fd) == -1)
         return PyErr_SetFromErrno(TermiosError);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(termios_tcflush__doc__,
@@ -259,8 +262,7 @@ termios_tcflush(PyObject *self, PyObject *args)
     if (tcflush(fd, queue) == -1)
         return PyErr_SetFromErrno(TermiosError);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(termios_tcflow__doc__,
@@ -282,8 +284,7 @@ termios_tcflow(PyObject *self, PyObject *args)
     if (tcflow(fd, action) == -1)
         return PyErr_SetFromErrno(TermiosError);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 static PyMethodDef termios_methods[] =

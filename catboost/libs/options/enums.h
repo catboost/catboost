@@ -283,3 +283,16 @@ enum class EMetricBestValue {
     FixedValue,
     Undefined
 };
+
+enum class EFeatureCalculatorType {
+//Examples
+//    LinearModel,
+//    TfIdf,
+//    NGrams
+    BoW,
+    NaiveBayes,
+    BM25,
+    CosDistanceWithClassCenter,
+    GaussianHomoscedasticModel,
+    GaussianHeteroscedasticiModel
+};
