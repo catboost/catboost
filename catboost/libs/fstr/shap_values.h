@@ -2,6 +2,7 @@
 
 #include <catboost/libs/data_new/data_provider.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/options/enums.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
@@ -78,7 +79,7 @@ TShapPreparedTrees PrepareTrees(
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false,
-    const TString& mode = "Auto"
+    EPreCalcShapValues mode = EPreCalcShapValues::Auto
 );
 
 // returned: ShapValues[documentIdx][dimenesion][feature]
@@ -87,7 +88,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const NCB::TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    const TString& mode = "Auto"
+    EPreCalcShapValues mode = EPreCalcShapValues::Auto
 );
 
 // returned: ShapValues[documentIdx][feature]
@@ -96,7 +97,7 @@ TVector<TVector<double>> CalcShapValues(
     const NCB::TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    const TString& mode = "Auto"
+    EPreCalcShapValues mode = EPreCalcShapValues::Auto
 );
 
 // outputs for each document in order for each dimension in order an array of feature contributions
@@ -106,7 +107,7 @@ void CalcAndOutputShapValues(
     const TString& outputPath,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    const TString& mode = "Auto"
+    EPreCalcShapValues mode = EPreCalcShapValues::Auto
 );
 
 void CalcShapValuesInternalForFeature(

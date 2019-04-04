@@ -1612,10 +1612,15 @@ class CatBoost(_CatBoostBase):
             Possible values:
                 - "Auto"
                     Use direct SHAP Values calculation only if data size is smaller than average leaves number
+                    (the best of two strategies below is chosen).
                 - "UsePreCalc"
-                    Calculate SHAP Values for every leaf in preprocessing
+                    Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+                    O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+                    D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+                    This is much faster (because of a smaller constant) than direct calculation when N >> L
                 - "NoPreCalc"
-                    Use direct SHAP Values calculation calculation
+                    Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+                    is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
         Returns
         -------
         depends on type:

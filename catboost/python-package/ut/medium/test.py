@@ -1849,7 +1849,7 @@ def test_shap_feature_importance(task_type):
 
 def test_shap_feature_importance_modes(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model = CatBoostClassifier(iterations=5, task_type=task_type)
     model.fit(pool)
     modes = ["Auto", "UsePreCalc", "NoPreCalc"]
     shaps_for_modes = []

@@ -7,7 +7,6 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
-#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>
@@ -577,10 +576,9 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
 bool PrepareTreesCalcShapValues(
     const TFullModel& model,
     const TDataProvider* dataset,
-    const TString& mode
+    EPreCalcShapValues mode
 ) {
-    EPreCalcShapValues eMode = FromString<EPreCalcShapValues>(mode);
-    switch (eMode) {
+    switch (mode) {
         case EPreCalcShapValues::UsePreCalc:
             return true;
         case EPreCalcShapValues::NoPreCalc:
@@ -607,7 +605,7 @@ TShapPreparedTrees PrepareTrees(
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues,
-    const TString& mode
+    EPreCalcShapValues mode
 ) {
     WarnForComplexCtrs(model.ObliviousTrees);
 
@@ -753,7 +751,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    const TString& mode
+    EPreCalcShapValues mode
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
@@ -802,7 +800,7 @@ TVector<TVector<double>> CalcShapValues(
     const TDataProvider& dataset,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    const TString& mode
+    EPreCalcShapValues mode
 ) {
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
@@ -839,7 +837,7 @@ void CalcAndOutputShapValues(
     const TString& outputPath,
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    const TString& mode
+    EPreCalcShapValues mode
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,

@@ -657,7 +657,7 @@ TVector<TVector<double>> GetFeatureImportances(
     const TDataProviderPtr dataset, // can be nullptr
     int threadCount,
     int logPeriod,
-    const TString& shapMode)
+    TString shapMode)
 {
     TSetLoggingVerbose inThisScope;
 
@@ -682,7 +682,8 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, &localExecutor, shapMode);
+            EPreCalcShapValues mode = FromString<EPreCalcShapValues>(shapMode);
+            return CalcShapValues(model, *dataset, logPeriod, &localExecutor, mode);
         }
         default:
             Y_UNREACHABLE();
@@ -695,7 +696,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const TDataProviderPtr dataset,
     int threadCount,
     int logPeriod,
-    const TString& shapMode)
+    TString shapMode)
 {
     TSetLoggingVerbose inThisScope;
 
@@ -708,7 +709,8 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, &localExecutor, shapMode);
+    EPreCalcShapValues mode = FromString<EPreCalcShapValues>(shapMode);
+    return CalcShapValuesMulti(model, *dataset, logPeriod, &localExecutor, mode);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
