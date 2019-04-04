@@ -8,11 +8,13 @@ SRCS(
     approx_calcer_helpers.cpp
     approx_calcer_multi.cpp
     approx_calcer_querywise.cpp
+    approx_dimension.cpp
     approx_updater_helpers.cpp
     bin_tracker.cpp
     calc_score_cache.cpp
     ctr_helper.cpp
     custom_objective_descriptor.cpp
+    data.cpp
     ders_holder.cpp
     error_functions.cpp
     features_data_helpers.cpp
@@ -28,6 +30,7 @@ SRCS(
     online_ctr.cpp
     online_predictor.cpp
     plot.cpp
+    preprocess.cpp
     projection.cpp
     rand_score.cpp
     score_bin.cpp

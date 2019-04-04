@@ -77,7 +77,7 @@ def on_go_process_srcs(unit):
         import_syscall = 'false' if import_path == runtime_cgo_path else 'true'
         args = [import_path] + cgo_files + ['FLAGS', '-import_runtime_cgo=' + import_runtime_cgo, '-import_syscall=' + import_syscall]
         unit.ongo_compile_cgo1(args)
-        args = [unit.get('GO_PACKAGE_VALUE') or unit.get('REALPRJNAME')] + cgo_files
+        args = [unit.get('GO_PACKAGE_VALUE') or unit.get('MODULE_TYPE') == 'PROGRAM' and 'main' or unit.get('REALPRJNAME')] + cgo_files
         if len(c_files) > 0:
             args += ['C_FILES'] + c_files
         if len(s_files) > 0:

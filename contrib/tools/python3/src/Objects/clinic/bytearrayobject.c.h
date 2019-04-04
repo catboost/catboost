@@ -51,14 +51,14 @@ PyDoc_STRVAR(bytearray_translate__doc__,
 "The remaining characters are mapped through the given translation table.");
 
 #define BYTEARRAY_TRANSLATE_METHODDEF    \
-    {"translate", (PyCFunction)bytearray_translate, METH_FASTCALL, bytearray_translate__doc__},
+    {"translate", (PyCFunction)bytearray_translate, METH_FASTCALL|METH_KEYWORDS, bytearray_translate__doc__},
 
 static PyObject *
 bytearray_translate_impl(PyByteArrayObject *self, PyObject *table,
                          PyObject *deletechars);
 
 static PyObject *
-bytearray_translate(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+bytearray_translate(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"", "delete", NULL};
@@ -66,7 +66,7 @@ bytearray_translate(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, 
     PyObject *table;
     PyObject *deletechars = NULL;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &table, &deletechars)) {
         goto exit;
     }
@@ -88,19 +88,19 @@ PyDoc_STRVAR(bytearray_maketrans__doc__,
 "The bytes objects frm and to must be of the same length.");
 
 #define BYTEARRAY_MAKETRANS_METHODDEF    \
-    {"maketrans", (PyCFunction)bytearray_maketrans, METH_VARARGS|METH_STATIC, bytearray_maketrans__doc__},
+    {"maketrans", (PyCFunction)bytearray_maketrans, METH_FASTCALL|METH_STATIC, bytearray_maketrans__doc__},
 
 static PyObject *
 bytearray_maketrans_impl(Py_buffer *frm, Py_buffer *to);
 
 static PyObject *
-bytearray_maketrans(void *null, PyObject *args)
+bytearray_maketrans(void *null, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_buffer frm = {NULL, NULL};
     Py_buffer to = {NULL, NULL};
 
-    if (!PyArg_ParseTuple(args, "y*y*:maketrans",
+    if (!_PyArg_ParseStack(args, nargs, "y*y*:maketrans",
         &frm, &to)) {
         goto exit;
     }
@@ -133,21 +133,21 @@ PyDoc_STRVAR(bytearray_replace__doc__,
 "replaced.");
 
 #define BYTEARRAY_REPLACE_METHODDEF    \
-    {"replace", (PyCFunction)bytearray_replace, METH_VARARGS, bytearray_replace__doc__},
+    {"replace", (PyCFunction)bytearray_replace, METH_FASTCALL, bytearray_replace__doc__},
 
 static PyObject *
 bytearray_replace_impl(PyByteArrayObject *self, Py_buffer *old,
                        Py_buffer *new, Py_ssize_t count);
 
 static PyObject *
-bytearray_replace(PyByteArrayObject *self, PyObject *args)
+bytearray_replace(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_buffer old = {NULL, NULL};
     Py_buffer new = {NULL, NULL};
     Py_ssize_t count = -1;
 
-    if (!PyArg_ParseTuple(args, "y*y*|n:replace",
+    if (!_PyArg_ParseStack(args, nargs, "y*y*|n:replace",
         &old, &new, &count)) {
         goto exit;
     }
@@ -181,14 +181,14 @@ PyDoc_STRVAR(bytearray_split__doc__,
 "    -1 (the default value) means no limit.");
 
 #define BYTEARRAY_SPLIT_METHODDEF    \
-    {"split", (PyCFunction)bytearray_split, METH_FASTCALL, bytearray_split__doc__},
+    {"split", (PyCFunction)bytearray_split, METH_FASTCALL|METH_KEYWORDS, bytearray_split__doc__},
 
 static PyObject *
 bytearray_split_impl(PyByteArrayObject *self, PyObject *sep,
                      Py_ssize_t maxsplit);
 
 static PyObject *
-bytearray_split(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+bytearray_split(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"sep", "maxsplit", NULL};
@@ -196,7 +196,7 @@ bytearray_split(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyOb
     PyObject *sep = Py_None;
     Py_ssize_t maxsplit = -1;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &sep, &maxsplit)) {
         goto exit;
     }
@@ -256,14 +256,14 @@ PyDoc_STRVAR(bytearray_rsplit__doc__,
 "Splitting is done starting at the end of the bytearray and working to the front.");
 
 #define BYTEARRAY_RSPLIT_METHODDEF    \
-    {"rsplit", (PyCFunction)bytearray_rsplit, METH_FASTCALL, bytearray_rsplit__doc__},
+    {"rsplit", (PyCFunction)bytearray_rsplit, METH_FASTCALL|METH_KEYWORDS, bytearray_rsplit__doc__},
 
 static PyObject *
 bytearray_rsplit_impl(PyByteArrayObject *self, PyObject *sep,
                       Py_ssize_t maxsplit);
 
 static PyObject *
-bytearray_rsplit(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+bytearray_rsplit(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"sep", "maxsplit", NULL};
@@ -271,7 +271,7 @@ bytearray_rsplit(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyO
     PyObject *sep = Py_None;
     Py_ssize_t maxsplit = -1;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &sep, &maxsplit)) {
         goto exit;
     }
@@ -311,19 +311,19 @@ PyDoc_STRVAR(bytearray_insert__doc__,
 "    The item to be inserted.");
 
 #define BYTEARRAY_INSERT_METHODDEF    \
-    {"insert", (PyCFunction)bytearray_insert, METH_VARARGS, bytearray_insert__doc__},
+    {"insert", (PyCFunction)bytearray_insert, METH_FASTCALL, bytearray_insert__doc__},
 
 static PyObject *
 bytearray_insert_impl(PyByteArrayObject *self, Py_ssize_t index, int item);
 
 static PyObject *
-bytearray_insert(PyByteArrayObject *self, PyObject *args)
+bytearray_insert(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_ssize_t index;
     int item;
 
-    if (!PyArg_ParseTuple(args, "nO&:insert",
+    if (!_PyArg_ParseStack(args, nargs, "nO&:insert",
         &index, _getbytevalue, &item)) {
         goto exit;
     }
@@ -388,18 +388,18 @@ PyDoc_STRVAR(bytearray_pop__doc__,
 "If no index argument is given, will pop the last item.");
 
 #define BYTEARRAY_POP_METHODDEF    \
-    {"pop", (PyCFunction)bytearray_pop, METH_VARARGS, bytearray_pop__doc__},
+    {"pop", (PyCFunction)bytearray_pop, METH_FASTCALL, bytearray_pop__doc__},
 
 static PyObject *
 bytearray_pop_impl(PyByteArrayObject *self, Py_ssize_t index);
 
 static PyObject *
-bytearray_pop(PyByteArrayObject *self, PyObject *args)
+bytearray_pop(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_ssize_t index = -1;
 
-    if (!PyArg_ParseTuple(args, "|n:pop",
+    if (!_PyArg_ParseStack(args, nargs, "|n:pop",
         &index)) {
         goto exit;
     }
@@ -448,18 +448,18 @@ PyDoc_STRVAR(bytearray_strip__doc__,
 "If the argument is omitted or None, strip leading and trailing ASCII whitespace.");
 
 #define BYTEARRAY_STRIP_METHODDEF    \
-    {"strip", (PyCFunction)bytearray_strip, METH_VARARGS, bytearray_strip__doc__},
+    {"strip", (PyCFunction)bytearray_strip, METH_FASTCALL, bytearray_strip__doc__},
 
 static PyObject *
 bytearray_strip_impl(PyByteArrayObject *self, PyObject *bytes);
 
 static PyObject *
-bytearray_strip(PyByteArrayObject *self, PyObject *args)
+bytearray_strip(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *bytes = Py_None;
 
-    if (!PyArg_UnpackTuple(args, "strip",
+    if (!_PyArg_UnpackStack(args, nargs, "strip",
         0, 1,
         &bytes)) {
         goto exit;
@@ -479,18 +479,18 @@ PyDoc_STRVAR(bytearray_lstrip__doc__,
 "If the argument is omitted or None, strip leading ASCII whitespace.");
 
 #define BYTEARRAY_LSTRIP_METHODDEF    \
-    {"lstrip", (PyCFunction)bytearray_lstrip, METH_VARARGS, bytearray_lstrip__doc__},
+    {"lstrip", (PyCFunction)bytearray_lstrip, METH_FASTCALL, bytearray_lstrip__doc__},
 
 static PyObject *
 bytearray_lstrip_impl(PyByteArrayObject *self, PyObject *bytes);
 
 static PyObject *
-bytearray_lstrip(PyByteArrayObject *self, PyObject *args)
+bytearray_lstrip(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *bytes = Py_None;
 
-    if (!PyArg_UnpackTuple(args, "lstrip",
+    if (!_PyArg_UnpackStack(args, nargs, "lstrip",
         0, 1,
         &bytes)) {
         goto exit;
@@ -510,18 +510,18 @@ PyDoc_STRVAR(bytearray_rstrip__doc__,
 "If the argument is omitted or None, strip trailing ASCII whitespace.");
 
 #define BYTEARRAY_RSTRIP_METHODDEF    \
-    {"rstrip", (PyCFunction)bytearray_rstrip, METH_VARARGS, bytearray_rstrip__doc__},
+    {"rstrip", (PyCFunction)bytearray_rstrip, METH_FASTCALL, bytearray_rstrip__doc__},
 
 static PyObject *
 bytearray_rstrip_impl(PyByteArrayObject *self, PyObject *bytes);
 
 static PyObject *
-bytearray_rstrip(PyByteArrayObject *self, PyObject *args)
+bytearray_rstrip(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *bytes = Py_None;
 
-    if (!PyArg_UnpackTuple(args, "rstrip",
+    if (!_PyArg_UnpackStack(args, nargs, "rstrip",
         0, 1,
         &bytes)) {
         goto exit;
@@ -548,14 +548,14 @@ PyDoc_STRVAR(bytearray_decode__doc__,
 "    can handle UnicodeDecodeErrors.");
 
 #define BYTEARRAY_DECODE_METHODDEF    \
-    {"decode", (PyCFunction)bytearray_decode, METH_FASTCALL, bytearray_decode__doc__},
+    {"decode", (PyCFunction)bytearray_decode, METH_FASTCALL|METH_KEYWORDS, bytearray_decode__doc__},
 
 static PyObject *
 bytearray_decode_impl(PyByteArrayObject *self, const char *encoding,
                       const char *errors);
 
 static PyObject *
-bytearray_decode(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+bytearray_decode(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"encoding", "errors", NULL};
@@ -563,7 +563,7 @@ bytearray_decode(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyO
     const char *encoding = NULL;
     const char *errors = NULL;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &encoding, &errors)) {
         goto exit;
     }
@@ -596,20 +596,20 @@ PyDoc_STRVAR(bytearray_splitlines__doc__,
 "true.");
 
 #define BYTEARRAY_SPLITLINES_METHODDEF    \
-    {"splitlines", (PyCFunction)bytearray_splitlines, METH_FASTCALL, bytearray_splitlines__doc__},
+    {"splitlines", (PyCFunction)bytearray_splitlines, METH_FASTCALL|METH_KEYWORDS, bytearray_splitlines__doc__},
 
 static PyObject *
 bytearray_splitlines_impl(PyByteArrayObject *self, int keepends);
 
 static PyObject *
-bytearray_splitlines(PyByteArrayObject *self, PyObject **args, Py_ssize_t nargs, PyObject *kwnames)
+bytearray_splitlines(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"keepends", NULL};
     static _PyArg_Parser _parser = {"|i:splitlines", _keywords, 0};
     int keepends = 0;
 
-    if (!_PyArg_ParseStack(args, nargs, kwnames, &_parser,
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
         &keepends)) {
         goto exit;
     }
@@ -674,18 +674,18 @@ PyDoc_STRVAR(bytearray_reduce_ex__doc__,
 "Return state information for pickling.");
 
 #define BYTEARRAY_REDUCE_EX_METHODDEF    \
-    {"__reduce_ex__", (PyCFunction)bytearray_reduce_ex, METH_VARARGS, bytearray_reduce_ex__doc__},
+    {"__reduce_ex__", (PyCFunction)bytearray_reduce_ex, METH_FASTCALL, bytearray_reduce_ex__doc__},
 
 static PyObject *
 bytearray_reduce_ex_impl(PyByteArrayObject *self, int proto);
 
 static PyObject *
-bytearray_reduce_ex(PyByteArrayObject *self, PyObject *args)
+bytearray_reduce_ex(PyByteArrayObject *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     int proto = 0;
 
-    if (!PyArg_ParseTuple(args, "|i:__reduce_ex__",
+    if (!_PyArg_ParseStack(args, nargs, "|i:__reduce_ex__",
         &proto)) {
         goto exit;
     }
@@ -712,4 +712,4 @@ bytearray_sizeof(PyByteArrayObject *self, PyObject *Py_UNUSED(ignored))
 {
     return bytearray_sizeof_impl(self);
 }
-/*[clinic end generated code: output=8f022100f059226c input=a9049054013a1b77]*/
+/*[clinic end generated code: output=bb9051a369adb328 input=a9049054013a1b77]*/

@@ -301,3 +301,16 @@ struct TIsSpecializationOf : std::false_type {};
 
 template <template <class...> class T, class... Ts>
 struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
+
+/*
+ * Is dependent on a template parameter. Is used in static_assert in a false branch to produce a compile error.
+ * See an example with dependent_false at https://en.cppreference.com/w/cpp/language/if
+ *
+ * if constexpr (std::is_same<T, someType1>) {
+ * } else if constexpr (std::is_same<T, someType2>) {
+ * } else {
+ *     static_assert(TDependentFalse<T>::value, "unknown type");
+ * }
+ */
+template <typename T>
+struct TDependentFalse : public std::false_type {};

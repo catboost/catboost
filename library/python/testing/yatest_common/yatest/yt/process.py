@@ -8,6 +8,7 @@ import logging
 import tempfile
 import subprocess
 import collections
+import six
 
 import yatest.common as ytc
 
@@ -53,9 +54,13 @@ def execute(
     :param operation_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
-    :param init_func: Function which will be executed before target program. Use only for debug purposes
-    :param fini_func: Function which will be executed after target program. Use only for debug purposes
+    :param init_func: Function which will be executed before target program. See note below
+    :param fini_func: Function which will be executed after target program. See note below
     :return: Execution object
+    .. note::
+        init_func and fini_func have some limitations:
+        * every used module should be imported inside this functions, because functions will be called in a different environment and required modules may be not imported or available
+        * you can only use built-in python modules (because test_tool uploads itself and runs init/fini func inside itself)
     """
     test_tool_bin = _get_test_tool_bin()
     data_mine_strategy = data_mine_strategy or default_mine_strategy
@@ -141,7 +146,7 @@ def execute(
 
 
 def default_mine_strategy(arg):
-    for prefix, replacement in _get_replace_map().iteritems():
+    for prefix, replacement in six.iteritems(_get_replace_map()):
         if arg.startswith(prefix):
             path = replacement + arg[len(prefix):]
             # (fixed argument for command, path to local file, fixed path to file for YT wrapper, is it input data)
@@ -149,7 +154,7 @@ def default_mine_strategy(arg):
 
 
 def replace_mine_strategy(arg):
-    for prefix, replacement in _get_replace_map().iteritems():
+    for prefix, replacement in six.iteritems(_get_replace_map()):
         if prefix in arg:
             match = re.match("(.*?)({})(.*)".format(re.escape(prefix)), arg)
             fixed_arg = match.group(1) + replacement + match.group(3)
@@ -183,7 +188,7 @@ def _patch_result(result, exec_spec, command, user_stdout, user_stderr, check_ex
     import pytest
     # set global yt-execute's machinery metrics
     ya_inst = pytest.config.ya
-    for k, v in meta.get('yt_metrics', {}).iteritems():
+    for k, v in six.iteritems(meta.get('yt_metrics', {})):
         ya_inst.set_metric_value(k, v + ya_inst.get_metric_value(k, default=0))
     # increase global call counter
     ya_inst.set_metric_value('yt_execute_call_count', ya_inst.get_metric_value('yt_execute_call_count', default=0) + 1)
@@ -265,9 +270,8 @@ def _get_fixed_env(env, strategy):
             del env[env_var]
 
     for prefix in ['YA_']:
-        for env_var in env.keys():
-            if env_var.startswith(prefix):
-                del env[env_var]
+        for env_var in [env_var for env_var in env.keys() if env_var.startswith(prefix)]:
+            del env[env_var]
 
     def fix_path(p):
         res = strategy(p)
@@ -276,7 +280,7 @@ def _get_fixed_env(env, strategy):
             return res[2]
         return p
 
-    return {k: fix_path(v) for k, v in env.iteritems()}
+    return {k: fix_path(v) for k, v in six.iteritems(env)}
 
 
 def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
@@ -285,7 +289,7 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
     user_input = user_input or {}
     user_output = user_output or {}
 
-    if isinstance(orig_cmd, basestring):
+    if isinstance(orig_cmd, six.string_types):
         orig_cmd = shlex.split(orig_cmd)
 
     def check_arg(arg):
@@ -318,8 +322,8 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
             dst.update(srcs)
 
     # Drop data marked by user with None destination
-    input_data = {k: v for k, v in input_data.iteritems() if v}
-    output_data = {k: v for k, v in output_data.iteritems() if v}
+    input_data = {k: v for k, v in six.iteritems(input_data) if v}
+    output_data = {k: v for k, v in six.iteritems(output_data) if v}
 
     return subprocess.list2cmdline(cmd) if shell else cmd, input_data, output_data
 

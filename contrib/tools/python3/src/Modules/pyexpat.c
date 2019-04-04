@@ -119,7 +119,7 @@ set_error(xmlparseobject *self, enum XML_Error code)
                                   XML_ErrorString(code), lineno, column);
     if (buffer == NULL)
         return NULL;
-    err = PyObject_CallFunction(ErrorObject, "O", buffer);
+    err = PyObject_CallFunctionObjArgs(ErrorObject, buffer, NULL);
     Py_DECREF(buffer);
     if (  err != NULL
           && set_error_attr(err, "code", code)
@@ -161,8 +161,7 @@ conv_string_to_unicode(const XML_Char *str)
        and hence in UTF-8.  */
     /* UTF-8 from Expat, Unicode desired */
     if (str == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
     return PyUnicode_DecodeUTF8(str, strlen(str), "strict");
 }
@@ -174,8 +173,7 @@ conv_string_len_to_unicode(const XML_Char *str, int len)
        and hence in UTF-8.  */
     /* UTF-8 from Expat, Unicode desired */
     if (str == NULL) {
-        Py_INCREF(Py_None);
-        return Py_None;
+        Py_RETURN_NONE;
     }
     return PyUnicode_DecodeUTF8((const char *)str, len, "strict");
 }
@@ -245,8 +243,10 @@ string_intern(xmlparseobject *self, const char* str)
     if (!value) {
         if (PyDict_SetItem(self->intern, result, result) == 0)
             return result;
-        else
+        else {
+            Py_DECREF(result);
             return NULL;
+        }
     }
     Py_INCREF(value);
     Py_DECREF(result);
@@ -395,6 +395,7 @@ my_StartElementHandler(void *userData,
                 flag_error(self);
                 Py_DECREF(n);
                 Py_DECREF(v);
+                Py_DECREF(container);
                 return;
             }
             else {
@@ -403,10 +404,12 @@ my_StartElementHandler(void *userData,
             }
         }
         args = string_intern(self, name);
-        if (args != NULL)
-            args = Py_BuildValue("(NN)", args, container);
         if (args == NULL) {
             Py_DECREF(container);
+            return;
+        }
+        args = Py_BuildValue("(NN)", args, container);
+        if (args == NULL) {
             return;
         }
         /* Container is now a borrowed reference; ignore it. */
@@ -567,7 +570,6 @@ my_ElementDeclHandler(void *userData,
         }
         args = Py_BuildValue("NN", nameobj, modelobj);
         if (args == NULL) {
-            Py_DECREF(modelobj);
             flag_error(self);
             goto finally;
         }
@@ -707,7 +709,7 @@ get_parse_result(xmlparseobject *self, int rv)
 pyexpat.xmlparser.Parse
 
     data: object
-    isfinal: int(c_default="0") = False
+    isfinal: bool(accept={int}) = False
     /
 
 Parse XML data.
@@ -718,7 +720,7 @@ Parse XML data.
 static PyObject *
 pyexpat_xmlparser_Parse_impl(xmlparseobject *self, PyObject *data,
                              int isfinal)
-/*[clinic end generated code: output=f4db843dd1f4ed4b input=199d9e8e92ebbb4b]*/
+/*[clinic end generated code: output=f4db843dd1f4ed4b input=eb616027bfa9847f]*/
 {
     const char *s;
     Py_ssize_t slen;
@@ -1030,8 +1032,7 @@ pyexpat_xmlparser_UseForeignDTD_impl(xmlparseobject *self, int flag)
     if (rc != XML_ERROR_NONE) {
         return set_error(self, rc);
     }
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 #endif
 
@@ -1320,8 +1321,7 @@ xmlparse_getattro(xmlparseobject *self, PyObject *nameobj)
         return get_pybool((long) self->specified_attributes);
     if (_PyUnicode_EqualToASCIIString(nameobj, "intern")) {
         if (self->intern == NULL) {
-            Py_INCREF(Py_None);
-            return Py_None;
+            Py_RETURN_NONE;
         }
         else {
             Py_INCREF(self->intern);
@@ -1647,7 +1647,6 @@ MODULE_INITFUNC(void)
     PyObject *errors_module;
     PyObject *modelmod_name;
     PyObject *model_module;
-    PyObject *sys_modules;
     PyObject *tmpnum, *tmpstr;
     PyObject *codes_dict;
     PyObject *rev_codes_dict;
@@ -1697,11 +1696,6 @@ MODULE_INITFUNC(void)
     */
     PyModule_AddStringConstant(m, "native_encoding", "UTF-8");
 
-    sys_modules = PySys_GetObject("modules");
-    if (sys_modules == NULL) {
-        Py_DECREF(m);
-        return NULL;
-    }
     d = PyModule_GetDict(m);
     if (d == NULL) {
         Py_DECREF(m);
@@ -1711,7 +1705,7 @@ MODULE_INITFUNC(void)
     if (errors_module == NULL) {
         errors_module = PyModule_New(MODULE_NAME ".errors");
         if (errors_module != NULL) {
-            PyDict_SetItem(sys_modules, errmod_name, errors_module);
+            _PyImport_SetModule(errmod_name, errors_module);
             /* gives away the reference to errors_module */
             PyModule_AddObject(m, "errors", errors_module);
         }
@@ -1721,7 +1715,7 @@ MODULE_INITFUNC(void)
     if (model_module == NULL) {
         model_module = PyModule_New(MODULE_NAME ".model");
         if (model_module != NULL) {
-            PyDict_SetItem(sys_modules, modelmod_name, model_module);
+            _PyImport_SetModule(modelmod_name, model_module);
             /* gives away the reference to model_module */
             PyModule_AddObject(m, "model", model_module);
         }
@@ -1887,6 +1881,11 @@ MODULE_INITFUNC(void)
     capi.SetStartDoctypeDeclHandler = XML_SetStartDoctypeDeclHandler;
     capi.SetEncoding = XML_SetEncoding;
     capi.DefaultUnknownEncodingHandler = PyUnknownEncodingHandler;
+#if XML_COMBINED_VERSION >= 20100
+    capi.SetHashSalt = XML_SetHashSalt;
+#else
+    capi.SetHashSalt = NULL;
+#endif
 
     /* export using capsule */
     capi_object = PyCapsule_New(&capi, PyExpat_CAPSULE_NAME, NULL);
@@ -1982,8 +1981,3 @@ static struct HandlerInfo handler_info[] = {
 
     {NULL, NULL, NULL} /* sentinel */
 };
-
-/*[clinic input]
-dump buffer
-[clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=524ce2e021e4eba6]*/

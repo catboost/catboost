@@ -248,7 +248,7 @@ namespace NCB {
         }
 
         ELossFunction lossFunction = Options.LossFunctionDescription.Get().GetLossFunction();
-        if (IsMultiClassMetric(lossFunction)) {
+        if (IsMultiClassOnlyMetric(lossFunction)) {
             dstModel->ModelInfo["multiclass_params"] = ClassificationTargetHelper.Serialize();
         }
 

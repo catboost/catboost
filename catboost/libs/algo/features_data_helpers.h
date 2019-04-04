@@ -48,20 +48,46 @@ namespace NCB {
 
     inline ui8 QuantizedFeaturesFloatAccessor(
         const TVector<TVector<ui8>>& floatBinsRemap,
+        TConstArrayRef<TExclusiveFeaturesBundle> bundlesMetaData,
         TConstArrayRef<TConstArrayRef<ui8>> repackedFeatures,
+        const TVector<TMaybe<TExclusiveBundleIndex>>& bundledIndexes,
         const TVector<TMaybe<TPackedBinaryIndex>>& packedIndexes,
         const TFloatFeature& floatFeature,
         size_t index)
     {
-        auto& packIdx = packedIndexes[floatFeature.FeatureIndex];
-        if (packIdx.Defined()) {
+        const auto& bundleIdx = bundledIndexes[floatFeature.FeatureIndex];
+        const auto& packIdx = packedIndexes[floatFeature.FeatureIndex];
+
+        ui8 unremappedFeatureBin;
+        if (bundleIdx.Defined()) {
+            const auto& bundleMetaData = bundlesMetaData[bundleIdx->BundleIdx];
+            const auto& bundlePart = bundleMetaData.Parts[bundleIdx->InBundleIdx];
+            auto boundsInBundle = bundlePart.Bounds;
+
+            auto getBundleValueFunction = [&](const auto* bundlesData) {
+                return GetBinFromBundle<ui8>(bundlesData[index], boundsInBundle);
+            };
+            const ui8* rawBundlesData = repackedFeatures[floatFeature.FlatFeatureIndex].data();
+
+            switch (bundleMetaData.SizeInBytes) {
+                case 1:
+                    unremappedFeatureBin = getBundleValueFunction(rawBundlesData);
+                    break;
+                case 2:
+                    unremappedFeatureBin = getBundleValueFunction((const ui16*)rawBundlesData);
+                    break;
+                default:
+                    CB_ENSURE_INTERNAL(
+                        false,
+                        "unsupported Bundle SizeInBytes = " << bundleMetaData.SizeInBytes
+                    );
+            }
+        } else if (packIdx.Defined()) {
             TBinaryFeaturesPack bitIdx = packIdx->BitIdx;
-            ui8 binaryFeatureValue = (repackedFeatures[floatFeature.FlatFeatureIndex][index] >> bitIdx) & 1;
-            return floatBinsRemap[floatFeature.FlatFeatureIndex][binaryFeatureValue];
+            unremappedFeatureBin = (repackedFeatures[floatFeature.FlatFeatureIndex][index] >> bitIdx) & 1;
         } else {
-            return floatBinsRemap[
-                floatFeature.FlatFeatureIndex][repackedFeatures[floatFeature.FlatFeatureIndex][index]
-            ];
+            unremappedFeatureBin = repackedFeatures[floatFeature.FlatFeatureIndex][index];
         }
+        return floatBinsRemap[floatFeature.FlatFeatureIndex][unremappedFeatureBin];
     }
 }

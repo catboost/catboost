@@ -22,3 +22,12 @@ inline TVector<double> GetScores(const TVector<TScoreBin>& scoreBin) {
     }
     return scores;
 }
+
+
+struct TSplitEnsembleSpec;
+
+int CalcScoreBinCount(
+    const TSplitEnsembleSpec& splitEnsembleSpec,
+    int bucketCount,
+    ui32 oneHotMaxSize
+);

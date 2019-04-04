@@ -4,13 +4,10 @@ PROGRAM()
 
 LICENSE(Python-2.0)
 
-PEERDIR(
-    contrib/tools/python3/lib
-    library/python/runtime_py3
-)
+USE_PYTHON3()
 
-ADDINCL(
-    contrib/tools/python3/src/Include
+CFLAGS(
+    -DPy_BUILD_CORE
 )
 
 SRCS(
@@ -18,10 +15,3 @@ SRCS(
 )
 
 END()
-
-RECURSE(
-    lib
-    src
-    src/Lib
-    src/Lib/lib2to3
-)

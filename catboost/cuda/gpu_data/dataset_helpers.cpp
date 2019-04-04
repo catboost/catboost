@@ -1,7 +1,6 @@
 #include "dataset_helpers.h"
 #include "feature_layout_doc_parallel.h"
 #include "feature_layout_feature_parallel.h"
-
 #include <util/generic/maybe.h>
 
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
@@ -124,6 +123,9 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
         }
     }
     featureIdsSet.insert(combinationCtrIds.begin(), combinationCtrIds.end());
+
+    auto estimatedFeatures = featuresManager.GetEstimatedFeatureIds();
+    featureIdsSet.insert(estimatedFeatures.begin(), estimatedFeatures.end());
     return TVector<ui32>(featureIdsSet.begin(), featureIdsSet.end());
 }
 
@@ -155,7 +157,10 @@ namespace NCatboostCuda {
         permutationDependent->clear();
         permutationIndependent->clear();
         for (const auto& feature : features) {
-            const bool needPermutationFlag = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
+            const bool permutationDependentCtr = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
+            const bool onlineEstimatedFeature = featuresManager.IsEstimatedFeature(feature) && featuresManager.GetEstimatedFeature(feature).EstimatorId.IsOnline;
+
+            const bool needPermutationFlag = permutationDependentCtr || onlineEstimatedFeature;
             if (needPermutationFlag) {
                 permutationDependent->push_back(feature);
             } else {
@@ -169,4 +174,9 @@ namespace NCatboostCuda {
 
     template class TCtrsWriter<TFeatureParallelLayout>;
     template class TCtrsWriter<TDocParallelLayout>;
+
+    template class TEstimatedFeaturesWriter<TFeatureParallelLayout>;
+    template class TEstimatedFeaturesWriter<TDocParallelLayout>;
+
+
 }

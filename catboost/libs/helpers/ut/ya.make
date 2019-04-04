@@ -13,6 +13,7 @@ SRCS(
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
     serialization_ut.cpp
+    vec_list_ut.cpp
 )
 
 PEERDIR(

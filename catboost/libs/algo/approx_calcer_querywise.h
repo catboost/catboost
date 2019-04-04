@@ -18,8 +18,8 @@ void CalculateDersForQueries(
     int queryStartIndex,
     int queryEndIndex,
     TArrayRef<TDers> approxDers,
-    NPar::TLocalExecutor* localExecutor,
-    ui64 randomSeed
+    ui64 randomSeed,
+    NPar::TLocalExecutor* localExecutor
 );
 
 void AddLeafDersForQueries(

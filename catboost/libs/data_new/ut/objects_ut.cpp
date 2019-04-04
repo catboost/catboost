@@ -286,7 +286,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 }
             }
 
-            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, nullptr);
+            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
             commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
             NPar::TLocalExecutor localExecutor;
@@ -708,8 +708,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         + (useFeatureTypes.second ? srcCatFeatures.size() : 0)
                     ),
                     catFeatureIndices,
-                    {},
-                    nullptr
+                    {}
                 );
 
                 auto featuresLayoutPtr = MakeIntrusive<TFeaturesLayout>(featuresLayout);
@@ -723,8 +722,13 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                     NCatboostOptions::TBinarizationOptions()
                 );
 
+                data.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                    *data.Data.QuantizedFeaturesInfo,
+                    TVector<TExclusiveFeaturesBundle>()
+                );
                 data.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                     *data.Data.QuantizedFeaturesInfo,
+                    data.ExclusiveFeatureBundlesData,
                     true
                 );
 
@@ -774,6 +778,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 &hashedCatValues,
                                 &fullSubsetForUpdatingPerfectHash
                             ),
+                            /*mapMostFrequentValueTo0*/ false,
                             Nothing()
                         );
 
@@ -872,7 +877,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 Equal<ui8>(
                                     subsetFloatFeatures[i],
                                     (*quantizedForCPUObjectsDataProvider.GetNonPackedFloatFeature(i))
-                                        ->GetArrayData()
+                                        ->GetArrayData<ui8>()
                                 )
                             );
                         }
@@ -884,7 +889,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 Equal<ui32>(
                                     subsetCatFeatures[i],
                                     (*quantizedForCPUObjectsDataProvider.GetNonPackedCatFeature(i))
-                                        ->GetArrayData()
+                                        ->GetArrayData<ui32>()
                                 )
                             );
 
@@ -907,7 +912,6 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                 UNIT_ASSERT_EQUAL(*objectsDataProvider->GetFeaturesLayout(), featuresLayout);
                 UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider->GetOrder(), expectedCommonData.Order);
-
 
                 UNIT_ASSERT_VALUES_EQUAL(
                     objectsDataProvider->CalcFeaturesCheckSum(&localExecutor),
@@ -940,9 +944,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> catFeatures = {{0x0, 0x02, 0x0F, 0x03}, {0xAB, 0xBF, 0x04, 0x20}};
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 2700874693},
-            {{false, true}, 2949642695},
-            {{true, true}, 1758775252}
+            {{true, false}, 330653220},
+            {{false, true}, 2017827640},
+            {{true, true}, 807288048}
         };
 
         TestFeatures(
@@ -997,9 +1001,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> subsetCatFeatures = {{0x0, 0x01, 0x03, 0x02}, {0xAB, 0x78, 0x20, 0xBF}};
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 809224437},
-            {{false, true}, 448492502},
-            {{true, true}, 3297385430}
+            {{true, false}, 2582600868},
+            {{false, true}, 286218663},
+            {{true, true}, 3140512489}
         };
 
 
@@ -1055,9 +1059,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         expectedCommonData.Order = EObjectsOrder::RandomShuffled;
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 4200673678},
-            {{false, true}, 3029707852},
-            {{true, true}, 656519240}
+            {{true, false}, 952444266},
+            {{false, true}, 3987245730},
+            {{true, true}, 372545103}
         };
 
         TestFeatures(
@@ -1128,9 +1132,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         };
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
-            {{true, false}, 517671692},
-            {{false, true}, 2005480375},
-            {{true, true}, 2162462396}
+            {{true, false}, 2838800885},
+            {{false, true}, 4122360359},
+            {{true, true}, 2043278342}
         };
 
         TestFeatures(

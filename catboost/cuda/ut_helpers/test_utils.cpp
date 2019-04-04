@@ -2,7 +2,7 @@
 
 #include <catboost/libs/data_new/load_data.h>
 #include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/train_lib/data.h>
+#include <catboost/libs/algo/data.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>
@@ -135,6 +135,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                       NCB::TPathWithScheme cdFilePath,
                       const NCatboostOptions::TBinarizationOptions& floatFeaturesBinarization,
                       const NCatboostOptions::TCatFeatureParams& catFeatureParams,
+                      const NCB::TFeatureEstimators& estimators,
                       NCB::TTrainingDataProviderPtr* trainingData,
                       THolder<NCatboostCuda::TBinarizedFeaturesManager>* featuresManager) {
     NCB::TDataProviderPtr dataProvider;
@@ -180,6 +181,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
 
     *featuresManager = MakeHolder<NCatboostCuda::TBinarizedFeaturesManager>(
         catFeatureParams,
+        estimators,
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;

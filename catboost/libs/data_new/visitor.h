@@ -198,6 +198,7 @@ namespace NCB {
         virtual void AddFloatFeaturePart(
             ui32 flatFeatureIdx,
             ui32 objectOffset,
+            ui8 bitsPerDocumentFeature,
             TMaybeOwningConstArrayHolder<ui8> featuresPart // per-object data size depends on BitsPerKey
         ) = 0;
 

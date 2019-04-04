@@ -2,6 +2,7 @@
 
 #include <util/generic/string.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/deque.h>
 #include <util/generic/vector.h>
 
 class IInputStream;
@@ -45,7 +46,7 @@ private:
 
 /// Контейнер для хранения HTTP-заголовков
 class THttpHeaders {
-    typedef TVector<THttpInputHeader> THeaders;
+    typedef TDeque<THttpInputHeader> THeaders;
 
 public:
     typedef THeaders::const_iterator TConstIterator;
@@ -99,6 +100,10 @@ public:
 
     /// Удаляет заголовок, если он есть.
     void RemoveHeader(const TString& header);
+
+    /// Ищет заголовок по указанному имени
+    /// Возвращает nullptr, если не нашел
+    const THttpInputHeader* FindHeader(const TString& header) const;
 
     /// Записывает все заголовки контейнера в поток.
     /// @details Каждый заголовк записывается в виде "имя параметра: значение\r\n".

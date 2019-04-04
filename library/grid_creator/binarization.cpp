@@ -78,15 +78,6 @@ namespace NSplitSelection {
     }
 }
 
-// TODO(yazevnul): fix memory use estimation
-size_t CalcMemoryForFindBestSplit(int maxBordersCount, size_t docsCount, EBorderSelectionType type) {
-    size_t bestSplitSize = docsCount * ((maxBordersCount + 2) * sizeof(size_t) + 4 * sizeof(double));
-    if (type == EBorderSelectionType::MinEntropy || type == EBorderSelectionType::MaxLogSum) {
-        bestSplitSize += docsCount * 3 * sizeof(float);
-    }
-    return bestSplitSize;
-}
-
 THashSet<float> BestSplit(TVector<float>& features,
                           int maxBordersCount,
                           EBorderSelectionType type,
@@ -872,4 +863,20 @@ THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
         }
     }
     return borders;
+}
+
+size_t CalcMemoryForFindBestSplit(int maxBordersCount, size_t docsCount, EBorderSelectionType type) {
+    switch (type) {
+        case EBorderSelectionType::Median:
+        case EBorderSelectionType::UniformAndQuantiles:
+        case EBorderSelectionType::Uniform:
+            return maxBordersCount * sizeof(float);
+        case EBorderSelectionType::GreedyLogSum:
+            return maxBordersCount * sizeof(TFeatureBin) + maxBordersCount * sizeof(float);
+        case EBorderSelectionType::MinEntropy:
+        case EBorderSelectionType::MaxLogSum:
+            return docsCount * ((maxBordersCount + 2) * sizeof(size_t) + 4 * sizeof(double)) + docsCount * 3 * sizeof(float);
+        default:
+            Y_UNREACHABLE();
+    }
 }

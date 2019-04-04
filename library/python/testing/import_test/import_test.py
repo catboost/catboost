@@ -106,6 +106,12 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "dateutil.tzwin",
         "dateutil.tz.win",
 
+        "django.contrib.*",
+        "django.core.management.commands.*",
+        "django.db.backends.*",
+        "django.db.migrations.*",
+        "django.template.backends.jinja2",
+
         "matplotlib.backends.*",
         "matplotlib.sphinxext.*",
         "matplotlib.testing.*",

@@ -69,8 +69,8 @@ public:
         getcontext(&Ctx_);
 
         Ctx_.uc_link = 0;
-        Ctx_.uc_stack.ss_sp = (void*)c.Stack.Data();
-        Ctx_.uc_stack.ss_size = c.Stack.Size();
+        Ctx_.uc_stack.ss_sp = (void*)c.Stack.data();
+        Ctx_.uc_stack.ss_size = c.Stack.size();
         Ctx_.uc_stack.ss_flags = 0;
 
         extern void ContextTrampoLine(void* arg);

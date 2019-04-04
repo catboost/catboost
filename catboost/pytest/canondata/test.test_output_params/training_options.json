@@ -140,6 +140,7 @@
         "rsm" : 1,
         "random_strength" : 1,
         "leaf_estimation_iterations" : 1,
+        "dev_efb_max_buckets" : 1024,
         "dev_score_calc_obj_block_size" : 5000000,
         "leaf_estimation_backtracking" : "AnyImprovement",
         "bayesian_matrix_reg" : 0.1000000015,
@@ -150,6 +151,7 @@
             "bagging_temperature" : 1,
             "type" : "Bayesian"
         },
+        "efb_max_conflict_fraction" : 0,
         "l2_leaf_reg" : 3,
         "depth" : 6
     },

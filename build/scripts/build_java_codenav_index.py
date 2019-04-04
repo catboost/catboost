@@ -40,7 +40,7 @@ def just_do_it(argv):
     os.symlink(arcadia_root, fake_arcadia_root)
     os.symlink(build_root, fake_build_root)
     try:
-        subprocess.check_call([java, '-Xbootclasspath/p:' + kythe_tool, '-jar', kythe_tool] + javac_tail_cmd, env=env)
+        subprocess.check_call([java, '-jar', kythe_tool] + javac_tail_cmd, env=env)
     finally:
         os.unlink(fake_arcadia_root)
         os.unlink(fake_build_root)

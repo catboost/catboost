@@ -84,9 +84,7 @@ static bool IsClassifierModel(const TFullModel& model) {
             NCatboostOptions::TLossDescription modelLossDescription;
             modelLossDescription.Load(paramsJson["loss_function"]);
 
-            if (IsBinaryClassMetric(modelLossDescription.LossFunction) ||
-                IsMultiClassMetric(modelLossDescription.LossFunction))
-            {
+            if (IsClassificationObjective(modelLossDescription.LossFunction)) {
                 return true;
             }
         }

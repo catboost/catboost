@@ -22,7 +22,6 @@ namespace NCB {
     ) const {
         TVector<ui8> result;
         result.yresize(GetSize());
-        TArrayRef<ui8> resultAsArrayRef = result;
 
         const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
         const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
@@ -37,8 +36,8 @@ namespace NCB {
             nanMode,
             GetId(),
             QuantizedFeaturesInfo->GetBorders(floatFeatureIdx),
-            localExecutor,
-            &resultAsArrayRef
+            MakeArrayRef(result),
+            localExecutor
         );
 
         return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
@@ -76,7 +75,7 @@ namespace NCB {
                           "Error: hash for feature #" << GetId() << " was not found "
                           << srcValue);
 
-                result[idx] = it->second;
+                result[idx] = it->second.Value;
             },
             localExecutor,
             BINARIZATION_BLOCK_SIZE

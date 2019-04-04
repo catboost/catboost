@@ -244,9 +244,12 @@ def test_stochastic_filter(sigma, num_estimations):
 
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    learn_error_one_thread_path = yatest.common.test_output_path('learn_error_one_thread.tsv')
+    test_error_one_thread_path = yatest.common.test_output_path('test_error_one_thread.tsv')
     loss_description = 'StochasticFilter:' + sigma + ';' + num_estimations
 
-    cmd = (
+    cmd = [
         CATBOOST_PATH,
         'fit',
         '--loss-function', loss_description,
@@ -256,13 +259,26 @@ def test_stochastic_filter(sigma, num_estimations):
         '--column-description', cd_path,
         '--boosting-type', 'Plain',
         '-i', '20',
-        '-T', '4',
         '-m', model_path,
+        '--use-best-model', 'false',
+    ]
+
+    cmd_one_thread = cmd + [
+        '--learn-err-log', learn_error_one_thread_path,
+        '--test-err-log', test_error_one_thread_path,
+        '-T', '1'
+    ]
+
+    cmd_four_thread = cmd + [
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
-        '--use-best-model', 'false'
-    )
-    yatest.common.execute(cmd)
+        '-T', '4'
+    ]
+    yatest.common.execute(cmd_one_thread)
+    yatest.common.execute(cmd_four_thread)
+
+    compare_evals(learn_error_one_thread_path, learn_error_path)
+    compare_evals(test_error_one_thread_path, test_error_path)
 
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path)]
@@ -769,6 +785,43 @@ def test_nan_mode(nan_mode, boosting_type):
         'calc',
         '--input-path', data_file('adult_nan', 'test_small'),
         '--column-description', data_file('adult_nan', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    assert (compare_evals(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('border_count', [64, 255, 350, 1000, 2500])
+def test_different_border_count(border_count):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    train_path = data_file('querywise', 'train')
+    test_path = data_file('querywise', 'test')
+    cd_path = data_file('querywise', 'train.cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '-i', '20',
+        '-T', '4',
+        '-x', str(border_count),
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
         '-m', output_model_path,
         '--output-path', formula_predict_path,
         '--prediction-type', 'RawFormulaVal'
@@ -5849,14 +5902,15 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])
-@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'YetiRank'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'PFound'])
 def test_bad_metrics_combination(loss_function, metric):
     BAD_PAIRS = {
         'Logloss': ['RMSE', 'MultiClass'],
         'RMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
-        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'YetiRank'],
+        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'PFound'],
         'QuerySoftMax': ['RMSE', 'MultiClass'],
-        'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax']
+        'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
+        'YetiRank': ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax']
     }
 
     cd_path = yatest.common.test_output_path('cd.txt')
@@ -5878,7 +5932,7 @@ def test_bad_metrics_combination(loss_function, metric):
         '-f', train_path,
         '-t', test_path,
         '--column-description', cd_path,
-        '-i', '10',
+        '-i', '4',
         '-T', '4',
     )
 
@@ -6567,3 +6621,30 @@ def test_mvs_bootstrap_head_frac(boosting_type):
         assert (filecmp.cmp(ref_eval_path, eval_path) is False)
 
     return [local_canonical_file(ref_eval_path)]
+
+
+def test_simple_ctr():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    simple_ctr = ','.join((
+        'Borders:TargetBorderCount=15',
+        'Buckets:TargetBorderCount=15',
+        'Borders:TargetBorderType=MinEntropy',
+        'Counter:CtrBorderCount=20',
+    ))
+    yatest.common.execute((
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', 'Ordered',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--simple-ctr', simple_ctr,
+    ))
+
+    return [local_canonical_file(output_eval_path)]

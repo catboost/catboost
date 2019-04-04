@@ -1,6 +1,7 @@
 #include "borders_io.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/cast.h>
@@ -38,31 +39,23 @@ namespace NCB {
         TString line;
         for (size_t lineNumber = 0; in.ReadLine(line); lineNumber++) {
             try {
-                TVector<TString> tokens;
-                Split(line, "\t", tokens);
-                CB_ENSURE(
-                    tokens.ysize() == 2 || tokens.ysize() == 3,
-                    "Each line should have two or three columns");
-
-                const ui32 flatFeatureIdx = FromString<ui32>(tokens[0]);
+                ui32 flatFeatureIdx;
+                float featureBorder;
+                TMaybe<ENanMode> nanMode;
+                NCB::ParseBordersFileLine(line, &flatFeatureIdx, &featureBorder, &nanMode);
                 CB_ENSURE(
                     featuresLayout.IsCorrectExternalFeatureIdxAndType(flatFeatureIdx, EFeatureType::Float),
                     "Feature #" << flatFeatureIdx << " is not float");
                 const auto floatFeatureIdx = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(
                     flatFeatureIdx);
-
-                const float featureBorder = FromString<float>(tokens[1]);
                 borders[floatFeatureIdx].push_back(featureBorder);
-
-                if (tokens.ysize() == 3) {
-                    ENanMode nanMode = FromString<ENanMode>(tokens[2]);
-
+                if (nanMode) {
                     if (nanModes.contains(floatFeatureIdx)) {
                         CB_ENSURE(
-                            nanModes.at(floatFeatureIdx) == nanMode,
+                            nanModes.at(floatFeatureIdx) == *nanMode,
                             "NaN mode should be consistent in borders file");
                     } else {
-                        nanModes[floatFeatureIdx] = nanMode;
+                        nanModes[floatFeatureIdx] = *nanMode;
                     }
                 }
             } catch (const yexception& e) {
@@ -94,15 +87,11 @@ namespace NCB {
                     *floatFeatureIdx,
                     EFeatureType::Float);
 
-                auto nanMode = quantizedFeaturesInfo.GetNanMode(floatFeatureIdx);
-
-                for (const auto& border : quantizedFeaturesInfo.GetBorders(floatFeatureIdx)) {
-                    out << flatFeatureIdx << "\t" << ToString<double>(border);
-                    if (nanMode != ENanMode::Forbidden) {
-                        out << "\t" << nanMode;
-                    }
-                    out << Endl;
-                }
+                NCB::OutputFeatureBorders(
+                    flatFeatureIdx,
+                    quantizedFeaturesInfo.GetBorders(floatFeatureIdx),
+                    quantizedFeaturesInfo.GetNanMode(floatFeatureIdx),
+                    out);
             }
         );
     }

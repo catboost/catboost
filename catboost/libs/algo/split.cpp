@@ -68,33 +68,40 @@ TModelSplit TSplit::GetModelSplit(
 int GetBucketCount(
     const TSplitEnsemble& splitEnsemble,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-    size_t packedBinaryFeaturesCount
+    size_t packedBinaryFeaturesCount,
+    TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles
 ) {
-    if (splitEnsemble.IsBinarySplitsPack) {
-        // TBinarySplitsPack
-        size_t packIdx = splitEnsemble.BinarySplitsPack.PackIdx;
-        size_t startIdx = packIdx * sizeof(TBinaryFeaturesPack) * CHAR_BIT;
-        Y_ASSERT(packedBinaryFeaturesCount > startIdx);
-        size_t featuresInPackCount = Min(
-            sizeof(TBinaryFeaturesPack) * CHAR_BIT,
-            packedBinaryFeaturesCount - startIdx
-        );
-        return int(1 << featuresInPackCount);
-    }
-
-    // TSplitCandidate
-    const auto& splitCandidate = splitEnsemble.SplitCandidate;
-    if (splitCandidate.Type == ESplitType::OnlineCtr) {
-        return splitCandidate.Ctr.BorderCount + 1;
-    } else if (splitCandidate.Type == ESplitType::FloatFeature) {
-        return int(
-            quantizedFeaturesInfo.GetBorders(TFloatFeatureIdx(splitCandidate.FeatureIdx)).size()
-        ) + 1;
-    } else {
-        Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
-        return int(
-            quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(splitCandidate.FeatureIdx))
-                .OnLearnOnly
-        );
+    switch (splitEnsemble.Type) {
+        case ESplitEnsembleType::OneFeature:
+            // TSplitCandidate
+            {
+                const auto& splitCandidate = splitEnsemble.SplitCandidate;
+                if (splitCandidate.Type == ESplitType::OnlineCtr) {
+                    return splitCandidate.Ctr.BorderCount + 1;
+                } else if (splitCandidate.Type == ESplitType::FloatFeature) {
+                    return int(
+                        quantizedFeaturesInfo.GetBorders(TFloatFeatureIdx(splitCandidate.FeatureIdx)).size()
+                    ) + 1;
+                } else {
+                    Y_ASSERT(splitCandidate.Type == ESplitType::OneHotFeature);
+                    return int(
+                        quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(splitCandidate.FeatureIdx))
+                            .OnLearnOnly
+                    );
+                }
+            }
+        case ESplitEnsembleType::BinarySplits:
+            {
+                size_t packIdx = splitEnsemble.BinarySplitsPackRef.PackIdx;
+                size_t startIdx = packIdx * sizeof(TBinaryFeaturesPack) * CHAR_BIT;
+                Y_ASSERT(packedBinaryFeaturesCount > startIdx);
+                size_t featuresInPackCount = Min(
+                    sizeof(TBinaryFeaturesPack) * CHAR_BIT,
+                    packedBinaryFeaturesCount - startIdx
+                );
+                return int(1u << featuresInPackCount);
+            }
+        case ESplitEnsembleType::ExclusiveBundle:
+            return exclusiveFeaturesBundles[splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx].GetBinCount();
     }
 }

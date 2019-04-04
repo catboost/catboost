@@ -57,7 +57,7 @@ class _TemplateMetaclass(type):
     %(delim)s(?:
       (?P<escaped>%(delim)s) |   # Escape sequence of two delimiters
       (?P<named>%(id)s)      |   # delimiter and a Python identifier
-      {(?P<braced>%(id)s)}   |   # delimiter and a braced identifier
+      {(?P<braced>%(bid)s)}  |   # delimiter and a braced identifier
       (?P<invalid>)              # Other ill-formed delimiter exprs
     )
     """
@@ -70,6 +70,7 @@ class _TemplateMetaclass(type):
             pattern = _TemplateMetaclass.pattern % {
                 'delim' : _re.escape(cls.delimiter),
                 'id'    : cls.idpattern,
+                'bid'   : cls.braceidpattern or cls.idpattern,
                 }
         cls.pattern = _re.compile(pattern, cls.flags | _re.VERBOSE)
 
@@ -78,11 +79,12 @@ class Template(metaclass=_TemplateMetaclass):
     """A string class for supporting $-substitutions."""
 
     delimiter = '$'
-    # r'[a-z]' matches to non-ASCII letters when used with IGNORECASE,
-    # but without ASCII flag.  We can't add re.ASCII to flags because of
-    # backward compatibility.  So we use local -i flag and [a-zA-Z] pattern.
+    # r'[a-z]' matches to non-ASCII letters when used with IGNORECASE, but
+    # without the ASCII flag.  We can't add re.ASCII to flags because of
+    # backward compatibility.  So we use the ?a local flag and [a-z] pattern.
     # See https://bugs.python.org/issue31672
-    idpattern = r'(?-i:[_a-zA-Z][_a-zA-Z0-9]*)'
+    idpattern = r'(?a:[_a-z][_a-z0-9]*)'
+    braceidpattern = None
     flags = _re.IGNORECASE
 
     def __init__(self, template):
@@ -179,14 +181,8 @@ class Formatter:
         try:
             format_string, *args = args # allow the "format_string" keyword be passed
         except ValueError:
-            if 'format_string' in kwargs:
-                format_string = kwargs.pop('format_string')
-                import warnings
-                warnings.warn("Passing 'format_string' as keyword argument is "
-                              "deprecated", DeprecationWarning, stacklevel=2)
-            else:
-                raise TypeError("format() missing 1 required positional "
-                                "argument: 'format_string'") from None
+            raise TypeError("format() missing 1 required positional "
+                            "argument: 'format_string'") from None
         return self.vformat(format_string, args, kwargs)
 
     def vformat(self, format_string, args, kwargs):

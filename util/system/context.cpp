@@ -56,9 +56,9 @@ namespace {
     public:
         inline TStackType(TMemRegion range) noexcept
 #if defined(STACK_GROW_DOWN)
-            : Data_(range.Data() + range.Size())
+            : Data_(range.data() + range.size())
 #else
-            : Data_(range.Data() + STACK_ALIGN)
+            : Data_(range.data() + STACK_ALIGN)
 #endif
         {
             ReAlign();
@@ -130,7 +130,7 @@ TContMachineContext::TSan::TSan() noexcept
 }
 
 TContMachineContext::TSan::TSan(const TContClosure& c) noexcept
-    : NSan::TFiberContext(c.Stack.Data(), c.Stack.Size())
+    : NSan::TFiberContext(c.Stack.data(), c.Stack.size())
     , TL(c.TrampoLine)
 {
 }
@@ -203,7 +203,7 @@ TContMachineContext::TContMachineContext()
 }
 
 TContMachineContext::TContMachineContext(const TContClosure& c)
-    : Fiber_(CreateFiber(c.Stack.Size(), (LPFIBER_START_ROUTINE)ContextTrampoLine, (LPVOID)c.TrampoLine))
+    : Fiber_(CreateFiber(c.Stack.size(), (LPFIBER_START_ROUTINE)ContextTrampoLine, (LPVOID)c.TrampoLine))
     , MainFiber_(false)
 {
     Y_ENSURE(Fiber_, AsStringBuf("fiber error"));
@@ -236,7 +236,7 @@ struct TContMachineContext::TImpl {
         : TL(c.TrampoLine)
         , Finish(false)
     {
-        Thread.Reset(new TThread(TThread::TParams(Run, this).SetStackSize(c.Stack.Size()).SetStackPointer((void*)c.Stack.Data())));
+        Thread.Reset(new TThread(TThread::TParams(Run, this).SetStackSize(c.Stack.size()).SetStackPointer((void*)c.Stack.data())));
         Thread->Start();
     }
 

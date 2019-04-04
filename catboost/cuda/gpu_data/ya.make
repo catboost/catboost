@@ -26,6 +26,8 @@ SRCS(
     non_zero_filter.cpp
     ctr_helper.cpp
     feature_layout.cpp
+    gpu_binarization_helpers.cpp
+    estimated_features_calcer.cpp
 )
 
 PEERDIR(

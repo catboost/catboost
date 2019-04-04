@@ -58,11 +58,13 @@ namespace {
             CRYPTO_set_locking_callback(LockingFunction);
 #endif 
 
+#if OPENSSL_VERSION_NUMBER < 0x10101000L
             do {
                 char buf[128];
                 EntropyPool().Load(buf, sizeof(buf));
                 RAND_seed(buf, sizeof(buf));
             } while (!RAND_status());
+#endif
         }
 
         inline ~TInitSsl() {

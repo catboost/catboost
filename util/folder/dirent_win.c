@@ -81,7 +81,7 @@ int readdir_r(struct DIR* dir, struct dirent* entry, struct dirent** result) {
     entry->d_fileno = dir->file_no++;
     entry->d_reclen = sizeof(struct dirent);
     if (dir->wfd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT &&
-        (dir->wfd.dwReserved0 & (IO_REPARSE_TAG_MOUNT_POINT | IO_REPARSE_TAG_SYMLINK)))
+        (dir->wfd.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT || dir->wfd.dwReserved0 == IO_REPARSE_TAG_SYMLINK))
     {
         entry->d_type = DT_LNK;
     } else if (dir->wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {

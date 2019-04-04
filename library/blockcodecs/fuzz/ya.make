@@ -1,13 +1,20 @@
-FUZZ()
 
 
+IF (NOT MSVC)
+    FUZZ()
 
-PEERDIR(
-    library/blockcodecs
-)
+    SIZE(MEDIUM)
 
-SRCS(
-    main.cpp
-)
+    SRCS(
+        main.cpp
+    )
 
-END()
+    PEERDIR(
+        contrib/libs/protobuf
+        contrib/libs/protobuf-mutator
+        library/blockcodecs
+        library/blockcodecs/fuzz/proto
+    )
+
+    END()
+ENDIF()

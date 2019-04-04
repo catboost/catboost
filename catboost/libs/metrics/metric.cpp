@@ -2472,8 +2472,8 @@ double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
 /* WKappa */
 
 namespace {
-    struct TWKappaMatric: public TAdditiveMetric<TWKappaMatric> {
-        explicit TWKappaMatric(int classCount = 2, double border = GetDefaultClassificationBorder())
+    struct TWKappaMetric: public TAdditiveMetric<TWKappaMetric> {
+        explicit TWKappaMetric(int classCount = 2, double border = GetDefaultClassificationBorder())
             : Border(border)
             , ClassCount(classCount) {
             UseWeights.MakeIgnored();
@@ -2501,14 +2501,14 @@ namespace {
 }
 
 THolder<IMetric> MakeBinClassWKappaMetric(double border) {
-    return MakeHolder<TWKappaMatric>(2, border);
+    return MakeHolder<TWKappaMetric>(2, border);
 }
 
 THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
-    return MakeHolder<TWKappaMatric>(classCount);
+    return MakeHolder<TWKappaMetric>(classCount);
 }
 
-TMetricHolder TWKappaMatric::EvalSingleThread(
+TMetricHolder TWKappaMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
@@ -2523,15 +2523,15 @@ TMetricHolder TWKappaMatric::EvalSingleThread(
     return CalcKappaMatrix(approx, target, begin, end, Border);
 }
 
-TString TWKappaMatric::GetDescription() const {
+TString TWKappaMetric::GetDescription() const {
     return BuildDescription(ELossFunction::WKappa, "%.3g", MakeBorderParam(Border));
 }
 
-void TWKappaMatric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
-double TWKappaMatric::GetFinalError(const TMetricHolder& error) const {
+double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
     return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
 
@@ -4028,11 +4028,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"max_pairs"};
             break;
 
-        case ELossFunction::PairLogitPairwise:
-            result.push_back(MakePairLogitMetric());
-            validParams = {"max_pairs"};
-            break;
-
         case ELossFunction::QueryRMSE:
             result.push_back(MakeQueryRMSEMetric());
             break;
@@ -4040,18 +4035,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
             validParams = {"lambda"};
-            break;
-
-        case ELossFunction::YetiRank:
-            result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
-            break;
-
-        case ELossFunction::YetiRankPairwise:
-            result.push_back(MakePFoundMetric());
-            validParams = {"decay", "permutations"};
-            CB_ENSURE(!params.contains("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::PFound: {
@@ -4269,7 +4252,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         default:
-            CB_ENSURE(false, "Unsupported loss_function: " << metric);
+            CB_ENSURE(false, "Unsupported metric: " << metric);
             return TVector<THolder<IMetric>>();
     }
 
@@ -4327,6 +4310,22 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
     return CreateMetric(metric, description.GetLossParams(), approxDimension);
 }
 
+TVector<THolder<IMetric>> CreateDefaultMetricForObjective(
+    const NCatboostOptions::TLossDescription& objective,
+    int approxDimension) {
+
+    auto defaultMetric = objective;
+    const auto lossFunction = objective.GetLossFunction();
+    if (lossFunction == ELossFunction::YetiRank || lossFunction == ELossFunction::YetiRankPairwise) {
+        defaultMetric.LossFunction = ELossFunction::PFound;
+        defaultMetric.LossParams->clear();
+    } else if (lossFunction == ELossFunction::PairLogitPairwise) {
+        defaultMetric.LossFunction = ELossFunction::PairLogit;
+        defaultMetric.LossParams->clear();
+    }
+    return CreateMetricFromDescription(defaultMetric, approxDimension);
+}
+
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
     int approxDim) {
@@ -4367,7 +4366,9 @@ TVector<THolder<IMetric>> CreateMetrics(
     }
 
     if (lossFunctionOption->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
-        TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
+        TVector<THolder<IMetric>> createdMetrics = CreateDefaultMetricForObjective(
+            lossFunctionOption,
+            approxDimension);
         for (auto& metric : createdMetrics) {
             if (!usedDescriptions.contains(metric->GetDescription())) {
                 usedDescriptions.insert(metric->GetDescription());
@@ -4626,14 +4627,14 @@ inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLos
         return;
     }
 
-    if (IsMultiDimensionalError(metric) && !IsSingleDimensionalError(metric)) {
-        CB_ENSURE(IsMultiDimensionalError(modelLoss),
+    if (IsMultiClassOnlyMetric(metric)) {
+        CB_ENSURE(IsMultiClassOnlyMetric(modelLoss),
             "Cannot use strict multiclassification and not multiclassification metrics together: "
             << "If you din't train multiclassification, use binary classification, regression or ranking metrics instead.");
     }
 
-    if (IsMultiDimensionalError(modelLoss) && !IsSingleDimensionalError(modelLoss)) {
-        CB_ENSURE(IsMultiDimensionalError(metric),
+    if (IsMultiClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsMultiDimensionalCompatibleError(metric),
             "Cannot use strict multiclassification and not multiclassification metrics together: "
             << "If you trained multiclassification, use multiclassification metrics.");
     }
@@ -4696,7 +4697,7 @@ void CheckPreprocessedTarget(
         CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
     }
 
-    if (IsMultiClassMetric(lossFunction) && !IsBinaryClassMetric(lossFunction)) {
+    if (IsMultiClassOnlyMetric(lossFunction)) {
         CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }),
                   "metric/loss-function " << lossFunction << " is a Multiclassification metric, "
                   " each target label should be a nonnegative integer");

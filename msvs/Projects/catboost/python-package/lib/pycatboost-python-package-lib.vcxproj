@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/1.0.2/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/python/numpy/numpy/core/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/1.1.1/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/python/numpy/numpy/core/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -113,7 +113,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/1.1.1/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -124,7 +124,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/1.0.2/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/1.1.1/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_9ec359c47b192ab4e06590020f.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -446,7 +446,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -457,7 +457,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "catboost._catboost" "--init-suffix" "8catboost9_catboost" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=catboost/python-package/catboost/_catboost.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -541,6 +541,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
       <Project>{E83B3FB9-9F00-AC47-8D5D-2028D57A073D}</Project>
@@ -707,17 +710,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
       <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\crypto\openssl-1.0.2-crypto.vcxproj">
-      <Project>{A1E003AE-3635-24E8-DA15-CEABED502888}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.1.1\crypto\openssl-1.1.1-crypto.vcxproj">
+      <Project>{1419A768-A5BB-8A88-DF77-0FF665629580}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\libs-openssl-1.0.2.vcxproj">
-      <Project>{56BB62E6-6261-E370-0D95-9200EBF1F153}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.1.1\libs-openssl-1.1.1.vcxproj">
+      <Project>{0A0620BB-95B8-14B8-87D4-FB0B56749969}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\pylibs-python-Include.vcxproj">
+      <Project>{8E24FF07-6DF8-0FC3-F441-862B08F7F40E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
       <Project>{FAF7DF94-9999-63CD-ABB9-ED295B68DFD7}</Project>
@@ -920,11 +926,26 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
+      <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
       <Project>{37AC15B4-A170-D4C8-25DC-6474572B40BA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
+      <Project>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\uuid\python-symbols-uuid.vcxproj">
+      <Project>{EDB0FDCB-BB9D-C1F0-4E99-99941382FCC0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>

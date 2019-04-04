@@ -1,0 +1,10 @@
+syntax="proto3";
+
+package NBlockCodecs.NFuzz;
+
+message TPackUnpackCase {
+    bool Packed         = 1;
+    uint32 BufferLength = 2;
+    string CodecName    = 3;
+    bytes Data          = 4;
+}

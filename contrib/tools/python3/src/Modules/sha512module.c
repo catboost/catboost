@@ -493,12 +493,12 @@ SHA512Type_copy_impl(SHAobject *self)
 /*[clinic input]
 SHA512Type.digest
 
-Return the digest value as a string of binary data.
+Return the digest value as a bytes object.
 [clinic start generated code]*/
 
 static PyObject *
 SHA512Type_digest_impl(SHAobject *self)
-/*[clinic end generated code: output=1080bbeeef7dde1b input=60c2cede9e023018]*/
+/*[clinic end generated code: output=1080bbeeef7dde1b input=f6470dd359071f4b]*/
 {
     unsigned char digest[SHA_DIGESTSIZE];
     SHAobject temp;
@@ -548,13 +548,8 @@ SHA512Type_update(SHAobject *self, PyObject *obj)
     sha512_update(self, buf.buf, buf.len);
 
     PyBuffer_Release(&buf);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
-/*[clinic input]
-dump buffer
-[clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=524ce2e021e4eba6]*/
 
 static PyMethodDef SHA_methods[] = {
     SHA512TYPE_COPY_METHODDEF
@@ -599,7 +594,7 @@ static PyMemberDef SHA_members[] = {
 static PyTypeObject SHA384type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_sha512.sha384",   /*tp_name*/
-    sizeof(SHAobject),  /*tp_size*/
+    sizeof(SHAobject),  /*tp_basicsize*/
     0,                  /*tp_itemsize*/
     /* methods */
     SHA512_dealloc,     /*tp_dealloc*/
@@ -633,7 +628,7 @@ static PyTypeObject SHA384type = {
 static PyTypeObject SHA512type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_sha512.sha512",   /*tp_name*/
-    sizeof(SHAobject),  /*tp_size*/
+    sizeof(SHAobject),  /*tp_basicsize*/
     0,                  /*tp_itemsize*/
     /* methods */
     SHA512_dealloc,     /*tp_dealloc*/
@@ -747,11 +742,6 @@ _sha512_sha384_impl(PyObject *module, PyObject *string)
     return (PyObject *)new;
 }
 
-
-/*[clinic input]
-dump buffer
-[clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=524ce2e021e4eba6]*/
 
 /* List of functions exported by this module */
 

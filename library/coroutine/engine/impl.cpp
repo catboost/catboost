@@ -19,9 +19,9 @@ TContRep::TContRep(TContStackAllocator* alloc)
     : real(alloc->Allocate())
     , full((char*)real->Data(), real->Length())
 #if defined(STACK_GROW_DOWN)
-    , stack(full.Data(), EffectiveStackLength(full.Size()))
-    , cont(stack.End(), Align(sizeof(TCont)))
-    , machine(cont.End(), Align(sizeof(TExceptionSafeContext)))
+    , stack(full.data(), EffectiveStackLength(full.size()))
+    , cont(stack.end(), Align(sizeof(TCont)))
+    , machine(cont.end(), Align(sizeof(TExceptionSafeContext)))
 #else
 #error todo
 #endif

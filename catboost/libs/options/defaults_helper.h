@@ -26,7 +26,7 @@ inline void UpdateCtrsTargetBordersOption(ELossFunction lossFunction, ui32 appro
                 if (!borderCountOption.IsSet()) {
                     if (commonBorderCountOption.IsSet()) {
                         borderCountOption.Set(commonBorderCountOption.Get());
-                    } else if (IsMultiClassMetric(lossFunction)) {
+                    } else if (IsMultiClassOnlyMetric(lossFunction)) {
                         borderCountOption.Set(approxDim - 1);
                     }
                 }
@@ -56,7 +56,7 @@ inline void UpdateLearningRate(ui32 learnObjectCount, bool useBestModel, NCatboo
     const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
     const bool doUpdateLearningRate = (
         learningRate.NotSet() &&
-        IsBinaryClassMetric(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
+        IsBinaryClassOnlyMetric(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->L2Reg.NotSet()

@@ -217,11 +217,11 @@ namespace NNetliba_v12 {
     // We drop information about holes after some timeout.
     class TRecvCompleted {
     private:
-        enum EState { S_HOLE = 0,
-                      S_ACTIVE = 1,
-                      S_OK = 2,
-                      S_FAILED = 3,
-                      S_CANCELED = 4 };
+        enum EState { ES_HOLE = 0,
+                      ES_ACTIVE = 1,
+                      ES_OK = 2,
+                      ES_FAILED = 3,
+                      ES_CANCELED = 4 };
 
     public:
         TRecvCompleted()
@@ -245,11 +245,11 @@ namespace NNetliba_v12 {
                 if (IsInCurrent(id)) {
                     const char s = CurrentState(id);
 
-                    if (s == S_OK || s == S_FAILED || s == S_CANCELED) {
-                        *isFailed = s == S_FAILED;
-                        *isCanceled = s == S_CANCELED;
+                    if (s == ES_OK || s == ES_FAILED || s == ES_CANCELED) {
+                        *isFailed = s == ES_FAILED;
+                        *isCanceled = s == ES_CANCELED;
                         return true;
-                    } else if (s == S_HOLE || s == S_ACTIVE) {
+                    } else if (s == ES_HOLE || s == ES_ACTIVE) {
                         return false;
                     } else {
                         Y_ASSERT(false);
@@ -284,10 +284,10 @@ namespace NNetliba_v12 {
                     MaxSeenId = id - 1; // will be incremented in PushBackToCurrent
                 } else {
                     for (ui64 i = MaxSeenId + 1; i < id; ++i) { // TODO: optimize (batch)
-                        PushBackToCurrent(S_HOLE);
+                        PushBackToCurrent(ES_HOLE);
                     }
                 }
-                PushBackToCurrent(S_ACTIVE);
+                PushBackToCurrent(ES_ACTIVE);
                 Y_ASSERT(MaxSeenId == id);
                 return;
             }
@@ -304,8 +304,8 @@ namespace NNetliba_v12 {
             }
 
             if (IsInCurrent(id)) {
-                Y_ASSERT(CurrentState(id) == S_HOLE);
-                CurrentState(id) = S_ACTIVE;
+                Y_ASSERT(CurrentState(id) == ES_HOLE);
+                CurrentState(id) = ES_ACTIVE;
                 NumCurrentActive++;
 
             } else {
@@ -323,8 +323,8 @@ namespace NNetliba_v12 {
             Y_ASSERT((int)isFailed + (int)isCanceled < 2); // but we also ensure that id will be inserted only once
 
             if (IsInCurrent(id)) {
-                Y_ASSERT(CurrentState(id) == S_ACTIVE);
-                CurrentState(id) = isCanceled ? S_CANCELED : (isFailed ? S_FAILED : S_OK);
+                Y_ASSERT(CurrentState(id) == ES_ACTIVE);
+                CurrentState(id) = isCanceled ? ES_CANCELED : (isFailed ? ES_FAILED : ES_OK);
                 NumCurrentActive--;
             } else {
                 CheckedErase(&OldActive, id);
@@ -459,21 +459,21 @@ namespace NNetliba_v12 {
             if (Current.Full()) {
                 const ui64 frontId = CurrentFrontId();
                 switch (Current.Front()) {
-                    case S_HOLE:
+                    case ES_HOLE:
                         Y_ASSERT(!PrevHoles.Has(frontId));
                         CheckedInsert(&OldHoles, frontId);
                         break;
-                    case S_ACTIVE:
+                    case ES_ACTIVE:
                         CheckedInsert(&OldActive, frontId);
                         NumCurrentActive--;
                         break;
-                    case S_OK:
+                    case ES_OK:
                         break;
-                    case S_FAILED:
+                    case ES_FAILED:
                         Y_ASSERT(!PrevFailed.Has(frontId));
                         CheckedInsert(&OldFailed, frontId);
                         break;
-                    case S_CANCELED:
+                    case ES_CANCELED:
                         Y_ASSERT(!PrevCanceled.Has(frontId));
                         CheckedInsert(&OldCanceled, frontId);
                         break;
@@ -483,7 +483,7 @@ namespace NNetliba_v12 {
                 Current.PopFront();
             }
 
-            if (value == S_ACTIVE) {
+            if (value == ES_ACTIVE) {
                 NumCurrentActive++;
             }
 

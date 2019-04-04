@@ -1,3 +1,8 @@
+# Release 0.13.1
+
+## Changes:
+- Fixed a bug in shap values that was introduced in v0.13
+
 # Release 0.13
 
 ## Speedups:
@@ -21,11 +26,14 @@
   You can also try to experiment with new `leaf_estimation_backtracking` parameter.
 - Added new compare method for visualization, PR [#652](https://github.com/catboost/catboost/pull/652). Thanks [@Drakon5999](https://github.com/Drakon5999) for your contribution!
 - Implemented `__eq__` method for `CatBoost*` python classes (PR [#654](https://github.com/catboost/catboost/pull/654)). Thanks [@daskol](https://github.com/daskol) for your contribution!
+- It is now possible to output evaluation results directly to `stdout` or `stderr` in command-line CatBoost in [`calc` mode](https://catboost.ai/docs/concepts/cli-reference_calc-model.html) by specifying `stream://stdout` or `stream://stderr` in `--output-path` parameter argument. (PR [#646](https://github.com/catboost/catboost/pull/646)). Thanks [@towelenee](https://github.com/towelenee) for your contribution!
+- New loss function - [Huber](https://en.wikipedia.org/wiki/Huber_loss). Can be used as both an objective and a metric for regression. (PR [#649](https://github.com/catboost/catboost/pull/649)). Thanks [@atsky](https://github.com/atsky) for your contribution!
 
 ## Changes:
 - Changed defaults for `one_hot_max_size` training parameter for groupwise loss function training.
 - `SampleId` is the new main name for former `DocId` column in input data format (`DocId` is still supported for compatibility). Contributed by GitHub user [@daskol](https://github.com/daskol), PR [#655](https://github.com/catboost/catboost/pull/655), many thanks.
 - Improved CLI interface for cross-validation: replaced `-X/-Y` options with `--cv`, PR [#644](https://github.com/catboost/catboost/pull/644). Thanks [@tswr](https://github.com/tswr) for your pr!
+- `eval_metrics` : `eval_period` is now clipped by total number of trees in the specified interval. PR [#653](https://github.com/catboost/catboost/pull/653). Thanks [@AntPon](https://github.com/AntPon) for your contribution!
 
 ## R package:
 - Thanks to [@ws171913](https://github.com/ws171913) we made necessary changes to prepare catboost for CRAN integration, PR [#715](https://github.com/catboost/catboost/pull/715). This is in progress now.
@@ -35,6 +43,7 @@
 - We've added new tutorial for [GPU training on Google Colaboratory](https://github.com/catboost/tutorials/blob/master/tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb).
 
 We have also done a list of fixes and data check improvements.
+Thanks [@brazhenko](https://github.com/brazhenko), [@Danyago98](https://github.com/Danyago98), [@infected-mushroom](https://github.com/infected-mushroom) for your contributions.
 
 # Release 0.12.2
 ## Changes:

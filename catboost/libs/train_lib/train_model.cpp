@@ -1,13 +1,13 @@
 #include "train_model.h"
 
-#include "approx_dimension.h"
 #include "cross_validation.h"
-#include "data.h"
-#include "preprocess.h"
 
+#include <catboost/libs/algo/approx_dimension.h>
+#include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/algo/learn_context.h>
+#include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/data_new/borders_io.h>
@@ -463,6 +463,7 @@ namespace {
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+            TFeatureEstimators featureEstimators,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
             NPar::TLocalExecutor* localExecutor,
@@ -471,6 +472,7 @@ namespace {
             const TVector<TEvalResult*>& evalResultPtrs,
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory
         ) const override {
+            CB_ENSURE(featureEstimators.Empty(), "Feature calcers are not supported in CPU training yet");
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
@@ -727,6 +729,7 @@ static void TrainModel(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -755,8 +758,12 @@ static void TrainModel(
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed.Get());
 
     pools.Learn = ShuffleLearnDataIfNeeded(catBoostOptions, pools.Learn, executor, &rand);
-
     TLabelConverter labelConverter;
+
+    TFeatureEstimators featureEstimators;
+    //here we could add featureEstimators that will depend on non-quantinized data
+    //and share data with pools, otherwise float feature would be dropped
+
 
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
@@ -792,6 +799,7 @@ static void TrainModel(
         objectiveDescriptor,
         evalMetricDescriptor,
         Nothing(),
+        featureEstimators,
         std::move(trainingData),
         labelConverter,
         executor,
@@ -861,6 +869,7 @@ void TrainModel(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );
@@ -872,7 +881,12 @@ void TrainModel(
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    EGrowingPolicy growingPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowingPolicy.GetUnchecked();  // GpuOnlyOption
+    bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+    if (needFstr && ShouldSkipFstrGrowingPolicy(growingPolicy)) {
+        needFstr = false;
+        CATBOOST_INFO_LOG << "Skip fstr for " << growingPolicy << " growingPolicy" << Endl;
+    }
     bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
     if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {
         NCatboostOptions::TLossDescription modelLossDescription;
@@ -995,6 +1009,7 @@ static void ModelBasedEval(
             *learnFeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -1084,6 +1099,7 @@ void ModelBasedEval(
         *pools.Learn->MetaInfo.FeaturesLayout,
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+        catBoostOptions.DataProcessingOptions->PerFloatFeatureBinarization.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );

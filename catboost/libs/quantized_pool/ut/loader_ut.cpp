@@ -255,8 +255,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetBorders(TFloatFeatureIdx(1), {0.25f, 0.5f, 0.75f});
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(5);
@@ -370,8 +375,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -476,8 +486,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -595,8 +610,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(1), ENanMode::Min);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -701,8 +721,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(0), ENanMode::Forbidden);
             expectedData.Objects.QuantizedFeaturesInfo->SetNanMode(TFloatFeatureIdx(2), ENanMode::Forbidden);
+            expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                TVector<TExclusiveFeaturesBundle>()
+            );
             expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-                *expectedData.Objects.QuantizedFeaturesInfo
+                *expectedData.Objects.QuantizedFeaturesInfo,
+                expectedData.Objects.ExclusiveFeatureBundlesData
             );
 
             expectedData.ObjectsGrouping = TObjectsGrouping(
@@ -852,8 +877,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 srcData.PoolQuantizationSchema.NanModes[i]
             );
         }
+        expectedData.Objects.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            TVector<TExclusiveFeaturesBundle>()
+        );
         expectedData.Objects.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
-            *expectedData.Objects.QuantizedFeaturesInfo
+            *expectedData.Objects.QuantizedFeaturesInfo,
+            expectedData.Objects.ExclusiveFeatureBundlesData
         );
 
         TVector<TGroupBounds> groupsBounds;

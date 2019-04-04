@@ -33,6 +33,8 @@ public:
         , DetachSession(true)
         , CloseStreams(false)
         , ShouldCloseInput(true)
+        , InheritOutput(false)
+        , InheritError(false)
         , InputStream(nullptr)
         , OutputStream(nullptr)
         , ErrorStream(nullptr)
@@ -212,6 +214,30 @@ public:
         return *this;
     }
 
+    /**
+     * @brief set if child should inherit output handle
+     *
+     * @param inherit if child should inherit output handle
+     *
+     * @return self
+     */
+    inline TShellCommandOptions& SetInheritOutput(bool inherit) {
+        InheritOutput = inherit;
+        return *this;
+    }
+
+    /**
+     * @brief set if child should inherit stderr handle
+     *
+     * @param inherit if child should inherit error output handle
+     *
+     * @return self
+     */
+    inline TShellCommandOptions& SetInheritError(bool inherit) {
+        InheritError = inherit;
+        return *this;
+    }
+
 public:
     bool ClearSignalMask;
     bool CloseAllFdsOnExec;
@@ -222,6 +248,8 @@ public:
     bool DetachSession;
     bool CloseStreams;
     bool ShouldCloseInput;
+    bool InheritOutput;
+    bool InheritError;
     /// @todo more options
     // bool SearchPath // search exe name in $PATH
     // bool UnicodeConsole

@@ -171,11 +171,15 @@ else:
         pass
 
 def copystat(src, dst, *, follow_symlinks=True):
-    """Copy all stat info (mode bits, atime, mtime, flags) from src to dst.
+    """Copy file metadata
 
-    If the optional flag `follow_symlinks` is not set, symlinks aren't followed if and
-    only if both `src` and `dst` are symlinks.
+    Copy the permission bits, last access time, last modification time, and
+    flags from `src` to `dst`. On Linux, copystat() also copies the "extended
+    attributes" where possible. The file contents, owner, and group are
+    unaffected. `src` and `dst` are path names given as strings.
 
+    If the optional flag `follow_symlinks` is not set, symlinks aren't
+    followed if and only if both `src` and `dst` are symlinks.
     """
     def _nop(*args, ns=None, follow_symlinks=None):
         pass
@@ -243,8 +247,10 @@ def copy(src, dst, *, follow_symlinks=True):
     return dst
 
 def copy2(src, dst, *, follow_symlinks=True):
-    """Copy data and all stat info ("cp -p src dst"). Return the file's
-    destination."
+    """Copy data and metadata. Return the file's destination.
+
+    Metadata is copied with copystat(). Please see the copystat function
+    for more information.
 
     The destination may be a directory.
 
@@ -362,25 +368,27 @@ def copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2,
 # version vulnerable to race conditions
 def _rmtree_unsafe(path, onerror):
     try:
-        if os.path.islink(path):
-            # symlinks to directories are forbidden, see bug #1669
-            raise OSError("Cannot call rmtree on a symbolic link")
+        with os.scandir(path) as scandir_it:
+            entries = list(scandir_it)
     except OSError:
-        onerror(os.path.islink, path, sys.exc_info())
-        # can't continue even if onerror hook returns
-        return
-    names = []
-    try:
-        names = os.listdir(path)
-    except OSError:
-        onerror(os.listdir, path, sys.exc_info())
-    for name in names:
-        fullname = os.path.join(path, name)
+        onerror(os.scandir, path, sys.exc_info())
+        entries = []
+    for entry in entries:
+        fullname = entry.path
         try:
-            mode = os.lstat(fullname).st_mode
+            is_dir = entry.is_dir(follow_symlinks=False)
         except OSError:
-            mode = 0
-        if stat.S_ISDIR(mode):
+            is_dir = False
+        if is_dir:
+            try:
+                if entry.is_symlink():
+                    # This can only happen if someone replaces
+                    # a directory with a symlink after the call to
+                    # os.scandir or entry.is_dir above.
+                    raise OSError("Cannot call rmtree on a symbolic link")
+            except OSError:
+                onerror(os.path.islink, fullname, sys.exc_info())
+                continue
             _rmtree_unsafe(fullname, onerror)
         else:
             try:
@@ -394,22 +402,25 @@ def _rmtree_unsafe(path, onerror):
 
 # Version using fd-based APIs to protect against races
 def _rmtree_safe_fd(topfd, path, onerror):
-    names = []
     try:
-        names = os.listdir(topfd)
+        with os.scandir(topfd) as scandir_it:
+            entries = list(scandir_it)
     except OSError as err:
         err.filename = path
-        onerror(os.listdir, path, sys.exc_info())
-    for name in names:
-        fullname = os.path.join(path, name)
+        onerror(os.scandir, path, sys.exc_info())
+        return
+    for entry in entries:
+        fullname = os.path.join(path, entry.name)
         try:
-            orig_st = os.stat(name, dir_fd=topfd, follow_symlinks=False)
-            mode = orig_st.st_mode
+            is_dir = entry.is_dir(follow_symlinks=False)
+            if is_dir:
+                orig_st = entry.stat(follow_symlinks=False)
+                is_dir = stat.S_ISDIR(orig_st.st_mode)
         except OSError:
-            mode = 0
-        if stat.S_ISDIR(mode):
+            is_dir = False
+        if is_dir:
             try:
-                dirfd = os.open(name, os.O_RDONLY, dir_fd=topfd)
+                dirfd = os.open(entry.name, os.O_RDONLY, dir_fd=topfd)
             except OSError:
                 onerror(os.open, fullname, sys.exc_info())
             else:
@@ -417,14 +428,14 @@ def _rmtree_safe_fd(topfd, path, onerror):
                     if os.path.samestat(orig_st, os.fstat(dirfd)):
                         _rmtree_safe_fd(dirfd, fullname, onerror)
                         try:
-                            os.rmdir(name, dir_fd=topfd)
+                            os.rmdir(entry.name, dir_fd=topfd)
                         except OSError:
                             onerror(os.rmdir, fullname, sys.exc_info())
                     else:
                         try:
                             # This can only happen if someone replaces
                             # a directory with a symlink after the call to
-                            # stat.S_ISDIR above.
+                            # os.scandir or stat.S_ISDIR above.
                             raise OSError("Cannot call rmtree on a symbolic "
                                           "link")
                         except OSError:
@@ -433,13 +444,13 @@ def _rmtree_safe_fd(topfd, path, onerror):
                     os.close(dirfd)
         else:
             try:
-                os.unlink(name, dir_fd=topfd)
+                os.unlink(entry.name, dir_fd=topfd)
             except OSError:
                 onerror(os.unlink, fullname, sys.exc_info())
 
 _use_fd_functions = ({os.open, os.stat, os.unlink, os.rmdir} <=
                      os.supports_dir_fd and
-                     os.listdir in os.supports_fd and
+                     os.scandir in os.supports_fd and
                      os.stat in os.supports_follow_symlinks)
 
 def rmtree(path, ignore_errors=False, onerror=None):
@@ -491,6 +502,14 @@ def rmtree(path, ignore_errors=False, onerror=None):
         finally:
             os.close(fd)
     else:
+        try:
+            if os.path.islink(path):
+                # symlinks to directories are forbidden, see bug #1669
+                raise OSError("Cannot call rmtree on a symbolic link")
+        except OSError:
+            onerror(os.path.islink, path, sys.exc_info())
+            # can't continue even if onerror hook returns
+            return
         return _rmtree_unsafe(path, onerror)
 
 # Allow introspection of whether or not the hardening against symlink
@@ -786,7 +805,7 @@ def make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0,
     try:
         format_info = _ARCHIVE_FORMATS[format]
     except KeyError:
-        raise ValueError("unknown archive format '%s'" % format)
+        raise ValueError("unknown archive format '%s'" % format) from None
 
     func = format_info[0]
     for arg, val in format_info[1]:
@@ -958,11 +977,14 @@ def unpack_archive(filename, extract_dir=None, format=None):
     if extract_dir is None:
         extract_dir = os.getcwd()
 
+    extract_dir = os.fspath(extract_dir)
+    filename = os.fspath(filename)
+
     if format is not None:
         try:
             format_info = _UNPACK_FORMATS[format]
         except KeyError:
-            raise ValueError("Unknown unpack format '{0}'".format(format))
+            raise ValueError("Unknown unpack format '{0}'".format(format)) from None
 
         func = format_info[1]
         func(filename, extract_dir, **dict(format_info[2]))

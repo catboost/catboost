@@ -1,6 +1,6 @@
 # Adding custom per-object metric tutorial
 
-If you want to add a metric to observe, to use overfitting datector or to choose best model,
+If you want to add a metric to observe, to use overfitting detector or to choose best model,
 all you need is to implement method `Eval` of the class `TUserDefinedPerObjectMetric`.
 These method has the following parameters:
     * `approx` - is the vector of values of the target function for objects.

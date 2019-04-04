@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/openssl/1.0.2/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/openssl/1.1.1/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -134,6 +134,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
+      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
@@ -282,11 +285,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
       <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\crypto\openssl-1.0.2-crypto.vcxproj">
-      <Project>{A1E003AE-3635-24E8-DA15-CEABED502888}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.1.1\crypto\openssl-1.1.1-crypto.vcxproj">
+      <Project>{1419A768-A5BB-8A88-DF77-0FF665629580}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.0.2\libs-openssl-1.0.2.vcxproj">
-      <Project>{56BB62E6-6261-E370-0D95-9200EBF1F153}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\1.1.1\libs-openssl-1.1.1.vcxproj">
+      <Project>{0A0620BB-95B8-14B8-87D4-FB0B56749969}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
@@ -437,6 +440,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
+      <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>

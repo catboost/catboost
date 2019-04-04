@@ -62,17 +62,17 @@ static void GenerateYetiRankPairsForQuery(
     }
 }
 
-static void UpdatePairsForYetiRank(
-    const TVector<double>& approxes,
-    const TVector<float>& relevances,
+void UpdatePairsForYetiRank(
+    TConstArrayRef<double> approxes,
+    TConstArrayRef<float> relevances,
     int queryInfoSize,
-    const NCatboostOptions::TCatBoostOptions& params,
+    const NCatboostOptions::TLossDescription& lossDescription,
     ui64 randomSeed,
     TVector<TQueryInfo>* queriesInfo,
     NPar::TLocalExecutor* localExecutor
 ) {
-    const int permutationCount = NCatboostOptions::GetYetiRankPermutations(params.LossFunctionDescription);
-    const double decaySpeed = NCatboostOptions::GetYetiRankDecay(params.LossFunctionDescription);
+    const int permutationCount = NCatboostOptions::GetYetiRankPermutations(lossDescription);
+    const double decaySpeed = NCatboostOptions::GetYetiRankDecay(lossDescription);
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, queryInfoSize);
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
@@ -113,7 +113,7 @@ void YetiRankRecalculation(
         bt.Approx[0],
         ff.LearnTarget,
         bt.TailQueryFinish,
-        params,
+        params.LossFunctionDescription.Get(),
         randomSeed,
         recalculatedQueriesInfo,
         localExecutor

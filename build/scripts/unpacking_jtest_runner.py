@@ -1,6 +1,7 @@
 import subprocess
 import os
 import optparse
+import zipfile
 
 
 # This script changes test run classpath by unpacking tests.jar -> tests-dir. The goal
@@ -52,7 +53,8 @@ def main():
         dest = os.path.abspath('test-classes')
 
     os.makedirs(dest)
-    subprocess.check_output([opts.jar_binary, 'xf', opts.tests_jar_path], cwd=dest)
+    with zipfile.ZipFile(opts.tests_jar_path) as zf:
+        zf.extractall(dest)
 
     # fix java classpath
     i = args.index('-classpath')

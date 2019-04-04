@@ -35,7 +35,7 @@ bool IsValidForObjectiveOrEvalMetric(
     std::function<bool(ELossFunction)> predicate);
 
 
-bool IsMultiClass(
+bool IsMultiClassOnly(
     const ELossFunction lossFunction,
     const NCatboostOptions::TMetricOptions& metricOptions);
 

@@ -198,11 +198,11 @@ namespace NPrivate {
     using TIteratorOf = typename TIteratorOfImpl<String>::type;
 
     template<class String>
-    struct TIteratorState {
+    struct TIterState {
         using TStringBufType = TStringBufOf<String>;
         using TIterator = TIteratorOf<String>;
 
-        TIteratorState(const String& string) noexcept
+        TIterState(const String& string) noexcept
             : TokS()
             , TokD()
         {
@@ -261,20 +261,31 @@ namespace NPrivate {
     };
 
     template <class Base>
-    struct TSplitRange : public Base, public TInputRangeAdaptor<TSplitRange<Base>> {
-        using TStrBuf = decltype(std::declval<Base>().Next()->Token());
+    class TSplitRange : public Base, public TInputRangeAdaptor<TSplitRange<Base>> {
+        using TStringBufType = decltype(std::declval<Base>().Next()->Token());
 
+    public:
         template <typename... Args>
         inline TSplitRange(Args&&... args)
             : Base(std::forward<Args>(args)...)
         {
         }
 
-        template <class F>
-        inline void Consume(F&& f) {
+        template <class Consumer, std::enable_if_t<std::is_same<decltype(std::declval<Consumer>()(std::declval<TStringBufType>())), void>::value, int>* = nullptr>
+        inline void Consume(Consumer&& f) {
             for (auto&& it : *this) {
                 f(it.Token());
             }
+        }
+
+        template <class Consumer, std::enable_if_t<std::is_same<decltype(std::declval<Consumer>()(std::declval<TStringBufType>())), bool>::value, int>* = nullptr>
+        inline bool Consume(Consumer&& f) {
+            for (auto&& it : *this) {
+                if (!f(it.Token())) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         template<class Container, class = std::enable_if_t<THasInsert<Container>::value || THasPushBack<Container>::value>>
@@ -374,7 +385,7 @@ namespace NPrivate {
         using TStringBufType = TStringBufOf<TStringType>;
         using TChar = typename TStringType::value_type;
         using TIterator = TIteratorOf<TStringType>;
-        using TIteratorState = TIteratorState<TStringType>;
+        using TIteratorState = TIterState<TStringType>;
 
         /**
          * Base class for all split ranges that actually does the splitting.

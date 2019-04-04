@@ -13,6 +13,7 @@ SRCS(
     data_provider.cpp
     data_provider_builders.cpp
     dsv_parser.cpp
+    exclusive_feature_bundling.cpp
     external_columns.cpp
     feature_index.cpp
     features_layout.cpp
@@ -36,6 +37,7 @@ SRCS(
 PEERDIR(
     library/dbg_output
     library/object_factory
+    library/pop_count
     library/threading/future
     library/threading/local_executor
 
@@ -44,6 +46,7 @@ PEERDIR(
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/helpers
+    catboost/libs/index_range
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options

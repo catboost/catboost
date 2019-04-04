@@ -390,7 +390,7 @@ print.catboost.Pool <- function(x, ...) {
 #' \itemize{
 #'   \item Common parameters
 #'   \itemize{
-#'     \item fold_permutation_block_size
+#'     \item fold_permutation_block
 #'
 #'       Objects in the dataset are grouped in blocks before the random permutations.
 #'       This parameter defines the size of the blocks.
@@ -1241,7 +1241,25 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       5000000
+#' 
+#'   \item dev_efb_max_buckets
 #'
+#'       CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536. 
+#'       Used only for learning speed tuning.
+#'       
+#'       Default value:
+#'
+#'       1024
+#' 
+#'   \item efb_max_conflict_fraction
+#' 
+#'      CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+#'      Should be a real value in [0, 1) interval.
+#' 
+#'      Default value:
+#' 
+#'      0.0
+#' 
 #'    \item leaf_estimation_backtracking
 #'
 #'        Type of backtracking during gradient descent.
@@ -1412,10 +1430,10 @@ catboost.save_model <- function(model, model_path) {
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0
-#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
 #' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
@@ -1472,13 +1490,13 @@ catboost.predict <- function(model, pool,
 #' }
 #'
 #' Default value: 'RawFormulaVal'
-#' @param ntree_start Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0
-#' @param ntree_end Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param eval_period Model is applyed on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+#' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 1
 #' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.

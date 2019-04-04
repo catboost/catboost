@@ -39,6 +39,7 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider* DataProvider = nullptr;
         const NCB::TTrainingDataProvider* TestDataProvider = nullptr;
+        const NCB::TFeatureEstimators* Estimators = nullptr;
         TBoostingProgressTracker* ProgressTracker = nullptr;
 
         TGpuAwareRandom& Random;
@@ -53,12 +54,15 @@ namespace NCatboostCuda {
     private:
         inline static TDocParallelDataSetsHolder CreateDocParallelDataSet(TBinarizedFeaturesManager& manager,
                                                                           const NCB::TTrainingDataProvider& dataProvider,
+                                                                          const NCB::TFeatureEstimators& estimators,
                                                                           const NCB::TTrainingDataProvider* test,
                                                                           ui32 permutationCount,
                                                                           NPar::TLocalExecutor* localExecutor) {
             TDocParallelDataSetBuilder dataSetsHolderBuilder(manager,
                                                              dataProvider,
-                                                             test);
+                                                             estimators,
+                                                             test
+                                                             );
             return dataSetsHolderBuilder.BuildDataSet(permutationCount, localExecutor);
         }
 
@@ -100,10 +104,11 @@ namespace NCatboostCuda {
             THolder<TBoostingInputData> inputData(new TBoostingInputData);
 
             inputData->DataSets = CreateDocParallelDataSet(*featureManager,
-                                                       dataProvider,
-                                                       TestDataProvider,
-                                                       permutationCount,
-                                                       LocalExecutor);
+                                                           dataProvider,
+                                                           *Estimators,
+                                                           TestDataProvider,
+                                                           permutationCount,
+                                                           LocalExecutor);
 
             for (ui32 i = 0; i < permutationCount; ++i) {
                 inputData->Targets.push_back(CreateTarget(inputData->DataSets.GetDataSetForPermutation(i)));
@@ -413,8 +418,11 @@ namespace NCatboostCuda {
 
         //TODO(noxoomo): to common with dynamic boosting superclass
         TBoosting& SetDataProvider(const NCB::TTrainingDataProvider& learnData,
-                                   const NCB::TTrainingDataProvider* testData = nullptr) {
+                                   const NCB::TFeatureEstimators& estimators,
+                                   const NCB::TTrainingDataProvider* testData = nullptr
+        ) {
             DataProvider = &learnData;
+            Estimators = &estimators;
             TestDataProvider = testData;
             return *this;
         }

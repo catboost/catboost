@@ -29,6 +29,8 @@
         "javac": { "description": "Run javac" },
         "java10": { "description": "Run java 10" },
         "javac10": { "description": "Run javac 10" },
+        "java11": { "description": "Run java 11" },
+        "javac11": { "description": "Run javac 11" },
         "jar": {"description": "Run jar" },
         "jq": {"description": "Run jq" },
         "vim": { "description": "Run vim" },
@@ -74,7 +76,8 @@
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
         "sandboxctl": { "description": "Tool to run tasks in Sandbox" },
-        "golangci-lint": { "description": "Linters Runner for Go" }
+        "golangci-lint": { "description": "Linters Runner for Go" },
+        "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -555,6 +558,36 @@
                 "gcc_version": "7.0"
             }
         },
+        "clang7-windows": {
+            "name": "clang7",
+            "tools": {
+                "c++": { "bottle": "clang7", "executable": "c++" },
+                "c++filt": { "bottle": "clang7", "executable": "c++filt" },
+                "cc": { "bottle": "clang7", "executable": "cc" },
+                "clang-format": { "bottle": "clang7", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang7", "executable": "clang-tidy" },
+                "gcov": { "bottle": "clang7", "executable": "gcov" },
+                "llvm-cov": { "bottle": "clang7", "executable": "llvm-cov" },
+                "llvm-profdata": { "bottle": "clang7", "executable": "llvm-profdata" },
+                "llvm-symbolizer": { "bottle": "clang7", "executable": "llvm-symbolizer" },
+                "nm": { "bottle": "clang7", "executable": "nm" },
+                "strip": { "bottle": "clang7", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "x86_64"}}
+            ],
+            "params": {
+                "type": "msvc",
+                "use_clang": true,
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang-cl",
+                "cxx_compiler": "$(CLANG)/bin/clang-cl",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "wine": "yes",
+                "version": "2017"
+            }
+        },
         "clang6-android-x86": {
             "name": "clang6",
             "tools": {
@@ -836,6 +869,18 @@
                 "javac10": {  "bottle": "jdk10", "executable": "javac10" },
                 "java10": {  "bottle": "jdk10", "executable": "java10" },
                 "jar10": {  "bottle": "jdk10", "executable": "jar10" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
+        "jdk11": {
+            "tools": {
+                "javac11": {  "bottle": "jdk11", "executable": "javac11" },
+                "java11": {  "bottle": "jdk11", "executable": "java11" },
+                "jar11": {  "bottle": "jdk11", "executable": "jar11" }
             },
             "platforms": [
                   {"host": {"os": "LINUX"}, "default": true},
@@ -1321,12 +1366,12 @@
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
-        "golang_1_11": {
+        "golang_1_12": {
             "tools": {
-                "golang": {"bottle": "golang_1.11.4",  "executable": "golang"},
-                "go": {"bottle": "golang_1.11.4",  "executable": "go"},
-                "godoc": {"bottle": "golang_1.11.4",  "executable": "godoc"},
-                "gofmt": {"bottle": "golang_1.11.4",  "executable": "gofmt"}
+                "golang": {"bottle": "golang_1.12.1",  "executable": "golang"},
+                "go": {"bottle": "golang_1.12.1",  "executable": "go"},
+                "godoc": {"bottle": "golang_1.12.1",  "executable": "godoc"},
+                "gofmt": {"bottle": "golang_1.12.1",  "executable": "gofmt"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1335,8 +1380,18 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.11.4"
+                "version": "1.12.1"
             }
+        },
+        "yfm": {
+            "tools": {
+                "yfm": { "bottle": "yfm", "executable": "yfm" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -1360,7 +1415,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [394852894],
+                "sandbox_id": [407237113],
                 "match": "ymake"
             },
             "executable": {
@@ -1378,7 +1433,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": [381389509],
+                "sandbox_id": [405318190],
                 "match": "test_tool"
             },
             "executable": {
@@ -1396,7 +1451,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [397068943],
+                "sandbox_id": [404316948],
                 "match": "arc"
             },
             "executable": {
@@ -1405,7 +1460,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [397688085, 397688088],
+                "sandbox_id": [401268832, 401268847],
                 "match": "yo"
             },
             "executable": {
@@ -1441,7 +1496,7 @@
         },
         "hg": {
             "formula": {
-                "sandbox_id": [384697982, 384698485, 386697305],
+                "sandbox_id": [384697982, 384698485, 402625890],
                 "match": "Hg"
             },
             "executable": {
@@ -1495,6 +1550,17 @@
                 "javac10": ["bin", "javac"],
                 "java10": ["bin", "java"],
                 "jar10": ["bin", "jar"]
+            }
+        },
+        "jdk11": {
+            "formula": {
+                "sandbox_id": [365362175, 365387897, 365361227],
+                "match": "jdk"
+            },
+            "executable": {
+                "javac11": ["bin", "javac"],
+                "java11": ["bin", "java"],
+                "jar11": ["bin", "jar"]
             }
         },
         "clang50": {
@@ -1648,19 +1714,19 @@
         },
         "kythe": {
             "formula": {
-                "sandbox_id": [139901740],
+                "sandbox_id": [377918568],
                 "match": "KYTHE"
             }
         },
         "kythe_to_proto": {
             "formula": {
-                "sandbox_id": [239255977],
+                "sandbox_id": [403346294],
                 "match": "KYTHETOPROTO"
             }
         },
         "scriptgen": {
             "formula": {
-                "sandbox_id": [291001750],
+                "sandbox_id": [406604422],
                 "match": "SCRIPTGEN"
             }
         },
@@ -1832,7 +1898,7 @@
         },
         "yp-util": {
             "formula": {
-                "sandbox_id":  [366900797],
+                "sandbox_id":  [401046412],
                 "match": "yp_util"
             },
             "executable": {
@@ -2174,15 +2240,25 @@
                 "crypta": ["crypta"]
             }
         },
-        "golang_1.11.4": {
+        "golang_1.12.1": {
             "formula": {
-                "sandbox_id": [349285347, 349286461, 349287209],
+                "sandbox_id": [395556923, 395557858, 395559432],
                 "match": "GOLANG"
             },
             "executable": {
                 "go": ["bin", "go"],
                 "godoc": ["bin", "godoc"],
                 "gofmt": ["bin", "gofmt"]
+            }
+        },
+        "yfm": {
+            "formula": {
+                "sandbox_id": [407397469, 407398241, 407398546],
+                "match": "YFM"
+
+            },
+            "executable": {
+                "yfm": ["yfm-transform"]
             }
         }
     }

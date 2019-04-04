@@ -189,8 +189,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
             dataColumns,
             ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
-            featureId,
-            nullptr);
+            featureId);
 
         metaInfo.HasTarget = targetParam != R_NilValue;
         metaInfo.BaselineCount = baselineColumns;

@@ -35,11 +35,11 @@ bool IsValidForObjectiveOrEvalMetric(
 }
 
 
-bool IsMultiClass(
+bool IsMultiClassOnly(
     const ELossFunction lossFunction,
     const NCatboostOptions::TMetricOptions& metricOptions)
 {
-    return IsValidForObjectiveOrEvalMetric(lossFunction, metricOptions, IsMultiClassMetric);
+    return IsValidForObjectiveOrEvalMetric(lossFunction, metricOptions, IsMultiClassOnlyMetric);
 }
 
 

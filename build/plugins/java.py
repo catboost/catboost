@@ -98,6 +98,7 @@ def onjava_module(unit, *args):
         'IDEA_EXCLUDE': extract_macro_calls(unit, 'IDEA_EXCLUDE_DIRS_VALUE', args_delim),
         'IDEA_RESOURCE': extract_macro_calls(unit, 'IDEA_RESOURCE_DIRS_VALUE', args_delim),
         'GENERATE_SCRIPT': extract_macro_calls2(unit, 'GENERATE_SCRIPT_VALUE'),
+        'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
     }
 
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':

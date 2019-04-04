@@ -88,6 +88,7 @@ namespace NCatboostOptions {
 
         TOption<ui32> MaxTensorComplexity;
         TOption<ui32> OneHotMaxSize;
+        ui32 OneHotMaxSizeLimit;
         TOption<ECounterCalc> CounterCalcMethod;
 
         TCpuOnlyOption<bool> StoreAllSimpleCtrs;

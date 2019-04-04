@@ -13,11 +13,65 @@ PyAPI_FUNC(wchar_t *) Py_DecodeLocale(
 PyAPI_FUNC(char*) Py_EncodeLocale(
     const wchar_t *text,
     size_t *error_pos);
+
+PyAPI_FUNC(char*) _Py_EncodeLocaleRaw(
+    const wchar_t *text,
+    size_t *error_pos);
+#endif
+
+#ifdef Py_BUILD_CORE
+PyAPI_FUNC(int) _Py_DecodeUTF8Ex(
+    const char *arg,
+    Py_ssize_t arglen,
+    wchar_t **wstr,
+    size_t *wlen,
+    const char **reason,
+    int surrogateescape);
+
+PyAPI_FUNC(int) _Py_EncodeUTF8Ex(
+    const wchar_t *text,
+    char **str,
+    size_t *error_pos,
+    const char **reason,
+    int raw_malloc,
+    int surrogateescape);
+
+PyAPI_FUNC(wchar_t*) _Py_DecodeUTF8_surrogateescape(
+    const char *arg,
+    Py_ssize_t arglen);
+
+PyAPI_FUNC(int) _Py_DecodeLocaleEx(
+    const char *arg,
+    wchar_t **wstr,
+    size_t *wlen,
+    const char **reason,
+    int current_locale,
+    int surrogateescape);
+
+PyAPI_FUNC(int) _Py_EncodeLocaleEx(
+    const wchar_t *text,
+    char **str,
+    size_t *error_pos,
+    const char **reason,
+    int current_locale,
+    int surrogateescape);
 #endif
 
 #ifndef Py_LIMITED_API
-
 PyAPI_FUNC(PyObject *) _Py_device_encoding(int);
+
+#if defined(MS_WINDOWS) || defined(__APPLE__)
+    /* On Windows, the count parameter of read() is an int (bpo-9015, bpo-9611).
+       On macOS 10.13, read() and write() with more than INT_MAX bytes
+       fail with EINVAL (bpo-24658). */
+#   define _PY_READ_MAX  INT_MAX
+#   define _PY_WRITE_MAX INT_MAX
+#else
+    /* write() should truncate the input to PY_SSIZE_T_MAX bytes,
+       but it's safer to do it ourself to have a portable behaviour */
+#   define _PY_READ_MAX  PY_SSIZE_T_MAX
+#   define _PY_WRITE_MAX PY_SSIZE_T_MAX
+#endif
 
 #ifdef MS_WINDOWS
 struct _Py_stat_struct {
@@ -111,6 +165,9 @@ PyAPI_FUNC(int) _Py_get_inheritable(int fd);
 PyAPI_FUNC(int) _Py_set_inheritable(int fd, int inheritable,
                                     int *atomic_flag_works);
 
+PyAPI_FUNC(int) _Py_set_inheritable_async_safe(int fd, int inheritable,
+                                               int *atomic_flag_works);
+
 PyAPI_FUNC(int) _Py_dup(int fd);
 
 #ifndef MS_WINDOWS
@@ -119,7 +176,23 @@ PyAPI_FUNC(int) _Py_get_blocking(int fd);
 PyAPI_FUNC(int) _Py_set_blocking(int fd, int blocking);
 #endif   /* !MS_WINDOWS */
 
+PyAPI_FUNC(int) _Py_GetLocaleconvNumeric(
+    PyObject **decimal_point,
+    PyObject **thousands_sep,
+    const char **grouping);
+
 #endif   /* Py_LIMITED_API */
+
+#ifdef Py_BUILD_CORE
+PyAPI_FUNC(int) _Py_GetForceASCII(void);
+
+/* Reset "force ASCII" mode (if it was initialized).
+
+   This function should be called when Python changes the LC_CTYPE locale,
+   so the "force ASCII" mode can be detected again on the new locale
+   encoding. */
+PyAPI_FUNC(void) _Py_ResetForceASCII(void);
+#endif
 
 #ifdef __cplusplus
 }

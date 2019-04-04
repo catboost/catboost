@@ -91,18 +91,18 @@ PyDoc_STRVAR(_io__Buffered_peek__doc__,
 "\n");
 
 #define _IO__BUFFERED_PEEK_METHODDEF    \
-    {"peek", (PyCFunction)_io__Buffered_peek, METH_VARARGS, _io__Buffered_peek__doc__},
+    {"peek", (PyCFunction)_io__Buffered_peek, METH_FASTCALL, _io__Buffered_peek__doc__},
 
 static PyObject *
 _io__Buffered_peek_impl(buffered *self, Py_ssize_t size);
 
 static PyObject *
-_io__Buffered_peek(buffered *self, PyObject *args)
+_io__Buffered_peek(buffered *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_ssize_t size = 0;
 
-    if (!PyArg_ParseTuple(args, "|n:peek",
+    if (!_PyArg_ParseStack(args, nargs, "|n:peek",
         &size)) {
         goto exit;
     }
@@ -118,19 +118,19 @@ PyDoc_STRVAR(_io__Buffered_read__doc__,
 "\n");
 
 #define _IO__BUFFERED_READ_METHODDEF    \
-    {"read", (PyCFunction)_io__Buffered_read, METH_VARARGS, _io__Buffered_read__doc__},
+    {"read", (PyCFunction)_io__Buffered_read, METH_FASTCALL, _io__Buffered_read__doc__},
 
 static PyObject *
 _io__Buffered_read_impl(buffered *self, Py_ssize_t n);
 
 static PyObject *
-_io__Buffered_read(buffered *self, PyObject *args)
+_io__Buffered_read(buffered *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_ssize_t n = -1;
 
-    if (!PyArg_ParseTuple(args, "|O&:read",
-        _PyIO_ConvertSsize_t, &n)) {
+    if (!_PyArg_ParseStack(args, nargs, "|O&:read",
+        _Py_convert_optional_to_ssize_t, &n)) {
         goto exit;
     }
     return_value = _io__Buffered_read_impl(self, n);
@@ -140,23 +140,24 @@ exit:
 }
 
 PyDoc_STRVAR(_io__Buffered_read1__doc__,
-"read1($self, size, /)\n"
+"read1($self, size=-1, /)\n"
 "--\n"
 "\n");
 
 #define _IO__BUFFERED_READ1_METHODDEF    \
-    {"read1", (PyCFunction)_io__Buffered_read1, METH_O, _io__Buffered_read1__doc__},
+    {"read1", (PyCFunction)_io__Buffered_read1, METH_FASTCALL, _io__Buffered_read1__doc__},
 
 static PyObject *
 _io__Buffered_read1_impl(buffered *self, Py_ssize_t n);
 
 static PyObject *
-_io__Buffered_read1(buffered *self, PyObject *arg)
+_io__Buffered_read1(buffered *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
-    Py_ssize_t n;
+    Py_ssize_t n = -1;
 
-    if (!PyArg_Parse(arg, "n:read1", &n)) {
+    if (!_PyArg_ParseStack(args, nargs, "|n:read1",
+        &n)) {
         goto exit;
     }
     return_value = _io__Buffered_read1_impl(self, n);
@@ -233,19 +234,19 @@ PyDoc_STRVAR(_io__Buffered_readline__doc__,
 "\n");
 
 #define _IO__BUFFERED_READLINE_METHODDEF    \
-    {"readline", (PyCFunction)_io__Buffered_readline, METH_VARARGS, _io__Buffered_readline__doc__},
+    {"readline", (PyCFunction)_io__Buffered_readline, METH_FASTCALL, _io__Buffered_readline__doc__},
 
 static PyObject *
 _io__Buffered_readline_impl(buffered *self, Py_ssize_t size);
 
 static PyObject *
-_io__Buffered_readline(buffered *self, PyObject *args)
+_io__Buffered_readline(buffered *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     Py_ssize_t size = -1;
 
-    if (!PyArg_ParseTuple(args, "|O&:readline",
-        _PyIO_ConvertSsize_t, &size)) {
+    if (!_PyArg_ParseStack(args, nargs, "|O&:readline",
+        _Py_convert_optional_to_ssize_t, &size)) {
         goto exit;
     }
     return_value = _io__Buffered_readline_impl(self, size);
@@ -260,19 +261,19 @@ PyDoc_STRVAR(_io__Buffered_seek__doc__,
 "\n");
 
 #define _IO__BUFFERED_SEEK_METHODDEF    \
-    {"seek", (PyCFunction)_io__Buffered_seek, METH_VARARGS, _io__Buffered_seek__doc__},
+    {"seek", (PyCFunction)_io__Buffered_seek, METH_FASTCALL, _io__Buffered_seek__doc__},
 
 static PyObject *
 _io__Buffered_seek_impl(buffered *self, PyObject *targetobj, int whence);
 
 static PyObject *
-_io__Buffered_seek(buffered *self, PyObject *args)
+_io__Buffered_seek(buffered *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *targetobj;
     int whence = 0;
 
-    if (!PyArg_ParseTuple(args, "O|i:seek",
+    if (!_PyArg_ParseStack(args, nargs, "O|i:seek",
         &targetobj, &whence)) {
         goto exit;
     }
@@ -288,18 +289,18 @@ PyDoc_STRVAR(_io__Buffered_truncate__doc__,
 "\n");
 
 #define _IO__BUFFERED_TRUNCATE_METHODDEF    \
-    {"truncate", (PyCFunction)_io__Buffered_truncate, METH_VARARGS, _io__Buffered_truncate__doc__},
+    {"truncate", (PyCFunction)_io__Buffered_truncate, METH_FASTCALL, _io__Buffered_truncate__doc__},
 
 static PyObject *
 _io__Buffered_truncate_impl(buffered *self, PyObject *pos);
 
 static PyObject *
-_io__Buffered_truncate(buffered *self, PyObject *args)
+_io__Buffered_truncate(buffered *self, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     PyObject *pos = Py_None;
 
-    if (!PyArg_UnpackTuple(args, "truncate",
+    if (!_PyArg_UnpackStack(args, nargs, "truncate",
         0, 1,
         &pos)) {
         goto exit;
@@ -475,4 +476,4 @@ _io_BufferedRandom___init__(PyObject *self, PyObject *args, PyObject *kwargs)
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=a956f394ecde4cf9 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=9a20dd4eaabb5d58 input=a9049054013a1b77]*/

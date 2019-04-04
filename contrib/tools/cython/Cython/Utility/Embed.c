@@ -4,7 +4,11 @@
 #include <floatingpoint.h>
 #endif
 
+#if PY_MAJOR_VERSION < 3
 void Py_InitArgcArgv(int argc, char **argv);
+#else
+void Py_InitArgcArgv(int argc, wchar_t **argv);
+#endif
 
 #if PY_MAJOR_VERSION < 3
 int %(main_method)s(int argc, char** argv) {

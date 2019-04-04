@@ -64,7 +64,7 @@ multiprocessing_closesocket(PyObject *self, PyObject *args)
     Py_END_ALLOW_THREADS
 
     if (ret)
-        return PyErr_SetExcFromWindowsErr(PyExc_IOError, WSAGetLastError());
+        return PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
     Py_RETURN_NONE;
 }
 
@@ -88,7 +88,7 @@ multiprocessing_recv(PyObject *self, PyObject *args)
 
     if (nread < 0) {
         Py_DECREF(buf);
-        return PyErr_SetExcFromWindowsErr(PyExc_IOError, WSAGetLastError());
+        return PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
     }
     _PyBytes_Resize(&buf, nread);
     return buf;
@@ -112,7 +112,7 @@ multiprocessing_send(PyObject *self, PyObject *args)
 
     PyBuffer_Release(&buf);
     if (ret < 0)
-        return PyErr_SetExcFromWindowsErr(PyExc_IOError, WSAGetLastError());
+        return PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
     return PyLong_FromLong(ret);
 }
 
@@ -171,8 +171,11 @@ PyInit__multiprocessing(void)
     {
         PyObject *py_sem_value_max;
         /* Some systems define SEM_VALUE_MAX as an unsigned value that
-         * causes it to be negative when used as an int (NetBSD). */
-        if ((int)(SEM_VALUE_MAX) < 0)
+         * causes it to be negative when used as an int (NetBSD).
+         *
+         * Issue #28152: Use (0) instead of 0 to fix a warning on dead code
+         * when using clang -Wunreachable-code. */
+        if ((int)(SEM_VALUE_MAX) < (0))
             py_sem_value_max = PyLong_FromLong(INT_MAX);
         else
             py_sem_value_max = PyLong_FromLong(SEM_VALUE_MAX);
