@@ -4437,6 +4437,12 @@
             "uri": "file://test.test_shrink_model_Plain_/test.eval"
         }
     ],
+    "test.test_simple_ctr": [
+        {
+            "checksum": "745086eadaa4880c3fb7ed8d6eecb1e4",
+            "uri": "file://test.test_simple_ctr/test.eval"
+        }
+    ],
     "test.test_skip_train": [
         {
             "checksum": "1c7fa1c37632c4713b5d3432b11add26",

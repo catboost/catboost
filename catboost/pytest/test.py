@@ -6621,3 +6621,30 @@ def test_mvs_bootstrap_head_frac(boosting_type):
         assert (filecmp.cmp(ref_eval_path, eval_path) is False)
 
     return [local_canonical_file(ref_eval_path)]
+
+
+def test_simple_ctr():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    simple_ctr = ','.join((
+        'Borders:TargetBorderCount=15',
+        'Buckets:TargetBorderCount=15',
+        'Borders:TargetBorderType=MinEntropy',
+        'Counter:CtrBorderCount=20',
+    ))
+    yatest.common.execute((
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'RMSE',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', 'Ordered',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--simple-ctr', simple_ctr,
+    ))
+
+    return [local_canonical_file(output_eval_path)]
