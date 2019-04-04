@@ -134,14 +134,16 @@ TVector<TVector<double>> GetFeatureImportances(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     int threadCount,
-    int logPeriod = 0);
+    int logPeriod = 0,
+    const TString& shapMode = "Auto");
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const TString& type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset,
     int threadCount,
-    int logPeriod = 0);
+    int logPeriod = 0,
+    const TString& shapMode = "Auto");
 
 
 /*

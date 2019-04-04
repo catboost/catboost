@@ -759,7 +759,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TFullModel& model,
         const TDataProviderPtr dataset,
         int threadCount,
-        int logPeriod
+        int logPeriod,
+        const TString& shapMode
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
@@ -767,7 +768,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TFullModel& model,
         const TDataProviderPtr dataset,
         int threadCount,
-        int logPeriod
+        int logPeriod,
+        const TString& shapMode
     ) nogil except +ProcessException
 
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
@@ -2481,7 +2483,7 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, [to_native_str(name) for name in metric_names]
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode="Auto"):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -2495,6 +2497,8 @@ cdef class _CatBoost:
         if pool:
             dataProviderPtr = pool.__pool
         cdef TString type_name_str = to_arcadia_string(type_name)
+        cdef TString shap_mode_str = to_arcadia_string(shap_mode)
+
         if type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
@@ -2502,7 +2506,8 @@ cdef class _CatBoost:
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
-                    verbose
+                    verbose,
+                    shap_mode_str
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         else:
@@ -2512,7 +2517,8 @@ cdef class _CatBoost:
                     dereference(self.__model),
                     dataProviderPtr,
                     thread_count,
-                    verbose
+                    verbose,
+                    shap_mode_str
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
 

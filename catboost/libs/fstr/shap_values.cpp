@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>
@@ -573,12 +574,40 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
     }
 }
 
+bool PrepareTreesCalcShapValues(
+    const TFullModel& model,
+    const TDataProvider* dataset,
+    const TString& mode
+) {
+    EPreCalcShapValues eMode = FromString<EPreCalcShapValues>(mode);
+    switch (eMode) {
+        case EPreCalcShapValues::UsePreCalc:
+            return true;
+        case EPreCalcShapValues::NoPreCalc:
+            return false;
+        case EPreCalcShapValues::Auto:
+            if (dataset==nullptr) {
+                return true;
+            } else {
+                const size_t treeCount = model.GetTreeCount();
+                double treesAverageLeafCount = 0;
+                const TObliviousTrees& forest = model.ObliviousTrees;
+                for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
+                    treesAverageLeafCount += (size_t(1) << forest.TreeSizes[treeIdx]);
+                }
+                treesAverageLeafCount /= treeCount;
+                return treesAverageLeafCount > dataset->ObjectsGrouping->GetObjectCount();
+            }
+    }
+}
+
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const TDataProvider* dataset, // can be nullptr if model has LeafWeights
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
-    bool calcInternalValues
+    bool calcInternalValues,
+    const TString& mode
 ) {
     WarnForComplexCtrs(model.ObliviousTrees);
 
@@ -599,18 +628,10 @@ TShapPreparedTrees PrepareTrees(
         leafWeights = CollectLeavesStatistics(*dataset, model, localExecutor);
     }
 
-    double treesAverageLeafCount = 0;
-    const TObliviousTrees& forest = model.ObliviousTrees;
-    for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
-        treesAverageLeafCount += (size_t(1) << forest.TreeSizes[treeIdx]);
-    }
-    treesAverageLeafCount /= treeCount;
-
     TShapPreparedTrees preparedTrees;
+    preparedTrees.CalcShapValuesByLeafForAllTrees = PrepareTreesCalcShapValues(model, dataset, mode);
 
-    preparedTrees.CalcShapValuesByLeafForAllTrees = true;
-    if (treesAverageLeafCount > dataset->ObjectsGrouping->GetObjectCount()) {
-        preparedTrees.CalcShapValuesByLeafForAllTrees = false;
+    if (!preparedTrees.CalcShapValuesByLeafForAllTrees) {
         preparedTrees.LeafWeightsForAllTrees
             = model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights;
     }
@@ -620,6 +641,7 @@ TShapPreparedTrees PrepareTrees(
     preparedTrees.MeanValuesForAllTrees.resize(treeCount);
     preparedTrees.CalcInternalValues = calcInternalValues;
 
+    const TObliviousTrees& forest = model.ObliviousTrees;
     MapBinFeaturesToClasses(
         forest,
         &preparedTrees.BinFeatureCombinationClass,
@@ -651,7 +673,10 @@ TShapPreparedTrees PrepareTrees(
     return preparedTrees;
 }
 
-TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor) {
+TShapPreparedTrees PrepareTrees(
+    const TFullModel& model,
+    NPar::TLocalExecutor* localExecutor
+) {
     CB_ENSURE(
         !model.ObliviousTrees.LeafWeights.empty(),
         "Model must have leaf weights or sample pool must be provided"
@@ -683,8 +708,8 @@ void CalcShapValuesInternalForFeature(
         localExecutor->ExecRange([&](ui32 documentIdx) {
             TVector<TVector<double>> &docShapValues = (*shapValues)[documentIdx];
             docShapValues.assign(featuresCount, TVector<double>(forest.ApproxDimension + 1, 0.0));
-            for (ui32 treeIdx = 0; treeIdx < forest.GetTreeCount(); ++treeIdx) {
-                ui32 leafIdx = CalcLeafToFallForDocument(
+            for (size_t treeIdx = 0; treeIdx < forest.GetTreeCount(); ++treeIdx) {
+                size_t leafIdx = CalcLeafToFallForDocument(
                     forest,
                     treeIdx,
                     binarizedFeaturesForBlock,
@@ -727,13 +752,16 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const TDataProvider& dataset,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor,
+    const TString& mode
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
         logPeriod,
-        localExecutor
+        localExecutor,
+        false, //default
+        mode
     );
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
@@ -773,14 +801,16 @@ TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const TDataProvider& dataset,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor,
+    const TString& mode
 ) {
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Model must not be trained for multiclassification.");
     TVector<TVector<TVector<double>>> shapValuesMulti = CalcShapValuesMulti(
         model,
         dataset,
         logPeriod,
-        localExecutor
+        localExecutor,
+        mode
     );
 
     size_t documentsCount = dataset.ObjectsGrouping->GetObjectCount();
@@ -808,13 +838,16 @@ void CalcAndOutputShapValues(
     const TDataProvider& dataset,
     const TString& outputPath,
     int logPeriod,
-    NPar::TLocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor,
+    const TString& mode
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
         logPeriod,
-        localExecutor
+        localExecutor,
+        false, //default
+        mode
     );
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
