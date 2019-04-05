@@ -7,7 +7,7 @@ DELIM = '================================'
 
 def extract_macro_calls(unit, macro_value_name):
     if not unit.get(macro_value_name):
-        return []
+        return {}
 
     def split_args(arg):
         if arg is None:
@@ -23,7 +23,15 @@ def extract_macro_calls(unit, macro_value_name):
     return dict(filter(None, map(split_args, unit.get(macro_value_name).replace('$' + macro_value_name, '').split())))
 
 
+def onprocess_docslib(unit, *args):
+    generate_dart(unit, as_lib=True)
+
+
 def onprocess_docs(unit, *args):
+    generate_dart(unit)
+
+
+def generate_dart(unit, as_lib=False):
 
     module_dir = os.path.normpath(unit.path()[3:])
     docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
@@ -46,14 +54,13 @@ def onprocess_docs(unit, *args):
 
     data = {
         'PATH': module_dir,
+        'MODULE_TAG': unit.get('MODULE_TAG'),
         'DOCSDIR': docs_dir,
         'DOCSCONFIG': docs_config,
         'DOCSVARS': extract_macro_calls(unit, 'DOCSVARS'),
+        'DOCSLIB': as_lib,
+        'PEERDIRS': [d[3:] for d in unit.get_module_dirs('PEERDIRS')],
     }
-
-    for k, v in data.items():
-        if not v:
-            data.pop(k)
 
     dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
