@@ -42,7 +42,7 @@ NULL
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
-#' If -1, then the number of threads is set to the number of cores.
+#' If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' @return catboost.Pool
 #'
@@ -1491,7 +1491,7 @@ catboost.save_model <- function(model, model_path) {
 #' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1554,7 +1554,7 @@ catboost.predict <- function(model, pool,
 #' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
 #'
 #' Default value: 1
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1637,7 +1637,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' }
 #'
 #' Default value: 'FeatureImportance'
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
@@ -1720,7 +1720,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' }
 #'
 #' Default value: 'SinglePoint'
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'

@@ -87,7 +87,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=
 
     thread_count : int, optional (default=-1)
         Number of threads to work with.
-        If -1, then the number of threads is set to the number of cores.
+        If -1, then the number of threads is set to the number of CPU cores.
 
     Returns
     -------
@@ -122,7 +122,7 @@ def get_roc_curve(model, data, thread_count=-1):
 
     thread_count : int (default=-1)
         Number of threads to work with.
-        If -1, then the number of threads is set to the number of cores.
+        If -1, then the number of threads is set to the number of CPU cores.
 
     Returns
     -------
@@ -157,7 +157,7 @@ def get_fpr_curve(model=None, data=None, curve=None, thread_count=-1):
 
     thread_count : int (default=-1)
         Number of threads to work with.
-        If -1, then the number of threads is set to the number of cores.
+        If -1, then the number of threads is set to the number of CPU cores.
 
     Returns
     -------
@@ -194,7 +194,7 @@ def get_fnr_curve(model=None, data=None, curve=None, thread_count=-1):
 
     thread_count : int (default=-1)
         Number of threads to work with.
-        If -1, then the number of threads is set to the number of cores.
+        If -1, then the number of threads is set to the number of CPU cores.
 
     Returns
     -------
@@ -237,7 +237,7 @@ def select_threshold(model=None, data=None, curve=None, FPR=None, FNR=None, thre
 
     thread_count : int (default=-1)
         Number of threads to work with.
-        If -1, then the number of threads is set to the number of cores.
+        If -1, then the number of threads is set to the number of CPU cores.
 
     Returns
     -------
